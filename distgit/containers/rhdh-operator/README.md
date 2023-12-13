@@ -1,0 +1,65 @@
+# Hybrid Helm/Golang operator for Backstage prototype
+
+> [!WARNING]
+> This project is no longer actively maintained. The repository has been archived, and its contents are available for historical and reference purposes only.
+> 
+
+
+Reconciler logic: https://github.com/operator-framework/helm-operator-plugins/blob/main/pkg/reconciler/reconciler.go
+Hybrid operators lacks documentation, see:
+
+- https://github.com/operator-framework/helm-operator-plugins/issues/136
+- https://docs.openshift.com/container-platform/4.10/operators/operator_sdk/helm/osdk-hybrid-helm.html
+
+## Setup
+
+```console
+make init
+make install
+```
+
+## Run
+
+### Containerized
+
+```console
+export IMG=quay.io/<foo>/<bar>:latest
+make podman-build
+make podman-push
+make deploy
+```
+
+### Inside OpenShift cluster using OperatorHub
+
+#### 1. build and push all images
+```console
+VERSION=0.0.1-dev1 IMG=quay.io/<username>/janus-operator:$VERSION IMAGE_TAG_BASE=quay.io/<username>/janus-operator make build-push-all
+```
+
+#### 2. add CatalogSource to OperatorHub
+```console
+./bin/kustomize build config/operator-hub/ | oc apply -f -
+```
+
+#### 3. Install RHDH-dev from OperatorHub using OpenShift Web Console
+
+### Locally
+
+```console
+export WATCH_NAMESPACE=baz
+make run
+```
+
+### in VSCode:
+
+1. Edit namespace in `.vscode/launch.json`
+2. `CTRL+SHIFT+D`, run **Launch Backstage Operator**
+
+
+## Known issues
+
+- After first sync/install (before any upgrade call or reconcile), we need to set `.upstream.postgresql.auth.existingSecret`
+
+## Extra features on top of the Helm chart
+
+- `global.clusterRouterBase` is automaticaly populated with the cluster's ingress domain.

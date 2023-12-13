@@ -1,0 +1,32 @@
+platforms:
+  only:
+  - x86_64
+
+# scratch image requires no compose
+# compose:
+#   inherit: false
+#   pulp_repos: true
+#   signing_intent: release
+
+image_build_method: imagebuilder
+
+# https://osbs.readthedocs.io/en/latest/users.html#replacing-pullspecs
+operator_manifests:
+  manifests_dir: manifests
+  enable_digest_pinning: true
+  enable_repo_replacements: true
+  enable_registry_replacements: true
+  repo_replacements:
+    - registry: registry-proxy.engineering.redhat.com
+      package_mappings:
+        # new name, 0.2+ (was rhdh-hub-rhel9-container)
+        # Invalid replacement for package rhdh-hub-container: rh-osbs/rhdh-rhdh-hub-rhel9 (choices: rhdh/rhdh-hub-rhel9)
+        rhdh-hub-container: rhdh/rhdh-hub-rhel9
+        rhdh-operator-container: rhdh/rhdh-rhel9-operator
+        postgresql-15-container: rhel9/postgresql-15
+    - registry: registry.redhat.io
+      package_mappings:
+        # new name, 0.2+ (was rhdh-hub-rhel9-container)
+        rhdh-hub-container: rhdh/rhdh-hub-rhel9
+        rhdh-operator-container: rhdh/rhdh-rhel9-operator
+        postgresql-15-container: rhel9/postgresql-15

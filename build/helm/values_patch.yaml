@@ -1,0 +1,15 @@
+upstream:
+  nameOverride: developer-hub
+  backstage:
+    image:
+      registry: registry.redhat.io
+      repository: rhdh/rhdh-hub-rhel9
+      # Tag is set via prepare.sh script
+      # tag: "${RHDH_VERSION}"
+      pullSecrets:
+        - rhdh-pull-secret
+  postgresql:
+    image:
+      registry: registry.redhat.io
+      repository: rhel9/postgresql-15
+      tag: latest

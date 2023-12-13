@@ -1,0 +1,133 @@
+Red Hat Developer Hub is an enterprise-grade, open developer platform for building developer portals, containing a supported and opinionated framework. Boosting the engineering team's productivity and increasing the competitive advantages, the Red Hat Developer Hub helps reduce frustration in the engineering team.
+
+## Dependencies
+
+The helm chart packages the following subcharts. Their respective values can be available under the subchart name key in Helm values.
+
+{{ template "chart.requirementsTable" . }}
+
+## Installation
+
+**Prerequisites**
+
+The helm chart deploys Red Hat Developer Hub and includes the following prerequisites:
+
+- You have a [Developer Sandbox subscription](https://developers.redhat.com/developer-sandbox) or a [Red Hat Developer Hub subscription](https://developers.redhat.com/products/developer-hub)
+- Kubernetes 1.19 or later is installed.
+- Helm 3.2.0 or later is installed.
+- `PersistentVolume` provisioner support in the underlying infrastructure is available.
+
+**Procedure**
+
+Before proceeding to install the chart, download a Quay.io `pullSecret` associated with your [Red Hat Developer Hub subscription](https://developers.redhat.com/products/developer-hub). The pull secret grants you access to the developer preview version of the Red Hat Developer Hub. Without Quay.io access, the helm chart will not install.
+
+1. Go to [Quay.io](https://quay.io/) and log in.
+2. Open **Account Settings** in the menu available on the top-right side.
+3. Click *Generate Encrypted Password* and repeat your password and click *Verify*
+4. Select *Kubernetes Secret* tab and view or download the secret
+5. Change the secrets `.metadata.name` to `rhdh-pull-secret`
+5. Log into your OpenShift/Kubernetes cluster and create the secret
+
+### OpenShift Helm Catalog
+
+1. Click the "Create" button at the top of the modal dialog on this page
+2. Update host settings, so Backstage can create proper connection between its frontend and backend:
+    - If you plan to use the default OpenShift router, please update:
+
+        ```yaml
+        global:
+          clusterRouterBase: apps.example.com
+        ```
+
+    - If you want to host Red Hat Developer Hub on a custom host or if you are not using OpenShift, please update:
+
+        ```yaml
+        global:
+          host: backstage.example.com
+        ```
+
+    - If you are not using OpenShift, please instruct the chart not to deploy `Route` resource and use `Ingress` instead:
+
+        ```yaml
+        route:
+          enabled: false
+        upstream:
+          ingress:
+            enabled: true
+        ```
+
+3. Update your storage preference. If you do not want persistent storage attached to the deployed database, please update:
+
+    ```yaml
+    upstream:
+      postgresql:
+        primary:
+          persistence:
+            enabled: false
+    ```
+
+### Manual installation from the Chart Repository
+
+1. Add the chart repository using the following command:
+
+    ```console
+    helm repo add openshift-helm-charts https://charts.openshift.io/
+    ```
+
+2. Download the default values and review them:
+
+    ```console
+    helm show values openshift-helm-charts/redhat-developer-hub > values.yaml
+    ```
+
+3. Perform the **required** value changes mentioned in the section [OpenShift Helm Catalog](#openshift-helm-catalog) above in steps **2** and **3**.
+4. Install the chart:
+
+    ```console
+    helm upgrade -i <release_name> -f values.yaml openshift-helm-charts/redhat-developer-hub
+    ```
+
+### Uninstalling the Chart
+
+To uninstall/delete the `<release_name>` helm release manually, run:
+
+```console
+helm uninstall <release_name>
+```
+
+{{ template "chart.valuesSection" . }}
+
+## Opinionated Backstage deployment
+
+This chart defaults to an opinionated deployment of Backstage that provides user with a usable Backstage instance out of the box.
+
+Features enabled by the default chart configuration:
+
+1. Uses **Red Hat Developer Hub** image that pre-loads a lot of useful plugins and features
+2. Exposes a `Route` for easy access to the instance
+3. Enables OpenShift-compatible PostgreSQL database storage
+
+For additional instance features please consuls **Red Hat Developer Hub documentation**.
+
+Additional features can be enabled by extending the default configuration at:
+
+```yaml
+upstream:
+  backstage:
+    appConfig:
+      # Inline app-config.yaml for the instance
+    extraEnvVars:
+      # Additional environment variables
+```
+
+## Features
+
+Red Hat Developer Hub is an opinionated deployment of [Backstage](https://backstage.io/) that provides user with a usable instance out of the box.
+
+Features enabled by the default chart configuration:
+
+1. Uses **Red Hat Developer Hub** image that pre-loads a lot of useful plugins and features
+2. Exposes a `Route` for easy access to the instance. Alternatively, allows you to expose an `Ingress` resource for non-OpenShift deployments.
+3. Enables OpenShift-certified PostgreSQL database storage.
+
+For additional instance features, see [Red Hat Developer Hub documentation](https://developers.redhat.com/products/developer-hub).

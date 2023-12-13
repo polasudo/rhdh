@@ -1,0 +1,140 @@
+sync-midstream:
+  extends: .shared_config
+  stage: sync-midstream
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+      when: never
+    - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH =~ /rhdh-[0-9.]+-rhel-9/
+    # see https://gitlab.cee.redhat.com/rhidp/cpaas-rhdh-hub/-/pipeline_schedules/1043/edit
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+  script:
+    - |
+      echo "Pipeline triggered by $CI_PIPELINE_SOURCE event"; echo
+      dnf -y -q install git
+      echo; git log --graph --pretty=format:'%Cred%h%Creset%C(yellow)%d%Creset :: %s @ %cN <%cE> (%cD - %cr)' --name-only -4; echo
+
+      # sync, build and commit changes
+      echo "Running sync-midstream.sh for $GITLAB_USER_LOGIN in branch $CI_COMMIT_REF_NAME ..."
+      ./build/ci/sync-midstream.sh -b "$CI_COMMIT_REF_NAME" --gitlab-pipeline-push || exit 15
+      echo "Committed: $CI_COMMIT_REF_NAME"
+      set -x
+      echo "Currently in $(pwd)"
+      if [[ -f /tmp/sync-midstream.sh.diff.txt ]]; then
+        mkdir -p "${CI_PROJECT_DIR}/"outputs1; touch "${CI_PROJECT_DIR}/"outputs1/sync-midstream.sh.diff.txt
+        mv /tmp/sync-midstream.sh.diff.txt "${CI_PROJECT_DIR}/"outputs1/sync-midstream.sh.diff.txt
+      elif [[ -f /tmp/sync-midstream.sh.result.txt ]]; then
+        mkdir -p "${CI_PROJECT_DIR}/"outputs1; touch "${CI_PROJECT_DIR}/"outputs1/sync-midstream.sh.result.txt
+        mv /tmp/sync-midstream.sh.result.txt "${CI_PROJECT_DIR}/"outputs1/sync-midstream.sh.result.txt
+        exit 70
+      fi
+  artifacts:
+    expire_in: 180 minutes
+    paths: [outputs1/]
+
+
+# if there's a change that we need to build
+sync-downstream:
+  extends: .shared_config
+  stage: sync-downstream
+  needs: ["sync-midstream"]
+  parallel:
+    matrix:
+      - REPO: 
+        - rhdh-hub
+        # TODO add rhdh-operator and rhdh-operator-bundle
+        # - rhdh-operator
+        # - rhdh-operator-bundle
+  script:
+    - |
+      dnf -y -q install git
+      # if sync/ folder updated, then sync to downstream
+      git pull origin || true
+      sync_check="$(git diff --name-only HEAD~1 sync/ || true; git diff --name-only HEAD~2 sync/ || true)"
+      echo "
+      =================================
+      sync check: 
+      $sync_check
+      ---
+      $(cat "${CI_PROJECT_DIR}/"outputs1/sync-midstream.sh.diff.txt)
+      ================================="
+      if [[ $sync_check ]] || [[ -f "${CI_PROJECT_DIR}/"outputs1/sync-midstream.sh.diff.txt ]]; then
+        echo; git log --graph --pretty=format:'%Cred%h%Creset%C(yellow)%d%Creset :: %s @ %cN <%cE> (%cD - %cr)' --name-only -1; echo
+        echo "Sync to downstream in branch $CI_COMMIT_REF_NAME ..."
+        ./build/ci/sync-downstream.sh -b "$CI_COMMIT_REF_NAME" -d $REPO || exit 16
+        echo "Currently in $(pwd)"
+        # store diff to be used in next stage
+        if [[ $(cat /tmp/sync-downstream.sh.diff.txt | wc -l) -gt 0 ]]; then
+          mkdir -p outputs2; touch outputs2/sync-downstream.sh.diff.txt
+          mv /tmp/sync-downstream.sh.diff.txt outputs2/sync-downstream.sh.diff.txt
+        else
+          mkdir -p outputs2; touch outputs2/sync-downstream.sh.result.txt
+          echo " 
+        ==============================================================
+        [INFO] Nothing to sync to downstream: dowstream diff is empty!
+        ==============================================================
+        " | tee outputs2/sync-downstream.sh.result.txt
+        exit 71
+        fi
+      else
+        mkdir -p outputs2; touch outputs2/sync-downstream.sh.result.txt
+        echo; git log --graph --pretty=format:'%Cred%h%Creset%C(yellow)%d%Creset :: %s @ %cN <%cE> (%cD - %cr)' --name-only -4; echo
+        echo " 
+      ==============================================================
+      [INFO] Nothing to sync to downstream: midstream diff is empty!
+      ==============================================================
+      " | tee outputs2/sync-downstream.sh.result.txt
+      exit 72
+      fi
+  artifacts:
+    expire_in: 180 minutes
+    paths: [outputs2/]
+
+
+build-downstream:
+  extends: .shared_config
+  stage: build-downstream
+  needs: ["sync-downstream"]
+  parallel:
+    matrix:
+      - REPO: 
+        - rhdh-hub
+        # TODO add rhdh-operator and rhdh-operator-bundle
+        # - rhdh-operator
+        # - rhdh-operator-bundle
+  timeout: 3 hours 3 minutes
+  script:
+    - |
+      dnf -y -q install git
+      # if sync/ folder updated, then build downstream
+      sync_check="$(git diff --name-only HEAD~1 sync/ || true; git diff --name-only HEAD~2 sync/ || true)"
+      echo "
+      =================================
+      sync check: 
+      $sync_check
+      ================================="
+      if [[ $sync_check != "" ]] || [[ -f outputs2/sync-downstream.sh.diff.txt ]] || [[ -f outputs1/sync-midstream.sh.diff.txt ]]; then
+        echo; git log --graph --pretty=format:'%Cred%h%Creset%C(yellow)%d%Creset :: %s @ %cN <%cE> (%cD - %cr)' --name-only -1; echo
+        echo "Build $REPO container from $CI_COMMIT_REF_NAME branch ..."
+        ./build/ci/build-downstream.sh -b "$CI_COMMIT_REF_NAME" -d $REPO || exit 17
+        echo "Currently in $(pwd)"
+        # store results to be used in next stage
+        mkdir -p outputs3; touch outputs3/build-downstream.sh.result.txt
+        if [[ -f /tmp/build-downstream.sh.result.txt ]]; then mv -f /tmp/build-downstream.sh.result.txt outputs3/; fi
+        cancel_or_fail="$(grep -E "State: canceled|State: failed" outputs3/build-downstream.sh.result.txt || true)"
+        if [[ $cancel_or_fail ]]; then
+          echo "OSBS Build $cancel_or_fail - must exit!"
+          exit 99
+        fi
+      else
+        mkdir -p outputs3; touch outputs3/build-downstream.sh.result.txt
+        echo; git log --graph --pretty=format:'%Cred%h%Creset%C(yellow)%d%Creset :: %s @ %cN <%cE> (%cD - %cr)' --name-only -4; echo
+        echo " 
+      ===================================
+      [INFO] Nothing to build downstream!
+      ===================================
+      " | tee -a outputs3/build-downstream.sh.result.txt
+      exit 73
+      fi
+  artifacts:
+    expire_in: 180 minutes
+    paths: [outputs3/]

@@ -1,0 +1,17 @@
+# Red Hat Developer Hub (RHDH)
+
+This product seeks to provide a productized version of Janus and Backstage, including  supported plugins from Red Hat and other vendors.
+
+## Product Pages
+
+Red hat internal product pages for RHDH can be found here:
+
+https://pp.engineering.redhat.com/pp/product/rhdh/overview
+
+## How this repo is used
+
+There are 2 sources of content for CPaaS orchestration: an upstream-to-midstream-to-downstream content generator (this repo), and the overall per-version product and release configuration (under cpaas-products). 
+
+In addition to CPaaS, builds are triggered by scheduled checks of the upstream repo, synced to this midstream, copied to downstream, and built in OSBS. Once complete, the containers are copied to Quay and a helm chart is published.
+
+See link:docs/[docs/] for details.

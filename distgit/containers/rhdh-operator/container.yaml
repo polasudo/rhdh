@@ -1,0 +1,21 @@
+platforms:
+  only:
+    - x86_64
+compose:
+  inherit: false
+  pulp_repos: true
+  signing_intent: release
+image_build_method: imagebuilder
+remote_sources:
+  - name: upstream1
+    remote_source:
+      repo: https://gitlab.cee.redhat.com/rhidp/cpaas-rhdh-hub.git
+      ref: 1bf0fa18fee6b8d1d9485756ce79e0f71b5db3cc
+      pkg_managers:
+        - gomod
+      flags:
+        - gomod-vendor-check
+      packages:
+        gomod:
+          - path: distgit/containers/rhdh-operator
+        yarn: null

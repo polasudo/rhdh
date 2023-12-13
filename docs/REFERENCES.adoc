@@ -1,0 +1,73 @@
+## Reference material
+
+Links to useful docs & guides. 
+
+Abandon all hope, ye who enter here.
+
+### CPaaS / HoneyBadger / Errata configuration guides 
+
+* link:https://cpaas.pages.redhat.com/documentation/users/getting_started.html#_the_onboarding_file[Onboarding to CPaaS] - the first steps
+* link:https://cpaas.pages.redhat.com/documentation/users/getting_started.html#delivery-model[CPaaS delivery model]  (on prem or managed service)
+* link:https://gitlab.cee.redhat.com/cpaas-products/product-configs/-/tree/main/init/[CPaaS product configuration templates] - container builds, rpm builds
+
+* link:https://exd-guild-self-service.pages.redhat.com/hb-docs/user/onboarding.html[HoneyBadger onboarding]
+* link:https://cpaas.pages.redhat.com/documentation/users/honeybadger.html#_submitting_a_merge_request_to_honeybadger[Submitting a merge request to honeybadger] - Changes to HoneyBadger pipeline configuration need to be manually built in Jenkins
+* link:https://docs.engineering.redhat.com/pages/viewpage.action?spaceKey=SP&title=CLOUDWF+-+Managing+Honey+Badger+Merge+Requests+-+Guidelines[CLOUDWF - Managing Honey Badger Merge Requests]
+
+* link:https://cpaas.pages.redhat.com/documentation/users/errata_tool/index.html[Errata Tool Integration] - for releasing your product with a security fix workflow (Freshmaker)
+
+====
+NOTE: Despite claims to the contrary, HB does NOT automate all the steps needed to add a new product, product variant, and product version into Errata. Prepare for a slow process here. Also prepare to have to beg SP staff to give you information about what they're doing and how; they seem to like to keep their cards very close to the chest. Ref: https://issues.redhat.com/browse/CWFCONF-4332, https://issues.redhat.com/browse/CWFCONF-4290 
+====
+
+
+
+#### CPaaS schemas
+
+* link:https://cpaas.pages.redhat.com/documentation/schema/product/index.html[product.yml schema]
+* link:https://cpaas.pages.redhat.com/documentation/schema/release/index.html[release.yml schema]
+
+#### CPaaS migration
+
+* link:https://cpaas.pages.redhat.com/documentation/users/cpaas_version_updates/migration.html#_from_cpaas_v8_to_cpaas_v9[Migrating to CPaaS 9]
+
+
+### PNC / NCL configuration guides - for mvn, gradle, or npm builds
+
+* link:https://docs.google.com/document/d/1y55fscXptPzfys_kxYa22LfZBBeB5265wZNs8WqUM2k/edit#heading=h.n9qws4w901cu[Node Module Productization Process - PNC Steps]
+* link:https://project-ncl.github.io/bacon/guide/build-config.html#pnc-part[Configuring PNC integration in CPaaS]
+
+NOTE: You need to have the link:PERMISSIONS.adoc[spmm-util-users] role to stage npm tarballs for publication to https://npm.registry.redhat.com/@redhat/
+
+### Container publishing guides
+
+* link:https://docs.google.com/document/d/1oLzKgCXblERauGj2r3_WI-um69jXZfZ9O8pPLambYRQ/edit#heading=h.gznx4jn2ize2[Onboarding into Comet] (internal metadata management tool for the RH Ecosystem Catalog) - this is where you enable/disable Freshmaker, add people to your team, define the names of your Product Manager (PM) and Program Manager (PgM), and compose the text that will appear in the catalog for your containers and bundles. Much of this is orchestrated by CPaaS, but some it not.
+* link:https://source.redhat.com/groups/public/container-build-system/container_build_system_wiki/new_container_image_end_to_end_workflow[New Container Image End to End Workflow]
+
+NOTE: You need access to the LDAP link:PERMISSIONS.adoc[devel group] in order to run/manage container builds locally with `rhpkg` and `brew`.
+
+#### Midstream configuration
+
+* link:https://cpaas.pages.redhat.com/documentation/users/midstream/usrc_updater.html#_update_policy[usrc updater]
+* link:https://cpaas.pages.redhat.com/documentation/users/midstream/cachito_integration.html#_enable_cachito[cachito integration]
+
+
+### Productization plan docs
+
+* link:https://docs.google.com/document/d/1uDKWyNcftSGLSNNaDnnv9XASa0ag3RUX1GKtetbYFFg/edit#[Productization plan for RH Plug-ins for Backstage]
+* link:https://docs.google.com/document/d/1j55-knlEwk9gV3ofmFswAz-MoUAlWlb6MPbce8i_lyg/edit#[Productization plan for RH Developer Hub]
+* link:https://source.redhat.com/groups/public/commonreleaseterms/onprem/development_preview[What is a Developer Preview?]
+
+### Product Security docs
+
+* link:https://docs.google.com/document/d/1zlHvvrruq94aX_9Qkd52dBxjsjvDmy2xBaJMx7rjoMs/edit#heading=h.e36j6m1748yr[RHDH Induction Worksheet] - for starting your SSML journey of paperwork and evidence gathering
+* link:https://product-security.pages.redhat.com/offering-registry/offerings/red-hat-plug-ins-for-backstage/ssml_tier/0/[RHPIB Tier 0 requirements]
+* link:https://product-security.pages.redhat.com/offering-registry/offerings/red-hat-developer-hub/ssml_tier/0/[RHDH Tier 0 requirements]
+* link:https://docs.engineering.redhat.com/display/PRODSEC/Manifesting+Tools[Prod Sec Manifesting Tools] - how to ask for a Deptopia manifest for your product
+
+### Other guides:
+
+* link:https://docs.google.com/document/d/1LYKZVGbI8cYQLjnrHBB9xYaw-DuHKyYeA0p08To4vos/edit[Npm Publishing Recommendations]
+* link:https://docs.engineering.redhat.com/pages/viewpage.action?spaceKey=MPAKT&title=Charon+uploader+User+Guide[Charon uploader User Guide]
+
+

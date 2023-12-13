@@ -1,0 +1,21 @@
+# RHDH Product Build Orchestration and Documentation
+
+## Purpose
+
+This repo seeks to document how to productize the following products:
+
+* link:RHDH.adoc[Red Hat Developer Hub (RHDH) - container image, operator+bundle, and helm chart]
+** link:RHDH-FAQ.adoc[Red Hat Developer Hub (RHDH) - FAQ]
+** link:build/scripts[scripts for use with operator & bundle images]
+** link:build/helm[scripts for use with helm chart]
+** link:.gitlab-ci.yml[gitlab CI script] + link:build/ci[ci script] - used sync from up to mid, mid to down, build container image, copy builds to Quay, and publish a helm chart
+*** link:build/dockerfiles[dockerfiles used by CI processes]
+
+* link:RHPIB.adoc[Red Hat Plug-ins for Backstage (RHPIB) - npm packages] - deprecated, 2.0 will be the last release.
+** link:build/scripts/stage-rhidp.sh[stage RHPIB]
+
+## Reference material
+
+* link:REFERENCES.adoc[links to useful docs & guides]
+* link:https://drive.google.com/drive/u/1/folders/1hShgxMKCjEk2P-Rf_ZsnilaSYVesfN_a[Backstage Productization folder in Google Drive]
+* link:https://drive.google.com/drive/u/1/folders/1huZjWy4JOrTWRtvI2sOXZR-rjGi4u1XX[1.0 GA Readiness]

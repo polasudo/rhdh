@@ -1,0 +1,12 @@
+tests:
+  playbooks:
+    - location: tests/basic-test.yaml
+results:
+  delivery_types:
+    email:
+      - nboldt@redhat.com
+      - jfargett@redhat.com
+      - pschultz@redhat.com
+      - joskim@redhat.com
+cluster_version:
+  - v4.x

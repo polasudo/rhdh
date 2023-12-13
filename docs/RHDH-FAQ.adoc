@@ -1,0 +1,28 @@
+# Red Hat Developer Hub (RHDH) - FAQ
+
+Some quickstart tips for building RHDH 1.0 wih Gitlab pipelines:
+
+## How to respin because of a change upstream 
+
+. Merge a PR or cherrypick to the https://github.com/janus-idp/backstage-showcase/tree/1.0.x[backstage-showcase 1.0.x branch]
+
+. https://gitlab.cee.redhat.com/rhidp/cpaas-rhdh-hub/-/pipeline_schedules[Trigger the scheduled pipeline] (or wait up to 4 hrs for it to run on its own)
+
+. Watch https://gitlab.cee.redhat.com/rhidp/cpaas-rhdh-hub/-/pipelines[Pipeline results]
+.. You can look at console logs and artifacts between stages to see what happened
+.. If all stages run successfully, the build will show successful overall.
+.. Should a stage be deemed unnecessary, because no change was recorded in midstream or downstream, the pipeline will show failure for one stage and skips for subsequent stages. 
+
+## How to force a respin without an upstream change
+
+. Push a dummy commit to the https://github.com/janus-idp/backstage-showcase/tree/1.0.x[backstage-showcase 1.0.x branch]
+
+. Push a change to the https://gitlab.cee.redhat.com/rhidp/cpaas-rhdh-hub/-/tree/rhdh-1.0-rhel-9/sync[sync folder] in this repo, like https://gitlab.cee.redhat.com/rhidp/cpaas-rhdh-hub/-/commit/68ec4f04063a83deb99ec7b7122125ba9e19e2c0 to make it different from what will be pushed from midstream. This will ensure that a new sync-midstream and sync-downstream stage will run and you'll get a new container in Brew, Quay, and then a new published helmchart.
+
+## How to disable/skip steps
+
+* Comment out any of the `stages` lines https://gitlab.cee.redhat.com/rhidp/cpaas-rhdh-hub/-/blob/rhdh-1.0-rhel-9/.gitlab-ci.yml#L21-26 to skip those steps. 
+
+## For more info: 
+
+See link:RHDH.adoc[RHDH.adoc]

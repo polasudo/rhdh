@@ -1,0 +1,149 @@
+#!/bin/bash
+#
+# Copyright (c) 2023 Red Hat, Inc.
+# This program and the accompanying materials are made
+# available under the terms of the Eclipse Public License 2.0
+# which is available at https://www.eclipse.org/legal/epl-2.0/
+#
+# SPDX-License-Identifier: EPL-2.0
+#
+
+# for a given metadata or bundle container, check the RELATED_IMAGE's digests align to specific images
+
+SCRIPT=$(readlink -f "$0"); SCRIPTPATH=$(dirname "$SCRIPT")
+
+# by default resolve image tags / digests from RHEC or as stated in the CSV; with this override, check Quay if can't find in RHEC
+QUAY=0
+# by default resolve image tags / digests from RHEC or as stated in the CSV; with this override, check Brew if can't find in RHEC
+BREW=0
+# by default, show the tag :: image@sha; optionally just show image:tag
+QUIET=0
+# by default show all images; optionally filter for one or more, eg 'devfile|plugin|udi'
+REGEX_FILTER=""
+
+# defaults to pass to getIIBsForBundle.sh
+OCP_VER=""
+
+# compute a default value for PROD_VER to use in usage()
+PROD_VER="1.yy"
+# cleanup /tmp files
+rm -fr /tmp/job-config.json || true
+
+usage () {
+  echo "
+Usage:
+  Using a specific bundle: $0 bundle-image1 [bundle-image2...] [OPTIONS]
+  Using the latest bundle: $0 -t $PROD_VER -o 4.12 [OPTIONS]
+
+Options:
+  -t <product tag>     Use getIIBsForBundle.sh to fetch latest IIB's contained bundle image, 
+  -o <OCP version>     and check that bundle's CSV; BOTH these are required.
+
+  -y, --quay           If image not resolved from RH Ecosystem Catalog, check equivalent image on quay.io
+  --brew               If image not resolved from RH Ecosystem Catalog, check equivalent image on brew.registry.redhat.io
+  -i, --filter         Rather than return ALL images in the build, include a subset using grep -E
+  -q, --quiet          Quiet output: show 'image:tag' instead of default 'tag :: image@sha'
+  -qq, --quieter       Quieter output: omit everything but related images
+
+Examples:
+  $0 quay.io/rhdh/rhdh-operator-bundle:$PROD_VER -y -i 'hub'
+
+To compare latest image in Quay to latest CSV in bundle in latest IIB:
+  TAG=$PROD_VER; \\
+  IMG=rhdh/hub-rhel9; \\
+  img_quay=\$(${SCRIPTPATH}/getLatestImageTags.sh -b rhdh-\${TAG}-rhel-8 --quay --tag \"\${TAG}-\" -c \${IMG}); echo \$img_quay; \\
+  img_iib=\$(${SCRIPTPATH}/checkImagesInCSV.sh --ds -t \${TAG} -o 4.12 -y -qq -i \${IMG}); echo \$img_iib; \\
+  if [[ \$img_quay != \$img_iib ]]; then \\
+    ${SCRIPTPATH}/checkImagesInCSV.sh --ds -t \${TAG} -o 4.12 -y -i \${IMG}; \\
+  fi
+"
+}
+
+if [[ $# -lt 1 ]]; then usage; exit; fi
+
+while [[ "$#" -gt 0 ]]; do
+  case $1 in
+    '-t') PROD_VER="$2"; shift 1;;
+    '-o') OCP_VER="$2"; shift 1;;
+    '-y'|'--quay') QUAY=1;;
+    '--brew') BREW=1;;
+    '-i'|'--filter') REGEX_FILTER="$2"; shift 1;;
+    '-v')              QUIET=0;;
+    '-q'|'--quiet')    QUIET=1;;
+    '-qq'|'--quieter') QUIET=2;;
+    *) IMAGES="${IMAGES} $1";;
+  esac
+  shift 1
+done
+
+if [[ ! $IMAGES ]] && [[ ! $OCP_VER ]]; then 
+  echo "[ERROR] must specify both product and OCP versions, or the full registry/org/name:tag-or-sha of the bundle"
+  usage
+fi
+
+if [[ $PROD_VER ]] && [[ $PROD_VER != "1.yy" ]] && [[ $OCP_VER ]] && [[ ! $IMAGES ]]; then # compute latest IIB -> bundle
+  if [[ $QUIET -lt 2 ]]; then
+    echo "Checking for latest OCP v${OCP_VER} IIB for ${PROD_VER}"
+  fi
+  if [[ $QUIET -lt 2 ]]; then
+    "${SCRIPTPATH}"/getIIBsForBundle.sh -t "${PROD_VER}" -o "${OCP_VER}"
+  fi
+  if [[ $QUIET -lt 2 ]]; then
+    echo "----------"
+  fi
+  # use getLatestImageTags.sh instead of getIIBsForBundle.sh as it's more reliable when resultsdb-api.engineering.redhat.com content is unavailable
+  GLIT=${SCRIPTPATH}/getLatestImageTags.sh
+  IMAGES=$(${GLIT} --osbs -c rhdh-rhdh-operator-bundle --tag "${PROD_VER}-")
+fi
+
+# echo "REGEX_FILTER = $REGEX_FILTER"
+
+# shellcheck disable=SC2086
+for imageAndTag in $IMAGES; do 
+    SOURCE_CONTAINER=${imageAndTag%%:*}
+    containerTag=$(skopeo inspect docker://${imageAndTag} | jq -r '.Labels.url' | sed -r -e "s#.+/images/##")
+    # echo "Found containerTag = ${containerTag}"
+
+    if [[ ! -x ${SCRIPTPATH}/containerExtract.sh ]]; then
+        curl -sSLO https://gitlab.cee.redhat.com/rhidp/cpaas-rhdh-hub/-/raw/rhdh-1.0-rhel-9/build/scripts/containerExtract.sh
+        chmod +x containerExtract.sh
+    fi
+    rm -fr /tmp/${SOURCE_CONTAINER//\//-}-${containerTag}-*/
+    "${SCRIPTPATH}"/containerExtract.sh ${SOURCE_CONTAINER}:${containerTag} --delete-before --delete-after >/dev/null 2>&1 || true
+    related_images=$(cat /tmp/${SOURCE_CONTAINER//\//-}-${containerTag}-*/manifests/*.{csv,clusterserviceversion}.yaml 2>/dev/null | grep sha256: | sed -r -e "s@.+(value|mage\"*): @@" -e "s@\"(.+)\".+@\1@" | sort -uV)
+    for related_image in $related_images; do 
+        if [[ $REGEX_FILTER ]]; then related_image=$(echo "$related_image" | grep -E "$REGEX_FILTER"); fi
+        if [[ "${related_image}" ]]; then
+          # check each image digest to compute matching tag
+          jqdump="$(skopeo inspect docker://${related_image} 2>&1)"
+          if [[ $jqdump == *"Labels"* ]]; then 
+              tag=$(echo $jqdump | jq -r '.Labels.url' | sed -r -e "s#.+/images/##")
+          else
+              if [[ $QUAY -eq 1 ]]; then # check quay
+                related_image=${related_image//registry.redhat.io/quay.io}
+                jqdump="$(skopeo inspect docker://${related_image} 2>&1)"
+                if [[ $jqdump == *"Labels"* ]]; then 
+                    tag=$(echo $jqdump | jq -r '.Labels.url' | sed -r -e "s#.+/images/##")
+                fi
+              elif [[ $BREW -eq 1 ]]; then # check brew registry
+                # NOTE: could use registry-proxy.engineering.redhat.com/rh-osbs/ instead but that's internal facing, 
+                # where brew.reg is auth'd and public
+                # convert registry.redhat.io/rhdh/rhdh-rhel9-operator
+                # to      brew.registry.redhat.io/rh-osbs/rhdh-rhdh-rhel9-operator
+                related_image=$(echo $related_image | sed -r -e "s#registry.redhat.io/([^/]+)/#brew.registry.redhat.io/rh-osbs/\1-#")
+                jqdump="$(skopeo inspect docker://${related_image} 2>&1)"
+                if [[ $jqdump == *"Labels"* ]]; then 
+                    tag=$(echo $jqdump | jq -r '.Labels.url' | sed -r -e "s#.+/images/##")
+                fi
+              else 
+                  tag="NOT FOUND!"
+              fi
+          fi
+          if [[ $QUIET -gt 0 ]]; then
+            echo "${related_image%@sha256*}:$tag"
+          else
+            echo "$tag :: $related_image"
+          fi
+        fi
+    done
+done

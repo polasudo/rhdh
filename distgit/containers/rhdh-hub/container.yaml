@@ -1,0 +1,53 @@
+platforms:
+  only:
+    - x86_64
+compose:
+  inherit: false
+  pulp_repos: true
+  signing_intent: release
+image_build_method: imagebuilder
+remote_sources:
+  - name: upstream1
+    remote_source:
+      repo: https://gitlab.cee.redhat.com/rhidp/cpaas-rhdh-hub.git
+      ref: 1bf0fa18fee6b8d1d9485756ce79e0f71b5db3cc
+      pkg_managers:
+        - yarn
+      packages:
+        yarn:
+          - path: distgit/containers/rhdh-hub
+          - path: distgit/containers/rhdh-hub/dynamic-plugins/wrappers/roadiehq-scaffolder-backend-module-utils-dynamic/dist-dynamic
+          - path: distgit/containers/rhdh-hub/dynamic-plugins/wrappers/roadiehq-scaffolder-backend-argocd-dynamic/dist-dynamic
+          - path: distgit/containers/rhdh-hub/dynamic-plugins/wrappers/roadiehq-backstage-plugin-argo-cd-backend-dynamic/dist-dynamic
+          - path: distgit/containers/rhdh-hub/dynamic-plugins/wrappers/immobiliarelabs-backstage-plugin-gitlab-backend-dynamic/dist-dynamic
+          - path: distgit/containers/rhdh-hub/dynamic-plugins/wrappers/backstage-plugin-techdocs-backend-dynamic/dist-dynamic
+          - path: distgit/containers/rhdh-hub/dynamic-plugins/wrappers/backstage-plugin-sonarqube-backend-dynamic/dist-dynamic
+          - path: distgit/containers/rhdh-hub/dynamic-plugins/wrappers/backstage-plugin-scaffolder-backend-module-gitlab-dynamic/dist-dynamic
+          - path: distgit/containers/rhdh-hub/dynamic-plugins/wrappers/backstage-plugin-kubernetes-backend-dynamic/dist-dynamic
+          - path: distgit/containers/rhdh-hub/dynamic-plugins/wrappers/backstage-plugin-jenkins-backend-dynamic/dist-dynamic
+          - path: distgit/containers/rhdh-hub/dynamic-plugins/wrappers/backstage-plugin-catalog-backend-module-gitlab-dynamic/dist-dynamic
+          - path: distgit/containers/rhdh-hub/dynamic-plugins/wrappers/backstage-plugin-catalog-backend-module-github-org-dynamic/dist-dynamic
+          - path: distgit/containers/rhdh-hub/dynamic-plugins/wrappers/backstage-plugin-catalog-backend-module-github-dynamic/dist-dynamic
+          - path: distgit/containers/rhdh-hub/dynamic-plugins/wrappers/backstage-plugin-azure-devops-backend-dynamic/dist-dynamic
+          - path: distgit/containers/rhdh-hub/dynamic-plugins-imports-peer-dependencies
+          - path: distgit/containers/rhdh-hub/dynamic-plugins-imports-peer-dependencies/janus-idp-backstage-scaffolder-backend-module-sonarqube/dist-dynamic
+          - path: distgit/containers/rhdh-hub/dynamic-plugins-imports-peer-dependencies/janus-idp-backstage-scaffolder-backend-module-servicenow/dist-dynamic
+          - path: distgit/containers/rhdh-hub/dynamic-plugins-imports-peer-dependencies/janus-idp-backstage-scaffolder-backend-module-regex/dist-dynamic
+          - path: distgit/containers/rhdh-hub/dynamic-plugins-imports-peer-dependencies/janus-idp-backstage-scaffolder-backend-module-quay/dist-dynamic
+          - path: distgit/containers/rhdh-hub/dynamic-plugins-imports-peer-dependencies/janus-idp-backstage-plugin-ocm-backend/dist-dynamic
+          - path: distgit/containers/rhdh-hub/dynamic-plugins-imports-peer-dependencies/janus-idp-backstage-plugin-keycloak-backend/dist-dynamic
+          - path: distgit/containers/rhdh-hub/dynamic-plugins-imports-peer-dependencies/janus-idp-backstage-plugin-aap-backend/dist-dynamic
+          - path: distgit/containers/rhdh-hub/dynamic-plugins-imports-peer-dependencies/janus-idp-backstage-plugin-3scale-backend/dist-dynamic
+  - name: upstream2
+    remote_source:
+      repo: https://gitlab.cee.redhat.com/rhidp/cpaas-rhdh-hub.git
+      ref: 1bf0fa18fee6b8d1d9485756ce79e0f71b5db3cc
+      pkg_managers:
+        - pip
+      packages:
+        pip:
+          - path: distgit/containers/rhdh-hub/docker/
+            requirements_files:
+              - requirements.txt
+            requirements_build_files:
+              - requirements-build.txt

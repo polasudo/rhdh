@@ -1,0 +1,20 @@
+# developers
+tcoufal@redhat.com:
+  - UNSTABLE
+  - FAILURE
+pschultz@redhat.com:
+  - UNSTABLE
+  - FAILURE
+jfargett@redhat.com:
+  - UNSTABLE
+  - FAILURE
+#qe
+joskim@redhat.com:
+  - SUCCESS
+  - UNSTABLE
+  - FAILURE
+#productization
+nboldt@redhat.com:
+  - SUCCESS
+  - UNSTABLE
+  - FAILURE

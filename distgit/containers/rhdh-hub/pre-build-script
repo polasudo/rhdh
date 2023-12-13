@@ -1,0 +1,7 @@
+#!/bin/bash
+
+echo "Info: https://cpaas.pages.redhat.com/documentation/schema/product/builds/brew_container.html"
+echo "Source: https://gitlab.cee.redhat.com/rhidp/cpaas-rhdh-hub/-/tree/rhdh-1.0-rhel-9/distgit/containers/rhdh-hub/pre-build-script"
+echo "Toggle: https://gitlab.cee.redhat.com/cpaas-products/rhdh/-/blob/main/versions/rhdh-1.0.0/product.yml#L111 (build.pre-build-script)"
+
+echo "Hi there! I'm a pre-build-script!"

@@ -1,13 +1,51 @@
-# You can override the included template(s) by including variable overrides
-# SAST customization: https://docs.gitlab.com/ee/user/application_security/sast/#customizing-the-sast-settings
-# Secret Detection customization: https://docs.gitlab.com/ee/user/application_security/secret_detection/#customizing-settings
-# Dependency Scanning customization: https://docs.gitlab.com/ee/user/application_security/dependency_scanning/#customizing-the-dependency-scanning-settings
-# Container Scanning customization: https://docs.gitlab.com/ee/user/application_security/container_scanning/#customizing-the-container-scanning-settings
-# Note that environment variables can be set in several places
-# See https://docs.gitlab.com/ee/ci/variables/#cicd-variable-precedence
+# Copyright (c) 2023 Red Hat, Inc.
+# requires yarn npm prettifier husky
+# requires python3-pip npm git jq rsync
+# requires yq (python wrapper for jq)
+# see also upstream_repos.yml
+
+.shared_config:
+  tags:
+    - docker
+    - shared
+  image: registry.redhat.io/ubi9
+  allow_failure: false
+  variables:
+    # SECURE_FILES_DOWNLOAD_PATH: '.secure_files'
+
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE != 'merge_request_event' || $CI_PIPELINE_SOURCE == "schedule"
+
 stages:
-- test
-sast:
-  stage: test
+  - sync-midstream
+  - sync-downstream
+  - build-downstream
+  - copy-to-quay
+  - publish-helmchart
+  - review-stages
+
 include:
-- template: Security/SAST.gitlab-ci.yml
+  - local: "/build/ci/sync-midstream-sync-downstream-build-downstream.yml"
+  - local: "/build/ci/copy-to-quay.yml"
+  - local: "/build/ci/publish-helmchart.yml"
+
+review-stages:
+  extends: .shared_config
+  stage: review-stages
+  script:
+    - |
+      dnf -y -q install git findutils
+      cat outputs*/*
+      set +e
+      if [[ $(find . -name "outputs*") ]]; then
+        NUM_SKIPS=$(cat outputs*/*.txt | grep " Nothing to" | wc -l)
+        echo "[INFO] Total of $NUM_SKIPS stages were skipped."
+        # if number of skipped stages > 0, fail this stage so it's clear this wasn't an actual respin
+        set -e
+        exit $NUM_SKIPS
+      else
+        echo "No artifacts from previous stages found!"
+        set -e
+        exit 13
+      fi

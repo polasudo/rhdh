@@ -1,0 +1,5 @@
+git:
+- automerge: 'yes'
+  branch: rhdh-1.0-rhel-9
+  commit: 1bf0fa18fee6b8d1d9485756ce79e0f71b5db3cc
+  url: https://gitlab.cee.redhat.com/rhidp/cpaas-rhdh-hub.git

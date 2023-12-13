@@ -1,0 +1,50 @@
+repos:
+  - repo: https://github.com/janus-idp/backstage-showcase
+    branch:
+      # list branch to fetch; if first not found, try second as fallback
+      - 1.0.x
+      - main
+    namespace_to_replace: '@janus-idp'
+    # include the contents of the repo's root folder too?
+    include_root: true
+    # list of files/folders to exclude from upstream in this repo
+    exclude_root:
+      - README.adoc
+      - sync/
+      - build/ci/
+      - build/helm/
+      - build/scripts/
+      - upstream_repos.yaml
+      - .git/
+      - .github/
+      - e2e-test/
+      - .ibm/
+      - packages/app/.webpack-cache/
+      - docker/README.requirements.md
+      - docker/requirements.in
+      - docker/requirements.txt
+      - docker/requirements-build.in
+      - docker/requirements-build.txt
+      - docker/setup.py
+    destination_folder: distgit/containers/rhdh-hub/
+
+  - repo: https://github.com/janus-idp/backstage-operator
+    branch: 
+      # list branch to fetch; if first not found, try second as fallback
+      - 1.0.x
+      - main
+    namespace_to_replace: '@janus-idp'
+    # include the contents of the repo's root folder too?
+    include_root: true
+    # list of files/folders to exclude from upstream in this repo
+    exclude_root:
+      - README.adoc
+      - sync/
+      - build/ci/
+      - build/helm/
+      - build/scripts/
+      - upstream_repos.yaml
+      - .git/
+      - .github/
+      - helm-backstage/charts/backstage/templates/tests/
+    destination_folder: distgit/containers/rhdh-operator/

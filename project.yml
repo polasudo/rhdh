@@ -1,0 +1,11 @@
+project:
+  build-source-generators:
+  - type: distgit-maker
+  updaters:
+  # https://cpaas.pages.redhat.com/documentation/users/midstream/product_version_updater.html
+  # requires x.y.z versions in product.yml
+  - type: "version-updater"
+    automerge: true
+  - type: usrc
+  - type: decorated-dockerfile
+    lookup-registry: ""
