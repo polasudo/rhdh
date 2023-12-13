@@ -1,0 +1,252 @@
+{
+  "type": "object",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "properties": {
+    "kubernetes": {
+      "type": "object",
+      "required": [
+        "clusterLocatorMethods",
+        "serviceLocatorMethod"
+      ],
+      "properties": {
+        "objectTypes": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "configmaps",
+              "cronjobs",
+              "customresources",
+              "daemonsets",
+              "deployments",
+              "horizontalpodautoscalers",
+              "ingresses",
+              "jobs",
+              "limitranges",
+              "pods",
+              "replicasets",
+              "services",
+              "statefulsets"
+            ],
+            "type": "string"
+          }
+        },
+        "serviceLocatorMethod": {
+          "type": "object",
+          "required": [
+            "type"
+          ],
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "multiTenant"
+            }
+          }
+        },
+        "clusterLocatorMethods": {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "visibility": "frontend",
+                    "type": "string",
+                    "const": "config"
+                  },
+                  "clusters": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "required": [
+                        "authProvider",
+                        "name",
+                        "url"
+                      ],
+                      "properties": {
+                        "url": {
+                          "visibility": "frontend",
+                          "type": "string"
+                        },
+                        "name": {
+                          "visibility": "frontend",
+                          "type": "string"
+                        },
+                        "serviceAccountToken": {
+                          "visibility": "secret",
+                          "type": "string"
+                        },
+                        "authProvider": {
+                          "visibility": "frontend",
+                          "enum": [
+                            "aws",
+                            "azure",
+                            "google",
+                            "googleServiceAccount",
+                            "oidc",
+                            "serviceAccount"
+                          ],
+                          "type": "string"
+                        },
+                        "oidcTokenProvider": {
+                          "visibility": "frontend",
+                          "type": "string"
+                        },
+                        "skipTLSVerify": {
+                          "visibility": "frontend",
+                          "type": "boolean"
+                        },
+                        "skipMetricsLookup": {
+                          "visibility": "frontend",
+                          "type": "boolean"
+                        },
+                        "caData": {
+                          "visibility": "secret",
+                          "type": "string"
+                        },
+                        "caFile": {
+                          "visibility": "secret",
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                },
+                "required": [
+                  "clusters",
+                  "type"
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "visibility": "frontend",
+                    "type": "string",
+                    "const": "catalog"
+                  }
+                },
+                "required": [
+                  "type"
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "visibility": "frontend",
+                    "type": "string",
+                    "const": "localKubectlProxy"
+                  }
+                },
+                "required": [
+                  "type"
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "visibility": "frontend",
+                    "type": "string",
+                    "const": "gke"
+                  },
+                  "projectId": {
+                    "visibility": "frontend",
+                    "type": "string"
+                  },
+                  "region": {
+                    "visibility": "frontend",
+                    "type": "string"
+                  },
+                  "skipTLSVerify": {
+                    "visibility": "frontend",
+                    "type": "boolean"
+                  },
+                  "skipMetricsLookup": {
+                    "visibility": "frontend",
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "projectId",
+                  "type"
+                ]
+              }
+            ]
+          }
+        },
+        "customResources": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "apiVersion",
+              "group",
+              "plural"
+            ],
+            "properties": {
+              "group": {
+                "type": "string"
+              },
+              "apiVersion": {
+                "type": "string"
+              },
+              "plural": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "apiVersionOverrides": {
+          "description": "(Optional) API Version Overrides\nIf set, the specified api version will be used to make requests for the corresponding object.\nIf running a legacy Kubernetes version, you may use this to override the default api versions\nthat are not supported in your cluster.",
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "properties": {
+            "pods": {
+              "type": "string"
+            },
+            "services": {
+              "type": "string"
+            },
+            "configmaps": {
+              "type": "string"
+            },
+            "deployments": {
+              "type": "string"
+            },
+            "limitranges": {
+              "type": "string"
+            },
+            "replicasets": {
+              "type": "string"
+            },
+            "horizontalpodautoscalers": {
+              "type": "string"
+            },
+            "jobs": {
+              "type": "string"
+            },
+            "cronjobs": {
+              "type": "string"
+            },
+            "ingresses": {
+              "type": "string"
+            },
+            "customresources": {
+              "type": "string"
+            },
+            "statefulsets": {
+              "type": "string"
+            },
+            "daemonsets": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -16,6 +16,7 @@ remote_sources:
       packages:
         yarn:
           - path: distgit/containers/rhdh-hub
+          - path: distgit/containers/rhdh-hub/e2e-tests
           - path: distgit/containers/rhdh-hub/dynamic-plugins/wrappers/roadiehq-scaffolder-backend-module-utils-dynamic/dist-dynamic
           - path: distgit/containers/rhdh-hub/dynamic-plugins/wrappers/roadiehq-scaffolder-backend-argocd-dynamic/dist-dynamic
           - path: distgit/containers/rhdh-hub/dynamic-plugins/wrappers/roadiehq-backstage-plugin-argo-cd-backend-dynamic/dist-dynamic

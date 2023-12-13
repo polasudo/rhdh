@@ -1,8 +1,21 @@
-# Build the manager binary
+# Copyright (c) 2023-2024 Red Hat, Inc.
+# This program and the accompanying materials are made
+# available under the terms of the Eclipse Public License 2.0
+# which is available at https://www.eclipse.org/legal/epl-2.0/
+#
+# SPDX-License-Identifier: EPL-2.0
+#
+# Contributors:
+#   Red Hat, Inc. - initial API and implementation
+#
+
 #@follow_tag(registry.redhat.io/rhel9/go-toolset:1.19)
 FROM rhel9/go-toolset:1.19.13-4.1697647145 as builder
+# hadolint ignore=DL3002
 USER 0
 ENV GOPATH=/go/
+# update RPMs
+RUN dnf -q -y update
 
 # Upstream sources
 # Downstream comment
@@ -32,14 +45,13 @@ RUN source ./cachito.env && rm -f ./cachito.env && mkdir -p /workspace
 #/ Downstream uncomment
 
 # Build
-RUN CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build -a -o /workspace/manager main.go 
-# debug
-# RUN ls -la /workspace/ $CONTAINER_SOURCE/helm-backstage/charts/backstage/charts/
+# hadolint ignore=SC3010
+RUN export ARCH="$(uname -m)" && if [[ ${ARCH} == "x86_64" ]]; then export ARCH="amd64"; elif [[ ${ARCH} == "aarch64" ]]; then export ARCH="arm64"; fi && \
+    CGO_ENABLED=1 GOOS=linux GOARCH=${ARCH} go build -a -o manager main.go
 
 # NOTE: ubi-micro is not be FIPS compliant, if openssl is not installed
 #@follow_tag(registry.redhat.io/ubi9/ubi-micro:9.2)
 FROM ubi9/ubi-micro:9.2-15.1696515526
-
 # Upstream sources
 # Downstream comment
 # ENV EXTERNAL_SOURCE=.
@@ -50,18 +62,11 @@ FROM ubi9/ubi-micro:9.2-15.1696515526
 ENV EXTERNAL_SOURCE=$REMOTE_SOURCES/upstream1/app/distgit/containers/rhdh-operator
 #/ Downstream uncomment
 
-ENV HOME=/opt/helm \
-    USER_NAME=helm \
+ENV HOME=/ \
+    USER_NAME=backstage \
     USER_UID=1001
 
 RUN echo "${USER_NAME}:x:${USER_UID}:0:${USER_NAME} user:${HOME}:/sbin/nologin" >> /etc/passwd
-
-# Copy necessary files with the right permissions
-COPY --chown=${USER_UID}:0 ${EXTERNAL_SOURCE}/watches.yaml ${HOME}/watches.yaml
-COPY --chown=${USER_UID}:0 ${EXTERNAL_SOURCE}/helm-backstage/ ${HOME}/helm-backstage/
-
-# debug 
-# RUN ls -la ${HOME} ${HOME}/helm-backstage/charts/backstage/charts/
 
 # Copy manager binary
 COPY --from=builder /workspace/manager .
@@ -85,7 +90,7 @@ LABEL summary="$SUMMARY" \
       io.openshift.tags="$PRODNAME,$COMPNAME" \
       com.redhat.component="$PRODNAME-$COMPNAME-container" \
       name="$PRODNAME/$PRODNAME-rhel9-$COMPNAME" \
-      version="1.0" \
+      version="1" \
       license="EPLv2" \
       maintainer="Nick Boldt <nboldt@redhat.com>, Tom Coufal <tcoufal@redhat.com>, Christophe Fargette <jfargett@redhat.com>" \
       io.openshift.expose-services="" \
@@ -102,58 +107,7 @@ LABEL summary="$SUMMARY" \
       io.openshift.tags="$PRODNAME,$COMPNAME" \
       com.redhat.component="$PRODNAME-$COMPNAME-container" \
       name="$PRODNAME/$PRODNAME-rhel9-$COMPNAME" \
-      version="1.0" \
-      license="EPLv2" \
-      maintainer="Nick Boldt <nboldt@redhat.com>, Tom Coufal <tcoufal@redhat.com>, Christophe Fargette <jfargett@redhat.com>" \
-      io.openshift.expose-services="" \
-      usage=""
-ENV SUMMARY="Red Hat Developer Hub operator" \
-    DESCRIPTION="Red Hat Developer Hub operator" \
-    PRODNAME="rhdh" \
-    COMPNAME="operator"
-
-LABEL summary="$SUMMARY" \
-      description="$DESCRIPTION" \
-      io.k8s.description="$DESCRIPTION" \
-      io.k8s.display-name="$DESCRIPTION" \
-      io.openshift.tags="$PRODNAME,$COMPNAME" \
-      com.redhat.component="$PRODNAME-$COMPNAME-container" \
-      name="$PRODNAME/$PRODNAME-rhel9-$COMPNAME" \
-      version="1.0" \
-      license="EPLv2" \
-      maintainer="Nick Boldt <nboldt@redhat.com>, Tom Coufal <tcoufal@redhat.com>, Christophe Fargette <jfargett@redhat.com>" \
-      io.openshift.expose-services="" \
-      usage=""
-ENV SUMMARY="Red Hat Developer Hub operator" \
-    DESCRIPTION="Red Hat Developer Hub operator" \
-    PRODNAME="rhdh" \
-    COMPNAME="operator"
-
-LABEL summary="$SUMMARY" \
-      description="$DESCRIPTION" \
-      io.k8s.description="$DESCRIPTION" \
-      io.k8s.display-name="$DESCRIPTION" \
-      io.openshift.tags="$PRODNAME,$COMPNAME" \
-      com.redhat.component="$PRODNAME-$COMPNAME-container" \
-      name="$PRODNAME/$PRODNAME-rhel9-$COMPNAME" \
-      version="1.0" \
-      license="EPLv2" \
-      maintainer="Nick Boldt <nboldt@redhat.com>, Tom Coufal <tcoufal@redhat.com>, Christophe Fargette <jfargett@redhat.com>" \
-      io.openshift.expose-services="" \
-      usage=""
-ENV SUMMARY="Red Hat Developer Hub operator" \
-    DESCRIPTION="Red Hat Developer Hub operator" \
-    PRODNAME="rhdh" \
-    COMPNAME="operator"
-
-LABEL summary="$SUMMARY" \
-      description="$DESCRIPTION" \
-      io.k8s.description="$DESCRIPTION" \
-      io.k8s.display-name="$DESCRIPTION" \
-      io.openshift.tags="$PRODNAME,$COMPNAME" \
-      com.redhat.component="$PRODNAME-$COMPNAME-container" \
-      name="$PRODNAME/$PRODNAME-rhel9-$COMPNAME" \
-      version="1.0" \
+      version="1" \
       license="EPLv2" \
       maintainer="Nick Boldt <nboldt@redhat.com>, Tom Coufal <tcoufal@redhat.com>, Christophe Fargette <jfargett@redhat.com>" \
       io.openshift.expose-services="" \

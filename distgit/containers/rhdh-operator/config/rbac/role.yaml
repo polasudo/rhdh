@@ -1,86 +1,51 @@
+---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
+  creationTimestamp: null
   name: manager-role
 rules:
-##
-## Base operator rules
-##
-# We need to get namespaces so the operator can read namespaces to ensure they exist
 - apiGroups:
   - ""
   resources:
-  - namespaces
-  verbs:
-  - get
-
-# We need to manage Helm release secrets
-- apiGroups:
-  - ""
-  resources:
-  - secrets
-  verbs:
-  - "*"
-
-# We need to create events on CRs about things happening during reconciliation
-- apiGroups:
-  - ""
-  resources:
-  - events
-  verbs:
-  - create
-
-# We need to get Ingress to set global.clusterRouterBase
-- apiGroups:
-  - config.openshift.io
-  resources:
-  - ingresses
-  verbs:
-  - get
-
-##
-## Rules for charts.janus-idp.io/v1alpha1, Kind: Backstage
-##
-- apiGroups:
-  - charts.janus-idp.io
-  resources:
-  - backstages
-  - backstages/status
-  - backstages/finalizers
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - ""
-  resources:
-  - pods
-  - services
-  - services/finalizers
-  - endpoints
-  - persistentvolumeclaims
-  - events
   - configmaps
+  - persistentvolumeclaims
+  - persistentvolumes
   - secrets
+  - services
   verbs:
   - create
   - delete
   - get
   - list
-  - patch
   - update
   - watch
 - apiGroups:
   - apps
   resources:
   - deployments
-  - daemonsets
-  - replicasets
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - update
+  - watch
+- apiGroups:
+  - apps
+  resources:
   - statefulsets
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - update
+  - watch
+- apiGroups:
+  - janus-idp.io
+  resources:
+  - backstages
   verbs:
   - create
   - delete
@@ -89,6 +54,20 @@ rules:
   - patch
   - update
   - watch
+- apiGroups:
+  - janus-idp.io
+  resources:
+  - backstages/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - janus-idp.io
+  resources:
+  - backstages/status
+  verbs:
+  - get
+  - patch
+  - update
 - apiGroups:
   - route.openshift.io
   resources:
@@ -98,8 +77,5 @@ rules:
   - delete
   - get
   - list
-  - patch
   - update
   - watch
-
-#+kubebuilder:scaffold:rules

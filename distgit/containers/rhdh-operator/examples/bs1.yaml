@@ -1,0 +1,9 @@
+apiVersion: janus-idp.io/v1alpha1
+kind: Backstage
+metadata:
+  name: bs1
+  namespace: backstage
+#spec:
+#  skipLocalDb: true
+#  dryRun: true
+

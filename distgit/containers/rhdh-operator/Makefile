@@ -5,6 +5,8 @@
 # - use environment variables to overwrite this value (e.g export VERSION=0.0.2)
 VERSION ?= 0.0.1
 
+CONTAINER_ENGINE ?= docker  #Using docker or podman to build and push images
+
 # CHANNELS define the bundle channels used in the bundle.
 # Add a new line here if you would like to change its default config. (E.g CHANNELS = "candidate,fast,stable")
 # To re-generate a bundle for other specific channels without changing the standard setup, you can:
@@ -24,12 +26,12 @@ BUNDLE_DEFAULT_CHANNEL := --default-channel=$(DEFAULT_CHANNEL)
 endif
 BUNDLE_METADATA_OPTS ?= $(BUNDLE_CHANNELS) $(BUNDLE_DEFAULT_CHANNEL)
 
-# IMAGE_TAG_BASE defines the podman.io namespace and part of the image name for remote images.
+# IMAGE_TAG_BASE defines the docker.io namespace and part of the image name for remote images.
 # This variable is used to construct full image tags for bundle and catalog images.
 #
 # For example, running 'make bundle-build bundle-push catalog-build catalog-push' will build and push both
-# janus-idp.io/operator-bundle:$VERSION and janus-idp.io/operator-catalog:$VERSION.
-IMAGE_TAG_BASE ?= janus-idp.io/operator
+# janus-idp.io/backstage-operator-bundle:$VERSION and janus-idp.io/backstage-operator-catalog:$VERSION.
+IMAGE_TAG_BASE ?= quay.io/rhdh/backstage-operator
 
 # BUNDLE_IMG defines the image:tag used for the bundle.
 # You can use it as an arg. (E.g make bundle-build BUNDLE_IMG=<some-registry>/<project-name-bundle>:<tag>)
@@ -47,9 +49,16 @@ ifeq ($(USE_IMAGE_DIGESTS), true)
 endif
 
 # Image URL to use all building/pushing image targets
-IMG ?= controller:latest
+IMG ?= $(IMAGE_TAG_BASE):v$(VERSION)
 # ENVTEST_K8S_VERSION refers to the version of kubebuilder assets to be downloaded by envtest binary.
 ENVTEST_K8S_VERSION = 1.25.0
+
+# Default Backstage config directory to use
+# it has to be defined as a set of YAML files inside ./config/manager/${CONF_DIR} directory
+# to use other config - add a directory with config and run 'CONF_DIR=<dir-name> make ...'
+# TODO find better place than ./config/manager (but not ./config/overlays) ?
+# TODO it works only for make run, needs supporting make deploy as well https://github.com/janus-idp/operator/issues/47
+CONF_DIR ?= default-config
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))
@@ -58,17 +67,13 @@ else
 GOBIN=$(shell go env GOBIN)
 endif
 
-# set architecture and target OS for tools downloaded in this Makefile
-ARCH ?= amd64
-OS ?= linux
-
 # Setting SHELL to bash allows bash commands to be executed by recipes.
 # Options are set to exit when a recipe line exits non-zero or a piped command fails.
 SHELL = /usr/bin/env bash -o pipefail
 .SHELLFLAGS = -ec
 
 .PHONY: all
-all: podman-build
+all: build
 
 ##@ General
 
@@ -89,48 +94,80 @@ help: ## Display this help.
 
 ##@ Development
 
-.PHONY: init
-init:
-	git submodule init
-	git submodule update
-	helm repo add --force-update bitnami https://charts.bitnami.com/bitnami
-	helm repo add --force-update backstage https://backstage.github.io/charts
-	helm repo add --force-update janus-idp https://janus-idp.github.io/helm-backstage
-	helm dependency build helm-backstage/charts/backstage
-
 .PHONY: manifests
 manifests: controller-gen ## Generate WebhookConfiguration, ClusterRole and CustomResourceDefinition objects.
 	$(CONTROLLER_GEN) rbac:roleName=manager-role crd webhook paths="./..." output:crd:artifacts:config=config/crd/bases
 
 .PHONY: generate
 generate: controller-gen ## Generate code containing DeepCopy, DeepCopyInto, and DeepCopyObject method implementations.
-	$(CONTROLLER_GEN) object:headerFile="" paths="./..."
+	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths="./..."
 
 .PHONY: fmt
-fmt: ## Run go fmt against code.
-	go fmt ./...
+fmt: goimports ## Format the code using goimports
+	find . -not -path '*/\.*' -name '*.go' -exec $(GOIMPORTS) -w {} \;
+
+fmt_license: addlicense ## Ensure the license header is set on all files
+	$(ADDLICENSE) -v -f license_header.txt $$(find . -not -path '*/\.*' -name '*.go')
+
+.PHONY: lint
+lint: golangci-lint ## Run the linter on the codebase
+	$(GOLANGCI_LINT) run ./... --timeout 15m
 
 .PHONY: vet
 vet: ## Run go vet against code.
 	go vet ./...
 
 .PHONY: test
-test: manifests generate fmt vet envtest ## Run tests.
-	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) -p path)" go test ./... -coverprofile cover.out
-
+test: manifests generate fmt vet envtest ## Run tests. We need LOCALBIN=$(LOCALBIN) to get correct default-config path
+	mkdir -p $(LOCALBIN)/default-config && cp config/manager/${CONF_DIR}/* $(LOCALBIN)/default-config
+	LOCALBIN=$(LOCALBIN) KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) --bin-dir $(LOCALBIN) -p path)" go test ./... -coverprofile cover.out
 
 ##@ Build
+
+.PHONY: build
+build: generate fmt vet ## Build manager binary.
+	go build -o bin/manager main.go
+
 .PHONY: run
-run: manifests generate fmt vet ## Run against the configured Kubernetes cluster in ~/.kube/config
-	go run main.go
-	
+run: manifests generate fmt vet build ## Run a controller from your host.
+	cd $(LOCALBIN) && mkdir -p default-config && cp ../config/manager/${CONF_DIR}/* default-config && ./manager
+
+PLATFORM ?= linux/amd64
+# If you wish built the manager image targeting other platforms you can use the --platform flag.
+# (i.e. docker build --platform linux/arm64 ). However, you must enable docker buildKit for it.
+# More info: https://docs.docker.com/develop/develop-images/build_enhancements/
+.PHONY: docker-build
+docker-build: test ## Build docker image with the manager using docker.
+	docker build --platform ${PLATFORM} -t ${IMG} . -f docker/Dockerfile
+
+.PHONY: docker-push
+docker-push: ## Push docker image with the manager using docker.
+	docker push ${IMG}
+
 .PHONY: podman-build
-podman-build: init test ## Build podman image with the manager.
-	podman build -t ${IMG} .
+podman-build: test ## Build docker image with the manager using podman.
+	podman build --platform ${PLATFORM} -t ${IMG} . -f docker/Dockerfile
 
 .PHONY: podman-push
-podman-push: ## Push podman image with the manager.
+podman-push: ## Push docker image with the manager using podman.
 	podman push ${IMG}
+
+# PLATFORMS defines the target platforms for  the manager image be build to provide support to multiple
+# architectures. (i.e. make docker-buildx IMG=myregistry/mypoperator:0.0.1). To use this option you need to:
+# - able to use docker buildx . More info: https://docs.docker.com/build/buildx/
+# - have enable BuildKit, More info: https://docs.docker.com/develop/develop-images/build_enhancements/
+# - be able to push the image for your registry (i.e. if you do not inform a valid value via IMG=<myregistry/image:<tag>> than the export will fail)
+# To properly provided solutions that supports more than one platform you should use this option.
+PLATFORMS ?= linux/arm64,linux/amd64
+.PHONY: docker-buildx
+docker-buildx: test ## Build and push docker image for the manager for cross-platform support
+	# copy existing docker/Dockerfile and insert --platform=${BUILDPLATFORM} into docker/Dockerfile.cross, and preserve the original Dockerfile
+	sed -e '1 s/\(^FROM\)/FROM --platform=\$$\{BUILDPLATFORM\}/; t' -e ' 1,// s//FROM --platform=\$$\{BUILDPLATFORM\}/' docker/Dockerfile > docker/Dockerfile.cross
+	- docker buildx create --name project-v3-builder
+	docker buildx use project-v3-builder
+	- docker buildx build --push --platform=$(PLATFORMS) --tag ${IMG} . -f docker/Dockerfile.cross
+	- docker buildx rm project-v3-builder
+	rm docker/Dockerfile.cross
 
 ##@ Deployment
 
@@ -166,41 +203,62 @@ $(LOCALBIN):
 KUSTOMIZE ?= $(LOCALBIN)/kustomize
 CONTROLLER_GEN ?= $(LOCALBIN)/controller-gen
 ENVTEST ?= $(LOCALBIN)/setup-envtest
+GOLANGCI_LINT ?= $(LOCALBIN)/golangci-lint
+GOIMPORTS ?= $(LOCALBIN)/goimports
+ADDLICENSE ?= $(LOCALBIN)/addlicense
 
 ## Tool Versions
-KUSTOMIZE_VERSION ?= v4.5.7
-CONTROLLER_TOOLS_VERSION ?= v0.11.1
+KUSTOMIZE_VERSION ?= v3.8.7
+CONTROLLER_TOOLS_VERSION ?= v0.11.3
+GOLANGCI_LINT_VERSION ?= v1.49.0
+GOIMPORTS_VERSION ?= v0.15.0
+ADDLICENSE_VERSION ?= v1.1.1
 
 KUSTOMIZE_INSTALL_SCRIPT ?= "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh"
 .PHONY: kustomize
 kustomize: $(KUSTOMIZE) ## Download kustomize locally if necessary.
 $(KUSTOMIZE): $(LOCALBIN)
-	test -s $(LOCALBIN)/kustomize || { curl -s $(KUSTOMIZE_INSTALL_SCRIPT) | bash -s -- $(subst v,,$(KUSTOMIZE_VERSION)) $(LOCALBIN); }
+	test -s $(LOCALBIN)/kustomize || { curl -Ss $(KUSTOMIZE_INSTALL_SCRIPT) | bash -s -- $(subst v,,$(KUSTOMIZE_VERSION)) $(LOCALBIN); }
 
 .PHONY: controller-gen
 controller-gen: $(CONTROLLER_GEN) ## Download controller-gen locally if necessary.
 $(CONTROLLER_GEN): $(LOCALBIN)
-	test -s $(LOCALBIN)/controller-gen || GOBIN=$(LOCALBIN) GOOS=$(OS) GOARCH=$(ARCH) go install sigs.k8s.io/controller-tools/cmd/controller-gen@$(CONTROLLER_TOOLS_VERSION)
+	test -s $(LOCALBIN)/controller-gen || GOBIN=$(LOCALBIN) go install sigs.k8s.io/controller-tools/cmd/controller-gen@$(CONTROLLER_TOOLS_VERSION)
 
 .PHONY: envtest
 envtest: $(ENVTEST) ## Download envtest-setup locally if necessary.
 $(ENVTEST): $(LOCALBIN)
-	test -s $(LOCALBIN)/setup-envtest || GOBIN=$(LOCALBIN) GOOS=$(OS) GOARCH=$(ARCH) go install sigs.k8s.io/controller-runtime/tools/setup-envtest@latest
+	test -s $(LOCALBIN)/setup-envtest || GOBIN=$(LOCALBIN) go install sigs.k8s.io/controller-runtime/tools/setup-envtest@latest
+
+.PHONY: golangci-lint
+golangci-lint: $(GOLANGCI_LINT) ## Download golangci-lint locally if necessary.
+$(GOLANGCI_LINT): $(LOCALBIN)
+	test -s $(LOCALBIN)/golangci-lint || GOBIN=$(LOCALBIN) go install github.com/golangci/golangci-lint/cmd/golangci-lint@$(GOLANGCI_LINT_VERSION)
+
+.PHONY: goimports
+goimports: $(GOIMPORTS) ## Download goimports locally if necessary.
+$(GOIMPORTS): $(LOCALBIN)
+	test -s $(LOCALBIN)/goimports || GOBIN=$(LOCALBIN) go install golang.org/x/tools/cmd/goimports@$(GOIMPORTS_VERSION)
+
+.PHONY: addlicense
+addlicense: $(ADDLICENSE) ## Download addlicense locally if necessary.
+$(ADDLICENSE): $(LOCALBIN)
+	test -s $(LOCALBIN)/addlicense || GOBIN=$(LOCALBIN) go install github.com/google/addlicense@$(ADDLICENSE_VERSION)
 
 .PHONY: bundle
-bundle: kustomize operator-sdk ## Generate bundle manifests and metadata, then validate generated files.
-	$(OPERATOR_SDK) generate kustomize manifests -q
+bundle: manifests kustomize ## Generate bundle manifests and metadata, then validate generated files.
+	operator-sdk generate kustomize manifests -q
 	cd config/manager && $(KUSTOMIZE) edit set image controller=$(IMG)
-	$(KUSTOMIZE) build config/manifests | $(OPERATOR_SDK) generate bundle $(BUNDLE_GEN_FLAGS)
-	$(OPERATOR_SDK) bundle validate ./bundle
+	$(KUSTOMIZE) build config/manifests | operator-sdk generate bundle $(BUNDLE_GEN_FLAGS)
+	operator-sdk bundle validate ./bundle
 
 .PHONY: bundle-build
 bundle-build: ## Build the bundle image.
-	podman build -f bundle.Dockerfile -t $(BUNDLE_IMG) .
+	$(CONTAINER_ENGINE) build -f bundle.Dockerfile -t $(BUNDLE_IMG) .
 
 .PHONY: bundle-push
 bundle-push: ## Push the bundle image.
-	$(MAKE) podman-push IMG=$(BUNDLE_IMG)
+	$(MAKE) $(CONTAINER_ENGINE)-push IMG=$(BUNDLE_IMG)
 
 .PHONY: opm
 OPM = ./bin/opm
@@ -210,27 +268,12 @@ ifeq (,$(shell which opm 2>/dev/null))
 	@{ \
 	set -e ;\
 	mkdir -p $(dir $(OPM)) ;\
-	curl -sSLo $(OPM) https://github.com/operator-framework/operator-registry/releases/download/v1.23.0/$(OS)-$(ARCH)-opm ;\
+	OS=$(shell go env GOOS) && ARCH=$(shell go env GOARCH) && \
+	curl -sSLo $(OPM) https://github.com/operator-framework/operator-registry/releases/download/v1.23.0/$${OS}-$${ARCH}-opm ;\
 	chmod +x $(OPM) ;\
 	}
 else
 OPM = $(shell which opm)
-endif
-endif
-
-.PHONY: operator-sdk
-OPERATOR_SDK = ./bin/operator-sdk
-operator-sdk: ## Download operator-sdk locally if necessary.
-ifeq (,$(wildcard $(OPERATOR_SDK)))
-ifeq (,$(shell which operator-sdk 2>/dev/null))
-	@{ \
-	set -e ;\
-	mkdir -p $(dir $(OPERATOR_SDK)) ;\
-	curl -sSLo $(OPERATOR_SDK) https://github.com/operator-framework/operator-sdk/releases/download/v1.32.0/operator-sdk_$(OS)_$(ARCH) ;\
-	chmod +x $(OPERATOR_SDK) ;\
-	}
-else
-OPM = $(shell which operator-sdk)
 endif
 endif
 
@@ -250,23 +293,32 @@ endif
 # This recipe invokes 'opm' in 'semver' bundle add mode. For more information on add modes, see:
 # https://github.com/operator-framework/community-operators/blob/7f1438c/docs/packaging-operator.md#updating-your-existing-operator
 .PHONY: catalog-build
-catalog-build: opm ## Build a catalog image.
-	$(OPM) index add --container-tool podman --mode semver --tag $(CATALOG_IMG) --bundles $(BUNDLE_IMGS) $(FROM_INDEX_OPT)
+catalog-build: opm bundle-push ## Build a catalog image. Bundle image must have been pushed into the registry.
+	$(OPM) index add --container-tool $(CONTAINER_ENGINE) --mode semver --tag $(CATALOG_IMG) --bundles $(BUNDLE_IMGS) $(FROM_INDEX_OPT)
 
-# Push the catalog image.
 .PHONY: catalog-push
 catalog-push: ## Push a catalog image.
-	$(MAKE) podman-push IMG=$(CATALOG_IMG)
+	$(MAKE) $(CONTAINER_ENGINE)-push IMG=$(CATALOG_IMG)
 
+.PHONY:
+release-build: bundle $(CONTAINER_ENGINE)-build bundle-build catalog-build ## Build operator docker, bundle, catalog images
 
-# Build and push all images (operator, bundle and catalog).
-# don't forget to set IMG and IMAGE_TAG_BASE vars
-.PHONY: build-push-all
-build-push-all: podman-build podman-push bundle bundle-build bundle-push catalog-build catalog-push operator-hub-manifests
+.PHONY:
+release-push: $(CONTAINER_ENGINE)-push bundle-push catalog-push ## Push operator docker, bundle, catalog images
 
+.PHONY: deploy-olm
+deploy-olm: ## Deploy the operator with OLM
+	kubectl apply -f config/samples/catalog-operator-group.yaml
+	sed "s/{{VERSION}}/$(subst /,\/,$(VERSION))/g" config/samples/catalog-subscription-template.yaml | sed "s/{{DEFAULT_OLM_NAMESPACE}}/$(subst /,\/,$(DEFAULT_OLM_NAMESPACE))/g" | kubectl apply -f -
 
-# Build CatalogSource  manifest for Operator Hub
-# don't forget to set IMG IMAGE_TAG_BASE
-.PHONY: operator-hub-manifests
-operator-hub-manifests:
-	cd config/operator-hub && $(KUSTOMIZE) edit set image catalog=$(IMAGE_TAG_BASE)-catalog:v$(VERSION)
+.PHONY: undeploy-olm
+undeploy-olm: ## Un-deploy the operator with OLM
+	-kubectl delete subscriptions.operators.coreos.com backstage-operator
+	-kubectl delete operatorgroup backstage-operator-group
+	-kubectl delete clusterserviceversion backstage-operator.v$(VERSION)
+
+DEFAULT_OLM_NAMESPACE ?= openshift-marketplace
+.PHONY: catalog-update
+catalog-update: ## Update catalog source in the default namespace for catalogsource
+	-kubectl delete catalogsource backstage-operator -n $(DEFAULT_OLM_NAMESPACE)
+	sed "s/{{CATALOG_IMG}}/$(subst /,\/,$(CATALOG_IMG))/g" config/samples/catalog-source-template.yaml | kubectl apply -n $(DEFAULT_OLM_NAMESPACE) -f -

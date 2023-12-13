@@ -1,0 +1,335 @@
+{
+  "type": "object",
+  "required": [
+    "techdocs"
+  ],
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "properties": {
+    "techdocs": {
+      "description": "Configuration options for the techdocs-backend plugin",
+      "type": "object",
+      "required": [
+        "builder"
+      ],
+      "properties": {
+        "builder": {
+          "description": "Documentation building process depends on the builder attr",
+          "visibility": "frontend",
+          "enum": [
+            "external",
+            "local"
+          ],
+          "type": "string"
+        },
+        "generator": {
+          "description": "Techdocs generator information",
+          "type": "object",
+          "required": [
+            "runIn"
+          ],
+          "properties": {
+            "runIn": {
+              "description": "Where to run the techdocs (mkdocs) generator",
+              "enum": [
+                "docker",
+                "local"
+              ],
+              "type": "string"
+            },
+            "dockerImage": {
+              "description": "Override the default techdocs docker image",
+              "type": "string"
+            },
+            "pullImage": {
+              "description": "Pull the latest docker image",
+              "type": "boolean"
+            },
+            "mkdocs": {
+              "description": "Override behavior specific to mkdocs.",
+              "type": "object",
+              "properties": {
+                "legacyCopyReadmeMdToIndexMd": {
+                  "description": "(Optional and not recommended) Configures the techdocs generator to\nattempt to ensure an index.md exists falling back to using <docs-dir>/README.md\nor README.md in case a default <docs-dir>/index.md is not provided.\nNote that https://www.mkdocs.org/user-guide/configuration/#edit_uri behavior\nwill be broken in these scenarios.",
+                  "type": "boolean"
+                },
+                "defaultPlugins": {
+                  "description": "List of mkdocs plugins which should be added as default to all mkdocs.yml files.",
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "publisher": {
+          "description": "Techdocs publisher information",
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "enum": [
+                    "awsS3",
+                    "azureBlobStorage",
+                    "googleGcs",
+                    "local",
+                    "openStackSwift"
+                  ],
+                  "type": "string"
+                },
+                "local": {
+                  "type": "object",
+                  "properties": {
+                    "publishDirectory": {
+                      "description": "Directory to store generated static files.",
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "required": [
+                "type"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "const": "awsS3"
+                },
+                "awsS3": {
+                  "description": "Required when 'type' is set to awsS3",
+                  "type": "object",
+                  "required": [
+                    "bucketName"
+                  ],
+                  "properties": {
+                    "accountId": {
+                      "description": "(Optional) The AWS account ID where the storage bucket is located.\nCredentials for the account ID will be sourced from the 'aws' app config section.\nSee the\n[integration-aws-node package](https://github.com/backstage/backstage/blob/master/packages/integration-aws-node/README.md)\nfor details on how to configure the credentials in the app config.\nIf account ID is not set and no credentials are set, environment variables or aws config file will be used to authenticate.",
+                      "visibility": "secret",
+                      "type": "string"
+                    },
+                    "credentials": {
+                      "description": "(Optional) Credentials used to access a storage bucket.\nThis section is now deprecated. Configuring the account ID is now preferred, with credentials in the 'aws'\napp config section.\nIf not set and no account ID is set, environment variables or aws config file will be used to authenticate.",
+                      "visibility": "secret",
+                      "type": "object",
+                      "properties": {
+                        "accessKeyId": {
+                          "description": "User access key id",
+                          "visibility": "secret",
+                          "type": "string"
+                        },
+                        "secretAccessKey": {
+                          "description": "User secret access key",
+                          "visibility": "secret",
+                          "type": "string"
+                        },
+                        "roleArn": {
+                          "description": "ARN of role to be assumed",
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "bucketName": {
+                      "description": "(Required) Cloud Storage Bucket Name",
+                      "type": "string"
+                    },
+                    "region": {
+                      "description": "(Optional) AWS Region.\nIf not set, AWS_REGION environment variable or aws config file will be used.",
+                      "visibility": "secret",
+                      "type": "string"
+                    },
+                    "endpoint": {
+                      "description": "(Optional) AWS Endpoint.\nThe endpoint URI to send requests to. The default endpoint is built from the configured region.",
+                      "visibility": "secret",
+                      "type": "string"
+                    },
+                    "s3ForcePathStyle": {
+                      "description": "(Optional) Whether to use path style URLs when communicating with S3.\nDefaults to false.\nThis allows providers like LocalStack, Minio and Wasabi (and possibly others) to be used to host tech docs.",
+                      "type": "boolean"
+                    },
+                    "sse": {
+                      "description": "(Optional) AWS Server Side Encryption\nDefaults to undefined.\nIf not set, encrypted buckets will fail to publish.\nhttps://docs.aws.amazon.com/AmazonS3/latest/userguide/specifying-s3-encryption.html",
+                      "enum": [
+                        "AES256",
+                        "aws:kms"
+                      ],
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "required": [
+                "type"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "const": "openStackSwift"
+                },
+                "openStackSwift": {
+                  "description": "Required when 'type' is set to openStackSwift",
+                  "type": "object",
+                  "required": [
+                    "authUrl",
+                    "containerName",
+                    "credentials",
+                    "swiftUrl"
+                  ],
+                  "properties": {
+                    "credentials": {
+                      "description": "(Required) Credentials used to access a storage bucket.",
+                      "visibility": "secret",
+                      "type": "object",
+                      "required": [
+                        "id",
+                        "secret"
+                      ],
+                      "properties": {
+                        "id": {
+                          "description": "(Required) Application Credential ID",
+                          "visibility": "secret",
+                          "type": "string"
+                        },
+                        "secret": {
+                          "description": "(Required) Application Credential Secret",
+                          "visibility": "secret",
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "containerName": {
+                      "description": "(Required) Cloud Storage Container Name",
+                      "type": "string"
+                    },
+                    "authUrl": {
+                      "description": "(Required) Auth url sometimes OpenStack uses different port check your OpenStack apis.",
+                      "type": "string"
+                    },
+                    "swiftUrl": {
+                      "description": "(Required) Swift URL",
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "required": [
+                "type"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "const": "azureBlobStorage"
+                },
+                "azureBlobStorage": {
+                  "description": "Required when 'type' is set to azureBlobStorage",
+                  "type": "object",
+                  "required": [
+                    "containerName"
+                  ],
+                  "properties": {
+                    "connectionString": {
+                      "description": "(Optional) Connection string of the storage container.",
+                      "visibility": "secret",
+                      "type": "string"
+                    },
+                    "credentials": {
+                      "description": "(Optional) Credentials used to access a storage container.",
+                      "visibility": "secret",
+                      "type": "object",
+                      "required": [
+                        "accountName"
+                      ],
+                      "properties": {
+                        "accountName": {
+                          "description": "Account access name",
+                          "visibility": "secret",
+                          "type": "string"
+                        },
+                        "accountKey": {
+                          "description": "(Optional) Account secret primary key\nIf not set, environment variables will be used to authenticate.",
+                          "visibility": "secret",
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "containerName": {
+                      "description": "(Required) Cloud Storage Container Name",
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "required": [
+                "type"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "const": "googleGcs"
+                },
+                "googleGcs": {
+                  "description": "Required when 'type' is set to googleGcs",
+                  "type": "object",
+                  "required": [
+                    "bucketName"
+                  ],
+                  "properties": {
+                    "bucketName": {
+                      "description": "(Required) Cloud Storage Bucket Name",
+                      "type": "string"
+                    },
+                    "credentials": {
+                      "description": "(Optional) API key used to write to a storage bucket.\nIf not set, environment variables will be used to authenticate.",
+                      "visibility": "secret",
+                      "type": "string"
+                    },
+                    "projectId": {
+                      "description": "(Optional) GCP project ID that contains the bucket. Should be\nset if credentials is not set, or if the service account in\nthe credentials belongs to a different project to the bucket.",
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "required": [
+                "type"
+              ]
+            }
+          ]
+        },
+        "cache": {
+          "type": "object",
+          "required": [
+            "ttl"
+          ],
+          "properties": {
+            "ttl": {
+              "description": "The cache time-to-live for TechDocs sites (in milliseconds). Set this\nto a non-zero value to cache TechDocs sites and assets as they are\nread from storage.\n\nNote: you must also configure `backend.cache` appropriately as well,\nand to pass a PluginCacheManager instance to TechDocs Backend's\ncreateRouter method in your backend.",
+              "type": "number"
+            },
+            "readTimeout": {
+              "description": "The time (in milliseconds) that the TechDocs backend will wait for\na cache service to respond before continuing on as though the cached\nobject was not found (e.g. when the cache sercice is unavailable).\n\nDefaults to 1000 milliseconds.",
+              "type": "number"
+            }
+          }
+        },
+        "legacyUseCaseSensitiveTripletPaths": {
+          "description": "(Optional and not recommended) Prior to version [0.x.y] of TechDocs, docs\nsites could only be accessed over paths with case-sensitive entity triplets\ne.g. (namespace/Kind/name). If you are upgrading from an older version of\nTechDocs and are unable to perform the necessary migration of files in your\nexternal storage, you can set this value to `true` to temporarily revert to\nthe old, case-sensitive entity triplet behavior.",
+          "type": "boolean"
+        }
+      }
+    }
+  }
+}

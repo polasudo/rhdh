@@ -1,0 +1,68 @@
+{
+  "type": "object",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "properties": {
+    "jenkins": {
+      "type": "object",
+      "properties": {
+        "baseUrl": {
+          "description": "Default instance baseUrl, can be specified on a named instance called \"default\"",
+          "type": "string"
+        },
+        "username": {
+          "description": "Default instance username, can be specified on a named instance called \"default\"",
+          "type": "string"
+        },
+        "apiKey": {
+          "description": "Default Instance apiKey, can be specified on a named instance called \"default\"",
+          "visibility": "secret",
+          "type": "string"
+        },
+        "instances": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "apiKey",
+              "baseUrl",
+              "name",
+              "username"
+            ],
+            "properties": {
+              "name": {
+                "description": "Name of the instance, this will be used in an annotation on catalog entities to refer to jobs on this instance.\n\nUse a name of \"default\" to specify the jenkins instance details if the annotation doesn't explicitly name an\ninstance.",
+                "type": "string"
+              },
+              "baseUrl": {
+                "type": "string"
+              },
+              "username": {
+                "type": "string"
+              },
+              "apiKey": {
+                "visibility": "secret",
+                "type": "string"
+              },
+              "extraRequestHeaders": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "properties": {
+                  "Authorization": {
+                    "visibility": "secret",
+                    "type": "string"
+                  },
+                  "authorization": {
+                    "visibility": "secret",
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "type": "object",
+  "required": [
+    "azureDevOps"
+  ],
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "properties": {
+    "azureDevOps": {
+      "description": "Configuration options for the azure-devops-backend plugin",
+      "type": "object",
+      "required": [
+        "host",
+        "organization",
+        "token"
+      ],
+      "properties": {
+        "host": {
+          "description": "The hostname of the given Azure instance",
+          "type": "string"
+        },
+        "token": {
+          "description": "Token used to authenticate requests.",
+          "visibility": "secret",
+          "type": "string"
+        },
+        "organization": {
+          "description": "The organization of the given Azure instance",
+          "type": "string"
+        }
+      }
+    }
+  }
+}

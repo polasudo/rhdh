@@ -1,0 +1,62 @@
+{
+  "type": "object",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "properties": {
+    "sonarqube": {
+      "description": "Optional configurations for the SonarQube plugin",
+      "type": "object",
+      "properties": {
+        "baseUrl": {
+          "description": "The base url of the sonarqube installation. Defaults to https://sonarcloud.io.",
+          "visibility": "frontend",
+          "type": "string"
+        },
+        "externalBaseUrl": {
+          "description": "The external url of the sonarqube installation.\nUse this if you want to use a different url for the frontend than the backend.",
+          "visibility": "frontend",
+          "type": "string"
+        },
+        "apiKey": {
+          "description": "The api key to access the sonarqube instance under baseUrl.",
+          "visibility": "secret",
+          "type": "string"
+        },
+        "instances": {
+          "description": "The optional sonarqube instances.",
+          "visibility": "frontend",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "apiKey",
+              "baseUrl",
+              "name"
+            ],
+            "properties": {
+              "name": {
+                "description": "The name of the sonarqube instance.",
+                "visibility": "frontend",
+                "type": "string"
+              },
+              "baseUrl": {
+                "description": "The base url of the sonarqube instance.",
+                "visibility": "frontend",
+                "type": "string"
+              },
+              "externalBaseUrl": {
+                "description": "The external url of the sonarqube instance.\nUse this if you want to use a different url for the frontend than the backend.",
+                "visibility": "frontend",
+                "type": "string"
+              },
+              "apiKey": {
+                "description": "The api key to access the sonarqube instance.",
+                "visibility": "secret",
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
