@@ -13,11 +13,6 @@
 
 set -e
 
-echo "
-CI_COMMIT_BRANCH = $CI_COMMIT_BRANCH
-CI_DEFAULT_BRANCH = $CI_DEFAULT_BRANCH
-"
-
 SCRIPT=$(readlink -f "$0")
 ROOTPATH=$(dirname "$SCRIPT"); ROOTPATH=${ROOTPATH/\/build\/ci}
 # THIS_REPO="rhpib/rhdh"
