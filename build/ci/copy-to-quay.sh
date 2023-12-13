@@ -52,7 +52,6 @@ CI_PROJECT_NAME = $CI_PROJECT_NAME
 CI_PROJECT_ID = $CI_PROJECT_ID
 CI_JOB_TOKEN = $CI_JOB_TOKEN
 CI_API_V4_URL = $CI_API_V4_URL"
-
 cd /tmp
 curl -sSLkO https://hdn.corp.redhat.com/rhel7-csb-stage/RPMS/noarch/redhat-internal-cert-install-0.1-31.el7.noarch.rpm
 dnf -y -q update
