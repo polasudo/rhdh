@@ -44,7 +44,7 @@ EOF
 
 SUDO=0
 DOVALIDATE=1 # validate olm-catalog.Dockerfile
-USEKANIKO=0 # if 1, use environment configured from https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1-rhel-9/build/dockerfiles/kaniko-ubi9.Dockerfile
+USEKANIKO=0 # if 1, use environment configured from https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1.1-rhel-9/build/dockerfiles/kaniko-ubi9.Dockerfile
 AUTHFILEFLAGS=""
 VERBOSE=0
 WORKING_DIR='./'
@@ -152,7 +152,7 @@ if [[ $USEKANIKO -eq 0 ]]; then
   fi
 else
   # build, including extra destinations (tags)
-  # uses environment configured from https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1-rhel-9/build/dockerfiles/kaniko-ubi9.Dockerfile
+  # uses environment configured from https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1.1-rhel-9/build/dockerfiles/kaniko-ubi9.Dockerfile
   /kaniko/executor --context "$(pwd)" --dockerfile "$(pwd)/olm-catalog.Dockerfile" --destination "${targetIndexImage}" ${DESTINATIONFLAGS}
 fi
 

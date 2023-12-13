@@ -53,12 +53,15 @@ Examples:
 if [[ -z ${PROD_VER} ]]; then usage; exit 1; fi
 if [[ -z ${IMAGE} ]]; then usage; exit 1; fi
 
+MIDSTM_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "rhdh-1-rhel-9")
+if [[ ${MIDSTM_BRANCH} != "rhdh-"*"-rhel-"* ]]; then MIDSTM_BRANCH="rhdh-1-rhel-9"; fi
+
 if [[ -x ${SCRIPT_DIR}/getLatestImageTags.sh ]]; then
     GLIT=${SCRIPT_DIR}/getLatestImageTags.sh
 else
     if [[ $VERBOSE -eq 1 ]]; then echo "Downloading getLatestImageTags.sh script from Github"; fi
     pushd /tmp >/dev/null || exit
-    curl -sSLO https://gitlab.cee.redhat.com/rhidp/rhdh/-/raw/rhdh-1-rhel-9/build/scripts/getLatestImageTags.sh && chmod +x getLatestImageTags.sh
+    curl -sSLO https://gitlab.cee.redhat.com/rhidp/rhdh/-/raw/${MIDSTM_BRANCH}/build/scripts/getLatestImageTags.sh && chmod +x getLatestImageTags.sh
     GLIT=/tmp/getLatestImageTags.sh
     popd >/dev/null || exit
 fi

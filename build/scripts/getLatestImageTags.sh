@@ -19,12 +19,14 @@
 # docker login registry.redhat.io -u=USERNAME -p=PASSWORD
 
 # try to compute branches from currently checked out branch; else fall back to hard coded value
-DWNSTM_BRANCH="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || true)"
+DWNSTM_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "rhdh-1-rhel-9")
+if [[ ${DWNSTM_BRANCH} != "rhdh-"*"-rhel-"* ]]; then DWNSTM_BRANCH="rhdh-1-rhel-9"; fi
 
 getVersion ()
 {
-	VERSION=1.0
-	# echo "VERSION=$VERSION"
+	if [[ -f distgit/containers/rhdh-hub/package.json ]]; then
+		VERSION=$(yq -r '.version' distgit/containers/rhdh-hub/package.json); VERSION=${VERSION%.*} # 1.2
+	fi
 }
 getVersion
 
@@ -35,7 +37,7 @@ getDHVersion ()
 			DWNSTM_BRANCH="rhdh-${VERSION}-rhel-9"
 		else 
 			DWNSTM_BRANCH="rhdh-1-rhel-9"
-			VERSION="3.x"
+			VERSION="1.x"
 		fi
 	else
 		DH_VERSION=${DWNSTM_BRANCH/rhdh-/}; DH_VERSION=${DH_VERSION/-rhel-9/}

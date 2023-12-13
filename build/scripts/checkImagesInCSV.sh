@@ -51,7 +51,7 @@ Examples:
 To compare latest image in Quay to latest CSV in bundle in latest IIB:
   TAG=$PROD_VER; \\
   IMG=rhdh/hub-rhel9; \\
-  img_quay=\$(${SCRIPTPATH}/getLatestImageTags.sh -b rhdh-\${TAG}-rhel-8 --quay --tag \"\${TAG}-\" -c \${IMG}); echo \$img_quay; \\
+  img_quay=\$(${SCRIPTPATH}/getLatestImageTags.sh -b rhdh-\${TAG}-rhel-9 --quay --tag \"\${TAG}-\" -c \${IMG}); echo \$img_quay; \\
   img_iib=\$(${SCRIPTPATH}/checkImagesInCSV.sh --ds -t \${TAG} -o 4.12 -y -qq -i \${IMG}); echo \$img_iib; \\
   if [[ \$img_quay != \$img_iib ]]; then \\
     ${SCRIPTPATH}/checkImagesInCSV.sh --ds -t \${TAG} -o 4.12 -y -i \${IMG}; \\
@@ -97,6 +97,8 @@ if [[ $PROD_VER ]] && [[ $PROD_VER != "1.yy" ]] && [[ $OCP_VER ]] && [[ ! $IMAGE
 fi
 
 # echo "REGEX_FILTER = $REGEX_FILTER"
+MIDSTM_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "rhdh-1-rhel-9")
+if [[ ${MIDSTM_BRANCH} != "rhdh-"*"-rhel-"* ]]; then MIDSTM_BRANCH="rhdh-1-rhel-9"; fi
 
 # shellcheck disable=SC2086
 for imageAndTag in $IMAGES; do 
@@ -105,7 +107,7 @@ for imageAndTag in $IMAGES; do
     # echo "Found containerTag = ${containerTag}"
 
     if [[ ! -x ${SCRIPTPATH}/containerExtract.sh ]]; then
-        curl -sSLO https://gitlab.cee.redhat.com/rhidp/rhdh/-/raw/rhdh-1-rhel-9/build/scripts/containerExtract.sh
+        curl -sSLO https://gitlab.cee.redhat.com/rhidp/rhdh/-/raw/${MIDSTM_BRANCH}/build/scripts/containerExtract.sh
         chmod +x containerExtract.sh
     fi
     rm -fr /tmp/${SOURCE_CONTAINER//\//-}-${containerTag}-*/

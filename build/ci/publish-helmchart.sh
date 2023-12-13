@@ -14,8 +14,8 @@ set -e
 SCRIPT=$(readlink -f "$0")
 ROOTPATH=$(dirname "$SCRIPT"); ROOTPATH=${ROOTPATH/\/build\/ci}
 
-# TODO compute this from the current branch
-DWNSTM_BRANCH="" # rhdh-1.1-rhel-9
+DWNSTM_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "rhdh-1-rhel-9")
+if [[ ${DWNSTM_BRANCH} != "rhdh-"*"-rhel-"* ]]; then DWNSTM_BRANCH="rhdh-1-rhel-9"; fi
 debugflag=""
 
 usage () {

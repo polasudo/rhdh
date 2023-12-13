@@ -141,7 +141,7 @@ echo "===== Copy OSBS images to Quay ===========>"
 
 # use :latest for a stable branch like rhdh-1.1-, and :next for rhdh-1- branch
 MIDSTM_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "rhdh-1-rhel-9")
-if [[ ${MIDSTM_BRANCH} != "devspaces-"*"-rhel-"* ]]; then MIDSTM_BRANCH="rhdh-1-rhel-9"; fi
+if [[ ${MIDSTM_BRANCH} != "rhdh-"*"-rhel-"* ]]; then MIDSTM_BRANCH="rhdh-1-rhel-9"; fi
 latestNext="latest"; if [[ $MIDSTM_BRANCH == "rhdh-1-rhel-9" ]]; then latestNext="next"; fi
 
 ./build/scripts/getLatestImageTags.sh -b ${MIDSTM_BRANCH} --osbs --pushtoquay="${DH_VERSION} $latestNext"

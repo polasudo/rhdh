@@ -19,8 +19,7 @@ usage ()
   echo "Usage: $0 CONTAINER  
 
 Examples:
-  $0 quay.io/devspaces/devspaces-operator-bundle:latest
-  $0 quay.io/devworkspace/devworkspace-operator-bundle:next
+  $0 quay.io/rhdh/rhdh-operator-bundle:latest
   $0 quay.io/devspaces/devfileregistry-rhel8:latest --tar-flags var/www/html/*/external_images.txt --arch ppc64le
 
 Options:
