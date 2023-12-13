@@ -2,7 +2,7 @@ repos:
   - repo: https://github.com/janus-idp/backstage-showcase
     branch:
       # list branch to fetch; if first not found, try second as fallback
-      - 1.0.x
+      - 1.2.x
       - main
     namespace_to_replace: '@janus-idp'
     # include the contents of the repo's root folder too?
@@ -28,10 +28,10 @@ repos:
       - docker/setup.py
     destination_folder: distgit/containers/rhdh-hub/
 
-  - repo: https://github.com/janus-idp/backstage-operator
+  - repo: https://github.com/janus-idp/operator
     branch: 
       # list branch to fetch; if first not found, try second as fallback
-      - 1.0.x
+      - 1.2.x
       - main
     namespace_to_replace: '@janus-idp'
     # include the contents of the repo's root folder too?
