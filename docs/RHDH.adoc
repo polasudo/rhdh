@@ -28,7 +28,7 @@ NOTE: There currently is no https://github.com/janus-idp/operator/tree/main/bund
 
 . https://gitlab.cee.redhat.com/cpaas-products/rhdh/-/tree/main/versions/rhdh-1.0.0 (CPaaS & OSBS configuration)
 
-. https://gitlab.cee.redhat.com/rhidp/rhdh/-/tree/rhdh-1-rhel-9/ (midstream - `(TODO)` rename this repo - https://issues.redhat.com/browse/RHIDP-361)
+. https://gitlab.cee.redhat.com/rhidp/rhdh/-/tree/rhdh-1-rhel-9/ (midstream)
 ** link:../distgit/[distgit/] - input to downstream builds
 ** link:../gcp_env/[gcp_env/] - product version definition
 ** link:../project.yml[project.yml] - CPaaS configuration to define how sources are transformed into downstream
@@ -199,9 +199,7 @@ This process is new and subject to change.
 
 #### Downstream CI builds based on upstream changes
 
-* `(TODO)` https://issues.redhat.com/browse/RHIDP-361 switch to 1.1 branch in upstream_sources.yml (and rhdh-1- branch?)
-
-. Check for recent changes in https://github.com/janus-idp/backstage-showcase/commits/1.0 (or main branch) since the last build have been synced to midstream as a new MR, eg., link:https://github.com/janus-idp/backstage-showcase/pull/305[PR 305] -> link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/merge_requests/33[MR 33]:
+. Check for recent changes in https://github.com/janus-idp/backstage-showcase/commits/1.0.x (or main branch) since the last build have been synced to midstream as a new MR, eg., link:https://github.com/janus-idp/backstage-showcase/pull/305[PR 305] -> link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/merge_requests/33[MR 33]:
 .. link:https://jenkins-cpaas-rhdh.apps.cpaas-poc.r6c9.p1.openshiftapps.com/job/rhdh-1.0.0/job/poll-all-upstream-sources/[poll-all-upstream-sources] -> link:https://jenkins-cpaas-rhdh.apps.cpaas-poc.r6c9.p1.openshiftapps.com/job/rhdh-1.0.0/job/rhdh/job/poll-upstream-sources/[poll-upstream-sources]
 . Verify that this MR has been checked...
 .. link:https://jenkins-cpaas-rhdh.apps.cpaas-poc.r6c9.p1.openshiftapps.com/job/gitlab-event-dispatcher/30/[gitlab-event-dispatcher] -> link:https://jenkins-cpaas-rhdh.apps.cpaas-poc.r6c9.p1.openshiftapps.com/job/rhdh-1.0.0/job/rhdh/job/check-patch/27/[check-patch] -> link:http://brewweb.engineering.redhat.com/brew/taskinfo?taskID=53169867[brew container build] (scratch from cpaas junkyard)

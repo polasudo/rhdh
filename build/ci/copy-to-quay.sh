@@ -7,8 +7,40 @@
 # set -x
 set -e
 
-# TODO https://issues.redhat.com/browse/RHIDP-361 make this a parameter of the branch name?
-DH_VERSION="1.0"
+if [[ ! $DH_VERSION ]] && [[ -f distgit/containers/rhdh-hub/package.json ]]; then
+    DH_VERSION=$(yq -r '.version' distgit/containers/rhdh-hub/package.json); DH_VERSION=${DH_VERSION%.*} # 1.2
+fi
+
+usage() {
+  echo "
+Usage:
+Options:
+    -v DH_VERSION       version of Developer Hub to publish; default: $DH_VERSION
+    -h                  this help
+
+Example:
+
+    $0 -v 1.2
+"
+  exit 0
+}
+
+while [[ "$#" -gt 0 ]]; do
+  case $1 in
+  '-v')
+    DH_VERSION="$2"
+    shift 2
+    ;;
+  '-h' | '--help')
+    usage
+    ;;
+  *)
+    echo "[ERROR] Invalid parameter: $1"
+    echo
+    usage
+    ;;
+  esac
+done
 
 # shellcheck disable=SC2154
 echo "builds_dir = $builds_dir
@@ -106,11 +138,16 @@ mkdir -p "$HOME/.docker"; cp $REGISTRY_AUTH_FILE "$HOME/.docker/config.json"
 
 # copy new containers to quay; generate IIBs and push to quay
 echo "===== Copy OSBS images to Quay ===========>"
-# TODO https://issues.redhat.com/browse/RHIDP-361 make sure we use :latest or :next as appropriate here
-./build/scripts/getLatestImageTags.sh -b rhdh-${DH_VERSION}-rhel-9 --osbs --pushtoquay="${DH_VERSION} next"
+
+# use :latest for a stable branch like rhdh-1.1-, and :next for rhdh-1- branch
+MIDSTM_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "rhdh-1-rhel-9")
+if [[ ${MIDSTM_BRANCH} != "devspaces-"*"-rhel-"* ]]; then MIDSTM_BRANCH="rhdh-1-rhel-9"; fi
+latestNext="latest"; if [[ $MIDSTM_BRANCH == "rhdh-1-rhel-9" ]]; then latestNext="next"; fi
+
+./build/scripts/getLatestImageTags.sh -b ${MIDSTM_BRANCH} --osbs --pushtoquay="${DH_VERSION} $latestNext"
 
 echo "===== Quay images ===========>" | tee -a /tmp/copy-to-quay.sh.result.txt
-./build/scripts/getLatestImageTags.sh -b rhdh-${DH_VERSION}-rhel-9 --quay --tag "${DH_VERSION}-" --hide | tee -a /tmp/copy-to-quay.sh.result.txt
+./build/scripts/getLatestImageTags.sh -b ${MIDSTM_BRANCH} --quay --tag "${DH_VERSION}-" --hide | tee -a /tmp/copy-to-quay.sh.result.txt
 
 echo "===== NVRs (requires brewkoji) ===========>" | tee -a /tmp/copy-to-quay.sh.result.txt
 cat <<EOF > /etc/yum.repos.d/latest-RCMTOOLS-2-RHEL-9.repo

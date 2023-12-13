@@ -352,10 +352,6 @@ The showcase docker image comes pre-loaded with a selection of dynamic plugins, 
 
 Upon application startup, for each plugin that is disabled by default, the `install-dynamic-plugins` init container within the `backstage` Pod's log will display a line similar to the following:
 
-```
-======= Skipping disabled dynamic plugin ./dynamic-plugins/dist/backstage-plugin-catalog-backend-module-github-dynamic
-```
-
 To activate this plugin, simply add a package with the same name and adjust the `disabled` field in the helm chart values as shown below:
 
 ```diff
@@ -368,9 +364,7 @@ global:
 +        disabled: false
 ```
 
-While the plugin's default configuration is extracted from the `dynamic-plugins.default.yaml` file, you still have the option to replace it by incorporating a `pluginConfig` entry into the plugin configuration.
-
-Note: Usually the plugin's default configuration references environment variables. You should make sure to set these variables in the helm chart values.
+While the plugin's default configuration is extracted from the `dynamic-plugins.default.yaml` file, you still have the option to override it by incorporating a `pluginConfig` entry into the plugin configuration.
 
 ### Example of external dynamic backend plugins
 

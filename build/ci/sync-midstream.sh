@@ -34,7 +34,8 @@ RHDH_THEME_COLOR_1="#be0000"
 RHDH_THEME_COLOR_2="#f56d6d"
 # NAMESPACE="@redhat"
 # tag/version in downstream repo to update
-DWNSTM_BRANCH="rhdh-1-rhel-9"
+DWNSTM_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "rhdh-1-rhel-9")
+if [[ ${DWNSTM_BRANCH} != "devspaces-"*"-rhel-"* ]]; then DWNSTM_BRANCH="rhdh-1-rhel-9"; fi
 
 # upstream repos to fetch
 UPSTREAM_FILE="${ROOTPATH}/upstream_repos.yml"
