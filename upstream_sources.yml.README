@@ -3,13 +3,13 @@
 
 # see https://cpaas.pages.redhat.com/documentation/users/midstream/usrc_updater.html#_enable_cachito
 git:
--# CI_CPAAS_RHDH_HUB_UPSTREAM for the hub, operator, and bundle containers
+-# CI_RHDH_UPSTREAM for the hub, operator, and bundle containers
 - automerge: 'yes'
-  # this becomes CI_CPAAS_RHDH_HUB_UPSTREAM_URL in container.yaml.in
+  # this becomes CI_RHDH_UPSTREAM_URL in container.yaml.in
   # upstream
   # url: https://github.com/janus-idp/backstage-showcase.git
   # midstream fork of backstage-showcase with RH branding
-  url: https://gitlab.cee.redhat.com/rhidp/cpaas-rhdh-hub.git
+  url: https://gitlab.cee.redhat.com/rhidp/rhdh.git
   branch: rhdh-1-rhel-9
   commit: <sha from upstream, updated by CPaaS automatically>
   # see https://cpaas.pages.redhat.com/documentation/users/midstream/usrc_updater.html#_update_policy

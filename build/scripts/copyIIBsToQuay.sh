@@ -78,7 +78,7 @@ while [[ "$#" -gt 0 ]]; do
   shift 1
 done
 
-# copy authfile where kaniko can use it in environment configured from https://gitlab.cee.redhat.com/rhidp/cpaas-rhdh-hub/-/blob/rhdh-1.0-rhel-9/build/dockerfiles/kaniko-ubi9.Dockerfile
+# copy authfile where kaniko can use it in environment configured from https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1-rhel-9/build/dockerfiles/kaniko-ubi9.Dockerfile
 if [[ $BUILD_CATALOG_FLAGS == *"kaniko"* ]]; then
   mkdir -p /kaniko/.docker/
   cp "$AUTHFILE" /kaniko/.docker/config.json
@@ -109,7 +109,7 @@ getScript () {
     else
         if [[ $VERBOSEFLAG == "-v" ]]; then echo "Downloading ${scriptFile} script from Github"; fi
         pushd /tmp >/dev/null || exit
-        curl -sSLO "https://gitlab.cee.redhat.com/rhidp/cpaas-rhdh-hub/-/raw/rhdh-1.0-rhel-9/build/scripts/${scriptFile}" && \
+        curl -sSLO "https://gitlab.cee.redhat.com/rhidp/rhdh/-/raw/rhdh-1-rhel-9/build/scripts/${scriptFile}" && \
         chmod +x "${scriptFile}"
         getScript_return=/tmp/"${scriptFile}"
         popd >/dev/null || exit

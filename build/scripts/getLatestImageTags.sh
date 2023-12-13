@@ -30,11 +30,11 @@ getVersion
 
 getDHVersion ()
 {
-	if [[ $DWNSTM_BRANCH != "rhdh-1."*"-rhel-9" ]] && [[ $DWNSTM_BRANCH != "rhdh-1.0-rhel-9" ]]; then
+	if [[ $DWNSTM_BRANCH != "rhdh-1."*"-rhel-9" ]] && [[ $DWNSTM_BRANCH != "rhdh-1-rhel-9" ]]; then
 		if [[ ${VERSION} != "" ]]; then
 			DWNSTM_BRANCH="rhdh-${VERSION}-rhel-9"
 		else 
-			DWNSTM_BRANCH="rhdh-1.0-rhel-9"
+			DWNSTM_BRANCH="rhdh-1-rhel-9"
 			VERSION="3.x"
 		fi
 	else
@@ -82,7 +82,7 @@ PUSHTOQUAY=0 # utility method to pull then push to quay
 PUSHTOQUAYTAGS="" # utility method to pull then push to quay (extra tags to push)
 PUSHTOQUAYFORCE=0 # normally, don't repush a tag if it's already in the registry (to avoid re-timestamping it and updating tag history)
 SORTED=0 # if 0, use the order of containers in the DS*_CONTAINERS_* strings above; if 1, sort alphabetically
-latestNext="latest"; if [[ $DH_VERSION == "1.y" ]] || [[ $DWNSTM_BRANCH == "rhdh-1.0-rhel-9" ]]; then latestNext="next  "; fi
+latestNext="latest"; if [[ $DH_VERSION == "1.y" ]] || [[ $DWNSTM_BRANCH == "rhdh-1-rhel-9" ]]; then latestNext="next  "; fi
 
 # cleanup /tmp files
 cleanup_temp () {
@@ -146,7 +146,7 @@ while [[ "$#" -gt 0 ]]; do
 	'--latestNext') latestNext="$2"; shift 1;;
 	# since we have no next or latest tags for IIB images, append an OCP version and arch and filter for those by default
 	'-o')
-		if [[ $DWNSTM_BRANCH != "rhdh-1.0-rhel-9" ]] || [[ $DH_VERSION != "1.y" ]]; then 
+		if [[ $DWNSTM_BRANCH != "rhdh-1-rhel-9" ]] || [[ $DH_VERSION != "1.y" ]]; then 
 			latestNext="latest-$2-$(uname -m)"
 		else
 			latestNext="next-$2-$(uname -m)"

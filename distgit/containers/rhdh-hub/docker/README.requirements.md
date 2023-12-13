@@ -42,7 +42,7 @@ To test in a [container build](https://pkgs.devel.redhat.com/cgit/containers/rhd
 pip3.11 install --user --no-cache-dir -r requirements.txt -r requirements-build.txt
 ```
 
-- commit changes to midstream (gitlab) repo, in a specific branch like [add-pip-deps](https://gitlab.cee.redhat.com/rhidp/cpaas-rhdh-hub/-/commits/add-pip-deps)
+- commit changes to midstream (gitlab) repo, in a specific branch like [add-pip-deps](https://gitlab.cee.redhat.com/rhidp/rhdh/-/commits/add-pip-deps)
 - collect the latest SHA for that branch
 - create a topic branch in https://pkgs.devel.redhat.com/cgit/containers/rhdh-hub
 - copy the above SHA into the container.yaml for the remote_source.ref values. For example: https://pkgs.devel.redhat.com/cgit/containers/rhdh-hub/commit/?h=private-nboldt-cachito-pip&id=dd6db447ee228be14f9de2c940b5e3efee4890e9
@@ -57,6 +57,6 @@ Note that some files are transformed between up/mid/downstream, so you may have 
 
 - Upstream: `docker/Dockerfile` (upstream) and `docker/brew.Dockerfile` (mid + downstream)
 
-- Midstream: `distgit/containers/rhdh-hub/docker/brew.Dockerfile` is transformed to `distgit/containers/rhdh-hub/Dockerfile.in` via [sync.sh](https://gitlab.cee.redhat.com/rhidp/cpaas-rhdh-hub/-/blob/rhdh-1.0-rhel-9/sync.sh)
+- Midstream: `distgit/containers/rhdh-hub/docker/brew.Dockerfile` is transformed to `distgit/containers/rhdh-hub/Dockerfile.in` via [sync.sh](https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1-rhel-9/sync.sh)
 
-- Downstream: `Dockerfile.in` becomes `Dockerfile` automatically, injecting the product version from [`gcp_env/product_version`](https://gitlab.cee.redhat.com/rhidp/cpaas-rhdh-hub/-/blob/rhdh-1.0-rhel-9/gcp_env/product-version)
+- Downstream: `Dockerfile.in` becomes `Dockerfile` automatically, injecting the product version from [`gcp_env/product_version`](https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1-rhel-9/gcp_env/product-version)

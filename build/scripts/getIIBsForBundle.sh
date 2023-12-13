@@ -58,7 +58,7 @@ if [[ -x ${SCRIPT_DIR}/getLatestImageTags.sh ]]; then
 else
     if [[ $VERBOSE -eq 1 ]]; then echo "Downloading getLatestImageTags.sh script from Github"; fi
     pushd /tmp >/dev/null || exit
-    curl -sSLO https://gitlab.cee.redhat.com/rhidp/cpaas-rhdh-hub/-/raw/rhdh-1.0-rhel-9/build/scripts/getLatestImageTags.sh && chmod +x getLatestImageTags.sh
+    curl -sSLO https://gitlab.cee.redhat.com/rhidp/rhdh/-/raw/rhdh-1-rhel-9/build/scripts/getLatestImageTags.sh && chmod +x getLatestImageTags.sh
     GLIT=/tmp/getLatestImageTags.sh
     popd >/dev/null || exit
 fi

@@ -9,7 +9,7 @@ image_build_method: imagebuilder
 remote_sources:
   - name: upstream1
     remote_source:
-      repo: https://gitlab.cee.redhat.com/rhidp/cpaas-rhdh-hub.git
+      repo: https://gitlab.cee.redhat.com/rhidp/rhdh.git
       ref: 1bf0fa18fee6b8d1d9485756ce79e0f71b5db3cc
       pkg_managers:
         - yarn
@@ -40,7 +40,7 @@ remote_sources:
           - path: distgit/containers/rhdh-hub/dynamic-plugins-imports-peer-dependencies/janus-idp-backstage-plugin-3scale-backend/dist-dynamic
   - name: upstream2
     remote_source:
-      repo: https://gitlab.cee.redhat.com/rhidp/cpaas-rhdh-hub.git
+      repo: https://gitlab.cee.redhat.com/rhidp/rhdh.git
       ref: 1bf0fa18fee6b8d1d9485756ce79e0f71b5db3cc
       pkg_managers:
         - pip

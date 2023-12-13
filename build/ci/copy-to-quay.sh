@@ -71,7 +71,7 @@ for d in {1..90}; do
     sleep 2
 done
 
-# quay token (rhdh_bot_quay.token) uploaded to Secure Files, see https://gitlab.cee.redhat.com/rhidp/cpaas-rhdh-hub/-/settings/ci_cd
+# quay token (rhdh_bot_quay.token) uploaded to Secure Files, see https://gitlab.cee.redhat.com/rhidp/rhdh/-/settings/ci_cd
 # see https://quay.io/organization/rhdh?tab=robots to regen token
 if [[ -f "${CI_PROJECT_DIR}/.secure_files/rhdh_bot_quay.token" ]]; then
     set +x

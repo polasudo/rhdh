@@ -5,9 +5,9 @@
 #     openldap-clients python3-rpkg python3-kobo python3-bugzilla \
 #     gcc openssl-devel bzip2-devel sqlite-devel
 
-# brew container-build rhdh-1.0-rhel-9-containers-candidate 
+# brew container-build rhdh-1-rhel-9-containers-candidate 
 #      git+https://pkgs.devel.redhat.com/git/containers/rhdh-operator#5459112551259a7f5a194227e7b3537be38afdf0 \
-#     --git-branch rhdh-1.0-rhel-9 
+#     --git-branch rhdh-1-rhel-9 
 
 set -e
 
@@ -15,7 +15,7 @@ SCRIPT=$(readlink -f "$0")
 ROOTPATH=$(dirname "$SCRIPT"); ROOTPATH=${ROOTPATH/\/build\/ci}
 
 # TODO compute this from the current branch
-DWNSTM_BRANCH="" # rhdh-1.0-rhel-9
+DWNSTM_BRANCH="" # rhdh-1-rhel-9
 CONTAINER_NAME="" # rhdh-hub, rhdh-operator, rhdh-operator-bundle
 
 scratchFlag=""
@@ -26,13 +26,13 @@ Usage:
   $0 -d REPO -b BRANCH [options]
 
 Options:
-    -b DWNSTM_BRANCH    downstream branch to update, eg., rhdh-1.0-rhel-9
+    -b DWNSTM_BRANCH    downstream branch to update, eg., rhdh-1-rhel-9
     -d CONTAINER_NAME   folder to sync, eg., rhdh-hub or rhdh-operator
     -s, --scratch       Do a scratch build
     -h, --help          This help
 
 Example
-  $0 -d rhdh-hub -b rhdh-1.0-rhel-9 
+  $0 -d rhdh-hub -b rhdh-1-rhel-9 
 "
 }
 

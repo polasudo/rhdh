@@ -9,8 +9,8 @@ image_build_method: imagebuilder
 remote_sources:
   - name: upstream1
     remote_source:
-      repo: ${CI_CPAAS_RHDH_HUB_UPSTREAM_URL}
-      ref: ${CI_CPAAS_RHDH_HUB_UPSTREAM_COMMIT}
+      repo: ${CI_RHDH_UPSTREAM_URL}
+      ref: ${CI_RHDH_UPSTREAM_COMMIT}
       pkg_managers:
         - yarn
       packages:
@@ -40,8 +40,8 @@ remote_sources:
           - path: distgit/containers/rhdh-hub/dynamic-plugins-imports-peer-dependencies/janus-idp-backstage-plugin-3scale-backend/dist-dynamic
   - name: upstream2
     remote_source:
-      repo: ${CI_CPAAS_RHDH_HUB_UPSTREAM_URL}
-      ref: ${CI_CPAAS_RHDH_HUB_UPSTREAM_COMMIT}
+      repo: ${CI_RHDH_UPSTREAM_URL}
+      ref: ${CI_RHDH_UPSTREAM_COMMIT}
       pkg_managers:
         - pip
       packages:

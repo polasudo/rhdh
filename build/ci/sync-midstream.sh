@@ -15,7 +15,7 @@ set -e
 
 SCRIPT=$(readlink -f "$0")
 ROOTPATH=$(dirname "$SCRIPT"); ROOTPATH=${ROOTPATH/\/build\/ci}
-# THIS_REPO="rhpib/cpaas-rhdh-hub"
+# THIS_REPO="rhpib/rhdh"
 CLEAN=0     # clean up node_modules and anything from remote repo
 DO_BUILD=1  # fetch, transform, then build by default; use this to disable building
 DO_COMMIT=1 # by default, commit change
@@ -34,7 +34,7 @@ RHDH_THEME_COLOR_1="#be0000"
 RHDH_THEME_COLOR_2="#f56d6d"
 # NAMESPACE="@redhat"
 # tag/version in downstream repo to update
-DWNSTM_BRANCH="rhdh-1.0-rhel-9"
+DWNSTM_BRANCH="rhdh-1-rhel-9"
 
 # upstream repos to fetch
 UPSTREAM_FILE="${ROOTPATH}/upstream_repos.yml"
@@ -138,9 +138,6 @@ if [[ $CI_BUILDS_DIR ]]; then # running in gitlab so set up env
   # shellcheck disable=SC1091
   source "${ROOTPATH}/build/ci/gitlab-ci-env-setup.sh"
 fi
-
-# compute 1.0 from rhdh-1.0-rhel-9
-DH_VERSION="${DWNSTM_BRANCH/-rhel-*/}"; DH_VERSION="${DH_VERSION/rhdh-/}"
 
 set -e
 
@@ -663,6 +660,10 @@ done
 echo "[INFO] <===================================== Apply branding ====================================="
 echo
 
+# compute x.y version from package.json
+DH_VERSION=$(yq -r '.version' distgit/containers/rhdh-hub/package.json) # 1.2.0
+DH_VERSION=${DH_VERSION%.*} # 1.2
+
 echo "[INFO] Remove node_modules and other generated / gitignored content; regen Dockerfiles from Dockerfile.in ..."
 for d in distgit/containers/rhdh-hub distgit/containers/rhdh-operator; do
   pushd "$d" >/dev/null || exit 1
@@ -735,14 +736,14 @@ echo "$gitdiff" > "/tmp/sync-midstream.sh.diff.txt"
 
   # update generated content for downstream, because you can't trust CPaaS
   UPSTREAM_COMMIT=$newSHA
-  UPSTREAM_REPO="https://gitlab.cee.redhat.com/rhidp/cpaas-rhdh-hub.git"
+  UPSTREAM_REPO="https://gitlab.cee.redhat.com/rhidp/rhdh.git"
   # shellcheck disable=SC2016
   for d in distgit/containers/rhdh-hub distgit/containers/rhdh-operator; do
     pushd "$d" >/dev/null || exit 1
-      echo "[INFO] Using DH_VERSION=$DH_VERSION and UPSTREAM_COMMIT = $UPSTREAM_COMMIT"
+      echo "[INFO] Using UPSTREAM_COMMIT = $UPSTREAM_COMMIT"
       sed -r \
-        -e 's|repo: \$\{CI_CPAAS_RHDH_HUB_UPSTREAM_URL\}|repo: '"$UPSTREAM_REPO"'|' \
-        -e 's|ref: \$\{CI_CPAAS_RHDH_HUB_UPSTREAM_COMMIT\}|ref: '"$UPSTREAM_COMMIT"'|' container.yaml.in > container.yaml && git add container.yaml
+        -e 's|repo: \$\{CI_RHDH_UPSTREAM_URL\}|repo: '"$UPSTREAM_REPO"'|' \
+        -e 's|ref: \$\{CI_RHDH_UPSTREAM_COMMIT\}|ref: '"$UPSTREAM_COMMIT"'|' container.yaml.in > container.yaml && git add container.yaml
       echo "[INFO] Generated files in $d from .in files"
     popd >/dev/null || exit 1
   done

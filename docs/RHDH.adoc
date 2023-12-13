@@ -19,7 +19,7 @@ We use GitHub issues for upstream, link:https://issues.redhat.com/browse/RHIDP[R
 . https://github.com/janus-idp/backstage-showcase (Janus branded, transformed to RHDH hub container)
 . https://github.com/janus-idp/operator (Janus branded Operator, transformed to RHDH operator container)
 ====
-NOTE: There currently is no https://github.com/janus-idp/operator/tree/main/bundle[upstream operator-bundle]. link:https://gitlab.cee.redhat.com/rhidp/cpaas-rhdh-hub/-/tree/rhdh-1.0-rhel-9/distgit/containers/rhdh-operator-bundle[See midstream] and `(TODO)` https://issues.redhat.com/browse/RHIDP-488
+NOTE: There currently is no https://github.com/janus-idp/operator/tree/main/bundle[upstream operator-bundle]. link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/tree/rhdh-1-rhel-9/distgit/containers/rhdh-operator-bundle[See midstream] and `(TODO)` https://issues.redhat.com/browse/RHIDP-488
 ====
 
 ### Midstream and downstream repos
@@ -28,7 +28,7 @@ NOTE: There currently is no https://github.com/janus-idp/operator/tree/main/bund
 
 . https://gitlab.cee.redhat.com/cpaas-products/rhdh/-/tree/main/versions/rhdh-1.0.0 (CPaaS & OSBS configuration)
 
-. https://gitlab.cee.redhat.com/rhidp/cpaas-rhdh-hub/-/tree/rhdh-1.0-rhel-9/ (midstream - `(TODO)` rename this repo - https://issues.redhat.com/browse/RHIDP-361)
+. https://gitlab.cee.redhat.com/rhidp/rhdh/-/tree/rhdh-1-rhel-9/ (midstream - `(TODO)` rename this repo - https://issues.redhat.com/browse/RHIDP-361)
 ** link:../distgit/[distgit/] - input to downstream builds
 ** link:../gcp_env/[gcp_env/] - product version definition
 ** link:../project.yml[project.yml] - CPaaS configuration to define how sources are transformed into downstream
@@ -39,15 +39,15 @@ NOTE: There currently is no https://github.com/janus-idp/operator/tree/main/bund
 ** link:../upstream_sources.yml[upstream_sources.yml] - repo, branch, and SHA used for downstream https://issues.redhat.com/browse/RHIDP-518[by CPaaS] `(TODO)` does this even work?
 
 . https://pkgs.devel.redhat.com/cgit/?q=rhdh (copies of midstream sources, used in downstream OSBS container builds)
-.. https://pkgs.devel.redhat.com/cgit/containers/rhdh-hub/tree/?h=rhdh-1.0-rhel-9 
-.. https://pkgs.devel.redhat.com/cgit/containers/rhdh-operator/tree/?h=rhdh-1.0-rhel-9 
-.. https://pkgs.devel.redhat.com/cgit/containers/rhdh-operator-bundle/tree/?h=rhdh-1.0-rhel-9 
+.. https://pkgs.devel.redhat.com/cgit/containers/rhdh-hub/tree/?h=rhdh-1-rhel-9 
+.. https://pkgs.devel.redhat.com/cgit/containers/rhdh-operator/tree/?h=rhdh-1-rhel-9 
+.. https://pkgs.devel.redhat.com/cgit/containers/rhdh-operator-bundle/tree/?h=rhdh-1-rhel-9 
 
 ### Locations of CPaaS, HB, and other configuration files
 
 * link:https://gitlab.cee.redhat.com/cpaas-products/rhdh/-/blob/main/versions/rhdh-1.0.0/[CPaaS configuration] - see both product.yml and release.yml files
 * link:https://gitlab.cee.redhat.com/cpaas-products/rhdh/-/blob/main/versions/rhdh-1.0.0/[HoneyBadger configuration] - search for "honeybadger" fields in both product.yml and release.yml files
-* link:https://gitlab.cee.redhat.com/rhidp/cpaas-rhdh-hub[OSBS midstream configuration for container builds] - includes link:https://gitlab.cee.redhat.com/rhidp/cpaas-rhdh-hub/-/tree/rhdh-1.0-rhel-9/distgit/containers/rhdh-hub[Dockerfile.in template], link:https://gitlab.cee.redhat.com/rhidp/cpaas-rhdh-hub/-/blob/rhdh-1.0-rhel-9/upstream_sources.yml[upstream_sources.yml], and yet another place to set link:https://gitlab.cee.redhat.com/rhidp/cpaas-rhdh-hub/-/blob/rhdh-1.0-rhel-9/gcp_env/product-version[version info]. Note that branch must be the same as the downstream repo, eg., `rhdh-1.0-rhel-9` (not `main`)
+* link:https://gitlab.cee.redhat.com/rhidp/rhdh[OSBS midstream configuration for container builds] - includes link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/tree/rhdh-1-rhel-9/distgit/containers/rhdh-hub[Dockerfile.in template], link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1-rhel-9/upstream_sources.yml[upstream_sources.yml], and yet another place to set link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1-rhel-9/gcp_env/product-version[version info]. Note that branch must be the same as the downstream repo, eg., `rhdh-1-rhel-9` (not `main`)
 
 
 ## How things run
@@ -68,19 +68,19 @@ Some tasks are manual as the configuration changes infrequently; other tasks are
 
 ### Building containers locally
 
-To test a local change to the Dockerfile in Brew/OSBS without committing it first, you can either submit a link:https://gitlab.cee.redhat.com/rhidp/cpaas-rhdh-hub/-/merge_requests[MR] against the midstream repo's `.in` files in link:https://gitlab.cee.redhat.com/rhidp/cpaas-rhdh-hub/-/tree/rhdh-1.0-rhel-9/distgit/containers/rhdh-hub[distgit/containers/rhdh-hub], then wait for Jenkins to build that MR and generate a container downstream in Brew, or you can:
+To test a local change to the Dockerfile in Brew/OSBS without committing it first, you can either submit a link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/merge_requests[MR] against the midstream repo's `.in` files in link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/tree/rhdh-1-rhel-9/distgit/containers/rhdh-hub[distgit/containers/rhdh-hub], then wait for Jenkins to build that MR and generate a container downstream in Brew, or you can:
 
-. First, get `devel` permission and install `brew` and `rhpkg` -- see link:https://gitlab.cee.redhat.com/rhidp/cpaas-rhdh-hub/-/blob/rhdh-1.0-rhel-9/docs/PERMISSIONS.adoc#user-content-devel-group[PERMISSIONS.adoc].
+. First, get `devel` permission and install `brew` and `rhpkg` -- see link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1-rhel-9/docs/PERMISSIONS.adoc#user-content-devel-group[PERMISSIONS.adoc].
 
 Then, clone the repo, create a topic branch, push that branch, and build a scratch build. If successful, you can then fetch the container image and run it to verify your changes were what you intended.
 
 ```
-git clone ssh://<kerberosUser>@pkgs.devel.redhat.com/containers/rhdh-hub && cd rhdh-hub && git checkout rhdh-1.0-rhel-9
+git clone ssh://<kerberosUser>@pkgs.devel.redhat.com/containers/rhdh-hub && cd rhdh-hub && git checkout rhdh-1-rhel-9
 git branch private-kerberosUser-topic && git checkout private-kerberosUser-topic
 # make your changes, then push them to the origin in your new branch
 
 # once pushed, you can run scratch builds 
-rhpkg container-build --target rhdh-1.0-rhel-9-containers-candidate --scratch
+rhpkg container-build --target rhdh-1-rhel-9-containers-candidate --scratch
 # this will spit out a taskID and a brewweb URL you can watch for detailed log output
 # when complete the log will provide details about the container image and tag
 
@@ -94,8 +94,8 @@ brew cancel <taskID>
 
 Sync pipelines currently run every 4 hrs, but can be triggered by hand too.
 
-* https://gitlab.cee.redhat.com/rhidp/cpaas-rhdh-hub/-/pipelines 
-* https://gitlab.cee.redhat.com/rhidp/cpaas-rhdh-hub/-/pipeline_schedules
+* https://gitlab.cee.redhat.com/rhidp/rhdh/-/pipelines 
+* https://gitlab.cee.redhat.com/rhidp/rhdh/-/pipeline_schedules
 
 Sync from upstream to midstream (this repo) is done using the following files:
 
@@ -143,7 +143,7 @@ export QUAY_TOKEN
 
 CI builds (including link:https://quay.io/repository/rhdh/iib?tab=tags[IIBs]) are now published to Quay automatically every 4 hours:
 
-Schedule: https://gitlab.cee.redhat.com/rhidp/cpaas-rhdh-hub/-/pipeline_schedules
+Schedule: https://gitlab.cee.redhat.com/rhidp/rhdh/-/pipeline_schedules
 
 
 #### Granting developer access
@@ -178,7 +178,7 @@ Actor must be included in the list of owners at link:https://github.com/openshif
 
 CI builds (including link:https://gist.github.com/rhdh-bot/63cef5cb6285889527bd6a67c0e1c2a9[install instructions]) are now published to GH Gist automatically every 4 hours:
 
-Schedule: https://gitlab.cee.redhat.com/rhidp/cpaas-rhdh-hub/-/pipeline_schedules
+Schedule: https://gitlab.cee.redhat.com/rhidp/rhdh/-/pipeline_schedules
 
 Build & PR generation process:
 
@@ -201,7 +201,7 @@ This process is new and subject to change.
 
 * `(TODO)` https://issues.redhat.com/browse/RHIDP-361 switch to 1.1 branch in upstream_sources.yml (and rhdh-1- branch?)
 
-. Check for recent changes in https://github.com/janus-idp/backstage-showcase/commits/1.0 (or main branch) since the last build have been synced to midstream as a new MR, eg., link:https://github.com/janus-idp/backstage-showcase/pull/305[PR 305] -> link:https://gitlab.cee.redhat.com/rhidp/cpaas-rhdh-hub/-/merge_requests/33[MR 33]:
+. Check for recent changes in https://github.com/janus-idp/backstage-showcase/commits/1.0 (or main branch) since the last build have been synced to midstream as a new MR, eg., link:https://github.com/janus-idp/backstage-showcase/pull/305[PR 305] -> link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/merge_requests/33[MR 33]:
 .. link:https://jenkins-cpaas-rhdh.apps.cpaas-poc.r6c9.p1.openshiftapps.com/job/rhdh-1.0.0/job/poll-all-upstream-sources/[poll-all-upstream-sources] -> link:https://jenkins-cpaas-rhdh.apps.cpaas-poc.r6c9.p1.openshiftapps.com/job/rhdh-1.0.0/job/rhdh/job/poll-upstream-sources/[poll-upstream-sources]
 . Verify that this MR has been checked...
 .. link:https://jenkins-cpaas-rhdh.apps.cpaas-poc.r6c9.p1.openshiftapps.com/job/gitlab-event-dispatcher/30/[gitlab-event-dispatcher] -> link:https://jenkins-cpaas-rhdh.apps.cpaas-poc.r6c9.p1.openshiftapps.com/job/rhdh-1.0.0/job/rhdh/job/check-patch/27/[check-patch] -> link:http://brewweb.engineering.redhat.com/brew/taskinfo?taskID=53169867[brew container build] (scratch from cpaas junkyard)
@@ -240,7 +240,7 @@ Note these changes to upstream content:
 
 * upstream for the operator is https://github.com/janus-idp/backstage-operator
 
-* NOTE: there is no upstream operator-bundle. link:https://gitlab.cee.redhat.com/rhidp/cpaas-rhdh-hub/-/tree/rhdh-1.0-rhel-9/distgit/containers/rhdh-operator-bundle[See midstream].
+* NOTE: there is no upstream operator-bundle. link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/tree/rhdh-1-rhel-9/distgit/containers/rhdh-operator-bundle[See midstream].
 
 
 ## Who can help?

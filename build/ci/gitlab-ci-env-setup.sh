@@ -87,7 +87,7 @@ for d in {1..90}; do
     sleep 2
 done
 
-# personal access token (rhdh-bot.pat) uploaded to Secure Files, see https://gitlab.cee.redhat.com/rhidp/cpaas-rhdh-hub/-/settings/ci_cd
+# personal access token (rhdh-bot.pat) uploaded to Secure Files, see https://gitlab.cee.redhat.com/rhidp/rhdh/-/settings/ci_cd
 if [[ -f "${CI_PROJECT_DIR}/.secure_files/rhdh-bot.pat" ]]; then
     set +x
     # NOTE that if debugging PRIVATE_TOKEN with set -x, token will be revealed in plaintext, not obfuscated

@@ -105,7 +105,7 @@ for imageAndTag in $IMAGES; do
     # echo "Found containerTag = ${containerTag}"
 
     if [[ ! -x ${SCRIPTPATH}/containerExtract.sh ]]; then
-        curl -sSLO https://gitlab.cee.redhat.com/rhidp/cpaas-rhdh-hub/-/raw/rhdh-1.0-rhel-9/build/scripts/containerExtract.sh
+        curl -sSLO https://gitlab.cee.redhat.com/rhidp/rhdh/-/raw/rhdh-1-rhel-9/build/scripts/containerExtract.sh
         chmod +x containerExtract.sh
     fi
     rm -fr /tmp/${SOURCE_CONTAINER//\//-}-${containerTag}-*/

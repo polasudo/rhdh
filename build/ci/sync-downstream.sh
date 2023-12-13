@@ -28,7 +28,7 @@ Options:
 
 Example:
 
-    $0 -b rhdh-1.0-rhel-9 -d rhdh-hub
+    $0 -b rhdh-1-rhel-9 -d rhdh-hub
 "
   exit 0
 }
