@@ -183,6 +183,8 @@ createPr() {
 
 # get all upstream branches to avoid merge conflicts
 git remote set-branches origin "*" && git fetch --unshallow
+git checkout "${DWNSTM_BRANCH}" || true
+git pull origin "${DWNSTM_BRANCH}" || true
 
 # cleanup before fetching new files
 if [[ $CLEAN -eq 1 ]]; then
