@@ -62,6 +62,7 @@ git config user.name "RHDH Build (rhdh-bot)"
 git config --global push.default matching
 git config --global pull.rebase true
 git config --global init.defaultBranch main
+git config --global advice.skippedCherryPicks false
 git config --global advice.detachedHead false
 git checkout -- .; git reset HEAD .; git clean -fdx
 
