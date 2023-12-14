@@ -1,5 +1,7 @@
 repos:
-  - repo: https://github.com/janus-idp/backstage-showcase
+  # TODO when upstream 1.1 branch exists, switch this to janus main
+  # - repo: https://github.com/janus-idp/backstage-showcase
+  - repo: https://github.com/nickboldt/backstage-showcase
     branch:
       # list branch to fetch; if first not found, try second as fallback
       - 1.2.x
@@ -28,7 +30,9 @@ repos:
       - docker/setup.py
     destination_folder: distgit/containers/rhdh-hub/
 
-  - repo: https://github.com/janus-idp/operator
+  # TODO when upstream 1.1 branch exists, switch this to janus main
+  # - repo: https://github.com/janus-idp/operator
+  - repo: https://github.com/nickboldt/operator
     branch: 
       # list branch to fetch; if first not found, try second as fallback
       - 1.2.x
