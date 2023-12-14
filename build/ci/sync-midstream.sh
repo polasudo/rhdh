@@ -169,7 +169,7 @@ createPr() {
   git branch "${headBranch}" || true
   git checkout "${headBranch}"
   git merge "${baseBranch}"
-  git push origin "${headBranch}" "${FORCE}"
+  git push origin "${headBranch}" ${FORCE}
   # TODO replace with gitlab equivalent, maybe using API?
   if [[ $(/usr/bin/gh version 2>/dev/null || true) ]] || [[ $(which gh 2>/dev/null || true) ]]; then
     gh pr create -f -B "${baseBranch}" -H "${headBranch}" -w || true
@@ -182,9 +182,11 @@ createPr() {
 }
 
 # get all upstream branches to avoid merge conflicts
+set -x
 git remote set-branches origin "*" && git fetch --unshallow
 git checkout "${DWNSTM_BRANCH}" || true
 git pull origin "${DWNSTM_BRANCH}" || true
+set +x
 
 # cleanup before fetching new files
 if [[ $CLEAN -eq 1 ]]; then
@@ -691,6 +693,7 @@ echo
 # compute x.y version from package.json
 DH_VERSION=$(yq -r '.version' distgit/containers/rhdh-hub/package.json) # 1.2.0
 DH_VERSION=${DH_VERSION%.*} # 1.2
+echo "Got DH_VERSION = $DH_VERSION from distgit/containers/rhdh-hub/package.json#.version"
 
 echo "[INFO] Remove node_modules and other generated / gitignored content; regen Dockerfiles from Dockerfile.in ..."
 for d in distgit/containers/rhdh-hub distgit/containers/rhdh-operator; do
@@ -772,7 +775,7 @@ echo "$gitdiff" > "/tmp/sync-midstream.sh.diff.txt"
       sed -r \
         -e 's|repo: \$\{CI_RHDH_UPSTREAM_URL\}|repo: '"$UPSTREAM_REPO"'|' \
         -e 's|ref: \$\{CI_RHDH_UPSTREAM_COMMIT\}|ref: '"$UPSTREAM_COMMIT"'|' container.yaml.in > container.yaml && git add container.yaml
-      echo "[INFO] Generated files in $d from .in files"
+      echo "[INFO] Generated $d/container.yaml from .in file (CPaaS bypass)"
     popd >/dev/null || exit 1
   done
 
@@ -790,7 +793,7 @@ if [[ ${DO_PUSH} -eq 1 ]]; then
 
   git pull origin "${BRANCHUSED}"
   set -x
-  PUSH_TRY="$(git push origin "${BRANCHUSED}" "${FORCE}" 2>&1 || true)"
+  PUSH_TRY="$(git push origin "${BRANCHUSED}" ${FORCE} 2>&1 || true)"
   # shellcheck disable=SC2181
   if [[ $? -gt 0 ]] || [[ $PUSH_TRY == *"protected branch hook declined"* ]]; then
     # create pull request if target branch is restricted access
@@ -809,8 +812,8 @@ if [[ $GITLAB_PIPELINE == "true" ]]; then
   # git remote -v
   echo "Pushing changes as $GITLAB_USER_LOGIN ($GITLAB_USER_EMAIL) to branch $CI_COMMIT_REF_NAME of ${CI_SERVER_HOST}/${CI_PROJECT_NAMESPACE}/${CI_PROJECT_NAME} ..."
   set -x
-  git pull origin "HEAD:$CI_COMMIT_REF_NAME" || true
+  # git pull origin "HEAD:$CI_COMMIT_REF_NAME" || true
   git pull gitlab_origin "HEAD:$CI_COMMIT_REF_NAME" || true
-  git push gitlab_origin "HEAD:$CI_COMMIT_REF_NAME" -o ci.skip "${FORCE}" || exit 16
+  git push gitlab_origin "HEAD:$CI_COMMIT_REF_NAME" -o ci.skip ${FORCE} || exit 16
   set +x
 fi

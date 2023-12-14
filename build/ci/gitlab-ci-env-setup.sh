@@ -57,13 +57,19 @@ github.com ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAA
 EOT
 
 pushd "${CI_PROJECT_DIR}/" >/dev/null || exit 1
+
 git config user.email "rhdh-bot@redhat.com"
 git config user.name "RHDH Build (rhdh-bot)"
 git config --global push.default matching
+git config --global merge.ff true
 git config --global pull.rebase true
-git config --global init.defaultBranch main
+git config --global branch.autosetupmerge true
+git config --global branch.autosetuprebase always
+
 git config --global advice.skippedCherryPicks false
 git config --global advice.detachedHead false
+# git config --global init.defaultBranch main
+
 git checkout -- .; git reset HEAD .; git clean -fdx
 
 # build and install download-secure-files from sources
