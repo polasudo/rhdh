@@ -145,6 +145,7 @@ set -e
 createPr() {
   headBranch=$1
   baseBranch=$2
+  git pull origin "${baseBranch}"
   git branch "${headBranch}" || true
   git checkout "${headBranch}"
   git merge "${baseBranch}"
