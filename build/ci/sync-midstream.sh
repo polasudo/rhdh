@@ -16,7 +16,8 @@ set -e
 SCRIPT=$(readlink -f "$0")
 ROOTPATH=$(dirname "$SCRIPT"); ROOTPATH=${ROOTPATH/\/build\/ci}
 # THIS_REPO="rhpib/rhdh"
-CLEAN=0     # clean up node_modules and anything from remote repo
+CLEAN=0     # clean up node_modules and anything from remote repo before creating local changes
+FORCE=""    # force push to the midstream repo in case of merge conflicts
 DO_BUILD=1  # fetch, transform, then build by default; use this to disable building
 DO_COMMIT=1 # by default, commit change
 DO_PUSH=1   # push the commit
@@ -53,6 +54,8 @@ Options:
     -a, --apptitle  APPTITLE  set new app.title in app-config*.yaml files; default: '$APPTITLE'
     -f                        yaml file listing repos, branches, and plugins to build. Default: '${UPSTREAM_FILE##*/}'
     --force                   remove contents of sync/ folder to force a build to happen, even if upstream is unchanged
+                              will also force push changes to midstream repo and scrub ; implies --clean
+    --clean                   cleanup midstream sources before fetching new files
     --nobuild                 after fetching and transforming, do not run 'yarn install' and 'yarn build'
     --nocommit                do not commit or push local changes
     --nopush                  do not push local changes
@@ -86,8 +89,13 @@ while [[ "$#" -gt 0 ]]; do
     shift 2
     ;;
   '--force')
+    FORCE="-f"; CLEAN=1;
     #shellcheck disable=SC2044
     for d in $(find "${ROOTPATH}"/sync/ -type f); do echo "" > $d; done
+    shift 1
+    ;;
+  '--clean')
+    CLEAN=1;
     shift 1
     ;;
   '--nobuild')
@@ -140,6 +148,18 @@ if [[ $CI_BUILDS_DIR ]]; then # running in gitlab so set up env
   source "${ROOTPATH}/build/ci/gitlab-ci-env-setup.sh"
 fi
 
+echo "#################################
+Commandline switches:
+
+CLEAN=$CLEAN
+FORCE=$FORCE
+DO_BUILD=$DO_BUILD
+DO_COMMIT=$DO_COMMIT
+DO_PUSH=$DO_PUSH
+GITLAB_PIPELINE=$GITLAB_PIPELINE
+#################################
+"
+
 set -e
 
 createPr() {
@@ -149,17 +169,20 @@ createPr() {
   git branch "${headBranch}" || true
   git checkout "${headBranch}"
   git merge "${baseBranch}"
-  git push origin "${headBranch}"
-  lastCommitComment="$(git log -1 --pretty=%B)"
+  git push origin "${headBranch}" "${FORCE}"
   # TODO replace with gitlab equivalent, maybe using API?
-  if [[ $(/usr/local/bin/hub version 2>/dev/null || true) ]] || [[ $(which hub 2>/dev/null || true) ]]; then
-    hub pull-request -f -m "${lastCommitComment}" -b "${baseBranch}" -h "${headBranch}" "${OPENBROWSERFLAG}" || true
+  if [[ $(/usr/bin/gh version 2>/dev/null || true) ]] || [[ $(which gh 2>/dev/null || true) ]]; then
+    gh pr create -f -B "${baseBranch}" -H "${headBranch}" -w || true
+
   else
-    echo "[WARN] hub is required to generate pull requests. See https://hub.github.com/ to install it."
+    echo "[WARN] gh cli is required to generate pull requests. See https://github.com/cli/cli?tab=readme-ov-file#installation to install it."
     echo -n "# To manually create a pull request, go here: "
     git config --get remote.origin.url | sed -r -e "s#:#/#" -e "s#git@#https://#" -e "s#\.git#/tree/${headBranch}/#"
   fi
 }
+
+# get all upstream branches to avoid merge conflicts
+git remote set-branches origin "*" && git fetch --unshallow
 
 # cleanup before fetching new files
 if [[ $CLEAN -eq 1 ]]; then
@@ -764,12 +787,14 @@ if [[ ${DO_PUSH} -eq 1 ]]; then
   PR_BRANCH="pr-update-sync-rhdh-hub-$(date +%s)"
 
   git pull origin "${BRANCHUSED}"
-  PUSH_TRY="$(git push origin "${BRANCHUSED}" 2>&1 || true)"
+  set -x
+  PUSH_TRY="$(git push origin "${BRANCHUSED}" "${FORCE}" 2>&1 || true)"
   # shellcheck disable=SC2181
   if [[ $? -gt 0 ]] || [[ $PUSH_TRY == *"protected branch hook declined"* ]]; then
     # create pull request if target branch is restricted access
     createPr "${PR_BRANCH}" "${BRANCHUSED}"
   fi
+  set +x
 fi ## if DO_PUSH
 
 # if pushing as a gitlab pipeline
@@ -781,7 +806,9 @@ if [[ $GITLAB_PIPELINE == "true" ]]; then
   # set -x
   # git remote -v
   echo "Pushing changes as $GITLAB_USER_LOGIN ($GITLAB_USER_EMAIL) to branch $CI_COMMIT_REF_NAME of ${CI_SERVER_HOST}/${CI_PROJECT_NAMESPACE}/${CI_PROJECT_NAME} ..."
+  set -x
   git pull origin "HEAD:$CI_COMMIT_REF_NAME" || true
   git pull gitlab_origin "HEAD:$CI_COMMIT_REF_NAME" || true
-  git push gitlab_origin "HEAD:$CI_COMMIT_REF_NAME" -o ci.skip || exit 16
+  git push gitlab_origin "HEAD:$CI_COMMIT_REF_NAME" -o ci.skip "${FORCE}" || exit 16
+  set +x
 fi

@@ -15,7 +15,8 @@ sync-midstream:
 
       # sync, build and commit changes
       echo "Running sync-midstream.sh for $GITLAB_USER_LOGIN in branch $CI_COMMIT_REF_NAME ..."
-      ./build/ci/sync-midstream.sh -b "$CI_COMMIT_REF_NAME" --gitlab-pipeline-push || exit 15
+      # can add --force flag here to push with -f
+      ./build/ci/sync-midstream.sh -b "$CI_COMMIT_REF_NAME" --gitlab-pipeline-push --clean || exit 15
       echo "Committed: $CI_COMMIT_REF_NAME"
       set -x
       echo "Currently in $(pwd)"
