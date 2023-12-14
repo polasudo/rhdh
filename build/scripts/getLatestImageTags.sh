@@ -209,7 +209,7 @@ if [[ ${REGISTRY} != "" ]]; then
 	REGISTRYPRE="${REGISTRY##*://}/"
 	if [[ ${REGISTRY} == *"registry-proxy.engineering.redhat.com"* ]]; then
 		if [[ ${CONTAINERS} == "" ]] || [[ ${CONTAINERS} == "${DH_CONTAINERS}" ]]; then 
-			CONTAINERS="${DH_CONTAINERS}"; CONTAINERS=${CONTAINERS//rhdh-1.0-rhel9-/}; CONTAINERS="${CONTAINERS//rhdh\//rhdh-}"
+			CONTAINERS="${DH_CONTAINERS}"; CONTAINERS=${CONTAINERS//${DWNSTM_BRANCH}-/}; CONTAINERS="${CONTAINERS//rhdh\//rhdh-}"
 			# CONTAINERS="${CONTAINERS//rhdh-rhdh-operator-bundle/rhdh-operator-bundle}"
 			# CONTAINERS="${CONTAINERS/rhdh-rhel9-operator/rhdh-rhdh-rhel9-operator}"
 		fi

@@ -781,6 +781,7 @@ if [[ $GITLAB_PIPELINE == "true" ]]; then
   # set -x
   # git remote -v
   echo "Pushing changes as $GITLAB_USER_LOGIN ($GITLAB_USER_EMAIL) to branch $CI_COMMIT_REF_NAME of ${CI_SERVER_HOST}/${CI_PROJECT_NAMESPACE}/${CI_PROJECT_NAME} ..."
+  git pull origin "HEAD:$CI_COMMIT_REF_NAME" || true
   git pull gitlab_origin "HEAD:$CI_COMMIT_REF_NAME" || true
   git push gitlab_origin "HEAD:$CI_COMMIT_REF_NAME" -o ci.skip || exit 16
 fi
