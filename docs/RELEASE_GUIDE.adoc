@@ -1,0 +1,29 @@
+ # Release Guide
+
+## Purpose
+
+This document seeks to explain the whole end-to-end process for releasing RHDH, from branch creation to GA push.
+
+TODO: Think about how best to create a release guide (gantt chart, smartsheet, etc.)
+
+### Topics
+
+* Starting a new milestone - branch creation, pipeline updates, upstream package.json version bumps, Dockerfile version bumps (1.2 -> 1.3)
+* Ongoing through the quarter
+** Monitoring GH-GL syncs and pipelines
+** Monitoring quay image updates
+* After code freeze
+** Pushing to Errata, checking CHI grades (CVEs and known vulns)
+** Pushing to stage and GA push day
+*** Manual push to stage
+**** QE review
+*** Doc signoff
+*** QE signoff [GA push will go out automatically from 1.1+]
+*** Automated push to RHEC
+** Final checks after GA
+** Developers.redhat.com
+** Access.redhat.com (docs, other)
+** Customer portal
+** Internal announcement? External announcement? Other marketing / blogs / videos? Summit alignment / presentations?
+
+TODO: Collect list of owners from various stakeholders (Linda's Go/No-Go list)
