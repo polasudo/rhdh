@@ -43,8 +43,7 @@ sync-downstream:
       - REPO: 
         - rhdh-hub
         - rhdh-operator
-        # TODO add rhdh-operator-bundle
-        # - rhdh-operator-bundle
+        - rhdh-operator-bundle
   script:
     - |
       dnf -y -q install git
@@ -100,8 +99,7 @@ build-downstream:
       - REPO: 
         - rhdh-hub
         - rhdh-operator
-        # TODO add rhdh-operator-bundle
-        # - rhdh-operator-bundle
+        - rhdh-operator-bundle
   timeout: 3 hours 3 minutes
   script:
     - |
