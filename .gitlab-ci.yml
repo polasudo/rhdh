@@ -17,7 +17,9 @@ workflow:
   rules:
     # run if not a merge request or scheduled
     - if: $CI_PIPELINE_SOURCE != 'merge_request_event' || $CI_PIPELINE_SOURCE == "schedule"
-    # see also rules in build/ci/sync-midstream*.yml
+    # don't run on default branch rhdh-1-rhel-9, only on stable branches rhdh-1-yy-rhel-9 for now
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      when: never
 
 stages:
   - sync-midstream

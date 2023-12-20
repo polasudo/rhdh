@@ -7,7 +7,7 @@ metadata:
     alm-examples: |-
       [
         {
-          "apiVersion": "charts.janus-idp.io/v1alpha1",
+          "apiVersion": "janus-idp.io/v1alpha1",
           "kind": "Backstage",
           "metadata": {
             "name": "backstage-sample"
@@ -19,8 +19,8 @@ metadata:
     capabilities: Seamless Upgrades
     categories: Developer Tools
     certified: 'true'
-    containerImage: registry-proxy.engineering.redhat.com/rh-osbs/rhdh-rhdh-rhel9-operator:1.0
-    createdAt: '2023-08-16T15:32:59Z'
+    containerImage: registry-proxy.engineering.redhat.com/rh-osbs/rhdh-rhdh-rhel9-operator:1.1
+    createdAt: "2023-12-18T16:11:34Z"
     description: The Red Hat Developer Hub is a Red Hat supported version of Backstage.
       It comes with pre-built plug-ins, configuration settings, and deployment mechanisms,
       which can help streamline the process of setting up a self-managed internal
@@ -28,18 +28,20 @@ metadata:
     operatorframework.io/suggested-namespace: openshift-operators
     operators.openshift.io/valid-subscription: '["OpenShift Container Platform", "OpenShift
       Platform Plus"]'
-    operators.operatorframework.io/builder: operator-sdk-v1.31.0
-    operators.operatorframework.io/project_layout: hybrid.helm.sdk.operatorframework.io/v1-alpha
+    operators.operatorframework.io/builder: operator-sdk-v1.32.0
+    operators.operatorframework.io/project_layout: go.kubebuilder.io/v3
     repository: https://gitlab.cee.redhat.com/rhidp/rhdh/
     support: Red Hat
-  name: rhdhoperator.v1.0.0
+  name: rhdh-operator.v1.0.0
   namespace: placeholder
 spec:
   apiservicedefinitions: {}
   customresourcedefinitions:
     owned:
-    - kind: Backstage
-      name: backstages.charts.janus-idp.io
+    - description: Backstage is the Schema for the backstages API
+      displayName: Backstage
+      kind: Backstage
+      name: backstages.janus-idp.io
       version: v1alpha1
   description: Red Hat Developer Hub Operator Bundle
   displayName: Red Hat Developer Hub
@@ -49,233 +51,276 @@ spec:
   install:
     spec:
       clusterPermissions:
-        - rules:
-            - apiGroups:
-                - ""
-              resources:
-                - namespaces
-              verbs:
-                - get
-            - apiGroups:
-                - ""
-              resources:
-                - secrets
-              verbs:
-                - '*'
-            - apiGroups:
-                - ""
-              resources:
-                - events
-              verbs:
-                - create
-            - apiGroups:
-                - config.openshift.io
-              resources:
-                - ingresses
-              verbs:
-                - get
-            - apiGroups:
-                - charts.janus-idp.io
-              resources:
-                - backstages
-                - backstages/status
-                - backstages/finalizers
-              verbs:
-                - create
-                - delete
-                - get
-                - list
-                - patch
-                - update
-                - watch
-            - apiGroups:
-                - ""
-              resources:
-                - pods
-                - services
-                - services/finalizers
-                - endpoints
-                - persistentvolumeclaims
-                - events
-                - configmaps
-                - secrets
-              verbs:
-                - create
-                - delete
-                - get
-                - list
-                - patch
-                - update
-                - watch
-            - apiGroups:
-                - apps
-              resources:
-                - deployments
-                - daemonsets
-                - replicasets
-                - statefulsets
-              verbs:
-                - create
-                - delete
-                - get
-                - list
-                - patch
-                - update
-                - watch
-            - apiGroups:
-                - authentication.k8s.io
-              resources:
-                - tokenreviews
-              verbs:
-                - create
-            - apiGroups:
-                - authorization.k8s.io
-              resources:
-                - subjectaccessreviews
-              verbs:
-                - create
-          serviceAccountName: rhdh-operator
+      - rules:
+        - apiGroups:
+          - ""
+          resources:
+          - configmaps
+          - persistentvolumeclaims
+          - persistentvolumes
+          - secrets
+          - services
+          verbs:
+          - create
+          - delete
+          - get
+          - list
+          - update
+          - watch
+        - apiGroups:
+          - apps
+          resources:
+          - deployments
+          verbs:
+          - create
+          - delete
+          - get
+          - list
+          - update
+          - watch
+        - apiGroups:
+          - apps
+          resources:
+          - statefulsets
+          verbs:
+          - create
+          - delete
+          - get
+          - list
+          - update
+          - watch
+        - apiGroups:
+          - janus-idp.io
+          resources:
+          - backstages
+          verbs:
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
+          - watch
+        - apiGroups:
+          - janus-idp.io
+          resources:
+          - backstages/finalizers
+          verbs:
+          - update
+        - apiGroups:
+          - janus-idp.io
+          resources:
+          - backstages/status
+          verbs:
+          - get
+          - patch
+          - update
+        - apiGroups:
+          - route.openshift.io
+          resources:
+          - routes
+          verbs:
+          - create
+          - delete
+          - get
+          - list
+          - update
+          - watch
+        - apiGroups:
+          - authentication.k8s.io
+          resources:
+          - tokenreviews
+          verbs:
+          - create
+        - apiGroups:
+          - authorization.k8s.io
+          resources:
+          - subjectaccessreviews
+          verbs:
+          - create
+        serviceAccountName: rhdh-operator
       deployments:
-        - name: rhdh-operator
-          label:
-            app: rhdh-operator
-          spec:
-            replicas: 1
-            selector:
-              matchLabels:
+      - name: rhdh-operator
+        label:
+          app: rhdh-operator
+        
+        spec:
+          replicas: 1
+          selector:
+            matchLabels:
+              app: rhdh-operator
+          strategy:
+            type: RollingUpdate
+          template:
+            metadata:
+              annotations:
+                kubectl.kubernetes.io/default-container: manager
+              labels:
                 app: rhdh-operator
-            strategy:
-              type: RollingUpdate
-            template:
-              metadata:
-                annotations:
-                  kubectl.kubernetes.io/default-container: manager
-                labels:
-                  app: rhdh-operator
-                  app.kubernetes.io/component: rhdh-operator
-                  app.kubernetes.io/managed-by: olm
-              spec:
-                affinity:
-                  nodeAffinity:
-                    requiredDuringSchedulingIgnoredDuringExecution:
-                      nodeSelectorTerms:
-                        - matchExpressions:
-                            - key: kubernetes.io/arch
-                              operator: In
-                              values:
-                               - amd64
-                            - key: kubernetes.io/os
-                              operator: In
-                              values:
-                                - linux
-                containers:
-                  - args:
-                      - --health-probe-bind-address=:8081
-                      - --metrics-bind-address=127.0.0.1:8080
-                      - --leader-elect
-                      - --leader-election-id=rhdh-operator
-                    env:
-                      - name: OPERATOR_NAME
-                        value: rhdh-operator
-                      - name: POD_NAME
-                        valueFrom:
-                          fieldRef:
-                            fieldPath: metadata.name
-                      - name: RELATED_IMAGE_hub
-                        value: registry-proxy.engineering.redhat.com/rh-osbs/rhdh-rhdh-hub-rhel9:1.0
-                      - name: RELATED_IMAGE_postgresql
-                        value: registry.redhat.io/rhel9/postgresql-15:latest
-                    image: registry-proxy.engineering.redhat.com/rh-osbs/rhdh-rhdh-rhel9-operator:1.0
-                    livenessProbe:
-                      httpGet:
-                        path: /healthz
-                        port: 8081
-                      initialDelaySeconds: 15
-                      periodSeconds: 20
-                    name: manager
-                    readinessProbe:
-                      httpGet:
-                        path: /readyz
-                        port: 8081
-                      initialDelaySeconds: 5
-                      periodSeconds: 10
-                    resources:
-                      limits:
-                        cpu: 500m
-                        memory: 128Mi
-                      requests:
-                        cpu: 10m
-                        memory: 64Mi
-                    securityContext:
-                      allowPrivilegeEscalation: false
-                      capabilities:
-                        drop:
-                          - ALL
+                app.kubernetes.io/component: rhdh-operator
+                app.kubernetes.io/managed-by: olm
+            spec:
+              affinity:
+                nodeAffinity:
+                  requiredDuringSchedulingIgnoredDuringExecution:
+                    nodeSelectorTerms:
+                    - matchExpressions:
+                      - key: kubernetes.io/arch
+                        operator: In
+                        values:
+                        - amd64
+                      - key: kubernetes.io/os
+                        operator: In
+                        values:
+                        - linux
+              containers:
+              - args:
+                - --secure-listen-address=0.0.0.0:8443
+                - --upstream=http://127.0.0.1:8080/
+                - --logtostderr=true
+                - --v=0
+                image: registry.redhat.io/openshift4/ose-kube-rbac-proxy:v4.12
+                name: kube-rbac-proxy
+                ports:
+                - containerPort: 8443
+                  name: https
+                  protocol: TCP
+                resources:
+                  limits:
+                    cpu: 500m
+                    memory: 128Mi
+                  requests:
+                    cpu: 5m
+                    memory: 64Mi
                 securityContext:
-                  runAsNonRoot: true
-                serviceAccountName: rhdh-operator
-                terminationGracePeriodSeconds: 20
+                  allowPrivilegeEscalation: false
+                  capabilities:
+                    drop:
+                    - ALL
+              - args:
+                - --health-probe-bind-address=:8081
+                - --metrics-bind-address=127.0.0.1:8080
+                - --leader-elect
+                - --leader-election-id=rhdh-operator
+                env:
+                - name: OPERATOR_NAME
+                  value: rhdh-operator
+                - name: POD_NAME
+                  valueFrom:
+                    fieldRef:
+                     fieldPath: metadata.name
+                - name: RELATED_IMAGE_hub
+                  value: registry-proxy.engineering.redhat.com/rh-osbs/rhdh-rhdh-hub-rhel9:1.1
+                - name: RELATED_IMAGE_postgresql
+                  value: registry.redhat.io/rhel9/postgresql-15:latest
+                command:
+                - /manager
+                image: registry-proxy.engineering.redhat.com/rh-osbs/rhdh-rhdh-rhel9-operator:1.1
+                livenessProbe:
+                  httpGet:
+                    path: /healthz
+                    port: 8081
+                  initialDelaySeconds: 15
+                  periodSeconds: 20
+                name: manager
+                readinessProbe:
+                  httpGet:
+                    path: /readyz
+                    port: 8081
+                  initialDelaySeconds: 5
+                  periodSeconds: 10
+                resources:
+                  limits:
+                    cpu: 500m
+                    memory: 128Mi
+                  requests:
+                    cpu: 10m
+                    memory: 64Mi
+                securityContext:
+                  allowPrivilegeEscalation: false
+                  capabilities:
+                    drop:
+                    - ALL
+                volumeMounts:
+                - mountPath: /default-config
+                  name: default-config
+              securityContext:
+                runAsNonRoot: true
+              serviceAccountName: rhdh-operator
+              terminationGracePeriodSeconds: 20
+              volumes:
+              - configMap:
+                  name: backstage-default-config
+                name: default-config
       permissions:
-        - rules:
-            - apiGroups:
-                - ""
-              resources:
-                - configmaps
-              verbs:
-                - get
-                - list
-                - watch
-                - create
-                - update
-                - patch
-                - delete
-            - apiGroups:
-                - coordination.k8s.io
-              resources:
-                - leases
-              verbs:
-                - get
-                - list
-                - watch
-                - create
-                - update
-                - patch
-                - delete
-            - apiGroups:
-                - ""
-              resources:
-                - events
-              verbs:
-                - create
-                - patch
-          serviceAccountName: rhdh-operator
+      - rules:
+        - apiGroups:
+          - ""
+          resources:
+          - configmaps
+          verbs:
+          - get
+          - list
+          - watch
+          - create
+          - update
+          - patch
+          - delete
+        - apiGroups:
+          - coordination.k8s.io
+          resources:
+          - leases
+          verbs:
+          - get
+          - list
+          - watch
+          - create
+          - update
+          - patch
+          - delete
+        - apiGroups:
+          - ""
+          resources:
+          - events
+          verbs:
+          - create
+          - patch
+        serviceAccountName: rhdh-operator
     strategy: deployment
   installModes:
-    - supported: false
-      type: OwnNamespace
-    - supported: false
-      type: SingleNamespace
-    - supported: false
-      type: MultiNamespace
-    - supported: true
-      type: AllNamespaces
+  - supported: false
+    type: OwnNamespace
+  - supported: false
+    type: SingleNamespace
+  - supported: false
+    type: MultiNamespace
+  - supported: true
+    type: AllNamespaces
   keywords:
-    - rhdh
-    - backstage
-    - idp
-    - janus-idp
+  - Backstage
+  - Janus-IDP
+  - RHDH
   links:
-    - name: Product Page
-      url: https://developers.redhat.com/products/developer-hub/overview/
-    - name: Documentation
-      url: https://access.redhat.com/documentation/en-us/red_hat_developer_hub
-    - name: RHDH Operator and Bundle Repo
-      url: https://gitlab.cee.redhat.com/rhidp/rhdh/
+  - name: Product Page
+    url: https://developers.redhat.com/products/developer-hub/overview/
+  - name: Documentation
+    url: https://access.redhat.com/documentation/en-us/red_hat_developer_hub
+  - name: Backstage Operator (Upstream)
+    url: https://github.com/janus-idp/operator
+  - name: RHDH Operator (Downstream)
+    url: https://gitlab.cee.redhat.com/rhidp/rhdh/
   maintainers:
-    - email: nboldt@redhat.com
-      name: Nick Boldt
-  maturity: stable
+  - email: asoro@redhat.com
+    name: Armel Soro
+  - email: gazarenk@redhat.com
+    name: Gennady Azarenkov
+  - email: jianrzha@redhat.com
+    name: Jianrong Zhang
+  - email: nboldt@redhat.com
+    name: Nick Boldt
+  maturity: alpha
   minKubeVersion: 1.24.0
   provider:
-    name: Red Hat
-  version: 1.0.0
+    name: Red Hat Inc.
+    url: https://www.redhat.com/
+  version: 1.1.0

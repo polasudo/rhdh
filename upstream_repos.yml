@@ -1,12 +1,9 @@
 repos:
-  # TODO when upstream 1.1 branch exists, switch this to janus main
-  # - repo: https://github.com/janus-idp/backstage-showcase
-  - repo: https://github.com/nickboldt/backstage-showcase
+  - repo: https://github.com/janus-idp/backstage-showcase
     branch:
       # list branch to fetch; if first not found, try second as fallback
-      - 1.2.x
+      - 1.1.x
       - main
-    namespace_to_replace: '@janus-idp'
     # include the contents of the repo's root folder too?
     include_root: true
     # list of files/folders to exclude from upstream in this repo
@@ -30,15 +27,11 @@ repos:
       - docker/setup.py
     destination_folder: distgit/containers/rhdh-hub/
 
-  # TODO when upstream 1.1 branch exists, switch this to janus main
-  # - repo: https://github.com/janus-idp/operator
-  - repo: https://github.com/nickboldt/operator
+  - repo: https://github.com/janus-idp/operator
     branch: 
       # list branch to fetch; if first not found, try second as fallback
-      - 1.2.x
+      - 1.1.x
       - main
-    namespace_to_replace: '@janus-idp'
-    # include the contents of the repo's root folder too?
     include_root: true
     # list of files/folders to exclude from upstream in this repo
     exclude_root:
@@ -48,7 +41,9 @@ repos:
       - build/helm/
       - build/scripts/
       - upstream_repos.yaml
+      - bundle/tests/scorecard/
       - .git/
       - .github/
-      - helm-backstage/charts/backstage/templates/tests/
     destination_folder: distgit/containers/rhdh-operator/
+    # note special rule in sync-midstream.sh will also copy the contents of bundle/ into distgit/containers/rhdh-operator-bundle/
+    # and docker/brew.bundle.Dockerfile to distgit/containers/rhdh-operator-bundle/Dockerfile.in

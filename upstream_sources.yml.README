@@ -10,7 +10,7 @@ git:
   # url: https://github.com/janus-idp/backstage-showcase.git
   # midstream fork of backstage-showcase with RH branding
   url: https://gitlab.cee.redhat.com/rhidp/rhdh.git
-  branch: rhdh-1-rhel-9
+  branch: rhdh-1.1-rhel-9
   commit: <sha from upstream, updated by CPaaS automatically>
   # see https://cpaas.pages.redhat.com/documentation/users/midstream/usrc_updater.html#_update_policy
   # if using tags, we can restrict downstreaming

@@ -57,6 +57,6 @@ Note that some files are transformed between up/mid/downstream, so you may have 
 
 - Upstream: `docker/Dockerfile` (upstream) and `docker/brew.Dockerfile` (mid + downstream)
 
-- Midstream: `distgit/containers/rhdh-hub/docker/brew.Dockerfile` is transformed to `distgit/containers/rhdh-hub/Dockerfile.in` via [sync.sh](https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1-rhel-9/sync.sh)
+- Midstream: `distgit/containers/rhdh-hub/docker/brew.Dockerfile` is transformed to `distgit/containers/rhdh-hub/Dockerfile.in` via [sync.sh](https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1.1-rhel-9/sync.sh)
 
-- Downstream: `Dockerfile.in` becomes `Dockerfile` automatically, injecting the product version from [`gcp_env/product_version`](https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1-rhel-9/gcp_env/product-version)
+- Downstream: `Dockerfile.in` becomes `Dockerfile` automatically, injecting the product version from [`gcp_env/product_version`](https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1.1-rhel-9/gcp_env/product-version)

@@ -18,4 +18,3 @@ remote_sources:
       packages:
         gomod:
           - path: distgit/containers/rhdh-operator
-        yarn: null

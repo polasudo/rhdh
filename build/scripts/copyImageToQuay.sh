@@ -69,7 +69,7 @@ for image in $images; do
     QUAYDEST="${URLfrag}"; 
     if [[ ${QUAYDEST} == *"rhdh-hub-rhel9:"* ]];  then QUAYDEST="rhdh/rhdh-hub-rhel9:${TAG}"; fi
     if [[ ${QUAYDEST} == *"operator-bundle:"* ]]; then QUAYDEST="rhdh/rhdh-operator-bundle:${TAG}"; fi
-    if [[ ${QUAYDEST} == *"operator:"* ]];        then QUAYDEST="rhdh/rhdh-rhel8-operator:${TAG}"; fi
+    if [[ ${QUAYDEST} == *"operator:"* ]];        then QUAYDEST="rhdh/rhdh-rhel9-operator:${TAG}"; fi
     QUAYDEST="quay.io/${QUAYDEST}"
 
     if [[ $VERBOSE -eq 1 ]]; then

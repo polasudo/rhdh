@@ -53,8 +53,8 @@ Usage:
 Options:
     -a, --apptitle  APPTITLE  set new app.title in app-config*.yaml files; default: '$APPTITLE'
     -f                        yaml file listing repos, branches, and plugins to build. Default: '${UPSTREAM_FILE##*/}'
-    --force                   remove contents of sync/ folder to force a build to happen, even if upstream is unchanged
-                              will also force push changes to midstream repo and scrub ; implies --clean
+    --force                   remove contents of sync/ folder to force a build to happen, even if no changes in upstream
+                              will also push changes to midstream repo with --force
     --clean                   cleanup midstream sources before fetching new files
     --nobuild                 after fetching and transforming, do not run 'yarn install' and 'yarn build'
     --nocommit                do not commit or push local changes
@@ -89,7 +89,7 @@ while [[ "$#" -gt 0 ]]; do
     shift 2
     ;;
   '--force')
-    FORCE="-f"; CLEAN=1;
+    FORCE="-f"
     #shellcheck disable=SC2044
     for d in $(find "${ROOTPATH}"/sync/ -type f); do echo "" > $d; done
     shift 1
@@ -183,9 +183,11 @@ createPr() {
 
 # get all upstream branches to avoid merge conflicts
 set -x
-git remote set-branches origin "*" && git fetch --unshallow
-git checkout "${DWNSTM_BRANCH}" || true
-git pull origin "${DWNSTM_BRANCH}" || true
+if [[ $GITLAB_PIPELINE == "true" ]]; then
+  git remote set-branches origin "*" && git fetch --unshallow
+  git checkout "${DWNSTM_BRANCH}" || true
+  git pull origin "${DWNSTM_BRANCH}" || true
+fi
 set +x
 
 # cleanup before fetching new files
@@ -208,6 +210,7 @@ commitMsg=""
 destination_folders=""
 mkdir -p sync/
 NUM_SKIPS=0
+BUNDLEDIR="" # absolute path distgit/containers/rhdh-operator-bundle/ folder
 # shellcheck disable=SC2086,SC2295
 for ((i = 0; i < NUM_REPOS; i++)); do # echo $i
   # plugins__=""
@@ -218,22 +221,26 @@ for ((i = 0; i < NUM_REPOS; i++)); do # echo $i
   repoorg=${repoorg##*/}
   branch0=$(yq --arg i "$i" -r '.repos['$i'].branch[0]' "${UPSTREAM_FILE}")
   branch1=$(yq --arg i "$i" -r '.repos['$i'].branch[1]' "${UPSTREAM_FILE}")
+  if [[ $(git ls-remote --heads $repo refs/heads/$branch0 | wc -l) -eq 1 ]]; then
+    branch=$branch0
+  elif [[ $(git ls-remote --heads $repo refs/heads/$branch1 | wc -l) -eq 1 ]]; then
+    branch=$branch1
+  else
+    echo "[ERROR] Could not find $branch0 or $branch1 at $repo !"; exit 1
+  fi
+  
   destination_folder=$(yq --arg i "$i" -r '.repos['$i'].destination_folder' "${UPSTREAM_FILE}")
   destination_folders="${destination_folders} ${destination_folder}"
   rm -fr "$TMPDIR/repo${i}"
   echo
-  echo "[INFO] Fetch $repo into $TMPDIR/repo${i} then sync to $destination_folder ..."
+  echo "[INFO] Fetch $repo into $TMPDIR/repo${i} from branch $branch, then sync to $destination_folder ..."
+  git clone $repo -b $branch "$TMPDIR/repo${i}" --depth=3 && pushd "$TMPDIR/repo${i}" >/dev/null || exit 1
   # set -x
-  mkdir -p "$TMPDIR/repo${i}" && pushd "$TMPDIR/repo${i}" >/dev/null || exit 1
-    git init >/dev/null 2>&1
-    git remote add origin "${repo}" >/dev/null 2>&1
-    git fetch origin "$branch0" 2>/dev/null || git fetch origin "$branch1" 2>/dev/null
-    git checkout "$branch0" 2>/dev/null || git checkout "$branch1" 2>/dev/null
     branch="$(git branch --show-current)"
     SHA="$(git rev-parse --short=8 HEAD)"
     # cat "${ROOTPATH}/sync/upstream_SHA${i}"; echo "$SHA = $branch @ $repo"
     # if the current SHA file contains the current SHA/branch/repo combination, then there's nothing to sync! 
-    if [[ $(cat "${ROOTPATH}/sync/upstream_SHA${i}") == *"$SHA = $branch @ $repo"* ]]; then
+    if [[ -f "${ROOTPATH}/sync/upstream_SHA${i}" ]] && [[ $(cat "${ROOTPATH}/sync/upstream_SHA${i}") == *"$SHA = $branch @ $repo"* ]]; then
       echo "[INFO] Nothing changed in upstream repo: $SHA = $branch @ $repo; skip!"
       (( NUM_SKIPS = NUM_SKIPS + 1 ))
       popd >/dev/null || exit 1
@@ -273,7 +280,37 @@ for ((i = 0; i < NUM_REPOS; i++)); do # echo $i
     done
     echo -n "[INFO] [In $(pwd)] Sync upstream folder $TMPDIR/repo${i}/ to midstream ${destination_folder}... "
     pushd "$TMPDIR/" >/dev/null || exit 1
+    set -x
     rsync -azq --delete $TMPDIR/repo${i}/* $TMPDIR/repo${i}/.??* "${ROOTPATH}/${destination_folder}/" --exclude=.git ${excludesFlags}
+    set +x
+
+    ##################################### rhdh-operator-bundle #####################################
+    # if processing the upstream operator, also make some changes to the operator-bundle folder dowstream
+    if [[ $destination_folder == *"rhdh-operator"* ]]; then
+      echo -n " and ${destination_folder%/}-bundle ... "
+      BUNDLEDIR="${ROOTPATH}/${destination_folder%/}-bundle"
+      # copy the contents of bundle/ into distgit/containers/rhdh-operator-bundle/
+      # NOTE: if we add any .dotfiles in bundle/, add $TMPDIR/repo${i}/bundle/.??* to regexes copied 
+      rsync -azq --delete $TMPDIR/repo${i}/bundle/* "${BUNDLEDIR}/" --exclude=.git ${excludesFlags}
+      # append overrides from the .rhdh/ tree: CSV and annotations
+      rsync -azq $TMPDIR/repo${i}/.rhdh/bundle/* "${BUNDLEDIR}/" --exclude=.git ${excludesFlags}
+      # and copy .rhdh/docker/bundle.Dockerfile to Dockerfile.in
+      rsync -azq $TMPDIR/repo${i}/.rhdh/docker/bundle.Dockerfile "${BUNDLEDIR}/Dockerfile.in"
+      # downstream CSV and annotations are stored in https://github.com/janus-idp/operator/tree/main/.rhdh/bundle/
+      pushd "${BUNDLEDIR}" >/dev/null || exit 1
+        # remove files we don't need downstream
+        for df in \
+            manifests/backstage-operator.clusterserviceversion.yaml \
+            bundle/tests/scorecard \
+          ; do 
+          git rm -fr $df 2>/dev/null || rm -f $df 2>/dev/null || true
+        done
+        # use rhdh-operator.csv.yaml instead of janus/backstage csv
+        git add manifests/rhdh-operator.csv.yaml || true
+      popd >/dev/null || exit 1
+    fi
+    ##################################### rhdh-operator-bundle #####################################
+
     popd >/dev/null || exit 1
     rm -fr "$TMPDIR/repo${i}"
     echo "done."
@@ -300,9 +337,12 @@ for ((i = 0; i < NUM_REPOS; i++)); do # echo $i
     done
 
     # transform Dockerfile to Dockerfile.in; enable/disable osbs/cachito requirements
-    # find the right file in one of three places...
-    for d in docker/brew.Dockerfile docker/Dockerfile Dockerfile; do
+    # find the right file from one of several path options
+    # NOTE: this transformation only works for hub and operator, not for .rhdh/docker/bundle.Dockerfile!
+    DOCKERFILE_OPTIONS=".rhdh/docker/Dockerfile docker/brew.Dockerfile Dockerfile"
+    for d in $DOCKERFILE_OPTIONS; do
       if [[ -f $d ]]; then
+        echo "[INFO] Convert $d to Dockerfile.in ..."
         DOCKERFILE="$d"
         awk '
 /# Downstream comment/{
@@ -364,7 +404,8 @@ if [[ "$NUM_SKIPS" == "$NUM_REPOS" ]]; then
   exit 0
 fi
 
-# append brew metadata
+# append Brew metadata here
+sed -i '/# append Brew metadata here/q' distgit/containers/rhdh-hub/Dockerfile.in
 cat <<EOT >>distgit/containers/rhdh-hub/Dockerfile.in
 ENV SUMMARY="Red Hat Developer Hub container" \\
     DESCRIPTION="Red Hat Developer Hub container" \\
@@ -405,30 +446,31 @@ pyvenv.cfg
 EOT
 echo "[INFO] Generated distgit/containers/rhdh-hub/docker/.gitignore for use with cachito + python dependency management"
 
-# Brew metadata already in upstream brew.Dockerfile
-# cat <<EOT >>distgit/containers/rhdh-operator/Dockerfile.in
-# ENV SUMMARY="Red Hat Developer Hub operator" \\
-#     DESCRIPTION="Red Hat Developer Hub operator" \\
-#     PRODNAME="rhdh" \\
-#     COMPNAME="operator"
+# append Brew metadata here
+sed -i '/# append Brew metadata here/q' distgit/containers/rhdh-operator/Dockerfile.in
+cat <<EOT >>distgit/containers/rhdh-operator/Dockerfile.in
+ENV SUMMARY="Red Hat Developer Hub operator" \\
+    DESCRIPTION="Red Hat Developer Hub operator" \\
+    PRODNAME="rhdh" \\
+    COMPNAME="operator"
 
-# LABEL summary="\$SUMMARY" \\
-#       description="\$DESCRIPTION" \\
-#       io.k8s.description="\$DESCRIPTION" \\
-#       io.k8s.display-name="\$DESCRIPTION" \\
-#       io.openshift.tags="\$PRODNAME,\$COMPNAME" \\
-#       com.redhat.component="\$PRODNAME-\$COMPNAME-container" \\
-#       name="\$PRODNAME/\$PRODNAME-rhel9-\$COMPNAME" \\
-#       version="\${CI_X_VERSION}.\${CI_Y_VERSION}" \\
-#       license="EPLv2" \\
-#       maintainer="Nick Boldt <nboldt@redhat.com>, Tom Coufal <tcoufal@redhat.com>, Christophe Fargette <jfargett@redhat.com>" \\
-#       io.openshift.expose-services="" \\
-#       usage=""
-# EOT
-# echo "[INFO] Added metadata to distgit/containers/rhdh-operator/Dockerfile.in"
+LABEL summary="\$SUMMARY" \\
+      description="\$DESCRIPTION" \\
+      io.k8s.description="\$DESCRIPTION" \\
+      io.k8s.display-name="\$DESCRIPTION" \\
+      io.openshift.tags="\$PRODNAME,\$COMPNAME" \\
+      com.redhat.component="\$PRODNAME-\$COMPNAME-container" \\
+      name="\$PRODNAME/\$PRODNAME-rhel9-\$COMPNAME" \\
+      version="\${CI_X_VERSION}.\${CI_Y_VERSION}" \\
+      license="EPLv2" \\
+      maintainer="Nick Boldt <nboldt@redhat.com>, Tom Coufal <tcoufal@redhat.com>, Christophe Fargette <jfargett@redhat.com>" \\
+      io.openshift.expose-services="" \\
+      usage=""
+EOT
+echo "[INFO] Added metadata to distgit/containers/rhdh-operator/Dockerfile.in"
 
-# TODO will we have an upstream bundle too? For now just use a .no-upstream as input to .in
-cp -f distgit/containers/rhdh-operator-bundle/Dockerfile.{no-upstream,in}
+# append Brew metadata here
+sed -i '/# append Brew metadata here/q' distgit/containers/rhdh-operator-bundle/Dockerfile.in
 cat <<EOT >>distgit/containers/rhdh-operator-bundle/Dockerfile.in
 ENV SUMMARY="Red Hat Developer Hub operator bundle" \\
     DESCRIPTION="Red Hat Developer Hub operator bundle" \\
@@ -463,7 +505,13 @@ echo "[INFO] Added metadata to distgit/containers/rhdh-operator-bundle/Dockerfil
 if [[ $DO_BUILD -eq 1 ]]; then
   destination_folder="distgit/containers/rhdh-hub"
   pushd $destination_folder >/dev/null || exit 1
-    echo "[INFO] Build $(pwd) ..."
+    echo "
+ 
+=================================================================
+[INFO] Build $(pwd) ...
+=================================================================
+ 
+"
     echo
     #shellcheck disable=SC2044
     yarn config set "strict-ssl" false -s
@@ -542,161 +590,158 @@ ${peerDepPairs}
     echo "[INFO] <===================================== Regen container.yaml.in ====================================="
     echo
   popd >/dev/null || exit 1
-fi ## if DO_BUILD
 
-# debug
-# find . -maxdepth 4 -type d | grep -v "/.git"
-# ls -la distgit/containers/rhdh-hub distgit/containers/rhdh-operator distgit/containers/rhdh-operator-bundle
+  echo "[INFO] ====================== Remove node_modules and other generated / gitignored content =====================>"
+  set +e
+  # shellcheck disable=SC2086
+  for ignored in \
+    node_modules \
+    .DS_Store \
+    logs \
+    *.log *debug.log* *error.log* \
+    coverage \
+    .env .env.test \
+    dist-types dist-scalprum \
+    cache \
+    *.swp site *.local.yaml \
+    .rhdh \
+    *.session.sql .turbo; do
+      find distgit/containers/rhdh-*/ -name "${ignored}" -exec rm -fr {} \; 2>/dev/null
+  done
+  # shellcheck disable=SC2043
+  for ignored in \
+    dist; do
+      find distgit/containers/rhdh-*/packages/ -name "${ignored}" -exec rm -fr {} \; 2>/dev/null
+  done
+  # same package.json+yarn.lock present in dynamic-plugins/wrappers/ so we don't need dynamic-plugins/dist/ too
+  rm -fr \
+    distgit/containers/rhdh-hub/dynamic-plugins-root/* \
+    distgit/containers/rhdh-hub/dynamic-plugins/dist/ \
+    distgit/containers/rhdh-hub/dynamic-plugins/wrappers/*/dist-dynamic/src \
+    distgit/containers/rhdh-hub/dynamic-plugins/imports/*/ \
+    distgit/containers/rhdh-hub/dynamic-plugins/*/dist-dynamic/src
+  touch distgit/containers/rhdh-hub/dynamic-plugins-root/.gitkeep
 
-echo "[INFO] ====================== Remove node_modules and other generated / gitignored content =====================>"
-set +e
-# shellcheck disable=SC2086
-for ignored in \
-  node_modules \
-  .DS_Store \
-  logs \
-  *.log *debug.log* *error.log* \
-  coverage \
-  .env .env.test \
-  dist-types dist-scalprum \
-  cache \
-  *.swp site *.local.yaml \
-  *.session.sql .turbo; do
-    find distgit/containers/rhdh-*/ -name "${ignored}" -exec rm -fr {} \; 2>/dev/null
-done
-# shellcheck disable=SC2043
-for ignored in \
-  dist; do
-    find distgit/containers/rhdh-*/packages/ -name "${ignored}" -exec rm -fr {} \; 2>/dev/null
-done
-# same package.json+yarn.lock present in dynamic-plugins/wrappers/ so we don't need dynamic-plugins/dist/ too
-rm -fr \
-  distgit/containers/rhdh-hub/dynamic-plugins-root/* \
-  distgit/containers/rhdh-hub/dynamic-plugins/dist/ \
-  distgit/containers/rhdh-hub/dynamic-plugins/wrappers/*/dist-dynamic/src \
-  distgit/containers/rhdh-hub/dynamic-plugins/imports/*/ \
-  distgit/containers/rhdh-hub/dynamic-plugins/*/dist-dynamic/src
-touch distgit/containers/rhdh-hub/dynamic-plugins-root/.gitkeep
+  echo "[INFO] <===================== Remove node_modules and other generated / gitignored content ====================="
+  echo
+  set -e
 
-echo "[INFO] <===================== Remove node_modules and other generated / gitignored content ====================="
-echo
-set -e
+  echo "[INFO] ===================================== Patch embedded yarn commands =====================================>"
+  # fix dynamic-plugins/imports/import-plugins.js to use more flags; fix package.json to use specific $YARN
 
-echo "[INFO] ===================================== Patch embedded yarn commands =====================================>"
-# fix dynamic-plugins/imports/import-plugins.js to use more flags; fix package.json to use specific $YARN
+  echo "[INFO] Patch yarn commmand in dynamic-plugins/imports/import-plugins.js ..."
+  sed -i distgit/containers/rhdh-hub/dynamic-plugins/imports/import-plugins.js \
+  -e "s#yarn install#\$YARN install --network-timeout 600000#g"
 
-echo "[INFO] Patch yarn commmand in dynamic-plugins/imports/import-plugins.js ..."
-sed -i distgit/containers/rhdh-hub/dynamic-plugins/imports/import-plugins.js \
--e "s#yarn install#\$YARN install --network-timeout 600000#g"
-
-# backstage-plugin-kubernetes-backend:export-dynamic: error Your lockfile needs to be updated, but yarn was run with `--frozen-lockfile`.
-# don't use --frozen-lockfile to see if that makes Cachito happy
-insertYarn=" \&\& \$YARN --cwd dist-dynamic install --production --network-timeout 600000"
-#shellcheck disable=SC2044,SC2143
-for d in $(find distgit/containers/rhdh-hub/dynamic-plugins -name package.json) ; do
-  if [[ $(grep -E 'export-dynamic-plugin' "$d" | grep -v -- '--network-timeout') ]]; then
-    echo "[INFO] Patch yarn command in ${d#distgit/containers/rhdh-hub/} ..."
-    sed -i "$d" -r \
-    -e 's#("janus-cli package export-dynamic-plugin)(.+)"#\1 --no-install\2'"$insertYarn"'"#g'
-    # debug
-    # grep -E "network-timeout|export-dynamic-plugin" "$d" || true
-  fi
-done
-echo "[INFO] <===================================== Patch embedded yarn commands ====================================="
-echo
-
-# debug
-# find distgit/containers/rhdh-*/ -name "dist" -exec tree -d {} \; 2>/dev/null
-# find distgit/containers/rhdh-*/ -name "dist-dynamic" -exec tree -d {} \; 2>/dev/null
-
-echo "[INFO] ===================================== Configure cachito =====================================>"
-# verify folders exist and are configured correctly for cachito to use
-haderror=0
-for d in $(yq -r -Y '.remote_sources[0].remote_source.packages.yarn' distgit/containers/rhdh-hub/container.yaml.in | sed -r "s#- path: ##"); do
-  if [[ ! -d $d ]] || [[ ! -f $d/package.json ]] || [[ ! -f $d/yarn.lock ]]; then
-    echo "[ERROR] Problem with folder $d -- check if package.json or yarn.lock are present!"
-    (( haderror = haderror + 1 ))
-  else
-    # shellcheck disable=SC2086,SC2013
-    if [[ $d == *"/dist-dynamic"* ]]; then
-      echo "[INFO] Replace resolutions with dependencies in ${d##*wrappers/}/package.json ..."
-      if [[ $(find "$d" -name package-lock.json) ]]; then
-        echo "[ERROR] Found package-lock.json in $d! Must abort!"; exit 20
-      fi
-
-      # 0. collect existing .dependencies
-      pairs="$(jq -M -c '.dependencies' "$d"/package.json | tr -d "{}")"; if [[ "$pairs" ]]; then pairs=",$pairs"; fi
-
-      # 1. add resolutions to dependencies
-      # "npm:@smithy/util-utf8@^2.0.0" --> "@smithy/util-utf8": "^2.0.0"
-      for key in $(jq '.resolutions|to_entries[].key' "$d"/package.json); do
-        val=$(jq '.resolutions['$key']' "$d"/package.json)
-        val_clean=${val/npm:/}; val_clean=${val_clean//\"/}; # echo $val_clean
-        # split on @
-        depName=${val_clean%@*};
-        depVer=${val_clean##*@};
-        # echo "   $depName: $depVer"
-        pairs="$pairs,\"$depName\": \"$depVer\""
-      done
-      # "@aws-sdk/util-utf8-browser" -> "@aws-sdk/util-utf8-browser": "^3"
-      pairs="$pairs,\"@aws-sdk/util-utf8-browser\": \"^3\""
-      pairs=${pairs:1} # trim prefix comma
-
-      # echo "[INFO] Insert dependencies = $pairs ..."
-      jq '.dependencies|={'"$pairs"'}' "$d"/package.json > "$d"/package.json_; mv "$d"/package.json{_,}
-
-      # 2. remove resolutions (moved above)
-      jq '.resolutions|={}' "$d"/package.json > "$d"/package.json_; mv "$d"/package.json{_,}
-
-      # 3. fix version 1.4.3 in dynamic-plugins-imports-peer-dependencies/janus-idp-backstage-plugin-aap-backend/dist-dynamic/package.json 
-      #    if matching peer dep exists @janus-idp/backstage-plugin-aap-backend:1.4.4
-      oldPeerDepVer="$(jq -r '.version' "$d"/package.json)"
-      # echo "[DEBUG] Checking $d/package.json for old version $oldPeerDepVer to update..."
-      for peerDep in $peerDepPairs; do
-        peerDep=$(echo $peerDep | tr -d "@\"" | tr "/" "-")
-        peerDepName=${peerDep%%:*}
-        peerDepVer=${peerDep##*:}
-        # echo "[INFO] Found $peerDepName @ $peerDepVer"
-        if [[ "${d}" == *"${peerDepName}/dist-dynamic"* ]] && [[ "$oldPeerDepVer" != "$peerDepVer" ]]; then
-          echo "[INFO] Bump to version $peerDepVer ..."
-          jq --arg peerDepVer $peerDepVer '.version|=$peerDepVer' "$d"/package.json > "$d"/package.json_; mv "$d"/package.json{_,}
-        fi
-      done
-
-      echo "[INFO] Regenerate ${d##*wrappers/}/yarn.lock ..."
-      yarn install --silent --cwd "./$d" 2> >(grep -v warning 1>&2) || exit 61
-      # force add package.json and yarn.lock (override .gitignore)
-      git add -f "$d"/package.json "$d"/yarn.lock
+  # backstage-plugin-kubernetes-backend:export-dynamic: error Your lockfile needs to be updated, but yarn was run with `--frozen-lockfile`.
+  # don't use --frozen-lockfile to see if that makes Cachito happy
+  insertYarn=" \&\& \$YARN --cwd dist-dynamic install --production --network-timeout 600000"
+  #shellcheck disable=SC2044,SC2143
+  for d in $(find distgit/containers/rhdh-hub/dynamic-plugins -name package.json) ; do
+    if [[ $(grep -E 'export-dynamic-plugin' "$d" | grep -v -- '--network-timeout') ]]; then
+      echo "[INFO] Patch yarn command in ${d#distgit/containers/rhdh-hub/} ..."
+      sed -i "$d" -r \
+      -e 's#("janus-cli package export-dynamic-plugin)(.+)"#\1 --no-install\2'"$insertYarn"'"#g'
+      # debug
+      # grep -E "network-timeout|export-dynamic-plugin" "$d" || true
     fi
-  fi
-done
+  done
+  echo "[INFO] <===================================== Patch embedded yarn commands ====================================="
+  echo
 
-# switch from yarn to npm registry, in case this makes Cachito happier?
-# Could not download types-jest-29.5.7.tgz from https://cachito-nexus.engineering.redhat.com/repository/cachito-yarn-1047885/@types/jest/-/jest-29.5.7.tgz
-# shellcheck disable=SC2044
-for d in $(find distgit/containers/rhdh-hub/ -name yarn.lock); do sed -i "$d" -r -e "s#registry.yarnpkg.com#registry.npmjs.org#g"; done
+  # debug
+  # find distgit/containers/rhdh-*/ -name "dist" -exec tree -d {} \; 2>/dev/null
+  # find distgit/containers/rhdh-*/ -name "dist-dynamic" -exec tree -d {} \; 2>/dev/null
 
-# shellcheck disable=SC2086
-if [[ $haderror -gt 0 ]]; then echo "[ERROR] Had $haderror problems; must exit."; exit $haderror; fi
-echo "[INFO] <===================================== Configure cachito ====================================="
-echo
+  echo "[INFO] ===================================== Configure cachito =====================================>"
+  # verify folders exist and are configured correctly for cachito to use
+  haderror=0
+  for d in $(yq -r -Y '.remote_sources[0].remote_source.packages.yarn' distgit/containers/rhdh-hub/container.yaml.in | sed -r "s#- path: ##"); do
+    if [[ ! -d $d ]] || [[ ! -f $d/package.json ]] || [[ ! -f $d/yarn.lock ]]; then
+      echo "[ERROR] Problem with folder $d -- check if package.json or yarn.lock are present!"
+      (( haderror = haderror + 1 ))
+    else
+      # shellcheck disable=SC2086,SC2013
+      if [[ $d == *"/dist-dynamic"* ]]; then
+        echo "[INFO] Replace resolutions with dependencies in ${d##*wrappers/}/package.json ..."
+        if [[ $(find "$d" -name package-lock.json) ]]; then
+          echo "[ERROR] Found package-lock.json in $d! Must abort!"; exit 20
+        fi
 
-echo "[INFO] ===================================== Apply branding =====================================>"
-# shellcheck disable=SC2044
-for d in $(find "${ROOTPATH}/branding/" -type f); do
-  echo "[INFO] Update ${d##*branding/}"
-  cp -f "$d" "${d/branding\/}"
-done
-echo "[INFO] <===================================== Apply branding ====================================="
-echo
+        # 0. collect existing .dependencies
+        pairs="$(jq -M -c '.dependencies' "$d"/package.json | tr -d "{}")"; if [[ "$pairs" ]]; then pairs=",$pairs"; fi
+
+        # 1. add resolutions to dependencies
+        # "npm:@smithy/util-utf8@^2.0.0" --> "@smithy/util-utf8": "^2.0.0"
+        for key in $(jq '.resolutions|to_entries[].key' "$d"/package.json); do
+          val=$(jq '.resolutions['$key']' "$d"/package.json)
+          val_clean=${val/npm:/}; val_clean=${val_clean//\"/}; # echo $val_clean
+          # split on @
+          depName=${val_clean%@*};
+          depVer=${val_clean##*@};
+          # echo "   $depName: $depVer"
+          pairs="$pairs,\"$depName\": \"$depVer\""
+        done
+        # "@aws-sdk/util-utf8-browser" -> "@aws-sdk/util-utf8-browser": "^3"
+        pairs="$pairs,\"@aws-sdk/util-utf8-browser\": \"^3\""
+        pairs=${pairs:1} # trim prefix comma
+
+        # echo "[INFO] Insert dependencies = $pairs ..."
+        jq '.dependencies|={'"$pairs"'}' "$d"/package.json > "$d"/package.json_; mv "$d"/package.json{_,}
+
+        # 2. remove resolutions (moved above)
+        jq '.resolutions|={}' "$d"/package.json > "$d"/package.json_; mv "$d"/package.json{_,}
+
+        # 3. fix version 1.4.3 in dynamic-plugins-imports-peer-dependencies/janus-idp-backstage-plugin-aap-backend/dist-dynamic/package.json 
+        #    if matching peer dep exists @janus-idp/backstage-plugin-aap-backend:1.4.4
+        oldPeerDepVer="$(jq -r '.version' "$d"/package.json)"
+        # echo "[DEBUG] Checking $d/package.json for old version $oldPeerDepVer to update..."
+        for peerDep in $peerDepPairs; do
+          peerDep=$(echo $peerDep | tr -d "@\"" | tr "/" "-")
+          peerDepName=${peerDep%%:*}
+          peerDepVer=${peerDep##*:}
+          # echo "[INFO] Found $peerDepName @ $peerDepVer"
+          if [[ "${d}" == *"${peerDepName}/dist-dynamic"* ]] && [[ "$oldPeerDepVer" != "$peerDepVer" ]]; then
+            echo "[INFO] Bump to version $peerDepVer ..."
+            jq --arg peerDepVer $peerDepVer '.version|=$peerDepVer' "$d"/package.json > "$d"/package.json_; mv "$d"/package.json{_,}
+          fi
+        done
+
+        echo "[INFO] Regenerate ${d##*wrappers/}/yarn.lock ..."
+        yarn install --silent --cwd "./$d" 2> >(grep -v warning 1>&2) || exit 61
+        # force add package.json and yarn.lock (override .gitignore)
+        git add -f "$d"/package.json "$d"/yarn.lock
+      fi
+    fi
+  done # hub container
+
+  # switch from yarn to npm registry, in case this makes Cachito happier?
+  # Could not download types-jest-29.5.7.tgz from https://cachito-nexus.engineering.redhat.com/repository/cachito-yarn-1047885/@types/jest/-/jest-29.5.7.tgz
+  # shellcheck disable=SC2044
+  for d in $(find distgit/containers/rhdh-hub/ -name yarn.lock); do sed -i "$d" -r -e "s#registry.yarnpkg.com#registry.npmjs.org#g"; done
+
+  # shellcheck disable=SC2086
+  if [[ $haderror -gt 0 ]]; then echo "[ERROR] Had $haderror problems; must exit."; exit $haderror; fi
+  echo "[INFO] <===================================== Configure cachito ====================================="
+  echo
+
+  echo "[INFO] ===================================== Apply branding =====================================>"
+  # shellcheck disable=SC2044
+  for d in $(find "${ROOTPATH}/branding/" -type f); do
+    echo "[INFO] Update ${d##*branding/}"
+    cp -f "$d" "${d/branding\/}"
+  done
+  echo "[INFO] <===================================== Apply branding ====================================="
+  echo
+fi ## if DO_BUILD
 
 # compute x.y version from package.json
 DH_VERSION=$(yq -r '.version' distgit/containers/rhdh-hub/package.json) # 1.2.0
 DH_VERSION=${DH_VERSION%.*} # 1.2
 echo "Got DH_VERSION = $DH_VERSION from distgit/containers/rhdh-hub/package.json#.version"
 
-echo "[INFO] Remove node_modules and other generated / gitignored content; regen Dockerfiles from Dockerfile.in ..."
-for d in distgit/containers/rhdh-hub distgit/containers/rhdh-operator; do
+for d in distgit/containers/rhdh-hub distgit/containers/rhdh-operator distgit/containers/rhdh-operator-bundle; do
+  echo "[INFO] Remove generated/ignored content; regen Dockerfiles from Dockerfile.in [$d] ..."
   pushd "$d" >/dev/null || exit 1
     set +e
     # shellcheck disable=SC2086
@@ -711,6 +756,7 @@ for d in distgit/containers/rhdh-hub distgit/containers/rhdh-operator; do
       dist-types \
       cache \
       *.swp site *.local.yaml \
+      .rhdh \
       *.session.sql .turbo; do
         find . -name "${ignored}" -exec rm -fr {} \; 2>/dev/null
     done
@@ -772,9 +818,10 @@ echo "$gitdiff" > "/tmp/sync-midstream.sh.diff.txt"
   for d in distgit/containers/rhdh-hub distgit/containers/rhdh-operator; do
     pushd "$d" >/dev/null || exit 1
       echo "[INFO] Using UPSTREAM_COMMIT = $UPSTREAM_COMMIT"
+      sed -r -e "/ +yarn: null/d" -i container.yaml.in
       sed -r \
         -e 's|repo: \$\{CI_RHDH_UPSTREAM_URL\}|repo: '"$UPSTREAM_REPO"'|' \
-        -e 's|ref: \$\{CI_RHDH_UPSTREAM_COMMIT\}|ref: '"$UPSTREAM_COMMIT"'|' container.yaml.in > container.yaml && git add container.yaml
+        -e 's|ref: \$\{CI_RHDH_UPSTREAM_COMMIT\}|ref: '"$UPSTREAM_COMMIT"'|' container.yaml.in > container.yaml && git add container.yaml*
       echo "[INFO] Generated $d/container.yaml from .in file (CPaaS bypass)"
     popd >/dev/null || exit 1
   done

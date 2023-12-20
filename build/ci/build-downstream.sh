@@ -79,8 +79,22 @@ git clone "ssh://rhdh-bot@pkgs.devel.redhat.com/containers/${CONTAINER_NAME}" "$
   git config --global advice.detachedHead false
 
   sha="$(git rev-parse HEAD)"
+  CMD="brew container-build ${DWNSTM_BRANCH}-containers-candidate git+https://pkgs.devel.redhat.com/git/containers/${CONTAINER_NAME}#${sha} --git-branch ${DWNSTM_BRANCH} --nowait ${scratchFlag}"
   # shellcheck disable=SC2086
-  git pull && git push && tmpfile=$(mktemp) && brew container-build ${DWNSTM_BRANCH}-containers-candidate git+https://pkgs.devel.redhat.com/git/containers/${CONTAINER_NAME}#${sha} --git-branch ${DWNSTM_BRANCH} --nowait ${scratchFlag} 2>/dev/null | tee 2>&1 "${tmpfile}" &&
+  git pull && git push && tmpfile=$(mktemp) && \
+  $CMD 2>"${tmpfile}.err" | tee 2>&1 "${tmpfile}" && \
+  if [[ $(grep -c -E "brew: error: " "${tmpfile}.err") -gt 0 ]]; then
+  echo "[ERROR] Could not run brew container-build!
+===============================
+$CMD
+===============================
+"
+    grep -E -v '^[[:space:]]*$|DeprecationWarning' "${tmpfile}.err"
+echo "
+===============================
+"
+    exit 4
+  fi
   taskID=$(grep "Created task:" "${tmpfile}" | sed -e "s#Created task: *##") && brew watch-logs $taskID | tee 2>&1 "${tmpfile}"
   taskID=${taskID// /}
   results=$(brew taskinfo "$taskID" | grep -E "Owner|Type|State|Created|Started|Finished" || true)

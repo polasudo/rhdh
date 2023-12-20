@@ -19,14 +19,14 @@ operator_manifests:
   repo_replacements:
     - registry: registry-proxy.engineering.redhat.com
       package_mappings:
-        # new name, 0.2+ (was rhdh-hub-rhel9-container)
-        # Invalid replacement for package rhdh-hub-container: rh-osbs/rhdh-rhdh-hub-rhel9 (choices: rhdh/rhdh-hub-rhel9)
+        # Fixed: "Invalid replacement for package rhdh-hub-container: rh-osbs/rhdh-rhdh-hub-rhel9 (choices: rhdh/rhdh-hub-rhel9)"
         rhdh-hub-container: rhdh/rhdh-hub-rhel9
         rhdh-operator-container: rhdh/rhdh-rhel9-operator
+        kube-rbac-proxy-container: openshift4/ose-kube-rbac-proxy
         postgresql-15-container: rhel9/postgresql-15
     - registry: registry.redhat.io
       package_mappings:
-        # new name, 0.2+ (was rhdh-hub-rhel9-container)
         rhdh-hub-container: rhdh/rhdh-hub-rhel9
         rhdh-operator-container: rhdh/rhdh-rhel9-operator
+        kube-rbac-proxy-container: openshift4/ose-kube-rbac-proxy
         postgresql-15-container: rhel9/postgresql-15

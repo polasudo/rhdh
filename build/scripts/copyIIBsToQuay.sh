@@ -26,8 +26,8 @@ Usage:
 Options:
   -p, --push                 : Push IIB(s) to quay registry; default is to show commands but not copy anything
   --force                    : If target image exists, will re-filter and re-push it; otherwise skip to avoid updating image timestamps
-  -t PROD_VER                : Default: '$DH_VERSION'; NOTE: can push an older bundle using 1.0-zzz instead of latest 1.0
-  -e, --extra-tags           : Extra custom tags to create, such as 1.0.0.RC-09-19-v4.13-x86_64
+  -t PROD_VER                : Default: '$DH_VERSION'; NOTE: can push an older bundle using 1.yy-zzz instead of latest 1.yy
+  -e, --extra-tags           : Extra custom tags to create, such as 1.2.0.RC-05-05-v4.14-x86_64
   --sudo                     : run podman commands with sudo
   --no-validate              : do not validate olm-catalog.Dockerfile; default is to validate
   --kaniko                   : use kaniko for container build instead of podman
@@ -52,10 +52,17 @@ AUTHFILE=""
 THIS_REPO_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "main")
 
 setDefaults() {
-    DH_VERSION="1.0"
+    MIDSTM_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "rhdh-1-rhel-9")
+    if [[ ${MIDSTM_BRANCH} != "rhdh-"*"-rhel-"* ]]; then MIDSTM_BRANCH="rhdh-1-rhel-9"; fi
+    latestNext="latest"; if [[ $MIDSTM_BRANCH == "rhdh-1-rhel-9" ]]; then latestNext="next"; fi
 
     # next or latest tag to set
-    FLOATING_QUAY_TAGS="next"
+    FLOATING_QUAY_TAGS="$latestNext"
+
+    DH_VERSION="1.yy"
+    if [[ ! $DH_VERSION ]] && [[ -f distgit/containers/rhdh-hub/package.json ]]; then
+        DH_VERSION=$(yq -r '.version' distgit/containers/rhdh-hub/package.json); DH_VERSION=${DH_VERSION%.*} # 1.2
+    fi
 }
 setDefaults
 

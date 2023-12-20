@@ -48,6 +48,7 @@ CI_PROJECT_NAME = $CI_PROJECT_NAME
 CI_PROJECT_ID = $CI_PROJECT_ID
 CI_JOB_TOKEN = $CI_JOB_TOKEN
 CI_API_V4_URL = $CI_API_V4_URL"
+
 cd /tmp
 curl -sSLkO https://hdn.corp.redhat.com/rhel7-csb-stage/RPMS/noarch/redhat-internal-cert-install-0.1-31.el7.noarch.rpm
 dnf -y -q update
@@ -135,6 +136,7 @@ mkdir -p "$HOME/.docker"; cp $REGISTRY_AUTH_FILE "$HOME/.docker/config.json"
 echo "===== Copy OSBS images to Quay ===========>"
 
 # use :latest for a stable branch like rhdh-1.1-, and :next for rhdh-1- branch
+set -x
 MIDSTM_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "rhdh-1-rhel-9")
 if [[ ${MIDSTM_BRANCH} != "rhdh-"*"-rhel-"* ]]; then MIDSTM_BRANCH="rhdh-1-rhel-9"; fi
 latestNext="latest"; if [[ $MIDSTM_BRANCH == "rhdh-1-rhel-9" ]]; then latestNext="next"; fi
@@ -142,6 +144,7 @@ latestNext="latest"; if [[ $MIDSTM_BRANCH == "rhdh-1-rhel-9" ]]; then latestNext
 if [[ ! $DH_VERSION ]] && [[ -f distgit/containers/rhdh-hub/package.json ]]; then
     DH_VERSION=$(yq -r '.version' distgit/containers/rhdh-hub/package.json); DH_VERSION=${DH_VERSION%.*} # 1.2
 fi
+set +x
 
 ./build/scripts/getLatestImageTags.sh -b ${MIDSTM_BRANCH} --osbs --pushtoquay="${DH_VERSION} $latestNext"
 
