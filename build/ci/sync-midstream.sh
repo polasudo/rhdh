@@ -291,7 +291,7 @@ for ((i = 0; i < NUM_REPOS; i++)); do # echo $i
       BUNDLEDIR="${ROOTPATH}/${destination_folder%/}-bundle"
       # copy the contents of bundle/ into distgit/containers/rhdh-operator-bundle/
       # NOTE: if we add any .dotfiles in bundle/, add $TMPDIR/repo${i}/bundle/.??* to regexes copied 
-      rsync -azq --delete $TMPDIR/repo${i}/bundle/* "${BUNDLEDIR}/" --exclude=.git ${excludesFlags}
+      rsync -azq --delete $TMPDIR/repo${i}/bundle/* $TMPDIR/repo${i}/.gitignore "${BUNDLEDIR}/" --exclude=.git ${excludesFlags}
       # append overrides from the .rhdh/ tree: CSV and annotations
       rsync -azq $TMPDIR/repo${i}/.rhdh/bundle/* "${BUNDLEDIR}/" --exclude=.git ${excludesFlags}
       # and copy .rhdh/docker/bundle.Dockerfile to Dockerfile.in
