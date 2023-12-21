@@ -18,6 +18,9 @@
 # https://registry.redhat.io is v2 and requires authentication to query, so login in first like this:
 # docker login registry.redhat.io -u=USERNAME -p=PASSWORD
 
+# TODO: compute default errata num to use with --errata flag
+DEFAULT_ERRATA_NUM="125348"
+
 # try to compute branches from currently checked out branch; else fall back to hard coded value
 DWNSTM_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "rhdh-1-rhel-9")
 if [[ ${DWNSTM_BRANCH} != "rhdh-"*"-rhel-"* ]]; then DWNSTM_BRANCH="rhdh-1-rhel-9"; fi
@@ -94,13 +97,6 @@ cleanup_temp () {
 usage () {
 	getVersion
 	getDHVersion
-
-	# compute default errata num for use with --errata flag
-	DEFAULT_ERRATA_NUM="114828"
-
-
-#   $0 -c rhdh/iib --quay -o v4.12 --tag ${DH_VERSION}-v4.12          | search for latest Dev Hub IIBs in quay for a given OCP version
-
 	echo "
 Usage: 
   $0 -b ${DWNSTM_BRANCH} --nvr --log                       | check images in brew; output NVRs can be copied to Errata; show Brew builds/logs
@@ -111,6 +107,7 @@ Usage:
   $0 -b ${DWNSTM_BRANCH} --osbs --pushtoquay='${DH_VERSION} ${latestNext}'  | pull images from OSBS, push ${DH_VERSION}-z tag + 2 extras to quay
   $0 -b ${DWNSTM_BRANCH} --stage --sort                    | use default list of DH images in RHEC Stage, sorted alphabetically
   $0 -b ${DWNSTM_BRANCH} --arches                          | use default list of DH images in RHEC Prod; show arches
+  $0 -c rhdh/iib --quay -o v4.14 --tag ${DH_VERSION}-v4.14          | search for latest IIBs in quay for a given OCP version
 
   $0 -c rhdh/rhdh-hub-rhel9 --quay                        | check latest tag for specific Quay image(s), with branch = ${DWNSTM_BRANCH}
   $0 -c rhdh-rhdh-rhel9-operator --osbs                   | check an image from OSBS
