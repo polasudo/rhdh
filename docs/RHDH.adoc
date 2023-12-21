@@ -52,19 +52,9 @@ NOTE: There currently is no https://github.com/janus-idp/operator/tree/main/bund
 
 ## How things run
 
-### Jenkins orchestraton for PRs and pushes
+Old way using link:RHDH-cpaas.adoc[CPaaS Jenkins] - for 0.x and 1.0
 
-Jenkins is used to coordinate all the builds, including triggering PNC builds of yarn artifacts for PIB and OSBS builds for RHDH containers. 
-
-Some tasks are manual as the configuration changes infrequently; other tasks are automatic in response to upstream events. 
-
-. link:https://jenkins-cpaas-rhdh.apps.cpaas-poc.r6c9.p1.openshiftapps.com/job/pipeline-seed/[Pipeline seed] job - run every time a merge request is pushed to `cpaas-products`, or run *manually* for direct commits 
-
-. link:https://jenkins-cpaas-rhdh.apps.cpaas-poc.r6c9.p1.openshiftapps.com/job/rhdh-1.0.0/job/honeyBadger-pipeline/[Honey Bager pipeline] - run *manually* for any changes to HB config in link:https://gitlab.cee.redhat.com/cpaas-products/rhdh/-/blob/main/versions/rhdh-1.0.0/product.yml[product.yml] or link:https://gitlab.cee.redhat.com/cpaas-products/rhdh/-/blob/main/versions/rhdh-1.0.0/release.yml[release.yml]
-
-. link:https://jenkins-cpaas-rhdh.apps.cpaas-poc.r6c9.p1.openshiftapps.com/job/rhdh-1.0.0/[Build and release pipeline] jobs - run automatically for merges to upstream repos; may need to be run *manually* for some commits (eg., midstream?)
-
-. `(TODO)`: add note about release job once it works for GA?
+New way using link:RHDH-gitlab.adoc[Gitlab pipelines] - for 1.1+
 
 ### Building containers locally
 
@@ -135,10 +125,10 @@ echo "[INFO]: Log into quay.io as ${QUAY_USER} ..."
 echo "${QUAY_TOKEN}" | podman login -u="${QUAY_USER}" --password-stdin ${QUAY_REGISTRY} 
 export QUAY_TOKEN
 ```
-. Next, push the 1.0-yy image AND create additional floating tags for latest, 0.1 and 1.0
+. Next, push the 1.1-yy image AND create additional floating tags for 1.1 and next (or latest)
 +
 ```
-./build/scripts/copyImageToQuay.sh registry-proxy.engineering.redhat.com/rh-osbs/rhdh-hub-rhel9:1.0-yy --pushtoquay="latest 0.1 1.0"
+./build/scripts/copyImageToQuay.sh registry-proxy.engineering.redhat.com/rh-osbs/rhdh-hub-rhel9:1.1-yy --pushtoquay="1.1 next"
 ```
 
 CI builds (including link:https://quay.io/repository/rhdh/iib?tab=tags[IIBs]) are now published to Quay automatically every 4 hours:
@@ -150,14 +140,13 @@ Schedule: https://gitlab.cee.redhat.com/rhidp/rhdh/-/pipeline_schedules
 
 Builds will appear in a private repo such as 
 
-* https://quay.io/repository/rhdh/developer-hub-rhel9?tab=tags (only for 0.1)
-* https://quay.io/repository/rhdh/rhdh-hub-rhel9?tab=tags (0.2+)
+* https://quay.io/repository/rhdh/rhdh-hub-rhel9?tab=tags
+* https://quay.io/repository/rhdh/rhdh-rhel9-operator?tab=tags
+* https://quay.io/repository/rhdh/rhdh-operator-bundle?tab=tags
 
 To request access to the repo, send your quay username to one of these people to be added:
 * nickboldt
-* bbazemor
 * jfargett
-* tcoufal
 
 #### Granting customer access
 
@@ -176,7 +165,7 @@ Prerequisites:
 
 Actor must be included in the list of owners at link:https://github.com/openshift-helm-charts/charts/blob/main/charts/redhat/redhat/developer-hub/OWNERS[`charts/redhat/redhat/developer-hub/OWNERS`]. Otherwise their publishing attempt will be rejected.
 
-CI builds (including link:https://gist.github.com/rhdh-bot/63cef5cb6285889527bd6a67c0e1c2a9[install instructions]) are now published to GH Gist automatically every 4 hours:
+CI builds (including link:https://gist.github.com/rhdh-bot/[install instructions]) are now published to GH Gist automatically every 4 hours:
 
 Schedule: https://gitlab.cee.redhat.com/rhidp/rhdh/-/pipeline_schedules
 
@@ -188,9 +177,6 @@ Build & PR generation process:
 . Run `build/helm/prepare.sh` script (consult `--help` if needed)
 . Open a pull request against https://github.com/openshift-helm-charts/charts from your own fork. User opening the pull request must be listed as an owner. See prerequisites.
 
-`(TODO)` https://issues.redhat.com/browse/RHIDP-33 generate PR for GA release
-
-
 Chart is released and available to all OpenShift instances when the PR gets merge.
 
 ### Container image
@@ -199,20 +185,9 @@ This process is new and subject to change.
 
 #### Downstream CI builds based on upstream changes
 
-. Check for recent changes in https://github.com/janus-idp/backstage-showcase/commits/1.0.x (or main branch) since the last build have been synced to midstream as a new MR, eg., link:https://github.com/janus-idp/backstage-showcase/pull/305[PR 305] -> link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/merge_requests/33[MR 33]:
-.. link:https://jenkins-cpaas-rhdh.apps.cpaas-poc.r6c9.p1.openshiftapps.com/job/rhdh-1.0.0/job/poll-all-upstream-sources/[poll-all-upstream-sources] -> link:https://jenkins-cpaas-rhdh.apps.cpaas-poc.r6c9.p1.openshiftapps.com/job/rhdh-1.0.0/job/rhdh/job/poll-upstream-sources/[poll-upstream-sources]
-. Verify that this MR has been checked...
-.. link:https://jenkins-cpaas-rhdh.apps.cpaas-poc.r6c9.p1.openshiftapps.com/job/gitlab-event-dispatcher/30/[gitlab-event-dispatcher] -> link:https://jenkins-cpaas-rhdh.apps.cpaas-poc.r6c9.p1.openshiftapps.com/job/rhdh-1.0.0/job/rhdh/job/check-patch/27/[check-patch] -> link:http://brewweb.engineering.redhat.com/brew/taskinfo?taskID=53169867[brew container build] (scratch from cpaas junkyard)
-. ... then merged...
-.. link:https://jenkins-cpaas-rhdh.apps.cpaas-poc.r6c9.p1.openshiftapps.com/job/gitlab-event-dispatcher/31/[gitlab-event-dispatcher] -> link:https://jenkins-cpaas-rhdh.apps.cpaas-poc.r6c9.p1.openshiftapps.com/job/rhdh-1.0.0/job/rhdh/job/check-merged/3/[check-merged] 
-. ... then built.
-... link:https://jenkins-cpaas-rhdh.apps.cpaas-poc.r6c9.p1.openshiftapps.com/job/rhdh-1.0.0/job/build-pipeline/11/[build-pipeline] -> link:https://jenkins-cpaas-rhdh.apps.cpaas-poc.r6c9.p1.openshiftapps.com/job/rhdh-1.0.0/job/rhdh/job/rhdh-hub-rhel9-container/job/rhdh-hub-rhel9-container/8/[rhdh-hub-rhel9-container] -> link:http://brewweb.engineering.redhat.com/brew/taskinfo?taskID=53170593[brew container build] -> `registry-proxy.engineering.redhat.com/rh-osbs/rhdh-hub-rhel9:1.0-3`
+Old way using link:RHDH-cpaas.adoc[CPaaS Jenkins] - for 0.x and 1.0
 
-. Once the above brew build is done, the link:https://jenkins-cpaas-rhdh.apps.cpaas-poc.r6c9.p1.openshiftapps.com/job/rhdh-1.0.0/job/release-pipeline/[release-pipeline] should add the container build(s) to the link:https://errata.devel.redhat.com/advisory/114828[errata] and set the correct CDN metadata. These steps are controlled by the following files:
-* link:https://gitlab.cee.redhat.com/cpaas-products/rhdh/-/blob/main/versions/rhdh-1.0.0/product.yml[product.yml] (see `product.honeybadger` and `product.components.builds`)
-* link:https://gitlab.cee.redhat.com/cpaas-products/rhdh/-/blob/main/versions/rhdh-1.0.0/release.yml[release.yml] (see `release.pipelines["release"].stages`)
-
-Repeat the above steps for subsequent RC builds. 
+New way using link:RHDH-gitlab.adoc[Gitlab pipelines] - for 1.1+
 
 #### GA release
 
@@ -236,9 +211,62 @@ Process should be the same as for building the hub container.
 
 Note these changes to upstream content:
 
-* upstream for the operator is https://github.com/janus-idp/backstage-operator
+* upstream for the operator: 
+  ** https://github.com/janus-idp/operator
+  ** https://github.com/janus-idp/operator/tree/main/.rhdh/docker/Dockerfile
 
-* NOTE: there is no upstream operator-bundle. link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/tree/rhdh-1.1-rhel-9/distgit/containers/rhdh-operator-bundle[See midstream].
+* upstream for the operator-bundle:
+  ** https://github.com/janus-idp/operator/tree/main/bundle
+  ** https://github.com/janus-idp/operator/tree/main/.rhdh
+
+CI builds are now published to Quay automatically every 4 hours, including a new link:https://quay.io/repository/rhdh/iib?tab=tags[IIB] you can use as a CatalogSource to link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1-rhel-9/build/scripts/installCatalogSourceFromIIB.sh[install the latest or next build].
+
+#### Operator installation 
+
+. If you do not have a cluster already running, start a link:https://app.slack.com/client/E030G10V24F/D03GXSUT32A[Cluster Bot] instance, eg., with the command `launch 4.14 gcp`
+** Wait 30-40 mins for the cluster to be provisioned and login details to be provided in Slack.
+. Log into your cluster and get a login token
+** From the top right corner menu of the admin console under your logged in user's name, select `Copy login command``, then click the `Display Token` link that opens in a new browser.
+** Select the provided command and paste it into a console to run it
++
+```
+oc login --token=sha256~z6Whfzg3Q-Gy345vIAOd5f4ghhha5o0sgqgIRipgmcY --server=https://api.ci-ab-12345-678900.cluster-here.rhcloud.com:6443
+```
++
+. Log in to quay.io and registry.redhat.io, and use those tokens as pull secrets in your cluster -- see https://gist.github.com/nickboldt/84bea28da11ec5aab549c182818356e0 for a scripted solution
+** Your user should have read permission for link:http://quay.io/rhdh[quay.io/rhdh] images
+** If you don't, send your quay username to @nboldt in Slack to be added
+
+. Run link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1-rhel-9/build/scripts/installCatalogSourceFromIIB.sh[installCatalogSourceFromIIB.sh]
++
+```
+./installCatalogSourceFromIIB.sh --next --install-operator rhdh
+# or
+./installCatalogSourceFromIIB.sh --iib quay.io/rhdh/iib:next-v4.14-x86_64 --install-operator rhdh
+```
++ 
+. The above script will:
+** Create a `CatalogSource` from the IIB image
+** Create an `ImageContentSourcePolicy` so references to internal registry or RH Ecosystem images will be found from link:http://quay.io/rhdh[quay.io/rhdh] instead
+** Install the RHDH `Subscription` and `Operator`.
++
+. Browse in your cluster's `Administrator` perspective to `Operators > Installed Operators`.
++
+image::images/installed-operators.png[Installed Operators]
++
+. Switch to the namespace you want to use for the Backstage instance, eg., `mybackstage`. 
+
+. Select the operator to create a Backstage instance within your namespace:
+
+. Wait as pods are rolled out. 
+
+. You can either watch from `Workloads > Pods` view...
++
+image::images/workloads-pods-error.png[Pods listing with error]
++
+. Or switch to the `Developer` perspective and go to the `Topology` view.
++
+image::images/topology-view-error.png[Topology view with error]
 
 
 ## Who can help?

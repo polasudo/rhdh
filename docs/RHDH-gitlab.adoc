@@ -1,0 +1,59 @@
+# How to build with Gitlab
+
+## How to respin because of a change upstream 
+
+. Push a change to either of the link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1-rhel-9/upstream_repos.yml[upstream repos] - make sure you're pushing to the correct branch for the downstream sync.
+    ** https://github.com/janus-idp/backstage-showcase
+    ** https://github.com/janus-idp/operator
+
+. Wait until the next scheduled build (runs every 4 hours) or trigger a pipeline job from the link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/pipeline_schedules[Pipeline Schedules] page using the play icon:
+
+image::images/pipeline-schedules.png[Pipeline Schedules]
+
+## How to respin because of a change midstream 
+
+. You can also trigger a build by pushing a commit into link:https://gitlab.cee.redhat.com/rhidp/rhdh/[this repo], but if there is no change upstream, the job will not rebuild the containers. 
+
+. To **force** a rebuild from the midstream without changing upstream, empty the appropriate file (of files) in the link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/tree/rhdh-1-rhel-9/sync[sync] folder, or run link:https://gist.github.com/nickboldt/49bbbd8c2e916d8c199b8fbc06d1044e[this script].
+
+. TODO https://issues.redhat.com/browse/RHIDP-896 ensure that only the containers we want to build are rebuilt (eg., hub + bundle, operator + bundle, or hub + operator + bundle)
+
+## Pipelines
+
+Watch https://gitlab.cee.redhat.com/rhidp/rhdh/-/pipelines[Pipeline results]
+
+* You can look at console logs and artifacts between stages to see what happened
+* If all stages run successfully, the build will show successful overall.
+* Should a stage be deemed unnecessary, because no change was recorded in midstream or downstream, the pipeline will show failure for one stage and skips for subsequent stages. 
+
+### Pipeline Stages
+
+The link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/tree/rhdh-1-rhel-9/build/ci[stages in the Gitlab pipeline] are as follows:
+
+. sync upstream repos to midstream
+** this will also run a yarn build in the rhdh-hub folder to regenerate dynamic plugin content and package.json files
+. sync midstream repos to downstream (three parallel runs)
+** this is essentially a pure rsync copy
+. build downstream containers in OSBS with `brew container-build` 
+. copy new container images to quay, including new IIB image
+. publish helm chart to https://gist.github.com/rhdh-bot
+. review the preceding stages for success/failure
+
+TODO: https://issues.redhat.com/browse/RHIDP-896 support sequencing the container builds (rather than a parallel matrix)
+
+## How to disable/skip steps
+
+Need to temporarily skip some stages? 
+
+* Comment out any of the `stages` lines https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1.1-rhel-9/.gitlab-ci.yml#L21-26 to skip those steps. 
+
+## Retry a failed build
+
+If you want to rebuild from a failed stage, you can do that from the pipelines page:
+
+image::images/pipeline-retry-one-stage.png[retrigger from the pipelines page]
+
+Once retried, the list of builds for a given stage will identify the retried build:
+
+image::images/pipeline-stage-retried.png[UI shows builds that were retried]
+
