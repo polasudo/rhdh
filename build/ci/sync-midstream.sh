@@ -184,7 +184,8 @@ createPr() {
 # get all upstream branches to avoid merge conflicts
 set -x
 if [[ $GITLAB_PIPELINE == "true" ]]; then
-  git remote set-branches origin "*" && git fetch --unshallow
+  git remote set-branches origin "*" || true
+  git fetch --all || true
   git checkout "${DWNSTM_BRANCH}" || true
   git pull origin "${DWNSTM_BRANCH}" || true
 fi
