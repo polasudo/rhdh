@@ -57,7 +57,16 @@ sync-downstream:
       ---
       $(cat "${CI_PROJECT_DIR}/"outputs1/sync-midstream.sh.diff.txt)
       ================================="
-      if [[ $sync_check ]] || [[ -f "${CI_PROJECT_DIR}/"outputs1/sync-midstream.sh.diff.txt ]]; then
+      if [[ $sync_check == "" ]] || [[ ! -f "${CI_PROJECT_DIR}/"outputs1/sync-midstream.sh.diff.txt ]]; then
+        mkdir -p outputs2; touch outputs2/sync-downstream.sh.result.txt
+        echo; git log --graph --pretty=format:'%Cred%h%Creset%C(yellow)%d%Creset :: %s @ %cN <%cE> (%cD - %cr)' --name-only -4; echo
+        echo " 
+      ==============================================================
+      [INFO] Nothing to sync to downstream: midstream diff is empty!
+      ==============================================================
+      " | tee outputs2/sync-downstream.sh.result.txt
+        exit 72
+      else
         echo; git log --graph --pretty=format:'%Cred%h%Creset%C(yellow)%d%Creset :: %s @ %cN <%cE> (%cD - %cr)' --name-only -1; echo
         echo "Sync to downstream in branch $CI_COMMIT_REF_NAME ..."
         ./build/ci/sync-downstream.sh -b "$CI_COMMIT_REF_NAME" -d $REPO || exit 16
@@ -73,19 +82,10 @@ sync-downstream:
         [INFO] Nothing to sync to downstream: dowstream diff is empty!
         ==============================================================
         " | tee outputs2/sync-downstream.sh.result.txt
-          if [[ $REPO != "rhdh-operator-bundle" ]; then
+          if [[ $REPO != "rhdh-operator-bundle" ]]; then
             exit 71
           fi
         fi
-      else
-        mkdir -p outputs2; touch outputs2/sync-downstream.sh.result.txt
-        echo; git log --graph --pretty=format:'%Cred%h%Creset%C(yellow)%d%Creset :: %s @ %cN <%cE> (%cD - %cr)' --name-only -4; echo
-        echo " 
-      ==============================================================
-      [INFO] Nothing to sync to downstream: midstream diff is empty!
-      ==============================================================
-      " | tee outputs2/sync-downstream.sh.result.txt
-      exit 72
       fi
   artifacts:
     expire_in: 180 minutes
