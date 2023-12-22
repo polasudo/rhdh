@@ -63,9 +63,9 @@ sync-downstream:
         ./build/ci/sync-downstream.sh -b "$CI_COMMIT_REF_NAME" -d $REPO || exit 16
         echo "Currently in $(pwd)"
         # store diff to be used in next stage
-        if [[ $(cat /tmp/sync-downstream.sh.diff.txt | wc -l) -gt 0 ]]; then
-          mkdir -p outputs2; touch outputs2/sync-downstream.sh.diff.txt
-          mv /tmp/sync-downstream.sh.diff.txt outputs2/sync-downstream.sh.diff.txt
+        if [[ $(cat /tmp/sync-downstream.sh.$REPO.diff.txt | wc -l) -gt 0 ]]; then
+          mkdir -p outputs2; touch outputs2/sync-downstream.sh.$REPO.diff.txt
+          mv /tmp/sync-downstream.sh.$REPO.diff.txt outputs2/sync-downstream.sh.$REPO.diff.txt
         else
           mkdir -p outputs2; touch outputs2/sync-downstream.sh.result.txt
           echo " 
@@ -105,36 +105,58 @@ build-downstream:
       sync check: 
       $sync_check
       ================================="
-      if [[ $sync_check != "" ]] || [[ -f outputs2/sync-downstream.sh.diff.txt ]] || [[ -f outputs1/sync-midstream.sh.diff.txt ]]; then
-        echo; git log --graph --pretty=format:'%Cred%h%Creset%C(yellow)%d%Creset :: %s @ %cN <%cE> (%cD - %cr)' --name-only -1; echo
-
-        # TODO implement checks here so that:
-        #  if no changes to hub, don't build hub
-        #  if no changes to operator, don't build operator
-        #  if changes to bundle, or hub or operator were rebuilt, build bundle
-        
-        for REPO in rhdh-hub rhdh-operator rhdh-operator-bundle; do
-          echo "Build $REPO container from $CI_COMMIT_REF_NAME branch ..."
-          ./build/ci/build-downstream.sh -b "$CI_COMMIT_REF_NAME" -d $REPO || exit 17
-          echo "Currently in $(pwd)"
-          # store results to be used in next stage
-          mkdir -p outputs3; touch outputs3/build-downstream.sh.$REPO.result.txt
-          if [[ -f /tmp/build-downstream.sh.$REPO.result.txt ]]; then mv -f /tmp/build-downstream.sh.$REPO.result.txt outputs3/; fi
-          cancel_or_fail="$(grep -E "State: canceled|State: failed" outputs3/build-downstream.sh.$REPO.result.txt || true)"
-          if [[ $cancel_or_fail ]]; then
-            echo "OSBS Build $cancel_or_fail - must exit!"
-            exit 99
-          fi
-        done
-      else
-        mkdir -p outputs3; touch outputs3/build-downstream.sh.NO_DIFF.result.txt
+      if [[ $sync_check == "" ]] || [[ ! -f outputs1/sync-midstream.sh.diff.txt ]]; then
+        mkdir -p outputs3; touch outputs3/build-downstream.sh.NONE_BUILT.result.txt
         echo; git log --graph --pretty=format:'%Cred%h%Creset%C(yellow)%d%Creset :: %s @ %cN <%cE> (%cD - %cr)' --name-only -4; echo
         echo " 
       ===================================
       [INFO] Nothing to build downstream!
       ===================================
       " | tee -a outputs3/build-downstream.sh.NONE_BUILT.result.txt
-      exit 73
+        exit 73
+      else
+        echo; git log --graph --pretty=format:'%Cred%h%Creset%C(yellow)%d%Creset :: %s @ %cN <%cE> (%cD - %cr)' --name-only -1; echo
+        
+        # decide if we need to rebuild anything based on downstream sync results
+        for REPO in rhdh-hub rhdh-operator rhdh-operator-bundle; do
+          DO_BUILDS=""
+          #  if change to hub, operator or bundle, trigger respin
+          if [[ -f outputs2/sync-downstream.sh.$REPO.diff.txt ]]; then
+            DO_BUILDS="$DO_BUILDS $REPO"
+          elif [[ $REPO == "rhdh-operator-bundle" ]]; then
+            #  if changes to hub or operator, build bundle
+            if [[ -f outputs2/sync-downstream.sh.rhdh-hub.diff.txt ]]; then
+              DO_BUILDS="$DO_BUILDS rhdh-hub $REPO"
+            fi
+            if [[ -f outputs2/sync-downstream.sh.rhdh-operator.diff.txt ]]; then
+              DO_BUILDS="$DO_BUILDS rhdh-operator $REPO"
+            fi
+          fi
+
+          if [[ $DO_BUILDS !="" ]]; then
+            # show why we're rebuilding
+            for DO_BUILD in $DO_BUILDS; do
+              echo "Diff when syncing to downstream $DO_BUILD:"
+              echo "================================="
+              cat outputs2/sync-downstream.sh.$DO_BUILD.diff.txt
+              echo "================================="
+            done
+
+            echo "Build $REPO container from $CI_COMMIT_REF_NAME branch ..."
+            ./build/ci/build-downstream.sh -b "$CI_COMMIT_REF_NAME" -d $REPO || exit 17
+            echo "Currently in $(pwd)"
+            # store results to be used in next stage
+            mkdir -p outputs3; touch outputs3/build-downstream.sh.$REPO.result.txt
+            if [[ -f /tmp/build-downstream.sh.$REPO.result.txt ]]; then mv -f /tmp/build-downstream.sh.$REPO.result.txt outputs3/; fi
+            cancel_or_fail="$(grep -E "State: canceled|State: failed" outputs3/build-downstream.sh.$REPO.result.txt || true)"
+            if [[ $cancel_or_fail ]]; then
+              echo "OSBS Build $cancel_or_fail - must exit!"
+              exit 99
+            fi
+          else
+            echo "No diff in downstream, so nothing to build!"
+          fi
+        done
       fi
   artifacts:
     expire_in: 180 minutes
