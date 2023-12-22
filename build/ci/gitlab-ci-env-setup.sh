@@ -68,6 +68,9 @@ git config --global advice.detachedHead false
 # git config --global init.defaultBranch main
 
 git checkout -- .; git reset HEAD .; git clean -fdx
+git fetch --all
+git branch
+git rev-parse --abbrev-ref HEAD
 
 # build and install download-secure-files from sources
 DSF_TAG="v0.1.9"
