@@ -73,7 +73,9 @@ sync-downstream:
         [INFO] Nothing to sync to downstream: dowstream diff is empty!
         ==============================================================
         " | tee outputs2/sync-downstream.sh.result.txt
-        exit 71
+          if [[ $REPO != "rhdh-operator-bundle" ]; then
+            exit 71
+          fi
         fi
       else
         mkdir -p outputs2; touch outputs2/sync-downstream.sh.result.txt
