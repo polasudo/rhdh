@@ -89,18 +89,12 @@ sync-downstream:
     expire_in: 180 minutes
     paths: [outputs2/]
 
-
+# run builds in series, not parallel
 build-downstream:
   extends: .shared_config
   stage: build-downstream
   needs: ["sync-downstream"]
-  parallel:
-    matrix:
-      - REPO: 
-        - rhdh-hub
-        - rhdh-operator
-        - rhdh-operator-bundle
-  timeout: 3 hours 3 minutes
+  timeout: 6 hours 6 minutes
   script:
     - |
       dnf -y -q install git
@@ -113,25 +107,33 @@ build-downstream:
       ================================="
       if [[ $sync_check != "" ]] || [[ -f outputs2/sync-downstream.sh.diff.txt ]] || [[ -f outputs1/sync-midstream.sh.diff.txt ]]; then
         echo; git log --graph --pretty=format:'%Cred%h%Creset%C(yellow)%d%Creset :: %s @ %cN <%cE> (%cD - %cr)' --name-only -1; echo
-        echo "Build $REPO container from $CI_COMMIT_REF_NAME branch ..."
-        ./build/ci/build-downstream.sh -b "$CI_COMMIT_REF_NAME" -d $REPO || exit 17
-        echo "Currently in $(pwd)"
-        # store results to be used in next stage
-        mkdir -p outputs3; touch outputs3/build-downstream.sh.result.txt
-        if [[ -f /tmp/build-downstream.sh.result.txt ]]; then mv -f /tmp/build-downstream.sh.result.txt outputs3/; fi
-        cancel_or_fail="$(grep -E "State: canceled|State: failed" outputs3/build-downstream.sh.result.txt || true)"
-        if [[ $cancel_or_fail ]]; then
-          echo "OSBS Build $cancel_or_fail - must exit!"
-          exit 99
-        fi
+
+        # TODO implement checks here so that:
+        #  if no changes to hub, don't build hub
+        #  if no changes to operator, don't build operator
+        #  if changes to bundle, or hub or operator were rebuilt, build bundle
+        
+        for REPO in rhdh-hub rhdh-operator rhdh-operator-bundle; do
+          echo "Build $REPO container from $CI_COMMIT_REF_NAME branch ..."
+          ./build/ci/build-downstream.sh -b "$CI_COMMIT_REF_NAME" -d $REPO || exit 17
+          echo "Currently in $(pwd)"
+          # store results to be used in next stage
+          mkdir -p outputs3; touch outputs3/build-downstream.sh.$REPO.result.txt
+          if [[ -f /tmp/build-downstream.sh.$REPO.result.txt ]]; then mv -f /tmp/build-downstream.sh.$REPO.result.txt outputs3/; fi
+          cancel_or_fail="$(grep -E "State: canceled|State: failed" outputs3/build-downstream.sh.$REPO.result.txt || true)"
+          if [[ $cancel_or_fail ]]; then
+            echo "OSBS Build $cancel_or_fail - must exit!"
+            exit 99
+          fi
+        done
       else
-        mkdir -p outputs3; touch outputs3/build-downstream.sh.result.txt
+        mkdir -p outputs3; touch outputs3/build-downstream.sh.NO_DIFF.result.txt
         echo; git log --graph --pretty=format:'%Cred%h%Creset%C(yellow)%d%Creset :: %s @ %cN <%cE> (%cD - %cr)' --name-only -4; echo
         echo " 
       ===================================
       [INFO] Nothing to build downstream!
       ===================================
-      " | tee -a outputs3/build-downstream.sh.result.txt
+      " | tee -a outputs3/build-downstream.sh.NONE_BUILT.result.txt
       exit 73
       fi
   artifacts:
