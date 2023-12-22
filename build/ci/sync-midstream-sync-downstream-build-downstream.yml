@@ -135,13 +135,13 @@ build-downstream:
             fi
           fi
 
-          if [[ $DO_BUILDS !="" ]]; then
+          if [[ $DO_BUILDS ]]; then
             # show why we're rebuilding
             for DO_BUILD in $DO_BUILDS; do
               echo "Diff when syncing to downstream $DO_BUILD:"
-              echo "================================="
+              echo "=============DIFF====================>"
               cat outputs2/sync-downstream.sh.$DO_BUILD.diff.txt
-              echo "================================="
+              echo "<=============DIFF===================="
             done
 
             echo "Build $REPO container from $CI_COMMIT_REF_NAME branch ..."
