@@ -96,8 +96,11 @@ klist; git clone "ssh://rhdh-bot@pkgs.devel.redhat.com/containers/${CONTAINER_NA
   # update downstream container.yaml to have the same sha values as in the midstream
   sed -i "${CONTAINER_DIR}/container.yaml" -r -e "s/ref: ([a-z0-9]+)/ref: $midSHA/"
 
+  # store one unique diff file per downstream repo
+  for REPO in rhdh-hub rhdh-operator rhdh-operator-bundle; do
+    git diff --name-only "distgit/containers/${REPO}/" | tee -a "/tmp/sync-downstream.sh.${REPO}.diff.txt"
+  done
   # commit and push changes
-  git diff --name-only | tee -a /tmp/sync-downstream.sh.diff.txt
   git add -f . || true
   git commit -s -m "chore: Update from midstream distgit/containers/${CONTAINER_NAME} @ ${midSHA} [skip ci]" . || true
   git pull origin "${DWNSTM_BRANCH}"

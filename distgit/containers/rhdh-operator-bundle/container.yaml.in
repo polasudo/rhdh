@@ -30,3 +30,4 @@ operator_manifests:
         rhdh-operator-container: rhdh/rhdh-rhel9-operator
         kube-rbac-proxy-container: openshift4/ose-kube-rbac-proxy
         postgresql-15-container: rhel9/postgresql-15
+

@@ -12,20 +12,20 @@ publish-helmchart:
       sync check: 
       $sync_check
       ================================="
-      if [[ $sync_check != "" ]] || [[ -f outputs2/sync-downstream.sh.diff.txt ]] || [[ -f outputs1/sync-midstream.sh.diff.txt ]]; then
-        echo; git log --graph --pretty=format:'%Cred%h%Creset%C(yellow)%d%Creset :: %s @ %cN <%cE> (%cD - %cr)' --name-only -1; echo
-        echo "Publish helm chart ..."
-        ./build/ci/publish-helmchart.sh -b "$CI_COMMIT_REF_NAME" --debug || exit 19
-        mkdir -p outputs5; touch outputs5/publish-helmchart.sh.result.txt
-        if [[ -f /tmp/publish-helmchart.sh.result.txt ]]; then mv /tmp/publish-helmchart.sh.result.txt outputs5/; fi
-      else
+      if [[ $sync_check == "" ]] || [[ ! -f outputs1/sync-midstream.sh.diff.txt ]]; then
         mkdir -p outputs5; touch outputs5/publish-helmchart.sh.result.txt
         echo " 
       ========================================================
       [INFO] Nothing to publish: no helm chart needs updating!
       ========================================================
       " | tee -a outputs5/publish-helmchart.sh.result.txt
-      exit 75
+        exit 75
+      else
+        echo; git log --graph --pretty=format:'%Cred%h%Creset%C(yellow)%d%Creset :: %s @ %cN <%cE> (%cD - %cr)' --name-only -1; echo
+        echo "Publish helm chart ..."
+        ./build/ci/publish-helmchart.sh -b "$CI_COMMIT_REF_NAME" --debug || exit 19
+        mkdir -p outputs5; touch outputs5/publish-helmchart.sh.result.txt
+        if [[ -f /tmp/publish-helmchart.sh.result.txt ]]; then mv /tmp/publish-helmchart.sh.result.txt outputs5/; fi
       fi
   artifacts:
     expire_in: 180 minutes
