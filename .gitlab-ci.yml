@@ -14,7 +14,7 @@
   variables:
     # SECURE_FILES_DOWNLOAD_PATH: '.secure_files'
     GIT_DEPTH: "0"
-    GIT_FETCH_EXTRA_FLAGS: --quiet --all
+    GIT_FETCH_EXTRA_FLAGS: --prune
 
 workflow:
   rules:
