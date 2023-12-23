@@ -12,7 +12,7 @@ publish-helmchart:
       sync check: 
       $sync_check
       ================================="
-      if [[ $sync_check == "" ]] || [[ ! -f outputs1/sync-midstream.sh.diff.txt ]]; then
+      if [[ $sync_check == "" ]] && [[ ! -f outputs1/sync-midstream.sh.diff.txt ]]; then
         mkdir -p outputs5; touch outputs5/publish-helmchart.sh.result.txt
         echo " 
       ========================================================

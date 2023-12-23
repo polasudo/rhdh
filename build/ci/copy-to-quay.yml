@@ -13,7 +13,7 @@ copy-to-quay:
       $sync_check
       ================================="
       sync_check="$(git diff --name-only HEAD~1 sync/ || true; git diff --name-only HEAD~2 sync/ || true)"
-      if [[ $sync_check == "" ]] || [[ ! -f outputs1/sync-midstream.sh.diff.txt ]]; then
+      if [[ $sync_check == "" ]] && [[ ! -f outputs1/sync-midstream.sh.diff.txt ]]; then
         mkdir -p outputs4; touch outputs4/copy-to-quay.sh.result.txt
         echo " 
       ======================================================

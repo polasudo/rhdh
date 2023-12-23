@@ -57,7 +57,7 @@ sync-downstream:
       ---
       $(cat "${CI_PROJECT_DIR}/"outputs1/sync-midstream.sh.diff.txt)
       ================================="
-      if [[ $sync_check == "" ]] || [[ ! -f "${CI_PROJECT_DIR}/"outputs1/sync-midstream.sh.diff.txt ]]; then
+      if [[ $sync_check == "" ]] && [[ ! -f "${CI_PROJECT_DIR}/"outputs1/sync-midstream.sh.diff.txt ]]; then
         mkdir -p outputs2; touch outputs2/sync-downstream.sh.result.txt
         echo; git log --graph --pretty=format:'%Cred%h%Creset%C(yellow)%d%Creset :: %s @ %cN <%cE> (%cD - %cr)' --name-only -4; echo
         echo " 
@@ -107,7 +107,7 @@ build-downstream:
       sync check: 
       $sync_check
       ================================="
-      if [[ $sync_check == "" ]] || [[ ! -f outputs1/sync-midstream.sh.diff.txt ]]; then
+      if [[ $sync_check == "" ]] && [[ ! -f outputs1/sync-midstream.sh.diff.txt ]]; then
         mkdir -p outputs3; touch outputs3/build-downstream.sh.NONE_BUILT.result.txt
         echo; git log --graph --pretty=format:'%Cred%h%Creset%C(yellow)%d%Creset :: %s @ %cN <%cE> (%cD - %cr)' --name-only -4; echo
         echo " 
