@@ -43,10 +43,18 @@ review-stages:
   script:
     - |
       dnf -y -q install git findutils
-      cat outputs*/*
       set +e
-      if [[ $(find . -name "outputs*") ]]; then
-        NUM_SKIPS=$(cat outputs*/*.txt | grep " Nothing to" | wc -l)
+      outputfiles=$(find output*/ -name "*.txt")
+      NUM_SKIPS=0
+      for outputfile in $outputfiles; do 
+        echo " ** $outputfile **"
+        echo "-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-"
+        cat $outputfile
+        echo "-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-"
+        echo
+      done
+      if [[ $outputfiles ]]; then
+        NUM_SKIPS=$(cat $outputfiles | grep " Nothing to" | wc -l)
         echo "[INFO] Total of $NUM_SKIPS stages were skipped."
         # if number of skipped stages > 0, fail this stage so it's clear this wasn't an actual respin
         set -e

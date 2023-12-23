@@ -77,13 +77,12 @@ sync-downstream:
           mv /tmp/sync-downstream.sh.$REPO.diff.txt outputs2/sync-downstream.sh.$REPO.diff.txt
         else
           mkdir -p outputs2; touch outputs2/sync-downstream.sh.result.txt
-          echo " 
-        ==============================================================
-        [INFO] Nothing to sync to downstream: dowstream diff is empty!
-        ==============================================================
-        " | tee outputs2/sync-downstream.sh.result.txt
-          if [[ $REPO != "rhdh-operator-bundle" ]]; then
-            exit 71
+          # do not use "Nothing to" here so that these don't count as stage skip messages in the 'review-stages' stage
+            echo " 
+          ==============================================================
+          [INFO] No change to $REPO in midstream or downstream!
+          ==============================================================
+          " | tee -a outputs2/sync-downstream.sh.result.txt
           fi
         fi
       fi
