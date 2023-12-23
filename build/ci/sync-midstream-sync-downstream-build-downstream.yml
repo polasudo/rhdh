@@ -83,7 +83,6 @@ sync-downstream:
           [INFO] No change to $REPO in midstream or downstream!
           ==============================================================
           " | tee -a outputs2/sync-downstream.sh.result.txt
-          fi
         fi
       fi
   artifacts:
