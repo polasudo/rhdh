@@ -137,7 +137,7 @@ build-downstream:
 
         if [[ $DO_BUILDS ]]; then
           echo "Build Plan: $DO_BUILDS"; echo
-          for DO_BUILD in $DO_BUILDS; do
+          for REPO in $DO_BUILDS; do
             echo "Build $REPO container from $CI_COMMIT_REF_NAME branch ..."
             ./build/ci/build-downstream.sh -b "$CI_COMMIT_REF_NAME" -d $REPO || exit 17
             echo "Currently in $(pwd)"

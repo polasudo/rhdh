@@ -68,6 +68,7 @@ if [[ $CI_BUILDS_DIR ]]; then # running in gitlab so set up env
 fi
 
 CONTAINER_DIR="/tmp/downstream-${CONTAINER_NAME}"
+rm -fr "$CONTAINER_DIR"
 git clone "ssh://rhdh-bot@pkgs.devel.redhat.com/containers/${CONTAINER_NAME}" "${CONTAINER_DIR}" && pushd "${CONTAINER_DIR}" >/dev/null || exit 1 
   git checkout "$DWNSTM_BRANCH" || exit 1
 
@@ -102,7 +103,7 @@ echo "
 Task completed:
 $results
 URL: https://brewweb.engineering.redhat.com/brew/taskinfo?taskID=$taskID
-" | tee /tmp/build-downstream.sh.result.txt
+" | tee "/tmp/build-downstream.sh.${CONTAINER_NAME}.result.txt"
 
   if [[ "$results" == *"State: failed"* ]]; then exit 42; fi
 
