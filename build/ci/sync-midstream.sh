@@ -263,10 +263,21 @@ for ((i = 0; i < NUM_REPOS; i++)); do # echo $i
     fi
     echo
     SHA="$(git rev-parse --short=8 HEAD)"
+
     echo "$SHA = $branch @ $repo" > "${ROOTPATH}/sync/upstream_SHA${i}"
     msg="${destination_folder#distgit/containers} from: $repo/tree/$branch @ $SHA"
     echo "[INFO] Update: $msg"
     commitMsg="${commitMsg} ${msg};"
+    ##################################### rhdh-operator-bundle #####################################
+    # if processing the upstream operator, also collect sync/upstream_SHA* file for operator-bundle
+    if [[ $destination_folder == *"rhdh-operator"* ]]; then
+      BUNDLEDIRCLEANED="${destination_folder%/}-bundle"; BUNDLEDIRCLEANED="${BUNDLEDIRCLEANED#distgit/containers}"
+      echo "$SHA = $branch @ $repo" > "${ROOTPATH}/sync/upstream_SHA${i}-bundle"
+      msg="$BUNDLEDIRCLEANED from: $repo/tree/$branch @ $SHA"
+      echo "[INFO] Update: $msg"
+      commitMsg="${commitMsg} ${msg};"
+    fi
+    ##################################### rhdh-operator-bundle #####################################
   popd >/dev/null || exit 1
   # set +x
 
@@ -800,7 +811,7 @@ echo "$gitdiff" > "/tmp/sync-midstream.sh.diff.txt"
 ==============================================================
 [INFO] Nothing to sync: midstream diff is empty!
 ==============================================================
-" | tee /tmp/sync-downstream.sh.result.txt
+" | tee /tmp/sync-midstream.sh.result.txt
   fi
 
   git commit -s -m "chore: Update:${commitMsg} [skip ci]" . || true

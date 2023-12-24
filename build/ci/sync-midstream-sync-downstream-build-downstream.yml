@@ -110,7 +110,7 @@ build-downstream:
         echo; git log --graph --pretty=format:'%Cred%h%Creset%C(yellow)%d%Creset :: %s @ %cN <%cE> (%cD - %cr)' --name-only -4; echo
         echo " 
       ===================================
-      [INFO] Nothing to build downstream!
+      [INFO] Nothing to build downstream - no changes in midstream sync/ folder, or no such file sync-midstream.sh.diff.txt !
       ===================================
       " | tee -a outputs3/build-downstream.sh.NONE_BUILT.result.txt
         exit 73
@@ -118,30 +118,26 @@ build-downstream:
         echo; git log --graph --pretty=format:'%Cred%h%Creset%C(yellow)%d%Creset :: %s @ %cN <%cE> (%cD - %cr)' --name-only -1; echo
         
         # decide if we need to rebuild anything based on downstream sync results
+        DO_BUILDS=""
         for REPO in rhdh-hub rhdh-operator rhdh-operator-bundle; do
-          DO_BUILDS=""
           #  if change to hub, operator or bundle, trigger respin
-          if [[ -f outputs2/sync-downstream.sh.$REPO.diff.txt ]]; then
+          sync_check_repo=$(git diff --name-only HEAD~1 distgit/containers/$REPO/ || true; git diff --name-only HEAD~2 distgit/containers/$REPO/ || true)
+          if [[ -f outputs2/sync-downstream.sh.$REPO.diff.txt ]] || [[ $sync_check_repo ]]; then
+            echo "Diff to determine if we build $REPO:"
+            echo "=============DIFF====================>"
+            cat outputs2/sync-downstream.sh.$REPO.diff.txt
+            echo "--------------------------------------"
+            echo $sync_check_repo
+            echo "<=============DIFF===================="
             DO_BUILDS="$DO_BUILDS $REPO"
-          elif [[ $REPO == "rhdh-operator-bundle" ]]; then
-            #  if changes to hub or operator, build bundle
-            if [[ -f outputs2/sync-downstream.sh.rhdh-hub.diff.txt ]]; then
-              DO_BUILDS="$DO_BUILDS rhdh-hub $REPO"
-            fi
-            if [[ -f outputs2/sync-downstream.sh.rhdh-operator.diff.txt ]]; then
-              DO_BUILDS="$DO_BUILDS rhdh-operator $REPO"
-            fi
           fi
+        done
+        #  if changes to hub or operator, always build bundle
+        if [[ $DO_BUILDS ]] && [[ $DO_BUILDS != *"rhdh-operator-bundle" ]]; then DO_BUILDS="$DO_BUILDS rhdh-operator-bundle"; fi
 
-          if [[ $DO_BUILDS ]]; then
-            # show why we're rebuilding
-            for DO_BUILD in $DO_BUILDS; do
-              echo "Diff when syncing to downstream $DO_BUILD:"
-              echo "=============DIFF====================>"
-              cat outputs2/sync-downstream.sh.$DO_BUILD.diff.txt
-              echo "<=============DIFF===================="
-            done
-
+        if [[ $DO_BUILDS ]]; then
+          echo "Build Plan: $DO_BUILDS"; echo
+          for DO_BUILD in $DO_BUILDS; do
             echo "Build $REPO container from $CI_COMMIT_REF_NAME branch ..."
             ./build/ci/build-downstream.sh -b "$CI_COMMIT_REF_NAME" -d $REPO || exit 17
             echo "Currently in $(pwd)"
@@ -153,10 +149,10 @@ build-downstream:
               echo "OSBS Build $cancel_or_fail - must exit!"
               exit 99
             fi
-          else
-            echo "No diff in downstream, so nothing to build!"
-          fi
-        done
+          done
+        else
+          echo "No diff in midstream or downstream, so nothing to build!"
+        fi
       fi
   artifacts:
     expire_in: 180 minutes
