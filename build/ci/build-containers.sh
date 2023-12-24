@@ -25,16 +25,18 @@ done
 if [[ $DO_BUILDS ]] && [[ $DO_BUILDS != *"rhdh-operator-bundle" ]]; then DO_BUILDS="$DO_BUILDS rhdh-operator-bundle"; fi
 
 function doBrewBuild() {
-    echo "Build $REPO container from branch $CI_COMMIT_REF_NAME ..."
+    local thisREPO
+    thisREPO="$1"
+    echo "Build $thisREPO container from branch $CI_COMMIT_REF_NAME ..."
     ## for testing parallel builds without actually building
-    ## echo "    sleeping ${#REPO}s"; sleep ${#REPO}s; echo "$REPO done"
+    ## echo "    sleeping ${#thisREPO}s"; sleep ${#thisREPO}s; echo "$thisREPO done"
 
-    ./build/ci/build-downstream.sh -b "$CI_COMMIT_REF_NAME" -d $REPO || exit 17
+    ./build/ci/build-downstream.sh -b "$CI_COMMIT_REF_NAME" -d "$thisREPO" || exit 17
     # echo "Currently in $(pwd)"
     # store results to be used in next stage
-    mkdir -p outputs3; touch "outputs3/build-downstream.sh.$REPO.result.txt"
-    if [[ -f /tmp/build-downstream.sh.$REPO.result.txt ]]; then mv -f "/tmp/build-downstream.sh.$REPO.result.txt" outputs3/; fi
-    cancel_or_fail="$(grep -E "State: canceled|State: failed" "outputs3/build-downstream.sh.$REPO.result.txt" || true)"
+    mkdir -p outputs3; touch "outputs3/build-downstream.sh.$thisREPO.result.txt"
+    if [[ -f /tmp/build-downstream.sh.$thisREPO.result.txt ]]; then mv -f "/tmp/build-downstream.sh.$thisREPO.result.txt" outputs3/; fi
+    cancel_or_fail="$(grep -E "State: canceled|State: failed" "outputs3/build-downstream.sh.$thisREPO.result.txt" || true)"
     if [[ $cancel_or_fail ]]; then
       echo "OSBS Build $cancel_or_fail - must exit!"
       exit 99
@@ -45,7 +47,7 @@ if [[ $DO_BUILDS ]]; then
   echo "Build Plan: $DO_BUILDS"; echo
   # run non-bundle builds in parallel
   for REPO in $DO_BUILDS; do
-    if [[ $REPO != "rhdh-operator-bundle" ]]; then { doBrewBuild & }; fi
+    if [[ $REPO != "rhdh-operator-bundle" ]]; then { doBrewBuild "$REPO" & }; fi
   done
   wait
   # then do bundle if needed
