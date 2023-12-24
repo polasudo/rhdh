@@ -116,43 +116,7 @@ build-downstream:
         exit 73
       else
         echo; git log --graph --pretty=format:'%Cred%h%Creset%C(yellow)%d%Creset :: %s @ %cN <%cE> (%cD - %cr)' --name-only -1; echo
-        
-        # decide if we need to rebuild anything based on downstream sync results
-        DO_BUILDS=""
-        for REPO in rhdh-hub rhdh-operator rhdh-operator-bundle; do
-          #  if change to hub, operator or bundle, trigger respin
-          sync_check_repo=$(git diff --name-only HEAD~1 distgit/containers/$REPO/ || true; git diff --name-only HEAD~2 distgit/containers/$REPO/ || true)
-          if [[ -f outputs2/sync-downstream.sh.$REPO.diff.txt ]] || [[ $sync_check_repo ]]; then
-            echo "Diff to determine if we build $REPO:"
-            echo "=============DIFF====================>"
-            cat outputs2/sync-downstream.sh.$REPO.diff.txt
-            echo "--------------------------------------"
-            echo $sync_check_repo
-            echo "<=============DIFF===================="
-            DO_BUILDS="$DO_BUILDS $REPO"
-          fi
-        done
-        #  if changes to hub or operator, always build bundle
-        if [[ $DO_BUILDS ]] && [[ $DO_BUILDS != *"rhdh-operator-bundle" ]]; then DO_BUILDS="$DO_BUILDS rhdh-operator-bundle"; fi
-
-        if [[ $DO_BUILDS ]]; then
-          echo "Build Plan: $DO_BUILDS"; echo
-          for REPO in $DO_BUILDS; do
-            echo "Build $REPO container from $CI_COMMIT_REF_NAME branch ..."
-            ./build/ci/build-downstream.sh -b "$CI_COMMIT_REF_NAME" -d $REPO || exit 17
-            echo "Currently in $(pwd)"
-            # store results to be used in next stage
-            mkdir -p outputs3; touch outputs3/build-downstream.sh.$REPO.result.txt
-            if [[ -f /tmp/build-downstream.sh.$REPO.result.txt ]]; then mv -f /tmp/build-downstream.sh.$REPO.result.txt outputs3/; fi
-            cancel_or_fail="$(grep -E "State: canceled|State: failed" outputs3/build-downstream.sh.$REPO.result.txt || true)"
-            if [[ $cancel_or_fail ]]; then
-              echo "OSBS Build $cancel_or_fail - must exit!"
-              exit 99
-            fi
-          done
-        else
-          echo "No diff in midstream or downstream, so nothing to build!"
-        fi
+        ./build/ci/build-containers.sh
       fi
   artifacts:
     expire_in: 180 minutes
