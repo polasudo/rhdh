@@ -30,8 +30,10 @@ function doBrewBuild() {
     echo "Build $thisREPO container from branch $CI_COMMIT_REF_NAME ..."
     ## for testing parallel builds without actually building
     ## echo "    sleeping ${#thisREPO}s"; sleep ${#thisREPO}s; echo "$thisREPO done"
-
+    echo "STARTED: build-downstream.sh -d $thisREPO ..."
     ./build/ci/build-downstream.sh -b "$CI_COMMIT_REF_NAME" -d "$thisREPO" || exit 17
+    echo "DONE: build-downstream.sh -d $thisREPO"
+
     # echo "Currently in $(pwd)"
     # store results to be used in next stage
     mkdir -p outputs3; touch "outputs3/build-downstream.sh.$thisREPO.result.txt"
@@ -52,7 +54,7 @@ if [[ $DO_BUILDS ]]; then
   wait
   # then do bundle if needed
   if [[ $DO_BUILDS == *"rhdh-operator-bundle" ]]; then
-    doBrewBuild
+    doBrewBuild rhdh-operator-bundle
   fi
 else
   echo "No diff in midstream or downstream, so nothing to build!"
