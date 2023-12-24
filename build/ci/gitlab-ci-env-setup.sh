@@ -55,6 +55,8 @@ EOT
 
 pushd "${CI_PROJECT_DIR}/" >/dev/null || exit 1
 
+# git config user.email "${GITLAB_USER_EMAIL}"
+# git config user.name "RHDH Build ($GITLAB_USER_LOGIN)"
 git config user.email "rhdh-bot@redhat.com"
 git config user.name "RHDH Build (rhdh-bot)"
 git config --global push.default matching
