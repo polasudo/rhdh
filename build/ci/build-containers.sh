@@ -47,11 +47,12 @@ function doBrewBuild() {
 
 if [[ $DO_BUILDS ]]; then
   echo "Build Plan: $DO_BUILDS"; echo
-  # run non-bundle builds in parallel
+  # run non-bundle builds first
   for REPO in $DO_BUILDS; do
-    if [[ $REPO != "rhdh-operator-bundle" ]]; then { doBrewBuild "$REPO" & }; fi
+    if [[ $REPO != "rhdh-operator-bundle" ]]; then
+        doBrewBuild "$REPO"
+    fi
   done
-  wait
   # then do bundle if needed
   if [[ $DO_BUILDS == *"rhdh-operator-bundle" ]]; then
     doBrewBuild rhdh-operator-bundle
