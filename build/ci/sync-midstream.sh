@@ -184,6 +184,9 @@ createPr() {
 # get all upstream branches to avoid merge conflicts
 set -x
 if [[ $GITLAB_PIPELINE == "true" ]]; then
+  set +x
+  # NOTE that if debugging PRIVATE_TOKEN with set -x, token will be revealed in plaintext, not obfuscated
+  git remote rm origin; git remote add origin "https://${CI_PROJECT_NAME}:${PRIVATE_TOKEN}@${CI_SERVER_HOST}/${CI_PROJECT_NAMESPACE}/${CI_PROJECT_NAME}.git"
   git remote set-branches origin "*" || true
   git fetch --all || true
   git checkout "${DWNSTM_BRANCH}" || true
@@ -865,15 +868,9 @@ fi ## if DO_PUSH
 # if pushing as a gitlab pipeline
 if [[ $GITLAB_PIPELINE == "true" ]]; then
   # push changes; see also https://docs.gitlab.com/ee/ci/variables/predefined_variables.html
-  set +x
-  # NOTE that if debugging PRIVATE_TOKEN with set -x, token will be revealed in plaintext, not obfuscated
-  git remote add gitlab_origin "https://${CI_PROJECT_NAME}:${PRIVATE_TOKEN}@${CI_SERVER_HOST}/${CI_PROJECT_NAMESPACE}/${CI_PROJECT_NAME}.git"
-  # set -x
-  # git remote -v
   echo "Pushing changes as $GITLAB_USER_LOGIN ($GITLAB_USER_EMAIL) to branch $CI_COMMIT_REF_NAME of ${CI_SERVER_HOST}/${CI_PROJECT_NAMESPACE}/${CI_PROJECT_NAME} ..."
   set -x
-  # git pull origin "HEAD:$CI_COMMIT_REF_NAME" || true
-  git pull gitlab_origin "HEAD:$CI_COMMIT_REF_NAME" || true
-  git push gitlab_origin "HEAD:$CI_COMMIT_REF_NAME" -o ci.skip ${FORCE} || exit 16
+  git pull origin "HEAD:$CI_COMMIT_REF_NAME" || true
+  git push origin "HEAD:$CI_COMMIT_REF_NAME" -o ci.skip ${FORCE} || exit 16
   set +x
 fi
