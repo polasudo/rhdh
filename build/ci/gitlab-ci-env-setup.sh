@@ -4,7 +4,8 @@
 # 
 # set up gitlab CI runner environment
 # called by .gitlab-ci.yml 
-# to test, run in registry.redhat.io/ubi9
+# see build/dockerfiles/builder-ubi9.Dockerfile
+# to test, run in quay.io/rhdh/gitlab-runner:builder-latest
 
 # set -x
 set -e
@@ -25,23 +26,8 @@ cat <<EOL >> /etc/yum.repos.d/download.devel.redhat.com_rel-eng_RCMTOOLS_latest-
 gpgcheck=0
 skip_if_unavailable=True
 EOL
-dnf -y -q update
-dnf module enable nodejs:18 -y
-dnf -y -q install brotli-devel cmake gcc gcc-c++ git helm jq make nodejs npm openssl openssl-devel \
-    python3-pip redhat-internal-cert-install*.rpm rsync skopeo sudo zlib-devel \
-    brewkoji koji-containerbuild krb5-workstation
+dnf -y -q install helm redhat-internal-cert-install*.rpm brewkoji koji-containerbuild krb5-workstation
 rm -f redhat-internal-cert-install*.rpm
-pip3 install -q yq
-# latest npm is 10 but build needs 9; yarn v1 assumes node-gyp is installed globally (RHIDP-694)
-time npm install --global husky npm@9 node-gyp@9 prettier turbo yarn@1 
-# install node-gyp 9 and update if the build requires something newer
-if [[ $(id -u) -eq 0 ]] && [[ -f distgit/containers/rhdh-hub/package.json ]]; then
-    nodegyp_to_install=$(grep node-gyp distgit/containers/rhdh-hub/package.json | tr -d "\" " | sed -r -e "s/:/@^/")
-    time npm install --global "${nodegyp_to_install}"
-fi
-# list installed binaries and default locations
-for r in jq node node-gyp npm prettier turbo yq; do echo -n "$(which $r) : "; $r --version; done
-echo -n "husky : "; husky -v
 
 # add ~/.ssh/known_hosts entry for gitlab.cee.redhat.com and pkgs.devel.redhat.com
 cat << EOT >> ~/.ssh/known_hosts
@@ -69,9 +55,10 @@ git config --global advice.skippedCherryPicks false
 git config --global advice.detachedHead false
 # git config --global init.defaultBranch main
 
-git checkout -- .; git reset HEAD .; git clean -fdx
+# git checkout -- .; git reset HEAD .; git clean -fdx
 git fetch --all
 git branch
+git checkout "${CI_COMMIT_BRANCH}" || exit 1
 git rev-parse --abbrev-ref HEAD
 
 # build and install download-secure-files from sources

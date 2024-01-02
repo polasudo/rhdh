@@ -24,7 +24,7 @@ publish-helmchart:
         mkdir -p outputs5; touch outputs5/publish-helmchart.sh.result.txt
         echo " 
       ========================================================
-      [INFO] Nothing to publish: no helm chart needs updating!
+      [SKIP] Nothing to publish: no helm chart needs updating!
       ========================================================
       " | tee -a outputs5/publish-helmchart.sh.result.txt
         exit 75

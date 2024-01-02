@@ -410,7 +410,7 @@ done                        # foreach upstream repo
 if [[ "$NUM_SKIPS" == "$NUM_REPOS" ]]; then 
   echo " 
 =================================================================
-[INFO] Nothing to sync or build: $NUM_SKIPS of $NUM_REPOS upstream repos unchanged!
+[SKIP] Nothing to sync or build: $NUM_SKIPS of $NUM_REPOS upstream repos unchanged!
 =================================================================
 " | tee /tmp/sync-midstream.sh.result.txt
   exit 0
@@ -809,7 +809,7 @@ echo "$gitdiff" > "/tmp/sync-midstream.sh.diff.txt"
   else
     echo " 
 ==============================================================
-[INFO] Nothing to sync: midstream diff is empty!
+[SKIP] Nothing to sync: midstream diff is empty!
 ==============================================================
 " | tee /tmp/sync-midstream.sh.result.txt
   fi

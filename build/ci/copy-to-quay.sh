@@ -81,9 +81,10 @@ git config --global advice.skippedCherryPicks false
 git config --global advice.detachedHead false
 # git config --global init.defaultBranch main
 
-git checkout -- .; git reset HEAD .; git clean -fdx
+#git checkout -- .; git reset HEAD .; git clean -fdx
 git fetch --all
 git branch
+git checkout "${CI_COMMIT_BRANCH}" || exit 1
 git rev-parse --abbrev-ref HEAD
 
 # build and install download-secure-files from sources

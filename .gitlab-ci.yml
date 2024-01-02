@@ -8,7 +8,7 @@
   tags:
     - docker
     - shared
-  image: registry.redhat.io/ubi9
+  image: quay.io/rhdh/gitlab-runner:builder-latest
   allow_failure: false
   # see https://gitlab.cee.redhat.com/help/ci/runners/configure_runners.md#configure-runner-behavior-with-variables for what can be set here
   variables:
@@ -54,7 +54,7 @@ review-stages:
         echo
       done
       if [[ $outputfiles ]]; then
-        NUM_SKIPS=$(cat $outputfiles | grep " Nothing to" | wc -l)
+        NUM_SKIPS=$(cat $outputfiles | grep -E "\[SKIP\]| Nothing to" | wc -l)
         echo "[INFO] Total of $NUM_SKIPS stages were skipped."
         # if number of skipped stages > 0, fail this stage so it's clear this wasn't an actual respin
         set -e

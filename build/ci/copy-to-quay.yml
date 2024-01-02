@@ -1,7 +1,7 @@
 copy-to-quay:
   extends: .shared_config
   # see build/dockerfiles/kaniko-ubi9.Dockerfile
-  image: quay.io/rhdh/kaniko-ubi9:latest 
+  image: quay.io/rhdh/gitlab-runner:kaniko-latest 
   stage: copy-to-quay
   rules:
     - if: $DO_COPY_TO_QUAY == "1"
@@ -25,7 +25,7 @@ copy-to-quay:
         mkdir -p outputs4; touch outputs4/copy-to-quay.sh.result.txt
         echo " 
       ======================================================
-      [INFO] Nothing to copy to quay: no new image built!
+      [SKIP] Nothing to copy to quay: no new image built!
       ======================================================
       " | tee -a outputs4/copy-to-quay.sh.result.txt
         exit 74
