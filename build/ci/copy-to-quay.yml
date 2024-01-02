@@ -3,6 +3,9 @@ copy-to-quay:
   # see build/dockerfiles/kaniko-ubi9.Dockerfile
   image: quay.io/rhdh/kaniko-ubi9:latest 
   stage: copy-to-quay
+  # run this every 4 hours even if the previous stage failed, so we can do quay/helmchart updates more often (even when OSBS IIB publishing is slow)
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
   script:
     - |
       dnf -y -q install git
@@ -13,7 +16,13 @@ copy-to-quay:
       $sync_check
       ================================="
       sync_check="$(git diff --name-only HEAD~1 sync/ || true; git diff --name-only HEAD~2 sync/ || true)"
-      if [[ $sync_check == "" ]] && [[ ! -f outputs1/sync-midstream.sh.diff.txt ]]; then
+      if [[ $CI_PIPELINE_SOURCE == "schedule" ]] || [[ $sync_check != "" ]] || [[ -f outputs1/sync-midstream.sh.diff.txt ]]; then
+        echo; git log --graph --pretty=format:'%Cred%h%Creset%C(yellow)%d%Creset :: %s @ %cN <%cE> (%cD - %cr)' --name-only -1; echo
+        echo "Copy to quay ..."
+        ./build/ci/copy-to-quay.sh || exit 18
+        mkdir -p outputs4; touch outputs4/copy-to-quay.sh.result.txt
+        if [[ -f /tmp/copy-to-quay.sh.result.txt ]]; then mv /tmp/copy-to-quay.sh.result.txt outputs4/; fi
+      else
         mkdir -p outputs4; touch outputs4/copy-to-quay.sh.result.txt
         echo " 
       ======================================================
@@ -21,12 +30,6 @@ copy-to-quay:
       ======================================================
       " | tee -a outputs4/copy-to-quay.sh.result.txt
         exit 74
-      else
-        echo; git log --graph --pretty=format:'%Cred%h%Creset%C(yellow)%d%Creset :: %s @ %cN <%cE> (%cD - %cr)' --name-only -1; echo
-        echo "Copy to quay ..."
-        ./build/ci/copy-to-quay.sh || exit 18
-        mkdir -p outputs4; touch outputs4/copy-to-quay.sh.result.txt
-        if [[ -f /tmp/copy-to-quay.sh.result.txt ]]; then mv /tmp/copy-to-quay.sh.result.txt outputs4/; fi
       fi
   artifacts:
     expire_in: 180 minutes

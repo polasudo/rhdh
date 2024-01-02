@@ -28,8 +28,9 @@ sync-midstream:
         mv /tmp/sync-midstream.sh.result.txt "${CI_PROJECT_DIR}/"outputs1/sync-midstream.sh.result.txt
         exit 70
       fi
+  # keep artifacts for 8 hrs so we can use them for multiple scheduled quay/helm chart updates
   artifacts:
-    expire_in: 180 minutes
+    expire_in: 480 minutes
     paths: [outputs1/]
 
 
