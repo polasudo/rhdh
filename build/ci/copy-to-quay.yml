@@ -3,9 +3,8 @@ copy-to-quay:
   # see build/dockerfiles/kaniko-ubi9.Dockerfile
   image: quay.io/rhdh/kaniko-ubi9:latest 
   stage: copy-to-quay
-  # run this every 4 hours even if the previous stage failed, so we can do quay/helmchart updates more often (even when OSBS IIB publishing is slow)
   rules:
-    - if: $CI_PIPELINE_SOURCE == "schedule"
+    - if: $DO_COPY_TO_QUAY == "1"
   script:
     - |
       dnf -y -q install git

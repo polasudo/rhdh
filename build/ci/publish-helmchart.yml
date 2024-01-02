@@ -2,9 +2,8 @@ publish-helmchart:
   extends: .shared_config
   stage: publish-helmchart
   needs: ["copy-to-quay"]
-  # run this every 4 hours even if the previous stage failed, so we can do quay/helmchart updates more often (even when OSBS IIB publishing is slow)
   rules:
-    - if: $CI_PIPELINE_SOURCE == "schedule"
+    - if: $DO_PUBLISH_HELMCHART == "1"
   script:
     - |
       dnf -y -q install git
