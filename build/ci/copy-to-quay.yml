@@ -4,14 +4,15 @@ copy-to-quay:
   image: quay.io/rhdh/gitlab-runner:kaniko-latest 
   stage: copy-to-quay
   rules:
-    - if: $DO_COPY_TO_QUAY == "1"
+    - if: $CI_PIPELINE_SOURCE != "schedule"
+    - if: $DO_COPY_TO_QUAY == "True"
   script:
     - |
       dnf -y -q install git
       # if sync/ folder updated, then copy to quay with kaniko
       echo "
       =================================
-      sync check: 
+      sync check:
       $sync_check
       ================================="
       sync_check="$(git diff --name-only HEAD~1 sync/ || true; git diff --name-only HEAD~2 sync/ || true)"

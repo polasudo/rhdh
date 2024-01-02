@@ -6,8 +6,7 @@ sync-midstream:
       when: never
     - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH =~ /rhdh-[0-9.]+-rhel-9/
     # see https://gitlab.cee.redhat.com/rhidp/rhdh/-/pipeline_schedules/1043/edit
-    - if: $CI_PIPELINE_SOURCE == "schedule"
-    - if: $DO_SYNC_MIDSTREAM == "1"
+    - if: $CI_PIPELINE_SOURCE == "schedule" && $DO_SYNC_MIDSTREAM == "True"
   script:
     - |
       echo "Pipeline triggered by $CI_PIPELINE_SOURCE event"; echo
@@ -42,7 +41,7 @@ sync-downstream:
   stage: sync-downstream
   needs: ["sync-midstream"]
   rules:
-    - if: $DO_SYNC_DOWNSTREAM == "1"
+    - if: $DO_SYNC_DOWNSTREAM == "True"
   parallel:
     matrix:
       - REPO: 
@@ -57,7 +56,7 @@ sync-downstream:
       sync_check="$(git diff --name-only HEAD~1 sync/ || true; git diff --name-only HEAD~2 sync/ || true)"
       echo "
       =================================
-      sync check: 
+      sync check:
       $sync_check
       ---
       $(cat "${CI_PROJECT_DIR}/"outputs1/sync-midstream.sh.diff.txt)
@@ -101,7 +100,7 @@ build-downstream:
   stage: build-downstream
   needs: ["sync-downstream"]
   rules:
-    - if: $DO_BUILD_DOWNSTREAM == "1"
+    - if: $DO_BUILD_DOWNSTREAM == "True"
   timeout: 6 hours 6 minutes
   script:
     - |
@@ -110,7 +109,7 @@ build-downstream:
       sync_check="$(git diff --name-only HEAD~1 sync/ || true; git diff --name-only HEAD~2 sync/ || true)"
       echo "
       =================================
-      sync check: 
+      sync check:
       $sync_check
       ================================="
       if [[ $sync_check == "" ]] && [[ ! -f outputs1/sync-midstream.sh.diff.txt ]]; then

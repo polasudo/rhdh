@@ -3,7 +3,8 @@ publish-helmchart:
   stage: publish-helmchart
   needs: ["copy-to-quay"]
   rules:
-    - if: $DO_PUBLISH_HELMCHART == "1"
+    - if: $CI_PIPELINE_SOURCE != "schedule"
+    - if: $DO_PUBLISH_HELMCHART == "True"
   script:
     - |
       dnf -y -q install git
@@ -11,7 +12,7 @@ publish-helmchart:
       sync_check="$(git diff --name-only HEAD~1 sync/ || true; git diff --name-only HEAD~2 sync/ || true)"
       echo "
       =================================
-      sync check: 
+      sync check:
       $sync_check
       ================================="
       if [[ $CI_PIPELINE_SOURCE == "schedule" ]] || [[ $sync_check != "" ]] || [[ -f outputs1/sync-midstream.sh.diff.txt ]]; then
