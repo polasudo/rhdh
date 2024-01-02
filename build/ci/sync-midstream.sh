@@ -526,16 +526,17 @@ if [[ $DO_BUILD -eq 1 ]]; then
 "
     echo
     #shellcheck disable=SC2044
-    yarn config set "strict-ssl" false -s
-    yarn config set unsafe-perm true
-    yarn config set network-timeout 600000
-    yarn config list --verbose
-    echo -n "Yarn version: "
-    yarn --version
+    YARN=$(which yarn)
+    $YARN config set "strict-ssl" false -s
+    $YARN config set unsafe-perm true
+    $YARN config set network-timeout 600000
+    $YARN config list --verbose
+    echo -n "Yarn version ($YARN): "
+    $YARN --version
     echo
 
     echo "[INFO] ===================================== INSTALL =====================================>"
-    time yarn install --silent 2> >(grep -v warning 1>&2) || exit 10
+    time $YARN install --silent 2> >(grep -v warning 1>&2) || exit 10
     # if we need node-gyp to be globally installed in gitlab runner, re can re-enable this
     # if [[ $(id -u) -eq 0 ]]; then
     #   time npm i -g node-gyp@^9.4.1 turbo prettier
@@ -546,8 +547,8 @@ if [[ $DO_BUILD -eq 1 ]]; then
 
     echo "[INFO] ===================================== EXPORT + COPY DYNAMIC PLUGINS =====================================>"
     # see (brew.)Dockerfile for more details about these steps
-    time yarn export-dynamic 2> >(grep -v warning 1>&2) || exit 41
-    time yarn copy-dynamic-plugins dist 2> >(grep -v warning 1>&2) || exit 42
+    time $YARN export-dynamic 2> >(grep -v warning 1>&2) || exit 41
+    time $YARN copy-dynamic-plugins dist 2> >(grep -v warning 1>&2) || exit 42
     echo "[INFO] <===================================== EXPORT + COPY DYNAMIC PLUGINS ====================================="
     echo
 
@@ -570,7 +571,7 @@ EOF
     # copy dynamic-plugins/imports/package.json#.peerDependencies to $d/package.json#.dependencies
     peerDepPairs="$(jq -M -c '.peerDependencies' dynamic-plugins/imports/package.json | tr -d "{}")"
     jq '.dependencies|={'"$peerDepPairs"'}' "$d"/package.json > "$d"/package.json_; mv "$d"/package.json{_,}
-    yarn install --silent --cwd "./$d" 2> >(grep -v warning 1>&2) || exit 51
+    $YARN install --silent --cwd "./$d" 2> >(grep -v warning 1>&2) || exit 51
 
     pushd dynamic-plugins/imports >/dev/null || exit
       cp -f --parents ./*/dist-dynamic/package.json ./*/dist-dynamic/yarn.lock ../../"$d"/
@@ -720,7 +721,7 @@ ${peerDepPairs}
         done
 
         echo "[INFO] Regenerate ${d##*wrappers/}/yarn.lock ..."
-        yarn install --silent --cwd "./$d" 2> >(grep -v warning 1>&2) || exit 61
+        $YARN install --silent --cwd "./$d" 2> >(grep -v warning 1>&2) || exit 61
         # force add package.json and yarn.lock (override .gitignore)
         git add -f "$d"/package.json "$d"/yarn.lock
       fi
