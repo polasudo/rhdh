@@ -3,8 +3,9 @@ publish-helmchart:
   stage: publish-helmchart
   needs: ["copy-to-quay"]
   rules:
-    - if: $CI_PIPELINE_SOURCE != "schedule"
-    - if: $DO_PUBLISH_HELMCHART == "True"
+    - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH =~ /rhdh-[0-9.]+-rhel-9/
+    # for scheduled runs, check env var
+    - if: $CI_PIPELINE_SOURCE == "schedule" && $DO_PUBLISH_HELMCHART == "True"
   script:
     - |
       dnf -y -q install git

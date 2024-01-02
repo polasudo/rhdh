@@ -6,6 +6,7 @@ sync-midstream:
       when: never
     - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH =~ /rhdh-[0-9.]+-rhel-9/
     # see https://gitlab.cee.redhat.com/rhidp/rhdh/-/pipeline_schedules/1043/edit
+    # for scheduled runs, check env var
     - if: $CI_PIPELINE_SOURCE == "schedule" && $DO_SYNC_MIDSTREAM == "True"
   script:
     - |
@@ -41,7 +42,9 @@ sync-downstream:
   stage: sync-downstream
   needs: ["sync-midstream"]
   rules:
-    - if: $DO_SYNC_DOWNSTREAM == "True"
+    - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH =~ /rhdh-[0-9.]+-rhel-9/
+    # for scheduled runs, check env var
+    - if: $CI_PIPELINE_SOURCE == "schedule" && $DO_SYNC_DOWNSTREAM == "True"
   parallel:
     matrix:
       - REPO: 
@@ -100,7 +103,9 @@ build-downstream:
   stage: build-downstream
   needs: ["sync-downstream"]
   rules:
-    - if: $DO_BUILD_DOWNSTREAM == "True"
+    - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH =~ /rhdh-[0-9.]+-rhel-9/
+    # for scheduled runs, check env var
+    - if: $CI_PIPELINE_SOURCE == "schedule" && $DO_BUILD_DOWNSTREAM == "True"
   timeout: 6 hours 6 minutes
   script:
     - |
