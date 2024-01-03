@@ -182,17 +182,17 @@ echo "===== Quay IIBs (requires kaniko) ===========>" | tee -a /tmp/copy-to-quay
 checkIIBExists()
 {
     count=0
-    interval=2 # check every x mins
-    max_count=30 # stop checking after y mins
+    interval=4 # check every x mins
+    max_count=120 # stop checking after y mins
     while [[ $count -le $max_count ]]; do # echo $count
-        echo "[INFO] [$count/$max_count mins] Check for IIBs ..." 
+        echo "[INFO] [$count/$max_count mins] Check for latest IIBs @ $(date +%H:%M:%S) ..." 
         # check if the IIB exists
         refUrlCheck=$(./build/scripts/getIIBsForBundle.sh -t ${DH_VERSION} || true)
         if [[ -z ${refUrlCheck} ]] || \
           [[ ${refUrlCheck} == *"ERROR"* ]] || \
           [[ ${refUrlCheck} == *"not fetch ref_url from"* ]] || \
           [[ ${refUrlCheck} == *"not read index_images.yml from"* ]]; then
-            echo "[WARN] $refUrlCheck"
+            echo "$refUrlCheck"
             echo "[WARN] Cannot push new IIBs until they exist. Sleeping for $interval ..."
           (( count=count+interval ))
           sleep ${interval}m
@@ -208,8 +208,7 @@ checkIIBExists()
     done
     # or report an error
     if [[ -z $refUrlCheck ]]; then
-        echo "[ERROR] $refUrlCheck"
-        echo "[ERROR] Cannot push new IIBs until they exist. Try running this pipeline again in a few hours." | tee -a /tmp/copy-to-quay.sh.result.txt
+        echo "[ERROR] Could not find latest IIBs @ $(date +%H:%M:%S) - cannot push! Try running this pipeline again in a few hours." | tee -a /tmp/copy-to-quay.sh.result.txt
         exit 1
     fi
 }
