@@ -7,6 +7,8 @@ copy-to-quay:
     - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH =~ /rhdh-[0-9.]+-rhel-9/
     # for scheduled runs, check env var
     - if: $CI_PIPELINE_SOURCE == "schedule" && $DO_COPY_TO_QUAY == "True"
+  # allow time for OSBS to get new IIBs published to pre-stage catalog, so we can filter and copy it to quay
+  timeout: 3 hours
   script:
     - |
       dnf -y -q install git
@@ -27,7 +29,7 @@ copy-to-quay:
         mkdir -p outputs4; touch outputs4/copy-to-quay.sh.result.txt
         echo " 
       ======================================================
-      [SKIP] Nothing to copy to quay: no new image built!
+      [SKIP] Nothing to copy to quay: no new image built! 
       ======================================================
       " | tee -a outputs4/copy-to-quay.sh.result.txt
         exit 74
