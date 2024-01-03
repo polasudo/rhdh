@@ -826,23 +826,34 @@ echo "$gitdiff" > "/tmp/sync-midstream.sh.diff.txt"
 " | tee /tmp/sync-midstream.sh.result.txt
   fi
 
+  #################################################################
+  # first commit: update any changed files, plus sync/upstream_SHA*
+  #################################################################
+
   git commit -s -m "chore: Update:${commitMsg} [skip ci]" . || true
 
-  # get the current commit SHA and put it into upstream_sources.yml
+  # get the current commit SHA and put it into upstream_sources.yml + container.yaml
   newSHA=$(git rev-parse HEAD)
+
+  # TODO if we remove CPaaS entirely, we can remove this file
   # shellcheck disable=SC2016
   yq -yY -i --arg newSHA "$newSHA" -r '.git[0].commit|=$newSHA' upstream_sources.yml
-  # remove spaces so this change looks like the ones cpaas generates
+  # remove spaces so this change looks like the ones CPaaS generates
   sed -i upstream_sources.yml -r -e "s/^  //"
 
   # update generated content for downstream, because you can't trust CPaaS
   UPSTREAM_COMMIT=$newSHA
   UPSTREAM_REPO="https://gitlab.cee.redhat.com/rhidp/rhdh.git"
 
-  # only change container.yaml if the associated sync/upstream_SHA* file is updated too
+  ########################################################################################################
+  # second commit: update upstream_sources.yml
+  # second commit: update container.yamls ONLY if the associated sync/upstream_SHA* file was changed above
+  # TODO if we remove CPaaS entirely, we can write directly to container.yaml and remove container.yaml.in
+  ########################################################################################################
+
   containerYamls=""
-  if [[ $(git diff --name-only HEAD~2 sync/upstream_SHA0 || true) ]]; then containerYamls="${containerYamls} distgit/containers/rhdh-hub"; fi
-  if [[ $(git diff --name-only HEAD~2 sync/upstream_SHA1 || true) ]]; then containerYamls="${containerYamls} distgit/containers/rhdh-operator"; fi
+  if [[ $(git diff --name-only HEAD~1 sync/upstream_SHA0 || true) ]]; then containerYamls="${containerYamls} distgit/containers/rhdh-hub"; fi
+  if [[ $(git diff --name-only HEAD~1 sync/upstream_SHA1 || true) ]]; then containerYamls="${containerYamls} distgit/containers/rhdh-operator"; fi
   # shellcheck disable=SC2016
   for d in $containerYamls; do
     pushd "$d" >/dev/null || exit 1
