@@ -185,7 +185,7 @@ checkIIBExists()
     interval=2 # check every x mins
     max_count=30 # stop checking after y mins
     while [[ $count -le $max_count ]]; do # echo $count
-        echo -n "       [$count/$max_count mins] Check for IIB ..." 
+        echo "[INFO] [$count/$max_count mins] Check for IIBs ..." 
         # check if the IIB exists
         refUrlCheck=$(./build/scripts/getIIBsForBundle.sh -t ${DH_VERSION} || true)
         if [[ -z ${refUrlCheck} ]] || \
