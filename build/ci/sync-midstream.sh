@@ -838,8 +838,13 @@ echo "$gitdiff" > "/tmp/sync-midstream.sh.diff.txt"
   # update generated content for downstream, because you can't trust CPaaS
   UPSTREAM_COMMIT=$newSHA
   UPSTREAM_REPO="https://gitlab.cee.redhat.com/rhidp/rhdh.git"
+
+  # only change container.yaml if the associated sync/upstream_SHA* file is updated too
+  containerYamls=""
+  if [[ $(git diff --name-only HEAD~2 sync/upstream_SHA0 || true) ]]; then containerYamls="${containerYamls} distgit/containers/rhdh-hub"; fi
+  if [[ $(git diff --name-only HEAD~2 sync/upstream_SHA1 || true) ]]; then containerYamls="${containerYamls} distgit/containers/rhdh-operator"; fi
   # shellcheck disable=SC2016
-  for d in distgit/containers/rhdh-hub distgit/containers/rhdh-operator; do
+  for d in $containerYamls; do
     pushd "$d" >/dev/null || exit 1
       echo "[INFO] Using UPSTREAM_COMMIT = $UPSTREAM_COMMIT"
       sed -r -e "/ +yarn: null/d" -i container.yaml.in
