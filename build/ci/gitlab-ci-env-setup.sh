@@ -47,6 +47,7 @@ git config user.email "rhdh-bot@redhat.com"
 git config user.name "RHDH Build (rhdh-bot)"
 git config --global push.default matching
 git config --global merge.ff true
+git config --global pull.ff-only true
 git config --global pull.rebase true
 git config --global branch.autosetupmerge true
 git config --global branch.autosetuprebase always

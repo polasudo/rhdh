@@ -75,9 +75,15 @@ git clone "ssh://rhdh-bot@pkgs.devel.redhat.com/containers/${CONTAINER_NAME}" "$
   git config user.email "rhdh-bot@redhat.com"
   git config user.name "RHDH Build (rhdh-bot)"
   git config --global push.default matching
+  git config --global merge.ff true
+  git config --global pull.ff-only true
   git config --global pull.rebase true
-  git config --global init.defaultBranch main
+  git config --global branch.autosetupmerge true
+  git config --global branch.autosetuprebase always
+
+  git config --global advice.skippedCherryPicks false
   git config --global advice.detachedHead false
+  # git config --global init.defaultBranch main
 
   sha="$(git rev-parse HEAD)"
   CMD="brew container-build ${DWNSTM_BRANCH}-containers-candidate git+https://pkgs.devel.redhat.com/git/containers/${CONTAINER_NAME}#${sha} --git-branch ${DWNSTM_BRANCH} --nowait ${scratchFlag}"
