@@ -178,19 +178,40 @@ dnf -y -q install brewkoji || true
 
 echo "===== Quay IIBs (requires kaniko) ===========>" | tee -a /tmp/copy-to-quay.sh.result.txt
 # check if IIBs exist for the latest bundle
-refUrlCheck=$(./build/scripts/getIIBsForBundle.sh -t ${DH_VERSION} || true)
-if [[ -z ${refUrlCheck} ]] || \
-   [[ ${refUrlCheck} == *"ERROR"* ]] || \
-   [[ ${refUrlCheck} == *"not fetch ref_url from"* ]] || \
-   [[ ${refUrlCheck} == *"not read index_images.yml from"* ]]; then
-    echo "[INFO] $refUrlCheck"
-    echo "[INFO] Cannot push new IIBs until they exist. This pipeline will trigger again at next scheduled interval."
-    exit 0
-fi
-if [[ ${refUrlCheck} ]]; then
-    echo "[INFO] Latest IIBs:"
-    echo "${refUrlCheck}"
-    echo
-    # to replace existing quay images, use --force flag
-    ./build/scripts/copyIIBsToQuay.sh --push --kaniko --no-validate --authfile $REGISTRY_AUTH_FILE -v -t "${DH_VERSION}" | tee -a /tmp/copy-to-quay.sh.result.txt
-fi
+
+checkIIBExists()
+{
+    count=0
+    interval=2 # check every x mins
+    max_count=30 # stop checking after y mins
+    while [[ $count -le $max_count ]]; do # echo $count
+        echo -n "       [$count/$max_count mins] Check for IIB ..." 
+        # check if the IIB exists
+        refUrlCheck=$(./build/scripts/getIIBsForBundle.sh -t ${DH_VERSION} || true)
+        if [[ -z ${refUrlCheck} ]] || \
+          [[ ${refUrlCheck} == *"ERROR"* ]] || \
+          [[ ${refUrlCheck} == *"not fetch ref_url from"* ]] || \
+          [[ ${refUrlCheck} == *"not read index_images.yml from"* ]]; then
+            echo "[WARN] $refUrlCheck"
+            echo "[WARN] Cannot push new IIBs until they exist. Sleeping for $interval ..."
+          (( count=count+interval ))
+          sleep ${interval}m
+          refUrlCheck=""
+        elif [[ ${refUrlCheck} ]]; then
+            echo "[INFO] Latest IIBs:"
+            echo "${refUrlCheck}"
+            echo
+            # to replace existing quay images, use --force flag
+            ./build/scripts/copyIIBsToQuay.sh --push --kaniko --no-validate --authfile $REGISTRY_AUTH_FILE -v -t "${DH_VERSION}" | tee -a /tmp/copy-to-quay.sh.result.txt
+            return 0; break;
+        fi
+    done
+    # or report an error
+    if [[ -z $refUrlCheck ]]; then
+        echo "[ERROR] $refUrlCheck"
+        echo "[ERROR] Cannot push new IIBs until they exist. Try running this pipeline again in a few hours." | tee -a /tmp/copy-to-quay.sh.result.txt
+        exit 1
+    fi
+}
+
+checkIIBExists
