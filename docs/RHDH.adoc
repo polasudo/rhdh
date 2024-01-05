@@ -16,11 +16,10 @@ We use GitHub issues for upstream, link:https://issues.redhat.com/browse/RHIDP[R
 
 ### Upstream repos
 
+. https://github.com/janus-idp/backstage-plugins (Collection of Backstage plugins, some of which are included in the RHDH hub container)
 . https://github.com/janus-idp/backstage-showcase (Janus branded, transformed to RHDH hub container)
-. https://github.com/janus-idp/operator (Janus branded Operator, transformed to RHDH operator container)
-====
-NOTE: There currently is no https://github.com/janus-idp/operator/tree/main/bundle[upstream operator-bundle]. link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/tree/rhdh-1.1-rhel-9/distgit/containers/rhdh-operator-bundle[See midstream] and `(TODO)` https://issues.redhat.com/browse/RHIDP-488
-====
+. https://github.com/janus-idp/operator (Janus branded Operator, link:https://github.com/janus-idp/operator/tree/main/.rhdh[transformed] to RHDH operator and operator-bundle container)
+. https://github.com/janus-idp/operator/tree/main/bundle (Janus branded Operator Bundle, link:https://github.com/janus-idp/operator/tree/main/.rhdh[transformed] to RHDH operator-bundle container)
 
 ### Midstream and downstream repos
 
