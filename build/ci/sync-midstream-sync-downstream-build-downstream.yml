@@ -27,8 +27,7 @@ sync-midstream:
       elif [[ -f /tmp/sync-midstream.sh.result.txt ]]; then
         mkdir -p "${CI_PROJECT_DIR}/"outputs1; touch "${CI_PROJECT_DIR}/"outputs1/sync-midstream.sh.result.txt
         mv /tmp/sync-midstream.sh.result.txt "${CI_PROJECT_DIR}/"outputs1/sync-midstream.sh.result.txt
-        # don't fail the build with a >0 exit code, so we can still do helm/quay updates
-        # exit 70
+        exit 71
       fi
   # keep artifacts for 8 hrs so we can use them for multiple scheduled quay/helm chart updates
   artifacts:
@@ -72,8 +71,7 @@ sync-downstream:
       [SKIP] Nothing to sync to downstream: midstream diff is empty!
       ==============================================================
       " | tee outputs2/sync-downstream.sh.result.txt
-        # don't fail the build with a >0 exit code, so we can still do helm/quay updates
-        # exit 72
+        exit 72
       else
         echo; git log --graph --pretty=format:'%Cred%h%Creset%C(yellow)%d%Creset :: %s @ %cN <%cE> (%cD - %cr)' --name-only -1; echo
         echo "Sync to downstream in branch $CI_COMMIT_REF_NAME ..."
@@ -125,8 +123,7 @@ build-downstream:
       [SKIP] Nothing to build downstream - no changes in midstream sync/ folder, or no such file sync-midstream.sh.diff.txt !
       ===================================
       " | tee -a outputs3/build-downstream.sh.NONE_BUILT.result.txt
-        # don't fail the build with a >0 exit code, so we can still do helm/quay updates
-        # exit 73
+        exit 73
       else
         echo; git log --graph --pretty=format:'%Cred%h%Creset%C(yellow)%d%Creset :: %s @ %cN <%cE> (%cD - %cr)' --name-only -1; echo
         ./build/ci/build-containers.sh
