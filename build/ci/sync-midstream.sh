@@ -564,6 +564,7 @@ if [[ $DO_BUILD -eq 1 ]]; then
     echo
     #shellcheck disable=SC2044
     YARN=$(which yarn)
+    export YARN
     $YARN config set "strict-ssl" false -s
     $YARN config set unsafe-perm true
     $YARN config set network-timeout 600000
@@ -584,6 +585,8 @@ if [[ $DO_BUILD -eq 1 ]]; then
 
     echo "[INFO] ===================================== EXPORT + COPY DYNAMIC PLUGINS =====================================>"
     # see (brew.)Dockerfile for more details about these steps
+    echo -n "Yarn version ($YARN): "
+    $YARN --version
     time $YARN export-dynamic 2> >(grep -v warning 1>&2) || exit 41
     time $YARN copy-dynamic-plugins dist 2> >(grep -v warning 1>&2) || exit 42
     echo "[INFO] <===================================== EXPORT + COPY DYNAMIC PLUGINS ====================================="
@@ -691,7 +694,7 @@ ${peerDepPairs}
     if [[ $(grep -E 'export-dynamic-plugin' "$d" | grep -v -- '--network-timeout') ]]; then
       echo "[INFO] Patch yarn command in ${d#distgit/containers/rhdh-hub/} ..."
       sed -i "$d" -r \
-      -e 's#("janus-cli package export-dynamic-plugin)(.+)"#\1 --no-install\2'"$insertYarn"'"#g'
+      -e 's#("janus-cli package export-dynamic-plugin)(.*)"#\1 --no-install\2'"$insertYarn"'"#g'
       # debug
       # grep -E "network-timeout|export-dynamic-plugin" "$d" || true
     fi

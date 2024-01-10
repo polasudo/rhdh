@@ -71,7 +71,7 @@ sync-downstream:
       [SKIP] Nothing to sync to downstream: midstream diff is empty!
       ==============================================================
       " | tee outputs2/sync-downstream.sh.result.txt
-        exit 72
+        # exit 72
       else
         echo; git log --graph --pretty=format:'%Cred%h%Creset%C(yellow)%d%Creset :: %s @ %cN <%cE> (%cD - %cr)' --name-only -1; echo
         echo "Sync to downstream in branch $CI_COMMIT_REF_NAME ..."

@@ -17,14 +17,14 @@
     "lint": "backstage-cli package lint",
     "test": "backstage-cli package test --passWithNoTests --coverage",
     "clean": "backstage-cli package clean",
-    "export-dynamic": "janus-cli package export-dynamic-plugin"
+    "export-dynamic": "janus-cli package export-dynamic-plugin --no-install && $YARN --cwd dist-dynamic install --production --network-timeout 600000"
   },
   "dependencies": {
     "@backstage/plugin-jenkins": "0.9.0"
   },
   "devDependencies": {
     "@backstage/cli": "0.23.1",
-    "@janus-idp/cli": "1.4.3"
+    "@janus-idp/cli": "1.4.7"
   },
   "files": [
     "dist",
