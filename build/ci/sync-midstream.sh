@@ -778,13 +778,13 @@ ${peerDepPairs}
   echo "[INFO] <===================================== Configure cachito ====================================="
   echo
 
-  echo "[INFO] ===================================== Apply branding =====================================>"
+  echo "[INFO] ===================================== Apply branding to distgit/ folders =====================================>"
   # shellcheck disable=SC2044
-  for d in $(find "${ROOTPATH}/branding/" -type f); do
+  for d in $(find "${ROOTPATH}/branding/distgit" -type f); do
     echo "[INFO] Update ${d##*branding/}"
     cp -f "$d" "${d/branding\/}"
   done
-  echo "[INFO] <===================================== Apply branding ====================================="
+  echo "[INFO] <===================================== Apply branding to distgit/ folders ====================================="
   echo
 fi ## if DO_BUILD
 
