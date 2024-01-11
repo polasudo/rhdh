@@ -69,7 +69,23 @@ This repo contains a folder called secrets/ which is encrypted with git-crypt. S
 Current authorized users include (but are not limited to):
 
 * Nick Boldt <nboldt@redhat.com>
+* Tomas Kral <tkral@redhat.com>
+* Corey Daley <cdaley@redhat.com>
 
 See also:
 * https://github.com/AGWA/git-crypt#using-git-crypt
 * https://buddy.works/guides/git-crypt#defining-files-to-encrypt
+
+To add a new user, first import their key:
+
+    $ gpg --import shadowman.gpg
+
+Then get their USER_ID, which could be any unique identifier like email address:
+
+    $ gpg --list-key corey
+
+    uid           [ unknown] Corey Daley <cdaley@redhat.com>
+
+Then install their key to the repo, using the `--trusted` flag:
+
+    $ git-crypt add-gpg-user --trusted cdaley@redhat.com
