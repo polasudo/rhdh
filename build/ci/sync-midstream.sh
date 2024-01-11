@@ -470,7 +470,7 @@ LABEL summary="\$SUMMARY" \\
       name="\$PRODNAME/\$PRODNAME-\$COMPNAME-rhel9" \\
       version="\${CI_X_VERSION}.\${CI_Y_VERSION}" \\
       license="EPLv2" \\
-      maintainer="Nick Boldt <nboldt@redhat.com>, Christophe Fargette <jfargett@redhat.com>, Paul Schultz <pschultz@redhat.com>" \\
+      maintainer="RHDH Team <rhdh-bot@redhat.com>" \\
       io.openshift.expose-services="" \\
       usage=""
 EOT
@@ -512,7 +512,7 @@ LABEL summary="\$SUMMARY" \\
       name="\$PRODNAME/\$PRODNAME-rhel9-\$COMPNAME" \\
       version="\${CI_X_VERSION}.\${CI_Y_VERSION}" \\
       license="EPLv2" \\
-      maintainer="Nick Boldt <nboldt@redhat.com>, Tom Coufal <tcoufal@redhat.com>, Christophe Fargette <jfargett@redhat.com>" \\
+      maintainer="RHDH Team <rhdh-bot@redhat.com>" \\
       io.openshift.expose-services="" \\
       usage=""
 EOT
@@ -544,7 +544,7 @@ LABEL operators.operatorframework.io.bundle.mediatype.v1=registry+v1 \\
       name="\$PRODNAME/\$PRODNAME-\$COMPNAME" \\
       version="\${CI_X_VERSION}.\${CI_Y_VERSION}" \\
       license="EPLv2" \\
-      maintainer="Nick Boldt <nboldt@redhat.com>, Tom Coufal <tcoufal@redhat.com>, Christophe Fargette <jfargett@redhat.com>" \\
+      maintainer="RHDH Team <rhdh-bot@redhat.com>" \\
       io.openshift.expose-services="" \\
       usage=""
 EOT

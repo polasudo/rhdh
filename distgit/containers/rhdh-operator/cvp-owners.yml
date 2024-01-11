@@ -1,5 +1,5 @@
 # developers
-tcoufal@redhat.com:
+asoro@redhat.com:
     - UNSTABLE
     - FAILURE
 #qe
@@ -12,4 +12,3 @@ nboldt@redhat.com:
     - SUCCESS
     - UNSTABLE
     - FAILURE
-
