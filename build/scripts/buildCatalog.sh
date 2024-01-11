@@ -93,7 +93,7 @@ if [[ $SUDO -eq 1 ]]; then PODMAN="sudo $PODMAN"; fi
 
 # shellcheck disable=SC2086
 if [ -z $targetIndexImage ]; then
-  targetIndexImage="quay.io/rhdh/$(date +%s)"
+  targetIndexImage="quay.io/rhdh/iib:$(date +%s)"
   echo "No target image specified: using ${targetIndexImage}"
 fi
 
@@ -139,8 +139,8 @@ fi
 
 # shellcheck disable=SC2086
 if [[ $USEKANIKO -eq 0 ]]; then
-  # build, including extra tags 
-  $PODMAN build . -f olm-catalog.Dockerfile -t $targetIndexImage ${DESTINATIONFLAGS//--destination/--tag} ${AUTHFILEFLAGS}
+  # build, including extra tags and 14d expiry label for quay
+  $PODMAN build . -f olm-catalog.Dockerfile -t $targetIndexImage ${DESTINATIONFLAGS//--destination/--tag} ${AUTHFILEFLAGS} --label quay.expires-after=14d
   # shellcheck disable=SC2086
   if [[ "$PUSH" == "true" ]]; then
     for image in $targetIndexImage $DESTINATIONFLAGS; do
@@ -151,9 +151,9 @@ if [[ $USEKANIKO -eq 0 ]]; then
     done
   fi
 else
-  # build, including extra destinations (tags)
+  # build, including extra destinations (tags) and 14d expiry label for quay
   # uses environment configured from https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1.1-rhel-9/build/dockerfiles/kaniko-ubi9.Dockerfile
-  /kaniko/executor --context "$(pwd)" --dockerfile "$(pwd)/olm-catalog.Dockerfile" --destination "${targetIndexImage}" ${DESTINATIONFLAGS}
+  /kaniko/executor --context "$(pwd)" --dockerfile "$(pwd)/olm-catalog.Dockerfile" --destination "${targetIndexImage}" ${DESTINATIONFLAGS} --label quay.expires-after=14d
 fi
 
 if [[ $VERBOSE -eq 1 ]]; then
