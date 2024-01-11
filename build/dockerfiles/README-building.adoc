@@ -1,0 +1,31 @@
+# Gitlab builder images
+
+The Dockerfiles in this folder are used to create images that are then used for gitlab runners.
+
+To build and publish a new image for the main runner: 
+
+```
+TODAY=$(date +%Y%m%d-%H%M)
+podman rmi registry.redhat.io/ubi9:latest -f
+podman build . --no-cache -f build/dockerfiles/builder-ubi9.Dockerfile --label quay.expires-after=99d \
+    -t quay.io/rhdh/gitlab-runner:builder-$TODAY \
+    -t quay.io/rhdh/gitlab-runner:builder-latest 
+podman push quay.io/rhdh/gitlab-runner:builder-$TODAY
+podman push quay.io/rhdh/gitlab-runner:builder-latest
+
+```
+
+and for the Kaniko runner, using the latest release from https://github.com/GoogleContainerTools/kaniko/releases:
+
+```
+TODAY=$(date +%Y%m%d-%H%M)
+kaniko_version=1.19.2
+sed -i build/dockerfiles/kaniko-ubi9.Dockerfile -r -e "s#(FROM gcr.io/kaniko-project/executor:v)[0-9.]+(-debug AS kaniko)#\1${kaniko_version}\2#"
+podman rmi gcr.io/kaniko-project/executor:${kaniko_version}-debug -f
+podman rmi registry.redhat.io/ubi9:latest -f
+podman build . --no-cache -f build/dockerfiles/kaniko-ubi9.Dockerfile --label quay.expires-after=99d \
+    -t quay.io/rhdh/gitlab-runner:kaniko-${kaniko_version}-$TODAY \
+    -t quay.io/rhdh/gitlab-runner:kaniko-latest 
+podman push quay.io/rhdh/gitlab-runner:kaniko-${kaniko_version}-$TODAY
+podman push quay.io/rhdh/gitlab-runner:kaniko-latest
+```
