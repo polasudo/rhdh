@@ -222,8 +222,9 @@ CI builds are now published to Quay automatically every 4 hours, including a new
 
 #### Operator installation 
 
-. If you do not have a cluster already running, start a link:https://app.slack.com/client/E030G10V24F/D03GXSUT32A[Cluster Bot] instance, eg., with the command `launch 4.14 gcp`
+. If you do not have a cluster already running, start a link:https://app.slack.com/client/E030G10V24F/D03GXSUT32A[Cluster Bot] instance, eg., with the command `launch 4.14 gcp` or `launch 4.14 aws`.
 ** Wait 30-40 mins for the cluster to be provisioned and login details to be provided in Slack.
+** *NOTE*: The steps below (from Step 4) will not work properly on *hosted* clusters like link:https://hypershift-docs.netlify.app/[HyperShift] or link:https://www.redhat.com/en/blog/red-hat-openshift-service-aws-hosted-control-planes-now-available[ROSA with hosted control planes] due to a limitation preventing `ImageContentSourcePolicy` from being propagated to the cluster nodes. There is currently no workaround for these clusters. 
 . Log into your cluster and get a login token
 ** From the top right corner menu of the admin console under your logged in user's name, select `Copy login command``, then click the `Display Token` link that opens in a new browser.
 ** Select the provided command and paste it into a console to run it
