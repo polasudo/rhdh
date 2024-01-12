@@ -1,5 +1,5 @@
 git:
 - automerge: 'yes'
   branch: rhdh-1.1-rhel-9
-  commit: e7fa6aa5382d695c782ab0d8e1e80fd9a8d4b331
+  commit: 56eec9eec73071520c97ef67ab5253ccaab228a5
   url: https://gitlab.cee.redhat.com/rhidp/rhdh.git
