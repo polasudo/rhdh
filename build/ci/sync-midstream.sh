@@ -694,7 +694,7 @@ ${peerDepPairs}
     if [[ $(grep -E 'export-dynamic-plugin' "$d" | grep -v -- '--network-timeout') ]]; then
       echo "[INFO] Patch yarn command in ${d#distgit/containers/rhdh-hub/} ..."
       sed -i "$d" -r \
-      -e 's#("janus-cli package export-dynamic-plugin)(.*)"#\1 --no-install\2'"$insertYarn"'"#g'
+      -e 's#("janus-cli package export-dynamic-plugin)(.+)"#\1 --no-install\2'"$insertYarn"'"#g'
       # debug
       # grep -E "network-timeout|export-dynamic-plugin" "$d" || true
     fi
