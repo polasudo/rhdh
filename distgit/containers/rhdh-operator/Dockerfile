@@ -95,6 +95,6 @@ LABEL summary="$SUMMARY" \
       name="$PRODNAME/$PRODNAME-rhel9-$COMPNAME" \
       version="1.1" \
       license="EPLv2" \
-      maintainer="Nick Boldt <nboldt@redhat.com>, Tom Coufal <tcoufal@redhat.com>, Christophe Fargette <jfargett@redhat.com>" \
+      maintainer="RHDH Team <rhdh-bot@redhat.com>" \
       io.openshift.expose-services="" \
       usage=""

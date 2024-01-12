@@ -42,6 +42,6 @@ LABEL operators.operatorframework.io.bundle.mediatype.v1=registry+v1 \
       name="$PRODNAME/$PRODNAME-$COMPNAME" \
       version="1.1" \
       license="EPLv2" \
-      maintainer="Nick Boldt <nboldt@redhat.com>, Tom Coufal <tcoufal@redhat.com>, Christophe Fargette <jfargett@redhat.com>" \
+      maintainer="RHDH Team <rhdh-bot@redhat.com>" \
       io.openshift.expose-services="" \
       usage=""
