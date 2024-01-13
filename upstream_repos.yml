@@ -8,23 +8,24 @@ repos:
     include_root: true
     # list of files/folders to exclude from upstream in this repo
     exclude_root:
-      - README.adoc
-      - sync/
+      - .git/
+      - .github/
+      - .husky/
+      - .ibm/
       - build/ci/
       - build/helm/
       - build/scripts/
-      - upstream_repos.yaml
-      - .git/
-      - .github/
-      - e2e-test/
-      - .ibm/
-      - packages/app/.webpack-cache/
       - docker/README.requirements.md
-      - docker/requirements.in
-      - docker/requirements.txt
       - docker/requirements-build.in
       - docker/requirements-build.txt
+      - docker/requirements.in
+      - docker/requirements.txt
       - docker/setup.py
+      - e2e-test/
+      - packages/app/.webpack-cache/
+      - README.adoc
+      - sync/
+      - upstream_repos.yaml
     destination_folder: distgit/containers/rhdh-hub/
 
   - repo: https://github.com/janus-idp/operator
@@ -35,15 +36,16 @@ repos:
     include_root: true
     # list of files/folders to exclude from upstream in this repo
     exclude_root:
-      - README.adoc
-      - sync/
+      - .git/
+      - .github/
+      - .husky/
       - build/ci/
       - build/helm/
       - build/scripts/
-      - upstream_repos.yaml
       - bundle/tests/scorecard/
-      - .git/
-      - .github/
+      - README.adoc
+      - sync/
+      - upstream_repos.yaml
     destination_folder: distgit/containers/rhdh-operator/
     # note special rule in sync-midstream.sh will also copy the contents of bundle/ into distgit/containers/rhdh-operator-bundle/
     # and docker/brew.bundle.Dockerfile to distgit/containers/rhdh-operator-bundle/Dockerfile.in
