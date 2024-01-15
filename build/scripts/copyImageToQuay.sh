@@ -20,9 +20,9 @@ usage () {
     echo "Usage: $0 registry/org/image:tag1 registry/org/image2@sha256:...  -v (verbose output)
 
 Example: $0 -v \\
-    registry-proxy.engineering.redhat.com/rh-osbs/rhdh-hub-rhel9:1.0-8 \\
-    registry-proxy.engineering.redhat.com/rh-osbs/rhdh-rhdh-rhel9-operator:1.0-2 \\
-    registry-proxy.engineering.redhat.com/rh-osbs/rhdh-operator-bundle:1.0-1 "
+    registry-proxy.engineering.redhat.com/rh-osbs/rhdh-rhdh-hub-rhel9:1.1-47 \\
+    registry-proxy.engineering.redhat.com/rh-osbs/rhdh-rhdh-rhel9-operator:1.1-27 \\
+    registry-proxy.engineering.redhat.com/rh-osbs/rhdh-rhdh-operator-bundle:1.1-47 "
 }
 
 # TODO: optionally set other tags if we pass in PUSHTOQUAYTAGS, eg., "latest" or "next" 
