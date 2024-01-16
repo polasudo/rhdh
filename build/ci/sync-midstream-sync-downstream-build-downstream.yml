@@ -54,9 +54,9 @@ sync-downstream:
   script:
     - |
       dnf -y -q install git
-      # if sync/ folder updated, then sync to downstream
+      # if sync/sync/upstream_SHA_$REPO updated in teh last two commits (because each midstream sync is two commits), then sync to downstream
       git pull origin || true
-      sync_check="$(git diff --name-only HEAD~1 sync/ || true; git diff --name-only HEAD~2 sync/ || true)"
+      sync_check="$(git diff --name-only HEAD~2 sync/upstream_SHA_$REPO || true)"
       echo "
       =================================
       sync check:

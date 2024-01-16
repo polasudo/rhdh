@@ -245,6 +245,7 @@ for ((i = 0; i < NUM_REPOS; i++)); do # echo $i
   fi
   
   destination_folder=$(yq --arg i "$i" -r '.repos['$i'].destination_folder' "${UPSTREAM_FILE}")
+  CONTAINER_NAME=${destination_folder#distgit/containers/}; CONTAINER_NAME=${CONTAINER_NAME%/}; # echo $CONTAINER_NAME # rhdh-hub or rhdh-operator
   destination_folders="${destination_folders} ${destination_folder}"
   rm -fr "$TMPDIR/repo${i}"
   echo
@@ -253,9 +254,9 @@ for ((i = 0; i < NUM_REPOS; i++)); do # echo $i
   # set -x
     branch="$(git branch --show-current)"
     SHA="$(git rev-parse --short=8 HEAD)"
-    # cat "${ROOTPATH}/sync/upstream_SHA${i}"; echo "$SHA = $branch @ $repo"
+    # cat "${ROOTPATH}/sync/upstream_SHA_${CONTAINER_NAME}"; echo "$SHA = $branch @ $repo"
     # if the current SHA file contains the current SHA/branch/repo combination, then there's nothing to sync! 
-    if [[ -f "${ROOTPATH}/sync/upstream_SHA${i}" ]] && [[ $(cat "${ROOTPATH}/sync/upstream_SHA${i}") == *"$SHA = $branch @ $repo"* ]]; then
+    if [[ -f "${ROOTPATH}/sync/upstream_SHA_${CONTAINER_NAME}" ]] && [[ $(cat "${ROOTPATH}/sync/upstream_SHA_${CONTAINER_NAME}") == *"$SHA = $branch @ $repo"* ]]; then
       echo "[INFO] Nothing changed in upstream repo: $SHA = $branch @ $repo; skip!"
       (( NUM_SKIPS = NUM_SKIPS + 1 ))
       popd >/dev/null || exit 1
@@ -278,16 +279,15 @@ for ((i = 0; i < NUM_REPOS; i++)); do # echo $i
     echo
     SHA="$(git rev-parse --short=8 HEAD)"
 
-    echo "$SHA = $branch @ $repo" > "${ROOTPATH}/sync/upstream_SHA${i}"
-    msg="${destination_folder#distgit/containers} from: $repo/tree/$branch @ $SHA"
+    echo "$SHA = $branch @ $repo" > "${ROOTPATH}/sync/upstream_SHA_${CONTAINER_NAME}"
+    msg="${CONTAINER_NAME} from: $repo/tree/$branch @ $SHA"
     echo "[INFO] Update: $msg"
     commitMsg="${commitMsg} ${msg};"
     ##################################### rhdh-operator-bundle #####################################
     # if processing the upstream operator, also collect sync/upstream_SHA* file for operator-bundle
     if [[ $destination_folder == *"rhdh-operator"* ]]; then
-      BUNDLEDIRCLEANED="${destination_folder%/}-bundle"; BUNDLEDIRCLEANED="${BUNDLEDIRCLEANED#distgit/containers}"
-      echo "$SHA = $branch @ $repo" > "${ROOTPATH}/sync/upstream_SHA${i}-bundle"
-      msg="$BUNDLEDIRCLEANED from: $repo/tree/$branch @ $SHA"
+      echo "$SHA = $branch @ $repo" > "${ROOTPATH}/sync/upstream_SHA_${CONTAINER_NAME}-bundle"
+      msg="${CONTAINER_NAME}-bundle from: $repo/tree/$branch @ $SHA"
       echo "[INFO] Update: $msg"
       commitMsg="${commitMsg} ${msg};"
     fi
@@ -883,8 +883,8 @@ echo "$gitdiff" > "/tmp/sync-midstream.sh.diff.txt"
   ########################################################################################################
 
   containerYamls=""
-  if [[ $(git diff --name-only HEAD~1 sync/upstream_SHA0 || true) ]]; then containerYamls="${containerYamls} distgit/containers/rhdh-hub"; fi
-  if [[ $(git diff --name-only HEAD~1 sync/upstream_SHA1 || true) ]]; then containerYamls="${containerYamls} distgit/containers/rhdh-operator"; fi
+  if [[ $(git diff --name-only HEAD~1 sync/upstream_SHA_hub || true) ]]; then containerYamls="${containerYamls} distgit/containers/rhdh-hub"; fi
+  if [[ $(git diff --name-only HEAD~1 sync/upstream_SHA_operator || true) ]]; then containerYamls="${containerYamls} distgit/containers/rhdh-operator"; fi
   # shellcheck disable=SC2016
   for d in $containerYamls; do
     pushd "$d" >/dev/null || exit 1
