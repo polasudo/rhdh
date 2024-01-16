@@ -9,29 +9,10 @@ publish-helmchart:
   script:
     - |
       dnf -y -q install git
-      # if sync/ folder updated, then update helm chart
-      sync_check="$(git diff --name-only HEAD~1 sync/ || true; git diff --name-only HEAD~2 sync/ || true)"
-      echo "
-      =================================
-      sync check:
-      $sync_check
-      ================================="
-      if [[ $CI_PIPELINE_SOURCE == "schedule" ]] || [[ $sync_check != "" ]] || [[ -f outputs1/sync-midstream.sh.diff.txt ]]; then
-        echo; git log --graph --pretty=format:'%Cred%h%Creset%C(yellow)%d%Creset :: %s @ %cN <%cE> (%cD - %cr)' --name-only -1; echo
-        echo "Publish helm chart ..."
-        ./build/ci/publish-helmchart.sh -b "$CI_COMMIT_REF_NAME" --debug || exit 19
-        mkdir -p outputs5; touch outputs5/publish-helmchart.sh.result.txt
-        if [[ -f /tmp/publish-helmchart.sh.result.txt ]]; then mv /tmp/publish-helmchart.sh.result.txt outputs5/; fi
-      else
-        mkdir -p outputs5; touch outputs5/publish-helmchart.sh.result.txt
-        echo " 
-      ========================================================
-      [SKIP] Nothing to publish: no helm chart needs updating!
-      ========================================================
-      " | tee -a outputs5/publish-helmchart.sh.result.txt
-        # don't fail the build with a >0 exit code - it's OK if nothing happened
-        # exit 75
-      fi
+      echo "Publish helm chart ..."
+      ./build/ci/publish-helmchart.sh -b "$CI_COMMIT_REF_NAME" --debug || exit 19
+      mkdir -p outputs5; touch outputs5/publish-helmchart.sh.result.txt
+      if [[ -f /tmp/publish-helmchart.sh.result.txt ]]; then mv /tmp/publish-helmchart.sh.result.txt outputs5/; fi
   artifacts:
     expire_in: 8 hours
     paths: [outputs5/]
