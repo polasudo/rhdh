@@ -36,5 +36,5 @@ copy-to-quay:
         # exit 74
       fi
   artifacts:
-    expire_in: 180 minutes
+    expire_in: 8 hours
     paths: [outputs4/]

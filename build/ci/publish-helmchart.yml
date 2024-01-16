@@ -33,5 +33,5 @@ publish-helmchart:
         # exit 75
       fi
   artifacts:
-    expire_in: 180 minutes
+    expire_in: 8 hours
     paths: [outputs5/]

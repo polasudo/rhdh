@@ -32,7 +32,7 @@ sync-midstream:
       fi
   # keep artifacts for 8 hrs so we can use them for multiple scheduled quay/helm chart updates
   artifacts:
-    expire_in: 480 minutes
+    expire_in: 8 hours
     paths: [outputs1/]
 
 
@@ -93,7 +93,7 @@ sync-downstream:
         fi
       fi
   artifacts:
-    expire_in: 180 minutes
+    expire_in: 8 hours
     paths: [outputs2/]
 
 # run builds in series, not parallel
@@ -105,7 +105,7 @@ build-downstream:
     - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH =~ /rhdh-[0-9.]+-rhel-9/
     # for scheduled runs, check env var
     - if: $CI_PIPELINE_SOURCE == "schedule" && $DO_BUILD_DOWNSTREAM == "True"
-  timeout: 6 hours 6 minutes
+  timeout: 8 hours
   script:
     - |
       dnf -y -q install git
@@ -131,5 +131,5 @@ build-downstream:
         ./build/ci/build-containers.sh
       fi
   artifacts:
-    expire_in: 180 minutes
+    expire_in: 8 hours
     paths: [outputs3/]
