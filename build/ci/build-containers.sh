@@ -10,7 +10,7 @@
 DO_BUILDS=""
 for REPO in rhdh-operator rhdh-hub rhdh-operator-bundle; do
   #  if change to hub, operator or bundle, trigger respin
-  sync_check_repo=$(git diff --name-only HEAD~1 distgit/containers/$REPO/ || true; git diff --name-only HEAD~2 distgit/containers/$REPO/ || true)
+  sync_check_repo=$(git diff --name-only HEAD~2 distgit/containers/$REPO/ || true)
   if [[ -f outputs2/sync-downstream.sh.$REPO.diff.txt ]] || [[ $sync_check_repo ]]; then
     echo "Diff to determine if we build $REPO:"
     echo "=============DIFF====================>"
