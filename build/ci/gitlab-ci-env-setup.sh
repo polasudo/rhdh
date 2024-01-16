@@ -90,6 +90,10 @@ done
 # method to cancel a pipeline if nothing to do
 # thanks to https://gitlab.com/gitlab-org/gitlab/-/issues/292816
 cancel_pipeline () {
+    echo "To erase pipeline, artifacts and log:"
+    echo "  curl --request POST --header \"PRIVATE-TOKEN: PRIVATE_TOKEN\" \"${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/jobs/${CI_JOB_ID}/erase\""
+    echo "Pipeline cancelled with:"
+    echo "  curl --request POST --header \"PRIVATE-TOKEN: PRIVATE_TOKEN\" \"${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/jobs/${CI_JOB_ID}/cancel\""
     curl --request POST --header "PRIVATE-TOKEN: ${PRIVATE_TOKEN}" "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/jobs/${CI_JOB_ID}/cancel"
 }
 
