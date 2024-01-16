@@ -87,6 +87,12 @@ for d in {1..90}; do
     sleep 2
 done
 
+# method to cancel a pipeline if nothing to do
+# thanks to https://gitlab.com/gitlab-org/gitlab/-/issues/292816
+cancel_pipeline () {
+    curl --request POST --header "PRIVATE-TOKEN: ${PRIVATE_TOKEN}" "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/jobs/${CI_JOB_ID}/cancel"
+}
+
 # personal access token (rhdh-bot.pat) uploaded to Secure Files, see https://gitlab.cee.redhat.com/rhidp/rhdh/-/settings/ci_cd
 if [[ -f "${CI_PROJECT_DIR}/.secure_files/rhdh-bot.pat" ]]; then
     set +x

@@ -14,7 +14,11 @@ for REPO in rhdh-operator rhdh-hub rhdh-operator-bundle; do
   if [[ -f outputs2/sync-downstream.sh.$REPO.diff.txt ]] || [[ $sync_check_repo ]]; then
     echo "Diff to determine if we build $REPO:"
     echo "=============DIFF====================>"
-    if [[ -f outputs2/sync-downstream.sh.$REPO.diff.txt ]]; then cat outputs2/sync-downstream.sh.$REPO.diff.txt; else echo "[INFO] outputs2/sync-downstream.sh.$REPO.diff.txt not found."; fi
+    if [[ -f outputs2/sync-downstream.sh.$REPO.diff.txt ]]; then 
+      cat outputs2/sync-downstream.sh.$REPO.diff.txt; 
+    else 
+      echo "[INFO] outputs2/sync-downstream.sh.$REPO.diff.txt not found."; 
+    fi
     echo "--------------------------------------"
     echo "$sync_check_repo"
     echo "<=============DIFF===================="
@@ -59,4 +63,5 @@ if [[ $DO_BUILDS ]]; then
   fi
 else
   echo "No diff in midstream or downstream, so nothing to build!"
+  cancel_pipeline
 fi

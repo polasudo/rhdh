@@ -450,6 +450,7 @@ if [[ "$NUM_SKIPS" == "$NUM_REPOS" ]]; then
 [SKIP] Nothing to sync or build: $NUM_SKIPS of $NUM_REPOS upstream repos unchanged!
 =================================================================
 " | tee /tmp/sync-midstream.sh.result.txt
+  cancel_pipeline
   exit 0
 fi
 
@@ -853,6 +854,7 @@ echo "$gitdiff" > "/tmp/sync-midstream.sh.diff.txt"
 [SKIP] Nothing to sync: midstream diff is empty!
 ==============================================================
 " | tee /tmp/sync-midstream.sh.result.txt
+    cancel_pipeline
   fi
 
   #################################################################
