@@ -109,17 +109,6 @@ build-downstream:
   script:
     - |
       dnf -y -q install git
-
-      # method to cancel a pipeline if nothing to do
-      # thanks to https://gitlab.com/gitlab-org/gitlab/-/issues/292816
-      cancel_pipeline () {
-          echo "To erase pipeline, artifacts and log:"
-          echo "  curl --request POST --header \"PRIVATE-TOKEN: PRIVATE_TOKEN\" \"${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/jobs/${CI_JOB_ID}/erase\""
-          echo "Pipeline cancelled with:"
-          echo "  curl --request POST --header \"PRIVATE-TOKEN: PRIVATE_TOKEN\" \"${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/jobs/${CI_JOB_ID}/cancel\""
-          curl --request POST --header "PRIVATE-TOKEN: ${PRIVATE_TOKEN}" "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/jobs/${CI_JOB_ID}/cancel"
-      }
-
       # if sync/ folder updated, then build downstream
       sync_check="$(git diff --name-only HEAD~1 sync/ || true; git diff --name-only HEAD~2 sync/ || true)"
       echo "
@@ -135,7 +124,7 @@ build-downstream:
       [SKIP] Nothing to build downstream - no changes in midstream sync/ folder, or no such file sync-midstream.sh.diff.txt !
       ===================================
       " | tee -a outputs3/build-downstream.sh.NONE_BUILT.result.txt
-        cancel_pipeline
+        ./build/ci/cancel_pipeline.sh
         # don't fail the build with a >0 exit code - it's OK if nothing happened
         # exit 73
       else
