@@ -250,14 +250,20 @@ for ((i = 0; i < NUM_REPOS; i++)); do # echo $i
   rm -fr "$TMPDIR/repo${i}"
   echo
   echo "[INFO] Fetch $repo into $TMPDIR/repo${i} from branch $branch, then sync to $destination_folder ..."
-  git clone $repo -b $branch "$TMPDIR/repo${i}" --depth=3 && pushd "$TMPDIR/repo${i}" >/dev/null || exit 1
-  # set -x
+  git clone $repo -b $branch "$TMPDIR/repo${i}" --depth=3 && \
+  pushd "$TMPDIR/repo${i}" >/dev/null || exit 1
+    # set -x
     branch="$(git branch --show-current)"
     SHA="$(git rev-parse --short=8 HEAD)"
     # cat "${ROOTPATH}/sync/upstream_SHA_${CONTAINER_NAME}"; echo "$SHA = $branch @ $repo"
     # if the current SHA file contains the current SHA/branch/repo combination, then there's nothing to sync! 
     if [[ -f "${ROOTPATH}/sync/upstream_SHA_${CONTAINER_NAME}" ]] && [[ $(cat "${ROOTPATH}/sync/upstream_SHA_${CONTAINER_NAME}") == *"$SHA = $branch @ $repo"* ]]; then
-      echo "[INFO] Nothing changed in upstream repo: $SHA = $branch @ $repo; skip!"
+      if [[ ${CONTAINER_NAME} == "rhdh-hub" ]]; then 
+        DO_BUILD=0
+        echo "[INFO] Nothing changed in upstream repo: $SHA = $branch @ $repo; skip yarn build and sync!"
+      else
+        echo "[INFO] Nothing changed in upstream repo: $SHA = $branch @ $repo; skip sync!"
+      fi
       (( NUM_SKIPS = NUM_SKIPS + 1 ))
       popd >/dev/null || exit 1
       rm -fr $TMPDIR/repo${i}
@@ -831,6 +837,11 @@ for d in distgit/containers/rhdh-hub distgit/containers/rhdh-operator distgit/co
     sed -r -e 's|version="\$\{CI_X_VERSION\}\.\$\{CI_Y_VERSION\}"|version="'"$DH_VERSION"'"|' Dockerfile.in > Dockerfile
   popd >/dev/null || exit 1
 done
+
+# revert any local changes to the hub so we don't accidentally push in changes from upstream without first running a yarn build
+if [[ $DO_BUILD -eq 0 ]]; then
+  git restore --staged distgit/containers/rhdh-hub; git restore distgit/containers/rhdh-hub
+fi
 
 echo
 if [[ $(git status -s || true) ]]; then
