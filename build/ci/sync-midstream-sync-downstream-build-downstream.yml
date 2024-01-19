@@ -124,7 +124,7 @@ build-downstream:
       [SKIP] Nothing to build downstream - no changes in midstream sync/ folder, or no such file sync-midstream.sh.diff.txt !
       ===================================
       " | tee -a outputs3/build-downstream.sh.NONE_BUILT.result.txt
-        ./build/ci/cancel_pipeline.sh
+        ./build/ci/cancel-pipeline.sh
         # don't fail the build with a >0 exit code - it's OK if nothing happened
         # exit 73
       else

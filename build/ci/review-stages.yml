@@ -26,9 +26,9 @@ review-stages:
         echo "[INFO] Total of $NUM_SKIPS stages were skipped."
         # if number of skipped stages > 0, cancel this stage so it's clear something was skipped (eg., we didn't build the hub, only the operator)
         if [[ $NUM_SKIPS -gt 0 ]]; then
-          ./build/ci/cancel_pipeline.sh
+          ./build/ci/cancel-pipeline.sh
         fi
       else
         echo "No artifacts from previous stages found!"
-        ./build/ci/cancel_pipeline.sh
+        ./build/ci/cancel-pipeline.sh
       fi

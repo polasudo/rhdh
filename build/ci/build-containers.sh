@@ -63,5 +63,5 @@ if [[ $DO_BUILDS ]]; then
   fi
 else
   echo "No diff in midstream or downstream, so nothing to build!"
-  ./build/ci/cancel_pipeline.sh
+  ./build/ci/cancel-pipeline.sh
 fi
