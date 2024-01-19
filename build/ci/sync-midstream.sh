@@ -318,20 +318,32 @@ for ((i = 0; i < NUM_REPOS; i++)); do # echo $i
       # copy the contents of bundle/ into distgit/containers/rhdh-operator-bundle/
       # NOTE: if we add any .dotfiles in bundle/, add $TMPDIR/repo${i}/bundle/.??* to regexes copied 
       rsync -azq --delete $TMPDIR/repo${i}/bundle/* $TMPDIR/repo${i}/.gitignore "${BUNDLEDIR}/" --exclude=.git ${excludesFlags}
+
+      # downstream CSV and annotations are stored in https://github.com/janus-idp/operator/tree/main/.rhdh/bundle/
       # append overrides from the .rhdh/ tree: CSV and annotations
       rsync -azq $TMPDIR/repo${i}/.rhdh/bundle/* "${BUNDLEDIR}/" --exclude=.git ${excludesFlags}
       # and copy .rhdh/docker/bundle.Dockerfile to Dockerfile.in
       rsync -azq $TMPDIR/repo${i}/.rhdh/docker/bundle.Dockerfile "${BUNDLEDIR}/Dockerfile.in"
-      # downstream CSV and annotations are stored in https://github.com/janus-idp/operator/tree/main/.rhdh/bundle/
+
+      # remove files we don't need downstream in operator-bundle/ or operator/bundle/
+      for bundle_dir in "${BUNDLEDIR}" "${ROOTPATH}/${destination_folder%/}/bundle"; do 
+        pushd "${bundle_dir}" >/dev/null || exit 1
+          for df in \
+              manifests/backstage-operator.clusterserviceversion.yaml \
+              tests/scorecard \
+            ; do 
+            git rm -fr $df 2>/dev/null || rm -f $df 2>/dev/null || true
+          done
+
+          # replace default backstage deployment name backstage-sample with developer-hub
+          for yml in manifests/rhdh-operator.csv.yaml config/samples/_v1alpha1_backstage.yaml; do
+            if [[ -f $yml ]]; then sed -i $yml -r -e "s/backstage-sample/developer-hub/g"; fi
+          done
+        popd >/dev/null || exit 1
+      done
+
+      # use rhdh-operator.csv.yaml instead of backstage csv
       pushd "${BUNDLEDIR}" >/dev/null || exit 1
-        # remove files we don't need downstream
-        for df in \
-            manifests/backstage-operator.clusterserviceversion.yaml \
-            bundle/tests/scorecard \
-          ; do 
-          git rm -fr $df 2>/dev/null || rm -f $df 2>/dev/null || true
-        done
-        # use rhdh-operator.csv.yaml instead of janus/backstage csv
         git add manifests/rhdh-operator.csv.yaml || true
       popd >/dev/null || exit 1
     fi
