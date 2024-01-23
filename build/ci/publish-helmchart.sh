@@ -62,6 +62,14 @@ fi
 # see token in https://gitlab.cee.redhat.com/rhidp/productization/-/tree/main/secrets
 # see gitlab-ci-env-setup.sh for how to load the token from .secure_files
 next_tag=$(./build/scripts/getLatestImageTags.sh -b "${DWNSTM_BRANCH}" --quay -c rhdh/rhdh-hub-rhel9); next_tag=${next_tag##*:} # 1.0-163
+if [[ $DWNSTM_BRANCH == "rhdh-1-rhel-9" ]] && [[ $next_tag == "???" ]]; then 
+  # if no :next tag for 1.x branch, pull the :latest tag instead 
+  next_tag=$(./build/scripts/getLatestImageTags.sh -b "${DWNSTM_BRANCH}" --quay -c rhdh/rhdh-hub-rhel9 --latestNext latest); next_tag=${next_tag##*:} 
+elif [[ $DWNSTM_BRANCH != "rhdh-1-rhel-9" ]] && [[ $next_tag == "???" ]]; then
+  # if nothing in 1.yy branch yet, pull the :next tag instead 
+  next_tag=$(./build/scripts/getLatestImageTags.sh -b "${DWNSTM_BRANCH}" --quay -c rhdh/rhdh-hub-rhel9 --latestNext next); next_tag=${next_tag##*:} 
+fi
+
 pushd "build/helm/" >/dev/null || exit 1
     echo "Create chart for $next_tag" | tee /tmp/publish-helmchart.sh.result.txt
     ./prepare.sh ${debugflag} --chart-version "${next_tag}-CI" --rhdh-version "${next_tag}" --extra-branch "${DWNSTM_BRANCH}" --catalog "https://rhdh-bot:${GITHUB_TOKEN}@github.com/rhdh-bot/openshift-helm-charts.git" --publish | tee -a /tmp/publish-helmchart.sh.result.txt
