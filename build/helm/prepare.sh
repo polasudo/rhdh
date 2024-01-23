@@ -165,6 +165,7 @@ if [[ $DEBUG -eq 1 ]]; then
     HELM_DOCS_LOG_LEVEL="warning"
     echo "Fetching Janus-IDP chart..."
 fi
+# skip binaries with --filter=blob:none
 git clone --depth=1 -q --branch=${HELM_SOURCE_REF} https://github.com/janus-idp/helm-backstage.git "${HELM_DIR}"
 
 if [[ $DEBUG -eq 1 ]]; then
@@ -224,7 +225,9 @@ helm dependency build "${HELM_DIR}"/charts/backstage 1>/dev/null
 if [[ $DEBUG -eq 1 ]]; then
     echo "Fetching Helm catalog into ${CATALOG_DIR} ..."
 fi
-git clone --depth=1 -q "${CATALOG_FORK}" "${CATALOG_DIR}"
+git clone --filter=blob:none --no-checkout --depth=1 -q "${CATALOG_FORK}" "${CATALOG_DIR}" && cd "${CATALOG_DIR}"
+git sparse-checkout init --cone
+git read-tree -mu HEAD
 
 if [[ $DEBUG -eq 1 ]]; then
     echo "Publishing chart into the catalog..."
@@ -234,7 +237,7 @@ git -C "${CATALOG_DIR}" pull $QUIET origin developer-hub-"${CHART_VERSION}" 1>/d
 mkdir -p "${CATALOG_DIR}"/charts/redhat/redhat/developer-hub/"${CHART_VERSION}"
 git -C "${CATALOG_DIR}" rm -f "${CATALOG_DIR}"/charts/redhat/redhat/developer-hub/"${CHART_VERSION}"/developer-hub-"${CHART_VERSION}".tgz 1>/dev/null 2>&1 || true
 helm package "${HELM_DIR}"/charts/backstage -d "${CATALOG_DIR}"/charts/redhat/redhat/developer-hub/"${CHART_VERSION}" 1>/dev/null
-git -C "${CATALOG_DIR}" add -f "${CATALOG_DIR}"/charts/redhat/redhat/developer-hub/"${CHART_VERSION}"/developer-hub-"${CHART_VERSION}".tgz 1>/dev/null
+git -C "${CATALOG_DIR}" add -f "${CATALOG_DIR}"/charts/redhat/redhat/developer-hub/"${CHART_VERSION}"/developer-hub-"${CHART_VERSION}".tgz --sparse 1>/dev/null
 
 if [[ $CREATE_REPORT -eq 1 ]]; then
     if [[ $DEBUG -eq 1 ]]; then
@@ -250,20 +253,20 @@ if [[ $CREATE_REPORT -eq 1 ]]; then
         -v "${CATALOG_DIR}"/charts/redhat/redhat/developer-hub/"${CHART_VERSION}":/mnt/chart \
         "quay.io/redhat-certification/chart-verifier" \
         verify --set profile.vendorType=redhat /mnt/chart/developer-hub-"${CHART_VERSION}".tgz > "${CATALOG_DIR}"/charts/redhat/redhat/developer-hub/"${CHART_VERSION}"/report.yaml
-    git -C "${CATALOG_DIR}" add -f "${CATALOG_DIR}"/charts/redhat/redhat/developer-hub/"${CHART_VERSION}"/report.yaml 1>/dev/null
+    git -C "${CATALOG_DIR}" add -f "${CATALOG_DIR}"/charts/redhat/redhat/developer-hub/"${CHART_VERSION}"/report.yaml --sparse 1>/dev/null
 fi
 
 git config --global user.email "rhdh-bot@redhat.com"
 git config --global user.name "RHDH Build (rhdh-bot)"
 git config --global push.default matching
-git config --global pull.rebase true
+git config --global pull.rebase false
 
 mkdir "${CATALOG_DIR}"/installation -p
+git -C "${CATALOG_DIR}" add -f "${CATALOG_DIR}"/installation/ --sparse 1>/dev/null
 
 # generate index
 git -C "${CATALOG_DIR}" rm -f "${CATALOG_DIR}"/installation/index.yaml 1>/dev/null 2>&1 || true
 helm repo index "${CATALOG_DIR}/installation"
-git -C "${CATALOG_DIR}" add -f "${CATALOG_DIR}"/installation/index.yaml 1>/dev/null
 git -C "${CATALOG_DIR}" commit -q --no-verify --no-gpg-sign -s -m "chore: add developer-hub-${CHART_VERSION}" || exit 55
 
 echo "
@@ -365,13 +368,21 @@ spec:
 " > "${CATALOG_DIR}"/installation/rhdh-next-ci-repo.yaml
 
     # force push new files to the developer-hub-"${CHART_VERSION}" branch
-    git -C "${CATALOG_DIR}" add installation
+    git -C "${CATALOG_DIR}" add installation --sparse
     git -C "${CATALOG_DIR}" commit -q --no-verify --no-gpg-sign -s -m "chore: add developer-hub-${CHART_VERSION}" || exit 55
     git -C "${CATALOG_DIR}" push $QUIET origin developer-hub-"${CHART_VERSION}" -f 2>/dev/null || \
         { echo "[ERROR] Could not push to branch developer-hub-${CHART_VERSION}: must exit!"; exit 44; }
 
     if [[ $EXTRA_BRANCH ]]; then # force push to the rhdh-1.y-rhel-9 branch so we have a branch that changes over time
-        git -C "${CATALOG_DIR}" push $QUIET origin "${EXTRA_BRANCH}" -f 2>/dev/null || \
+        git clone --filter=blob:none --no-checkout --depth=1 -q "${CATALOG_FORK}" "${CATALOG_DIR}-2" && cd "${CATALOG_DIR}-2"
+        git sparse-checkout init --cone
+        git read-tree -mu HEAD
+        git -C "${CATALOG_DIR}-2" checkout -q -b "${EXTRA_BRANCH}" 1>/dev/null 2>&1 || true
+        git -C "${CATALOG_DIR}-2" pull $QUIET origin "${EXTRA_BRANCH}" 1>/dev/null 2>&1 || true
+        rsync -arzq "${CATALOG_DIR}/installation" "${CATALOG_DIR}/charts" "${CATALOG_DIR}-2/"
+        git -C "${CATALOG_DIR}-2" add installation charts --sparse
+        git -C "${CATALOG_DIR}-2" commit -q --no-verify --no-gpg-sign -s -m "chore: add developer-hub-${CHART_VERSION}" || exit 55
+        git -C "${CATALOG_DIR}-2" push $QUIET origin "${EXTRA_BRANCH}" -f 2>/dev/null || \
             { echo "[ERROR] Could not push to branch developer-hub-${CHART_VERSION}: must exit!"; exit 45; }
     fi
 

@@ -21,14 +21,15 @@ debugflag=""
 usage () {
 	echo "
 Usage: 
-  $0 -b BRANCH [options]
+  $0 -b DWNSTM_BRANCH [options]
 
 Options:
     -b DWNSTM_BRANCH    downstream branch from which to compute latest quay image, eg., rhdh-1.1-rhel-9
+    --debug             more output
     -h, --help          This help
 
 Example
-  $0 -d rhdh-hub -b rhdh-1.1-rhel-9 
+  $0 -b rhdh-1.1-rhel-9 
 "
 }
 
