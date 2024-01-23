@@ -19,10 +19,10 @@ usage ()
 {
     echo "Usage: $0 --chart-version x.y.z --rhdh-version x.y-zzz --rev N [--catalog <git-url>] [--debug] [--publish] 
 
-NOTE: This must be run using the GITHUB_TOKEN of rhdh-bot@redhat.com in order to push to that user's gist.
+NOTE: This must be run using the GITHUB_TOKEN of rhdh-bot@redhat.com in order to push to that user's fork.
 
 Options:
-    --next                    Compute the most recent tag (by semver sort rules) in quay.io/rhdh/rhdh-hub-rhel9, and use that tag in chart
+    --latest, --next          Compute the most recent tag (by semver sort rules) in quay.io/rhdh/rhdh-hub-rhel9, and use that tag in chart
     --publish                 Push the changes to repository specified by --catalog
     --create-report           Create a report via https://github.com/redhat-certification/chart-verifier.
                               [IMPORTANT!] Requires local user to be logged into an OCP cluster
@@ -44,21 +44,17 @@ This script requires following binaries to be present on the system:
 Examples:
     Prepare and push a release to git@github.com:[your-github-fork]/openshift-helm-charts.git:
 
-    # Manually published for the Dev Preview release
-    $ $0 --chart-version 0.2.0 --rhdh-version 1.0-88 --catalog git@github.com:nickboldt/openshift-helm-charts.git --publish
-    Chart version:        0.2.0
-    Developer Hub image:  quay.io/rhdh/rhdh-hub-rhel9:1.0-88
-
     # Published on every build in gitlab via the rhdh-bot user - see RHIDP-33
-    $ TAG=1.0-zzz; $0 --chart-version \${TAG}-CI --rhdh-version \${TAG} --catalog git@github.com:rhdh-bot/openshift-helm-charts.git --publish
-    Chart version:        1.0-zzz-CI
-    Developer Hub image:  quay.io/rhdh/rhdh-hub-rhel9:1.0-zzz
+    $ TAG=1.1-zzz; $0 --chart-version \${TAG}-CI --rhdh-version \${TAG} --catalog git@github.com:rhdh-bot/openshift-helm-charts.git --publish
+    Chart version:        1.1-zzz-CI
+    Developer Hub image:  quay.io/rhdh/rhdh-hub-rhel9:1.1-zzz
 
-    # Or, log into the quay.io/rhdh/ org, then compute the latest 1.0-zzz tag
+    # Or, log into the quay.io/rhdh/ org, then compute the latest or next 1.1-zzz tag
     $ export GITHUB_TOKEN=ghp_rhdh-bot-token-here
+    $ $0 --latest --publish 
     $ $0 --next --publish 
-    Chart version:        1.0-zzz-CI
-    Developer Hub image:  quay.io/rhdh/rhdh-hub-rhel9:1.0-zzz
+    Chart version:        1.1-zzz-CI
+    Developer Hub image:  quay.io/rhdh/rhdh-hub-rhel9:1.1-zzz
 
     # Run this manually on GA release day
     # 1. use gh to log in as the bot (use incognito browser so you don't have to log out as yourself)
@@ -86,8 +82,9 @@ Examples:
 # Commandline args
 while [[ "$#" -gt 0 ]]; do
   case $1 in
-    '--next') 
-        next_tag=$(skopeo inspect docker://quay.io/rhdh/rhdh-hub-rhel9:next | jq -r '.RepoTags[]' | grep -v -E "next|latest" | grep -- "-" | sort -uV | tail -1 || true)
+    # TODO should this actually grab the appropriate branch?
+    '--next'|'--latest') 
+        next_tag=$(skopeo inspect docker://quay.io/rhdh/rhdh-hub-rhel9:latest | jq -r '.RepoTags[]' | grep -v -E "next|latest" | grep -- "-" | sort -uV | tail -1 || true)
         CHART_VERSION=${next_tag}-CI
         RHDH_VERSION=${next_tag}
         echo "Create chart for $next_tag";;
@@ -260,11 +257,12 @@ git config --global user.name "RHDH Build (rhdh-bot)"
 git config --global push.default matching
 git config --global pull.rebase true
 
+mkdir "${CATALOG_DIR}"/installation -p
+
 # generate index
-git -C "${CATALOG_DIR}" rm -f "${CATALOG_DIR}"/index.yaml 1>/dev/null 2>&1 || true
-helm repo index "${CATALOG_DIR}"
-# don't add the index.yaml to the PR
-# git -C "${CATALOG_DIR}" add -f "${CATALOG_DIR}"/index.yaml 1>/dev/null
+git -C "${CATALOG_DIR}" rm -f "${CATALOG_DIR}"/installation/index.yaml 1>/dev/null 2>&1 || true
+helm repo index "${CATALOG_DIR}/installation"
+git -C "${CATALOG_DIR}" add -f "${CATALOG_DIR}"/installation/index.yaml 1>/dev/null
 git -C "${CATALOG_DIR}" commit -q --no-verify --no-gpg-sign -s -m "chore: add developer-hub-${CHART_VERSION}" || exit 55
 
 echo "
@@ -287,68 +285,92 @@ if [[ $PUBLISH -eq 1 ]]; then
     curl -sS -O    "https://raw.githubusercontent.com/rhdh-bot/openshift-helm-charts/developer-hub-$CHART_VERSION/charts/redhat/redhat/developer-hub/$CHART_VERSION/developer-hub-$CHART_VERSION.tgz"
     # create a helmchart repo from that single tarball
     helm repo index . --url "https://raw.githubusercontent.com/rhdh-bot/openshift-helm-charts/developer-hub-$CHART_VERSION/charts/redhat/redhat/developer-hub/$CHART_VERSION/"
-    # push change to gist - see gitlab-ci-env-setup.sh for how to load the token from .secure_files
-    gh gist edit 63cef5cb6285889527bd6a67c0e1c2a9 -a index.yaml
-    # cleanup
-    rm -f index.yaml
+    # push change to installation folder of the developer-hub-"${CHART_VERSION}" branch 
+    mv index.yaml "${CATALOG_DIR}"/installation/
 
-    # update readme.md in gist (and echo to screen)
+    # update installation/README.md
     echo "
+
+## Pull secret setup
+
+To install CI builds published to https://quay.io/organization/rhdh, you need a pull secret.
+
+Copy your secret to a file and set \`metadata.name\` == \`rhdh-pull-secret\` (not the default exported from quay.io!!)
+
+\`\`\`
+cat <<EOF > /tmp/my_quay_secret
+apiVersion: v1
+kind: Secret
+metadata:
+  name: rhdh-pull-secret
+data:
+  .dockerconfigjson: ==your-quay-login-secret-goes-here===
+type: kubernetes.io/dockerconfigjson
+EOF
+\`\`\`
+
+Now add the secret to your RHDH/Backstage namespace or project:
+
+\`\`\`
+oc new-project <your-rhdh-project>
+oc create -f /tmp/my_quay_secret -n <your-rhdh-project>
+\`\`\`
+
+
+
+## Installation
+
 ### 1. To install the Helm Chart without a HelmChartRepository, run the following command:
 
 \`\`\`
-    helm install -n <your-rhdh-project-or-namespace-here> --generate-name https://github.com/rhdh-bot/openshift-helm-charts/raw/developer-hub-${CHART_VERSION}/charts/redhat/redhat/developer-hub/${CHART_VERSION}/developer-hub-${CHART_VERSION}.tgz
+    helm install -n <your-rhdh-project> --generate-name https://github.com/rhdh-bot/openshift-helm-charts/raw/developer-hub-${CHART_VERSION}/charts/redhat/redhat/developer-hub/${CHART_VERSION}/developer-hub-${CHART_VERSION}.tgz
 \`\`\`
 
 ### 2. Or, to install from a Helm Chart Repository:
 
-#### a. Run this to create the above chart repo, with .metadata.name = \`rhdh-next-ci-repo\`:
+First, run this to create the above chart repo, with .metadata.name = \`rhdh-next-ci-repo\`:
 
 \`\`\`
-    oc apply -f https://gist.githubusercontent.com/rhdh-bot/63cef5cb6285889527bd6a67c0e1c2a9/raw/rhdh-next-ci-repo.yaml
+    oc apply -f https://github.com/rhdh-bot/openshift-helm-charts/raw/developer-hub-${CHART_VERSION}/installation/rhdh-next-ci-repo.yaml
 \`\`\`
 
-#### b. Browse to the Helm Chart Repository created above and install via OpenShift UI.
+Then, browse to the Helm Chart Repository created above and install via OpenShift UI.
 
-### 3. [OPTIONAL] Publish your own HelmChartRepository from which to deploy. This is only needed if you want to do something custom.
 
-#### a. Create a gist from the index.yaml
 
-\`\`\`
-    cd /tmp; curl -sS -O    https://raw.githubusercontent.com/rhdh-bot/openshift-helm-charts/developer-hub-$CHART_VERSION/charts/redhat/redhat/developer-hub/$CHART_VERSION/developer-hub-$CHART_VERSION.tgz
-    helm repo index . --url https://raw.githubusercontent.com/rhdh-bot/openshift-helm-charts/developer-hub-$CHART_VERSION/charts/redhat/redhat/developer-hub/$CHART_VERSION/
-    gh gist edit YOUR_GIST_ID_HERE -a index.yaml 
-\`\`\`
+## Optional Verification
 
-#### b. Install your HelmChartRepository to your cluster:
+### To verify a chart, use chart-verifier. This is only needed if you built your own chart and want to check it passes compliance checks.
 
 \`\`\`
-    echo \"apiVersion: helm.openshift.io/v1beta1
-kind: HelmChartRepository
-metadata:
-  name: rhdh-${CHART_VERSION_LOWER}-repo
-spec:
-  connectionConfig:
-    url: >-
-      https://gist.githubusercontent.com/YOUR_GH_USER/YOUR_GIST_ID_HERE/raw/index.yaml
-\" > /tmp/HelmChartRepository.yml && oc apply -f /tmp/HelmChartRepository.yml; rm -f /tmp/HelmChartRepository.yml
-\`\`\`
-
-### 4. [OPTIONAL] To verify a chart, use chartverifier. This is only needed if you'd built your own chart and want to check it passes compliance checks.
-
-\`\`\`
-    cd /tmp && mkdir -p chartverifier; \
-    podman run --rm -i -e KUBECONFIG=/.kube/config \
-      -v ${HOME}/.kube:/.kube:z -v /tmp/chartverifier:/app/chartverifier:z \
-      quay.io/redhat-certification/chart-verifier \
+    cd /tmp && mkdir -p chartverifier; \\
+    podman run --rm -i -e KUBECONFIG=/.kube/config \\
+      -v ${HOME}/.kube:/.kube:z -v /tmp/chartverifier:/app/chartverifier:z \\
+      quay.io/redhat-certification/chart-verifier \\
       verify --write-to-file https://github.com/rhdh-bot/openshift-helm-charts/raw/developer-hub-${CHART_VERSION}/charts/redhat/redhat/developer-hub/${CHART_VERSION}/developer-hub-${CHART_VERSION}.tgz
     echo 'Report in /tmp/chartverifier/report.yaml'
 \`\`\`    
-" > /tmp/readme.md
-    # push change to gist - see gitlab-ci-env-setup.sh for how to load the token from .secure_files
-    gh gist edit 63cef5cb6285889527bd6a67c0e1c2a9 -a /tmp/readme.md; rm -f /tmp/readme.md
+" > "${CATALOG_DIR}"/installation/README.md
+
+    # update installation/rhdh-next-ci-repo.yaml
+    echo "apiVersion: helm.openshift.io/v1beta1
+kind: HelmChartRepository
+metadata:
+  name: rhdh-next-ci-repo
+spec:
+  connectionConfig:
+    url: >-
+      https://github.com/rhdh-bot/openshift-helm-charts/raw/developer-hub-${CHART_VERSION}/installation/index.yaml
+" > "${CATALOG_DIR}"/installation/rhdh-next-ci-repo.yaml
+
+    # push new files to the developer-hub-"${CHART_VERSION}" branch
+    git -C "${CATALOG_DIR}" add installation
+    git -C "${CATALOG_DIR}" commit -q --no-verify --no-gpg-sign -s -m "chore: add developer-hub-${CHART_VERSION}" || exit 55
+    git -C "${CATALOG_DIR}" push $QUIET origin developer-hub-"${CHART_VERSION}" -f 2>/dev/null || \
+        { echo "[ERROR] Could not push to branch developer-hub-${CHART_VERSION}: must exit!"; exit 44; } 
+
     echo "Helm chart published. To install, see:
-https://gist.github.com/rhdh-bot/63cef5cb6285889527bd6a67c0e1c2a9"
+https://github.com/rhdh-bot/openshift-helm-charts/tree/developer-hub-${CHART_VERSION}/installation"
 
     # call to action for publishing the chart (GA versions only!)
     if [[ $CHART_VERSION != *"CI"* ]]; then
@@ -383,6 +405,6 @@ To install this chart, run the following commands against your OCP cluster:
 
     cd $CATALOG_DIR/charts/redhat/redhat/developer-hub/${CHART_VERSION}/; \
     tar xzf developer-hub-${CHART_VERSION}.tgz && \
-    helm install -n <your-rhdh-project-or-namespace-here> --generate-name developer-hub/
+    helm install -n <your-rhdh-project> --generate-name developer-hub/
 "
 fi
