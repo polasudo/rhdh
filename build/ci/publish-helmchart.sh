@@ -64,5 +64,5 @@ fi
 next_tag=$(./build/scripts/getLatestImageTags.sh -b "${DWNSTM_BRANCH}" --quay -c rhdh/rhdh-hub-rhel9); next_tag=${next_tag##*:} # 1.0-163
 pushd "build/helm/" >/dev/null || exit 1
     echo "Create chart for $next_tag" | tee /tmp/publish-helmchart.sh.result.txt
-    ./prepare.sh ${debugflag} --chart-version "${next_tag}-CI" --rhdh-version "${next_tag}" --catalog "https://rhdh-bot:${GITHUB_TOKEN}@github.com/rhdh-bot/openshift-helm-charts.git" --publish | tee -a /tmp/publish-helmchart.sh.result.txt
+    ./prepare.sh ${debugflag} --chart-version "${next_tag}-CI" --rhdh-version "${next_tag}" --extra-branch "${DWNSTM_BRANCH}" --catalog "https://rhdh-bot:${GITHUB_TOKEN}@github.com/rhdh-bot/openshift-helm-charts.git" --publish | tee -a /tmp/publish-helmchart.sh.result.txt
 popd >/dev/null || exit 1

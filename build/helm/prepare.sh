@@ -6,6 +6,7 @@ CATALOG_FORK="https://rhdh-bot:${GITHUB_TOKEN}@github.com/rhdh-bot/openshift-hel
 PUBLISH=0 # Set to True to push to CATALOG_FORK
 CREATE_REPORT=0 # Set to True if you want to run https://github.com/redhat-certification/chart-verifier and create a report
 
+EXTRA_BRANCH="" # another branch to force push, eg., rhdh-1.2-rhel-9
 DEBUG=0
 QUIET="-q"
 
@@ -88,6 +89,7 @@ while [[ "$#" -gt 0 ]]; do
         CHART_VERSION=${next_tag}-CI
         RHDH_VERSION=${next_tag}
         echo "Create chart for $next_tag";;
+    '--extra-branch') EXTRA_BRANCH="$2"; shift 1;;
     '--publish') PUBLISH=1;;
     '--catalog') CATALOG_FORK="$2"; shift 1;;
     '--chart-version') CHART_VERSION="$2"; shift 1;;
@@ -99,7 +101,6 @@ while [[ "$#" -gt 0 ]]; do
   shift 1
 done
 
-CHART_VERSION_LOWER="$(echo "$CHART_VERSION" | tr '[:upper:]' '[:lower:]')"
 if [[ ! $RHDH_VERSION ]]; then usage; fi
 
 HELM_DIR=$(mktemp -d)
@@ -363,14 +364,22 @@ spec:
       https://github.com/rhdh-bot/openshift-helm-charts/raw/developer-hub-${CHART_VERSION}/installation/index.yaml
 " > "${CATALOG_DIR}"/installation/rhdh-next-ci-repo.yaml
 
-    # push new files to the developer-hub-"${CHART_VERSION}" branch
+    # force push new files to the developer-hub-"${CHART_VERSION}" branch
     git -C "${CATALOG_DIR}" add installation
     git -C "${CATALOG_DIR}" commit -q --no-verify --no-gpg-sign -s -m "chore: add developer-hub-${CHART_VERSION}" || exit 55
     git -C "${CATALOG_DIR}" push $QUIET origin developer-hub-"${CHART_VERSION}" -f 2>/dev/null || \
-        { echo "[ERROR] Could not push to branch developer-hub-${CHART_VERSION}: must exit!"; exit 44; } 
+        { echo "[ERROR] Could not push to branch developer-hub-${CHART_VERSION}: must exit!"; exit 44; }
+
+    if [[ $EXTRA_BRANCH ]]; then # force push to the rhdh-1.y-rhel-9 branch so we have a branch that changes over time
+        git -C "${CATALOG_DIR}" push $QUIET origin "${EXTRA_BRANCH}" -f 2>/dev/null || \
+            { echo "[ERROR] Could not push to branch developer-hub-${CHART_VERSION}: must exit!"; exit 45; }
+    fi
 
     echo "Helm chart published. To install, see:
 https://github.com/rhdh-bot/openshift-helm-charts/tree/developer-hub-${CHART_VERSION}/installation"
+    if [[ $EXTRA_BRANCH ]]; then # force push to the rhdh-1.y-rhel-9 branch so we have a branch that changes over time
+        echo "https://github.com/rhdh-bot/openshift-helm-charts/tree/${EXTRA_BRANCH}/installation"
+    fi
 
     # call to action for publishing the chart (GA versions only!)
     if [[ $CHART_VERSION != *"CI"* ]]; then
