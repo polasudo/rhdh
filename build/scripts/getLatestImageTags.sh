@@ -125,7 +125,8 @@ CONTAINERS=""
 while [[ "$#" -gt 0 ]]; do
   case $1 in
     '-j') DH_VERSION="$2"; DWNSTM_BRANCH="rhdh-${DH_VERSION}-rhel-9"; shift 1;;
-    '-b') DWNSTM_BRANCH="$2"; shift 1;; 
+    '-b') DWNSTM_BRANCH="$2"; 
+        if [[ $DWNSTM_BRANCH != "rhdh-1-rhel-9" ]]; then latestNext="latest  "; fi; shift 1;; 
     '-c') CONTAINERS="${CONTAINERS} $2"; shift 1;;
     '-x') EXCLUDES="$2"; shift 1;;
     '-q') QUIET=1;;
@@ -146,12 +147,12 @@ while [[ "$#" -gt 0 ]]; do
 	'--latestNext') latestNext="$2"; shift 1;;
 	# since we have no next or latest tags for IIB images, append an OCP version and arch and filter for those by default
 	'-o')
-		if [[ $DWNSTM_BRANCH != "rhdh-1-rhel-9" ]] || [[ $DH_VERSION != "1.y" ]]; then 
-			latestNext="latest-$2-$(uname -m)"
-		else
-			latestNext="next-$2-$(uname -m)"
-		fi
-		BASETAG="$2"; shift 1;;
+        if [[ $DWNSTM_BRANCH != "rhdh-1-rhel-9" ]] || [[ $DH_VERSION != "1.y" ]]; then 
+            latestNext="latest-$2-$(uname -m)"
+        else
+            latestNext="next-$2-$(uname -m)"
+        fi
+        BASETAG="$2"; shift 1;;
     '-n') NUMTAGS="$2"; shift 1;;
     '--dockerfile') SHOWHISTORY=1;;
     '--tag') BASETAG="$2"; shift 1;;
