@@ -316,6 +316,12 @@ for ((i = 0; i < NUM_REPOS; i++)); do # echo $i
     rsync -azq --delete $TMPDIR/repo${i}/* $TMPDIR/repo${i}/.??* "${ROOTPATH}/${destination_folder}/" --exclude=.git ${excludesFlags}
     set +x
 
+    ##################################### rhdh-hub #####################################
+    # if processing the upstream showcase/hub, also make some changes to the hub folder dowstream
+    if [[ $destination_folder == *"rhdh-hub"* ]]; then
+      rsync -azq $TMPDIR/repo${i}/.rhdh/docker/* "${ROOTPATH}/${destination_folder%/}/docker/" --exclude=.git ${excludesFlags}
+    fi
+
     ##################################### rhdh-operator-bundle #####################################
     # if processing the upstream operator, also make some changes to the operator-bundle folder dowstream
     if [[ $destination_folder == *"rhdh-operator"* ]]; then
@@ -406,7 +412,7 @@ for ((i = 0; i < NUM_REPOS; i++)); do # echo $i
     # transform Dockerfile to Dockerfile.in; enable/disable osbs/cachito requirements
     # find the right file from one of several path options
     # NOTE: this transformation only works for hub and operator, not for .rhdh/docker/bundle.Dockerfile!
-    DOCKERFILE_OPTIONS=".rhdh/docker/Dockerfile docker/brew.Dockerfile Dockerfile"
+    DOCKERFILE_OPTIONS=".rhdh/docker/Dockerfile Dockerfile"
     for d in $DOCKERFILE_OPTIONS; do
       if [[ -f $d ]]; then
         echo "[INFO] Convert $d to Dockerfile.in ..."
@@ -505,14 +511,6 @@ cat <<EOT >distgit/containers/rhdh-hub/.git/config
   autocrlf = input
 EOT
 echo "[INFO] Generated distgit/containers/rhdh-hub/.git/config for use with Husky"
-mkdir -p distgit/containers/rhdh-hub/docker/
-cat <<EOT >distgit/containers/rhdh-hub/docker/.gitignore
-bin/
-lib/
-lib64/
-pyvenv.cfg
-EOT
-echo "[INFO] Generated distgit/containers/rhdh-hub/docker/.gitignore for use with cachito + python dependency management"
 
 # append Brew metadata here
 sed -i '/# append Brew metadata here/q' distgit/containers/rhdh-operator/Dockerfile.in
