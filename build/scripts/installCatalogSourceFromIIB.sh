@@ -51,7 +51,8 @@ Options:
   --iib <IIB_IMAGE>            : IIB image to install on the cluster; could be in the form:
                                : * registry-proxy.engineering.redhat.com/rh-osbs/iib:573813 [RH internal],
                                : * brew.registry.redhat.io/rh-osbs/iib:987654 [RH public, auth required], or
-                               : * quay.io/rhdh/iib:3.7-v4.13-480383-476121-x86_64 or quay.io/rhdh/iib:next-v4.12-x86_64 [public]
+                               : * quay.io/rhdh/iib:3.7-v4.13-480383-476121-x86_64 or quay.io/rhdh/iib:latest-v4.12-x86_64 [public]
+  --latest                     : Install from iib quay.io/rhdh/iib:latest-\$OCP_VER-\$OCP_ARCH (eg., latest-v4.12-x86_64)
   --next                       : Install from iib quay.io/rhdh/iib:next-\$OCP_VER-\$OCP_ARCH (eg., next-v4.12-x86_64)
   --install-operator <NAME>    : Install operator named $NAME after creating CatalogSource
   --channel <CHANNEL>          : Channel to use for operator subscription if installing operator. Default: "fast"
@@ -67,7 +68,10 @@ Developer Hub Examples:
   --iib brew.registry.redhat.io/rh-osbs/iib:573813 --install-operator rhdh --brew --quay --channel fast
 
   $0 \\
-  --next --install-operator rhdh
+  --latest --install-operator rhdh # RC release in progess (from stable branch)
+  
+  $0 \\
+  --next --install-operator rhdh # CI future release (from main branch)
 "
 }
 
@@ -81,12 +85,12 @@ while [[ "$#" -gt 0 ]]; do
     '--icsp') ICSP_URLs="${ICSP_URLs} $2"; shift 1;;
     '--quay') ICSP_URLs="${ICSP_URLs} quay.io/rhdh/";;
     '--brew') ICSP_URLs="${ICSP_URLs} brew.registry.redhat.io/rh-osbs/rhdh-";;
-    '--next') 
+    '--next'|'--latest') 
       ICSP_URLs="${ICSP_URLs} quay.io/rhdh/"
       OCP_VER="v$(oc version -o json | jq -r '.openshiftVersion' | sed -r -e "s#([0-9]+\.[0-9]+)\..+#\1#")"
       OCP_ARCH="$(oc version -o json | jq -r '.serverVersion.platform' | sed -r -e "s#linux/##")"
       if [[ $OCP_ARCH == "amd64" ]]; then OCP_ARCH="x86_64"; fi
-      UPSTREAM_IIB="quay.io/rhdh/iib:next-${OCP_VER}-$OCP_ARCH";;
+      UPSTREAM_IIB="quay.io/rhdh/iib:${1/--/}-${OCP_VER}-$OCP_ARCH";;
     '-n'|'--namespace') NAMESPACE="$2"; shift 1;;
     '-h'|'--help') usage; exit 0;;
     *) echo "[ERROR] Unknown parameter is used: $1."; usage; exit 1;;
