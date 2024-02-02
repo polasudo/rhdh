@@ -166,7 +166,7 @@ if [[ $DEBUG -eq 1 ]]; then
     echo "Fetching Janus-IDP chart..."
 fi
 # skip binaries with --filter=blob:none
-git clone --depth=1 -q --branch=${HELM_SOURCE_REF} https://github.com/janus-idp/helm-backstage.git "${HELM_DIR}"
+git clone --depth=1 -q --branch=${HELM_SOURCE_REF} https://github.com/redhat-developer/rhdh-chart.git "${HELM_DIR}"
 
 if [[ $DEBUG -eq 1 ]]; then
     echo "Patching 'Chart.yaml', 'values.yaml', 'README.md.gotmpl'..."
