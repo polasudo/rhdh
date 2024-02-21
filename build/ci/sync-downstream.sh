@@ -13,6 +13,7 @@ ROOTPATH=$(dirname "$SCRIPT"); ROOTPATH=${ROOTPATH/\/build\/ci}
 
 CONTAINER_NAME=rhdh-hub # or rhdh-operator or rhdh-operator-bundle
 DWNSTM_BRANCH=$(cd "${ROOTPATH}" || exit 1; git rev-parse --abbrev-ref HEAD)
+GITLAB_PIPELINE="" # set "true" when running inside a gitlab pipeline to override default git push settings
 
 usage() {
   echo "
@@ -25,6 +26,7 @@ Options:
     -b DWNSTM_BRANCH     downstream branch to update; default: '$DWNSTM_BRANCH'
     -d CONTAINER_NAME    folder to sync; default: '$CONTAINER_NAME'
     --dir CONTAINER_DIR  folder to create for downstream sources: default: '/tmp/downstream-${CONTAINER_NAME}'
+    --gitlab-pipeline-push    use this flag to push changes when running inside a gitlab pipeline
 
 Example:
 
@@ -44,6 +46,10 @@ while [[ "$#" -gt 0 ]]; do
     DWNSTM_BRANCH="$2"
     shift 2
     ;;
+  '--gitlab-pipeline-push')
+    GITLAB_PIPELINE="true"
+    shift 1
+    ;;
   '-h' | '--help') usage ;;
   *)
     echo "[ERROR] Invalid parameter: $1"
@@ -61,6 +67,26 @@ if [[ $CI_BUILDS_DIR ]]; then # running in gitlab so set up env
   # shellcheck disable=SC1091
   source "${ROOTPATH}/build/ci/gitlab-ci-env-setup.sh"
 fi
+
+# get all upstream branches to avoid merge conflicts
+if [[ $GITLAB_PIPELINE == "true" ]]; then
+  # NOTE that if debugging PRIVATE_TOKEN with set -x, token will be revealed in plaintext, not obfuscated
+  git remote rm origin; git remote add origin "https://${CI_PROJECT_NAME}:${PRIVATE_TOKEN}@${CI_SERVER_HOST}/${CI_PROJECT_NAMESPACE}/${CI_PROJECT_NAME}.git"
+  git remote set-branches origin "*" || true
+  git fetch --all || true
+  git checkout "${DWNSTM_BRANCH}" || true
+  git pull origin "${DWNSTM_BRANCH}" || true
+fi
+
+git config core.autocrlf input
+git config --global merge.ff true
+git config --global pull.ff-only true
+git config --global pull.rebase true
+git config --global branch.autosetupmerge true
+git config --global branch.autosetuprebase always
+
+git config --global advice.skippedCherryPicks false
+git config --global advice.detachedHead false
 
 if [[ ! $DWNSTM_BRANCH ]]; then DWNSTM_BRANCH=$(cd "${ROOTPATH}" || exit 1; git rev-parse --abbrev-ref HEAD); fi
 

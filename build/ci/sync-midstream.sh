@@ -185,9 +185,7 @@ createPr() {
 }
 
 # get all upstream branches to avoid merge conflicts
-set -x
 if [[ $GITLAB_PIPELINE == "true" ]]; then
-  set +x
   # NOTE that if debugging PRIVATE_TOKEN with set -x, token will be revealed in plaintext, not obfuscated
   git remote rm origin; git remote add origin "https://${CI_PROJECT_NAME}:${PRIVATE_TOKEN}@${CI_SERVER_HOST}/${CI_PROJECT_NAMESPACE}/${CI_PROJECT_NAME}.git"
   git remote set-branches origin "*" || true
@@ -195,7 +193,6 @@ if [[ $GITLAB_PIPELINE == "true" ]]; then
   git checkout "${DWNSTM_BRANCH}" || true
   git pull origin "${DWNSTM_BRANCH}" || true
 fi
-set +x
 
 # cleanup before fetching new files
 if [[ $CLEAN -eq 1 ]]; then
