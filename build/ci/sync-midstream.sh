@@ -356,7 +356,7 @@ for ((i = 0; i < NUM_REPOS; i++)); do # echo $i
 
       # use rhdh-operator.csv.yaml instead of backstage csv
       pushd "${BUNDLEDIR}" >/dev/null || exit 1
-        git add manifests/rhdh-operator.csv.yaml || true
+        git add . || true
       popd >/dev/null || exit 1
     fi
     ##################################### rhdh-operator-bundle #####################################
