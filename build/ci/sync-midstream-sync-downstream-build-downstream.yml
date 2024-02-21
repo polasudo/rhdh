@@ -67,7 +67,7 @@ sync-downstream:
 
       # to force the sync if it fails to push changes
       if [[ $DO_SYNC_DOWNSTREAM == "Force" ]]; then
-        echo "##### FORCING DOWNSTREAM SYNC via gitlab pipeline parameter DO_SYNC_DOWNSTREAM == "Force"
+        echo "##### FORCING DOWNSTREAM SYNC via gitlab pipeline parameter DO_SYNC_DOWNSTREAM == Force #####"
         sync_check="DO_SYNC_DOWNSTREAM = $DO_SYNC_DOWNSTREAM"
       fi
 
