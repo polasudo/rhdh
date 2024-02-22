@@ -916,7 +916,7 @@ echo "$gitdiff" > "/tmp/sync-midstream.sh.diff.txt"
   done
 
   # commit it all
-  git commit -s -m "chore: Update: upstream_sources.yml to $newSHA :: ${commitMsg}" . || true
+  git commit -s -m "chore: Update:${commitMsg}; upstream_sources.yml to $newSHA" . || true
 fi ## if DO_COMMIT
 
 ################################# PUSH CHANGES #################################
