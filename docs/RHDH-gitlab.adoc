@@ -36,7 +36,7 @@ The link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/tree/rhdh-1-rhel-9/build/ci[
 ** this is essentially a pure rsync copy
 . build downstream containers in OSBS with `brew container-build` 
 . copy new container images to quay, including new IIB image
-. publish helm chart to https://gist.github.com/rhdh-bot
+. publish helm chart to https://github.com/rhdh-bot/openshift-helm-charts/tree/rhdh-1.1-rhel-9/installation
 . review the preceding stages for success/failure
 
 TODO: https://issues.redhat.com/browse/RHIDP-896 support sequencing the container builds (rather than a parallel matrix)

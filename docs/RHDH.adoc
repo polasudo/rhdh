@@ -164,9 +164,7 @@ Prerequisites:
 
 Actor must be included in the list of owners at link:https://github.com/openshift-helm-charts/charts/blob/main/charts/redhat/redhat/developer-hub/OWNERS[`charts/redhat/redhat/developer-hub/OWNERS`]. Otherwise their publishing attempt will be rejected.
 
-CI builds (including link:https://gist.github.com/rhdh-bot/[install instructions]) are now published to GH Gist automatically every 4 hours:
-
-Schedule: https://gitlab.cee.redhat.com/rhidp/rhdh/-/pipeline_schedules
+CI builds (including link:https://github.com/rhdh-bot/openshift-helm-charts/tree/rhdh-1-rhel-9/installation/[install instructions]) are now published via link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/pipeline_schedules[scheduled pipelines].
 
 Build & PR generation process:
 
