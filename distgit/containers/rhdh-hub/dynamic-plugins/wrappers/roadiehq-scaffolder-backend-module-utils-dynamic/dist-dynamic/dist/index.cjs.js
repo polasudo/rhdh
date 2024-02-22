@@ -2,16 +2,19 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var backendPluginApi = require('@backstage/backend-plugin-api');
+var alpha = require('@backstage/plugin-scaffolder-node/alpha');
 var require$$0 = require('@backstage/backend-common');
 var require$$1 = require('@backstage/plugin-scaffolder-backend');
 var require$$2 = require('@backstage/errors');
 var require$$3 = require('adm-zip');
 var require$$4 = require('fs-extra');
-var require$$5 = require('js-yaml');
+var require$$5 = require('yaml');
 var require$$6 = require('@backstage/plugin-scaffolder-node');
 var require$$7 = require('path');
 var require$$8 = require('lodash');
-var require$$9 = require('jsonata');
+var require$$9 = require('detect-indent');
+var require$$10 = require('jsonata');
 
 var index_cjs = {};
 
@@ -22,17 +25,19 @@ var pluginScaffolderBackend = require$$1;
 var errors = require$$2;
 var AdmZip = require$$3;
 var fs = require$$4;
-var yaml = require$$5;
+var YAML = require$$5;
 var pluginScaffolderNode = require$$6;
 var path = require$$7;
 var lodash = require$$8;
-var jsonata = require$$9;
+var detectIndent = require$$9;
+var jsonata = require$$10;
 
 function _interopDefaultLegacy$1 (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 
 var AdmZip__default = /*#__PURE__*/_interopDefaultLegacy$1(AdmZip);
 var fs__default = /*#__PURE__*/_interopDefaultLegacy$1(fs);
-var yaml__default = /*#__PURE__*/_interopDefaultLegacy$1(yaml);
+var YAML__default = /*#__PURE__*/_interopDefaultLegacy$1(YAML);
+var detectIndent__default = /*#__PURE__*/_interopDefaultLegacy$1(detectIndent);
 var jsonata__default = /*#__PURE__*/_interopDefaultLegacy$1(jsonata);
 
 function createZipAction() {
@@ -179,9 +184,9 @@ function createAppendFileAction() {
 }
 
 const parsers = {
-  yaml: (cnt) => yaml__default["default"].load(cnt),
+  yaml: (cnt) => YAML__default["default"].parse(cnt),
   json: (cnt) => JSON.parse(cnt),
-  multiyaml: (cnt) => yaml__default["default"].loadAll(cnt)
+  multiyaml: (cnt) => YAML__default["default"].parseAllDocuments(cnt).map((doc) => doc.toJSON())
 };
 function createParseFileAction() {
   return pluginScaffolderBackend.createTemplateAction({
@@ -348,6 +353,12 @@ const yamlOptionsSchema = {
   }
 };
 
+function mergeArrayCustomiser(objValue, srcValue) {
+  if (lodash.isArray(objValue) && !lodash.isNull(objValue)) {
+    return Array.from(new Set(objValue.concat(srcValue)));
+  }
+  return void 0;
+}
 function createMergeJSONAction({ actionId }) {
   return pluginScaffolderNode.createTemplateAction({
     id: actionId || "roadiehq:utils:json:merge",
@@ -367,6 +378,18 @@ function createMergeJSONAction({ actionId }) {
             description: "This will be merged into to the file. Can be either an object or a string.",
             title: "Content",
             type: ["string", "object"]
+          },
+          mergeArrays: {
+            type: "boolean",
+            default: false,
+            title: "Merge Arrays?",
+            description: "Where a value is an array the merge function should concatenate the provided array value with the target array"
+          },
+          matchFileIndent: {
+            type: "boolean",
+            default: false,
+            title: "Match file indent?",
+            description: "Make the output file indentation match that of the specified input file."
           }
         }
       },
@@ -397,9 +420,29 @@ function createMergeJSONAction({ actionId }) {
         existingContent = {};
       }
       const content = typeof ctx.input.content === "string" ? JSON.parse(ctx.input.content) : ctx.input.content;
+      let fileIndent = 2;
+      if (ctx.input.matchFileIndent) {
+        fileIndent = detectIndent__default["default"](
+          fs__default["default"].readFileSync(sourceFilepath, "utf8")
+        ).amount;
+        if (!fileIndent) {
+          fileIndent = 2;
+          ctx.logger.info(
+            `Failed to detect source file indentation, using default value of 2.`
+          );
+        }
+      }
       fs__default["default"].writeFileSync(
         sourceFilepath,
-        JSON.stringify(lodash.merge(existingContent, content), null, 2)
+        JSON.stringify(
+          lodash.mergeWith(
+            existingContent,
+            content,
+            ctx.input.mergeArrays ? mergeArrayCustomiser : void 0
+          ),
+          null,
+          fileIndent
+        )
       );
       ctx.output("path", sourceFilepath);
     }
@@ -424,6 +467,12 @@ function createMergeAction() {
             description: "This will be merged into to the file. Can be either an object or a string.",
             title: "Content",
             type: ["string", "object"]
+          },
+          mergeArrays: {
+            type: "boolean",
+            default: false,
+            title: "Merge Arrays?",
+            description: "Where a value is an array the merge function should concatenate the provided array value with the target array"
           },
           options: {
             ...yamlOptionsSchema,
@@ -456,7 +505,11 @@ function createMergeAction() {
         case ".json": {
           const newContent = typeof ctx.input.content === "string" ? JSON.parse(ctx.input.content) : ctx.input.content;
           mergedContent = JSON.stringify(
-            lodash.merge(JSON.parse(originalContent), newContent),
+            lodash.mergeWith(
+              YAML__default["default"].parse(originalContent),
+              newContent,
+              ctx.input.mergeArrays ? mergeArrayCustomiser : void 0
+            ),
             null,
             2
           );
@@ -464,9 +517,13 @@ function createMergeAction() {
         }
         case ".yml":
         case ".yaml": {
-          const newContent = typeof ctx.input.content === "string" ? yaml__default["default"].load(ctx.input.content) : ctx.input.content;
-          mergedContent = yaml__default["default"].dump(
-            lodash.merge(yaml__default["default"].load(originalContent), newContent),
+          const newContent = typeof ctx.input.content === "string" ? YAML__default["default"].parse(ctx.input.content) : ctx.input.content;
+          mergedContent = YAML__default["default"].stringify(
+            lodash.mergeWith(
+              YAML__default["default"].parse(originalContent),
+              newContent,
+              ctx.input.mergeArrays ? mergeArrayCustomiser : void 0
+            ),
             ctx.input.options
           );
           break;
@@ -591,6 +648,11 @@ function createYamlJSONataTransformAction() {
             description: "JSONata expression to perform on the input",
             type: "string"
           },
+          loadAll: {
+            title: "Load All",
+            description: "Use this if the yaml source file contains multiple yaml objects",
+            type: "boolean"
+          },
           as: {
             title: "Desired Result Type",
             description: 'Permitted values are: "string" (default) and "object"',
@@ -615,13 +677,20 @@ function createYamlJSONataTransformAction() {
       if (ctx.input.as === "object") {
         resultHandler = (rz) => rz;
       } else {
-        resultHandler = (rz) => yaml__default["default"].dump(rz, ctx.input.options);
+        resultHandler = (rz) => YAML__default["default"].stringify(rz, ctx.input.options);
       }
       const sourceFilepath = backendCommon.resolveSafeChildPath(
         ctx.workspacePath,
         ctx.input.path
       );
-      const data = yaml__default["default"].load(fs__default["default"].readFileSync(sourceFilepath).toString());
+      let data;
+      if (ctx.input.loadAll) {
+        data = YAML__default["default"].parseAllDocuments(
+          fs__default["default"].readFileSync(sourceFilepath).toString()
+        ).map((doc) => doc.toJSON());
+      } else {
+        data = YAML__default["default"].parse(fs__default["default"].readFileSync(sourceFilepath).toString());
+      }
       const expression = jsonata__default["default"](ctx.input.expression);
       const result = expression.evaluate(data);
       ctx.output("result", resultHandler(result));
@@ -785,7 +854,10 @@ function createSerializeYamlAction() {
       }
     },
     async handler(ctx) {
-      ctx.output("serialized", yaml__default["default"].dump(ctx.input.data, ctx.input.options));
+      ctx.output(
+        "serialized",
+        YAML__default["default"].stringify(ctx.input.data, ctx.input.options)
+      );
     }
   });
 }
@@ -804,24 +876,37 @@ var createWriteFileAction_1 = index_cjs.createWriteFileAction = createWriteFileA
 var createYamlJSONataTransformAction_1 = index_cjs.createYamlJSONataTransformAction = createYamlJSONataTransformAction;
 var createZipAction_1 = index_cjs.createZipAction = createZipAction;
 
-const dynamicPluginInstaller = {
-  kind: "legacy",
-  scaffolder: () => [
-    createZipAction_1(),
-    createSleepAction_1(),
-    createWriteFileAction_1(),
-    createAppendFileAction_1(),
-    createMergeJSONAction_1({}),
-    createMergeAction_1(),
-    createParseFileAction_1(),
-    createReplaceInFileAction_1(),
-    createSerializeYamlAction_1(),
-    createSerializeJsonAction_1(),
-    createJSONataAction_1(),
-    createYamlJSONataTransformAction_1(),
-    createJsonJSONataTransformAction_1()
-  ]
-};
+const scaffolderBackendModuleUtils = backendPluginApi.createBackendModule({
+  moduleId: "scaffolder-backend-module-utils",
+  pluginId: "scaffolder",
+  register(env) {
+    env.registerInit({
+      deps: {
+        scaffolder: alpha.scaffolderActionsExtensionPoint,
+        discovery: backendPluginApi.coreServices.discovery
+      },
+      async init({ scaffolder }) {
+        for (const action of [
+          createZipAction_1,
+          createSleepAction_1,
+          createWriteFileAction_1,
+          createAppendFileAction_1,
+          createMergeJSONAction_1,
+          createMergeAction_1,
+          createParseFileAction_1,
+          createReplaceInFileAction_1,
+          createSerializeYamlAction_1,
+          createSerializeJsonAction_1,
+          createJSONataAction_1,
+          createYamlJSONataTransformAction_1,
+          createJsonJSONataTransformAction_1
+        ]) {
+          scaffolder.addActions(action({}));
+        }
+      }
+    });
+  }
+});
 
-exports.dynamicPluginInstaller = dynamicPluginInstaller;
+exports["default"] = scaffolderBackendModuleUtils;
 //# sourceMappingURL=index.cjs.js.map

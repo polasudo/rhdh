@@ -4,20 +4,14 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 var pluginSonarqubeBackend = require('@backstage/plugin-sonarqube-backend');
 
-const dynamicPluginInstaller = {
-  kind: "legacy",
-  router: {
-    pluginID: "sonarqube",
-    async createPlugin(env) {
-      return await pluginSonarqubeBackend.createRouter({
-        logger: env.logger,
-        sonarqubeInfoProvider: pluginSonarqubeBackend.DefaultSonarqubeInfoProvider.fromConfig(
-          env.config
-        )
-      });
-    }
-  }
-};
+function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 
-exports.dynamicPluginInstaller = dynamicPluginInstaller;
+var pluginSonarqubeBackend__default = /*#__PURE__*/_interopDefaultLegacy(pluginSonarqubeBackend);
+
+
+
+Object.defineProperty(exports, 'default', {
+	enumerable: true,
+	get: function () { return pluginSonarqubeBackend__default["default"]; }
+});
 //# sourceMappingURL=index.cjs.js.map

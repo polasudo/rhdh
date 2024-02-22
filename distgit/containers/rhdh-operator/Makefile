@@ -3,7 +3,7 @@
 # To re-generate a bundle for another specific version without changing the standard setup, you can:
 # - use the VERSION as arg of the bundle target (e.g make bundle VERSION=0.0.2)
 # - use environment variables to overwrite this value (e.g export VERSION=0.0.2)
-VERSION ?= 0.0.1
+VERSION ?= 0.1.0
 
 # Using docker or podman to build and push images
 CONTAINER_ENGINE ?= docker
@@ -31,7 +31,7 @@ BUNDLE_METADATA_OPTS ?= $(BUNDLE_CHANNELS) $(BUNDLE_DEFAULT_CHANNEL)
 # This variable is used to construct full image tags for bundle and catalog images.
 #
 # For example, running 'make bundle-build bundle-push catalog-build catalog-push' will build and push both
-# janus-idp.io/backstage-operator-bundle:$VERSION and janus-idp.io/backstage-operator-catalog:$VERSION.
+# quay.io/janus-idp/operator-bundle:$VERSION and quay.io/janus-idp/operator-catalog:$VERSION.
 IMAGE_TAG_BASE ?= quay.io/janus-idp/operator
 
 # BUNDLE_IMG defines the image:tag used for the bundle.
@@ -111,6 +111,11 @@ fmt_license: addlicense ## Ensure the license header is set on all files
 	$(ADDLICENSE) -v -f license_header.txt $$(find . -not -path '*/\.*' -name '*.go')
 	$(ADDLICENSE) -v -f license_header.txt $$(find . -name '*ockerfile')
 
+.PHONY: gosec
+gosec: addgosec ## run the gosec scanner for non-test files in this repo
+  	# we let the report content trigger a failure using the GitHub Security features.
+	$(GOSEC) -no-fail -fmt $(GOSEC_FMT) -out $(GOSEC_OUTPUT_FILE)  ./...
+
 .PHONY: lint
 lint: golangci-lint ## Run the linter on the codebase
 	$(GOLANGCI_LINT) run ./... --timeout 15m
@@ -142,12 +147,12 @@ PLATFORM ?= linux/amd64
 # (i.e. docker build --platform linux/arm64 ). However, you must enable docker buildKit for it.
 # More info: https://docs.docker.com/develop/develop-images/build_enhancements/
 
-.PHONY: operator-build
-operator-build: test ## Build docker image with the manager using docker.
+.PHONY: image-build
+image-build: test ## Build docker image with the manager using docker.
 	$(CONTAINER_ENGINE) build --platform $(PLATFORM) -f docker/Dockerfile -t $(IMG) --label $(LABEL) .
 
-.PHONY: operator-push
-operator-push: ## Push IMG image to registry
+.PHONY: image-push
+image-push: ## Push IMG image to registry
 	$(CONTAINER_ENGINE) push $(IMG)
 
 # PLATFORMS defines the target platforms for  the manager image be build to provide support to multiple
@@ -206,6 +211,7 @@ ENVTEST ?= $(LOCALBIN)/setup-envtest
 GOLANGCI_LINT ?= $(LOCALBIN)/golangci-lint
 GOIMPORTS ?= $(LOCALBIN)/goimports
 ADDLICENSE ?= $(LOCALBIN)/addlicense
+GOSEC ?= $(LOCALBIN)/gosec
 
 ## Tool Versions
 KUSTOMIZE_VERSION ?= v3.8.7
@@ -214,7 +220,13 @@ GOLANGCI_LINT_VERSION ?= v1.55.2
 GOIMPORTS_VERSION ?= v0.15.0
 ADDLICENSE_VERSION ?= v1.1.1
 # opm and operator-sdk version
-OP_VERSION ?= v1.33.0
+OPM_VERSION ?= v1.36.0
+OPERATOR_SDK_VERSION ?= v1.33.0
+GOSEC_VERSION ?= v2.18.2
+
+## Gosec options - default format is sarif so we can integrate with Github code scanning
+GOSEC_FMT ?= sarif  # for other options, see https://github.com/securego/gosec#output-formats
+GOSEC_OUTPUT_FILE ?= gosec.sarif
 
 KUSTOMIZE_INSTALL_SCRIPT ?= "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh"
 .PHONY: kustomize
@@ -247,40 +259,37 @@ addlicense: $(ADDLICENSE) ## Download addlicense locally if necessary.
 $(ADDLICENSE): $(LOCALBIN)
 	test -s $(LOCALBIN)/addlicense || GOBIN=$(LOCALBIN) go install github.com/google/addlicense@$(ADDLICENSE_VERSION)
 
-.PHONY: operator-sdk
+.PHONY: addgosec
+addgosec: $(GOSEC) ## Download gosec locally if necessary.
+$(GOSEC): $(LOCALBIN)
+	test -s $(LOCALBIN)/gosec || GOBIN=$(LOCALBIN) go install github.com/securego/gosec/v2/cmd/gosec@$(GOSEC_VERSION)
+
 OPSDK = ./bin/operator-sdk
+.PHONY: operator-sdk
 operator-sdk: ## Download operator-sdk locally if necessary.
 ifeq (,$(wildcard $(OPSDK)))
-ifeq (,$(shell which operator-sdk 2>/dev/null))
 	@{ \
 	set -e ;\
 	mkdir -p $(dir $(OPSDK)) ;\
 	OS=$(shell go env GOOS) && ARCH=$(shell go env GOARCH) && \
-	echo "Dowloading https://github.com/operator-framework/operator-sdk/releases/download/$(OP_VERSION)/operator-sdk_$${OS}_$${ARCH} to ./bin/operator-sdk" ;\
-	curl -sSLo $(OPSDK) https://github.com/operator-framework/operator-sdk/releases/download/$(OP_VERSION)/operator-sdk_$${OS}_$${ARCH} ;\
+	echo "Dowloading https://github.com/operator-framework/operator-sdk/releases/download/$(OPERATOR_SDK_VERSION)/operator-sdk_$${OS}_$${ARCH} to ./bin/operator-sdk" ;\
+	curl -sSLo $(OPSDK) https://github.com/operator-framework/operator-sdk/releases/download/$(OPERATOR_SDK_VERSION)/operator-sdk_$${OS}_$${ARCH} ;\
 	chmod +x $(OPSDK) ;\
 	}
-else
-OPSDK = $(shell which operator-sdk)
-endif
 endif
 
 .PHONY: opm
 OPM = ./bin/opm
 opm: ## Download opm locally if necessary.
 ifeq (,$(wildcard $(OPM)))
-ifeq (,$(shell which opm 2>/dev/null))
 	@{ \
 	set -e ;\
 	mkdir -p $(dir $(OPM)) ;\
 	OS=$(shell go env GOOS) && ARCH=$(shell go env GOARCH) && \
-	echo "Dowloading https://github.com/operator-framework/operator-registry/releases/download/$(OP_VERSION)/$${OS}-$${ARCH}-opm to ./bin/opm" ;\
-	curl -sSLo $(OPM) https://github.com/operator-framework/operator-registry/releases/download/$(OP_VERSION)/$${OS}-$${ARCH}-opm ;\
+	echo "Dowloading https://github.com/operator-framework/operator-registry/releases/download/$(OPM_VERSION)/$${OS}-$${ARCH}-opm to ./bin/opm" ;\
+	curl -sSLo $(OPM) https://github.com/operator-framework/operator-registry/releases/download/$(OPM_VERSION)/$${OS}-$${ARCH}-opm ;\
 	chmod +x $(OPM) ;\
 	}
-else
-OPM = $(shell which opm)
-endif
 endif
 
 ## this will fail if VERSION is not a semver x.y.z version
@@ -295,16 +304,16 @@ bundle: operator-sdk manifests kustomize ## Generate bundle manifests and metada
 	$(MAKE) fmt_license
 
 ## to update the CSV with a new tagged version of the operator:
-## yq '.spec.install.spec.deployments[0].spec.template.spec.containers[1].image|="quay.io/janus-idp/operator:some-other-tag"' bundle/manifests/backstage-operator.clusterserviceversion.yaml
+## yq '.spec.install.spec.deployments[0].spec.template.spec.containers[1].image|="quay.io/rhdh/operator:some-other-tag"' bundle/manifests/backstage-operator.clusterserviceversion.yaml
 ## or 
-## sed -r -e "s#(image: +)quay.io/.+operator.+#\1quay.io/janus-idp/operator:some-other-tag#g" -i bundle/manifests/backstage-operator.clusterserviceversion.yaml
+## sed -r -e "s#(image: +)quay.io/.+operator.+#\1quay.io/rhdh/operator:some-other-tag#g" -i bundle/manifests/backstage-operator.clusterserviceversion.yaml
 .PHONY: bundle-build
 bundle-build: ## Build the bundle image.
 	$(CONTAINER_ENGINE) build --platform $(PLATFORM) -f docker/bundle.Dockerfile -t $(BUNDLE_IMG) --label $(LABEL) .
 
 .PHONY: bundle-push
 bundle-push: ## Push bundle image to registry
-	$(MAKE) operator-push IMG=$(BUNDLE_IMG)
+	$(MAKE) image-push IMG=$(BUNDLE_IMG)
 
 # A comma-separated list of bundle images (e.g. make catalog-build BUNDLE_IMGS=example.com/operator-bundle:v0.1.0,example.com/operator-bundle:v0.2.0).
 # These images MUST exist in a registry and be pull-able.
@@ -322,19 +331,20 @@ endif
 # This recipe invokes 'opm' in 'semver' bundle add mode. For more information on add modes, see:
 # https://github.com/operator-framework/community-operators/blob/7f1438c/docs/packaging-operator.md#updating-your-existing-operator
 .PHONY: catalog-build
-catalog-build: opm bundle-push ## Generate operator-catalog dockerfile using the operator-bundle image built and published above; then build catalog image
-	$(OPM) index add --container-tool $(CONTAINER_ENGINE) --mode semver --tag $(CATALOG_IMG) --bundles $(BUNDLE_IMGS) $(FROM_INDEX_OPT) --generate
-	$(CONTAINER_ENGINE) build --platform $(PLATFORM) -f index.Dockerfile -t $(CATALOG_IMG) --label $(LABEL) .
+catalog-build: bundle-push opm ## Generate operator-catalog dockerfile using the operator-bundle image built and published above; then build catalog image
+    ## [GA] added '-d docker/index.Dockerfile' to avoid generating in the root
+	$(OPM) index add --container-tool $(CONTAINER_ENGINE) --mode semver --tag $(CATALOG_IMG) --bundles $(BUNDLE_IMGS) $(FROM_INDEX_OPT) --generate -d docker/index.Dockerfile
+	$(CONTAINER_ENGINE) build --platform $(PLATFORM) -f docker/index.Dockerfile -t $(CATALOG_IMG) --label $(LABEL) .
 
 .PHONY: catalog-push
 catalog-push: ## Push catalog image to registry
-	$(MAKE) operator-push IMG=$(CATALOG_IMG)
+	$(MAKE) image-push IMG=$(CATALOG_IMG)
 
 .PHONY:
-release-build: bundle operator-build bundle-build catalog-build ## Build operator, bundle + catalog images
+release-build: bundle image-build bundle-build catalog-build ## Build operator, bundle + catalog images
 
 .PHONY:
-release-push: operator-push bundle-push catalog-push ## Push operator, bundle + catalog images
+release-push: image-push bundle-push catalog-push ## Push operator, bundle + catalog images
 
 .PHONY: deploy-olm
 deploy-olm: ## Deploy the operator with OLM
@@ -352,3 +362,7 @@ DEFAULT_OLM_NAMESPACE ?= openshift-marketplace
 catalog-update: ## Update catalog source in the default namespace for catalogsource
 	-kubectl delete catalogsource backstage-operator -n $(DEFAULT_OLM_NAMESPACE)
 	sed "s/{{CATALOG_IMG}}/$(subst /,\/,$(CATALOG_IMG))/g" config/samples/catalog-source-template.yaml | kubectl apply -n $(DEFAULT_OLM_NAMESPACE) -f -
+
+.PHONY: deploy-openshift
+deploy-openshift: release-build release-push catalog-update ## Deploy the operator on openshift cluster
+

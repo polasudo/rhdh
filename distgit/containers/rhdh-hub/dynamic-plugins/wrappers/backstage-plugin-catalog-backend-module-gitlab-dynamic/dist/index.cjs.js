@@ -2,19 +2,16 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var pluginCatalogBackendModuleGitlab = require('@backstage/plugin-catalog-backend-module-gitlab');
+var alpha = require('@backstage/plugin-catalog-backend-module-gitlab/alpha');
 
-const dynamicPluginInstaller = {
-  kind: "legacy",
-  async catalog(builder, env) {
-    builder.addEntityProvider(
-      ...pluginCatalogBackendModuleGitlab.GitlabDiscoveryEntityProvider.fromConfig(env.config, {
-        logger: env.logger,
-        scheduler: env.scheduler
-      })
-    );
-  }
-};
+function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 
-exports.dynamicPluginInstaller = dynamicPluginInstaller;
+var alpha__default = /*#__PURE__*/_interopDefaultLegacy(alpha);
+
+
+
+Object.defineProperty(exports, 'default', {
+	enumerable: true,
+	get: function () { return alpha__default["default"]; }
+});
 //# sourceMappingURL=index.cjs.js.map

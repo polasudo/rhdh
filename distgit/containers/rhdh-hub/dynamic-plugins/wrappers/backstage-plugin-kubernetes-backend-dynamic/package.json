@@ -1,6 +1,6 @@
 {
   "name": "backstage-plugin-kubernetes-backend",
-  "version": "0.13.0",
+  "version": "0.15.0",
   "main": "src/index.ts",
   "types": "src/index.ts",
   "license": "Apache-2.0",
@@ -11,7 +11,7 @@
     "types": "dist/index.d.ts"
   },
   "backstage": {
-    "role": "backend-plugin-module"
+    "role": "backend-plugin"
   },
   "exports": {
     ".": "./src/index.ts",
@@ -23,23 +23,18 @@
     "test": "backstage-cli package test --passWithNoTests --coverage",
     "clean": "backstage-cli package clean",
     "clean-dynamic-sources": "yarn clean && rm -Rf node_modules",
-    "export-dynamic": "janus-cli package export-dynamic-plugin --no-install --embed-package @backstage/plugin-kubernetes-backend --override-interop default && $YARN --cwd dist-dynamic install --production --network-timeout 600000"
+    "export-dynamic": "janus-cli package export-dynamic-plugin --no-install --embed-package @backstage/plugin-kubernetes-backend --embed-package @backstage/plugin-kubernetes-node --override-interop default && $YARN --cwd dist-dynamic install --production --network-timeout 600000"
   },
   "dependencies": {
-    "@backstage/catalog-client": "1.4.5",
-    "@backstage/backend-common": "0.19.8",
-    "@backstage/backend-plugin-api": "0.6.6",
-    "@backstage/backend-plugin-manager": "npm:@janus-idp/backend-plugin-manager@0.0.2-janus.5",
-    "@backstage/plugin-kubernetes-backend": "0.13.0"
+    "@backstage/plugin-kubernetes-backend": "0.15.0"
   },
   "devDependencies": {
-    "@backstage/cli": "0.23.1",
-    "@janus-idp/cli": "1.4.7"
+    "@backstage/cli": "0.25.2",
+    "@janus-idp/cli": "1.7.2"
   },
   "files": [
     "dist",
     "dist-dynamic/*.*",
-    "dist-dynamic/dist/**",
-    "dist-dynamic/alpha/*"
+    "dist-dynamic/dist/**"
   ]
 }

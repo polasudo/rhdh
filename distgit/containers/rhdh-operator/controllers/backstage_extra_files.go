@@ -18,7 +18,8 @@ import (
 	"context"
 	"fmt"
 
-	bs "janus-idp.io/backstage-operator/api/v1alpha1"
+	bs "redhat-developer/red-hat-developer-hub-operator/api/v1alpha1"
+
 	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -126,14 +127,7 @@ func (r *BackstageReconciler) extractExtraFileNames(ctx context.Context, backsta
 			// Limit to that file only
 			files = append(files, secExtraFile.Key)
 		} else {
-			sec := v1.Secret{}
-			if err = r.Get(ctx, types.NamespacedName{Name: secExtraFile.Name, Namespace: ns}, &sec); err != nil {
-				return nil, err
-			}
-			for filename := range sec.Data {
-				// Bear in mind that iteration order over this map is not guaranteed by Go
-				files = append(files, filename)
-			}
+			return nil, fmt.Errorf("key is required to mount extra file with secret %s", secExtraFile.Name)
 		}
 		result = append(result, appConfigData{
 			ref:   secExtraFile.Name,

@@ -29,4 +29,12 @@ __debug_bin*
 .scripts/
 .DS_Store
 database/
-index.Dockerfile
+docker/index.Dockerfile
+gosec.sarif
+
+# from prepare-restricted-environment script
+catalog_mirror.log
+manifests-rhdh-index-*
+rhdh-disconnected-install/
+rhdh-disconnected-install.Dockerfile
+

@@ -32,9 +32,10 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
+	backstageiov1alpha1 "redhat-developer/red-hat-developer-hub-operator/api/v1alpha1"
+	controller "redhat-developer/red-hat-developer-hub-operator/controllers"
+
 	openshift "github.com/openshift/api/route/v1"
-	backstageiov1alpha1 "janus-idp.io/backstage-operator/api/v1alpha1"
-	controller "janus-idp.io/backstage-operator/controllers"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -79,7 +80,7 @@ func main() {
 		Port:                   9443,
 		HealthProbeBindAddress: probeAddr,
 		LeaderElection:         enableLeaderElection,
-		LeaderElectionID:       "06bdbdd5.janus-idp.io",
+		LeaderElectionID:       "06bdbdd5.rhdh.redhat.com",
 		// LeaderElectionReleaseOnCancel defines if the leader should step down voluntarily
 		// when the Manager ends. This requires the binary to immediately end when the
 		// Manager is stopped, otherwise, this setting is unsafe. Setting this significantly
@@ -104,12 +105,10 @@ func main() {
 	}
 
 	if err = (&controller.BackstageReconciler{
-		Client:         mgr.GetClient(),
-		Scheme:         mgr.GetScheme(),
-		OwnsRuntime:    ownRuntime,
-		IsOpenShift:    isOpenShift,
-		PsqlImage:      os.Getenv(backstageiov1alpha1.EnvPostGresImage),
-		BackstageImage: os.Getenv(backstageiov1alpha1.EnvBackstageImage),
+		Client:      mgr.GetClient(),
+		Scheme:      mgr.GetScheme(),
+		OwnsRuntime: ownRuntime,
+		IsOpenShift: isOpenShift,
 	}).SetupWithManager(mgr, setupLog); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Backstage")
 		os.Exit(1)
@@ -129,8 +128,6 @@ func main() {
 		"own-runtime", ownRuntime,
 		"env.LOCALBIN", os.Getenv("LOCALBIN"),
 		"isOpenShift", isOpenShift,
-		backstageiov1alpha1.EnvPostGresImage, os.Getenv(backstageiov1alpha1.EnvPostGresImage),
-		backstageiov1alpha1.EnvBackstageImage, os.Getenv(backstageiov1alpha1.EnvBackstageImage),
 	)
 	if err := mgr.Start(ctrl.SetupSignalHandler()); err != nil {
 		setupLog.Error(err, "problem running manager")

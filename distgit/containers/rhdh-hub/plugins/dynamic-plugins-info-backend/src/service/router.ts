@@ -1,25 +1,23 @@
 import { errorHandler } from '@backstage/backend-common';
 import {
-  PluginManager,
   BaseDynamicPlugin,
-} from '@backstage/backend-plugin-manager';
+  DynamicPluginProvider,
+} from '@backstage/backend-dynamic-feature-service';
 import express, { Router } from 'express';
-import { Logger } from 'winston';
 
 export interface RouterOptions {
-  logger: Logger;
-  pluginManager: PluginManager;
+  pluginProvider: DynamicPluginProvider;
 }
 
 export async function createRouter(
   options: RouterOptions,
 ): Promise<express.Router> {
-  const { pluginManager } = options;
+  const { pluginProvider } = options;
 
   const router = Router();
   router.use(express.json());
 
-  const plugins = pluginManager.plugins;
+  const plugins = pluginProvider.plugins();
   const dynamicPlugins = plugins.map(p => {
     // Remove the installer details for the dynamic backend plugins
     if (p.platform === 'node') {

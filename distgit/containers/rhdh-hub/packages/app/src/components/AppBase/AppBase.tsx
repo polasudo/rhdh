@@ -12,12 +12,14 @@ import { SearchPage as BackstageSearchPage } from '@backstage/plugin-search';
 import { UserSettingsPage } from '@backstage/plugin-user-settings';
 import React, { useContext } from 'react';
 import { Route } from 'react-router-dom';
+import DynamicRootContext from '../DynamicRoot/DynamicRootContext';
 import { Root } from '../Root';
+import { settingsPage } from '../UserSettings/SettingsPages';
+import { AdminPage } from '../admin/AdminPage';
 import { entityPage } from '../catalog/EntityPage';
 import { HomePage } from '../home/HomePage';
 import { LearningPaths } from '../learningPaths/LearningPathsPage';
 import { SearchPage } from '../search/SearchPage';
-import DynamicRootContext from '../DynamicRoot/DynamicRootContext';
 
 const AppBase = () => {
   const { AppProvider, AppRouter, dynamicRoutes } =
@@ -34,7 +36,7 @@ const AppBase = () => {
                 <HomePage />
               </Route>
             )}
-            <Route path="/catalog" element={<CatalogIndexPage />} />
+            <Route path="/catalog" element={<CatalogIndexPage pagination />} />
             <Route
               path="/catalog/:namespace/:kind/:name"
               element={<CatalogEntityPage />}
@@ -61,9 +63,21 @@ const AppBase = () => {
             <Route path="/search" element={<BackstageSearchPage />}>
               <SearchPage />
             </Route>
-            <Route path="/settings" element={<UserSettingsPage />} />
+            <Route path="/settings" element={<UserSettingsPage />}>
+              {settingsPage}
+            </Route>
             <Route path="/catalog-graph" element={<CatalogGraphPage />} />
             <Route path="/learning-paths" element={<LearningPaths />} />
+            <Route path="/admin" element={<AdminPage />} />
+            {dynamicRoutes
+              .filter(({ path }) => path.startsWith('/admin'))
+              .map(({ path }) => (
+                <Route
+                  key={`admin-path-${path}`}
+                  path={path}
+                  element={<AdminPage />}
+                />
+              ))}
             {dynamicRoutes.map(
               ({ Component, staticJSXContent, path, config: { props } }) => (
                 <Route

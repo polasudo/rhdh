@@ -9,7 +9,11 @@ var require$$3 = require('@backstage/errors');
 var require$$4 = require('node-fetch');
 var require$$5 = require('@backstage/backend-plugin-api');
 
-var index_cjs = {};
+function getDefaultExportFromCjs (x) {
+	return x && x.__esModule && Object.prototype.hasOwnProperty.call(x, 'default') ? x['default'] : x;
+}
+
+var index_cjs$1 = {};
 
 (function (exports) {
 
@@ -305,22 +309,9 @@ var index_cjs = {};
 	exports.createRouter = createRouter;
 	exports["default"] = sonarqubePlugin;
 	
-} (index_cjs));
+} (index_cjs$1));
 
-const dynamicPluginInstaller = {
-  kind: "legacy",
-  router: {
-    pluginID: "sonarqube",
-    async createPlugin(env) {
-      return await index_cjs.createRouter({
-        logger: env.logger,
-        sonarqubeInfoProvider: index_cjs.DefaultSonarqubeInfoProvider.fromConfig(
-          env.config
-        )
-      });
-    }
-  }
-};
+var index_cjs = /*@__PURE__*/getDefaultExportFromCjs(index_cjs$1);
 
-exports.dynamicPluginInstaller = dynamicPluginInstaller;
+exports["default"] = index_cjs;
 //# sourceMappingURL=index.cjs.js.map

@@ -2,6 +2,8 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var backendPluginApi = require('@backstage/backend-plugin-api');
+var alpha = require('@backstage/plugin-scaffolder-node/alpha');
 var require$$0$1 = require('@backstage/plugin-scaffolder-backend');
 var require$$0 = require('@backstage/backend-common');
 var require$$1 = require('express');
@@ -29,12 +31,23 @@ function timer(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+const getArgoConfigByInstanceName = ({
+  argoConfigs,
+  argoInstanceName
+}) => {
+  const matchedArgoConfig = argoConfigs.find(
+    (configs) => configs.name === argoInstanceName
+  );
+  return matchedArgoConfig;
+};
+
 var __defProp = Object.defineProperty;
 var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
 var __publicField = (obj, key, value) => {
   __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
   return value;
 };
+const APP_NAMESPACE_QUERY_PARAM = "appNamespace";
 class ArgoService {
   constructor(username, password, config, logger) {
     this.username = username;
@@ -70,7 +83,6 @@ class ArgoService {
     );
   }
   async getRevisionData(baseUrl, options, argoToken, revisionID) {
-    const urlSuffix = options.name ? `/${options.name}` : `?selector=${options.selector}`;
     const requestOptions = {
       method: "GET",
       headers: {
@@ -78,10 +90,11 @@ class ArgoService {
         Authorization: `Bearer ${argoToken}`
       }
     };
-    const resp = await fetch__default["default"](
-      `${baseUrl}/api/v1/applications${urlSuffix}/revisions/${revisionID}/metadata`,
-      requestOptions
-    );
+    let url = `${baseUrl}/api/v1/applications/${options.name}/revisions/${revisionID}/metadata`;
+    if (options.namespace) {
+      url = `${url}?${APP_NAMESPACE_QUERY_PARAM}=${options.namespace}`;
+    }
+    const resp = await fetch__default["default"](url, requestOptions);
     if (!resp.ok) {
       throw new Error(`Request failed with ${resp.status} Error`);
     }
@@ -95,8 +108,16 @@ class ArgoService {
     const resp = await Promise.all(
       this.instanceConfigs.map(async (argoInstance) => {
         let getArgoAppDataResp;
+        let token;
         try {
-          const token = argoInstance.token || await this.getArgoToken(argoInstance);
+          token = argoInstance.token || await this.getArgoToken(argoInstance);
+        } catch (error) {
+          this.logger.error(
+            `Error getting token from Argo Instance ${argoInstance.name}: ${error.message}`
+          );
+          return null;
+        }
+        try {
           getArgoAppDataResp = await this.getArgoAppData(
             argoInstance.url,
             argoInstance.name,
@@ -105,7 +126,7 @@ class ArgoService {
           );
         } catch (error) {
           this.logger.error(
-            `Error getting token from Argo Instance ${argoInstance.name}: ${error.message}`
+            `Error getting Argo App Data from Argo Instance ${argoInstance.name}: ${error.message}`
           );
           return null;
         }
@@ -172,9 +193,15 @@ class ArgoService {
     let urlSuffix = "";
     if (options == null ? void 0 : options.name) {
       urlSuffix = `/${options.name}`;
+      if (options == null ? void 0 : options.namespace) {
+        urlSuffix = `${urlSuffix}?${APP_NAMESPACE_QUERY_PARAM}=${options.namespace}`;
+      }
     }
     if (options == null ? void 0 : options.selector) {
       urlSuffix = `?selector=${options.selector}`;
+      if (options == null ? void 0 : options.namespace) {
+        urlSuffix = `${urlSuffix}&${APP_NAMESPACE_QUERY_PARAM}=${options.namespace}`;
+      }
     }
     const requestOptions = {
       method: "GET",
@@ -207,24 +234,39 @@ class ArgoService {
     resourceVersion,
     sourceRepo
   }) {
-    return {
-      project: {
-        metadata: {
-          name: projectName,
-          resourceVersion
-        },
-        spec: {
-          destinations: [
-            {
-              name: "local",
-              namespace,
-              server: destinationServer ? destinationServer : "https://kubernetes.default.svc"
-            }
-          ],
-          sourceRepos: Array.isArray(sourceRepo) ? sourceRepo : [sourceRepo]
-        }
+    const clusterResourceBlacklist = this.config.getOptional(
+      `argocd.projectSettings.clusterResourceBlacklist`
+    );
+    const clusterResourceWhitelist = this.config.getOptional(
+      `argocd.projectSettings.clusterResourceWhitelist`
+    );
+    const namespaceResourceBlacklist = this.config.getOptional(
+      `argocd.projectSettings.namespaceResourceBlacklist`
+    );
+    const namespaceResourceWhitelist = this.config.getOptional(
+      `argocd.projectSettings.namespaceResourceWhitelist`
+    );
+    const project = {
+      metadata: {
+        name: projectName,
+        resourceVersion
+      },
+      spec: {
+        destinations: [
+          {
+            name: "local",
+            namespace,
+            server: destinationServer != null ? destinationServer : "https://kubernetes.default.svc"
+          }
+        ],
+        ...clusterResourceBlacklist && { clusterResourceBlacklist },
+        ...clusterResourceWhitelist && { clusterResourceWhitelist },
+        ...namespaceResourceBlacklist && { namespaceResourceBlacklist },
+        ...namespaceResourceWhitelist && { namespaceResourceWhitelist },
+        sourceRepos: Array.isArray(sourceRepo) ? sourceRepo : [sourceRepo]
       }
     };
+    return project;
   }
   async createArgoProject({
     baseUrl,
@@ -234,12 +276,14 @@ class ArgoService {
     sourceRepo,
     destinationServer
   }) {
-    const data = this.buildArgoProjectPayload({
-      projectName,
-      namespace,
-      sourceRepo,
-      destinationServer
-    });
+    const data = {
+      project: this.buildArgoProjectPayload({
+        projectName,
+        namespace,
+        sourceRepo,
+        destinationServer
+      })
+    };
     const options = {
       method: "POST",
       headers: {
@@ -796,6 +840,43 @@ class ArgoService {
     });
     return true;
   }
+  async getArgoApplicationInfo({
+    argoApplicationName,
+    argoInstanceName
+  }) {
+    var _a;
+    const matchedArgoInstance = getArgoConfigByInstanceName({
+      argoConfigs: this.instanceConfigs,
+      argoInstanceName
+    });
+    if (!matchedArgoInstance)
+      throw new Error(
+        `config does not have argo information for the cluster named "${argoInstanceName}"`
+      );
+    const token = (_a = matchedArgoInstance.token) != null ? _a : await this.getArgoToken(matchedArgoInstance);
+    const options = {
+      headers: {
+        Authorization: `Bearer ${token}`
+      },
+      method: "GET"
+    };
+    let statusText = "";
+    try {
+      const response = await fetch__default["default"](
+        `${matchedArgoInstance.url}/api/v1/applications/${argoApplicationName}`,
+        options
+      );
+      statusText = response.statusText;
+      return { ...await response.json(), statusCode: response.status };
+    } catch (error) {
+      this.logger.error(
+        `Error Getting Argo Application Information For Argo Instance Name ${argoInstanceName} - searching for application ${argoApplicationName} - ${JSON.stringify(
+          { statusText, error: error.message }
+        )}`
+      );
+      throw error;
+    }
+  }
 }
 
 function createRouter({
@@ -808,34 +889,20 @@ function createRouter({
   const argoUserName = (_a = config.getOptionalString("argocd.username")) != null ? _a : "argocdUsername";
   const argoPassword = (_b = config.getOptionalString("argocd.password")) != null ? _b : "argocdPassword";
   const argoSvc = new ArgoService(argoUserName, argoPassword, config, logger);
-  const findArgoInstance = (argoInstanceName) => {
-    const argoInstanceArray = argoSvc.getArgoInstanceArray();
-    const foundArgoInstance = argoInstanceArray.find(
-      (argoInstance) => argoInstance.name === argoInstanceName
-    );
-    return foundArgoInstance;
-  };
-  async function findMatchedArgoInstanceToken(matchedArgoInstance) {
-    let token;
-    if (!matchedArgoInstance.token) {
-      token = await argoSvc.getArgoToken(matchedArgoInstance);
-    } else {
-      token = matchedArgoInstance.token;
-    }
-    return token;
-  }
   router.get("/allArgoApps/:argoInstanceName", async (request, response) => {
+    var _a2;
     const argoInstanceName = request.params.argoInstanceName;
-    const matchedArgoInstance = findArgoInstance(argoInstanceName);
+    const matchedArgoInstance = getArgoConfigByInstanceName({
+      argoInstanceName,
+      argoConfigs: argoSvc.getArgoInstanceArray()
+    });
     if (matchedArgoInstance === void 0) {
       return response.status(500).send({
         status: "failed",
         message: "cannot find an argo instance to match this cluster"
       });
     }
-    const token = await findMatchedArgoInstanceToken(
-      matchedArgoInstance
-    );
+    const token = (_a2 = matchedArgoInstance.token) != null ? _a2 : await argoSvc.getArgoToken(matchedArgoInstance);
     if (!token) {
       return response.status(500).send({
         status: "failed",
@@ -853,17 +920,19 @@ function createRouter({
   router.get(
     "/argoInstance/:argoInstance/repo/:repo/source/:source",
     async (request, response) => {
+      var _a2;
       const argoInstanceName = request.params.argoInstance;
-      const matchedArgoInstance = findArgoInstance(argoInstanceName);
+      const matchedArgoInstance = getArgoConfigByInstanceName({
+        argoInstanceName,
+        argoConfigs: argoSvc.getArgoInstanceArray()
+      });
       if (matchedArgoInstance === void 0) {
         return response.status(500).send({
           status: "failed",
           message: "cannot find an argo instance to match this cluster"
         });
       }
-      const token = await findMatchedArgoInstanceToken(
-        matchedArgoInstance
-      );
+      const token = (_a2 = matchedArgoInstance.token) != null ? _a2 : await argoSvc.getArgoToken(matchedArgoInstance);
       if (!token) {
         return response.status(500).send({
           status: "failed",
@@ -877,8 +946,8 @@ function createRouter({
       );
       const repoAndSource = argoData.items.map(
         (argoApp) => {
-          var _a2, _b2, _c, _d;
-          return `${(_b2 = (_a2 = argoApp == null ? void 0 : argoApp.spec) == null ? void 0 : _a2.source) == null ? void 0 : _b2.repoURL}/${(_d = (_c = argoApp == null ? void 0 : argoApp.spec) == null ? void 0 : _c.source) == null ? void 0 : _d.path}`;
+          var _a3, _b2, _c, _d;
+          return `${(_b2 = (_a3 = argoApp == null ? void 0 : argoApp.spec) == null ? void 0 : _a3.source) == null ? void 0 : _b2.repoURL}/${(_d = (_c = argoApp == null ? void 0 : argoApp.spec) == null ? void 0 : _c.source) == null ? void 0 : _d.path}`;
         }
       );
       return response.send(
@@ -889,30 +958,43 @@ function createRouter({
     }
   );
   router.get("/find/name/:argoAppName", async (request, response) => {
+    var _a2;
     const argoAppName = request.params.argoAppName;
-    response.send(await argoSvc.findArgoApp({ name: argoAppName }));
+    const argoAppNamespace = (_a2 = request.query) == null ? void 0 : _a2.appNamespace;
+    response.send(
+      await argoSvc.findArgoApp({
+        name: argoAppName,
+        namespace: argoAppNamespace
+      })
+    );
   });
   router.get(
     "/argoInstance/:argoInstanceName/applications/name/:argoAppName/revisions/:revisionID/metadata",
     async (request, response) => {
+      var _a2, _b2;
       const revisionID = request.params.revisionID;
       const argoInstanceName = request.params.argoInstanceName;
       const argoAppName = request.params.argoAppName;
+      const argoAppNamespace = (_a2 = request.query) == null ? void 0 : _a2.appNamespace;
       logger.info(`Getting info on ${argoAppName}`);
       logger.info(`Getting app ${argoAppName} on ${argoInstanceName}`);
-      const matchedArgoInstance = findArgoInstance(argoInstanceName);
+      const matchedArgoInstance = getArgoConfigByInstanceName({
+        argoInstanceName,
+        argoConfigs: argoSvc.getArgoInstanceArray()
+      });
       if (matchedArgoInstance === void 0) {
         return response.status(500).send({
           status: "failed",
           message: "cannot find an argo instance to match this cluster"
         });
       }
-      const token = await findMatchedArgoInstanceToken(
-        matchedArgoInstance
-      );
+      const token = (_b2 = matchedArgoInstance.token) != null ? _b2 : await argoSvc.getArgoToken(matchedArgoInstance);
       const resp = await argoSvc.getRevisionData(
         matchedArgoInstance.url,
-        { name: argoAppName },
+        {
+          name: argoAppName,
+          namespace: argoAppNamespace
+        },
         token,
         revisionID
       );
@@ -922,56 +1004,73 @@ function createRouter({
   router.get(
     "/argoInstance/:argoInstanceName/applications/name/:argoAppName",
     async (request, response) => {
+      var _a2, _b2;
       const argoInstanceName = request.params.argoInstanceName;
       const argoAppName = request.params.argoAppName;
+      const argoAppNamespace = (_a2 = request.query) == null ? void 0 : _a2.appNamespace;
       logger.info(`Getting info on ${argoAppName}`);
       logger.info(`Getting app ${argoAppName} on ${argoInstanceName}`);
-      const matchedArgoInstance = findArgoInstance(argoInstanceName);
+      const matchedArgoInstance = getArgoConfigByInstanceName({
+        argoInstanceName,
+        argoConfigs: argoSvc.getArgoInstanceArray()
+      });
       if (matchedArgoInstance === void 0) {
         return response.status(500).send({
           status: "failed",
           message: "cannot find an argo instance to match this cluster"
         });
       }
-      const token = await findMatchedArgoInstanceToken(
-        matchedArgoInstance
-      );
+      const token = (_b2 = matchedArgoInstance.token) != null ? _b2 : await argoSvc.getArgoToken(matchedArgoInstance);
       const resp = await argoSvc.getArgoAppData(
         matchedArgoInstance.url,
         matchedArgoInstance.name,
         token,
-        { name: argoAppName }
+        { name: argoAppName, namespace: argoAppNamespace }
       );
       return response.send(resp);
     }
   );
   router.get("/find/selector/:argoAppSelector", async (request, response) => {
+    var _a2;
     const argoAppSelector = request.params.argoAppSelector;
-    response.send(await argoSvc.findArgoApp({ selector: argoAppSelector }));
+    const argoAppNamespace = (_a2 = request.query) == null ? void 0 : _a2.appNamespace;
+    logger.info(`Getting apps for selector ${argoAppSelector}`);
+    response.send(
+      await argoSvc.findArgoApp({
+        selector: argoAppSelector,
+        namespace: argoAppNamespace
+      })
+    );
   });
   router.get(
     "/argoInstance/:argoInstanceName/applications/selector/:argoAppSelector",
     async (request, response) => {
+      var _a2, _b2;
       const argoInstanceName = request.params.argoInstanceName;
       const argoAppSelector = request.params.argoAppSelector;
+      const argoAppNamespace = (_a2 = request.query) == null ? void 0 : _a2.appNamespace;
       logger.info(
         `Getting apps for selector ${argoAppSelector} on ${argoInstanceName}`
       );
-      const matchedArgoInstance = findArgoInstance(argoInstanceName);
+      const matchedArgoInstance = getArgoConfigByInstanceName({
+        argoInstanceName,
+        argoConfigs: argoSvc.getArgoInstanceArray()
+      });
       if (matchedArgoInstance === void 0) {
         return response.status(500).send({
           status: "failed",
           message: "cannot find an argo instance to match this cluster"
         });
       }
-      const token = await findMatchedArgoInstanceToken(
-        matchedArgoInstance
-      );
+      const token = (_b2 = matchedArgoInstance.token) != null ? _b2 : await argoSvc.getArgoToken(matchedArgoInstance);
       const resp = await argoSvc.getArgoAppData(
         matchedArgoInstance.url,
         matchedArgoInstance.name,
         token,
-        { selector: argoAppSelector }
+        {
+          selector: argoAppSelector,
+          namespace: argoAppNamespace
+        }
       );
       return response.send(resp);
     }
@@ -984,7 +1083,10 @@ function createRouter({
     const labelValue = request.body.labelValue;
     const sourceRepo = request.body.sourceRepo;
     const sourcePath = request.body.sourcePath;
-    const matchedArgoInstance = findArgoInstance(argoInstanceName);
+    const matchedArgoInstance = getArgoConfigByInstanceName({
+      argoInstanceName,
+      argoConfigs: argoSvc.getArgoInstanceArray()
+    });
     if (matchedArgoInstance === void 0) {
       return response.status(500).send({
         status: "failed",
@@ -1050,7 +1152,10 @@ function createRouter({
     const labelValue = request.body.labelValue;
     const sourceRepo = request.body.sourceRepo;
     const sourcePath = request.body.sourcePath;
-    const matchedArgoInstance = findArgoInstance(argoInstanceName);
+    const matchedArgoInstance = getArgoConfigByInstanceName({
+      argoInstanceName,
+      argoConfigs: argoSvc.getArgoInstanceArray()
+    });
     if (matchedArgoInstance === void 0) {
       return response.status(500).send({
         status: "failed",
@@ -1117,6 +1222,18 @@ function createRouter({
         argoInstanceName
       });
       return response.send(argoDeleteAppandProjectResp);
+    }
+  );
+  router.get(
+    "/argoInstance/:argoInstanceName/applications/:argoAppName",
+    async (request, response) => {
+      const argoInstanceName = request.params.argoInstanceName;
+      const argoApplicationName = request.params.argoAppName;
+      const applicationInformation = await argoSvc.getArgoApplicationInfo({
+        argoApplicationName,
+        argoInstanceName
+      });
+      return response.status(applicationInformation.statusCode).send(applicationInformation);
     }
   );
   router.use(backendCommon.errorHandler());
@@ -1203,10 +1320,24 @@ const createArgoCdResources = (config, logger) => {
 
 var createArgoCdResources_1 = index_cjs$1.createArgoCdResources = createArgoCdResources;
 
-const dynamicPluginInstaller = {
-  kind: "legacy",
-  scaffolder: (env) => [createArgoCdResources_1(env.config, env.logger)]
-};
+const scaffolderBackendModuleArgocd = backendPluginApi.createBackendModule({
+  moduleId: "scaffolder-backend-module-argocd",
+  pluginId: "scaffolder",
+  register(env) {
+    env.registerInit({
+      deps: {
+        scaffolder: alpha.scaffolderActionsExtensionPoint,
+        config: backendPluginApi.coreServices.rootConfig,
+        logger: backendPluginApi.coreServices.logger
+      },
+      async init({ scaffolder, config, logger }) {
+        scaffolder.addActions(
+          createArgoCdResources_1(config, require$$0.loggerToWinstonLogger(logger))
+        );
+      }
+    });
+  }
+});
 
-exports.dynamicPluginInstaller = dynamicPluginInstaller;
+exports["default"] = scaffolderBackendModuleArgocd;
 //# sourceMappingURL=index.cjs.js.map

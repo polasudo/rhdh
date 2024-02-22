@@ -6,6 +6,8 @@ Add more dependencies to `requirements.in`, then:
 pip-compile --allow-unsafe --strip-extras requirements.in -o requirements.txt
 ```
 
+If it passes, you can run `cachito_hash.sh` to fix the sha256sums.
+
 Try to install everything in `requirements.txt`:
 
 ```
@@ -29,10 +31,12 @@ Review the contents of `requirements-build.in` to remove dupes. Then regenerate 
 pip-compile --allow-unsafe --strip-extras requirements-build.in -o requirements-build.txt
 ```
 
-Finally, MAKE SURE YOU OVERRIDE what's in the .txt files to add in the cachito_hash values, as pip-compile will remove them:
+If it passes, you can run `cachito_hash.sh` to fix the sha256sums.
+
+Finally, MAKE SURE YOU OVERRIDE what's in the .txt files to add in the cachito_hash values, as pip-compile will remove them. This can be done by running `cachito_hash.sh`.
 
 ```
-mkdocs-techdocs-core @ https://github.com/backstage/mkdocs-techdocs-core/archive/706c804c05a4cc6df86e6118f7656d7edee821d2.zip#cachito_hash=sha256:c094147100bf1fd92277f347dbca4e5a3cb2b4f3b22e37ad7ca79759b5bfd38e
+mkdocs-techdocs-core @ https://github.com/backstage/mkdocs-techdocs-core/archive/bbdab44e0d3aecfdc4e77b14c72b57791d4902b2.zip#cachito_hash=sha256:40421a5f43b11fd9ea9f92e107f91089b6bfa326967ad497666ab5a451fcf136
 plantuml-markdown @ https://github.com/mikitex70/plantuml-markdown/archive/17d348bfaa9112cdd2130e6410ce3a50224db3cf.zip#cachito_hash=sha256:221cc4972c75ba911cad4a56df07f61771c20077f8cbc8966181e30cabf68de1
 ```
 
@@ -55,8 +59,8 @@ When the build passes, commit changes to midstream and downstream, and trigger s
 
 Note that some files are transformed between up/mid/downstream, so you may have to apply changes in more than one file.
 
-- Upstream: `docker/Dockerfile` (upstream) and `docker/brew.Dockerfile` (mid + downstream)
+- Upstream: `docker/Dockerfile` (upstream) and `.rhdh/docker/Dockerfile` (mid + downstream)
 
-- Midstream: `distgit/containers/rhdh-hub/docker/brew.Dockerfile` is transformed to `distgit/containers/rhdh-hub/Dockerfile.in` via [sync.sh](https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1.1-rhel-9/sync.sh)
+- Midstream: `distgit/containers/rhdh-hub/.rhdh/docker/Dockerfile` is transformed to `distgit/containers/rhdh-hub/Dockerfile.in` via [sync.sh](https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1.1-rhel-9/sync.sh)
 
 - Downstream: `Dockerfile.in` becomes `Dockerfile` automatically, injecting the product version from [`gcp_env/product_version`](https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1.1-rhel-9/gcp_env/product-version)

@@ -59,7 +59,6 @@
                     "items": {
                       "type": "object",
                       "required": [
-                        "authProvider",
                         "name",
                         "url"
                       ],
@@ -72,6 +71,10 @@
                           "visibility": "frontend",
                           "type": "string"
                         },
+                        "title": {
+                          "visibility": "frontend",
+                          "type": "string"
+                        },
                         "serviceAccountToken": {
                           "visibility": "secret",
                           "type": "string"
@@ -79,6 +82,7 @@
                         "authProvider": {
                           "visibility": "frontend",
                           "enum": [
+                            "aks",
                             "aws",
                             "azure",
                             "google",
@@ -87,6 +91,11 @@
                             "serviceAccount"
                           ],
                           "type": "string"
+                        },
+                        "authMetadata": {
+                          "visibility": "secret",
+                          "type": "object",
+                          "additionalProperties": true
                         },
                         "oidcTokenProvider": {
                           "visibility": "frontend",
@@ -156,6 +165,10 @@
                     "type": "string"
                   },
                   "region": {
+                    "visibility": "frontend",
+                    "type": "string"
+                  },
+                  "authProvider": {
                     "visibility": "frontend",
                     "type": "string"
                   },

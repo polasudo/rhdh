@@ -15,7 +15,10 @@ var require$$9 = require('@backstage/errors');
 var require$$10 = require('@backstage/plugin-permission-node');
 var require$$11 = require('@backstage/backend-plugin-api');
 var require$$12 = require('@backstage/plugin-catalog-node/alpha');
-var catalogClient = require('@backstage/catalog-client');
+
+function getDefaultExportFromCjs (x) {
+	return x && x.__esModule && Object.prototype.hasOwnProperty.call(x, 'default') ? x['default'] : x;
+}
 
 function getAugmentedNamespace(n) {
   if (n.__esModule) return n;
@@ -42,7 +45,7 @@ function getAugmentedNamespace(n) {
 	return a;
 }
 
-var index_cjs = {};
+var index_cjs$1 = {};
 
 const jenkinsExecutePermission = require$$5.createPermission({
   name: "jenkins.execute",
@@ -677,27 +680,9 @@ var require$$6 = /*@__PURE__*/getAugmentedNamespace(index_esm);
 	exports.createRouter = createRouter;
 	exports["default"] = jenkinsPlugin;
 	
-} (index_cjs));
+} (index_cjs$1));
 
-const dynamicPluginInstaller = {
-  kind: "legacy",
-  router: {
-    pluginID: "jenkins",
-    async createPlugin(env) {
-      const catalog = new catalogClient.CatalogClient({
-        discoveryApi: env.discovery
-      });
-      return await index_cjs.createRouter({
-        logger: env.logger,
-        jenkinsInfoProvider: index_cjs.DefaultJenkinsInfoProvider.fromConfig({
-          config: env.config,
-          catalog
-        }),
-        permissions: env.permissions
-      });
-    }
-  }
-};
+var index_cjs = /*@__PURE__*/getDefaultExportFromCjs(index_cjs$1);
 
-exports.dynamicPluginInstaller = dynamicPluginInstaller;
+exports["default"] = index_cjs;
 //# sourceMappingURL=index.cjs.js.map

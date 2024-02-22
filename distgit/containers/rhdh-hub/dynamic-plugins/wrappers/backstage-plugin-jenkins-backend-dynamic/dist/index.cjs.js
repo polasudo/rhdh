@@ -3,27 +3,15 @@
 Object.defineProperty(exports, '__esModule', { value: true });
 
 var pluginJenkinsBackend = require('@backstage/plugin-jenkins-backend');
-var catalogClient = require('@backstage/catalog-client');
 
-const dynamicPluginInstaller = {
-  kind: "legacy",
-  router: {
-    pluginID: "jenkins",
-    async createPlugin(env) {
-      const catalog = new catalogClient.CatalogClient({
-        discoveryApi: env.discovery
-      });
-      return await pluginJenkinsBackend.createRouter({
-        logger: env.logger,
-        jenkinsInfoProvider: pluginJenkinsBackend.DefaultJenkinsInfoProvider.fromConfig({
-          config: env.config,
-          catalog
-        }),
-        permissions: env.permissions
-      });
-    }
-  }
-};
+function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 
-exports.dynamicPluginInstaller = dynamicPluginInstaller;
+var pluginJenkinsBackend__default = /*#__PURE__*/_interopDefaultLegacy(pluginJenkinsBackend);
+
+
+
+Object.defineProperty(exports, 'default', {
+	enumerable: true,
+	get: function () { return pluginJenkinsBackend__default["default"]; }
+});
 //# sourceMappingURL=index.cjs.js.map

@@ -30,7 +30,7 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	backstageiov1alpha1 "janus-idp.io/backstage-operator/api/v1alpha1"
+	backstageiov1alpha1 "redhat-developer/red-hat-developer-hub-operator/api/v1alpha1"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -39,6 +39,7 @@ import (
 
 var cfg *rest.Config
 var k8sClient client.Client
+
 var testEnv *envtest.Environment
 
 func init() {
@@ -74,7 +75,6 @@ var _ = BeforeSuite(func() {
 	k8sClient, err = client.New(cfg, client.Options{Scheme: scheme.Scheme})
 	Expect(err).NotTo(HaveOccurred())
 	Expect(k8sClient).NotTo(BeNil())
-
 })
 
 var _ = AfterSuite(func() {

@@ -2,25 +2,16 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var pluginKubernetesBackend = require('@backstage/plugin-kubernetes-backend');
-var catalogClient = require('@backstage/catalog-client');
+var alpha = require('@backstage/plugin-kubernetes-backend/alpha');
 
-const dynamicPluginInstaller = {
-  kind: "legacy",
-  router: {
-    pluginID: "kubernetes",
-    async createPlugin(env) {
-      const catalogApi = new catalogClient.CatalogClient({ discoveryApi: env.discovery });
-      const { router } = await pluginKubernetesBackend.KubernetesBuilder.createBuilder({
-        logger: env.logger,
-        config: env.config,
-        permissions: env.permissions,
-        catalogApi
-      }).build();
-      return router;
-    }
-  }
-};
+function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 
-exports.dynamicPluginInstaller = dynamicPluginInstaller;
+var alpha__default = /*#__PURE__*/_interopDefaultLegacy(alpha);
+
+
+
+Object.defineProperty(exports, 'default', {
+	enumerable: true,
+	get: function () { return alpha__default["default"]; }
+});
 //# sourceMappingURL=index.cjs.js.map

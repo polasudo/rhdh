@@ -4,11 +4,17 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 var require$$1 = require('mime-types');
 var require$$2 = require('azure-devops-node-api');
-var require$$3 = require('p-limit');
-var require$$4 = require('express-promise-router');
-var require$$5 = require('@backstage/backend-common');
-var require$$6 = require('express');
-var require$$7 = require('@backstage/backend-plugin-api');
+var require$$3 = require('@backstage/integration');
+var require$$4 = require('p-limit');
+var require$$5 = require('express-promise-router');
+var require$$6 = require('@backstage/backend-common');
+var require$$7 = require('express');
+var require$$8 = require('@backstage/backend-plugin-api');
+var require$$9 = require('lodash');
+
+function getDefaultExportFromCjs (x) {
+	return x && x.__esModule && Object.prototype.hasOwnProperty.call(x, 'default') ? x['default'] : x;
+}
 
 function getAugmentedNamespace(n) {
   if (n.__esModule) return n;
@@ -35,7 +41,7 @@ function getAugmentedNamespace(n) {
 	return a;
 }
 
-var index_cjs = {};
+var index_cjs$1 = {};
 
 var BuildResult = /* @__PURE__ */ ((BuildResult2) => {
   BuildResult2[BuildResult2["None"] = 0] = "None";
@@ -99,8 +105,19 @@ var PullRequestVoteStatus = /* @__PURE__ */ ((PullRequestVoteStatus2) => {
   return PullRequestVoteStatus2;
 })(PullRequestVoteStatus || {});
 
+const AZURE_DEVOPS_BUILD_DEFINITION_ANNOTATION = "dev.azure.com/build-definition";
+const AZURE_DEVOPS_HOST_ORG_ANNOTATION = "dev.azure.com/host-org";
+const AZURE_DEVOPS_PROJECT_ANNOTATION = "dev.azure.com/project";
+const AZURE_DEVOPS_REPO_ANNOTATION = "dev.azure.com/project-repo";
+const AZURE_DEVOPS_DEFAULT_TOP = 10;
+
 var index_esm = /*#__PURE__*/Object.freeze({
 	__proto__: null,
+	AZURE_DEVOPS_BUILD_DEFINITION_ANNOTATION: AZURE_DEVOPS_BUILD_DEFINITION_ANNOTATION,
+	AZURE_DEVOPS_DEFAULT_TOP: AZURE_DEVOPS_DEFAULT_TOP,
+	AZURE_DEVOPS_HOST_ORG_ANNOTATION: AZURE_DEVOPS_HOST_ORG_ANNOTATION,
+	AZURE_DEVOPS_PROJECT_ANNOTATION: AZURE_DEVOPS_PROJECT_ANNOTATION,
+	AZURE_DEVOPS_REPO_ANNOTATION: AZURE_DEVOPS_REPO_ANNOTATION,
 	BuildResult: BuildResult,
 	BuildStatus: BuildStatus,
 	PolicyEvaluationStatus: PolicyEvaluationStatus,
@@ -119,11 +136,13 @@ var require$$0 = /*@__PURE__*/getAugmentedNamespace(index_esm);
 	var pluginAzureDevopsCommon = require$$0;
 	var mime = require$$1;
 	var azureDevopsNodeApi = require$$2;
-	var limiterFactory = require$$3;
-	var Router = require$$4;
-	var backendCommon = require$$5;
-	var express = require$$6;
-	var backendPluginApi = require$$7;
+	var integration = require$$3;
+	var limiterFactory = require$$4;
+	var Router = require$$5;
+	var backendCommon = require$$6;
+	var express = require$$7;
+	var backendPluginApi = require$$8;
+	var lodash = require$$9;
 
 	function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 
@@ -334,284 +353,32 @@ var require$$0 = /*@__PURE__*/getAugmentedNamespace(index_esm);
 	  return {
 	    ext,
 	    label,
-	    path: path.startsWith(".") ? path.substring(1, path.length) : path
+	    path: path.startsWith("./") ? path.substring(1, path.length) : path
 	  };
 	}
-
-	class AzureDevOpsApi {
-	  constructor(logger, webApi, urlReader) {
-	    this.logger = logger;
-	    this.webApi = webApi;
-	    this.urlReader = urlReader;
+	function parseAzureDevOpsUrl(sourceUrl) {
+	  const url = new URL(sourceUrl);
+	  let host = url.host;
+	  let org;
+	  let project;
+	  let repo;
+	  const parts = url.pathname.split("/").map((part) => decodeURIComponent(part));
+	  if (parts[2] === "_git") {
+	    org = parts[1];
+	    project = repo = parts[3];
+	  } else if (parts[3] === "_git") {
+	    org = parts[1];
+	    project = parts[2];
+	    repo = parts[4];
+	  } else if (parts[4] === "_git") {
+	    host = `${host}/${parts[1]}`;
+	    org = parts[2];
+	    project = parts[3];
+	    repo = parts[5];
 	  }
-	  async getProjects() {
-	    const client = await this.webApi.getCoreApi();
-	    const projectList = await client.getProjects();
-	    const projects = projectList.map((project) => ({
-	      id: project.id,
-	      name: project.name,
-	      description: project.description
-	    }));
-	    return projects.sort(
-	      (a, b) => a.name && b.name ? a.name.localeCompare(b.name) : 0
-	    );
-	  }
-	  async getGitRepository(projectName, repoName) {
-	    var _a;
-	    (_a = this.logger) == null ? void 0 : _a.debug(
-	      `Calling Azure DevOps REST API, getting Repository ${repoName} for Project ${projectName}`
-	    );
-	    const client = await this.webApi.getGitApi();
-	    return client.getRepository(repoName, projectName);
-	  }
-	  async getBuildList(projectName, repoId, top) {
-	    var _a;
-	    (_a = this.logger) == null ? void 0 : _a.debug(
-	      `Calling Azure DevOps REST API, getting up to ${top} Builds for Repository Id ${repoId} for Project ${projectName}`
-	    );
-	    const client = await this.webApi.getBuildApi();
-	    return client.getBuilds(
-	      projectName,
-	      void 0,
-	      void 0,
-	      void 0,
-	      void 0,
-	      void 0,
-	      void 0,
-	      void 0,
-	      void 0,
-	      void 0,
-	      void 0,
-	      void 0,
-	      top,
-	      void 0,
-	      void 0,
-	      void 0,
-	      void 0,
-	      void 0,
-	      void 0,
-	      repoId,
-	      "TfsGit"
-	    );
-	  }
-	  async getRepoBuilds(projectName, repoName, top) {
-	    var _a;
-	    (_a = this.logger) == null ? void 0 : _a.debug(
-	      `Calling Azure DevOps REST API, getting up to ${top} Builds for Repository ${repoName} for Project ${projectName}`
-	    );
-	    const gitRepository = await this.getGitRepository(projectName, repoName);
-	    const buildList = await this.getBuildList(
-	      projectName,
-	      gitRepository.id,
-	      top
-	    );
-	    const repoBuilds = buildList.map((build) => {
-	      return mappedRepoBuild(build);
-	    });
-	    return repoBuilds;
-	  }
-	  async getGitTags(projectName, repoName) {
-	    var _a;
-	    (_a = this.logger) == null ? void 0 : _a.debug(
-	      `Calling Azure DevOps REST API, getting Git Tags for Repository ${repoName} for Project ${projectName}`
-	    );
-	    const gitRepository = await this.getGitRepository(projectName, repoName);
-	    const client = await this.webApi.getGitApi();
-	    const tagRefs = await client.getRefs(
-	      gitRepository.id,
-	      projectName,
-	      "tags",
-	      false,
-	      false,
-	      false,
-	      false,
-	      true
-	    );
-	    const linkBaseUrl = `${this.webApi.serverUrl}/${encodeURIComponent(
-	      projectName
-	    )}/_git/${encodeURIComponent(repoName)}?version=GT`;
-	    const commitBaseUrl = `${this.webApi.serverUrl}/${encodeURIComponent(
-	      projectName
-	    )}/_git/${encodeURIComponent(repoName)}/commit`;
-	    const gitTags = tagRefs.map((tagRef) => {
-	      return mappedGitTag(tagRef, linkBaseUrl, commitBaseUrl);
-	    });
-	    return gitTags;
-	  }
-	  async getPullRequests(projectName, repoName, options) {
-	    var _a;
-	    (_a = this.logger) == null ? void 0 : _a.debug(
-	      `Calling Azure DevOps REST API, getting up to ${options.top} Pull Requests for Repository ${repoName} for Project ${projectName}`
-	    );
-	    const gitRepository = await this.getGitRepository(projectName, repoName);
-	    const client = await this.webApi.getGitApi();
-	    const searchCriteria = {
-	      status: options.status
-	    };
-	    const gitPullRequests = await client.getPullRequests(
-	      gitRepository.id,
-	      searchCriteria,
-	      projectName,
-	      void 0,
-	      void 0,
-	      options.top
-	    );
-	    const linkBaseUrl = `${this.webApi.serverUrl}/${encodeURIComponent(
-	      projectName
-	    )}/_git/${encodeURIComponent(repoName)}/pullrequest`;
-	    const pullRequests = gitPullRequests.map((gitPullRequest) => {
-	      return mappedPullRequest(gitPullRequest, linkBaseUrl);
-	    });
-	    return pullRequests;
-	  }
-	  async getDashboardPullRequests(projectName, options) {
-	    var _a;
-	    (_a = this.logger) == null ? void 0 : _a.debug(
-	      `Getting dashboard pull requests for project '${projectName}'.`
-	    );
-	    const client = await this.webApi.getGitApi();
-	    const searchCriteria = {
-	      status: options.status
-	    };
-	    const gitPullRequests = await client.getPullRequestsByProject(
-	      projectName,
-	      searchCriteria,
-	      void 0,
-	      void 0,
-	      options.top
-	    );
-	    return Promise.all(
-	      gitPullRequests.map(async (gitPullRequest) => {
-	        var _a2, _b;
-	        const projectId = (_b = (_a2 = gitPullRequest.repository) == null ? void 0 : _a2.project) == null ? void 0 : _b.id;
-	        const prId = gitPullRequest.pullRequestId;
-	        let policies;
-	        if (projectId && prId) {
-	          policies = await this.getPullRequestPolicies(
-	            projectName,
-	            projectId,
-	            prId
-	          );
-	        }
-	        return convertDashboardPullRequest(
-	          gitPullRequest,
-	          this.webApi.serverUrl,
-	          policies
-	        );
-	      })
-	    );
-	  }
-	  async getPullRequestPolicies(projectName, projectId, pullRequestId) {
-	    var _a;
-	    (_a = this.logger) == null ? void 0 : _a.debug(
-	      `Getting pull request policies for pull request id '${pullRequestId}'.`
-	    );
-	    const client = await this.webApi.getPolicyApi();
-	    const artifactId = getArtifactId(projectId, pullRequestId);
-	    const policyEvaluationRecords = await client.getPolicyEvaluations(projectName, artifactId);
-	    return policyEvaluationRecords.map(convertPolicy).filter((policy) => Boolean(policy));
-	  }
-	  async getAllTeams() {
-	    var _a;
-	    (_a = this.logger) == null ? void 0 : _a.debug("Getting all teams.");
-	    const client = await this.webApi.getCoreApi();
-	    const webApiTeams = await client.getAllTeams();
-	    const teams = webApiTeams.map((team) => ({
-	      id: team.id,
-	      name: team.name,
-	      projectId: team.projectId,
-	      projectName: team.projectName
-	    }));
-	    return teams.sort(
-	      (a, b) => a.name && b.name ? a.name.localeCompare(b.name) : 0
-	    );
-	  }
-	  async getTeamMembers(options) {
-	    var _a;
-	    const { projectId, teamId } = options;
-	    (_a = this.logger) == null ? void 0 : _a.debug(`Getting team member ids for team '${teamId}'.`);
-	    const client = await this.webApi.getCoreApi();
-	    const teamMembers = await client.getTeamMembersWithExtendedProperties(projectId, teamId);
-	    return teamMembers.map((teamMember) => {
-	      var _a2, _b, _c;
-	      return {
-	        id: (_a2 = teamMember.identity) == null ? void 0 : _a2.id,
-	        displayName: (_b = teamMember.identity) == null ? void 0 : _b.displayName,
-	        uniqueName: (_c = teamMember.identity) == null ? void 0 : _c.uniqueName
-	      };
-	    });
-	  }
-	  async getBuildDefinitions(projectName, definitionName) {
-	    var _a;
-	    (_a = this.logger) == null ? void 0 : _a.debug(
-	      `Calling Azure DevOps REST API, getting Build Definitions for ${definitionName} in Project ${projectName}`
-	    );
-	    const client = await this.webApi.getBuildApi();
-	    return client.getDefinitions(projectName, definitionName);
-	  }
-	  async getBuilds(projectName, top, repoId, definitions) {
-	    var _a;
-	    (_a = this.logger) == null ? void 0 : _a.debug(
-	      `Calling Azure DevOps REST API, getting up to ${top} Builds for Repository Id ${repoId} for Project ${projectName}`
-	    );
-	    const client = await this.webApi.getBuildApi();
-	    return client.getBuilds(
-	      projectName,
-	      definitions,
-	      void 0,
-	      void 0,
-	      void 0,
-	      void 0,
-	      void 0,
-	      void 0,
-	      void 0,
-	      void 0,
-	      void 0,
-	      void 0,
-	      top,
-	      void 0,
-	      void 0,
-	      void 0,
-	      void 0,
-	      void 0,
-	      void 0,
-	      repoId,
-	      repoId ? "TfsGit" : void 0
-	    );
-	  }
-	  async getBuildRuns(projectName, top, repoName, definitionName) {
-	    let repoId;
-	    let definitions;
-	    if (repoName) {
-	      const gitRepository = await this.getGitRepository(projectName, repoName);
-	      repoId = gitRepository.id;
-	    }
-	    if (definitionName) {
-	      const buildDefinitions = await this.getBuildDefinitions(
-	        projectName,
-	        definitionName
-	      );
-	      definitions = buildDefinitions.map((bd) => bd.id).filter((bd) => Boolean(bd));
-	    }
-	    const builds = await this.getBuilds(projectName, top, repoId, definitions);
-	    const buildRuns = builds.map(mappedBuildRun);
-	    return buildRuns;
-	  }
-	  async getReadme(host, org, project, repo) {
-	    const url = buildEncodedUrl(host, org, project, repo, "README.md");
-	    const response = await this.urlReader.readUrl(url);
-	    const buffer = await response.buffer();
-	    const content = await replaceReadme(
-	      this.urlReader,
-	      host,
-	      org,
-	      project,
-	      repo,
-	      buffer.toString()
-	    );
-	    return { url, content };
-	  }
+	  return { host, org, project, repo };
 	}
+
 	function mappedRepoBuild(build) {
 	  var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k;
 	  return {
@@ -672,6 +439,361 @@ var require$$0 = /*@__PURE__*/getAugmentedNamespace(index_esm);
 	    source: `${build.sourceBranch} (${(_i = build.sourceVersion) == null ? void 0 : _i.slice(0, 8)})`,
 	    uniqueName: (_k = (_j = build.requestedFor) == null ? void 0 : _j.uniqueName) != null ? _k : "N/A"
 	  };
+	}
+
+	var __defProp$1 = Object.defineProperty;
+	var __defNormalProp$1 = (obj, key, value) => key in obj ? __defProp$1(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+	var __publicField$1 = (obj, key, value) => {
+	  __defNormalProp$1(obj, typeof key !== "symbol" ? key + "" : key, value);
+	  return value;
+	};
+	class AzureDevOpsApi {
+	  constructor(logger, urlReader, config, credentialsProvider) {
+	    __publicField$1(this, "logger");
+	    __publicField$1(this, "urlReader");
+	    __publicField$1(this, "config");
+	    __publicField$1(this, "credentialsProvider");
+	    this.logger = logger;
+	    this.urlReader = urlReader;
+	    this.config = config;
+	    this.credentialsProvider = credentialsProvider;
+	  }
+	  static fromConfig(config, options) {
+	    const scmIntegrations = integration.ScmIntegrations.fromConfig(config);
+	    const credentialsProvider = integration.DefaultAzureDevOpsCredentialsProvider.fromIntegrations(scmIntegrations);
+	    return new AzureDevOpsApi(
+	      options.logger,
+	      options.urlReader,
+	      config,
+	      credentialsProvider
+	    );
+	  }
+	  async getWebApi(host, org) {
+	    const validHost = host != null ? host : this.config.getString("azureDevOps.host");
+	    const validOrg = org != null ? org : this.config.getString("azureDevOps.organization");
+	    const url = `https://${validHost}/${encodeURIComponent(validOrg)}`;
+	    const credentials = await this.credentialsProvider.getCredentials({
+	      url
+	    });
+	    let authHandler;
+	    if (!credentials) {
+	      const token = this.config.getString("azureDevOps.token");
+	      authHandler = azureDevopsNodeApi.getPersonalAccessTokenHandler(token);
+	    } else {
+	      authHandler = azureDevopsNodeApi.getHandlerFromToken(credentials.token);
+	    }
+	    const webApi = new azureDevopsNodeApi.WebApi(url, authHandler);
+	    return webApi;
+	  }
+	  async getProjects(host, org) {
+	    const webApi = await this.getWebApi(host, org);
+	    const client = await webApi.getCoreApi();
+	    const projectList = await client.getProjects();
+	    const projects = projectList.map((project) => ({
+	      id: project.id,
+	      name: project.name,
+	      description: project.description
+	    }));
+	    return projects.sort(
+	      (a, b) => a.name && b.name ? a.name.localeCompare(b.name) : 0
+	    );
+	  }
+	  async getGitRepository(projectName, repoName, host, org) {
+	    var _a;
+	    (_a = this.logger) == null ? void 0 : _a.debug(
+	      `Calling Azure DevOps REST API, getting Repository ${repoName} for Project ${projectName}`
+	    );
+	    const webApi = await this.getWebApi(host, org);
+	    const client = await webApi.getGitApi();
+	    return client.getRepository(repoName, projectName);
+	  }
+	  async getBuildList(projectName, repoId, top, host, org) {
+	    var _a;
+	    (_a = this.logger) == null ? void 0 : _a.debug(
+	      `Calling Azure DevOps REST API, getting up to ${top} Builds for Repository Id ${repoId} for Project ${projectName}`
+	    );
+	    const webApi = await this.getWebApi(host, org);
+	    const client = await webApi.getBuildApi();
+	    return client.getBuilds(
+	      projectName,
+	      void 0,
+	      void 0,
+	      void 0,
+	      void 0,
+	      void 0,
+	      void 0,
+	      void 0,
+	      void 0,
+	      void 0,
+	      void 0,
+	      void 0,
+	      top,
+	      void 0,
+	      void 0,
+	      void 0,
+	      void 0,
+	      void 0,
+	      void 0,
+	      repoId,
+	      "TfsGit"
+	    );
+	  }
+	  async getRepoBuilds(projectName, repoName, top, host, org) {
+	    var _a;
+	    (_a = this.logger) == null ? void 0 : _a.debug(
+	      `Calling Azure DevOps REST API, getting up to ${top} Builds for Repository ${repoName} for Project ${projectName}`
+	    );
+	    const gitRepository = await this.getGitRepository(
+	      projectName,
+	      repoName,
+	      host,
+	      org
+	    );
+	    const buildList = await this.getBuildList(
+	      projectName,
+	      gitRepository.id,
+	      top,
+	      host,
+	      org
+	    );
+	    const repoBuilds = buildList.map((build) => {
+	      return mappedRepoBuild(build);
+	    });
+	    return repoBuilds;
+	  }
+	  async getGitTags(projectName, repoName, host, org) {
+	    var _a;
+	    (_a = this.logger) == null ? void 0 : _a.debug(
+	      `Calling Azure DevOps REST API, getting Git Tags for Repository ${repoName} for Project ${projectName}`
+	    );
+	    const gitRepository = await this.getGitRepository(
+	      projectName,
+	      repoName,
+	      host,
+	      org
+	    );
+	    const webApi = await this.getWebApi(host, org);
+	    const client = await webApi.getGitApi();
+	    const tagRefs = await client.getRefs(
+	      gitRepository.id,
+	      projectName,
+	      "tags",
+	      false,
+	      false,
+	      false,
+	      false,
+	      true
+	    );
+	    const linkBaseUrl = `${webApi.serverUrl}/${encodeURIComponent(
+	      projectName
+	    )}/_git/${encodeURIComponent(repoName)}?version=GT`;
+	    const commitBaseUrl = `${webApi.serverUrl}/${encodeURIComponent(
+	      projectName
+	    )}/_git/${encodeURIComponent(repoName)}/commit`;
+	    const gitTags = tagRefs.map((tagRef) => {
+	      return mappedGitTag(tagRef, linkBaseUrl, commitBaseUrl);
+	    });
+	    return gitTags;
+	  }
+	  async getPullRequests(projectName, repoName, options, host, org) {
+	    var _a;
+	    (_a = this.logger) == null ? void 0 : _a.debug(
+	      `Calling Azure DevOps REST API, getting up to ${options.top} Pull Requests for Repository ${repoName} for Project ${projectName}`
+	    );
+	    const gitRepository = await this.getGitRepository(
+	      projectName,
+	      repoName,
+	      host,
+	      org
+	    );
+	    const webApi = await this.getWebApi(host, org);
+	    const client = await webApi.getGitApi();
+	    const searchCriteria = {
+	      status: options.status
+	    };
+	    const gitPullRequests = await client.getPullRequests(
+	      gitRepository.id,
+	      searchCriteria,
+	      projectName,
+	      void 0,
+	      void 0,
+	      options.top
+	    );
+	    const linkBaseUrl = `${webApi.serverUrl}/${encodeURIComponent(
+	      projectName
+	    )}/_git/${encodeURIComponent(repoName)}/pullrequest`;
+	    const pullRequests = gitPullRequests.map((gitPullRequest) => {
+	      return mappedPullRequest(gitPullRequest, linkBaseUrl);
+	    });
+	    return pullRequests;
+	  }
+	  async getDashboardPullRequests(projectName, options) {
+	    var _a;
+	    (_a = this.logger) == null ? void 0 : _a.debug(
+	      `Getting dashboard pull requests for project '${projectName}'.`
+	    );
+	    const webApi = await this.getWebApi();
+	    const client = await webApi.getGitApi();
+	    const searchCriteria = {
+	      status: options.status
+	    };
+	    const gitPullRequests = await client.getPullRequestsByProject(
+	      projectName,
+	      searchCriteria,
+	      void 0,
+	      void 0,
+	      options.top
+	    );
+	    return Promise.all(
+	      gitPullRequests.map(async (gitPullRequest) => {
+	        var _a2, _b;
+	        const projectId = (_b = (_a2 = gitPullRequest.repository) == null ? void 0 : _a2.project) == null ? void 0 : _b.id;
+	        const prId = gitPullRequest.pullRequestId;
+	        let policies;
+	        if (projectId && prId) {
+	          policies = await this.getPullRequestPolicies(
+	            projectName,
+	            projectId,
+	            prId
+	          );
+	        }
+	        return convertDashboardPullRequest(
+	          gitPullRequest,
+	          webApi.serverUrl,
+	          policies
+	        );
+	      })
+	    );
+	  }
+	  async getPullRequestPolicies(projectName, projectId, pullRequestId) {
+	    var _a;
+	    (_a = this.logger) == null ? void 0 : _a.debug(
+	      `Getting pull request policies for pull request id '${pullRequestId}'.`
+	    );
+	    const webApi = await this.getWebApi();
+	    const client = await webApi.getPolicyApi();
+	    const artifactId = getArtifactId(projectId, pullRequestId);
+	    const policyEvaluationRecords = await client.getPolicyEvaluations(projectName, artifactId);
+	    return policyEvaluationRecords.map(convertPolicy).filter((policy) => Boolean(policy));
+	  }
+	  async getAllTeams() {
+	    var _a;
+	    (_a = this.logger) == null ? void 0 : _a.debug("Getting all teams.");
+	    const webApi = await this.getWebApi();
+	    const client = await webApi.getCoreApi();
+	    const webApiTeams = await client.getAllTeams();
+	    const teams = webApiTeams.map((team) => ({
+	      id: team.id,
+	      name: team.name,
+	      projectId: team.projectId,
+	      projectName: team.projectName
+	    }));
+	    return teams.sort(
+	      (a, b) => a.name && b.name ? a.name.localeCompare(b.name) : 0
+	    );
+	  }
+	  async getTeamMembers(options) {
+	    var _a;
+	    const { projectId, teamId } = options;
+	    (_a = this.logger) == null ? void 0 : _a.debug(`Getting team member ids for team '${teamId}'.`);
+	    const webApi = await this.getWebApi();
+	    const client = await webApi.getCoreApi();
+	    const teamMembers = await client.getTeamMembersWithExtendedProperties(projectId, teamId);
+	    return teamMembers.map((teamMember) => {
+	      var _a2, _b, _c;
+	      return {
+	        id: (_a2 = teamMember.identity) == null ? void 0 : _a2.id,
+	        displayName: (_b = teamMember.identity) == null ? void 0 : _b.displayName,
+	        uniqueName: (_c = teamMember.identity) == null ? void 0 : _c.uniqueName
+	      };
+	    });
+	  }
+	  async getBuildDefinitions(projectName, definitionName, host, org) {
+	    var _a;
+	    (_a = this.logger) == null ? void 0 : _a.debug(
+	      `Calling Azure DevOps REST API, getting Build Definitions for ${definitionName} in Project ${projectName}`
+	    );
+	    const webApi = await this.getWebApi(host, org);
+	    const client = await webApi.getBuildApi();
+	    return client.getDefinitions(projectName, definitionName);
+	  }
+	  async getBuilds(projectName, top, repoId, definitions, host, org) {
+	    var _a;
+	    (_a = this.logger) == null ? void 0 : _a.debug(
+	      `Calling Azure DevOps REST API, getting up to ${top} Builds for Repository Id ${repoId} for Project ${projectName}`
+	    );
+	    const webApi = await this.getWebApi(host, org);
+	    const client = await webApi.getBuildApi();
+	    return client.getBuilds(
+	      projectName,
+	      definitions,
+	      void 0,
+	      void 0,
+	      void 0,
+	      void 0,
+	      void 0,
+	      void 0,
+	      void 0,
+	      void 0,
+	      void 0,
+	      void 0,
+	      top,
+	      void 0,
+	      void 0,
+	      void 0,
+	      void 0,
+	      void 0,
+	      void 0,
+	      repoId,
+	      repoId ? "TfsGit" : void 0
+	    );
+	  }
+	  async getBuildRuns(projectName, top, repoName, definitionName, host, org) {
+	    let repoId;
+	    let definitions;
+	    if (repoName) {
+	      const gitRepository = await this.getGitRepository(
+	        projectName,
+	        repoName,
+	        host,
+	        org
+	      );
+	      repoId = gitRepository.id;
+	    }
+	    if (definitionName) {
+	      const buildDefinitions = await this.getBuildDefinitions(
+	        projectName,
+	        definitionName,
+	        host,
+	        org
+	      );
+	      definitions = buildDefinitions.map((bd) => bd.id).filter((bd) => Boolean(bd));
+	    }
+	    const builds = await this.getBuilds(
+	      projectName,
+	      top,
+	      repoId,
+	      definitions,
+	      host,
+	      org
+	    );
+	    const buildRuns = builds.map(mappedBuildRun);
+	    return buildRuns;
+	  }
+	  async getReadme(host, org, project, repo) {
+	    const url = buildEncodedUrl(host, org, project, repo, "README.md");
+	    const response = await this.urlReader.readUrl(url);
+	    const buffer = await response.buffer();
+	    const content = await replaceReadme(
+	      this.urlReader,
+	      host,
+	      org,
+	      project,
+	      repo,
+	      buffer.toString()
+	    );
+	    return { url, content };
+	  }
 	}
 
 	var __defProp = Object.defineProperty;
@@ -772,14 +894,8 @@ var require$$0 = /*@__PURE__*/getAugmentedNamespace(index_esm);
 
 	const DEFAULT_TOP = 10;
 	async function createRouter(options) {
-	  const { logger, reader } = options;
-	  const config = options.config.getConfig("azureDevOps");
-	  const token = config.getString("token");
-	  const host = config.getString("host");
-	  const organization = config.getString("organization");
-	  const authHandler = azureDevopsNodeApi.getPersonalAccessTokenHandler(token);
-	  const webApi = new azureDevopsNodeApi.WebApi(`https://${host}/${organization}`, authHandler);
-	  const azureDevOpsApi = options.azureDevOpsApi || new AzureDevOpsApi(logger, webApi, reader);
+	  const { logger, reader, config } = options;
+	  const azureDevOpsApi = options.azureDevOpsApi || AzureDevOpsApi.fromConfig(config, { logger, urlReader: reader });
 	  const pullRequestsDashboardProvider = await PullRequestsDashboardProvider.create(logger, azureDevOpsApi);
 	  const router = Router__default["default"]();
 	  router.use(express__default["default"].json());
@@ -799,33 +915,54 @@ var require$$0 = /*@__PURE__*/getAugmentedNamespace(index_esm);
 	    res.status(200).json(gitRepository);
 	  });
 	  router.get("/builds/:projectName/:repoId", async (req, res) => {
+	    var _a, _b;
 	    const { projectName, repoId } = req.params;
 	    const top = req.query.top ? Number(req.query.top) : DEFAULT_TOP;
+	    const host = (_a = req.query.host) == null ? void 0 : _a.toString();
+	    const org = (_b = req.query.org) == null ? void 0 : _b.toString();
 	    const buildList = await azureDevOpsApi.getBuildList(
 	      projectName,
 	      repoId,
-	      top
+	      top,
+	      host,
+	      org
 	    );
 	    res.status(200).json(buildList);
 	  });
 	  router.get("/repo-builds/:projectName/:repoName", async (req, res) => {
+	    var _a, _b;
 	    const { projectName, repoName } = req.params;
 	    const top = req.query.top ? Number(req.query.top) : DEFAULT_TOP;
+	    const host = (_a = req.query.host) == null ? void 0 : _a.toString();
+	    const org = (_b = req.query.org) == null ? void 0 : _b.toString();
 	    const gitRepository = await azureDevOpsApi.getRepoBuilds(
 	      projectName,
 	      repoName,
-	      top
+	      top,
+	      host,
+	      org
 	    );
 	    res.status(200).json(gitRepository);
 	  });
 	  router.get("/git-tags/:projectName/:repoName", async (req, res) => {
+	    var _a, _b;
 	    const { projectName, repoName } = req.params;
-	    const gitTags = await azureDevOpsApi.getGitTags(projectName, repoName);
+	    const host = (_a = req.query.host) == null ? void 0 : _a.toString();
+	    const org = (_b = req.query.org) == null ? void 0 : _b.toString();
+	    const gitTags = await azureDevOpsApi.getGitTags(
+	      projectName,
+	      repoName,
+	      host,
+	      org
+	    );
 	    res.status(200).json(gitTags);
 	  });
 	  router.get("/pull-requests/:projectName/:repoName", async (req, res) => {
+	    var _a, _b;
 	    const { projectName, repoName } = req.params;
 	    const top = req.query.top ? Number(req.query.top) : DEFAULT_TOP;
+	    const host = (_a = req.query.host) == null ? void 0 : _a.toString();
+	    const org = (_b = req.query.org) == null ? void 0 : _b.toString();
 	    const status = req.query.status ? Number(req.query.status) : pluginAzureDevopsCommon.PullRequestStatus.Active;
 	    const pullRequestOptions = {
 	      top,
@@ -834,7 +971,9 @@ var require$$0 = /*@__PURE__*/getAugmentedNamespace(index_esm);
 	    const gitPullRequest = await azureDevOpsApi.getPullRequests(
 	      projectName,
 	      repoName,
-	      pullRequestOptions
+	      pullRequestOptions,
+	      host,
+	      org
 	    );
 	    res.status(200).json(gitPullRequest);
 	  });
@@ -859,25 +998,34 @@ var require$$0 = /*@__PURE__*/getAugmentedNamespace(index_esm);
 	  router.get(
 	    "/build-definitions/:projectName/:definitionName",
 	    async (req, res) => {
+	      var _a, _b;
 	      const { projectName, definitionName } = req.params;
+	      const host = (_a = req.query.host) == null ? void 0 : _a.toString();
+	      const org = (_b = req.query.org) == null ? void 0 : _b.toString();
 	      const buildDefinitionList = await azureDevOpsApi.getBuildDefinitions(
 	        projectName,
-	        definitionName
+	        definitionName,
+	        host,
+	        org
 	      );
 	      res.status(200).json(buildDefinitionList);
 	    }
 	  );
 	  router.get("/builds/:projectName", async (req, res) => {
-	    var _a, _b;
+	    var _a, _b, _c, _d;
 	    const { projectName } = req.params;
 	    const repoName = (_a = req.query.repoName) == null ? void 0 : _a.toString();
 	    const definitionName = (_b = req.query.definitionName) == null ? void 0 : _b.toString();
 	    const top = req.query.top ? Number(req.query.top) : DEFAULT_TOP;
+	    const host = (_c = req.query.host) == null ? void 0 : _c.toString();
+	    const org = (_d = req.query.org) == null ? void 0 : _d.toString();
 	    const builds = await azureDevOpsApi.getBuildRuns(
 	      projectName,
 	      top,
 	      repoName,
-	      definitionName
+	      definitionName,
+	      host,
+	      org
 	    );
 	    res.status(200).json(builds);
 	  });
@@ -887,10 +1035,13 @@ var require$$0 = /*@__PURE__*/getAugmentedNamespace(index_esm);
 	    res.status(200).json(teamIds);
 	  });
 	  router.get("/readme/:projectName/:repoName", async (req, res) => {
+	    var _a, _b, _c, _d;
+	    const host = (_b = (_a = req.query.host) == null ? void 0 : _a.toString()) != null ? _b : config.getString("azureDevOps.host");
+	    const org = (_d = (_c = req.query.org) == null ? void 0 : _c.toString()) != null ? _d : config.getString("azureDevOps.organization");
 	    const { projectName, repoName } = req.params;
 	    const readme = await azureDevOpsApi.getReadme(
 	      host,
-	      organization,
+	      org,
 	      projectName,
 	      repoName
 	    );
@@ -923,19 +1074,87 @@ var require$$0 = /*@__PURE__*/getAugmentedNamespace(index_esm);
 	  }
 	});
 
+	class AzureDevOpsAnnotatorProcessor {
+	  constructor(opts) {
+	    this.opts = opts;
+	  }
+	  getProcessorName() {
+	    return "AzureDevOpsAnnotatorProcessor";
+	  }
+	  static fromConfig(config, options) {
+	    return new AzureDevOpsAnnotatorProcessor({
+	      scmIntegrationRegistry: integration.ScmIntegrations.fromConfig(config),
+	      kinds: options == null ? void 0 : options.kinds
+	    });
+	  }
+	  async preProcessEntity(entity, location) {
+	    var _a, _b, _c;
+	    const applicableKinds = ((_a = this.opts.kinds) != null ? _a : ["Component"]).map(
+	      (k) => k.toLocaleLowerCase("en-US")
+	    );
+	    if (!applicableKinds.includes(entity.kind.toLocaleLowerCase("en-US")) || location.type !== "url") {
+	      return entity;
+	    }
+	    const scmIntegration = this.opts.scmIntegrationRegistry.byUrl(
+	      location.target
+	    );
+	    if (!scmIntegration) {
+	      return entity;
+	    }
+	    if (scmIntegration.type !== "azure") {
+	      return entity;
+	    }
+	    const { host, org, project, repo } = parseAzureDevOpsUrl(location.target);
+	    if (!org || !project || !repo) {
+	      return entity;
+	    }
+	    const hostOrgAnnotation = pluginAzureDevopsCommon.AZURE_DEVOPS_HOST_ORG_ANNOTATION;
+	    let hostOrgValue = (_b = entity.metadata.annotations) == null ? void 0 : _b[hostOrgAnnotation];
+	    if (!hostOrgValue) {
+	      hostOrgValue = `${host}/${org}`;
+	    }
+	    const projectRepoAnnotation = pluginAzureDevopsCommon.AZURE_DEVOPS_REPO_ANNOTATION;
+	    let projectRepoValue = (_c = entity.metadata.annotations) == null ? void 0 : _c[projectRepoAnnotation];
+	    if (!projectRepoValue) {
+	      projectRepoValue = `${project}/${repo}`;
+	    }
+	    const result = lodash.merge(
+	      {
+	        metadata: {
+	          annotations: lodash.pickBy(
+	            {
+	              [hostOrgAnnotation]: hostOrgValue
+	            },
+	            lodash.identity
+	          )
+	        }
+	      },
+	      entity
+	    );
+	    return lodash.merge(
+	      {
+	        metadata: {
+	          annotations: lodash.pickBy(
+	            {
+	              [projectRepoAnnotation]: projectRepoValue
+	            },
+	            lodash.identity
+	          )
+	        }
+	      },
+	      result
+	    );
+	  }
+	}
+
+	exports.AzureDevOpsAnnotatorProcessor = AzureDevOpsAnnotatorProcessor;
 	exports.AzureDevOpsApi = AzureDevOpsApi;
 	exports.createRouter = createRouter;
 	exports["default"] = azureDevOpsPlugin;
 	
-} (index_cjs));
+} (index_cjs$1));
 
-const dynamicPluginInstaller = {
-  kind: "legacy",
-  router: {
-    pluginID: "azure-devops",
-    createPlugin: index_cjs.createRouter
-  }
-};
+var index_cjs = /*@__PURE__*/getDefaultExportFromCjs(index_cjs$1);
 
-exports.dynamicPluginInstaller = dynamicPluginInstaller;
+exports["default"] = index_cjs;
 //# sourceMappingURL=index.cjs.js.map

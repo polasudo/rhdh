@@ -4,13 +4,14 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 var pluginAzureDevopsBackend = require('@backstage/plugin-azure-devops-backend');
 
-const dynamicPluginInstaller = {
-  kind: "legacy",
-  router: {
-    pluginID: "azure-devops",
-    createPlugin: pluginAzureDevopsBackend.createRouter
-  }
-};
+function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 
-exports.dynamicPluginInstaller = dynamicPluginInstaller;
+var pluginAzureDevopsBackend__default = /*#__PURE__*/_interopDefaultLegacy(pluginAzureDevopsBackend);
+
+
+
+Object.defineProperty(exports, 'default', {
+	enumerable: true,
+	get: function () { return pluginAzureDevopsBackend__default["default"]; }
+});
 //# sourceMappingURL=index.cjs.js.map

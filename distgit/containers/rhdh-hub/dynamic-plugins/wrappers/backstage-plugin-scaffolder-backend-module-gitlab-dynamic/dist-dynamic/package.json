@@ -1,6 +1,6 @@
 {
   "name": "backstage-plugin-scaffolder-backend-module-gitlab-dynamic",
-  "version": "0.2.9",
+  "version": "0.2.13",
   "main": "dist/index.cjs.js",
   "types": "dist/index.d.ts",
   "license": "Apache-2.0",
@@ -29,8 +29,12 @@
     "export-dynamic": "janus-cli package export-dynamic-plugin --no-install --embed-package @backstage/plugin-scaffolder-backend-module-gitlab --override-interop default && $YARN --cwd dist-dynamic install --production --network-timeout 600000"
   },
   "dependencies": {
+    "@gitbeaker/core": "^35.8.0",
     "@gitbeaker/node": "^35.8.0",
-    "zod": "^3.21.4",
+    "@gitbeaker/rest": "^39.25.0",
+    "luxon": "^3.0.0",
+    "yaml": "^2.0.0",
+    "zod": "^3.22.4",
     "@smithy/util-utf8": "~2",
     "@aws-sdk/util-utf8-browser": "^3"
   },
@@ -40,12 +44,12 @@
   ],
   "bundleDependencies": true,
   "peerDependencies": {
-    "@backstage/backend-plugin-api": "0.6.6",
-    "@backstage/integration": "1.7.1",
-    "@backstage/plugin-scaffolder-node": "0.2.7",
-    "@backstage/backend-plugin-manager": "npm:@janus-idp/backend-plugin-manager@0.0.2-janus.5",
+    "@backstage/backend-common": "^0.21.0",
+    "@backstage/backend-plugin-api": "^0.6.10",
     "@backstage/config": "^1.1.1",
-    "@backstage/errors": "^1.2.3"
+    "@backstage/errors": "^1.2.3",
+    "@backstage/integration": "^1.9.0",
+    "@backstage/plugin-scaffolder-node": "^0.3.0"
   },
   "overrides": {
     "@aws-sdk/util-utf8-browser": {
