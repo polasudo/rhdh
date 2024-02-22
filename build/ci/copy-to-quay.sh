@@ -160,10 +160,10 @@ if [[ ! $DH_VERSION ]] && [[ -f distgit/containers/rhdh-hub/package.json ]]; the
 fi
 set +x
 
-./build/scripts/getLatestImageTags.sh -b ${MIDSTM_BRANCH} --osbs --pushtoquay="${DH_VERSION} $latestNext"
+./build/scripts/getLatestImageTags.sh -b "${MIDSTM_BRANCH}" --osbs --pushtoquay="${DH_VERSION} $latestNext"
 
 echo "===== Quay images ===========>" | tee -a /tmp/copy-to-quay.sh.result.txt
-./build/scripts/getLatestImageTags.sh -b ${MIDSTM_BRANCH} --quay --tag "${DH_VERSION}-" --hide | tee -a /tmp/copy-to-quay.sh.result.txt
+./build/scripts/getLatestImageTags.sh -b "${MIDSTM_BRANCH}" --quay --tag "${DH_VERSION}-" --hide | tee -a /tmp/copy-to-quay.sh.result.txt
 
 echo "===== NVRs (requires brewkoji) ===========>" | tee -a /tmp/copy-to-quay.sh.result.txt
 cat <<EOF > /etc/yum.repos.d/latest-RCMTOOLS-2-RHEL-9.repo
@@ -175,7 +175,7 @@ gpgcheck=0
 skip_if_unavailable=True
 EOF
 dnf -y -q install brewkoji || true
-./build/scripts/getLatestImageTags.sh -b rhdh-${DH_VERSION}-rhel-9 --nvr | tee -a /tmp/copy-to-quay.sh.result.txt || true
+./build/scripts/getLatestImageTags.sh -b "${MIDSTM_BRANCH}" --nvr | tee -a /tmp/copy-to-quay.sh.result.txt || true
 
 echo "===== Quay IIBs (requires kaniko) ===========>" | tee -a /tmp/copy-to-quay.sh.result.txt
 # check if IIBs exist for the latest bundle
