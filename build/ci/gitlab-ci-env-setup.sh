@@ -63,7 +63,7 @@ git checkout "${CI_COMMIT_BRANCH}" || exit 1
 git rev-parse --abbrev-ref HEAD
 
 # build and install download-secure-files from sources
-DSF_TAG="v0.1.9"
+DSF_TAG="v0.1.11"
 dnf -y -q install golang make cmake openssl openssl-devel gcc gcc-c++ git
 pushd /tmp >/dev/null || exit 1
 rm -fr download-secure-files/
@@ -71,7 +71,7 @@ git clone https://gitlab.com/gitlab-org/incubation-engineering/mobile-devops/dow
 git checkout $DSF_TAG
 echo "download-secure-files version: $(cat VERSION)"
 go get; CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-X 'main.Version=$(cat VERSION)'"  -o "$HOME/bin/download-secure-files" download-secure-files
-# go test -v
+go test -v
 chmod +x "$HOME/bin/download-secure-files"
 rm -fr /tmp/download-secure-files
 popd >/dev/null || exit 1
