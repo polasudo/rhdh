@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (c) 2023 Red Hat, Inc.
+# Copyright (c) 2023-2024 Red Hat, Inc.
 #
 # sync from upstream github to midstream gitlab
 #
@@ -11,6 +11,7 @@
 
 # see also .gitlab-ci.yml and upstream_repos.yml
 
+set -x
 set -e
 
 SCRIPT=$(readlink -f "$0")

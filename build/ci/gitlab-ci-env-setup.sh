@@ -1,13 +1,13 @@
 #!/bin/bash
 #
-# Copyright (c) 2023 Red Hat, Inc.
+# Copyright (c) 2023-2024 Red Hat, Inc.
 # 
 # set up gitlab CI runner environment
 # called by .gitlab-ci.yml 
 # see build/dockerfiles/builder-ubi9.Dockerfile
 # to test, run in quay.io/rhdh/gitlab-runner:builder-latest
 
-# set -x
+set -x
 set -e
 
 echo "CI_BUILDS_DIR = $CI_BUILDS_DIR
