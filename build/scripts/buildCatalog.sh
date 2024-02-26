@@ -10,7 +10,7 @@
 # Utility script build a catalog image from bundle, channel, and package files rendered
 # by filterIIB.sh. The built catalog contains only operators in files and is
 # thus smaller in size.
-# OPM from 4.12 (>v1.26.3 upstream version) is required to run buildCatalog.sh (CRW-4192, OCPBUGS-11841)
+# OPM from 4.14 (>v1.26.3 upstream version) is required to run buildCatalog.sh (CRW-4192, OCPBUGS-11841)
 #
 
 usage() {
@@ -21,7 +21,7 @@ is intended for use in conjunction with filterIIB.sh
 
 Requires:
 * jq 1.6+, podman 4+, glibc 2.28+
-* opm v1.26.3+ (see https://docs.openshift.com/container-platform/4.12/cli_reference/opm/cli-opm-install.html#cli-opm-install )
+* opm v1.26.3+ (see https://docs.openshift.com/container-platform/4.14/cli_reference/opm/cli-opm-install.html#cli-opm-install )
 
 Usage: $0 [OPTIONS]
 
@@ -73,12 +73,12 @@ if [ -z $OCP_VER ]; then echo "OCP ('-o', '--ocp-ver') version option is require
 
 if [[ ! -x /usr/local/bin/opm ]] && [[ ! -x ${HOME}/.local/bin/opm ]]; then 
     pushd /tmp >/dev/null || exit
-    echo "[INFO] Installing latest opm from https://mirror.openshift.com/pub/openshift-v4/$(uname -m)/clients/ocp/latest-4.12/opm-linux.tar.gz ..."
-    curl -sSLo- "https://mirror.openshift.com/pub/openshift-v4/$(uname -m)/clients/ocp/latest-4.12/opm-linux.tar.gz" | tar xz; chmod 755 opm
+    echo "[INFO] Installing latest opm from https://mirror.openshift.com/pub/openshift-v4/$(uname -m)/clients/ocp/latest-4.14/opm-linux.tar.gz ..."
+    curl -sSLo- "https://mirror.openshift.com/pub/openshift-v4/$(uname -m)/clients/ocp/latest-4.14/opm-linux.tar.gz" | tar xz; chmod 755 opm
     sudo cp opm /usr/local/bin/ || cp opm "${HOME}"/.local/bin/
     sudo chmod 755 /usr/local/bin/opm || chmod 755 "${HOME}"/.local/bin/opm
     if [[ ! -x /usr/local/bin/opm ]] && [[ ! -x "${HOME}"/.local/bin/opm ]]; then 
-        echo "[ERROR] Could not install opm v1.26.3 or higher (see https://docs.openshift.com/container-platform/4.12/cli_reference/opm/cli-opm-install.html#cli-opm-install )";
+        echo "[ERROR] Could not install opm v1.26.3 or higher (see https://docs.openshift.com/container-platform/4.14/cli_reference/opm/cli-opm-install.html#cli-opm-install )";
         exit 1
     fi
     popd >/dev/null || exit
@@ -109,9 +109,8 @@ if [ -f ./olm-catalog.Dockerfile ]; then rm -f ./olm-catalog.Dockerfile; fi
 # shellcheck disable=SC2086
 $PODMAN rmi --ignore --force $targetIndexImage >/dev/null 2>&1 || true
 
-# NOTE: v4.12 is updated more regularly than 4.13 for CVEs
-# see https://catalog.redhat.com/software/containers/openshift4/ose-operator-registry/5cddd0bed70cc57c44b2e1f3
-OSE_VER="v4.12" 
+# see https://catalog.redhat.com/software/containers/openshift4/ose-operator-registry/5cddd0bed70cc57c44b2e1f3/history
+OSE_VER="v4.14" 
 cat <<EOF > olm-catalog.Dockerfile
 # The base image is expected to contain
 # /bin/opm (with a serve subcommand) and /bin/grpc_health_probe

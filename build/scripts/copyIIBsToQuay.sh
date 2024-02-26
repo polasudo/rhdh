@@ -8,7 +8,7 @@
 # SPDX-License-Identifier: EPL-2.0
 #
 # script to query latest IIBs for a given list of OCP versions, then copy those to Quay
-# OPM from 4.12 (>v1.26.3 upstream version) is required to run buildCatalog.sh (CRW-4192, OCPBUGS-11841)
+# OPM from 4.14 (>v1.26.3 upstream version) is required to run buildCatalog.sh (CRW-4192, OCPBUGS-11841)
 #
 
 SCRIPT_DIR=$(cd "$(dirname "$0")" || exit; pwd)
@@ -18,7 +18,7 @@ usage () {
 
 Requires:
 * jq 1.6+, skopeo 1.11+, podman 2.0+, glibc 2.28+
-* opm v1.26.3+ (see https://docs.openshift.com/container-platform/4.12/cli_reference/opm/cli-opm-install.html#cli-opm-install )
+* opm v1.26.3+ (see https://docs.openshift.com/container-platform/4.14/cli_reference/opm/cli-opm-install.html#cli-opm-install )
 
 Usage:
   $0 [OPTIONS]
@@ -44,7 +44,7 @@ command -v jq >/dev/null 2>&1     || which jq >/dev/null 2>&1     || { echo "jq 
 
 VERBOSEFLAG=""
 BUILD_CATALOG_FLAGS=""
-EXTRA_TAGS="" # extra tags to set in target image, eg., 1.0.0.RC-09-19-v4.13-x86_64
+EXTRA_TAGS="" # extra tags to set in target image, eg., 1.0.0.RC-09-19-v4.14-x86_64
 PUSHTOQUAYFORCE=0
 targetIndexImage=""
 AUTHFILE=""
@@ -137,8 +137,6 @@ if [[ "$PUSH" != "true" ]]; then
 fi
 
 # compute list of IIBs for a given operator bundle
-# rhdh-operator-bundle:1.0-29	registry-proxy.engineering.redhat.com/rh-osbs/iib:573813	v4.12 ==> 29;573813:v4.12
-# rhdh-operator-bundle:1.0-29	registry-proxy.engineering.redhat.com/rh-osbs/iib:573824	v4.13 ==> 29;573824:v4.13
 # rhdh-operator-bundle:1.0-29	registry-proxy.engineering.redhat.com/rh-osbs/iib:573829	v4.14 ==> 29;573829:v4.14
 GIIB_result="$(${getIIBsForBundle} --dh -t "${DH_VERSION}")"
 if [[ $VERBOSEFLAG == "-v" ]]; then
@@ -187,12 +185,12 @@ done
 if [[ $IIB_OCP_BUNDLES_TO_PUSH ]]; then
     if [[ ! -x /usr/local/bin/opm ]] && [[ ! -x "${HOME}"/.local/bin/opm ]]; then
         pushd /tmp >/dev/null || exit
-        echo "[INFO] Installing latest opm from https://mirror.openshift.com/pub/openshift-v4/$(uname -m)/clients/ocp/latest-4.12/opm-linux.tar.gz ..."
-        curl -sSLo- "https://mirror.openshift.com/pub/openshift-v4/$(uname -m)/clients/ocp/latest-4.12/opm-linux.tar.gz" | tar xz; chmod 755 opm
+        echo "[INFO] Installing latest opm from https://mirror.openshift.com/pub/openshift-v4/$(uname -m)/clients/ocp/latest-4.14/opm-linux.tar.gz ..."
+        curl -sSLo- "https://mirror.openshift.com/pub/openshift-v4/$(uname -m)/clients/ocp/latest-4.14/opm-linux.tar.gz" | tar xz; chmod 755 opm
         sudo cp opm /usr/local/bin/ || cp opm "${HOME}"/.local/bin/
         sudo chmod 755 /usr/local/bin/opm || chmod 755 "${HOME}"/.local/bin/opm
         if [[ ! -x /usr/local/bin/opm ]] && [[ ! -x "${HOME}"/.local/bin/opm ]]; then
-            echo "[ERROR] Could not install opm v1.26.3 or higher (see https://docs.openshift.com/container-platform/4.12/cli_reference/opm/cli-opm-install.html#cli-opm-install )";
+            echo "[ERROR] Could not install opm v1.26.3 or higher (see https://docs.openshift.com/container-platform/4.14/cli_reference/opm/cli-opm-install.html#cli-opm-install )";
             exit 1
         fi
         popd >/dev/null || exit
