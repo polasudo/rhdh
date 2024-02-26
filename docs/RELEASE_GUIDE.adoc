@@ -48,6 +48,17 @@ NOTE: Dockerfile versions are derived from the backstage-showcase package.json v
 
 .. __TODO__: script this step? 
 
+### Update rhdh-*-rhel-9 branch versions
+
+Submit PRs to fix version references in `upstream_repos.yml` for both the new rhdh-1.yy-rhel-9 and the rhdh-1-rhel-9 branch.
+
+Specifically:
+
+* link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/commit/ea34860faf4d976e2bd3920df1d0e781808f16a0[do not use main for 1.yy branch]
+* link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/commit/81d98cb9a865b3b92eb75ce8113b2019fb241f1e[bump 1.yy-1 to 1.yy]
+
+TODO: since we currently have to update both branches on code freeze, maybe it's more efficient to always only use `main` in `rhdh-1-rhel-9` and to only use `1.yy.x` in `rhdh-1.yy-rhel-9` branch? Then we only need ONE PR when we create the stable upstream branches.
+
 ### Trigger respins 
 
 . Create new gitlab pipeline schedule for 1.1 (to run in parallel with 1.x)
