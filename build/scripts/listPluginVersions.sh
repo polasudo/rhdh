@@ -34,6 +34,7 @@ Options:
   -h, --help                 : Show this help
 
 Examples:
+  $0 -c quay.io/rhdh/rhdh-hub-rhel9:1.0-200
   $0 -c quay.io/rhdh/rhdh-hub-rhel9:1.1-87
   $0 -s /path/to/rhdh-hub
   $0 -s /path/to/backstage-showcase 
@@ -129,3 +130,7 @@ pushd "$SOURCEDIR" >/dev/null || exit 1
     echo "List of dynamic plugins written to: /tmp/pluginListSorted_dynamic${filename_suffix}"
 popd >/dev/null || exit 1
 
+# cleanup temp files
+if [[ $filename_suffix != ".txt" ]]; then
+  rm -f /tmp/pluginListSorted_paths.txt /tmp/pluginListSorted_nopaths.txt /tmp/pluginListSorted_dynamic.txt
+fi
