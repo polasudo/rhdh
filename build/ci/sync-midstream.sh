@@ -545,8 +545,8 @@ LABEL operators.operatorframework.io.bundle.mediatype.v1=registry+v1 \\
       operators.operatorframework.io.bundle.manifests.v1=manifests/ \\
       operators.operatorframework.io.bundle.metadata.v1=metadata/ \\
       operators.operatorframework.io.bundle.package.v1=rhdh \\
-      operators.operatorframework.io.bundle.channels.v1=fast \\
-      operators.operatorframework.io.bundle.channel.default.v1=fast \\
+      operators.operatorframework.io.bundle.channels.v1=stable,stable-\${CI_X_VERSION}.\${CI_Y_VERSION} \\
+      operators.operatorframework.io.bundle.channel.default.v1=stable \\
       com.redhat.delivery.operator.bundle="true" \\
       com.redhat.openshift.versions="v4.12" \\
       com.redhat.delivery.backport=false \\
@@ -830,7 +830,9 @@ for d in distgit/containers/rhdh-hub distgit/containers/rhdh-operator distgit/co
     done
     set -e
     # generate Dockerfile from Dockerfile.in
-    sed -r -e 's|version="\$\{CI_X_VERSION\}\.\$\{CI_Y_VERSION\}"|version="'"$DH_VERSION"'"|' Dockerfile.in > Dockerfile
+    sed -r -e 's|\$\{CI_X_VERSION\}\.\$\{CI_Y_VERSION\}|'"$DH_VERSION"'|' Dockerfile.in > Dockerfile
+    # generate annotations from upstream file in .rhdh/bundle/metadata/annotations.yaml
+    sed -r -e 's|\$\{CI_X_VERSION\}\.\$\{CI_Y_VERSION\}|'"$DH_VERSION"'|' -i metadata/annotations.yaml
   popd >/dev/null || exit 1
 done
 
