@@ -22,7 +22,10 @@ _TODO_: Think about how best to create a release guide (gantt chart, smartsheet,
 .. [ ] https://pkgs.devel.redhat.com/cgit/containers/rhdh-operator/tree/?h=rhdh-1.1-rhel-9
 .. [ ] https://pkgs.devel.redhat.com/cgit/containers/rhdh-operator-bundle/tree/?h=rhdh-1.1-rhel-9
 
-. Request new Brew Targets, CPEs, PVs be created via HoneyBadger madness or reach out to @ahills / @siege on slack
+. Request new Brew Targets & product variant (PV) be created via link:https://issues.redhat.com/browse/SPMM-15866[SPMM ticket like SPMM-15866] and by pinging @ahills / @siege on slack
+
+. Once the associated Errata PV is created, ProdSec gets notified and adds the appropriate CPE within a day or two. For questions, ping Martin Prpič or link:https://docs.engineering.redhat.com/pages/viewpage.action?spaceKey=PRODSEC&title=CPE[send an email] to prodsec-request@redhat.com.
+ 
 
 ### Update main branch versions
 
