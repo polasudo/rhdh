@@ -831,8 +831,13 @@ for d in distgit/containers/rhdh-hub distgit/containers/rhdh-operator distgit/co
     set -e
     # generate Dockerfile from Dockerfile.in
     sed -r -e 's|\$\{CI_X_VERSION\}\.\$\{CI_Y_VERSION\}|'"$DH_VERSION"'|' Dockerfile.in > Dockerfile
+
+    ##################################### rhdh-operator-bundle #####################################
     # generate annotations from upstream file in .rhdh/bundle/metadata/annotations.yaml
-    sed -r -e 's|\$\{CI_X_VERSION\}\.\$\{CI_Y_VERSION\}|'"$DH_VERSION"'|' -i metadata/annotations.yaml
+    if [[ $d == "distgit/containers/rhdh-operator-bundle" ]] && [[ -f metadata/annotations.yaml ]]; then 
+      sed -r -e 's|\$\{CI_X_VERSION\}\.\$\{CI_Y_VERSION\}|'"$DH_VERSION"'|' -i metadata/annotations.yaml
+    fi
+    ##################################### rhdh-operator-bundle #####################################
   popd >/dev/null || exit 1
 done
 
