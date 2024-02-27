@@ -338,9 +338,9 @@ for ((i = 0; i < NUM_REPOS; i++)); do # echo $i
       # remove files we don't need downstream in operator-bundle/ or operator/bundle/
       for bundle_dir in "${BUNDLEDIR}" "${ROOTPATH}/${destination_folder%/}/bundle"; do 
         pushd "${bundle_dir}" >/dev/null || exit 1
+          # shellcheck disable=SC2043
           for df in \
               manifests/backstage-operator.clusterserviceversion.yaml \
-              tests/scorecard \
             ; do 
             git rm -fr $df 2>/dev/null || rm -f $df 2>/dev/null || true
           done
