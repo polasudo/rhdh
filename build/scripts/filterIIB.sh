@@ -130,8 +130,8 @@ replaceChannelName()
   fi
 }
 # optionally, override the channels from the IIBs with a targetChannel (for all operators or for the specified operator)
-# olm-catalog/rhdh/channel.json # "name": "stable"
-# olm-catalog/rhdh/package.json # "defaultChannel": "stable"
+# olm-catalog/rhdh/channel.json # "name": "fast"
+# olm-catalog/rhdh/package.json # "defaultChannel": "fast"
 pushd olm-catalog/ >/dev/null || exit
 if [[ -n $targetChannelAll ]]; then
   for d in $PACKAGES; do

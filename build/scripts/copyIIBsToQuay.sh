@@ -171,10 +171,10 @@ for BUNDLE_IIB_OCP in ${IIB_OCP_BUNDLES}; do
         # must build on multiple arches to get per-arch IIBs (eg., for aarch64/arm64, need that arch as a CI runner)
         echo "[INFO] QUAY INDEX BUNDLE = ${LATEST_IIB_QUAY}"
 
-        # filter and publish to a new name, putting all operators in the fast channel
+        # filter and publish to a new name, leaving fast and fast-1.y channels unchanged
         CATALOG_DIR="/tmp/tmp.copyIIBsToQuay-${DH_VERSION}-${OCP_VER}-${LATEST_IIB_NUM}-$(uname -m)"; mkdir -p "$CATALOG_DIR"
         if [[ $VERBOSEFLAG == "-v" ]]; then echo "[DEBUG] Rendering catalog to: $CATALOG_DIR"; fi
-        ${filterIIB} -s "registry-proxy.engineering.redhat.com/rh-osbs/iib:${LATEST_IIB_NUM}" --channel-all fast --dir "$CATALOG_DIR" --packages "rhdh" ${VERBOSEFLAG}
+        ${filterIIB} -s "registry-proxy.engineering.redhat.com/rh-osbs/iib:${LATEST_IIB_NUM}" --dir "$CATALOG_DIR" --packages "rhdh" ${VERBOSEFLAG}
     else
         echo "[INFO] QUAY INDEX BUNDLE = ${LATEST_IIB_QUAY} - already exists. To force update, use copyIIBsToQuay.sh --force"
     fi

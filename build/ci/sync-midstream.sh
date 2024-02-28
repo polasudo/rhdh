@@ -545,8 +545,8 @@ LABEL operators.operatorframework.io.bundle.mediatype.v1=registry+v1 \\
       operators.operatorframework.io.bundle.manifests.v1=manifests/ \\
       operators.operatorframework.io.bundle.metadata.v1=metadata/ \\
       operators.operatorframework.io.bundle.package.v1=rhdh \\
-      operators.operatorframework.io.bundle.channels.v1=stable,stable-\${CI_X_VERSION}.\${CI_Y_VERSION} \\
-      operators.operatorframework.io.bundle.channel.default.v1=stable \\
+      operators.operatorframework.io.bundle.channels.v1=fast,fast-\${CI_X_VERSION}.\${CI_Y_VERSION} \\
+      operators.operatorframework.io.bundle.channel.default.v1=fast \\
       com.redhat.delivery.operator.bundle="true" \\
       com.redhat.openshift.versions="v4.12" \\
       com.redhat.delivery.backport=false \\
@@ -931,7 +931,6 @@ fi ## if DO_COMMIT
 
 # if pushing as a normal user
 if [[ ${DO_PUSH} -eq 1 ]]; then
-  # TODO https://issues.redhat.com/browse/RHIDP-97 switch to a stable branch instead of main
   BRANCHUSED="${DWNSTM_BRANCH}"
   PR_BRANCH="pr-update-sync-rhdh-hub-$(date +%s)"
 
