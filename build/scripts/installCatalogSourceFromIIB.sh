@@ -18,14 +18,15 @@ set -e
 RED='\033[0;31m'
 NC='\033[0m'
 
-NAMESPACE="openshift-operators"
+NAMESPACE_CATALOGSOURCE="openshift-marketplace" # instead of openshift-operators
+NAMESPACE_SUBSCRIPTION="rhdh-operator" # default custom subscription namespace, instead of openshift-operators
 DISABLE_CATALOGSOURCES="false"
 INSTALL_PLAN_APPROVAL="Automatic"
 OLM_CHANNEL="fast"
 
 # default ICSP to use to resolve unreleased images
-# if using --fast or --quay flag, this will be changed to quay.io
-# if using --brew flag, this will be changed to brew.registry.redhat.io
+# if using --quay flag, this will include quay.io
+# if using --brew flag, this will include brew.registry.redhat.io
 # if you want your own registry here, use --icsp flag to specify it
 ICSP_URLs=""
 
@@ -35,8 +36,13 @@ errorf() {
 
 usage() {
 echo "
+
+######################################################################################################################################
+For a simpler version of this script, see https://github.com/janus-idp/operator/blob/main/.rhdh/scripts/install-rhdh-catalog-source.sh 
+######################################################################################################################################
+
 This script streamlines testing IIB images by configuring an OpenShift cluster to enable it to use the specified IIB image
-in a catalog. The CatalogSource is created in the openshift-operators namespaces unless '--namespace' is specified, and
+as a catalog source. The CatalogSource is created in the $NAMESPACE_CATALOGSOURCE namespace (override with '--namespace-catalogsource')
 is named 'operatorName-channelName', eg., rhdh-fast
 
 Note: to compute the latest IIB image for a given operator, use ./getIIBsForBundle.sh.
@@ -55,20 +61,21 @@ Options:
   --latest                     : Install from iib quay.io/rhdh/iib:latest-\$OCP_VER-\$OCP_ARCH (eg., latest-v4.12-x86_64)
   --next                       : Install from iib quay.io/rhdh/iib:next-\$OCP_VER-\$OCP_ARCH (eg., next-v4.12-x86_64)
   --install-operator <NAME>    : Install operator named $NAME after creating CatalogSource
-  --channel <CHANNEL>          : Channel to use for operator subscription if installing operator. Default: "fast"
-  --manual-updates             : Use "manual" InstallPlanApproval for the CatalogSource instead of "automatic" if installing operator
+  --channel <CHANNEL>          : Channel to use for operator subscription if installing operator. Default: '$OLM_CHANNEL'
+  --manual-updates             : Use 'manual' InstallPlanApproval for the CatalogSource instead of 'automatic' if installing operator
   --disable-default-sources    : Disable default CatalogSources. Default: false
-  --quay                       : Resolve images from quay.io using ImageContentSourcePolicy
+  --quay                       : Resolve images from quay.io using ImageContentSourcePolicy (requires authentication to quay.io/rhdh/)
   --brew                       : Resolve images from brew.registry.redhat.io using ImageContentSourcePolicy (requires authentication)
   --icsp                       : Install using specified registry in ImageContentSourcePolicy
-  -n, --namespace <NAMESPACE>  : Namespace to install CatalogSource into. Default: openshift-operators
+  -nc, --namespace-catalogsource <NAMESPACE>  : Namespace to install CatalogSource into. Default: $NAMESPACE_CATALOGSOURCE
+  -ns, --namespace-subscription  <NAMESPACE>  : Namespace to install Subscliption into. Default: $NAMESPACE_SUBSCRIPTION
 
 Developer Hub Examples:
   $0 \\
-  --iib brew.registry.redhat.io/rh-osbs/iib:573813 --install-operator rhdh --brew --quay --channel fast
+  --iib brew.registry.redhat.io/rh-osbs/iib:573813 --install-operator rhdh --brew --quay --channel fast-1.2
 
   $0 \\
-  --latest --install-operator rhdh # RC release in progess (from stable branch)
+  --latest --install-operator rhdh # RC release in progess (from 1.yy branch)
   
   $0 \\
   --next --install-operator rhdh # CI future release (from main branch)
@@ -91,7 +98,8 @@ while [[ "$#" -gt 0 ]]; do
       OCP_ARCH="$(oc version -o json | jq -r '.serverVersion.platform' | sed -r -e "s#linux/##")"
       if [[ $OCP_ARCH == "amd64" ]]; then OCP_ARCH="x86_64"; fi
       UPSTREAM_IIB="quay.io/rhdh/iib:${1/--/}-${OCP_VER}-$OCP_ARCH";;
-    '-n'|'--namespace') NAMESPACE="$2"; shift 1;;
+    '-nc'|'--namespace-catalogsource') NAMESPACE_CATALOGSOURCE="$2"; shift 1;;
+    '-ns'|'--namespace-subscription') NAMESPACE_SUBSCRIPTION="$2"; shift 1;;
     '-h'|'--help') usage; exit 0;;
     *) echo "[ERROR] Unknown parameter is used: $1."; usage; exit 1;;
   esac
@@ -111,7 +119,6 @@ if [[ ! $(command -v curl) ]]; then
   errorf "Please install curl"
   exit 1
 fi
-
 
 # Check that we have IIB image and use Brew mirror
 if [ -z "$UPSTREAM_IIB" ]; then
@@ -166,10 +173,18 @@ if [[ "${IIB_IMAGE}" == "brew.registry"* ]]; then
   rm authfile
 fi
 
-# Create project if necessary
-if ! oc get project "$NAMESPACE" > /dev/null 2>&1; then
-  echo "Project $NAMESPACE does not exist; creating it"
-  oc new-project "$NAMESPACE"
+# Create catalogsource project if necessary
+if ! oc get project "$NAMESPACE_CATALOGSOURCE" > /dev/null 2>&1; then
+  echo "Project $NAMESPACE_CATALOGSOURCE does not exist; creating it"
+  oc new-project "$NAMESPACE_CATALOGSOURCE"
+fi
+
+if [[ $TO_INSTALL ]]; then
+  # Create subscription project if necessary
+  if ! oc get project "$NAMESPACE_SUBSCRIPTION" > /dev/null 2>&1; then
+    echo "Project $NAMESPACE_SUBSCRIPTION does not exist; creating it"
+    oc create namespace "$NAMESPACE_SUBSCRIPTION"
+  fi
 fi
 
 TMPDIR=$(mktemp -d)
@@ -257,7 +272,7 @@ echo "apiVersion: operators.coreos.com/v1alpha1
 kind: CatalogSource
 metadata:
   name: ${CATALOGSOURCE_NAME}
-  namespace: $NAMESPACE
+  namespace: $NAMESPACE_CATALOGSOURCE
 spec:
   sourceType: grpc
   image: ${IIB_IMAGE}
@@ -270,29 +285,27 @@ if [ -z "$TO_INSTALL" ]; then
   exit 0
 fi
 
-# Create OperatorGroup to allow installing all-namespaces operators in $NAMESPACE
-if [[ "$NAMESPACE" != "openshift-operators" ]]; then
-  echo "Using custom namespace for install; creating OperatorGroup to allow all-namespaces operators to be installed"
+# Create OperatorGroup to allow installing all-namespaces operators in $NAMESPACE_SUBSCRIPTION
+echo "Creating OperatorGroup to allow all-namespaces operators to be installed"
 echo "apiVersion: operators.coreos.com/v1
 kind: OperatorGroup
 metadata:
-  name: $NAMESPACE-operators
-  namespace: $NAMESPACE
+  name: rhdh-operator-group
+  namespace: ${NAMESPACE_SUBSCRIPTION}
 " > $TMPDIR/OperatorGroup.yml && oc apply -f $TMPDIR/OperatorGroup.yml
-fi
 
 # Create subscription for operator
 echo "apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
 metadata:
   name: $TO_INSTALL
-  namespace: $NAMESPACE
+  namespace: $NAMESPACE_SUBSCRIPTION
 spec:
   channel: $OLM_CHANNEL
   installPlanApproval: $INSTALL_PLAN_APPROVAL
   name: $TO_INSTALL
   source: ${CATALOGSOURCE_NAME}
-  sourceNamespace: $NAMESPACE
+  sourceNamespace: $NAMESPACE_CATALOGSOURCE
 " > $TMPDIR/Subscription.yml && oc apply -f $TMPDIR/Subscription.yml
 
 # cleanup temp yaml files
