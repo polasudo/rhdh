@@ -20,7 +20,7 @@
 
 # TODO: compute default errata num to use with --errata flag
 DEFAULT_ERRATA_NUM="125348"
-DEFAULT_ERRATA_PV="RHDH-1.0-RHEL-9"
+DEFAULT_ERRATA_PV="RHDH-1.1-RHEL-9"
 
 # try to compute branches from currently checked out branch; else fall back to hard coded value
 DWNSTM_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "rhdh-1-rhel-9")
