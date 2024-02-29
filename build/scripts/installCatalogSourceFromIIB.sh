@@ -276,8 +276,8 @@ metadata:
 spec:
   sourceType: grpc
   image: ${IIB_IMAGE}
-  publisher: IIB testing ${TO_INSTALL}
-  displayName: IIB testing catalog ${TO_INSTALL}
+  publisher: IIB ${CATALOGSOURCE_NAME} ${TO_INSTALL}
+  displayName: IIB ${CATALOGSOURCE_NAME} ${TO_INSTALL}
 " > $TMPDIR/CatalogSource.yml && oc apply -f $TMPDIR/CatalogSource.yml
 
 if [ -z "$TO_INSTALL" ]; then
