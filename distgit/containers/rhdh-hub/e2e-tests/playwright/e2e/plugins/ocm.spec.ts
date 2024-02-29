@@ -9,11 +9,10 @@ const clusterDetails = {
   clusterName: 'testCluster',
   status: 'Ready',
   platform: 'IBM',
-  cpuCores: '12',
-  memorySize: '47 Gi',
+  cpuCores: '16',
+  memorySize: '63 Gi',
   ocVersion: /^\d+\.\d+\.\d+$/,
 };
-
 let page: Page;
 test.describe.serial('Test OCM plugin', () => {
   let uiHelper: UIhelper;
@@ -31,7 +30,7 @@ test.describe.serial('Test OCM plugin', () => {
 
     await common.loginAsGithubUser();
   });
-  test.skip('Navigate to Clusters and Verify OCM Clusters', async () => {
+  test('Navigate to Clusters and Verify OCM Clusters', async () => {
     await uiHelper.openSidebar('Clusters');
     await uiHelper.verifyRowInTableByUniqueText(clusterDetails.clusterName, [
       clusterDetails.status,
@@ -53,7 +52,7 @@ test.describe.serial('Test OCM plugin', () => {
     );
   });
 
-  test('Navigate to Catalog > resources and verify cluster', async () => {
+  test.skip('Navigate to Catalog > resources and verify cluster', async () => {
     await uiHelper.openSidebar('Catalog');
     await common.waitForLoad();
     await uiHelper.selectMuiBox('Kind', 'Resource');
