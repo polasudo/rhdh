@@ -6,7 +6,7 @@
     ** https://github.com/janus-idp/backstage-showcase
     ** https://github.com/janus-idp/operator
 
-. Wait until the next scheduled build (runs every 4 hours) or trigger a pipeline job from the link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/pipeline_schedules[Pipeline Schedules] page using the play icon:
+. Wait until the next scheduled build (runs every 3 or 4 hours) or trigger a pipeline job from the link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/pipeline_schedules[Pipeline Schedules] page using the play icon:
 
 image::images/pipeline-schedules.png[Pipeline Schedules]
 
@@ -15,8 +15,6 @@ image::images/pipeline-schedules.png[Pipeline Schedules]
 . You can also trigger a build by pushing a commit into link:https://gitlab.cee.redhat.com/rhidp/rhdh/[this repo], but if there is no change upstream, the job will not rebuild the containers. 
 
 . To **force** a rebuild from the midstream without changing upstream, empty the appropriate file (of files) in the link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/tree/rhdh-1-rhel-9/sync[sync] folder, or run link:https://gist.github.com/nickboldt/49bbbd8c2e916d8c199b8fbc06d1044e[this script].
-
-. TODO https://issues.redhat.com/browse/RHIDP-896 ensure that only the containers we want to build are rebuilt (eg., hub + bundle, operator + bundle, or hub + operator + bundle)
 
 ## Pipelines
 
@@ -39,7 +37,30 @@ The link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/tree/rhdh-1-rhel-9/build/ci[
 . publish helm chart to https://github.com/rhdh-bot/openshift-helm-charts/tree/rhdh-1.1-rhel-9/installation
 . review the preceding stages for success/failure
 
-TODO: https://issues.redhat.com/browse/RHIDP-896 support sequencing the container builds (rather than a parallel matrix)
+### What to watch out for
+
+. Check the build log from the `sync-midstream` phase -- you should see something committed to the gitlab.cee repo if there was a change found and synced
+. Check the build logs from the 3 `sync-downstream` jobs in that phase -- again, should see something committed, but this time to `pkgs.devel.redhat.com` repo (if a change was found to build)
+. Check the `Build Plan` in the log for the build-downstream phase (the third one in the 6-phase process) - should show that it's building the hub (if a change there), operator (if a change there) and always a new bundle image
+. If it DID NOT rebuild hub and bundle (and you know a respin is needed) then you can FORCE a respin with the link:https://gist.github.com/nickboldt/49bbbd8c2e916d8c199b8fbc06d1044e[retrigger script], which deletes files in the `link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/tree/rhdh-1-rhel-9/sync[sync/]` folder of the midstream repo, to convince the `link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1-rhel-9/build/ci/sync-midstream.sh[sync-midstream.sh]` script to see a change that needs building.
++ 
+For example:
++
+```
+./trigger-respin.sh 1.1 hub,bun # respin showcase/hub and bundle
+./trigger-respin.sh 1.1 op,bun # respin operator and bundle
+./trigger-respin.sh 1 hub,op,bun # respin 3 containers
+```
++
+. Note that the `link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1-rhel-9/build/ci/copy-to-quay.yml[copy-to-quay]` stage will likely take >90 mins as the CVP testing for new bundle builds requires creating an OCP cluster, which is slow.
++
+A new bundle will appear on https://quay.io/repository/rhdh/rhdh-operator-bundle?tab=tags and then 90+ mins later a new set of IIBs will appear on https://quay.io/repository/devspaces/iib?tab=tags for the latest (1.1) or next (1.2) tags
+
+. If there was a change to hub then there should also be a NEW helm chart created in https://github.com/rhdh-bot/openshift-helm-charts/branches.
++
+The `rhdh-1-rhel-9` branch is updated for each 1.2 chart, and the `rhdh-1.1-rhel-9` branch is updated for each 1.1 chart, as well as creating a new branch for each chart version.
++
+(Once we have branched for 1.2, then `rhdh-1-rhel-9` will be for 1.3, and `rhdh-1.2-rhel-9` will be for 1.2.)
 
 ## How to disable/skip steps
 
