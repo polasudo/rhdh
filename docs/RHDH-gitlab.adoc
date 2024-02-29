@@ -47,9 +47,9 @@ The link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/tree/rhdh-1-rhel-9/build/ci[
 For example:
 +
 ```
-./trigger-respin.sh 1.1 hub,bun # respin showcase/hub and bundle
-./trigger-respin.sh 1.1 op,bun # respin operator and bundle
-./trigger-respin.sh 1 hub,op,bun # respin 3 containers
+./triggerRespin.sh 1.1 hub,bun # respin showcase/hub and bundle
+./triggerRespin.sh 1.1 op,bun # respin operator and bundle
+./triggerRespin.sh 1 hub,op,bun # respin 3 containers
 ```
 +
 . Note that the `link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1-rhel-9/build/ci/copy-to-quay.yml[copy-to-quay]` stage will likely take >90 mins as the CVP testing for new bundle builds requires creating an OCP cluster, which is slow.
