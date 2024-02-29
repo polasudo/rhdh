@@ -231,7 +231,7 @@ CI builds are now published to Quay automatically every 4 hours, including a new
 oc login --token=sha256~z6Whfzg3Q-Gy345vIAOd5f4ghhha5o0sgqgIRipgmcY --server=https://api.ci-ab-12345-678900.cluster-here.rhcloud.com:6443
 ```
 +
-. Log in to quay.io and registry.redhat.io, and use those tokens as pull secrets in your cluster -- see https://gist.github.com/nickboldt/84bea28da11ec5aab549c182818356e0 for a scripted solution
+. Log in to quay.io and registry.redhat.io, and use those tokens as pull secrets in your cluster -- see link:https://github.com/janus-idp/operator/blob/main/.rhdh/docs/installing-ci-builds.adoc[installing-ci-builds.adoc] for more on this and a scripted solution.
 ** Your user should have read permission for link:http://quay.io/rhdh[quay.io/rhdh] images
 ** If you don't, send your quay username to @nboldt in Slack to be added
 

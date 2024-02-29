@@ -16,7 +16,7 @@ See link:RHDH-gitlab.adoc[RHDH-gitlab.adoc]
 
 ## How to install the latest Helm Chart
 
-See link:https://gist.github.com/rhdh-bot/[Helm Chart install instructions] or link:RHDH.adoc[RHDH.adoc] - `Helm Chart`.
+See link:https://github.com/rhdh-bot/openshift-helm-charts/tree/rhdh-1-rhel-9/installation/[Helm Chart install instructions] or link:RHDH.adoc[RHDH.adoc] - `Helm Chart`.
 
 ## How to install the latest operator-bundle
 

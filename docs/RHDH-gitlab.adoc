@@ -14,7 +14,7 @@ image::images/pipeline-schedules.png[Pipeline Schedules]
 
 . You can also trigger a build by pushing a commit into link:https://gitlab.cee.redhat.com/rhidp/rhdh/[this repo], but if there is no change upstream, the job will not rebuild the containers. 
 
-. To **force** a rebuild from the midstream without changing upstream, empty the appropriate file (of files) in the link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/tree/rhdh-1-rhel-9/sync[sync] folder, or run link:https://gist.github.com/nickboldt/49bbbd8c2e916d8c199b8fbc06d1044e[this script].
+. To **force** a rebuild from the midstream without changing upstream, empty the appropriate file (of files) in the link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/tree/rhdh-1-rhel-9/sync[sync] folder, or run link:../build/scripts/triggerRespin.sh[triggerRespin.sh].
 
 ## Pipelines
 
@@ -42,7 +42,7 @@ The link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/tree/rhdh-1-rhel-9/build/ci[
 . Check the build log from the `sync-midstream` phase -- you should see something committed to the gitlab.cee repo if there was a change found and synced
 . Check the build logs from the 3 `sync-downstream` jobs in that phase -- again, should see something committed, but this time to `pkgs.devel.redhat.com` repo (if a change was found to build)
 . Check the `Build Plan` in the log for the build-downstream phase (the third one in the 6-phase process) - should show that it's building the hub (if a change there), operator (if a change there) and always a new bundle image
-. If it DID NOT rebuild hub and bundle (and you know a respin is needed) then you can FORCE a respin with the link:https://gist.github.com/nickboldt/49bbbd8c2e916d8c199b8fbc06d1044e[retrigger script], which deletes files in the `link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/tree/rhdh-1-rhel-9/sync[sync/]` folder of the midstream repo, to convince the `link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1-rhel-9/build/ci/sync-midstream.sh[sync-midstream.sh]` script to see a change that needs building.
+. If it DID NOT rebuild hub and bundle (and you know a respin is needed) then you can FORCE a respin with the link:../build/scripts/triggerRespin.sh[triggerRespin.sh], which deletes files in the `link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/tree/rhdh-1-rhel-9/sync[sync/]` folder of the midstream repo, to convince the `link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1-rhel-9/build/ci/sync-midstream.sh[sync-midstream.sh]` script to see a change that needs building.
 + 
 For example:
 +
