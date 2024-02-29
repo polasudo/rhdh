@@ -546,7 +546,8 @@ class ArgoService {
     const options = {
       method: "DELETE",
       headers: {
-        Authorization: `Bearer ${argoToken}`
+        Authorization: `Bearer ${argoToken}`,
+        "Content-Type": "application/json"
       }
     };
     const resp = await fetch__default["default"](
@@ -574,7 +575,8 @@ class ArgoService {
     const options = {
       method: "DELETE",
       headers: {
-        Authorization: `Bearer ${argoToken}`
+        Authorization: `Bearer ${argoToken}`,
+        "Content-Type": "application/json"
       }
     };
     const resp = await fetch__default["default"](
