@@ -72,9 +72,9 @@ for target in $targets; do
     fi
 done
 git diff --name-status sync/
-# git commit -s -m "$commitMsg" sync/
-# git push origin "${MIDSTM_BRANCH}"
-# google-chrome https://gitlab.cee.redhat.com/rhidp/rhdh/-/pipelines
+git commit -s -m "$commitMsg" sync/
+git push origin "${MIDSTM_BRANCH}"
+google-chrome https://gitlab.cee.redhat.com/rhidp/rhdh/-/pipelines
 
 # cleanup
 if [[ -d /tmp/rhdh-tmp ]]; then rm -fr /tmp/rhdh-tmp; fi
