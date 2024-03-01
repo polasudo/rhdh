@@ -8,7 +8,7 @@ _TODO_: Think about how best to create a release guide (gantt chart, smartsheet,
 
 ### Create branches (eg., 1.1.x, 1.2.x)
 
-. Create Github branches
+. Create Github branches - _TODO_ script this, see https://issues.redhat.com/browse/RHIDP-931
 
 .. [ ] https://github.com/janus-idp/backstage-plugins/branches/all?query=1.&lastTab=overview
 .. [ ] https://github.com/janus-idp/backstage-showcase/branches/all?query=1.&lastTab=overview
@@ -64,7 +64,7 @@ TODO: since we currently have to update both branches on code freeze, maybe it's
 
 ### Trigger respins 
 
-. Create new gitlab pipeline schedule for 1.1 (to run in parallel with 1.x)
+. Create new gitlab pipeline schedule for 1.2 (to run in parallel with 1.x)
 
 . Run pipelines from
 .. https://gitlab.cee.redhat.com/rhidp/rhdh/-/pipeline_schedules or 
@@ -103,7 +103,11 @@ TODO: since we currently have to update both branches on code freeze, maybe it's
 
 . link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1-rhel-9/build/helm/prepare.sh[Push helm chart release]
 .. Verify install works via clusterbot smoke test
+
 . Monitor container image release(s) via errata(s)
+
+. Create tags in 6 repos (plugins, showcase, operator, rhdh-chart, rhdh midstream gitlab, rhdh docs GH) - _TODO_ script this, see https://issues.redhat.com/browse/RHIDP-931
+
 
 ### Once errata(s) are live
 
