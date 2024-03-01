@@ -16,6 +16,10 @@ _TODO_: Think about how best to create a release guide (gantt chart, smartsheet,
 
 ... _TODO_: do we need branches in https://github.com/redhat-developer/rhdh-chart ?
 
+. Create Gitlab branch
+
+.. [ ] https://gitlab.cee.redhat.com/rhidp/rhdh/-/tree/rhdh-1.y-rhel-9 (from the rhdh-1-rhel-9 branch)
+
 . Create new branches in pkgs.devel (eg., rhdh-1.1-rhel-9, rhdh-1.2-rhel-9)
 
 .. [ ] https://pkgs.devel.redhat.com/cgit/containers/rhdh-hub/tree/?h=rhdh-1.1-rhel-9
@@ -87,11 +91,9 @@ TODO: since we currently have to update both branches on code freeze, maybe it's
 
 . Verify CHI grades from the Container page; if needed, update to a newer base image or explicitly install patched RPMs, and respin 
 
-. _TODO_ rebuild the bundle, and push that to a SECOND errata for the stable-1.y channel
-
 ## During GA week
 
-. Push errata(s) to stage for QE review
+. Push errata to stage for QE review
 . Remind docs they must review/approve the errata
 . Collect GO/NO-GO votes from stakeholders
 ..  _TODO_: Collect list of owners from various stakeholders (Linda's Go/No-Go list)
@@ -104,12 +106,12 @@ TODO: since we currently have to update both branches on code freeze, maybe it's
 . link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1-rhel-9/build/helm/prepare.sh[Push helm chart release]
 .. Verify install works via clusterbot smoke test
 
-. Monitor container image release(s) via errata(s)
+. Monitor container image release via errata
 
 . Create tags in 6 repos (plugins, showcase, operator, rhdh-chart, rhdh midstream gitlab, rhdh docs GH) - _TODO_ script this, see https://issues.redhat.com/browse/RHIDP-931
 
 
-### Once errata(s) are live
+### Once errata is live
 
 . Smoke tests
 .. Operator: smoke test the ability to install from `stable` and upgrade to `stable-1.y` operator subscription channel; after 1.2 is live, smoke test a 1.1 to 1.2 upgrade test too
