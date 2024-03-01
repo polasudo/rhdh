@@ -111,7 +111,9 @@ TODO: since we currently have to update both branches on code freeze, maybe it's
 
 ### Once errata(s) are live
 
-. Smoke test the ability to install from `stable` and upgrade to `stable-1.1` operator subscription channel
+. Smoke tests
+.. Operator: smoke test the ability to install from `stable` and upgrade to `stable-1.y` operator subscription channel; after 1.2 is live, smoke test a 1.1 to 1.2 upgrade test too
+.. Helm Chart: smoke test the ability to install or upgrade via a newer chart
 
 . Review websites
 .. Developers.redhat.com
