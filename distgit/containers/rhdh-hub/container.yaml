@@ -10,7 +10,7 @@ remote_sources:
   - name: upstream1
     remote_source:
       repo: https://gitlab.cee.redhat.com/rhidp/rhdh.git
-      ref: 56eec9eec73071520c97ef67ab5253ccaab228a5
+      ref: bf11aad768767981897f198f15d81f44bf4f1559
       pkg_managers:
         - yarn
       packages:
@@ -24,11 +24,18 @@ remote_sources:
           - path: distgit/containers/rhdh-hub/dynamic-plugins/wrappers/backstage-plugin-techdocs-backend-dynamic/dist-dynamic
           - path: distgit/containers/rhdh-hub/dynamic-plugins/wrappers/backstage-plugin-sonarqube-backend-dynamic/dist-dynamic
           - path: distgit/containers/rhdh-hub/dynamic-plugins/wrappers/backstage-plugin-scaffolder-backend-module-gitlab-dynamic/dist-dynamic
+          - path: distgit/containers/rhdh-hub/dynamic-plugins/wrappers/backstage-plugin-scaffolder-backend-module-github-dynamic/dist-dynamic
+          - path: distgit/containers/rhdh-hub/dynamic-plugins/wrappers/backstage-plugin-scaffolder-backend-module-gerrit-dynamic/dist-dynamic
+          - path: distgit/containers/rhdh-hub/dynamic-plugins/wrappers/backstage-plugin-scaffolder-backend-module-bitbucket-server-dynamic/dist-dynamic
+          - path: distgit/containers/rhdh-hub/dynamic-plugins/wrappers/backstage-plugin-scaffolder-backend-module-bitbucket-cloud-dynamic/dist-dynamic
+          - path: distgit/containers/rhdh-hub/dynamic-plugins/wrappers/backstage-plugin-scaffolder-backend-module-azure-dynamic/dist-dynamic
           - path: distgit/containers/rhdh-hub/dynamic-plugins/wrappers/backstage-plugin-kubernetes-backend-dynamic/dist-dynamic
           - path: distgit/containers/rhdh-hub/dynamic-plugins/wrappers/backstage-plugin-jenkins-backend-dynamic/dist-dynamic
           - path: distgit/containers/rhdh-hub/dynamic-plugins/wrappers/backstage-plugin-catalog-backend-module-gitlab-dynamic/dist-dynamic
           - path: distgit/containers/rhdh-hub/dynamic-plugins/wrappers/backstage-plugin-catalog-backend-module-github-org-dynamic/dist-dynamic
           - path: distgit/containers/rhdh-hub/dynamic-plugins/wrappers/backstage-plugin-catalog-backend-module-github-dynamic/dist-dynamic
+          - path: distgit/containers/rhdh-hub/dynamic-plugins/wrappers/backstage-plugin-catalog-backend-module-bitbucket-server/dist-dynamic
+          - path: distgit/containers/rhdh-hub/dynamic-plugins/wrappers/backstage-plugin-catalog-backend-module-bitbucket-cloud/dist-dynamic
           - path: distgit/containers/rhdh-hub/dynamic-plugins/wrappers/backstage-plugin-azure-devops-backend-dynamic/dist-dynamic
           - path: distgit/containers/rhdh-hub/dynamic-plugins-imports-peer-dependencies
           - path: distgit/containers/rhdh-hub/dynamic-plugins-imports-peer-dependencies/janus-idp-backstage-scaffolder-backend-module-sonarqube/dist-dynamic
@@ -42,7 +49,7 @@ remote_sources:
   - name: upstream2
     remote_source:
       repo: https://gitlab.cee.redhat.com/rhidp/rhdh.git
-      ref: 56eec9eec73071520c97ef67ab5253ccaab228a5
+      ref: bf11aad768767981897f198f15d81f44bf4f1559
       pkg_managers:
         - pip
       packages:
