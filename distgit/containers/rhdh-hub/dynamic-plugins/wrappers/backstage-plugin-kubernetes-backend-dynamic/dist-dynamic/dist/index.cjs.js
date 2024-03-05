@@ -926,7 +926,7 @@ function runPeriodically(fn, delayMs) {
 
 var name = "@backstage/plugin-kubernetes-backend";
 var description = "A Backstage backend plugin that integrates towards Kubernetes";
-var version = "0.15.2";
+var version = "0.15.3";
 var main = "src/index.ts";
 var types = "src/index.ts";
 var license = "Apache-2.0";
