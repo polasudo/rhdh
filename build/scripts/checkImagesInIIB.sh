@@ -41,7 +41,7 @@ Options:
 
 Examples:
   $0 brew.registry.redhat.io/rh-osbs/iib-pub-pending:v4.12 --brew --quay --filter 'dashboard|operator|registry-rhel|udi' --quiet
-  $0 quay.io/rhdh/iib:3.5-v4.13-x86_64  --quay --filter 'dashboard|operator|registry-rhel' -qq
+  $0 quay.io/rhdh/iib:1.2-v4.14-x86_64  --quay --filter 'dashboard|operator|registry-rhel' -qq
 "
 }
 

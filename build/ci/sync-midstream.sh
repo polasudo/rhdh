@@ -912,7 +912,7 @@ echo "$gitdiff" > "/tmp/sync-midstream.sh.diff.txt"
   for d in rhdh-hub rhdh-operator; do
     if [[ $(git diff --name-only HEAD~1 sync/upstream_SHA_${d} || true) ]]; then containerYamls="${containerYamls} distgit/containers/${d}"; fi
   done
-    echo "[INFO] Regen container.yaml from container.yaml.in files for: [$containerYamls ]"
+  echo "[INFO] Regen container.yaml from container.yaml.in files for: [$containerYamls ]"
   # shellcheck disable=SC2016
   for d in $containerYamls; do
     pushd "$d" >/dev/null || exit 1
