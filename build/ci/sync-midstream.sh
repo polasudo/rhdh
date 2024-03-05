@@ -909,8 +909,9 @@ echo "$gitdiff" > "/tmp/sync-midstream.sh.diff.txt"
   ########################################################################################################
 
   containerYamls=""
-  if [[ $(git diff --name-only HEAD~1 sync/upstream_SHA_hub || true) ]]; then containerYamls="${containerYamls} distgit/containers/rhdh-hub"; fi
-  if [[ $(git diff --name-only HEAD~1 sync/upstream_SHA_operator || true) ]]; then containerYamls="${containerYamls} distgit/containers/rhdh-operator"; fi
+  if [[ $(git diff --name-only HEAD~2 sync/upstream_SHA_hub || true) ]]; then containerYamls="${containerYamls} distgit/containers/rhdh-hub"; fi
+  if [[ $(git diff --name-only HEAD~2 sync/upstream_SHA_operator || true) ]]; then containerYamls="${containerYamls} distgit/containers/rhdh-operator"; fi
+  echo "[INFO] Regen container.yaml from container.yaml.in files for: $containerYamls ..."
   # shellcheck disable=SC2016
   for d in $containerYamls; do
     pushd "$d" >/dev/null || exit 1
