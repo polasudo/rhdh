@@ -68,7 +68,7 @@ git pull origin "${MIDSTM_BRANCH}"
 
 for target in $targets; do 
     if [[ -f sync/$target ]]; then
-        echo "" > "$ROOT_DIR/sync/$target"
+        echo "" > "sync/$target"
     fi
 done
 git diff --name-status sync/
