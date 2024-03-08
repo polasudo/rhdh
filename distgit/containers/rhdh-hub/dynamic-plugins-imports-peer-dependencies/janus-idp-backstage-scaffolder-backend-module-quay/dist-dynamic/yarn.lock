@@ -25,9 +25,9 @@
     tslib "^2.5.0"
 
 "@smithy/util-utf8@~2":
-  version "2.1.1"
-  resolved "https://registry.npmjs.org/@smithy/util-utf8/-/util-utf8-2.1.1.tgz#690018dd28f47f014114497735e51417ea5900a6"
-  integrity sha512-BqTpzYEcUMDwAKr7/mVRUtHDhs6ZoXDi9NypMvMfOr/+u1NW7JgqodPDECiiLboEm6bobcPcECxzjtQh865e9A==
+  version "2.2.0"
+  resolved "https://registry.npmjs.org/@smithy/util-utf8/-/util-utf8-2.2.0.tgz#e352a81adc0491fbdc0086a00950d7e8333e211f"
+  integrity sha512-hBsKr5BqrDrKS8qy+YcV7/htmMGxriA1PREOf/8AGBhHIZnfilVv1Waf1OyKhSbFW15U/8+gcMUQ9/Kk5qwpHQ==
   dependencies:
     "@smithy/util-buffer-from" "^2.1.1"
     tslib "^2.5.0"
