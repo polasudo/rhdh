@@ -19,7 +19,7 @@
 # docker login registry.redhat.io -u=USERNAME -p=PASSWORD
 
 # TODO: compute default errata num to use with --errata flag
-DEFAULT_ERRATA_NUM="125348"
+DEFAULT_ERRATA_NUM="129262"
 DEFAULT_ERRATA_PV="RHDH-1.1-RHEL-9"
 
 # try to compute branches from currently checked out branch; else fall back to hard coded value
