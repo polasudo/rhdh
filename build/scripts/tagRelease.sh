@@ -290,10 +290,17 @@ pushTagPD ()
 
 # TODO add redhat-developer/red-hat-developer-hub-theme ?
 
+# TODO move janus-idp to redhat-developer
+	# RHIDP-1018 Sunset Janus IDP GH repos
+	# RHIDP-1019 Migrate Janus IDP plugins repo to backstage upstream
+	# RHIDP-1022 Migrate Janus IDP showcase repo to redhat-developers org
+	# RHIDP-1021 Migrate Janus IDP operator repo to redhat-developers org
+
 # branch and/or tag GH repos
 for repo in \
 	janus-idp/backstage-plugins \
 	janus-idp/backstage-showcase \
+	janus-idp/operator \
 	redhat-developer/red-hat-developers-documentation-rhdh \
 	redhat-developer/rhdh-chart \
 	redhat-developer/red-hat-developer-hub-software-templates \
