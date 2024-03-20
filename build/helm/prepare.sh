@@ -428,3 +428,34 @@ To install this chart, run the following commands against your OCP cluster:
     helm install -n <your-rhdh-project> --generate-name developer-hub/
 "
 fi
+
+# repo cleanup
+if [[ $DEBUG -eq 1 ]]; then
+    echo;echo "Delete old folders from branches developer-hub-${CHART_VERSION} and $EXTRA_BRANCH (except for $CHART_VERSION):"
+fi
+git clone --filter=blob:none -q "${CATALOG_FORK}" -b "developer-hub-${CHART_VERSION}" "${CATALOG_DIR}-3" 1>/dev/null 2>&1 && cd "${CATALOG_DIR}-3"
+
+deleteDirs() {
+    BRANCH="$1"
+    if [[ $DEBUG -eq 1 ]]; then
+        echo "Clean up ${CATALOG_DIR}-3/charts/redhat/redhat/developer-hub/ in $BRANCH branch"
+    fi
+    # shellcheck disable=SC2044
+    for olddir in $(find "${CATALOG_DIR}-3"/charts/redhat/redhat/developer-hub/ -maxdepth 1 -name "0.*" -o -name "*-CI"); do # echo $olddir
+        if [[ $olddir != *"/${CHART_VERSION}" ]]; then
+            git -C "${CATALOG_DIR}-3" rm -fr "$olddir" 1>/dev/null 2>&1 || true
+            # echo "  Folder ${olddir##*redhat/redhat/} deleted"
+        fi
+    done
+    git -C "${CATALOG_DIR}-3" commit -q --no-verify --no-gpg-sign -s -m "chore: clean developer-hub-${CHART_VERSION}" 1>/dev/null 2>&1 || true
+    git -C "${CATALOG_DIR}-3" push $QUIET origin "$BRANCH" -f 1>/dev/null 2>&1 || true
+    # find "${CATALOG_DIR}-3"/charts/redhat/redhat/developer-hub/ -maxdepth 1
+}
+
+deleteDirs developer-hub-"${CHART_VERSION}"
+if [[ $EXTRA_BRANCH ]]; then
+    git -C "${CATALOG_DIR}-3" checkout "$EXTRA_BRANCH" 1>/dev/null 2>&1 || true
+    deleteDirs "$EXTRA_BRANCH"
+fi
+
+rm -fr "${CATALOG_DIR}" "${CATALOG_DIR}-2" "${CATALOG_DIR}-3"
