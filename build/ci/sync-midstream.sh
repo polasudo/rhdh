@@ -347,7 +347,14 @@ for ((i = 0; i < NUM_REPOS; i++)); do # echo $i
 
           # replace default backstage deployment name backstage-sample with developer-hub
           for yml in manifests/rhdh-operator.csv.yaml config/samples/_v1alpha1_backstage.yaml; do
-            if [[ -f $yml ]]; then sed -i $yml -r -e "s/backstage-sample/developer-hub/g"; fi
+            if [[ -f $yml ]]; then
+              sed -i $yml -r -e "s/backstage-sample/developer-hub/g"
+              if [[ $(git diff --name-only $yml) ]]; then # also update createdAt timestamp
+                now=$(date -u +%FT%TZ) # "2023-12-18T16:11:34Z"
+                echo "[INFO] Set createdAt: $now in $yml"
+                sed -i $yml -r -e "s/createdAt: \"[0-9TZ:-]+\"/createdAt: \"${now}\"/g"
+              fi
+            fi
           done
         popd >/dev/null || exit 1
       done
@@ -806,7 +813,7 @@ fi ## if DO_BUILD
 # compute x.y version from package.json
 DH_VERSION=$(yq -r '.version' distgit/containers/rhdh-hub/package.json) # 1.2.0
 DH_VERSION=${DH_VERSION%.*} # 1.2
-echo "Got DH_VERSION = $DH_VERSION from distgit/containers/rhdh-hub/package.json#.version"
+echo "[INFO] Got DH_VERSION = $DH_VERSION from distgit/containers/rhdh-hub/package.json#.version"
 
 for d in distgit/containers/rhdh-hub distgit/containers/rhdh-operator distgit/containers/rhdh-operator-bundle; do
   echo "[INFO] Remove generated/ignored content; regen Dockerfiles from Dockerfile.in [$d] ..."
