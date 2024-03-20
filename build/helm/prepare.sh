@@ -24,7 +24,8 @@ NOTE: This must be run using the GITHUB_TOKEN of rhdh-bot@redhat.com in order to
 
 Options:
     --latest, --next          Compute the most recent tag (by semver sort rules) in quay.io/rhdh/rhdh-hub-rhel9, and use that tag in chart
-    --publish                 Push the changes to repository specified by --catalog
+    --publish                 Push the changes to branch developer-hub-\${CHART_VERSION} of the repository specified by --catalog
+    --extra-branch            Push changes to an extra branch, such as rhdh-1.1-rhel-9
     --create-report           Create a report via https://github.com/redhat-certification/chart-verifier.
                               [IMPORTANT!] Requires local user to be logged into an OCP cluster
     --catalog                 If publish is set, this needs to point to a fork of
@@ -46,7 +47,8 @@ Examples:
     Prepare and push a release to git@github.com:[your-github-fork]/openshift-helm-charts.git:
 
     # Published on every build in gitlab via the rhdh-bot user - see RHIDP-33
-    $ TAG=1.1-zzz; $0 --chart-version \${TAG}-CI --rhdh-version \${TAG} --catalog git@github.com:rhdh-bot/openshift-helm-charts.git --publish
+    $ TAG=1.1-zzz; $0 --chart-version \${TAG}-CI --rhdh-version \${TAG} --extra-branch rhdh-1.1-rhel-9 \\
+        --catalog git@github.com:rhdh-bot/openshift-helm-charts.git --publish
     Chart version:        1.1-zzz-CI
     Developer Hub image:  quay.io/rhdh/rhdh-hub-rhel9:1.1-zzz
 
@@ -360,10 +362,10 @@ spec:
             git -C "${CATALOG_DIR}-2" push $QUIET origin "${EXTRA_BRANCH}" -f 2>/dev/null || \
                 { echo "[ERROR] Could not push to branch developer-hub-${CHART_VERSION}: must exit!"; exit 45; }
         fi
-        echo "Helm chart published. To install, see:
+        echo; echo "Helm chart published. To install, see:
     https://github.com/rhdh-bot/openshift-helm-charts/tree/developer-hub-${CHART_VERSION}/installation"
         if [[ $EXTRA_BRANCH ]]; then # force push to the rhdh-1.y-rhel-9 branch so we have a branch that changes over time
-            echo "https://github.com/rhdh-bot/openshift-helm-charts/tree/${EXTRA_BRANCH}/installation"
+            echo "    https://github.com/rhdh-bot/openshift-helm-charts/tree/${EXTRA_BRANCH}/installation"
         fi
     fi
 
