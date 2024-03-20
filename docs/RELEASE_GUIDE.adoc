@@ -110,8 +110,7 @@ TODO: since we currently have to update both branches on code freeze, maybe it's
 
 . Monitor container image release via errata
 
-. Create tags in 6 repos (plugins, showcase, operator, rhdh-chart, rhdh midstream gitlab, rhdh docs GH) - _TODO_ script this, see https://issues.redhat.com/browse/RHIDP-931
-
+. Create tags in 10 repos listed above - run link:../build/scripts/tagRelease.sh[tagRelease.sh]  
 
 ### Once errata is live
 
