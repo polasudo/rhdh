@@ -8,19 +8,21 @@ _TODO_: Think about how best to create a release guide (gantt chart, smartsheet,
 
 ### Create branches (eg., 1.1.x, 1.2.x)
 
-. Create Github branches - _TODO_ script this, see https://issues.redhat.com/browse/RHIDP-931
+. Create 6 Github branches - run link:../build/scripts/tagRelease.sh[tagRelease.sh] 
 
 .. [ ] https://github.com/janus-idp/backstage-plugins/branches/all?query=1.&lastTab=overview
 .. [ ] https://github.com/janus-idp/backstage-showcase/branches/all?query=1.&lastTab=overview
 .. [ ] https://github.com/janus-idp/operator/branches/all?query=1.&lastTab=overview
 
-... _TODO_: do we need branches in https://github.com/redhat-developer/rhdh-chart ?
+.. [ ] https://github.com/redhat-developer/red-hat-developers-documentation-rhdh/branches/all?query=1.&lastTab=overview
+.. [ ] https://github.com/redhat-developer/rhdh-chart/branches/all?query=1.&lastTab=overview
+.. [ ] https://github.com/redhat-developer/red-hat-developer-hub-software-templates/branches/all?query=1.&lastTab=overview
 
-. Create Gitlab branch
+. Create 1 Gitlab branch - run link:../build/scripts/tagRelease.sh[tagRelease.sh] 
 
 .. [ ] https://gitlab.cee.redhat.com/rhidp/rhdh/-/tree/rhdh-1.y-rhel-9 (from the rhdh-1-rhel-9 branch)
 
-. Create new branches in pkgs.devel (eg., rhdh-1.1-rhel-9, rhdh-1.2-rhel-9)
+. Create 3 new branches in pkgs.devel - run link:../build/scripts/tagRelease.sh[tagRelease.sh] 
 
 .. [ ] https://pkgs.devel.redhat.com/cgit/containers/rhdh-hub/tree/?h=rhdh-1.1-rhel-9
 .. [ ] https://pkgs.devel.redhat.com/cgit/containers/rhdh-operator/tree/?h=rhdh-1.1-rhel-9
