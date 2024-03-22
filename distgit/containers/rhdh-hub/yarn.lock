@@ -6308,10 +6308,10 @@
   resolved "https://registry.npmjs.org/@istanbuljs/schema/-/schema-0.1.3.tgz#e45e384e4b8ec16bce2fd903af78450f6bf7ec98"
   integrity sha512-ZXRY4jNvVgSVQ8DL3LTcakaAtXwTVUxE81hslsyD2AtoXW/wVob10HkOJ1X/pAlcI7D+2YoZKg5do8G/w6RYgA==
 
-"@janus-idp/backstage-plugin-rbac-backend@2.3.4":
-  version "2.3.4"
-  resolved "https://registry.npmjs.org/@janus-idp/backstage-plugin-rbac-backend/-/backstage-plugin-rbac-backend-2.3.4.tgz#6843e60bc9265597fbc5986903758cd0e0623bda"
-  integrity sha512-hfjq+v0xLI2pZi2HBWdHZ9eo1bdDCU38PQ3T9qrKjZL6SB1frwRw+VCDoXOhwaALf1KIRhExucepEeckuzEHjw==
+"@janus-idp/backstage-plugin-rbac-backend@2.4.1":
+  version "2.4.1"
+  resolved "https://registry.npmjs.org/@janus-idp/backstage-plugin-rbac-backend/-/backstage-plugin-rbac-backend-2.4.1.tgz#9d3d46f0d6352fd524233fa3d7a9216efb9cc5ec"
+  integrity sha512-A0HiLpg8FDTgcTv2+fKcWeMB9Eahg2wbnPJFzkstzJGaHBviZE59gZHKd7KBuMSJFlWea6msZK+4ptGD54zp/w==
   dependencies:
     "@backstage/backend-common" "^0.21.3"
     "@backstage/backend-plugin-api" "^0.6.13"
