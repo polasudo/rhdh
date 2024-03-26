@@ -2139,10 +2139,10 @@
     "@material-ui/lab" "^4.0.0-alpha.45"
     react-use "^17.4.0"
 
-"@janus-idp/backstage-plugin-keycloak-backend@1.8.5":
-  version "1.8.5"
-  resolved "https://registry.npmjs.org/@janus-idp/backstage-plugin-keycloak-backend/-/backstage-plugin-keycloak-backend-1.8.5.tgz#5b6cf89e59d0b80e3206f8f7cc22160a9ce076cb"
-  integrity sha512-9ybsQzXQHp1t5BKHDEWIGQ8ADcbLkVpljys3Q/jI08zhj+CYLC3exKmsxihWYfgqmxpFHDG1h1eA9/MUD7unnw==
+"@janus-idp/backstage-plugin-keycloak-backend@1.8.6":
+  version "1.8.6"
+  resolved "https://registry.npmjs.org/@janus-idp/backstage-plugin-keycloak-backend/-/backstage-plugin-keycloak-backend-1.8.6.tgz#01beadec3e2d23012fa905b34d7ec48c42ab1e08"
+  integrity sha512-yivoKKE986tc6qrXTHhec27n+9AW4rI/ZHhNsGtO1LDp9vK38/5oqZAvF/jSwgosr70C2JRCsgBKu/xTfXIqeg==
   dependencies:
     "@backstage/backend-common" "^0.21.3"
     "@backstage/backend-dynamic-feature-service" "^0.2.3"
@@ -2220,10 +2220,10 @@
     react-use "^17.4.0"
     semver "^7.5.4"
 
-"@janus-idp/backstage-plugin-quay@1.5.9":
-  version "1.5.9"
-  resolved "https://registry.npmjs.org/@janus-idp/backstage-plugin-quay/-/backstage-plugin-quay-1.5.9.tgz#68eb1db0cff723a87e354afcb81e017023c574bf"
-  integrity sha512-/MS+NYPf/muj5xVfos9AeJB9gdXTY7Oxe9HAP4IJwi91kz+qga0KwPhmmHzOr8tIdhe00Sns4X0hyKR4eVUCdg==
+"@janus-idp/backstage-plugin-quay@1.5.10":
+  version "1.5.10"
+  resolved "https://registry.npmjs.org/@janus-idp/backstage-plugin-quay/-/backstage-plugin-quay-1.5.10.tgz#868761a87086a3d28ec399e58c35231191ce20e7"
+  integrity sha512-DjFrUzNHIgyPdEqKQrxW5IPJ3M2YMFjzHgsHFpwx90hFRJqCa0RF42FkglrQFo5SVy+Pm5cpmAs4eKEVFBFeFA==
   dependencies:
     "@backstage/catalog-model" "^1.4.4"
     "@backstage/core-components" "^0.14.0"
@@ -2243,10 +2243,10 @@
   dependencies:
     "@backstage/plugin-permission-common" "^0.7.12"
 
-"@janus-idp/backstage-plugin-rbac@1.15.3":
-  version "1.15.3"
-  resolved "https://registry.npmjs.org/@janus-idp/backstage-plugin-rbac/-/backstage-plugin-rbac-1.15.3.tgz#6bd8765e011ae527ae8261d60eaab1b9500c4c31"
-  integrity sha512-UIB85blCyKWhFjhasNPfjT/JPJN3e7cak97FTLaKlfxwXEHCKSgVarSTn5XrlC5hGIoUzty6DGb9nA2o2PMAyA==
+"@janus-idp/backstage-plugin-rbac@1.15.5":
+  version "1.15.5"
+  resolved "https://registry.npmjs.org/@janus-idp/backstage-plugin-rbac/-/backstage-plugin-rbac-1.15.5.tgz#cdaed3a7a87f37de1ce08e07a20594eb52da6605"
+  integrity sha512-2pGEJvZx7+eD0tljrT2jXy3keE7J7PVIAIAqzg8KFeGZvl+HLJGF/GJz5TZahai5fC7ADkklu2vqV3dh6V7Xag==
   dependencies:
     "@backstage/catalog-model" "^1.4.4"
     "@backstage/core-components" "^0.14.0"
