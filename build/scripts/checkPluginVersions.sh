@@ -94,12 +94,16 @@ fi; done
 
 HUSKY=0 git checkout "main" || true
 for d in plugins/* packages/* ./; do if [[ -f "$d/package.json" ]]; then 
-    ver=$(jq -r '.version' "$d/package.json"); ver=${ver%.*} # only want the x.y version here 
+    ver=$(jq -r '.version' "$d/package.json"); 
     if [[ ! "${plugins["$d"]}" ]]; then
-        echo -e "[INFO] ${blue}$d is new in main branch, nothing to do.${norm}"
-    elif verlte "$ver" "${plugins["$d"]}"; then 
+        echo -e "[INFO] ${blue}$d is new in main branch; nothing to do.${norm}"
+    elif [[ $ver == "0.0.0" ]]; then
+        echo -e "[INFO] ${blue}$d is unversioned at 0.0.0; nothing to do.${norm}"
+    else
+      ver=${ver%.*} # only want the x.y version here 
+      if verlte "$ver" "${plugins["$d"]}"; then 
         # need to bump version
-        echo -e "[INFO] ${red}$d $ver needs to be incremented to greater than ${plugins["$d"]}${norm} (in main)"
+        echo -en "[INFO] ${red}$d $ver needs to be incremented to greater than ${plugins["$d"]}${norm} (in main) ... "
         newver="$ver"
         if [[ $ver =~ ^([0-9]+)\.([0-9]+) ]]; then # increase the y digit
             XX=${BASH_REMATCH[1]}
@@ -107,12 +111,12 @@ for d in plugins/* packages/* ./; do if [[ -f "$d/package.json" ]]; then
             (( YY=YY+1 ))
             newver="$XX.$YY.0"
         fi
-        set -x
         jq '.version|="'"$newver"'"' "$d/package.json" > "$d/package.json1"
-        set +x
         mv -f "$d/package.json1" "$d/package.json"
-    else
-        echo -e "[INFO] ${green}$d $ver ${norm}(main) > ${green}${plugins["$d"]}${norm} (in $BRANCH)"
+        echo -e "${green}$newver${norm}"
+      else
+          echo -e "[INFO] ${green}$d $ver ${norm}(main) > ${green}${plugins["$d"]}${norm} (in $BRANCH)"
+      fi
     fi
 fi; done
 
