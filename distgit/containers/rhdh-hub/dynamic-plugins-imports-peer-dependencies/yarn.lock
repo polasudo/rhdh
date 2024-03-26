@@ -2297,10 +2297,10 @@
     react-measure "^2.5.2"
     react-use "^17.4.0"
 
-"@janus-idp/backstage-plugin-topology@1.18.7":
-  version "1.18.7"
-  resolved "https://registry.npmjs.org/@janus-idp/backstage-plugin-topology/-/backstage-plugin-topology-1.18.7.tgz#d2faa56d4cb8ff354bac3610675f728c38bf5b15"
-  integrity sha512-DL4ZeOM1mzFRYQJW7X80xH2UB6vUnAmA9aYdGYW4nN1R1uciIBi3HSdECvf/5nF5gFS0betdrpsBORLnXCmT9A==
+"@janus-idp/backstage-plugin-topology@1.18.8":
+  version "1.18.8"
+  resolved "https://registry.npmjs.org/@janus-idp/backstage-plugin-topology/-/backstage-plugin-topology-1.18.8.tgz#a7e0b1b3528c55cd76f71aa267ea2f61f63ab9e0"
+  integrity sha512-uEVYOAaz2FpHc65QBwbp/rpSHNomDkxpI4+ewO5ptydbPH2SJGJywL8eeEdJlFkNdux9P6tdICKA4At7rY5xQw==
   dependencies:
     "@backstage/catalog-model" "^1.4.4"
     "@backstage/core-components" "^0.14.0"
