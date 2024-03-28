@@ -299,7 +299,7 @@ if [[ $PUBLISH -eq 1 ]]; then
 
 ## Installation
 
-### 1. To install from a Helm Chart Repository:
+### To install from a Helm Chart Repository:
 
 First, run this to create the above chart repo, with .metadata.name = \`rhdh-next-ci-repo\`:
 
