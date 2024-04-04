@@ -1,27 +1,20 @@
 
 ## Installation
 
-To install from a Helm Chart Repository, there are 2 steps.
-
-### Create chart repo
-
-1. Run this to create the above chart repo, with .metadata.name = `rhdh-next-ci-repo`:
-
-```
-    oc apply -f https://github.com/rhdh-bot/openshift-helm-charts/raw/developer-hub-${CHART_VERSION}/installation/rhdh-next-ci-repo.yaml
-```
-
-### Create/select namespace, install chart, and patch the clusterRouterBase
-
-2a. Run this [install.sh](./install.sh) script to install the chart and set the correct clusterRouterBase:
+To [install](./install.sh) from a Helm Chart Repository, run the following commands:
 
 ```
 cd /tmp
+
+# create a chart repo, with .metadata.name = `rhdh-next-ci-repo`
+oc apply -f https://github.com/rhdh-bot/openshift-helm-charts/raw/developer-hub-${CHART_VERSION}/installation/rhdh-next-ci-repo.yaml
+
+# Create or select a namespace, install the chart, and patch the clusterRouterBase
 curl -sSLO https://raw.githubusercontent.com/rhdh-bot/openshift-helm-charts/developer-hub-${CHART_VERSION}/installation/install.sh && chmod +x install.sh
 ./install.sh ${CHART_VERSION} -n rhdh-${CHART_VERSION_OCP}
 ```
 
-2b. Or, following the [standard installation guide](https://access.redhat.com/documentation/en-us/red_hat_developer_hub/1.1/html-single/administration_guide_for_red_hat_developer_hub/index#proc-install-rhdh-helm_admin-rhdh):
+The [install](./install.sh) script follows the [standard installation guide](https://access.redhat.com/documentation/en-us/red_hat_developer_hub/1.1/html-single/administration_guide_for_red_hat_developer_hub/index#proc-install-rhdh-helm_admin-rhdh) and automates these steps:
 
 * Go to `Developer` perspective in your cluster
 * Select your namespace or project
