@@ -2112,17 +2112,6 @@
     prop-types "^15.8.1"
     react-use "^17.4.0"
 
-"@janus-idp/backstage-plugin-dynamic-plugins-info@1.0.2":
-  version "1.0.2"
-  resolved "https://registry.npmjs.org/@janus-idp/backstage-plugin-dynamic-plugins-info/-/backstage-plugin-dynamic-plugins-info-1.0.2.tgz#475b4d96da263b6ba81f7b3a5a24daf23f720a12"
-  integrity sha512-cX93Xlk8beSfeKoQGwj48pnVVXIogq+6+O8CVNvPpkTVYD8mH1NFPSK8OykWvRmGgrZZFkGDRPsM0AgnafZvmg==
-  dependencies:
-    "@backstage/core-components" "^0.14.0"
-    "@backstage/core-plugin-api" "^1.9.0"
-    "@backstage/theme" "^0.5.1"
-    "@material-table/core" "^3.1.0"
-    react-use "^17.4.0"
-
 "@janus-idp/backstage-plugin-jfrog-artifactory@1.2.28":
   version "1.2.28"
   resolved "https://registry.npmjs.org/@janus-idp/backstage-plugin-jfrog-artifactory/-/backstage-plugin-jfrog-artifactory-1.2.28.tgz#625bc2a426028a8f4b54ac9c988f6994b947cd63"
