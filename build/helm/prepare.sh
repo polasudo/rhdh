@@ -236,10 +236,10 @@ if [[ $DEBUG -eq 1 ]]; then
 fi
 git -C "${CATALOG_DIR}" checkout -q -b developer-hub-"${CHART_VERSION}" 1>/dev/null 2>&1 
 git -C "${CATALOG_DIR}" pull $QUIET origin developer-hub-"${CHART_VERSION}" 1>/dev/null 2>&1 || true
-mkdir -p "${CATALOG_DIR}"/charts/redhat/redhat/developer-hub/"${CHART_VERSION}"
-git -C "${CATALOG_DIR}" rm -f "${CATALOG_DIR}"/charts/redhat/redhat/developer-hub/"${CHART_VERSION}"/developer-hub-"${CHART_VERSION}".tgz 1>/dev/null 2>&1 || true
-helm package "${HELM_DIR}"/charts/backstage -d "${CATALOG_DIR}"/charts/redhat/redhat/developer-hub/"${CHART_VERSION}" 1>/dev/null
-git -C "${CATALOG_DIR}" add -f "${CATALOG_DIR}"/charts/redhat/redhat/developer-hub/"${CHART_VERSION}"/developer-hub-"${CHART_VERSION}".tgz --sparse 1>/dev/null
+mkdir -p "${CATALOG_DIR}"/charts/redhat/redhat/redhat-developer-hub/"${CHART_VERSION}"
+git -C "${CATALOG_DIR}" rm -f "${CATALOG_DIR}"/charts/redhat/redhat/redhat-developer-hub/"${CHART_VERSION}"/developer-hub-"${CHART_VERSION}".tgz 1>/dev/null 2>&1 || true
+helm package "${HELM_DIR}"/charts/backstage -d "${CATALOG_DIR}"/charts/redhat/redhat/redhat-developer-hub/"${CHART_VERSION}" 1>/dev/null
+git -C "${CATALOG_DIR}" add -f "${CATALOG_DIR}"/charts/redhat/redhat/redhat-developer-hub/"${CHART_VERSION}"/developer-hub-"${CHART_VERSION}".tgz --sparse 1>/dev/null
 
 if [[ $CREATE_REPORT -eq 1 ]]; then
     if [[ $DEBUG -eq 1 ]]; then
@@ -252,10 +252,10 @@ if [[ $CREATE_REPORT -eq 1 ]]; then
     podman run --rm -i --platform=linux/amd64 \
         -e KUBECONFIG=/.kube/config \
         -v "${HOME}/.kube":/.kube \
-        -v "${CATALOG_DIR}"/charts/redhat/redhat/developer-hub/"${CHART_VERSION}":/mnt/chart \
+        -v "${CATALOG_DIR}"/charts/redhat/redhat/redhat-developer-hub/"${CHART_VERSION}":/mnt/chart \
         "quay.io/redhat-certification/chart-verifier" \
-        verify --set profile.vendorType=redhat /mnt/chart/developer-hub-"${CHART_VERSION}".tgz > "${CATALOG_DIR}"/charts/redhat/redhat/developer-hub/"${CHART_VERSION}"/report.yaml
-    git -C "${CATALOG_DIR}" add -f "${CATALOG_DIR}"/charts/redhat/redhat/developer-hub/"${CHART_VERSION}"/report.yaml --sparse 1>/dev/null
+        verify --set profile.vendorType=redhat /mnt/chart/developer-hub-"${CHART_VERSION}".tgz > "${CATALOG_DIR}"/charts/redhat/redhat/redhat-developer-hub/"${CHART_VERSION}"/report.yaml
+    git -C "${CATALOG_DIR}" add -f "${CATALOG_DIR}"/charts/redhat/redhat/redhat-developer-hub/"${CHART_VERSION}"/report.yaml --sparse 1>/dev/null
 fi
 
 git config --global user.email "rhdh-bot@redhat.com"
@@ -277,7 +277,7 @@ Developer Hub image:  quay.io/rhdh/rhdh-hub-rhel9:${RHDH_VERSION}
 
 Branch:               https://github.com/rhdh-bot/openshift-helm-charts/tree/developer-hub-${CHART_VERSION}
 Full repo folder:     $CATALOG_DIR
-This chart's folder:  $CATALOG_DIR/charts/redhat/redhat/developer-hub/${CHART_VERSION}/
+This chart's folder:  $CATALOG_DIR/charts/redhat/redhat/redhat-developer-hub/${CHART_VERSION}/
 "
 
 if [[ $PUBLISH -eq 1 ]]; then
@@ -288,9 +288,9 @@ if [[ $PUBLISH -eq 1 ]]; then
     # remove any leftover tarballs from a previous run
     cd /tmp; rm -fr developer-hub-*.tgz
     # fetch the new tarball
-    curl -sS -O    "https://raw.githubusercontent.com/rhdh-bot/openshift-helm-charts/developer-hub-$CHART_VERSION/charts/redhat/redhat/developer-hub/$CHART_VERSION/developer-hub-$CHART_VERSION.tgz"
+    curl -sS -O    "https://raw.githubusercontent.com/rhdh-bot/openshift-helm-charts/developer-hub-$CHART_VERSION/charts/redhat/redhat/redhat-developer-hub/$CHART_VERSION/developer-hub-$CHART_VERSION.tgz"
     # create a helmchart repo from that single tarball
-    helm repo index . --url "https://raw.githubusercontent.com/rhdh-bot/openshift-helm-charts/developer-hub-$CHART_VERSION/charts/redhat/redhat/developer-hub/$CHART_VERSION/"
+    helm repo index . --url "https://raw.githubusercontent.com/rhdh-bot/openshift-helm-charts/developer-hub-$CHART_VERSION/charts/redhat/redhat/redhat-developer-hub/$CHART_VERSION/"
     # push change to installation folder of the developer-hub-"${CHART_VERSION}" branch 
     mv index.yaml "${CATALOG_DIR}"/installation/
 
@@ -329,6 +329,9 @@ if [[ $PUBLISH -eq 1 ]]; then
         if [[ $EXTRA_BRANCH ]]; then # force push to the rhdh-1.y-rhel-9 branch so we have a branch that changes over time
             echo "    https://github.com/rhdh-bot/openshift-helm-charts/tree/${EXTRA_BRANCH}/installation"
         fi
+    else
+        # don't include installation 
+        rm -fr "${CATALOG_DIR}/installation/"
     fi
 
     # call to action for publishing the chart (GA versions only!)
@@ -358,11 +361,11 @@ else
     echo "Flag '--publish' is not set. Changes are not pushed to '$CATALOG_FORK'. Instead they can be previewed in:
 
 Full repo folder:     $CATALOG_DIR
-This chart's folder:  $CATALOG_DIR/charts/redhat/redhat/developer-hub/${CHART_VERSION}/
+This chart's folder:  $CATALOG_DIR/charts/redhat/redhat/redhat-developer-hub/${CHART_VERSION}/
 
 To install this chart, run the following commands against your OCP cluster:
 
-    cd $CATALOG_DIR/charts/redhat/redhat/developer-hub/${CHART_VERSION}/; \
+    cd $CATALOG_DIR/charts/redhat/redhat/redhat-developer-hub/${CHART_VERSION}/; \
     tar xzf developer-hub-${CHART_VERSION}.tgz && \
     helm install -n <your-rhdh-project> --generate-name developer-hub/
 "
@@ -377,10 +380,10 @@ git clone --filter=blob:none -q "${CATALOG_FORK}" -b "developer-hub-${CHART_VERS
 deleteDirs() {
     BRANCH="$1"
     if [[ $DEBUG -eq 1 ]]; then
-        echo "Clean up ${CATALOG_DIR}-3/charts/redhat/redhat/developer-hub/ in $BRANCH branch"
+        echo "Clean up ${CATALOG_DIR}-3/charts/redhat/redhat/redhat-developer-hub/ in $BRANCH branch"
     fi
     # shellcheck disable=SC2044
-    for olddir in $(find "${CATALOG_DIR}-3"/charts/redhat/redhat/developer-hub/ -maxdepth 1 -name "0.*" -o -name "*-CI"); do # echo $olddir
+    for olddir in $(find "${CATALOG_DIR}-3"/charts/redhat/redhat/redhat-developer-hub/ -maxdepth 1 -name "0.*" -o -name "*-CI"); do # echo $olddir
         if [[ $olddir != *"/${CHART_VERSION}" ]]; then
             git -C "${CATALOG_DIR}-3" rm -fr "$olddir" 1>/dev/null 2>&1 || true
             # echo "  Folder ${olddir##*redhat/redhat/} deleted"
@@ -388,7 +391,7 @@ deleteDirs() {
     done
     git -C "${CATALOG_DIR}-3" commit -q --no-verify --no-gpg-sign -s -m "chore: clean developer-hub-${CHART_VERSION}" 1>/dev/null 2>&1 || true
     git -C "${CATALOG_DIR}-3" push $QUIET origin "$BRANCH" -f 1>/dev/null 2>&1 || true
-    # find "${CATALOG_DIR}-3"/charts/redhat/redhat/developer-hub/ -maxdepth 1
+    # find "${CATALOG_DIR}-3"/charts/redhat/redhat/redhat-developer-hub/ -maxdepth 1
 }
 
 deleteDirs developer-hub-"${CHART_VERSION}"
@@ -397,4 +400,4 @@ if [[ $EXTRA_BRANCH ]]; then
     deleteDirs "$EXTRA_BRANCH"
 fi
 
-rm -fr "${CATALOG_DIR}" "${CATALOG_DIR}-2" "${CATALOG_DIR}-3"
+rm -fr "${HELM_DIR}" "${CATALOG_DIR}" "${CATALOG_DIR}-2" "${CATALOG_DIR}-3"
