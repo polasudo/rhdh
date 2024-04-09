@@ -237,9 +237,9 @@ fi
 git -C "${CATALOG_DIR}" checkout -q -b developer-hub-"${CHART_VERSION}" 1>/dev/null 2>&1 
 git -C "${CATALOG_DIR}" pull $QUIET origin developer-hub-"${CHART_VERSION}" 1>/dev/null 2>&1 || true
 mkdir -p "${CATALOG_DIR}"/charts/redhat/redhat/redhat-developer-hub/"${CHART_VERSION}"
-git -C "${CATALOG_DIR}" rm -f "${CATALOG_DIR}"/charts/redhat/redhat/redhat-developer-hub/"${CHART_VERSION}"/developer-hub-"${CHART_VERSION}".tgz 1>/dev/null 2>&1 || true
+git -C "${CATALOG_DIR}" rm -f "${CATALOG_DIR}"/charts/redhat/redhat/redhat-developer-hub/"${CHART_VERSION}"/*eveloper-hub-"${CHART_VERSION}".tgz 1>/dev/null 2>&1 || true
 helm package "${HELM_DIR}"/charts/backstage -d "${CATALOG_DIR}"/charts/redhat/redhat/redhat-developer-hub/"${CHART_VERSION}" 1>/dev/null
-git -C "${CATALOG_DIR}" add -f "${CATALOG_DIR}"/charts/redhat/redhat/redhat-developer-hub/"${CHART_VERSION}"/developer-hub-"${CHART_VERSION}".tgz --sparse 1>/dev/null
+git -C "${CATALOG_DIR}" add -f "${CATALOG_DIR}"/charts/redhat/redhat/redhat-developer-hub/"${CHART_VERSION}"/redhat-developer-hub-"${CHART_VERSION}".tgz --sparse 1>/dev/null
 
 if [[ $CREATE_REPORT -eq 1 ]]; then
     if [[ $DEBUG -eq 1 ]]; then
@@ -254,7 +254,7 @@ if [[ $CREATE_REPORT -eq 1 ]]; then
         -v "${HOME}/.kube":/.kube \
         -v "${CATALOG_DIR}"/charts/redhat/redhat/redhat-developer-hub/"${CHART_VERSION}":/mnt/chart \
         "quay.io/redhat-certification/chart-verifier" \
-        verify --set profile.vendorType=redhat /mnt/chart/developer-hub-"${CHART_VERSION}".tgz > "${CATALOG_DIR}"/charts/redhat/redhat/redhat-developer-hub/"${CHART_VERSION}"/report.yaml
+        verify --set profile.vendorType=redhat /mnt/chart/redhat-developer-hub-"${CHART_VERSION}".tgz > "${CATALOG_DIR}"/charts/redhat/redhat/redhat-developer-hub/"${CHART_VERSION}"/report.yaml
     git -C "${CATALOG_DIR}" add -f "${CATALOG_DIR}"/charts/redhat/redhat/redhat-developer-hub/"${CHART_VERSION}"/report.yaml --sparse 1>/dev/null
 fi
 
@@ -273,8 +273,15 @@ git -C "${CATALOG_DIR}" commit -q --no-verify --no-gpg-sign -s -m "chore: add de
 
 echo "
 Chart version:        ${CHART_VERSION}
-Developer Hub image:  quay.io/rhdh/rhdh-hub-rhel9:${RHDH_VERSION}
-
+"
+if [[ $PUBLISH -eq 1 ]] && [[ $CHART_VERSION != *"CI"* ]]; then # include installation folder only for CI builds (not for GA)
+    echo "Developer Hub image:  registry.redhat.io/rhdh/rhdh-hub-rhel9:${RHDH_VERSION}
+"
+else
+    echo "Developer Hub image:  quay.io/rhdh/rhdh-hub-rhel9:${RHDH_VERSION}
+"
+fi
+echo "
 Branch:               https://github.com/rhdh-bot/openshift-helm-charts/tree/developer-hub-${CHART_VERSION}
 Full repo folder:     $CATALOG_DIR
 This chart's folder:  $CATALOG_DIR/charts/redhat/redhat/redhat-developer-hub/${CHART_VERSION}/
@@ -286,9 +293,9 @@ if [[ $PUBLISH -eq 1 ]]; then
         { echo "[ERROR] Could not push to branch developer-hub-${CHART_VERSION}: must exit!"; exit 44; } 
 
     # remove any leftover tarballs from a previous run
-    cd /tmp; rm -fr developer-hub-*.tgz
+    cd /tmp; rm -fr *eveloper-hub-*.tgz
     # fetch the new tarball
-    curl -sS -O    "https://raw.githubusercontent.com/rhdh-bot/openshift-helm-charts/developer-hub-$CHART_VERSION/charts/redhat/redhat/redhat-developer-hub/$CHART_VERSION/developer-hub-$CHART_VERSION.tgz"
+    curl -sS -O    "https://raw.githubusercontent.com/rhdh-bot/openshift-helm-charts/developer-hub-$CHART_VERSION/charts/redhat/redhat/redhat-developer-hub/$CHART_VERSION/redhat-developer-hub-$CHART_VERSION.tgz"
     # create a helmchart repo from that single tarball
     helm repo index . --url "https://raw.githubusercontent.com/rhdh-bot/openshift-helm-charts/developer-hub-$CHART_VERSION/charts/redhat/redhat/redhat-developer-hub/$CHART_VERSION/"
     # push change to installation folder of the developer-hub-"${CHART_VERSION}" branch 
@@ -330,21 +337,43 @@ if [[ $PUBLISH -eq 1 ]]; then
             echo "    https://github.com/rhdh-bot/openshift-helm-charts/tree/${EXTRA_BRANCH}/installation"
         fi
     else
-        # don't include installation 
-        rm -fr "${CATALOG_DIR}/installation/"
+        # create a PR against the openshift-helm-charts/charts repo, containing ONLY the tarball,
+        # none of the installation instructions/scripts/chart repo
+        pushd /tmp >/dev/null || exit 1
+        rm -fr "/tmp/rhdh-bot-${CHART_VERSION}" /tmp/openshift-helm-charts-main
+        git clone git@github.com:rhdh-bot/openshift-helm-charts.git -q --depth=1 -b "developer-hub-${CHART_VERSION}" "rhdh-bot-${CHART_VERSION}"
+        git clone git@github.com:openshift-helm-charts/charts.git   -q --depth=1 -b "main" "openshift-helm-charts-main"
+        popd >/dev/null || exit 1
+
+        # copy new tarball into other fork (excluding install instructions)
+        pushd /tmp >/dev/null || exit 1
+        rsync -aqrz \
+            "rhdh-bot-${CHART_VERSION}/charts/redhat/redhat/redhat-developer-hub/${CHART_VERSION}/redhat-developer-hub-${CHART_VERSION}.tgz" \
+            "openshift-helm-charts-main/charts/redhat/redhat/redhat-developer-hub/${CHART_VERSION}/"
+
+        # create PR
+        pushd openshift-helm-charts-main/charts/redhat/redhat/redhat-developer-hub/ >/dev/null || exit 1
+        git checkout main
+        git pull origin main
+        git pull origin
+        git remote add rhdh-bot git@github.com:rhdh-bot/openshift-helm-charts.git
+        git checkout origin/main -b "release-${CHART_VERSION}" || true
+        git checkout "release-${CHART_VERSION}" || true
+        git add "${CHART_VERSION}"
+        git commit --no-gpg-sign -s -m "chore: chart: add Red Hat Developer ${CHART_VERSION}" "${CHART_VERSION}"
+        git pull rhdh-bot release-"${CHART_VERSION}" || true
+        git push rhdh-bot release-"${CHART_VERSION}"
+        hub pull-request -o -f -m "chore: chart: add RHDH ${CHART_VERSION}
+
+        chore: chart: add Red Hat Developer ${CHART_VERSION}
+
+        Signed-off-by: RHDH Bot <rhdh-bot@redhat.com>" -b openshift-helm-charts:main -h rhdh-bot:release-"${CHART_VERSION}"
+        popd >/dev/null || exit 1
+        rm -fr "/tmp/rhdh-bot-${CHART_VERSION}" /tmp/openshift-helm-charts-main
+        popd >/dev/null || exit 1
     fi
 
-    # call to action for publishing the chart (GA versions only!)
     if [[ $CHART_VERSION != *"CI"* ]]; then
-        echo "
-To create a pull request to publish this helm chart, log in as rhdh-bot user, then go here:
-  https://github.com/openshift-helm-charts/charts/compare/main...rhdh-bot:openshift-helm-charts:developer-hub-${CHART_VERSION}?expand=1
-
-Once merged, you should delete some old $CHART_VERSION CI branches from:
-  https://github.com/rhdh-bot/openshift-helm-charts/branches/all
-
-"
-
         # purge old CI branches, but keep the most recent one (head -n -1)
         rm -fr "${CATALOG_DIR}"; git clone -q "${CATALOG_FORK}" "${CATALOG_DIR}"
         pushd "${CATALOG_DIR}" >/dev/null || exit 1
@@ -366,7 +395,7 @@ This chart's folder:  $CATALOG_DIR/charts/redhat/redhat/redhat-developer-hub/${C
 To install this chart, run the following commands against your OCP cluster:
 
     cd $CATALOG_DIR/charts/redhat/redhat/redhat-developer-hub/${CHART_VERSION}/; \
-    tar xzf developer-hub-${CHART_VERSION}.tgz && \
+    tar xzf redhat-developer-hub-${CHART_VERSION}.tgz && \
     helm install -n <your-rhdh-project> --generate-name developer-hub/
 "
 fi
