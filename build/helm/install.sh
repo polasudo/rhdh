@@ -34,7 +34,7 @@ if [[ $# -lt 1 ]]; then usage; fi
 while [[ "$#" -gt 0 ]]; do
   case $1 in
     '-r'|'--chartrepo') chartrepo=1;;
-    '-n'|'--namspace') namespace="$2"; shift 1;;
+    '-n'|'--namespace') namespace="$2"; shift 1;;
     '-h') usage;;
     *) CV="$1";;
   esac

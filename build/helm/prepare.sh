@@ -234,8 +234,8 @@ git read-tree -mu HEAD
 if [[ $DEBUG -eq 1 ]]; then
     echo "Publishing chart into the catalog..."
 fi
-git -C "${CATALOG_DIR}" checkout -q -b developer-hub-"${CHART_VERSION}" 1>/dev/null 2>&1 
-git -C "${CATALOG_DIR}" pull $QUIET origin developer-hub-"${CHART_VERSION}" 1>/dev/null 2>&1 || true
+git -C "${CATALOG_DIR}" checkout -q -b redhat-developer-hub-"${CHART_VERSION}" 1>/dev/null 2>&1 
+git -C "${CATALOG_DIR}" pull $QUIET origin redhat-developer-hub-"${CHART_VERSION}" 1>/dev/null 2>&1 || true
 mkdir -p "${CATALOG_DIR}"/charts/redhat/redhat/redhat-developer-hub/"${CHART_VERSION}"
 git -C "${CATALOG_DIR}" rm -f "${CATALOG_DIR}"/charts/redhat/redhat/redhat-developer-hub/"${CHART_VERSION}"/*eveloper-hub-"${CHART_VERSION}".tgz 1>/dev/null 2>&1 || true
 helm package "${HELM_DIR}"/charts/backstage -d "${CATALOG_DIR}"/charts/redhat/redhat/redhat-developer-hub/"${CHART_VERSION}" 1>/dev/null
@@ -316,7 +316,7 @@ if [[ $PUBLISH -eq 1 ]]; then
     if [[ $CHART_VERSION == *"CI"* ]]; then # include installation folder only for CI builds (not for GA)
         git -C "${CATALOG_DIR}" add installation --sparse
         git -C "${CATALOG_DIR}" commit -q --no-verify --no-gpg-sign -s -m "chore: add redhat-developer-hub-${CHART_VERSION}" || exit 55
-        git -C "${CATALOG_DIR}" push $QUIET origin developer-hub-"${CHART_VERSION}" -f 2>/dev/null || \
+        git -C "${CATALOG_DIR}" push $QUIET origin redhat-developer-hub-"${CHART_VERSION}" -f 2>/dev/null || \
             { echo "[ERROR] Could not push to branch redhat-developer-hub-${CHART_VERSION}: must exit!"; exit 44; }
 
         if [[ $EXTRA_BRANCH ]]; then # force push to the rhdh-1.y-rhel-9 branch so we have a branch that changes over time
@@ -428,7 +428,7 @@ deleteDirs() {
     # find "${CATALOG_DIR}-3"/charts/redhat/redhat/redhat-developer-hub/ -maxdepth 1
 }
 
-deleteDirs developer-hub-"${CHART_VERSION}"
+deleteDirs redhat-developer-hub-"${CHART_VERSION}"
 if [[ $EXTRA_BRANCH ]]; then
     git -C "${CATALOG_DIR}-3" checkout "$EXTRA_BRANCH" 1>/dev/null 2>&1 || true
     deleteDirs "$EXTRA_BRANCH"
