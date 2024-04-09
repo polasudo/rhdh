@@ -44,7 +44,7 @@ done
 if [[ ! $CV ]]; then usage; fi
 
 
-tmpfile=/tmp/developer-hub.chart.values.yml
+tmpfile=/tmp/redhat-developer-hub.chart.values.yml
 CHART_URL="https://github.com/rhdh-bot/openshift-helm-charts/raw/redhat-developer-hub-${CV}/charts/redhat/redhat/redhat-developer-hub/${CV}/redhat-developer-hub-${CV}.tgz"
 
 # choose namespace for the install (or create if non-existant)
