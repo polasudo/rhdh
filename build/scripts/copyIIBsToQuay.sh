@@ -73,7 +73,7 @@ if [[ "$#" -lt 1 ]]; then usage; exit 1; fi
 while [[ "$#" -gt 0 ]]; do
   case $1 in
     '-t') setDefaults; DH_VERSION="$2"; shift 1;;
-    '--latest'|'--next') FLOATING_QUAY_TAGS="${1:2}"; shift 1;;
+    '--latest'|'--next') FLOATING_QUAY_TAGS="${1:2}";;
     '-e'|'--extra-tags') EXTRA_TAGS="${EXTRA_TAGS} ${2}"; shift 1;;
     '-v') VERBOSEFLAG="-v";;
     '--sudo')        BUILD_CATALOG_FLAGS="${BUILD_CATALOG_FLAGS} $1";;
