@@ -45,6 +45,7 @@ command -v jq >/dev/null 2>&1     || which jq >/dev/null 2>&1     || { echo "jq 
 VERBOSEFLAG=""
 BUILD_CATALOG_FLAGS=""
 EXTRA_TAGS="" # extra tags to set in target image, eg., 1.0.0.RC-09-19-v4.14-x86_64
+EXPIRYDATE=14d # by default expire after 14d unless we're building an RC or GA and want to keep it longer
 PUSHTOQUAYFORCE=0
 targetIndexImage=""
 AUTHFILE=""
@@ -84,6 +85,12 @@ while [[ "$#" -gt 0 ]]; do
   esac
   shift 1
 done
+
+# for RC and GA, refresh tags and set 6mo expiration instead of default 14d
+if [[ $EXTRA_TAGS ]]; then 
+    EXPIRYDATE="183d"
+    PUSHTOQUAYFORCE="1"
+fi
 
 # copy authfile where kaniko can use it in environment configured from https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1.1-rhel-9/build/dockerfiles/kaniko-ubi9.Dockerfile
 if [[ $BUILD_CATALOG_FLAGS == *"kaniko"* ]]; then
@@ -127,7 +134,6 @@ getScript () {
 }
 
 getScript getIIBsForBundle.sh;   getIIBsForBundle=${getScript_return}
-getScript getLatestImageTags.sh; getLatestImageTags=${getScript_return}
 getScript filterIIB.sh;          filterIIB=${getScript_return}
 getScript buildCatalog.sh;       buildCatalog=${getScript_return}
 
@@ -165,7 +171,7 @@ for BUNDLE_IIB_OCP in ${IIB_OCP_BUNDLES}; do
     # fi
 
     # check if this image already exists on quay; if so, skip rendering and subsequent steps (no new quay image pushes, no new floating tag updates)
-    if [[ ${PUSHTOQUAYFORCE_LOCAL} -eq 1 ]] || [[ $(skopeo --insecure-policy inspect docker://${LATEST_IIB_QUAY} 2>&1) == *"Error"* ]]; then
+    if [[ ${PUSHTOQUAYFORCE_LOCAL} -eq 1 ]] || [[ $(skopeo --insecure-policy inspect "docker://${LATEST_IIB_QUAY}" 2>&1) == *"Error"* ]]; then
         IIB_OCP_BUNDLES_TO_PUSH="${IIB_OCP_BUNDLES_TO_PUSH} ${BUNDLE_IIB_OCP}"
         # NOTE: this is NOT OCP server arch, but the arch of the local build machine
         # must build on multiple arches to get per-arch IIBs (eg., for aarch64/arm64, need that arch as a CI runner)
@@ -212,7 +218,7 @@ for BUNDLE_IIB_OCP in ${IIB_OCP_BUNDLES_TO_PUSH}; do
     # shellcheck disable=SC2086
     if [[ "$PUSH" != "true" ]]; then
         ${buildCatalog} \
-            -t "${LATEST_IIB_QUAY}" --dir "$CATALOG_DIR" --ocp-ver $OCP_VER ${VERBOSEFLAG} ${BUILD_CATALOG_FLAGS}
+            -t "${LATEST_IIB_QUAY}" --dir "$CATALOG_DIR" --ocp-ver $OCP_VER ${VERBOSEFLAG} ${BUILD_CATALOG_FLAGS} --expiry "${EXPIRYDATE}"
         # If we're not pushing, we're done processing the IIB for this OCP_VER -- skopeo inspect and copy fail if the image
         # has not been pushed.
     else
@@ -234,7 +240,7 @@ for BUNDLE_IIB_OCP in ${IIB_OCP_BUNDLES_TO_PUSH}; do
         # shellcheck disable=SC2086
         if [[ ${PUSHTOQUAYFORCE} -eq 1 ]] || [[ $BUILD_CATALOG_FLAGS == *"kaniko"* ]] || [[ $(skopeo --insecure-policy inspect docker://${LATEST_IIB_QUAY} 2>&1) == *"Error"* ]]; then
             ${buildCatalog} --push \
-                -t ${LATEST_IIB_QUAY} --dir $CATALOG_DIR --ocp-ver $OCP_VER ${VERBOSEFLAG} ${BUILD_CATALOG_FLAGS} ${BUILD_CATALOG_DESTFLAGS}
+                -t ${LATEST_IIB_QUAY} --dir $CATALOG_DIR --ocp-ver $OCP_VER ${VERBOSEFLAG} ${BUILD_CATALOG_FLAGS} ${BUILD_CATALOG_DESTFLAGS} --expiry "${EXPIRYDATE}"
             PUSHTOQUAYFORCE_LOCAL=1
         else
             if [[ $VERBOSEFLAG == "-v" ]]; then echo "Copy ${LATEST_IIB_QUAY} - already exists, nothing to do"; fi
@@ -245,7 +251,7 @@ for BUNDLE_IIB_OCP in ${IIB_OCP_BUNDLES_TO_PUSH}; do
             if [[ $(skopeo --insecure-policy inspect docker://${LATEST_IIB_QUAY} 2>&1) == *"Error"* ]]; then
                 echo "[ERROR] Cannot find image ${LATEST_IIB_QUAY} to copy!"
                 echo "[ERROR] Check output of this command for an idea of what went wrong:"
-                echo "[ERROR] ${buildCatalog} -t ${LATEST_IIB_QUAY} --dir $CATALOG_DIR --ocp-ver $OCP_VER --push -v ${BUILD_CATALOG_FLAGS} ${BUILD_CATALOG_DESTFLAGS}"
+                echo "[ERROR] ${buildCatalog} -t ${LATEST_IIB_QUAY} --dir $CATALOG_DIR --ocp-ver $OCP_VER --push -v ${BUILD_CATALOG_FLAGS} ${BUILD_CATALOG_DESTFLAGS} --expiry ${EXPIRYDATE}"
                 exit 1
             fi
 
