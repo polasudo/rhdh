@@ -89,7 +89,7 @@ done
 # for RC and GA, refresh tags and set 6mo expiration instead of default 14d
 if [[ $EXTRA_TAGS ]]; then 
     EXPIRYDATE="183d"
-    PUSHTOQUAYFORCE="1"
+    PUSHTOQUAYFORCE=1
 fi
 
 # copy authfile where kaniko can use it in environment configured from https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1.1-rhel-9/build/dockerfiles/kaniko-ubi9.Dockerfile
@@ -102,7 +102,9 @@ if [[ $VERBOSEFLAG == "-v" ]]; then
 	echo "[DEBUG] DH_VERSION=${DH_VERSION}"
 	echo "[DEBUG] THIS_REPO_BRANCH = $THIS_REPO_BRANCH"
 	echo "[DEBUG] FLOATING_QUAY_TAGS = $FLOATING_QUAY_TAGS"
-    if [[ $EXTRA_TAGS ]]; then echo "[DEBUG] EXTRA_TAGS = $EXTRA_TAGS"; fi
+	if [[ $EXTRA_TAGS ]]; then echo "[DEBUG] EXTRA_TAGS =$EXTRA_TAGS"; fi
+	echo "[DEBUG] EXPIRYDATE = $EXPIRYDATE"
+	echo "[DEBUG] PUSHTOQUAYFORCE = $PUSHTOQUAYFORCE"
 fi
 
 checkVersion() {
@@ -165,13 +167,11 @@ for BUNDLE_IIB_OCP in ${IIB_OCP_BUNDLES}; do
     LATEST_IIB_NUM=${BUNDLE_IIB_OCP%%:*}; LATEST_IIB_NUM=${LATEST_IIB_NUM##*;}
     LATEST_IIB_QUAY="quay.io/rhdh/iib:${DH_VERSION%-*}-${OCP_VER}-${LATEST_IIB_NUM}-$(uname -m)"
     echo "[INFO] OSBS INDEX BUNDLE = registry-proxy.engineering.redhat.com/rh-osbs/iib:${LATEST_IIB_NUM}"
-    # if [[ $VERBOSEFLAG == "-v" ]]; then
-        # BUNDLE_VER=$DH_VERSION-${BUNDLE_IIB_OCP%%;*}
-        # echo "[DEBUG] DH OPERATOR BUNDLE = $BUNDLE_VER"
-    # fi
+    PUSHTOQUAYFORCE_LOCAL=${PUSHTOQUAYFORCE}
 
     # check if this image already exists on quay; if so, skip rendering and subsequent steps (no new quay image pushes, no new floating tag updates)
-    if [[ ${PUSHTOQUAYFORCE_LOCAL} -eq 1 ]] || [[ $(skopeo --insecure-policy inspect "docker://${LATEST_IIB_QUAY}" 2>&1) == *"Error"* ]]; then
+    # shellcheck disable=SC2086
+    if [[ ${PUSHTOQUAYFORCE_LOCAL} -eq 1 ]] || [[ $(skopeo --insecure-policy inspect docker://${LATEST_IIB_QUAY} 2>&1) == *"Error"* ]]; then
         IIB_OCP_BUNDLES_TO_PUSH="${IIB_OCP_BUNDLES_TO_PUSH} ${BUNDLE_IIB_OCP}"
         # NOTE: this is NOT OCP server arch, but the arch of the local build machine
         # must build on multiple arches to get per-arch IIBs (eg., for aarch64/arm64, need that arch as a CI runner)
