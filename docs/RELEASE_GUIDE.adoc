@@ -105,12 +105,36 @@ TODO: since we currently have to update both branches on code freeze, maybe it's
 
 ## On GA Day
 
-. link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1-rhel-9/build/helm/prepare.sh[Push helm chart release]
-.. Verify install works via clusterbot smoke test
+. Monitor container image release via errata.
 
-. Monitor container image release via errata
+. Once images are live, link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1-rhel-9/build/helm/prepare.sh[push the helm chart].
++
+```
+cd /tmp; curl -sSLO https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1-rhel-9/build/helm/prepare.sh
+
+# use tag from https://quay.io/repository/rhdh/rhdh-hub-rhel9?tab=tags
+bash ./prepare.sh --chart-version 1.1.1 --rhdh-version 1.1-102 --catalog git@github.com:rhdh-bot/openshift-helm-charts.git --publish
+```
+
+.. Verify install works via clusterbot smoke test - see link:https://github.com/rhdh-bot/openshift-helm-charts/tree/rhdh-1-rhel-9/installation[installation].
+
+. Re-release the operator IIB to Quay so it doesn't expire. For example:
++
+```
+cd /tmp; curl -sSLO https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1-rhel-9/build/scripts/copyIIBsToQuay.sh
+
+# use tag from https://quay.io/repository/rhdh/rhdh-operator-bundle?tab=tags
+bash ./copyIIBsToQuay.sh -t 1.1-122 --force --push --latest -e 1.1.1.GA
+```
 
 . Create tags in 10 repos listed above - run link:../build/scripts/tagRelease.sh[tagRelease.sh]  
++
+```
+cd /tmp; curl -sSLO https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1-rhel-9/build/scripts/tagRelease.sh
+
+bash ./tagRelease.sh -v 1.1.1 -t 1.1 -gh 1.1.x -pd rhdh-1.1-rhel-9 -ghtoken $GITHUB_TOKEN
+
+```
 
 ### Once errata is live
 

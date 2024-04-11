@@ -28,6 +28,7 @@ Options:
   --force                    : If target image exists, will re-filter and re-push it; otherwise skip to avoid updating image timestamps
   -t PROD_VER                : Default: '$DH_VERSION'; NOTE: can push an older bundle using 1.yy-zzz instead of latest 1.yy
   -e, --extra-tags           : Extra custom tags to create, such as 1.2.0.RC-05-05-v4.14-x86_64
+  --latest, --next           : Override value from current sources branch; use either :latest or :next tags
   --sudo                     : run podman commands with sudo
   --no-validate              : do not validate olm-catalog.Dockerfile; default is to validate
   --kaniko                   : use kaniko for container build instead of podman
@@ -72,6 +73,7 @@ if [[ "$#" -lt 1 ]]; then usage; exit 1; fi
 while [[ "$#" -gt 0 ]]; do
   case $1 in
     '-t') setDefaults; DH_VERSION="$2"; shift 1;;
+    '--latest'|'--next') FLOATING_QUAY_TAGS="${1:2}"; shift 1;;
     '-e'|'--extra-tags') EXTRA_TAGS="${EXTRA_TAGS} ${2}"; shift 1;;
     '-v') VERBOSEFLAG="-v";;
     '--sudo')        BUILD_CATALOG_FLAGS="${BUILD_CATALOG_FLAGS} $1";;
