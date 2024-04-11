@@ -105,9 +105,15 @@ TODO: since we currently have to update both branches on code freeze, maybe it's
 
 ## On GA Day
 
-. Monitor container image release via errata.
+### [WAIT] Initial setup 
+. [ ] QE will announce the errata has been moved to `REL_PREP` in slack.
 
-. Once images are live, link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1-rhel-9/build/helm/prepare.sh[push the helm chart].
+. [ ] Launch a clusterbot instance for smoke testing. This will take about 45 mins to create.
+
+. [ ] Monitor container image release via errata.
+
+### [RELEASE] Once images are live
+. [ ] link:../build/helm/prepare.sh[Push the helm chart].
 +
 ```
 cd /tmp; git clone git@gitgit@gitlab.cee.redhat.com:rhidp/rhdh.git --depth 1 && cd rhdh
@@ -116,9 +122,7 @@ cd /tmp; git clone git@gitgit@gitlab.cee.redhat.com:rhidp/rhdh.git --depth 1 && 
 ./build/helm/prepare.sh --chart-version 1.1.1 --rhdh-version 1.1-102 --catalog git@github.com:rhdh-bot/openshift-helm-charts.git --publish
 ```
 
-.. Verify install works via clusterbot smoke test - see link:https://github.com/rhdh-bot/openshift-helm-charts/tree/rhdh-1-rhel-9/installation[installation].
-
-. Re-release the operator IIB to Quay so it doesn't expire. For example:
+. [ ] link:../build/scripts/copyIIBsToQuay.sh[Release the operator IIB to Quay] so it doesn't expire.
 +
 ```
 cd /tmp; git clone git@gitgit@gitlab.cee.redhat.com:rhidp/rhdh.git --depth 1 && cd rhdh
@@ -127,7 +131,7 @@ cd /tmp; git clone git@gitgit@gitlab.cee.redhat.com:rhidp/rhdh.git --depth 1 && 
 ./build/scripts/copyIIBsToQuay.sh -t 1.1-122 --force --push --latest -e 1.1.1.GA
 ```
 
-. Create tags in 10 repos listed above - run link:../build/scripts/tagRelease.sh[tagRelease.sh]  
+. [ ] link:../build/scripts/tagRelease.sh[Tag the repos listed above]
 +
 ```
 cd /tmp; git clone git@gitgit@gitlab.cee.redhat.com:rhidp/rhdh.git --depth 1 && cd rhdh
@@ -136,11 +140,17 @@ cd /tmp; git clone git@gitgit@gitlab.cee.redhat.com:rhidp/rhdh.git --depth 1 && 
 
 ```
 
-### Once errata is live
+### [TEST] Once images, chart, and tags are available
 
-. Smoke tests
-.. Operator: smoke test the ability to install from `stable` and upgrade to `stable-1.y` operator subscription channel; after 1.2 is live, smoke test a 1.1 to 1.2 upgrade test too
-.. Helm Chart: smoke test the ability to install or upgrade via a newer chart
+. Smoke tests using clusterbot
+.. [ ] Operator: smoke test the ability to:
+... [ ] install from `fast` - see link:https://github.com/janus-idp/operator/blob/main/.rhdh/docs/installing-ci-builds.adoc[installation]
+... [ ] switch to `fast-1.1` or `fast-1.2` subscription channel
+... [ ] verify update from of 1.1.0 -> 1.1.1 (or 1.2.0)
+.. [ ] Helm Chart: smoke test the ability
+... [ ] install latest chart
+... [ ] upgrade to a newer chart - see link:https://github.com/rhdh-bot/openshift-helm-charts/tree/rhdh-1-rhel-9/installation[installation]
+
 
 . Review websites
 .. Developers.redhat.com

@@ -46,6 +46,7 @@ SUDO=0
 DOVALIDATE=1 # validate olm-catalog.Dockerfile
 USEKANIKO=0 # if 1, use environment configured from https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1.1-rhel-9/build/dockerfiles/kaniko-ubi9.Dockerfile
 AUTHFILEFLAGS=""
+EXPIRYDATE=14d
 VERBOSE=0
 WORKING_DIR='./'
 DESTINATIONFLAGS="" # images and tags to push with kaniko (or to tag with podman for a later push)
@@ -55,6 +56,7 @@ while [[ "$#" -gt 0 ]]; do
     '-t'|'--image') targetIndexImage="$2"; shift 1;;
     '-o'|'--ocp-ver') OCP_VER="$2"; shift 1;;
     '-p'|'--push') PUSH="true";;
+    '--expiry') EXPIRYDATE="$2"; shift 1;;
     '--dir') WORKING_DIR="$2"; shift 1;;
     '--sudo') SUDO=1;;
     '--no-validate') DOVALIDATE=0;;
@@ -138,8 +140,8 @@ fi
 
 # shellcheck disable=SC2086
 if [[ $USEKANIKO -eq 0 ]]; then
-  # build, including extra tags and 14d expiry label for quay
-  $PODMAN build . -f olm-catalog.Dockerfile -t $targetIndexImage ${DESTINATIONFLAGS//--destination/--tag} ${AUTHFILEFLAGS} --label quay.expires-after=14d
+  # build, including extra tags and expiry label for quay
+  $PODMAN build . -f olm-catalog.Dockerfile -t $targetIndexImage ${DESTINATIONFLAGS//--destination/--tag} ${AUTHFILEFLAGS} --label quay.expires-after=${EXPIRYDATE}
   # shellcheck disable=SC2086
   if [[ "$PUSH" == "true" ]]; then
     for image in $targetIndexImage $DESTINATIONFLAGS; do
@@ -150,9 +152,9 @@ if [[ $USEKANIKO -eq 0 ]]; then
     done
   fi
 else
-  # build, including extra destinations (tags) and 14d expiry label for quay
+  # build, including extra destinations (tags) and expiry label for quay
   # uses environment configured from https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1.1-rhel-9/build/dockerfiles/kaniko-ubi9.Dockerfile
-  /kaniko/executor --context "$(pwd)" --dockerfile "$(pwd)/olm-catalog.Dockerfile" --destination "${targetIndexImage}" ${DESTINATIONFLAGS} --label quay.expires-after=14d
+  /kaniko/executor --context "$(pwd)" --dockerfile "$(pwd)/olm-catalog.Dockerfile" --destination "${targetIndexImage}" ${DESTINATIONFLAGS} --label quay.expires-after=${EXPIRYDATE}
 fi
 
 if [[ $VERBOSE -eq 1 ]]; then

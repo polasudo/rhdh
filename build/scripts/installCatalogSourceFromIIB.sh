@@ -119,6 +119,10 @@ if [[ ! $(command -v curl) ]]; then
   errorf "Please install curl"
   exit 1
 fi
+if [[ ! $(command -v skopeo) ]]; then
+  errorf "Please install skopeo 1.11+"
+  exit 1
+fi
 
 # Check that we have IIB image and use Brew mirror
 if [ -z "$UPSTREAM_IIB" ]; then
@@ -130,8 +134,14 @@ if [[ $UPSTREAM_IIB == "registry-proxy.engineering.redhat.com/rh-osbs/iib:"* ]];
   IIB_IMAGE="brew.registry.redhat.io/rh-osbs/iib:${UPSTREAM_IIB##*:}"
   echo "[INFO] Using iib $TO_INSTALL image $IIB_IMAGE mirrored from $UPSTREAM_IIB"
 else
-  echo "[INFO] Using iib $TO_INSTALL image $UPSTREAM_IIB"
-  IIB_IMAGE="${UPSTREAM_IIB}"
+  UPSTREAM_IIB_MANIFEST="$(skopeo inspect docker://${UPSTREAM_IIB} --raw || exit 2)"
+  # echo "Got: $UPSTREAM_IIB_MANIFEST"
+  if [[ $UPSTREAM_IIB_MANIFEST == *"Error parsing image name "* ]] || [[ $UPSTREAM_IIB_MANIFEST == *"manifest unknown"* ]]; then
+    echo "$UPSTREAM_IIB_MANIFEST"; exit 3
+  else
+    echo "[INFO] Using iib $TO_INSTALL image $UPSTREAM_IIB"
+    IIB_IMAGE="${UPSTREAM_IIB}"
+  fi
 fi
 
 # optional requirements (for brew.registry secret)
