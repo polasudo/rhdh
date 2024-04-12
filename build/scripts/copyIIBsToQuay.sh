@@ -214,7 +214,7 @@ for BUNDLE_IIB_OCP in ${IIB_OCP_BUNDLES_TO_PUSH}; do
     LATEST_IIB_QUAY="quay.io/rhdh/iib:${DH_VERSION%-*}-${OCP_VER}-${LATEST_IIB_NUM}-$(uname -m)"
     CATALOG_DIR="/tmp/tmp.copyIIBsToQuay-${DH_VERSION}-${OCP_VER}-${LATEST_IIB_NUM}-$(uname -m)"; mkdir -p "$CATALOG_DIR"
 
-    set -x
+    # set -x
 
     BUILD_CATALOG_DESTFLAGS=""
     # shellcheck disable=SC2086

@@ -289,6 +289,7 @@ pushTagPD ()
 ############
 
 # TODO add redhat-developer/red-hat-developer-hub-theme ?
+# TODO RHIDP-1025 add redhat-developer/red-hat-developer-hub-customization-provider?
 
 # TODO move janus-idp to redhat-developer
 	# RHIDP-1018 Sunset Janus IDP GH repos
