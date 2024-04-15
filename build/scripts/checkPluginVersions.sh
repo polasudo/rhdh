@@ -8,6 +8,8 @@
 # SPDX-License-Identifier: EPL-2.0
 #
 # Utility script to compare a list of plugins' version across branches and report which ones need incrementing
+# Run locally, use --push flag to generate a PR
+# Run in a headless pipeline, use --gitlab-pipeline-push to generate a PR
 
 # SCRIPT_DIR=$(cd "$(dirname "$0")" || exit; pwd)
 # FORCE=""
@@ -49,11 +51,7 @@ while [[ "$#" -gt 0 ]]; do
     '-t'|'--target-branch') BRANCHUSED="$2"; shift 1;; # base branch to update, eg., main
     '-s') SOURCEDIR="$2"; shift 1;;
     '--push') DO_PUSH=1;;
-  '--gitlab-pipeline-push')
-    DO_PUSH=0
-    GITLAB_PIPELINE="true"
-    shift 1
-    ;;
+    '--gitlab-pipeline-push') DO_PUSH=1; GITLAB_PIPELINE="true";;
     '-h'|'--help') usage;;
     *) echo "Unknown parameter used: $1."; usage; exit 1;;
   esac
@@ -75,7 +73,7 @@ createPr() {
   if [[ $(/usr/bin/gh version 2>/dev/null || true) ]] || [[ $(which gh 2>/dev/null || true) ]]; then
     gh repo set-default "$(git remote get-url origin)"
     gh pr create -f -B "${baseBranch}" -H "${headBranch}" || true
-    # if not running in a gitlab pipeline, pop the PR into a browser 
+    # if not running in a gitlab pipeline, open the PR in a browser 
     if [[ $GITLAB_PIPELINE != "true" ]]; then
       gh pr view --web || true
     fi
@@ -151,6 +149,7 @@ fi; done
 # git diff plugins/
 
 if [[ ${DO_PUSH} -eq 1 ]]; then
+  yarn install
   git commit -s -m "chore: checkPluginVersion.sh bump plugin versions in $BRANCHUSED branch for next release $rootVer" .
   git pull origin "${BRANCHUSED}" || true
   set -x
