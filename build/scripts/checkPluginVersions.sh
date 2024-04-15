@@ -149,7 +149,8 @@ fi; done
 # git diff plugins/
 
 if [[ ${DO_PUSH} -eq 1 ]]; then
-  yarn install
+  # quietly install any updates to yarn.lock so PR will pass sniff test
+  yarn install 2> >(grep -v warning 1>&2) 
   git commit -s -m "chore: checkPluginVersion.sh bump plugin versions in $BRANCHUSED branch for next release $rootVer" .
   git pull origin "${BRANCHUSED}" || true
   set -x
