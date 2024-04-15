@@ -111,9 +111,9 @@ for d in ./ packages/* plugins/*; do if [[ -f "$d/package.json" ]]; then
       rootVer="$XX.$YY.$ZZ"
     fi
     if [[ ! "${plugins["$d"]}" ]]; then
-        echo -e "[INFO] ${blue}$d is new in $BRANCHUSED branch; nothing to do.${norm}"
+        echo -e "[INFO] ${blue}$d is new in $BRANCHUSED branch; nothing to do.${norm}"; echo
     elif [[ $ver == "0.0.0" ]]; then
-        echo -e "[INFO] ${blue}$d is unversioned at 0.0.0; nothing to do.${norm}"
+        echo -e "[INFO] ${blue}$d is unversioned at 0.0.0; nothing to do.${norm}"; echo
     else
       ver=${ver%.*} # only want the x.y version here 
       if verlte "$ver" "${plugins["$d"]}"; then 
@@ -126,18 +126,21 @@ for d in ./ packages/* plugins/*; do if [[ -f "$d/package.json" ]]; then
             (( YY=YY+1 ))
             newver="$XX.$YY.0"
         fi
-        # manually bumping the package.json files doesn't work
-        # jq '.version|="'"$newver"'"' "$d/package.json" > "$d/package.json1"
-        # mv -f "$d/package.json1" "$d/package.json"
 
-        # comment in a md file to force a semantic release
-        echo -e "${green}$newver${norm}"
-        echo "- Bumped to $newver in $BRANCHUSED branch for next release $rootVer" >> "$d/.versionhistory.md"
-        git add "$d/.versionhistory.md" >/dev/null 2>&1 || exit 2
-        git commit -s -m "feat: checkPluginVersion.sh bump $d to $newver in $BRANCHUSED" "$d/.versionhistory.md" # >/dev/null 2>&1 || exit 3
-        echo
+        if [[ "$d" == "./" ]]; then # for root package.json, just bump the version as we don't release it semantically
+          jq '.version|="'"$newver"'"' "$d/package.json" > "$d/package.json1"
+          mv -f "$d/package.json1" "$d/package.json"
+          echo -e "${green}$newver${norm}"; echo
+        else 
+          # comment in a md file to force a semantic release
+          echo -e "${green}$newver${norm}"
+          echo "- Bumped to $newver in $BRANCHUSED branch for next release $rootVer" >> "$d/.versionhistory.md"
+          git add "$d/.versionhistory.md" >/dev/null 2>&1 || exit 2
+          git commit -s -m "feat: checkPluginVersion.sh bump $d to $newver in $BRANCHUSED" "$d/.versionhistory.md" # >/dev/null 2>&1 || exit 3
+          echo
+        fi
       else
-          echo -e "[INFO] ${green}$d $ver ${norm}($BRANCHUSED) > ${green}${plugins["$d"]}${norm} (in $BRANCH)"
+          echo -e "[INFO] ${green}$d $ver ${norm}($BRANCHUSED) > ${green}${plugins["$d"]}${norm} (in $BRANCH)"; echo
       fi
     fi
 fi; done
