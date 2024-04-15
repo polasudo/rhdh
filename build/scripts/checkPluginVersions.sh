@@ -9,25 +9,32 @@
 #
 # Utility script to compare a list of plugins' version across branches and report which ones need incrementing
 
-SCRIPT_DIR=$(cd "$(dirname "$0")" || exit; pwd)
+# SCRIPT_DIR=$(cd "$(dirname "$0")" || exit; pwd)
+# FORCE=""
 DO_PUSH=0
-FORCE=""
+GITLAB_PIPELINE="" # set "true" when running inside a gitlab pipeline to override default git push settings
+BRANCHUSED="main"
+PR_BRANCH="pr-update-sync-rhdh-hub-$(date +%s)"
 
 SOURCEDIR=""
 
 usage() {
   cat <<EOF
 Compare two branches of a source tree to determine which plugins need to have their versions' y-digit bumped
-If problems found, generate a pull request against the source tree's main branch
+If problems found, generate a pull request against the source tree's $BRANCHUSED branch
 
 Requires:
 * jq 1.6+
 
 Usage:
 
-$0 -s /path/to/sources -b 1.1.x
+$0 -s /path/to/sources -b 1.1.x [--push]
 
 Options:
+  -b, --ref-branch           : Reference branch against which plugin versions should be incremented, like 1.1.x
+  -t, --target-branch        : Destination branch where changes will be merged; default: main
+  --push                     : In addition to reporting problems, generate a PR to push a fix
+  --gitlab-pipeline-push     : Use this flag to push changes when running inside a gitlab pipeline
   -h, --help                 : Show this help
 
 Examples:
@@ -38,8 +45,15 @@ EOF
 
 while [[ "$#" -gt 0 ]]; do
   case $1 in
-    '-b') BRANCH="$2"; shift 1;;
+    '-b'|'--ref-branch') BRANCH="$2"; shift 1;;        # reference branch, eg., 1.1.x 
+    '-t'|'--target-branch') BRANCHUSED="$2"; shift 1;; # base branch to update, eg., main
     '-s') SOURCEDIR="$2"; shift 1;;
+    '--push') DO_PUSH=1;;
+  '--gitlab-pipeline-push')
+    DO_PUSH=0
+    GITLAB_PIPELINE="true"
+    shift 1
+    ;;
     '-h'|'--help') usage;;
     *) echo "Unknown parameter used: $1."; usage; exit 1;;
   esac
@@ -55,11 +69,16 @@ createPr() {
   git branch "${headBranch}" || true
   git checkout "${headBranch}"
   git merge "${baseBranch}"
-  git push origin "${headBranch}" ${FORCE}
+  # shellcheck disable=SC2086
+  git push origin "${headBranch}" # ${FORCE}
   # TODO replace with gitlab equivalent, maybe using API?
   if [[ $(/usr/bin/gh version 2>/dev/null || true) ]] || [[ $(which gh 2>/dev/null || true) ]]; then
-    gh pr create -f -B "${baseBranch}" -H "${headBranch}" -w || true
-
+    gh repo set-default "$(git remote get-url origin)"
+    gh pr create -f -B "${baseBranch}" -H "${headBranch}" || true
+    # if not running in a gitlab pipeline, pop the PR into a browser 
+    if [[ $GITLAB_PIPELINE != "true" ]]; then
+      gh pr view --web || true
+    fi
   else
     echo "[WARN] gh cli is required to generate pull requests. See https://github.com/cli/cli?tab=readme-ov-file#installation to install it."
     echo -n "# To manually create a pull request, go here: "
@@ -92,18 +111,26 @@ for d in plugins/* packages/* ./; do if [[ -f "$d/package.json" ]]; then
     # echo "$d ${plugins["$d"]}"
 fi; done
 
-HUSKY=0 git checkout "main" || true
+HUSKY=0 git checkout "$BRANCHUSED" || true
+
+# make changes in a PR topic branch
+if [[ ${DO_PUSH} -eq 1 ]]; then 
+  git branch "$PR_BRANCH" || true
+  git checkout "$PR_BRANCH" || true
+fi
+
+rootVer=""
 for d in plugins/* packages/* ./; do if [[ -f "$d/package.json" ]]; then 
     ver=$(jq -r '.version' "$d/package.json"); 
     if [[ ! "${plugins["$d"]}" ]]; then
-        echo -e "[INFO] ${blue}$d is new in main branch; nothing to do.${norm}"
+        echo -e "[INFO] ${blue}$d is new in $BRANCHUSED branch; nothing to do.${norm}"
     elif [[ $ver == "0.0.0" ]]; then
         echo -e "[INFO] ${blue}$d is unversioned at 0.0.0; nothing to do.${norm}"
     else
       ver=${ver%.*} # only want the x.y version here 
       if verlte "$ver" "${plugins["$d"]}"; then 
         # need to bump version
-        echo -en "[INFO] ${red}$d $ver needs to be incremented to greater than ${plugins["$d"]}${norm} (in main) ... "
+        echo -en "[INFO] ${red}$d $ver needs to be incremented to greater than ${plugins["$d"]}${norm} (in $BRANCHUSED) ... "
         newver="$ver"
         if [[ $ver =~ ^([0-9]+)\.([0-9]+) ]]; then # increase the y digit
             XX=${BASH_REMATCH[1]}
@@ -114,8 +141,9 @@ for d in plugins/* packages/* ./; do if [[ -f "$d/package.json" ]]; then
         jq '.version|="'"$newver"'"' "$d/package.json" > "$d/package.json1"
         mv -f "$d/package.json1" "$d/package.json"
         echo -e "${green}$newver${norm}"
+        if [[ "$d" == "./" ]]; then rootVer=$newver; fi
       else
-          echo -e "[INFO] ${green}$d $ver ${norm}(main) > ${green}${plugins["$d"]}${norm} (in $BRANCH)"
+          echo -e "[INFO] ${green}$d $ver ${norm}($BRANCHUSED) > ${green}${plugins["$d"]}${norm} (in $BRANCH)"
       fi
     fi
 fi; done
@@ -123,18 +151,11 @@ fi; done
 # git diff plugins/
 
 if [[ ${DO_PUSH} -eq 1 ]]; then
-  BRANCHUSED="main"
-  PR_BRANCH="pr-update-sync-rhdh-hub-$(date +%s)"
-
-  git pull origin "${BRANCHUSED}"
+  git commit -s -m "chore: checkPluginVersion.sh bump plugin versions in $BRANCHUSED branch for next release $rootVer" .
+  git pull origin "${BRANCHUSED}" || true
   set -x
-  # shellcheck disable=SC2086
-  PUSH_TRY="$(git push origin "${BRANCHUSED}" ${FORCE} 2>&1 || true)"
-  # shellcheck disable=SC2181
-  if [[ $? -gt 0 ]] || [[ $PUSH_TRY == *"protected branch hook declined"* ]]; then
-    # create pull request if target branch is restricted access
-    createPr "${PR_BRANCH}" "${BRANCHUSED}"
-  fi
+  # create pull request if target branch is restricted access
+  createPr "${PR_BRANCH}" "${BRANCHUSED}"
   set +x
 fi ## if DO_PUSH
 
