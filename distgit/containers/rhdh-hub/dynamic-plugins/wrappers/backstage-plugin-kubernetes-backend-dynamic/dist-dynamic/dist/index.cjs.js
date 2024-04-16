@@ -2,14 +2,14 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var require$$0$2 = require('@backstage/backend-common');
+var require$$16 = require('@backstage/backend-common');
 var require$$0$1 = require('@backstage/backend-plugin-api');
 var require$$2$1 = require('@backstage/plugin-catalog-node/alpha');
 var require$$0 = require('@aws-sdk/credential-providers');
 var require$$1 = require('@aws-sdk/signature-v4');
 var require$$2 = require('@aws-crypto/sha256-js');
 var require$$3 = require('@backstage/integration-aws-node');
-var require$$21 = require('@backstage/plugin-permission-common');
+var require$$22 = require('@backstage/plugin-permission-common');
 var lodash$1 = require('lodash');
 var require$$12 = require('luxon');
 var require$$5 = require('@azure/identity');
@@ -22,15 +22,11 @@ var require$$11 = require('express-promise-router');
 var require$$13 = require('@backstage/errors');
 var require$$14 = require('@backstage/catalog-client');
 var require$$15 = require('node:dns');
-var require$$16 = require('@backstage/catalog-model');
-var require$$17 = require('@backstage/plugin-auth-node');
+var require$$17 = require('@backstage/catalog-model');
 var require$$19 = require('node-fetch');
 var require$$20 = require('https');
-var require$$22 = require('http-proxy-middleware');
-
-function getDefaultExportFromCjs (x) {
-	return x && x.__esModule && Object.prototype.hasOwnProperty.call(x, 'default') ? x['default'] : x;
-}
+var require$$21 = require('@backstage/plugin-auth-node');
+var require$$23 = require('http-proxy-middleware');
 
 function getAugmentedNamespace(n) {
   if (n.__esModule) return n;
@@ -57,7 +53,7 @@ function getAugmentedNamespace(n) {
 	return a;
 }
 
-var alpha_cjs$1 = {};
+var alpha_cjs = {};
 
 var index_cjs$1 = {};
 
@@ -74,7 +70,7 @@ const ANNOTATION_KUBERNETES_AWS_ASSUME_ROLE = "kubernetes.io/aws-assume-role";
 const ANNOTATION_KUBERNETES_AWS_CLUSTER_ID = "kubernetes.io/x-k8s-aws-id";
 const ANNOTATION_KUBERNETES_AWS_EXTERNAL_ID = "kubernetes.io/aws-external-id";
 
-const kubernetesProxyPermission = require$$21.createPermission({
+const kubernetesProxyPermission = require$$22.createPermission({
   name: "kubernetes.proxy",
   attributes: {}
 });
@@ -117,6 +113,9 @@ const groupResponses = (fetchResponse) => {
         case "statefulsets":
           prev.statefulsets.push(...next.resources);
           break;
+        case "daemonsets":
+          prev.daemonSets.push(...next.resources);
+          break;
       }
       return prev;
     },
@@ -131,7 +130,8 @@ const groupResponses = (fetchResponse) => {
       jobs: [],
       cronJobs: [],
       customResources: [],
-      statefulsets: []
+      statefulsets: [],
+      daemonSets: []
     }
   );
 };
@@ -454,8 +454,6 @@ var index_esm = /*#__PURE__*/Object.freeze({
 
 var require$$4 = /*@__PURE__*/getAugmentedNamespace(index_esm);
 
-Object.defineProperty(index_cjs$1, '__esModule', { value: true });
-
 var credentialProviders = require$$0;
 var signatureV4 = require$$1;
 var sha256Js = require$$2;
@@ -472,18 +470,19 @@ var luxon = require$$12;
 var errors = require$$13;
 var catalogClient = require$$14;
 var dns = require$$15;
-var catalogModel = require$$16;
-var pluginAuthNode = require$$17;
+var backendCommon$1 = require$$16;
+var catalogModel = require$$17;
 var lodash = lodash$1;
 var fetch$1 = require$$19;
 var https$1 = require$$20;
-var pluginPermissionCommon = require$$21;
-var httpProxyMiddleware = require$$22;
+var pluginAuthNode = require$$21;
+var pluginPermissionCommon = require$$22;
+var httpProxyMiddleware = require$$23;
 
-function _interopDefaultLegacy$2 (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
+function _interopDefaultCompat$1 (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }
 
-function _interopNamespace$2(e) {
-  if (e && e.__esModule) return e;
+function _interopNamespaceCompat$1(e) {
+  if (e && typeof e === 'object' && 'default' in e) return e;
   var n = Object.create(null);
   if (e) {
     Object.keys(e).forEach(function (k) {
@@ -496,18 +495,18 @@ function _interopNamespace$2(e) {
       }
     });
   }
-  n["default"] = e;
+  n.default = e;
   return Object.freeze(n);
 }
 
-var container__namespace = /*#__PURE__*/_interopNamespace$2(container);
-var fs__default = /*#__PURE__*/_interopDefaultLegacy$2(fs);
-var express__default = /*#__PURE__*/_interopDefaultLegacy$2(express);
-var Router__default = /*#__PURE__*/_interopDefaultLegacy$2(Router);
-var dns__default = /*#__PURE__*/_interopDefaultLegacy$2(dns);
-var lodash__default = /*#__PURE__*/_interopDefaultLegacy$2(lodash);
-var fetch__default$1 = /*#__PURE__*/_interopDefaultLegacy$2(fetch$1);
-var https__namespace$1 = /*#__PURE__*/_interopNamespace$2(https$1);
+var container__namespace = /*#__PURE__*/_interopNamespaceCompat$1(container);
+var fs__default = /*#__PURE__*/_interopDefaultCompat$1(fs);
+var express__default = /*#__PURE__*/_interopDefaultCompat$1(express);
+var Router__default = /*#__PURE__*/_interopDefaultCompat$1(Router);
+var dns__default = /*#__PURE__*/_interopDefaultCompat$1(dns);
+var lodash__default = /*#__PURE__*/_interopDefaultCompat$1(lodash);
+var fetch__default$1 = /*#__PURE__*/_interopDefaultCompat$1(fetch$1);
+var https__namespace$1 = /*#__PURE__*/_interopNamespaceCompat$1(https$1);
 
 class AksStrategy {
   async getCredential(_, requestAuth) {
@@ -534,16 +533,16 @@ class AnonymousStrategy {
   }
 }
 
-var __defProp$b = Object.defineProperty;
-var __defNormalProp$b = (obj, key, value) => key in obj ? __defProp$b(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
-var __publicField$b = (obj, key, value) => {
-  __defNormalProp$b(obj, typeof key !== "symbol" ? key + "" : key, value);
+var __defProp$c = Object.defineProperty;
+var __defNormalProp$c = (obj, key, value) => key in obj ? __defProp$c(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+var __publicField$c = (obj, key, value) => {
+  __defNormalProp$c(obj, typeof key !== "symbol" ? key + "" : key, value);
   return value;
 };
 const defaultRegion = "us-east-1";
 class AwsIamStrategy {
   constructor(opts) {
-    __publicField$b(this, "credsManager");
+    __publicField$c(this, "credsManager");
     this.credsManager = integrationAwsNode.DefaultAwsCredentialsManager.fromConfig(opts.config);
   }
   async getCredential(clusterDetails) {
@@ -615,10 +614,10 @@ class AwsIamStrategy {
   }
 }
 
-var __defProp$a = Object.defineProperty;
-var __defNormalProp$a = (obj, key, value) => key in obj ? __defProp$a(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
-var __publicField$a = (obj, key, value) => {
-  __defNormalProp$a(obj, typeof key !== "symbol" ? key + "" : key, value);
+var __defProp$b = Object.defineProperty;
+var __defNormalProp$b = (obj, key, value) => key in obj ? __defProp$b(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+var __publicField$b = (obj, key, value) => {
+  __defNormalProp$b(obj, typeof key !== "symbol" ? key + "" : key, value);
   return value;
 };
 const aksScope = "6dae42f8-4368-4678-94ff-3960e28e3630/.default";
@@ -626,8 +625,8 @@ class AzureIdentityStrategy {
   constructor(logger, tokenCredential = new identity.DefaultAzureCredential()) {
     this.logger = logger;
     this.tokenCredential = tokenCredential;
-    __publicField$a(this, "accessToken", { token: "", expiresOnTimestamp: 0 });
-    __publicField$a(this, "newTokenPromise");
+    __publicField$b(this, "accessToken", { token: "", expiresOnTimestamp: 0 });
+    __publicField$b(this, "newTokenPromise");
   }
   async getCredential() {
     if (!this.tokenRequiresRefresh()) {
@@ -710,15 +709,15 @@ class GoogleServiceAccountStrategy {
   }
 }
 
-var __defProp$9 = Object.defineProperty;
-var __defNormalProp$9 = (obj, key, value) => key in obj ? __defProp$9(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
-var __publicField$9 = (obj, key, value) => {
-  __defNormalProp$9(obj, typeof key !== "symbol" ? key + "" : key, value);
+var __defProp$a = Object.defineProperty;
+var __defNormalProp$a = (obj, key, value) => key in obj ? __defProp$a(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+var __publicField$a = (obj, key, value) => {
+  __defNormalProp$a(obj, typeof key !== "symbol" ? key + "" : key, value);
   return value;
 };
 class DispatchStrategy {
   constructor(options) {
-    __publicField$9(this, "strategyMap");
+    __publicField$a(this, "strategyMap");
     this.strategyMap = options.authStrategyMap;
   }
   getCredential(clusterDetails, auth) {
@@ -758,7 +757,7 @@ class ServiceAccountStrategy {
     const user = kc.getCurrentUser();
     return {
       type: "bearer token",
-      token: fs__default["default"].readFileSync(user.authProvider.config.tokenFile).toString()
+      token: fs__default.default.readFileSync(user.authProvider.config.tokenFile).toString()
     };
   }
   validateCluster() {
@@ -798,15 +797,15 @@ class OidcStrategy {
   }
 }
 
-var __defProp$8 = Object.defineProperty;
-var __defNormalProp$8 = (obj, key, value) => key in obj ? __defProp$8(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
-var __publicField$8 = (obj, key, value) => {
-  __defNormalProp$8(obj, typeof key !== "symbol" ? key + "" : key, value);
+var __defProp$9 = Object.defineProperty;
+var __defNormalProp$9 = (obj, key, value) => key in obj ? __defProp$9(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+var __publicField$9 = (obj, key, value) => {
+  __defNormalProp$9(obj, typeof key !== "symbol" ? key + "" : key, value);
   return value;
 };
 class ConfigClusterLocator {
   constructor(clusterDetails) {
-    __publicField$8(this, "clusterDetails");
+    __publicField$9(this, "clusterDetails");
     this.clusterDetails = clusterDetails;
   }
   static fromConfig(config, authStrategy) {
@@ -926,7 +925,7 @@ function runPeriodically(fn, delayMs) {
 
 var name = "@backstage/plugin-kubernetes-backend";
 var description = "A Backstage backend plugin that integrates towards Kubernetes";
-var version = "0.15.3";
+var version = "0.16.4";
 var main = "src/index.ts";
 var types = "src/index.ts";
 var license = "Apache-2.0";
@@ -1149,24 +1148,26 @@ class GkeClusterLocator {
   }
 }
 
-var __defProp$7 = Object.defineProperty;
-var __defNormalProp$7 = (obj, key, value) => key in obj ? __defProp$7(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
-var __publicField$7 = (obj, key, value) => {
-  __defNormalProp$7(obj, typeof key !== "symbol" ? key + "" : key, value);
+var __defProp$8 = Object.defineProperty;
+var __defNormalProp$8 = (obj, key, value) => key in obj ? __defProp$8(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+var __publicField$8 = (obj, key, value) => {
+  __defNormalProp$8(obj, typeof key !== "symbol" ? key + "" : key, value);
   return value;
 };
 function isObject(obj) {
   return typeof obj === "object" && obj !== null && !Array.isArray(obj);
 }
 class CatalogClusterLocator {
-  constructor(catalogClient) {
-    __publicField$7(this, "catalogClient");
+  constructor(catalogClient, auth) {
+    __publicField$8(this, "catalogClient");
+    __publicField$8(this, "auth");
     this.catalogClient = catalogClient;
+    this.auth = auth;
   }
-  static fromConfig(catalogApi) {
-    return new CatalogClusterLocator(catalogApi);
+  static fromConfig(catalogApi, auth) {
+    return new CatalogClusterLocator(catalogApi, auth);
   }
-  async getClusters() {
+  async getClusters(options) {
     const apiServerKey = `metadata.annotations.${pluginKubernetesCommon.ANNOTATION_KUBERNETES_API_SERVER}`;
     const apiServerCaKey = `metadata.annotations.${pluginKubernetesCommon.ANNOTATION_KUBERNETES_API_SERVER_CA}`;
     const authProviderKey = `metadata.annotations.${pluginKubernetesCommon.ANNOTATION_KUBERNETES_AUTH_PROVIDER}`;
@@ -1177,9 +1178,17 @@ class CatalogClusterLocator {
       [apiServerCaKey]: catalogClient.CATALOG_FILTER_EXISTS,
       [authProviderKey]: catalogClient.CATALOG_FILTER_EXISTS
     };
-    const clusters = await this.catalogClient.getEntities({
-      filter: [filter]
-    });
+    const clusters = await this.catalogClient.getEntities(
+      {
+        filter: [filter]
+      },
+      (options == null ? void 0 : options.credentials) ? {
+        token: (await this.auth.getPluginRequestToken({
+          onBehalfOf: options.credentials,
+          targetPluginId: "catalog"
+        })).token
+      } : void 0
+    );
     return clusters.items.map((entity) => {
       const annotations = entity.metadata.annotations;
       const clusterDetails = {
@@ -1211,18 +1220,18 @@ class CatalogClusterLocator {
   }
 }
 
-var __defProp$6 = Object.defineProperty;
-var __defNormalProp$6 = (obj, key, value) => key in obj ? __defProp$6(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
-var __publicField$6 = (obj, key, value) => {
-  __defNormalProp$6(obj, typeof key !== "symbol" ? key + "" : key, value);
+var __defProp$7 = Object.defineProperty;
+var __defNormalProp$7 = (obj, key, value) => key in obj ? __defProp$7(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+var __publicField$7 = (obj, key, value) => {
+  __defNormalProp$7(obj, typeof key !== "symbol" ? key + "" : key, value);
   return value;
 };
 class LocalKubectlProxyClusterLocator {
   constructor() {
-    __publicField$6(this, "clusterDetails");
+    __publicField$7(this, "clusterDetails");
     // verbatim: when false, IPv4 addresses are placed before IPv6 addresses, ignoring the order from the DNS resolver
     // By default kubectl proxy listens on 127.0.0.1 instead of [::1]
-    __publicField$6(this, "lookupPromise", dns__default["default"].promises.lookup("localhost", { verbatim: false }));
+    __publicField$7(this, "lookupPromise", dns__default.default.promises.lookup("localhost", { verbatim: false }));
     this.clusterDetails = [
       {
         name: "local",
@@ -1246,9 +1255,9 @@ class CombinedClustersSupplier {
     this.clusterSuppliers = clusterSuppliers;
     this.logger = logger;
   }
-  async getClusters() {
+  async getClusters(options) {
     const clusters = await Promise.all(
-      this.clusterSuppliers.map((supplier) => supplier.getClusters())
+      this.clusterSuppliers.map((supplier) => supplier.getClusters(options))
     ).then((res) => {
       return res.flat();
     }).catch((e) => {
@@ -1272,12 +1281,12 @@ class CombinedClustersSupplier {
     return clusters;
   }
 }
-const getCombinedClusterSupplier = (rootConfig, catalogClient, authStrategy, logger, refreshInterval = void 0) => {
+const getCombinedClusterSupplier = (rootConfig, catalogClient, authStrategy, logger, refreshInterval = void 0, auth) => {
   const clusterSuppliers = rootConfig.getConfigArray("kubernetes.clusterLocatorMethods").map((clusterLocatorMethod) => {
     const type = clusterLocatorMethod.getString("type");
     switch (type) {
       case "catalog":
-        return CatalogClusterLocator.fromConfig(catalogClient);
+        return CatalogClusterLocator.fromConfig(catalogClient, auth);
       case "localKubectlProxy":
         return new LocalKubectlProxyClusterLocator();
       case "config":
@@ -1299,7 +1308,7 @@ const getCombinedClusterSupplier = (rootConfig, catalogClient, authStrategy, log
   return new CombinedClustersSupplier(clusterSuppliers, logger);
 };
 
-const addResourceRoutesToRouter = (router, catalogApi, objectsProvider) => {
+const addResourceRoutesToRouter = (router, catalogApi, objectsProvider, auth, httpAuth) => {
   const getEntityByReq = async (req) => {
     const rawEntityRef = req.body.entityRef;
     if (rawEntityRef && typeof rawEntityRef !== "string") {
@@ -1313,15 +1322,11 @@ const addResourceRoutesToRouter = (router, catalogApi, objectsProvider) => {
     } catch (error) {
       throw new errors.InputError(`Invalid entity ref, ${error}`);
     }
-    const token = pluginAuthNode.getBearerTokenFromAuthorizationHeader(
-      req.headers.authorization
-    );
-    if (!token) {
-      throw new errors.AuthenticationError("No Backstage token");
-    }
-    const entity = await catalogApi.getEntityByRef(entityRef, {
-      token
+    const { token } = await auth.getPluginRequestToken({
+      onBehalfOf: await httpAuth.credentials(req),
+      targetPluginId: "catalog"
     });
+    const entity = await catalogApi.getEntityByRef(entityRef, { token });
     if (!entity) {
       throw new errors.InputError(
         `Entity ref missing, ${catalogModel.stringifyEntityRef(entityRef)}`
@@ -1354,6 +1359,42 @@ const addResourceRoutesToRouter = (router, catalogApi, objectsProvider) => {
     res.json(response);
   });
 };
+
+var __defProp$6 = Object.defineProperty;
+var __defNormalProp$6 = (obj, key, value) => key in obj ? __defProp$6(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+var __publicField$6 = (obj, key, value) => {
+  __defNormalProp$6(obj, typeof key !== "symbol" ? key + "" : key, value);
+  return value;
+};
+class CatalogRelationServiceLocator {
+  constructor(clusterSupplier) {
+    __publicField$6(this, "clusterSupplier");
+    this.clusterSupplier = clusterSupplier;
+  }
+  // As this implementation always returns all clusters serviceId is ignored here
+  getClustersByEntity(entity, _requestContext) {
+    if (entity.relations && entity.relations.some(
+      (r) => r.type === "dependsOn" && r.targetRef.includes("resource:")
+    )) {
+      return this.clusterSupplier.getClusters().then((clusters) => {
+        return {
+          clusters: clusters.filter(
+            (c) => this.doesEntityDependOnCluster(entity, c)
+          )
+        };
+      });
+    }
+    return Promise.resolve({ clusters: [] });
+  }
+  doesEntityDependOnCluster(entity, cluster) {
+    return entity.relations.some(
+      (rel) => {
+        var _a;
+        return rel.type === "dependsOn" && rel.targetRef === `resource:${(_a = entity.metadata.namespace) != null ? _a : "default"}/${cluster.name}`;
+      }
+    );
+  }
+}
 
 var __defProp$5 = Object.defineProperty;
 var __defNormalProp$5 = (obj, key, value) => key in obj ? __defProp$5(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
@@ -1671,7 +1712,7 @@ var __publicField$2 = (obj, key, value) => {
 const isError = (fr) => fr.hasOwnProperty("errorType");
 function fetchResultsToResponseWrapper(results) {
   var _a, _b;
-  const groupBy = lodash__default["default"].groupBy(results, (value) => {
+  const groupBy = lodash__default.default.groupBy(results, (value) => {
     return isError(value) ? "errors" : "responses";
   });
   return {
@@ -1805,10 +1846,10 @@ class KubernetesClientBasedFetcher {
     if (labelSelector) {
       url.search = `labelSelector=${encode(labelSelector)}`;
     }
-    return fetch__default$1["default"](url, requestInit);
+    return fetch__default$1.default(url, requestInit);
   }
   isServiceAccountAuthentication(authProvider, clusterDetails) {
-    return authProvider === "serviceAccount" && !clusterDetails.authMetadata.serviceAccountToken && fs__default["default"].pathExistsSync(clientNode$1.Config.SERVICEACCOUNT_CA_PATH);
+    return authProvider === "serviceAccount" && !clusterDetails.authMetadata.serviceAccountToken && fs__default.default.pathExistsSync(clientNode$1.Config.SERVICEACCOUNT_CA_PATH);
   }
   isCredentialMissing(authProvider, credential) {
     return authProvider !== "localKubectlProxy" && credential.type === "anonymous";
@@ -1858,7 +1899,7 @@ class KubernetesClientBasedFetcher {
     const url = new URL(cluster.server);
     if (url.protocol === "https:") {
       requestInit.agent = new https__namespace$1.Agent({
-        ca: fs__default["default"].readFileSync(cluster.caFile)
+        ca: fs__default.default.readFileSync(cluster.caFile)
       });
     }
     return [url, requestInit];
@@ -1997,6 +2038,17 @@ class KubernetesProxy {
     if (!cluster) {
       throw new errors.NotFoundError(`Cluster '${clusterName}' not found`);
     }
+    const authProvider = cluster.authMetadata[pluginKubernetesCommon.ANNOTATION_KUBERNETES_AUTH_PROVIDER];
+    if (authProvider === "serviceAccount" && fs__default.default.pathExistsSync(clientNode$1.Config.SERVICEACCOUNT_CA_PATH) && !cluster.authMetadata.serviceAccountToken) {
+      const kc = new clientNode$1.KubeConfig();
+      kc.loadFromCluster();
+      const clusterFromKubeConfig = kc.getCurrentCluster();
+      const url = new URL(clusterFromKubeConfig.server);
+      cluster.url = clusterFromKubeConfig.server;
+      if (url.protocol === "https:") {
+        cluster.caFile = clusterFromKubeConfig.caFile;
+      }
+    }
     return cluster;
   }
   static authHeadersToKubernetesRequestAuth(originalHeaders) {
@@ -2032,24 +2084,24 @@ class KubernetesProxy {
   }
 }
 
-var __defProp = Object.defineProperty;
-var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
-var __publicField = (obj, key, value) => {
-  __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
+var __defProp$d = Object.defineProperty;
+var __defNormalProp$d = (obj, key, value) => key in obj ? __defProp$d(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+var __publicField$d = (obj, key, value) => {
+  __defNormalProp$d(obj, typeof key !== "symbol" ? key + "" : key, value);
   return value;
 };
 class KubernetesBuilder {
   constructor(env) {
     this.env = env;
-    __publicField(this, "clusterSupplier");
-    __publicField(this, "defaultClusterRefreshInterval", luxon.Duration.fromObject({
+    __publicField$d(this, "clusterSupplier");
+    __publicField$d(this, "defaultClusterRefreshInterval", luxon.Duration.fromObject({
       minutes: 60
     }));
-    __publicField(this, "objectsProvider");
-    __publicField(this, "fetcher");
-    __publicField(this, "serviceLocator");
-    __publicField(this, "proxy");
-    __publicField(this, "authStrategyMap");
+    __publicField$d(this, "objectsProvider");
+    __publicField$d(this, "fetcher");
+    __publicField$d(this, "serviceLocator");
+    __publicField$d(this, "proxy");
+    __publicField$d(this, "authStrategyMap");
   }
   static createBuilder(env) {
     return new KubernetesBuilder(env);
@@ -2067,9 +2119,14 @@ class KubernetesBuilder {
         "Failed to initialize kubernetes backend: kubernetes config is missing"
       );
       return {
-        router: Router__default["default"]()
+        router: Router__default.default()
       };
     }
+    const { auth, httpAuth } = backendCommon$1.createLegacyAuthAdapters({
+      auth: this.env.auth,
+      httpAuth: this.env.httpAuth,
+      discovery: this.env.discovery
+    });
     const customResources = this.buildCustomResources();
     const fetcher = this.getFetcher();
     const clusterSupplier = this.getClusterSupplier();
@@ -2089,7 +2146,9 @@ class KubernetesBuilder {
       clusterSupplier,
       this.env.catalogApi,
       proxy,
-      permissions
+      permissions,
+      auth,
+      httpAuth
     );
     return {
       clusterSupplier,
@@ -2153,12 +2212,14 @@ class KubernetesBuilder {
   }
   buildClusterSupplier(refreshInterval) {
     const config = this.env.config;
+    const { auth } = backendCommon$1.createLegacyAuthAdapters(this.env);
     this.clusterSupplier = getCombinedClusterSupplier(
       config,
       this.env.catalogApi,
       new DispatchStrategy({ authStrategyMap: this.getAuthStrategyMap() }),
       this.env.logger,
-      refreshInterval
+      refreshInterval,
+      auth
     );
     return this.clusterSupplier;
   }
@@ -2186,6 +2247,9 @@ class KubernetesBuilder {
       case "singleTenant":
         this.serviceLocator = this.buildSingleTenantServiceLocator(clusterSupplier);
         break;
+      case "catalogRelation":
+        this.serviceLocator = this.buildCatalogRelationServiceLocator(clusterSupplier);
+        break;
       case "http":
         this.serviceLocator = this.buildHttpServiceLocator(clusterSupplier);
         break;
@@ -2202,6 +2266,9 @@ class KubernetesBuilder {
   buildSingleTenantServiceLocator(clusterSupplier) {
     return new SingleTenantServiceLocator(clusterSupplier);
   }
+  buildCatalogRelationServiceLocator(clusterSupplier) {
+    return new CatalogRelationServiceLocator(clusterSupplier);
+  }
   buildHttpServiceLocator(_clusterSupplier) {
     throw new Error("not implemented");
   }
@@ -2217,11 +2284,11 @@ class KubernetesBuilder {
     });
     return this.proxy;
   }
-  buildRouter(objectsProvider, clusterSupplier, catalogApi, proxy, permissionApi) {
+  buildRouter(objectsProvider, clusterSupplier, catalogApi, proxy, permissionApi, authService, httpAuth) {
     const logger = this.env.logger;
-    const router = Router__default["default"]();
+    const router = Router__default.default();
     router.use("/proxy", proxy.createRequestHandler({ permissionApi }));
-    router.use(express__default["default"].json());
+    router.use(express__default.default.json());
     router.use(
       pluginPermissionNode.createPermissionIntegrationRouter({
         permissions: pluginKubernetesCommon.kubernetesPermissions
@@ -2243,8 +2310,11 @@ class KubernetesBuilder {
         res.status(500).json({ error: e.message });
       }
     });
-    router.get("/clusters", async (_, res) => {
-      const clusterDetails = await this.fetchClusterDetails(clusterSupplier);
+    router.get("/clusters", async (req, res) => {
+      const credentials = await httpAuth.credentials(req);
+      const clusterDetails = await this.fetchClusterDetails(clusterSupplier, {
+        credentials
+      });
       res.json({
         items: clusterDetails.map((cd) => {
           const oidcTokenProvider = cd.authMetadata[pluginKubernetesCommon.ANNOTATION_KUBERNETES_OIDC_TOKEN_PROVIDER];
@@ -2265,7 +2335,13 @@ class KubernetesBuilder {
         })
       });
     });
-    addResourceRoutesToRouter(router, catalogApi, objectsProvider);
+    addResourceRoutesToRouter(
+      router,
+      catalogApi,
+      objectsProvider,
+      authService,
+      httpAuth
+    );
     return router;
   }
   buildAuthStrategyMap() {
@@ -2281,8 +2357,8 @@ class KubernetesBuilder {
     };
     return this.authStrategyMap;
   }
-  async fetchClusterDetails(clusterSupplier) {
-    const clusterDetails = await clusterSupplier.getClusters();
+  async fetchClusterDetails(clusterSupplier, options) {
+    const clusterDetails = await clusterSupplier.getClusters(options);
     this.env.logger.info(
       `action=loadClusterDetails numOfClustersLoaded=${clusterDetails.length}`
     );
@@ -2368,17 +2444,15 @@ index_cjs$1.createRouter = createRouter;
 
 var index_cjs = {};
 
-Object.defineProperty(index_cjs, '__esModule', { value: true });
-
-var backendPluginApi = require$$0$1;
+var backendPluginApi$1 = require$$0$1;
 var https = require$$20;
 var clientNode = require$$7;
 var fetch = require$$19;
 
-function _interopDefaultLegacy$1 (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
+function _interopDefaultCompat (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }
 
-function _interopNamespace$1(e) {
-  if (e && e.__esModule) return e;
+function _interopNamespaceCompat(e) {
+  if (e && typeof e === 'object' && 'default' in e) return e;
   var n = Object.create(null);
   if (e) {
     Object.keys(e).forEach(function (k) {
@@ -2391,26 +2465,26 @@ function _interopNamespace$1(e) {
       }
     });
   }
-  n["default"] = e;
+  n.default = e;
   return Object.freeze(n);
 }
 
-var https__namespace = /*#__PURE__*/_interopNamespace$1(https);
-var fetch__default = /*#__PURE__*/_interopDefaultLegacy$1(fetch);
+var https__namespace = /*#__PURE__*/_interopNamespaceCompat(https);
+var fetch__default = /*#__PURE__*/_interopDefaultCompat(fetch);
 
-const kubernetesObjectsProviderExtensionPoint = backendPluginApi.createExtensionPoint({
+const kubernetesObjectsProviderExtensionPoint = backendPluginApi$1.createExtensionPoint({
   id: "kubernetes.objects-provider"
 });
-const kubernetesClusterSupplierExtensionPoint = backendPluginApi.createExtensionPoint({
+const kubernetesClusterSupplierExtensionPoint = backendPluginApi$1.createExtensionPoint({
   id: "kubernetes.cluster-supplier"
 });
-const kubernetesAuthStrategyExtensionPoint = backendPluginApi.createExtensionPoint({
+const kubernetesAuthStrategyExtensionPoint = backendPluginApi$1.createExtensionPoint({
   id: "kubernetes.auth-strategy"
 });
-const kubernetesFetcherExtensionPoint = backendPluginApi.createExtensionPoint({
+const kubernetesFetcherExtensionPoint = backendPluginApi$1.createExtensionPoint({
   id: "kubernetes.fetcher"
 });
-const kubernetesServiceLocatorExtensionPoint = backendPluginApi.createExtensionPoint({
+const kubernetesServiceLocatorExtensionPoint = backendPluginApi$1.createExtensionPoint({
   id: "kubernetes.service-locator"
 });
 
@@ -2440,7 +2514,7 @@ class PinnipedHelper {
     );
     let response;
     try {
-      response = await fetch__default["default"](url, requestInit);
+      response = await fetch__default.default(url, requestInit);
     } catch (error) {
       this.logger.error("Pinniped request error", error);
       throw error;
@@ -2495,161 +2569,170 @@ index_cjs.kubernetesFetcherExtensionPoint = kubernetesFetcherExtensionPoint;
 index_cjs.kubernetesObjectsProviderExtensionPoint = kubernetesObjectsProviderExtensionPoint;
 index_cjs.kubernetesServiceLocatorExtensionPoint = kubernetesServiceLocatorExtensionPoint;
 
-(function (exports) {
+Object.defineProperty(alpha_cjs, '__esModule', { value: true });
 
-	Object.defineProperty(exports, '__esModule', { value: true });
+var backendCommon = require$$16;
+var backendPluginApi = require$$0$1;
+var alpha = require$$2$1;
+var pluginKubernetesBackend = index_cjs$1;
+var pluginKubernetesNode = index_cjs;
 
-	var backendCommon = require$$0$2;
-	var backendPluginApi = require$$0$1;
-	var alpha = require$$2$1;
-	var pluginKubernetesBackend = index_cjs$1;
-	var pluginKubernetesNode = index_cjs;
+var __defProp = Object.defineProperty;
+var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+var __publicField = (obj, key, value) => {
+  __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
+  return value;
+};
+class ObjectsProvider {
+  constructor() {
+    __publicField(this, "objectsProvider");
+  }
+  getObjectsProvider() {
+    return this.objectsProvider;
+  }
+  addObjectsProvider(provider) {
+    if (this.objectsProvider) {
+      throw new Error(
+        "Multiple Kubernetes objects provider is not supported at this time"
+      );
+    }
+    this.objectsProvider = provider;
+  }
+}
+class ClusterSuplier {
+  constructor() {
+    __publicField(this, "clusterSupplier");
+  }
+  getClusterSupplier() {
+    return this.clusterSupplier;
+  }
+  addClusterSupplier(clusterSupplier) {
+    if (this.clusterSupplier) {
+      throw new Error(
+        "Multiple Kubernetes Cluster Suppliers is not supported at this time"
+      );
+    }
+    this.clusterSupplier = clusterSupplier;
+  }
+}
+class Fetcher {
+  constructor() {
+    __publicField(this, "fetcher");
+  }
+  getFetcher() {
+    return this.fetcher;
+  }
+  addFetcher(fetcher) {
+    if (this.fetcher) {
+      throw new Error(
+        "Multiple Kubernetes Fetchers is not supported at this time"
+      );
+    }
+    this.fetcher = fetcher;
+  }
+}
+class ServiceLocator {
+  constructor() {
+    __publicField(this, "serviceLocator");
+  }
+  getServiceLocator() {
+    return this.serviceLocator;
+  }
+  addServiceLocator(serviceLocator) {
+    if (this.serviceLocator) {
+      throw new Error(
+        "Multiple Kubernetes Service Locators is not supported at this time"
+      );
+    }
+    this.serviceLocator = serviceLocator;
+  }
+}
+class AuthStrategy {
+  constructor() {
+    __publicField(this, "authStrategies");
+    this.authStrategies = new Array();
+  }
+  static addAuthStrategiesFromArray(authStrategies, builder) {
+    authStrategies.forEach((st) => builder.addAuthStrategy(st.key, st.strategy));
+  }
+  getAuthenticationStrategies() {
+    return this.authStrategies;
+  }
+  addAuthStrategy(key, authStrategy) {
+    this.authStrategies.push({ key, strategy: authStrategy });
+  }
+}
+const kubernetesPlugin = backendPluginApi.createBackendPlugin({
+  pluginId: "kubernetes",
+  register(env) {
+    const extPointObjectsProvider = new ObjectsProvider();
+    const extPointClusterSuplier = new ClusterSuplier();
+    const extPointAuthStrategy = new AuthStrategy();
+    const extPointFetcher = new Fetcher();
+    const extPointServiceLocator = new ServiceLocator();
+    env.registerExtensionPoint(
+      pluginKubernetesNode.kubernetesObjectsProviderExtensionPoint,
+      extPointObjectsProvider
+    );
+    env.registerExtensionPoint(
+      pluginKubernetesNode.kubernetesClusterSupplierExtensionPoint,
+      extPointClusterSuplier
+    );
+    env.registerExtensionPoint(
+      pluginKubernetesNode.kubernetesAuthStrategyExtensionPoint,
+      extPointAuthStrategy
+    );
+    env.registerExtensionPoint(
+      pluginKubernetesNode.kubernetesFetcherExtensionPoint,
+      extPointFetcher
+    );
+    env.registerExtensionPoint(
+      pluginKubernetesNode.kubernetesServiceLocatorExtensionPoint,
+      extPointServiceLocator
+    );
+    env.registerInit({
+      deps: {
+        http: backendPluginApi.coreServices.httpRouter,
+        logger: backendPluginApi.coreServices.logger,
+        config: backendPluginApi.coreServices.rootConfig,
+        discovery: backendPluginApi.coreServices.discovery,
+        catalogApi: alpha.catalogServiceRef,
+        permissions: backendPluginApi.coreServices.permissions,
+        auth: backendPluginApi.coreServices.auth,
+        httpAuth: backendPluginApi.coreServices.httpAuth
+      },
+      async init({
+        http,
+        logger,
+        config,
+        discovery,
+        catalogApi,
+        permissions,
+        auth,
+        httpAuth
+      }) {
+        const winstonLogger = backendCommon.loggerToWinstonLogger(logger);
+        const builder = pluginKubernetesBackend.KubernetesBuilder.createBuilder({
+          logger: winstonLogger,
+          config,
+          catalogApi,
+          permissions,
+          discovery,
+          auth,
+          httpAuth
+        }).setObjectsProvider(extPointObjectsProvider.getObjectsProvider()).setClusterSupplier(extPointClusterSuplier.getClusterSupplier()).setFetcher(extPointFetcher.getFetcher()).setServiceLocator(extPointServiceLocator.getServiceLocator());
+        AuthStrategy.addAuthStrategiesFromArray(
+          extPointAuthStrategy.getAuthenticationStrategies(),
+          builder
+        );
+        const { router } = await builder.build();
+        http.use(router);
+      }
+    });
+  }
+});
 
-	var __defProp = Object.defineProperty;
-	var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
-	var __publicField = (obj, key, value) => {
-	  __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
-	  return value;
-	};
-	class ObjectsProvider {
-	  constructor() {
-	    __publicField(this, "objectsProvider");
-	  }
-	  getObjectsProvider() {
-	    return this.objectsProvider;
-	  }
-	  addObjectsProvider(provider) {
-	    if (this.objectsProvider) {
-	      throw new Error(
-	        "Multiple Kubernetes objects provider is not supported at this time"
-	      );
-	    }
-	    this.objectsProvider = provider;
-	  }
-	}
-	class ClusterSuplier {
-	  constructor() {
-	    __publicField(this, "clusterSupplier");
-	  }
-	  getClusterSupplier() {
-	    return this.clusterSupplier;
-	  }
-	  addClusterSupplier(clusterSupplier) {
-	    if (this.clusterSupplier) {
-	      throw new Error(
-	        "Multiple Kubernetes Cluster Suppliers is not supported at this time"
-	      );
-	    }
-	    this.clusterSupplier = clusterSupplier;
-	  }
-	}
-	class Fetcher {
-	  constructor() {
-	    __publicField(this, "fetcher");
-	  }
-	  getFetcher() {
-	    return this.fetcher;
-	  }
-	  addFetcher(fetcher) {
-	    if (this.fetcher) {
-	      throw new Error(
-	        "Multiple Kubernetes Fetchers is not supported at this time"
-	      );
-	    }
-	    this.fetcher = fetcher;
-	  }
-	}
-	class ServiceLocator {
-	  constructor() {
-	    __publicField(this, "serviceLocator");
-	  }
-	  getServiceLocator() {
-	    return this.serviceLocator;
-	  }
-	  addServiceLocator(serviceLocator) {
-	    if (this.serviceLocator) {
-	      throw new Error(
-	        "Multiple Kubernetes Service Locators is not supported at this time"
-	      );
-	    }
-	    this.serviceLocator = serviceLocator;
-	  }
-	}
-	class AuthStrategy {
-	  constructor() {
-	    __publicField(this, "authStrategies");
-	    this.authStrategies = new Array();
-	  }
-	  static addAuthStrategiesFromArray(authStrategies, builder) {
-	    authStrategies.forEach((st) => builder.addAuthStrategy(st.key, st.strategy));
-	  }
-	  getAuthenticationStrategies() {
-	    return this.authStrategies;
-	  }
-	  addAuthStrategy(key, authStrategy) {
-	    this.authStrategies.push({ key, strategy: authStrategy });
-	  }
-	}
-	const kubernetesPlugin = backendPluginApi.createBackendPlugin({
-	  pluginId: "kubernetes",
-	  register(env) {
-	    const extPointObjectsProvider = new ObjectsProvider();
-	    const extPointClusterSuplier = new ClusterSuplier();
-	    const extPointAuthStrategy = new AuthStrategy();
-	    const extPointFetcher = new Fetcher();
-	    const extPointServiceLocator = new ServiceLocator();
-	    env.registerExtensionPoint(
-	      pluginKubernetesNode.kubernetesObjectsProviderExtensionPoint,
-	      extPointObjectsProvider
-	    );
-	    env.registerExtensionPoint(
-	      pluginKubernetesNode.kubernetesClusterSupplierExtensionPoint,
-	      extPointClusterSuplier
-	    );
-	    env.registerExtensionPoint(
-	      pluginKubernetesNode.kubernetesAuthStrategyExtensionPoint,
-	      extPointAuthStrategy
-	    );
-	    env.registerExtensionPoint(
-	      pluginKubernetesNode.kubernetesFetcherExtensionPoint,
-	      extPointFetcher
-	    );
-	    env.registerExtensionPoint(
-	      pluginKubernetesNode.kubernetesServiceLocatorExtensionPoint,
-	      extPointServiceLocator
-	    );
-	    env.registerInit({
-	      deps: {
-	        http: backendPluginApi.coreServices.httpRouter,
-	        logger: backendPluginApi.coreServices.logger,
-	        config: backendPluginApi.coreServices.rootConfig,
-	        catalogApi: alpha.catalogServiceRef,
-	        permissions: backendPluginApi.coreServices.permissions
-	      },
-	      async init({ http, logger, config, catalogApi, permissions }) {
-	        const winstonLogger = backendCommon.loggerToWinstonLogger(logger);
-	        const builder = pluginKubernetesBackend.KubernetesBuilder.createBuilder({
-	          logger: winstonLogger,
-	          config,
-	          catalogApi,
-	          permissions
-	        }).setObjectsProvider(extPointObjectsProvider.getObjectsProvider()).setClusterSupplier(extPointClusterSuplier.getClusterSupplier()).setFetcher(extPointFetcher.getFetcher()).setServiceLocator(extPointServiceLocator.getServiceLocator());
-	        AuthStrategy.addAuthStrategiesFromArray(
-	          extPointAuthStrategy.getAuthenticationStrategies(),
-	          builder
-	        );
-	        const { router } = await builder.build();
-	        http.use(router);
-	      }
-	    });
-	  }
-	});
+var _default = alpha_cjs.default = kubernetesPlugin;
 
-	exports["default"] = kubernetesPlugin;
-	
-} (alpha_cjs$1));
-
-var alpha_cjs = /*@__PURE__*/getDefaultExportFromCjs(alpha_cjs$1);
-
-exports["default"] = alpha_cjs;
+exports["default"] = _default;
 //# sourceMappingURL=index.cjs.js.map

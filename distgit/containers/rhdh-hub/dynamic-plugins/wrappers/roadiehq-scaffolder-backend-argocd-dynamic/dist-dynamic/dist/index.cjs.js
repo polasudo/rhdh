@@ -10,22 +10,18 @@ var require$$1 = require('express');
 var require$$2 = require('express-promise-router');
 var require$$3 = require('cross-fetch');
 
-var index_cjs$1 = {};
-
 var index_cjs = {};
-
-Object.defineProperty(index_cjs, '__esModule', { value: true });
 
 var backendCommon = require$$0;
 var express = require$$1;
 var Router = require$$2;
 var fetch = require$$3;
 
-function _interopDefaultLegacy$1 (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
+function _interopDefaultCompat (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }
 
-var express__default = /*#__PURE__*/_interopDefaultLegacy$1(express);
-var Router__default = /*#__PURE__*/_interopDefaultLegacy$1(Router);
-var fetch__default = /*#__PURE__*/_interopDefaultLegacy$1(fetch);
+var express__default = /*#__PURE__*/_interopDefaultCompat(express);
+var Router__default = /*#__PURE__*/_interopDefaultCompat(Router);
+var fetch__default = /*#__PURE__*/_interopDefaultCompat(fetch);
 
 function timer(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -94,7 +90,7 @@ class ArgoService {
     if (options.namespace) {
       url = `${url}?${APP_NAMESPACE_QUERY_PARAM}=${options.namespace}`;
     }
-    const resp = await fetch__default["default"](url, requestOptions);
+    const resp = await fetch__default.default(url, requestOptions);
     if (!resp.ok) {
       throw new Error(`Request failed with ${resp.status} Error`);
     }
@@ -154,7 +150,7 @@ class ArgoService {
         Authorization: `Bearer ${argoToken}`
       }
     };
-    const resp = await fetch__default["default"](
+    const resp = await fetch__default.default(
       `${baseUrl}/api/v1/projects/${projectName}`,
       requestOptions
     );
@@ -179,7 +175,7 @@ class ArgoService {
         password: password || this.password
       })
     };
-    const resp = await fetch__default["default"](`${url}/api/v1/session`, options);
+    const resp = await fetch__default.default(`${url}/api/v1/session`, options);
     if (!resp.ok) {
       this.logger.error(`failed to get argo token: ${url}`);
     }
@@ -210,7 +206,7 @@ class ArgoService {
         Authorization: `Bearer ${argoToken}`
       }
     };
-    const resp = await fetch__default["default"](
+    const resp = await fetch__default.default(
       `${baseUrl}/api/v1/applications${urlSuffix}`,
       requestOptions
     );
@@ -292,7 +288,7 @@ class ArgoService {
       },
       body: JSON.stringify(data)
     };
-    const resp = await fetch__default["default"](`${baseUrl}/api/v1/projects`, options);
+    const resp = await fetch__default.default(`${baseUrl}/api/v1/projects`, options);
     const responseData = await resp.json();
     if (resp.status === 403) {
       throw new Error(responseData.message);
@@ -329,7 +325,7 @@ class ArgoService {
       },
       body: JSON.stringify(data)
     };
-    const resp = await fetch__default["default"](
+    const resp = await fetch__default.default(
       `${baseUrl}/api/v1/projects/${projectName}`,
       options
     );
@@ -417,7 +413,7 @@ class ArgoService {
       },
       body: JSON.stringify(data)
     };
-    const resp = await fetch__default["default"](`${baseUrl}/api/v1/applications`, options);
+    const resp = await fetch__default.default(`${baseUrl}/api/v1/applications`, options);
     const respData = await resp.json();
     if (!resp.ok) {
       throw new Error(`Error creating argo app: ${respData.message}`);
@@ -481,7 +477,7 @@ class ArgoService {
         Authorization: `Bearer ${argoToken}`
       }
     };
-    const resp = await fetch__default["default"](
+    const resp = await fetch__default.default(
       `${argoInstance.url}/api/v1/applications/${appName}/sync`,
       options
     );
@@ -525,7 +521,7 @@ class ArgoService {
       },
       body: JSON.stringify(data)
     };
-    const resp = await fetch__default["default"](
+    const resp = await fetch__default.default(
       `${baseUrl}/api/v1/applications/${appName}`,
       options
     );
@@ -550,7 +546,7 @@ class ArgoService {
         "Content-Type": "application/json"
       }
     };
-    const resp = await fetch__default["default"](
+    const resp = await fetch__default.default(
       `${baseUrl}/api/v1/applications/${argoApplicationName}?${new URLSearchParams(
         {
           cascade: "true"
@@ -579,7 +575,7 @@ class ArgoService {
         "Content-Type": "application/json"
       }
     };
-    const resp = await fetch__default["default"](
+    const resp = await fetch__default.default(
       `${baseUrl}/api/v1/projects/${argoProjectName}?${new URLSearchParams({
         cascade: "true"
       })}`,
@@ -864,7 +860,7 @@ class ArgoService {
     };
     let statusText = "";
     try {
-      const response = await fetch__default["default"](
+      const response = await fetch__default.default(
         `${matchedArgoInstance.url}/api/v1/applications/${argoApplicationName}`,
         options
       );
@@ -886,8 +882,8 @@ function createRouter({
   config
 }) {
   var _a, _b;
-  const router = Router__default["default"]();
-  router.use(express__default["default"].json());
+  const router = Router__default.default();
+  router.use(express__default.default.json());
   const argoUserName = (_a = config.getOptionalString("argocd.username")) != null ? _a : "argocdUsername";
   const argoPassword = (_b = config.getOptionalString("argocd.password")) != null ? _b : "argocdPassword";
   const argoSvc = new ArgoService(argoUserName, argoPassword, config, logger);
@@ -1245,8 +1241,6 @@ function createRouter({
 index_cjs.ArgoService = ArgoService;
 index_cjs.createRouter = createRouter;
 
-Object.defineProperty(index_cjs$1, '__esModule', { value: true });
-
 var pluginScaffolderBackend = require$$0$1;
 var backstagePluginArgoCdBackend = index_cjs;
 
@@ -1320,7 +1314,7 @@ const createArgoCdResources = (config, logger) => {
   });
 };
 
-var createArgoCdResources_1 = index_cjs$1.createArgoCdResources = createArgoCdResources;
+var createArgoCdResources_1 = createArgoCdResources;
 
 const scaffolderBackendModuleArgocd = backendPluginApi.createBackendModule({
   moduleId: "scaffolder-backend-module-argocd",

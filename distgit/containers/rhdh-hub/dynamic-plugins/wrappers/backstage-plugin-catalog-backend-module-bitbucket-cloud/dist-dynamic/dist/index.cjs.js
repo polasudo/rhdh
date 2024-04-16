@@ -2,9 +2,9 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var backendCommon = require('@backstage/backend-common');
-var backendPluginApi = require('@backstage/backend-plugin-api');
-var alpha = require('@backstage/plugin-catalog-node/alpha');
+var require$$0$1 = require('@backstage/backend-plugin-api');
+var require$$1$1 = require('@backstage/plugin-catalog-node/alpha');
+var require$$2$1 = require('@backstage/plugin-events-node');
 var require$$0 = require('@backstage/integration');
 var fetch = require('cross-fetch');
 var require$$2 = require('@backstage/plugin-catalog-node');
@@ -13,6 +13,9 @@ var require$$4 = require('uuid');
 
 function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 
+var require$$0__default$1 = /*#__PURE__*/_interopDefaultLegacy(require$$0$1);
+var require$$1__default = /*#__PURE__*/_interopDefaultLegacy(require$$1$1);
+var require$$2__default$1 = /*#__PURE__*/_interopDefaultLegacy(require$$2$1);
 var require$$0__default = /*#__PURE__*/_interopDefaultLegacy(require$$0);
 var fetch__default = /*#__PURE__*/_interopDefaultLegacy(fetch);
 var require$$2__default = /*#__PURE__*/_interopDefaultLegacy(require$$2);
@@ -44,9 +47,9 @@ function getAugmentedNamespace(n) {
 	return a;
 }
 
-var index_cjs = {};
+var alpha_cjs = {};
 
-var BitbucketCloudEntityProvider0f3bde2d_cjs = {};
+var BitbucketCloudEntityProviderCTjViEQW_cjs = {};
 
 class WithPagination {
   constructor(createUrl, fetch) {
@@ -206,8 +209,8 @@ var pluginCatalogNode = require$$2__default["default"];
 var backendTasks = require$$3__default["default"];
 var uuid = require$$4__default["default"];
 
-function _interopNamespace$1(e) {
-  if (e && e.__esModule) return e;
+function _interopNamespaceCompat(e) {
+  if (e && typeof e === 'object' && 'default' in e) return e;
   var n = Object.create(null);
   if (e) {
     Object.keys(e).forEach(function (k) {
@@ -220,11 +223,11 @@ function _interopNamespace$1(e) {
       }
     });
   }
-  n["default"] = e;
+  n.default = e;
   return Object.freeze(n);
 }
 
-var uuid__namespace = /*#__PURE__*/_interopNamespace$1(uuid);
+var uuid__namespace = /*#__PURE__*/_interopNamespaceCompat(uuid);
 
 const DEFAULT_CATALOG_PATH = "/catalog-info.yaml";
 const DEFAULT_PROVIDER_ID = "default";
@@ -282,12 +285,13 @@ const DEFAULT_BRANCH = "master";
 const TOPIC_REPO_PUSH = "bitbucketCloud.repo:push";
 const ANNOTATION_BITBUCKET_CLOUD_REPO_URL = "bitbucket.org/repo-url";
 class BitbucketCloudEntityProvider$1 {
-  constructor(config, integration, logger, taskRunner, catalogApi, tokenManager) {
+  constructor(config, integration, logger, taskRunner, catalogApi, events, tokenManager) {
     __publicField(this, "client");
     __publicField(this, "config");
     __publicField(this, "logger");
     __publicField(this, "scheduleFn");
     __publicField(this, "catalogApi");
+    __publicField(this, "events");
     __publicField(this, "tokenManager");
     __publicField(this, "connection");
     __publicField(this, "eventConfigErrorThrown", false);
@@ -298,6 +302,7 @@ class BitbucketCloudEntityProvider$1 {
     });
     this.scheduleFn = this.createScheduleFn(taskRunner);
     this.catalogApi = catalogApi;
+    this.events = events;
     this.tokenManager = tokenManager;
   }
   static fromConfig(config, options) {
@@ -323,6 +328,7 @@ class BitbucketCloudEntityProvider$1 {
         options.logger,
         taskRunner,
         options.catalogApi,
+        options.events,
         options.tokenManager
       );
     });
@@ -362,6 +368,18 @@ class BitbucketCloudEntityProvider$1 {
   async connect(connection) {
     this.connection = connection;
     await this.scheduleFn();
+    if (this.events) {
+      await this.events.subscribe({
+        id: this.getProviderName(),
+        topics: [TOPIC_REPO_PUSH],
+        onEvent: async (params) => {
+          if (params.topic !== TOPIC_REPO_PUSH) {
+            return;
+          }
+          await this.onRepoPush(params.eventPayload);
+        }
+      });
+    }
   }
   async refresh(logger) {
     if (!this.connection) {
@@ -377,17 +395,6 @@ class BitbucketCloudEntityProvider$1 {
     logger.info(
       `Committed ${entities.length} Locations for catalog files in Bitbucket Cloud repositories`
     );
-  }
-  /** {@inheritdoc @backstage/plugin-events-node#EventSubscriber.supportsEventTopics} */
-  supportsEventTopics() {
-    return [TOPIC_REPO_PUSH];
-  }
-  /** {@inheritdoc @backstage/plugin-events-node#EventSubscriber.onEvent} */
-  async onEvent(params) {
-    if (params.topic !== TOPIC_REPO_PUSH) {
-      return;
-    }
-    await this.onRepoPush(params.eventPayload);
   }
   canHandleEvents() {
     if (this.catalogApi && this.tokenManager) {
@@ -548,20 +555,19 @@ class BitbucketCloudEntityProvider$1 {
   }
 }
 
-BitbucketCloudEntityProvider0f3bde2d_cjs.BitbucketCloudEntityProvider = BitbucketCloudEntityProvider$1;
+BitbucketCloudEntityProviderCTjViEQW_cjs.BitbucketCloudEntityProvider = BitbucketCloudEntityProvider$1;
 
-Object.defineProperty(index_cjs, '__esModule', { value: true });
+Object.defineProperty(alpha_cjs, '__esModule', { value: true });
 
-var BitbucketCloudEntityProvider = BitbucketCloudEntityProvider0f3bde2d_cjs;
-
-
-
-
-
+var backendPluginApi = require$$0__default$1["default"];
+var alpha = require$$1__default["default"];
+var pluginEventsNode = require$$2__default$1["default"];
+var BitbucketCloudEntityProvider = BitbucketCloudEntityProviderCTjViEQW_cjs;
 
 
 
-var BitbucketCloudEntityProvider_1 = index_cjs.BitbucketCloudEntityProvider = BitbucketCloudEntityProvider.BitbucketCloudEntityProvider;
+
+
 
 const catalogModuleBitbucketCloudEntityProvider = backendPluginApi.createBackendModule({
   pluginId: "catalog",
@@ -572,6 +578,7 @@ const catalogModuleBitbucketCloudEntityProvider = backendPluginApi.createBackend
         catalog: alpha.catalogProcessingExtensionPoint,
         catalogApi: alpha.catalogServiceRef,
         config: backendPluginApi.coreServices.rootConfig,
+        events: pluginEventsNode.eventsServiceRef,
         logger: backendPluginApi.coreServices.logger,
         scheduler: backendPluginApi.coreServices.scheduler,
         tokenManager: backendPluginApi.coreServices.tokenManager
@@ -580,14 +587,15 @@ const catalogModuleBitbucketCloudEntityProvider = backendPluginApi.createBackend
         catalog,
         catalogApi,
         config,
+        events,
         logger,
         scheduler,
         tokenManager
       }) {
-        const winstonLogger = backendCommon.loggerToWinstonLogger(logger);
-        const providers = BitbucketCloudEntityProvider_1.fromConfig(config, {
+        const providers = BitbucketCloudEntityProvider.BitbucketCloudEntityProvider.fromConfig(config, {
           catalogApi,
-          logger: winstonLogger,
+          events,
+          logger,
           scheduler,
           tokenManager
         });
@@ -597,5 +605,7 @@ const catalogModuleBitbucketCloudEntityProvider = backendPluginApi.createBackend
   }
 });
 
-exports["default"] = catalogModuleBitbucketCloudEntityProvider;
+var _default = alpha_cjs.default = catalogModuleBitbucketCloudEntityProvider;
+
+exports["default"] = _default;
 //# sourceMappingURL=index.cjs.js.map

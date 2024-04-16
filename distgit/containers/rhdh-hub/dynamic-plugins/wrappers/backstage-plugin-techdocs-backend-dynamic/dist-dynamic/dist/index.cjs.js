@@ -12,7 +12,7 @@ var require$$5 = require('fs-extra');
 var require$$6 = require('git-url-parse');
 var require$$7 = require('js-yaml');
 var require$$8 = require('stream');
-var require$$1$2 = require('@backstage/catalog-model');
+var require$$2 = require('@backstage/catalog-model');
 var require$$10 = require('mime-types');
 var require$$11 = require('p-limit');
 var require$$12 = require('recursive-readdir');
@@ -31,36 +31,30 @@ var require$$24 = require('os');
 var require$$25 = require('@trendyol-js/openstack-swift-sdk');
 var require$$26 = require('@trendyol-js/openstack-swift-sdk/lib/types');
 var require$$3$2 = require('dockerode');
-var require$$0$2 = require('@backstage/catalog-client');
-var require$$4$2 = require('express-promise-router');
-var require$$4$1 = require('node-fetch');
-var require$$9 = require('winston');
-var require$$3$1 = require('lodash/unescape');
-var require$$2 = require('@backstage/plugin-catalog-common/alpha');
+var require$$1$2 = require('@backstage/catalog-client');
+var require$$5$2 = require('express-promise-router');
+var require$$5$1 = require('node-fetch');
+var require$$10$1 = require('winston');
+var require$$4$1 = require('lodash/unescape');
+var require$$3$1 = require('@backstage/plugin-catalog-common/alpha');
 var require$$2$1 = require('@backstage/backend-tasks');
 var require$$3$3 = require('@backstage/plugin-catalog-node/alpha');
-var require$$5$1 = require('@backstage/plugin-search-backend-node/alpha');
-
-function getDefaultExportFromCjs (x) {
-	return x && x.__esModule && Object.prototype.hasOwnProperty.call(x, 'default') ? x['default'] : x;
-}
+var require$$5$3 = require('@backstage/plugin-search-backend-node/alpha');
 
 var alpha_cjs$1 = {};
 
 var index_cjs$2 = {};
 
-Object.defineProperty(index_cjs$2, '__esModule', { value: true });
-
 var path = require$$0$1;
 var integration = require$$1$1;
-var backendCommon = require$$0;
+var backendCommon$3 = require$$0;
 var errors = require$$3;
 var child_process = require$$4;
 var fs = require$$5;
 var gitUrlParse = require$$6;
 var yaml = require$$7;
 var stream$1 = require$$8;
-var catalogModel$1 = require$$1$2;
+var catalogModel$1 = require$$2;
 var mime = require$$10;
 var createLimiter = require$$11;
 var recursiveReadDir = require$$12;
@@ -78,27 +72,27 @@ var express = require$$23;
 var os = require$$24;
 var openstackSwiftSdk = require$$25;
 var types = require$$26;
-var backendPluginApi = require$$1;
+var backendPluginApi$2 = require$$1;
 
-function _interopDefaultLegacy$2 (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
+function _interopDefaultCompat$2 (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }
 
-var path__default = /*#__PURE__*/_interopDefaultLegacy$2(path);
-var fs__default = /*#__PURE__*/_interopDefaultLegacy$2(fs);
-var gitUrlParse__default = /*#__PURE__*/_interopDefaultLegacy$2(gitUrlParse);
-var yaml__default = /*#__PURE__*/_interopDefaultLegacy$2(yaml);
-var mime__default = /*#__PURE__*/_interopDefaultLegacy$2(mime);
-var createLimiter__default = /*#__PURE__*/_interopDefaultLegacy$2(createLimiter);
-var recursiveReadDir__default = /*#__PURE__*/_interopDefaultLegacy$2(recursiveReadDir);
-var JSON5__default = /*#__PURE__*/_interopDefaultLegacy$2(JSON5);
-var express__default = /*#__PURE__*/_interopDefaultLegacy$2(express);
-var os__default = /*#__PURE__*/_interopDefaultLegacy$2(os);
+var path__default = /*#__PURE__*/_interopDefaultCompat$2(path);
+var fs__default = /*#__PURE__*/_interopDefaultCompat$2(fs);
+var gitUrlParse__default = /*#__PURE__*/_interopDefaultCompat$2(gitUrlParse);
+var yaml__default = /*#__PURE__*/_interopDefaultCompat$2(yaml);
+var mime__default = /*#__PURE__*/_interopDefaultCompat$2(mime);
+var createLimiter__default = /*#__PURE__*/_interopDefaultCompat$2(createLimiter);
+var recursiveReadDir__default = /*#__PURE__*/_interopDefaultCompat$2(recursiveReadDir);
+var JSON5__default = /*#__PURE__*/_interopDefaultCompat$2(JSON5);
+var express__default = /*#__PURE__*/_interopDefaultCompat$2(express);
+var os__default = /*#__PURE__*/_interopDefaultCompat$2(os);
 
 const getContentTypeForExtension = (ext) => {
   const defaultContentType = "text/plain; charset=utf-8";
   if (ext.match(/htm|xml|svg/i)) {
     return defaultContentType;
   }
-  return mime__default["default"].contentType(ext) || defaultContentType;
+  return mime__default.default.contentType(ext) || defaultContentType;
 };
 const getHeadersForFileExtension = (fileExtension) => {
   return {
@@ -106,24 +100,24 @@ const getHeadersForFileExtension = (fileExtension) => {
   };
 };
 const getFileTreeRecursively = async (rootDirPath) => {
-  const fileList = await recursiveReadDir__default["default"](rootDirPath).catch((error) => {
+  const fileList = await recursiveReadDir__default.default(rootDirPath).catch((error) => {
     throw new Error(`Failed to read template directory: ${error.message}`);
   });
   return fileList;
 };
 const lowerCaseEntityTriplet = (posixPath) => {
-  const [namespace, kind, name, ...rest] = posixPath.split(path__default["default"].posix.sep);
+  const [namespace, kind, name, ...rest] = posixPath.split(path__default.default.posix.sep);
   const lowerNamespace = namespace.toLowerCase();
   const lowerKind = kind.toLowerCase();
   const lowerName = name.toLowerCase();
-  return [lowerNamespace, lowerKind, lowerName, ...rest].join(path__default["default"].posix.sep);
+  return [lowerNamespace, lowerKind, lowerName, ...rest].join(path__default.default.posix.sep);
 };
 const lowerCaseEntityTripletInStoragePath = (originalPath) => {
   let posixPath = originalPath;
-  if (originalPath.includes(path__default["default"].win32.sep)) {
-    posixPath = originalPath.split(path__default["default"].win32.sep).join(path__default["default"].posix.sep);
+  if (originalPath.includes(path__default.default.win32.sep)) {
+    posixPath = originalPath.split(path__default.default.win32.sep).join(path__default.default.posix.sep);
   }
-  const parts = posixPath.split(path__default["default"].posix.sep);
+  const parts = posixPath.split(path__default.default.posix.sep);
   if (parts[0] === "") {
     parts.shift();
   }
@@ -132,14 +126,14 @@ const lowerCaseEntityTripletInStoragePath = (originalPath) => {
       `Encountered file unmanaged by TechDocs ${originalPath}. Skipping.`
     );
   }
-  return lowerCaseEntityTriplet(parts.join(path__default["default"].posix.sep));
+  return lowerCaseEntityTriplet(parts.join(path__default.default.posix.sep));
 };
 const normalizeExternalStorageRootPath = (posixPath) => {
   let normalizedPath = posixPath;
-  if (posixPath.startsWith(path__default["default"].posix.sep)) {
+  if (posixPath.startsWith(path__default.default.posix.sep)) {
     normalizedPath = posixPath.slice(1);
   }
-  if (normalizedPath.endsWith(path__default["default"].posix.sep)) {
+  if (normalizedPath.endsWith(path__default.default.posix.sep)) {
     normalizedPath = normalizedPath.slice(0, normalizedPath.length - 1);
   }
   return normalizedPath;
@@ -160,19 +154,19 @@ const getStaleFiles = (newFiles, oldFiles) => {
 };
 const getCloudPathForLocalPath = (entity, localPath = "", useLegacyPathCasing = false, externalStorageRootPath = "") => {
   var _a, _b;
-  const relativeFilePathPosix = localPath.split(path__default["default"].sep).join(path__default["default"].posix.sep);
+  const relativeFilePathPosix = localPath.split(path__default.default.sep).join(path__default.default.posix.sep);
   const entityRootDir = `${(_b = (_a = entity.metadata) == null ? void 0 : _a.namespace) != null ? _b : catalogModel$1.DEFAULT_NAMESPACE}/${entity.kind}/${entity.metadata.name}`;
   const relativeFilePathTriplet = `${entityRootDir}/${relativeFilePathPosix}`;
   const destination = useLegacyPathCasing ? relativeFilePathTriplet : lowerCaseEntityTriplet(relativeFilePathTriplet);
   const destinationWithRoot = [
     // The extra filter prevents unintended double slashes and prefixes.
-    ...externalStorageRootPath.split(path__default["default"].posix.sep).filter((s) => s !== ""),
+    ...externalStorageRootPath.split(path__default.default.posix.sep).filter((s) => s !== ""),
     destination
   ].join("/");
   return destinationWithRoot;
 };
 const bulkStorageOperation = async (operation, args, { concurrencyLimit } = { concurrencyLimit: 25 }) => {
-  const limiter = createLimiter__default["default"](concurrencyLimit);
+  const limiter = createLimiter__default.default(concurrencyLimit);
   await Promise.all(args.map((arg) => limiter(operation, arg)));
 };
 
@@ -212,7 +206,7 @@ const getRepoUrlFromLocationAnnotation = (parsedLocationAnnotation, scmIntegrati
   if (locationType === "url") {
     const integration = scmIntegrations.byUrl(target);
     if (integration && ["github", "gitlab", "bitbucketServer"].includes(integration.type)) {
-      const { filepathtype } = gitUrlParse__default["default"](target);
+      const { filepathtype } = gitUrlParse__default.default(target);
       if (filepathtype === "") {
         return { repo_url: target };
       }
@@ -261,16 +255,16 @@ const MKDOCS_SCHEMA = yaml.DEFAULT_SCHEMA.extend([
 const generateMkdocsYml = async (inputDir, siteOptions) => {
   var _a;
   try {
-    const mkdocsYmlPath = path__default["default"].join(inputDir, "mkdocs.yml");
+    const mkdocsYmlPath = path__default.default.join(inputDir, "mkdocs.yml");
     const defaultSiteName = (_a = siteOptions == null ? void 0 : siteOptions.name) != null ? _a : "Documentation Site";
     const defaultMkdocsContent = {
       site_name: defaultSiteName,
       docs_dir: "docs",
       plugins: ["techdocs-core"]
     };
-    await fs__default["default"].writeFile(
+    await fs__default.default.writeFile(
       mkdocsYmlPath,
-      yaml__default["default"].dump(defaultMkdocsContent, { schema: MKDOCS_SCHEMA })
+      yaml__default.default.dump(defaultMkdocsContent, { schema: MKDOCS_SCHEMA })
     );
   } catch (error) {
     throw new errors.ForwardedError("Could not generate mkdocs.yml file", error);
@@ -281,29 +275,29 @@ const getMkdocsYml = async (inputDir, options) => {
   let mkdocsYmlFileString;
   try {
     if (options == null ? void 0 : options.mkdocsConfigFileName) {
-      mkdocsYmlPath = path__default["default"].join(inputDir, options.mkdocsConfigFileName);
-      if (!await fs__default["default"].pathExists(mkdocsYmlPath)) {
+      mkdocsYmlPath = path__default.default.join(inputDir, options.mkdocsConfigFileName);
+      if (!await fs__default.default.pathExists(mkdocsYmlPath)) {
         throw new Error(`The specified file ${mkdocsYmlPath} does not exist`);
       }
-      mkdocsYmlFileString = await fs__default["default"].readFile(mkdocsYmlPath, "utf8");
+      mkdocsYmlFileString = await fs__default.default.readFile(mkdocsYmlPath, "utf8");
       return {
         path: mkdocsYmlPath,
         content: mkdocsYmlFileString,
         configIsTemporary: false
       };
     }
-    mkdocsYmlPath = path__default["default"].join(inputDir, "mkdocs.yaml");
-    if (await fs__default["default"].pathExists(mkdocsYmlPath)) {
-      mkdocsYmlFileString = await fs__default["default"].readFile(mkdocsYmlPath, "utf8");
+    mkdocsYmlPath = path__default.default.join(inputDir, "mkdocs.yaml");
+    if (await fs__default.default.pathExists(mkdocsYmlPath)) {
+      mkdocsYmlFileString = await fs__default.default.readFile(mkdocsYmlPath, "utf8");
       return {
         path: mkdocsYmlPath,
         content: mkdocsYmlFileString,
         configIsTemporary: false
       };
     }
-    mkdocsYmlPath = path__default["default"].join(inputDir, "mkdocs.yml");
-    if (await fs__default["default"].pathExists(mkdocsYmlPath)) {
-      mkdocsYmlFileString = await fs__default["default"].readFile(mkdocsYmlPath, "utf8");
+    mkdocsYmlPath = path__default.default.join(inputDir, "mkdocs.yml");
+    if (await fs__default.default.pathExists(mkdocsYmlPath)) {
+      mkdocsYmlFileString = await fs__default.default.readFile(mkdocsYmlPath, "utf8");
       return {
         path: mkdocsYmlPath,
         content: mkdocsYmlFileString,
@@ -311,7 +305,7 @@ const getMkdocsYml = async (inputDir, options) => {
       };
     }
     await generateMkdocsYml(inputDir, options);
-    mkdocsYmlFileString = await fs__default["default"].readFile(mkdocsYmlPath, "utf8");
+    mkdocsYmlFileString = await fs__default.default.readFile(mkdocsYmlPath, "utf8");
   } catch (error) {
     throw new errors.ForwardedError(
       "Could not read MkDocs YAML config file mkdocs.yml or mkdocs.yaml or default for validation",
@@ -325,14 +319,14 @@ const getMkdocsYml = async (inputDir, options) => {
   };
 };
 const validateMkdocsYaml = async (inputDir, mkdocsYmlFileString) => {
-  const mkdocsYml = yaml__default["default"].load(mkdocsYmlFileString, {
+  const mkdocsYml = yaml__default.default.load(mkdocsYmlFileString, {
     schema: MKDOCS_SCHEMA
   });
   if (mkdocsYml === null || typeof mkdocsYml !== "object") {
     return void 0;
   }
   const parsedMkdocsYml = mkdocsYml;
-  if (parsedMkdocsYml.docs_dir && !backendCommon.isChildPath(inputDir, path.resolve(inputDir, parsedMkdocsYml.docs_dir))) {
+  if (parsedMkdocsYml.docs_dir && !backendCommon$3.isChildPath(inputDir, path.resolve(inputDir, parsedMkdocsYml.docs_dir))) {
     throw new Error(
       `docs_dir configuration value in mkdocs can't be an absolute directory or start with ../ for security reasons.
        Use relative paths instead which are resolved relative to your mkdocs.yml file location.`
@@ -345,25 +339,25 @@ const patchIndexPreBuild = async ({
   logger,
   docsDir = "docs"
 }) => {
-  const docsPath = path__default["default"].join(inputDir, docsDir);
-  const indexMdPath = path__default["default"].join(docsPath, "index.md");
-  if (await fs__default["default"].pathExists(indexMdPath)) {
+  const docsPath = path__default.default.join(inputDir, docsDir);
+  const indexMdPath = path__default.default.join(docsPath, "index.md");
+  if (await fs__default.default.pathExists(indexMdPath)) {
     return;
   }
-  logger.warn(`${path__default["default"].join(docsDir, "index.md")} not found.`);
+  logger.warn(`${path__default.default.join(docsDir, "index.md")} not found.`);
   const fallbacks = [
-    path__default["default"].join(docsPath, "README.md"),
-    path__default["default"].join(docsPath, "readme.md"),
-    path__default["default"].join(inputDir, "README.md"),
-    path__default["default"].join(inputDir, "readme.md")
+    path__default.default.join(docsPath, "README.md"),
+    path__default.default.join(docsPath, "readme.md"),
+    path__default.default.join(inputDir, "README.md"),
+    path__default.default.join(inputDir, "readme.md")
   ];
-  await fs__default["default"].ensureDir(docsPath);
+  await fs__default.default.ensureDir(docsPath);
   for (const filePath of fallbacks) {
     try {
-      await fs__default["default"].copyFile(filePath, indexMdPath);
+      await fs__default.default.copyFile(filePath, indexMdPath);
       return;
     } catch (error) {
-      logger.warn(`${path__default["default"].relative(inputDir, filePath)} not found.`);
+      logger.warn(`${path__default.default.relative(inputDir, filePath)} not found.`);
     }
   }
   logger.warn(
@@ -374,15 +368,15 @@ const patchIndexPreBuild = async ({
   );
 };
 const createOrUpdateMetadata = async (techdocsMetadataPath, logger) => {
-  const techdocsMetadataDir = techdocsMetadataPath.split(path__default["default"].sep).slice(0, -1).join(path__default["default"].sep);
+  const techdocsMetadataDir = techdocsMetadataPath.split(path__default.default.sep).slice(0, -1).join(path__default.default.sep);
   try {
-    await fs__default["default"].access(techdocsMetadataPath, fs__default["default"].constants.F_OK);
+    await fs__default.default.access(techdocsMetadataPath, fs__default.default.constants.F_OK);
   } catch (err) {
-    await fs__default["default"].writeJson(techdocsMetadataPath, JSON.parse("{}"));
+    await fs__default.default.writeJson(techdocsMetadataPath, JSON.parse("{}"));
   }
   let json;
   try {
-    json = await fs__default["default"].readJson(techdocsMetadataPath);
+    json = await fs__default.default.readJson(techdocsMetadataPath);
   } catch (err) {
     errors.assertError(err);
     const message = `Invalid JSON at ${techdocsMetadataPath} with error ${err.message}`;
@@ -392,27 +386,27 @@ const createOrUpdateMetadata = async (techdocsMetadataPath, logger) => {
   json.build_timestamp = Date.now();
   try {
     json.files = (await getFileTreeRecursively(techdocsMetadataDir)).map(
-      (file) => file.replace(`${techdocsMetadataDir}${path__default["default"].sep}`, "")
+      (file) => file.replace(`${techdocsMetadataDir}${path__default.default.sep}`, "")
     );
   } catch (err) {
     errors.assertError(err);
     json.files = [];
     logger.warn(`Unable to add files list to metadata: ${err.message}`);
   }
-  await fs__default["default"].writeJson(techdocsMetadataPath, json);
+  await fs__default.default.writeJson(techdocsMetadataPath, json);
   return;
 };
 const storeEtagMetadata = async (techdocsMetadataPath, etag) => {
-  const json = await fs__default["default"].readJson(techdocsMetadataPath);
+  const json = await fs__default.default.readJson(techdocsMetadataPath);
   json.etag = etag;
-  await fs__default["default"].writeJson(techdocsMetadataPath, json);
+  await fs__default.default.writeJson(techdocsMetadataPath, json);
 };
 
 const patchMkdocsFile = async (mkdocsYmlPath, logger, updateAction) => {
   let didEdit = false;
   let mkdocsYmlFileString;
   try {
-    mkdocsYmlFileString = await fs__default["default"].readFile(mkdocsYmlPath, "utf8");
+    mkdocsYmlFileString = await fs__default.default.readFile(mkdocsYmlPath, "utf8");
   } catch (error) {
     errors.assertError(error);
     logger.warn(
@@ -422,7 +416,7 @@ const patchMkdocsFile = async (mkdocsYmlPath, logger, updateAction) => {
   }
   let mkdocsYml;
   try {
-    mkdocsYml = yaml__default["default"].load(mkdocsYmlFileString, { schema: MKDOCS_SCHEMA });
+    mkdocsYml = yaml__default.default.load(mkdocsYmlFileString, { schema: MKDOCS_SCHEMA });
     if (typeof mkdocsYml === "string" || typeof mkdocsYml === "undefined") {
       throw new Error("Bad YAML format.");
     }
@@ -436,9 +430,9 @@ const patchMkdocsFile = async (mkdocsYmlPath, logger, updateAction) => {
   didEdit = updateAction(mkdocsYml);
   try {
     if (didEdit) {
-      await fs__default["default"].writeFile(
+      await fs__default.default.writeFile(
         mkdocsYmlPath,
-        yaml__default["default"].dump(mkdocsYml, { schema: MKDOCS_SCHEMA }),
+        yaml__default.default.dump(mkdocsYml, { schema: MKDOCS_SCHEMA }),
         "utf8"
       );
     }
@@ -478,13 +472,14 @@ const patchMkdocsYmlWithPlugins = async (mkdocsYmlPath, logger, defaultPlugins =
       mkdocsYml.plugins = defaultPlugins;
       return true;
     }
-    if (mkdocsYml.plugins && !defaultPlugins.every((plugin) => mkdocsYml.plugins.includes(plugin))) {
-      mkdocsYml.plugins = [
-        .../* @__PURE__ */ new Set([...mkdocsYml.plugins, ...defaultPlugins])
-      ];
-      return true;
-    }
-    return false;
+    let changesMade = false;
+    defaultPlugins.forEach((dp) => {
+      if (!(mkdocsYml.plugins.includes(dp) || mkdocsYml.plugins.some((p) => p.hasOwnProperty(dp)))) {
+        mkdocsYml.plugins = [.../* @__PURE__ */ new Set([...mkdocsYml.plugins, dp])];
+        changesMade = true;
+      }
+    });
+    return changesMade;
   });
 };
 
@@ -610,12 +605,12 @@ const _TechdocsGenerator = class _TechdocsGenerator {
       );
     }
     await createOrUpdateMetadata(
-      path__default["default"].join(outputDir, "techdocs_metadata.json"),
+      path__default.default.join(outputDir, "techdocs_metadata.json"),
       childLogger
     );
     if (etag) {
       await storeEtagMetadata(
-        path__default["default"].join(outputDir, "techdocs_metadata.json"),
+        path__default.default.join(outputDir, "techdocs_metadata.json"),
         etag
       );
     }
@@ -669,8 +664,9 @@ class Generators {
    * @param options - Options to configure the TechDocs generator
    */
   static async fromConfig(config, options) {
+    var _a;
     const generators = new Generators();
-    const techdocsGenerator = TechdocsGenerator.fromConfig(config, options);
+    const techdocsGenerator = (_a = options.customGenerator) != null ? _a : TechdocsGenerator.fromConfig(config, options);
     generators.register("techdocs", techdocsGenerator);
     return generators;
   }
@@ -726,8 +722,8 @@ const transformDirLocation = (entity, dirAnnotation, scmIntegrations) => {
       };
     }
     case "file": {
-      const target = backendCommon.resolveSafeChildPath(
-        path__default["default"].dirname(location.target),
+      const target = backendCommon$3.resolveSafeChildPath(
+        path__default.default.dirname(location.target),
         dirAnnotation.target
       );
       return {
@@ -1118,8 +1114,8 @@ class AwsS3Publish {
       absoluteFilesToUpload = await getFileTreeRecursively(directory);
       await bulkStorageOperation(
         async (absoluteFilePath) => {
-          const relativeFilePath = path__default["default"].relative(directory, absoluteFilePath);
-          const fileStream = fs__default["default"].createReadStream(absoluteFilePath);
+          const relativeFilePath = path__default.default.relative(directory, absoluteFilePath);
+          const fileStream = fs__default.default.createReadStream(absoluteFilePath);
           const params = {
             Bucket: this.bucketName,
             Key: getCloudPathForLocalPath(
@@ -1153,7 +1149,7 @@ class AwsS3Publish {
       const relativeFilesToUpload = absoluteFilesToUpload.map(
         (absoluteFilePath) => getCloudPathForLocalPath(
           entity,
-          path__default["default"].relative(directory, absoluteFilePath),
+          path__default.default.relative(directory, absoluteFilePath),
           useLegacyPathCasing,
           bucketRootPath
         )
@@ -1185,7 +1181,7 @@ class AwsS3Publish {
       return await new Promise(async (resolve, reject) => {
         const entityTriplet = `${entityName.namespace}/${entityName.kind}/${entityName.name}`;
         const entityDir = this.legacyPathCasing ? entityTriplet : lowerCaseEntityTriplet(entityTriplet);
-        const entityRootDir = path__default["default"].posix.join(this.bucketRootPath, entityDir);
+        const entityRootDir = path__default.default.posix.join(this.bucketRootPath, entityDir);
         try {
           const resp = await this.storageClient.send(
             new clientS3.GetObjectCommand({
@@ -1201,7 +1197,7 @@ class AwsS3Publish {
               `Unable to parse the techdocs metadata file ${entityRootDir}/techdocs_metadata.json.`
             );
           }
-          const techdocsMetadata = JSON5__default["default"].parse(
+          const techdocsMetadata = JSON5__default.default.parse(
             techdocsMetadataJson.toString("utf-8")
           );
           resolve(techdocsMetadata);
@@ -1222,8 +1218,8 @@ class AwsS3Publish {
     return async (req, res) => {
       const decodedUri = decodeURI(req.path.replace(/^\//, ""));
       const filePathNoRoot = this.legacyPathCasing ? decodedUri : lowerCaseEntityTripletInStoragePath(decodedUri);
-      const filePath = path__default["default"].posix.join(this.bucketRootPath, filePathNoRoot);
-      const fileExtension = path__default["default"].extname(filePath);
+      const filePath = path__default.default.posix.join(this.bucketRootPath, filePathNoRoot);
+      const fileExtension = path__default.default.extname(filePath);
       const responseHeaders = getHeadersForFileExtension(fileExtension);
       try {
         const resp = await this.storageClient.send(
@@ -1252,7 +1248,7 @@ class AwsS3Publish {
     try {
       const entityTriplet = `${entity.metadata.namespace}/${entity.kind}/${entity.metadata.name}`;
       const entityDir = this.legacyPathCasing ? entityTriplet : lowerCaseEntityTriplet(entityTriplet);
-      const entityRootDir = path__default["default"].posix.join(this.bucketRootPath, entityDir);
+      const entityRootDir = path__default.default.posix.join(this.bucketRootPath, entityDir);
       await this.storageClient.send(
         new clientS3.HeadObjectCommand({
           Bucket: this.bucketName,
@@ -1269,7 +1265,7 @@ class AwsS3Publish {
     concurrency = 25
   }) {
     const allObjects = await this.getAllObjectsFromBucket();
-    const limiter = createLimiter__default["default"](concurrency);
+    const limiter = createLimiter__default.default(concurrency);
     await Promise.all(
       allObjects.map(
         (f) => limiter(async (file) => {
@@ -1462,8 +1458,8 @@ class AzureBlobStoragePublish {
       const failedOperations = [];
       await bulkStorageOperation(
         async (absoluteFilePath) => {
-          const relativeFilePath = path__default["default"].normalize(
-            path__default["default"].relative(directory, absoluteFilePath)
+          const relativeFilePath = path__default.default.normalize(
+            path__default.default.relative(directory, absoluteFilePath)
           );
           const remotePath = getCloudPathForLocalPath(
             entity,
@@ -1501,7 +1497,7 @@ class AzureBlobStoragePublish {
       const relativeFilesToUpload = absoluteFilesToUpload.map(
         (absoluteFilePath) => getCloudPathForLocalPath(
           entity,
-          path__default["default"].relative(directory, absoluteFilePath),
+          path__default.default.relative(directory, absoluteFilePath),
           useLegacyPathCasing
         )
       );
@@ -1552,7 +1548,7 @@ class AzureBlobStoragePublish {
           `Unable to parse the techdocs metadata file ${entityRootDir}/techdocs_metadata.json.`
         );
       }
-      const techdocsMetadata = JSON5__default["default"].parse(
+      const techdocsMetadata = JSON5__default.default.parse(
         techdocsMetadataJson.toString("utf-8")
       );
       return techdocsMetadata;
@@ -1567,7 +1563,7 @@ class AzureBlobStoragePublish {
     return (req, res) => {
       const decodedUri = decodeURI(req.path.replace(/^\//, ""));
       const filePath = this.legacyPathCasing ? decodedUri : lowerCaseEntityTripletInStoragePath(decodedUri);
-      const fileExtension = path__default["default"].extname(filePath);
+      const fileExtension = path__default.default.extname(filePath);
       const responseHeaders = getHeadersForFileExtension(fileExtension);
       this.download(this.containerName, filePath).then((fileContent) => {
         for (const [headerKey, headerValue] of Object.entries(
@@ -1627,7 +1623,7 @@ class AzureBlobStoragePublish {
     concurrency = 25
   }) {
     const promises = [];
-    const limiter = createLimiter__default["default"](concurrency);
+    const limiter = createLimiter__default.default(concurrency);
     const container = this.storageClient.getContainerClient(this.containerName);
     for await (const blob of container.listBlobsFlat()) {
       promises.push(
@@ -1833,7 +1829,7 @@ class GoogleGCSPublish {
       absoluteFilesToUpload = await getFileTreeRecursively(directory);
       await bulkStorageOperation(
         async (absoluteFilePath) => {
-          const relativeFilePath = path__default["default"].relative(directory, absoluteFilePath);
+          const relativeFilePath = path__default.default.relative(directory, absoluteFilePath);
           const destination = getCloudPathForLocalPath(
             entity,
             relativeFilePath,
@@ -1858,7 +1854,7 @@ class GoogleGCSPublish {
       const relativeFilesToUpload = absoluteFilesToUpload.map(
         (absoluteFilePath) => getCloudPathForLocalPath(
           entity,
-          path__default["default"].relative(directory, absoluteFilePath),
+          path__default.default.relative(directory, absoluteFilePath),
           useLegacyPathCasing,
           bucketRootPath
         )
@@ -1884,7 +1880,7 @@ class GoogleGCSPublish {
     return new Promise((resolve, reject) => {
       const entityTriplet = `${entityName.namespace}/${entityName.kind}/${entityName.name}`;
       const entityDir = this.legacyPathCasing ? entityTriplet : lowerCaseEntityTriplet(entityTriplet);
-      const entityRootDir = path__default["default"].posix.join(this.bucketRootPath, entityDir);
+      const entityRootDir = path__default.default.posix.join(this.bucketRootPath, entityDir);
       const fileStreamChunks = [];
       this.storageClient.bucket(this.bucketName).file(`${entityRootDir}/techdocs_metadata.json`).createReadStream().on("error", (err) => {
         this.logger.error(err.message);
@@ -1893,7 +1889,7 @@ class GoogleGCSPublish {
         fileStreamChunks.push(chunk);
       }).on("end", () => {
         const techdocsMetadataJson = Buffer.concat(fileStreamChunks).toString("utf-8");
-        resolve(JSON5__default["default"].parse(techdocsMetadataJson));
+        resolve(JSON5__default.default.parse(techdocsMetadataJson));
       });
     });
   }
@@ -1904,8 +1900,8 @@ class GoogleGCSPublish {
     return (req, res) => {
       const decodedUri = decodeURI(req.path.replace(/^\//, ""));
       const filePathNoRoot = this.legacyPathCasing ? decodedUri : lowerCaseEntityTripletInStoragePath(decodedUri);
-      const filePath = path__default["default"].posix.join(this.bucketRootPath, filePathNoRoot);
-      const fileExtension = path__default["default"].extname(filePath);
+      const filePath = path__default.default.posix.join(this.bucketRootPath, filePathNoRoot);
+      const fileExtension = path__default.default.extname(filePath);
       const responseHeaders = getHeadersForFileExtension(fileExtension);
       this.storageClient.bucket(this.bucketName).file(filePath).createReadStream().on("pipe", () => {
         res.writeHead(200, responseHeaders);
@@ -1929,7 +1925,7 @@ class GoogleGCSPublish {
     return new Promise((resolve) => {
       const entityTriplet = `${entity.metadata.namespace}/${entity.kind}/${entity.metadata.name}`;
       const entityDir = this.legacyPathCasing ? entityTriplet : lowerCaseEntityTriplet(entityTriplet);
-      const entityRootDir = path__default["default"].posix.join(this.bucketRootPath, entityDir);
+      const entityRootDir = path__default.default.posix.join(this.bucketRootPath, entityDir);
       this.storageClient.bucket(this.bucketName).file(`${entityRootDir}/index.html`).exists().then((response) => {
         resolve(response[0]);
       }).catch(() => {
@@ -1995,12 +1991,12 @@ class LocalPublish {
     );
     if (!staticDocsDir) {
       try {
-        staticDocsDir = backendCommon.resolvePackagePath(
+        staticDocsDir = backendCommon$3.resolvePackagePath(
           "@backstage/plugin-techdocs-backend",
           "static/docs"
         );
       } catch (err) {
-        staticDocsDir = os__default["default"].tmpdir();
+        staticDocsDir = os__default.default.tmpdir();
       }
     }
     return new LocalPublish({
@@ -2036,12 +2032,12 @@ class LocalPublish {
         error
       );
     }
-    if (!fs__default["default"].existsSync(publishDir)) {
+    if (!fs__default.default.existsSync(publishDir)) {
       this.logger.info(`Could not find ${publishDir}, creating the directory.`);
-      fs__default["default"].mkdirSync(publishDir, { recursive: true });
+      fs__default.default.mkdirSync(publishDir, { recursive: true });
     }
     try {
-      await fs__default["default"].copy(directory, publishDir);
+      await fs__default.default.copy(directory, publishDir);
       this.logger.info(`Published site stored at ${publishDir}`);
     } catch (error) {
       this.logger.debug(
@@ -2080,7 +2076,7 @@ class LocalPublish {
       );
     }
     try {
-      return await fs__default["default"].readJson(metadataPath);
+      return await fs__default.default.readJson(metadataPath);
     } catch (err) {
       throw new errors.ForwardedError(
         `Unable to read techdocs_metadata.json at ${metadataPath}. Error: ${err}`,
@@ -2089,7 +2085,7 @@ class LocalPublish {
     }
   }
   docsRouter() {
-    const router = express__default["default"].Router();
+    const router = express__default.default.Router();
     router.use((req, res, next) => {
       if (this.legacyPathCasing) {
         return next();
@@ -2111,10 +2107,10 @@ class LocalPublish {
       return res.redirect(301, req.baseUrl + newPath);
     });
     router.use(
-      express__default["default"].static(this.staticDocsDir, {
+      express__default.default.static(this.staticDocsDir, {
         // Handle content-type header the same as all other publishers.
         setHeaders: (res, filePath) => {
-          const fileExtension = path__default["default"].extname(filePath);
+          const fileExtension = path__default.default.extname(filePath);
           const headers = getHeadersForFileExtension(fileExtension);
           for (const [header, value] of Object.entries(headers)) {
             res.setHeader(header, value);
@@ -2134,7 +2130,7 @@ class LocalPublish {
         entity.metadata.name,
         "index.html"
       );
-      await fs__default["default"].access(indexHtmlPath, fs__default["default"].constants.F_OK);
+      await fs__default.default.access(indexHtmlPath, fs__default.default.constants.F_OK);
       return true;
     } catch (err) {
       if (err.name === "NotAllowedError") {
@@ -2156,12 +2152,12 @@ class LocalPublish {
     concurrency = 25
   }) {
     const files = await getFileTreeRecursively(this.staticDocsDir);
-    const limit = createLimiter__default["default"](concurrency);
+    const limit = createLimiter__default.default(concurrency);
     await Promise.all(
       files.map(
         (f) => limit(async (file) => {
           const relativeFile = file.replace(
-            `${this.staticDocsDir}${path__default["default"].sep}`,
+            `${this.staticDocsDir}${path__default.default.sep}`,
             ""
           );
           const newFile = lowerCaseEntityTripletInStoragePath(relativeFile);
@@ -2169,7 +2165,7 @@ class LocalPublish {
             return;
           }
           await new Promise((resolve) => {
-            const migrate = removeOriginal ? fs__default["default"].move : fs__default["default"].copyFile;
+            const migrate = removeOriginal ? fs__default.default.move : fs__default.default.copyFile;
             this.logger.verbose(`Migrating ${relativeFile}`);
             migrate(file, newFile, (err) => {
               if (err) {
@@ -2189,15 +2185,15 @@ class LocalPublish {
    */
   staticEntityPathJoin(...allParts) {
     let staticEntityPath = this.staticDocsDir;
-    allParts.map((part) => part.split(path__default["default"].sep)).flat().forEach((part, index) => {
+    allParts.map((part) => part.split(path__default.default.sep)).flat().forEach((part, index) => {
       if (index < 3) {
-        staticEntityPath = backendCommon.resolveSafeChildPath(
+        staticEntityPath = backendCommon$3.resolveSafeChildPath(
           staticEntityPath,
           this.legacyPathCasing ? part : part.toLowerCase()
         );
         return;
       }
-      staticEntityPath = backendCommon.resolveSafeChildPath(staticEntityPath, part);
+      staticEntityPath = backendCommon$3.resolveSafeChildPath(staticEntityPath, part);
     });
     return staticEntityPath;
   }
@@ -2300,16 +2296,16 @@ class OpenStackSwiftPublish {
     try {
       const objects = [];
       const allFilesToUpload = await getFileTreeRecursively(directory);
-      const limiter = createLimiter__default["default"](10);
+      const limiter = createLimiter__default.default(10);
       const uploadPromises = [];
       for (const filePath of allFilesToUpload) {
-        const relativeFilePath = path__default["default"].relative(directory, filePath);
-        const relativeFilePathPosix = relativeFilePath.split(path__default["default"].sep).join(path__default["default"].posix.sep);
+        const relativeFilePath = path__default.default.relative(directory, filePath);
+        const relativeFilePathPosix = relativeFilePath.split(path__default.default.sep).join(path__default.default.posix.sep);
         const entityRootDir = `${entity.metadata.namespace}/${entity.kind}/${entity.metadata.name}`;
         const destination = `${entityRootDir}/${relativeFilePathPosix}`;
         objects.push(destination);
         const uploadFile = limiter(async () => {
-          const fileBuffer = await fs__default["default"].readFile(filePath);
+          const fileBuffer = await fs__default.default.readFile(filePath);
           const stream = bufferToStream(fileBuffer);
           return this.storageClient.upload(
             this.containerName,
@@ -2346,7 +2342,7 @@ class OpenStackSwiftPublish {
               `Unable to parse the techdocs metadata file ${entityRootDir}/techdocs_metadata.json.`
             );
           }
-          const techdocsMetadata = JSON5__default["default"].parse(
+          const techdocsMetadata = JSON5__default.default.parse(
             techdocsMetadataJson.toString("utf-8")
           );
           resolve(techdocsMetadata);
@@ -2368,7 +2364,7 @@ class OpenStackSwiftPublish {
   docsRouter() {
     return async (req, res) => {
       const filePath = decodeURI(req.path.replace(/^\//, ""));
-      const fileExtension = path__default["default"].extname(filePath);
+      const fileExtension = path__default.default.extname(filePath);
       const responseHeaders = getHeadersForFileExtension(fileExtension);
       const downloadResponse = await this.storageClient.download(
         this.containerName,
@@ -2424,7 +2420,7 @@ class OpenStackSwiftPublish {
     concurrency = 25
   }) {
     const allObjects = await this.getAllObjectsFromContainer();
-    const limiter = createLimiter__default["default"](concurrency);
+    const limiter = createLimiter__default.default(concurrency);
     await Promise.all(
       allObjects.map(
         (f) => limiter(async (file) => {
@@ -2513,8 +2509,11 @@ class Publisher {
   }
 }
 
-const techdocsBuildsExtensionPoint = backendPluginApi.createExtensionPoint({
+const techdocsBuildsExtensionPoint = backendPluginApi$2.createExtensionPoint({
   id: "techdocs.builds"
+});
+const techdocsGeneratorExtensionPoint = backendPluginApi$2.createExtensionPoint({
+  id: "techdocs.generator"
 });
 
 index_cjs$2.DirectoryPreparer = DirectoryPreparer;
@@ -2529,27 +2528,27 @@ index_cjs$2.getMkDocsYml = getMkDocsYml;
 index_cjs$2.getMkdocsYml = getMkdocsYml;
 index_cjs$2.parseReferenceAnnotation = parseReferenceAnnotation;
 index_cjs$2.techdocsBuildsExtensionPoint = techdocsBuildsExtensionPoint;
+index_cjs$2.techdocsGeneratorExtensionPoint = techdocsGeneratorExtensionPoint;
 index_cjs$2.transformDirLocation = transformDirLocation;
 
 var index_cjs$1 = {};
 
 var index_cjs = {};
 
-Object.defineProperty(index_cjs, '__esModule', { value: true });
-
-var catalogClient = require$$0$2;
-var catalogModel = require$$1$2;
-var alpha = require$$2;
-var unescape = require$$3$1;
-var fetch = require$$4$1;
+var backendCommon$2 = require$$0;
+var catalogClient = require$$1$2;
+var catalogModel = require$$2;
+var alpha$3 = require$$3$1;
+var unescape = require$$4$1;
+var fetch = require$$5$1;
 var pLimit = require$$11;
 var stream = require$$8;
 
-function _interopDefaultLegacy$1 (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
+function _interopDefaultCompat$1 (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }
 
-var unescape__default = /*#__PURE__*/_interopDefaultLegacy$1(unescape);
-var fetch__default = /*#__PURE__*/_interopDefaultLegacy$1(fetch);
-var pLimit__default = /*#__PURE__*/_interopDefaultLegacy$1(pLimit);
+var unescape__default = /*#__PURE__*/_interopDefaultCompat$1(unescape);
+var fetch__default = /*#__PURE__*/_interopDefaultCompat$1(fetch);
+var pLimit__default = /*#__PURE__*/_interopDefaultCompat$1(pLimit);
 
 const getDocumentText = (entity) => {
   var _a, _b, _c, _d;
@@ -2593,12 +2592,12 @@ var __publicField = (obj, key, value) => {
 class DefaultTechDocsCollatorFactory {
   constructor(options) {
     __publicField(this, "type", "techdocs");
-    __publicField(this, "visibilityPermission", alpha.catalogEntityReadPermission);
+    __publicField(this, "visibilityPermission", alpha$3.catalogEntityReadPermission);
     __publicField(this, "discovery");
     __publicField(this, "locationTemplate");
     __publicField(this, "logger");
+    __publicField(this, "auth");
     __publicField(this, "catalogClient");
-    __publicField(this, "tokenManager");
     __publicField(this, "parallelismLimit");
     __publicField(this, "legacyPathCasing");
     __publicField(this, "entityTransformer");
@@ -2609,8 +2608,12 @@ class DefaultTechDocsCollatorFactory {
     this.catalogClient = options.catalogClient || new catalogClient.CatalogClient({ discoveryApi: options.discovery });
     this.parallelismLimit = (_a = options.parallelismLimit) != null ? _a : 10;
     this.legacyPathCasing = (_b = options.legacyPathCasing) != null ? _b : false;
-    this.tokenManager = options.tokenManager;
     this.entityTransformer = (_c = options.entityTransformer) != null ? _c : defaultTechDocsCollatorEntityTransformer;
+    this.auth = backendCommon$2.createLegacyAuthAdapters({
+      auth: options.auth,
+      discovery: options.discovery,
+      tokenManager: options.tokenManager
+    }).auth;
   }
   static fromConfig(config, options) {
     const legacyPathCasing = config.getOptionalBoolean(
@@ -2633,13 +2636,16 @@ class DefaultTechDocsCollatorFactory {
     return stream.Readable.from(this.execute());
   }
   async *execute() {
-    const limit = pLimit__default["default"](this.parallelismLimit);
+    const limit = pLimit__default.default(this.parallelismLimit);
     const techDocsBaseUrl = await this.discovery.getBaseUrl("techdocs");
-    const { token } = await this.tokenManager.getToken();
     let entitiesRetrieved = 0;
     let moreEntitiesToGet = true;
     const batchSize = this.parallelismLimit * 50;
     while (moreEntitiesToGet) {
+      const { token: catalogToken } = await this.auth.getPluginRequestToken({
+        onBehalfOf: await this.auth.getOwnServiceCredentials(),
+        targetPluginId: "catalog"
+      });
       const entities = (await this.catalogClient.getEntities(
         {
           filter: {
@@ -2648,7 +2654,7 @@ class DefaultTechDocsCollatorFactory {
           limit: batchSize,
           offset: entitiesRetrieved
         },
-        { token }
+        { token: catalogToken }
       )).items;
       moreEntitiesToGet = entities.length === batchSize;
       entitiesRetrieved += entities.length;
@@ -2666,14 +2672,18 @@ class DefaultTechDocsCollatorFactory {
             }
           );
           try {
-            const searchIndexResponse = await fetch__default["default"](
+            const { token: techdocsToken } = await this.auth.getPluginRequestToken({
+              onBehalfOf: await this.auth.getOwnServiceCredentials(),
+              targetPluginId: "techdocs"
+            });
+            const searchIndexResponse = await fetch__default.default(
               DefaultTechDocsCollatorFactory.constructDocsIndexUrl(
                 techDocsBaseUrl,
                 entityInfo
               ),
               {
                 headers: {
-                  Authorization: `Bearer ${token}`
+                  Authorization: `Bearer ${techdocsToken}`
                 }
               }
             );
@@ -2689,8 +2699,8 @@ class DefaultTechDocsCollatorFactory {
               var _a, _b, _c;
               return {
                 ...this.entityTransformer(entity),
-                title: unescape__default["default"](doc.title),
-                text: unescape__default["default"](doc.text || ""),
+                title: unescape__default.default(doc.title),
+                text: unescape__default.default(doc.text || ""),
                 location: this.applyArgsToFormat(
                   this.locationTemplate || "/docs/:namespace/:kind/:name/:path",
                   {
@@ -2753,29 +2763,28 @@ index_cjs.defaultTechDocsCollatorEntityTransformer = defaultTechDocsCollatorEnti
 
 (function (exports) {
 
-	Object.defineProperty(exports, '__esModule', { value: true });
-
-	var catalogClient = require$$0$2;
-	var catalogModel = require$$1$2;
+	var backendCommon = require$$0;
+	var catalogClient = require$$1$2;
+	var catalogModel = require$$2;
 	var errors = require$$3;
 	var pluginTechdocsNode = index_cjs$2;
-	var router = require$$4$2;
+	var router = require$$5$2;
 	var integration = require$$1$1;
-	var fetch = require$$4$1;
+	var fetch = require$$5$1;
 	var pLimit = require$$11;
 	var stream = require$$8;
-	var winston = require$$9;
+	var winston = require$$10$1;
 	var fs = require$$5;
 	var os = require$$24;
 	var path = require$$0$1;
-	var unescape = require$$3$1;
-	var alpha = require$$2;
+	var unescape = require$$4$1;
+	var alpha = require$$3$1;
 	var pluginSearchBackendModuleTechdocs = index_cjs;
 
-	function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
+	function _interopDefaultCompat (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }
 
-	function _interopNamespace(e) {
-	  if (e && e.__esModule) return e;
+	function _interopNamespaceCompat(e) {
+	  if (e && typeof e === 'object' && 'default' in e) return e;
 	  var n = Object.create(null);
 	  if (e) {
 	    Object.keys(e).forEach(function (k) {
@@ -2788,18 +2797,18 @@ index_cjs.defaultTechDocsCollatorEntityTransformer = defaultTechDocsCollatorEnti
 	      }
 	    });
 	  }
-	  n["default"] = e;
+	  n.default = e;
 	  return Object.freeze(n);
 	}
 
-	var router__default = /*#__PURE__*/_interopDefaultLegacy(router);
-	var fetch__default = /*#__PURE__*/_interopDefaultLegacy(fetch);
-	var pLimit__default = /*#__PURE__*/_interopDefaultLegacy(pLimit);
-	var winston__namespace = /*#__PURE__*/_interopNamespace(winston);
-	var fs__default = /*#__PURE__*/_interopDefaultLegacy(fs);
-	var os__default = /*#__PURE__*/_interopDefaultLegacy(os);
-	var path__default = /*#__PURE__*/_interopDefaultLegacy(path);
-	var unescape__default = /*#__PURE__*/_interopDefaultLegacy(unescape);
+	var router__default = /*#__PURE__*/_interopDefaultCompat(router);
+	var fetch__default = /*#__PURE__*/_interopDefaultCompat(fetch);
+	var pLimit__default = /*#__PURE__*/_interopDefaultCompat(pLimit);
+	var winston__namespace = /*#__PURE__*/_interopNamespaceCompat(winston);
+	var fs__default = /*#__PURE__*/_interopDefaultCompat(fs);
+	var os__default = /*#__PURE__*/_interopDefaultCompat(os);
+	var path__default = /*#__PURE__*/_interopDefaultCompat(path);
+	var unescape__default = /*#__PURE__*/_interopDefaultCompat(unescape);
 
 	var __defProp$6 = Object.defineProperty;
 	var __defNormalProp$6 = (obj, key, value) => key in obj ? __defProp$6(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
@@ -2933,10 +2942,10 @@ index_cjs.defaultTechDocsCollatorEntityTransformer = defaultTechDocsCollatorEnti
 	    const workingDir = this.config.getOptionalString(
 	      "backend.workingDirectory"
 	    );
-	    const tmpdirPath = workingDir || os__default["default"].tmpdir();
-	    const tmpdirResolvedPath = fs__default["default"].realpathSync(tmpdirPath);
-	    const outputDir = await fs__default["default"].mkdtemp(
-	      path__default["default"].join(tmpdirResolvedPath, "techdocs-tmp-")
+	    const tmpdirPath = workingDir || os__default.default.tmpdir();
+	    const tmpdirResolvedPath = fs__default.default.realpathSync(tmpdirPath);
+	    const outputDir = await fs__default.default.mkdtemp(
+	      path__default.default.join(tmpdirResolvedPath, "techdocs-tmp-")
 	    );
 	    const parsedLocationAnnotation = pluginTechdocsNode.getLocationForEntity(
 	      this.entity,
@@ -2958,7 +2967,7 @@ index_cjs.defaultTechDocsCollatorEntityTransformer = defaultTechDocsCollatorEnti
 	        `Removing prepared directory ${preparedDir} since the site has been generated`
 	      );
 	      try {
-	        fs__default["default"].remove(preparedDir);
+	        fs__default.default.remove(preparedDir);
 	      } catch (error) {
 	        errors.assertError(error);
 	        this.logger.debug(`Error removing prepared directory ${error.message}`);
@@ -2980,7 +2989,7 @@ index_cjs.defaultTechDocsCollatorEntityTransformer = defaultTechDocsCollatorEnti
 	      await this.cache.invalidateMultiple(published.objects);
 	    }
 	    try {
-	      fs__default["default"].remove(outputDir);
+	      fs__default.default.remove(outputDir);
 	      this.logger.debug(
 	        `Removing generated directory ${outputDir} since the site has been published`
 	      );
@@ -3021,7 +3030,7 @@ index_cjs.defaultTechDocsCollatorEntityTransformer = defaultTechDocsCollatorEnti
 	    this.publisher = publisher;
 	    this.scmIntegrations = scmIntegrations;
 	    this.cache = cache;
-	    this.buildLimiter = pLimit__default["default"](10);
+	    this.buildLimiter = pLimit__default.default(10);
 	  }
 	  async doSync({
 	    responseHandler: { log, error, finish },
@@ -3127,7 +3136,7 @@ index_cjs.defaultTechDocsCollatorEntityTransformer = defaultTechDocsCollatorEnti
 	    try {
 	      const [sourceMetadata, cachedMetadata] = await Promise.all([
 	        this.publisher.fetchTechDocsMetadata({ namespace, kind, name }),
-	        fetch__default["default"](
+	        fetch__default.default(
 	          `${baseUrl}/static/docs/${entityTripletPath}/techdocs_metadata.json`,
 	          {
 	            headers: token ? { Authorization: `Bearer ${token}` } : {}
@@ -3163,7 +3172,7 @@ index_cjs.defaultTechDocsCollatorEntityTransformer = defaultTechDocsCollatorEnti
 	const createCacheMiddleware = ({
 	  cache
 	}) => {
-	  const cacheMiddleware = router__default["default"]();
+	  const cacheMiddleware = router__default.default();
 	  cacheMiddleware.use(async (req, res, next) => {
 	    const socket = res.socket;
 	    const isCacheable = req.path.startsWith("/static/docs/");
@@ -3336,8 +3345,9 @@ index_cjs.defaultTechDocsCollatorEntityTransformer = defaultTechDocsCollatorEnti
 	}
 	async function createRouter(options) {
 	  var _a, _b;
-	  const router = router__default["default"]();
+	  const router = router__default.default();
 	  const { publisher, config, logger, discovery } = options;
+	  const { auth, httpAuth } = backendCommon.createLegacyAuthAdapters(options);
 	  const catalogClient$1 = (_a = options.catalogClient) != null ? _a : new catalogClient.CatalogClient({ discoveryApi: discovery });
 	  const docsBuildStrategy = (_b = options.docsBuildStrategy) != null ? _b : DefaultDocsBuildStrategy.fromConfig(config);
 	  const buildLogTransport = options.buildLogTransport;
@@ -3363,7 +3373,11 @@ index_cjs.defaultTechDocsCollatorEntityTransformer = defaultTechDocsCollatorEnti
 	  router.get("/metadata/techdocs/:namespace/:kind/:name", async (req, res) => {
 	    const { kind, namespace, name } = req.params;
 	    const entityName = { kind, namespace, name };
-	    const token = getBearerToken(req.headers.authorization);
+	    const credentials = await httpAuth.credentials(req);
+	    const { token } = await auth.getPluginRequestToken({
+	      onBehalfOf: credentials,
+	      targetPluginId: "catalog"
+	    });
 	    const entity = await entityLoader.load(entityName, token);
 	    if (!entity) {
 	      throw new errors.NotFoundError(
@@ -3390,7 +3404,11 @@ index_cjs.defaultTechDocsCollatorEntityTransformer = defaultTechDocsCollatorEnti
 	  router.get("/metadata/entity/:namespace/:kind/:name", async (req, res) => {
 	    const { kind, namespace, name } = req.params;
 	    const entityName = { kind, namespace, name };
-	    const token = getBearerToken(req.headers.authorization);
+	    const credentials = await httpAuth.credentials(req);
+	    const { token } = await auth.getPluginRequestToken({
+	      onBehalfOf: credentials,
+	      targetPluginId: "catalog"
+	    });
 	    const entity = await entityLoader.load(entityName, token);
 	    if (!entity) {
 	      throw new errors.NotFoundError(
@@ -3415,7 +3433,11 @@ index_cjs.defaultTechDocsCollatorEntityTransformer = defaultTechDocsCollatorEnti
 	  router.get("/sync/:namespace/:kind/:name", async (req, res) => {
 	    var _a2;
 	    const { kind, namespace, name } = req.params;
-	    const token = getBearerToken(req.headers.authorization);
+	    const credentials = await httpAuth.credentials(req);
+	    const { token } = await auth.getPluginRequestToken({
+	      onBehalfOf: credentials,
+	      targetPluginId: "catalog"
+	    });
 	    const entity = await entityLoader.load({ kind, namespace, name }, token);
 	    if (!((_a2 = entity == null ? void 0 : entity.metadata) == null ? void 0 : _a2.uid)) {
 	      throw new errors.NotFoundError("Entity metadata UID missing");
@@ -3457,7 +3479,13 @@ index_cjs.defaultTechDocsCollatorEntityTransformer = defaultTechDocsCollatorEnti
 	      async (req, _res, next) => {
 	        const { kind, namespace, name } = req.params;
 	        const entityName = { kind, namespace, name };
-	        const token = getBearerToken(req.headers.authorization);
+	        const credentials = await httpAuth.credentials(req, {
+	          allowLimitedAccess: true
+	        });
+	        const { token } = await auth.getPluginRequestToken({
+	          onBehalfOf: credentials,
+	          targetPluginId: "catalog"
+	        });
 	        const entity = await entityLoader.load(entityName, token);
 	        if (!entity) {
 	          throw new errors.NotFoundError(
@@ -3472,11 +3500,11 @@ index_cjs.defaultTechDocsCollatorEntityTransformer = defaultTechDocsCollatorEnti
 	    router.use(createCacheMiddleware({ logger, cache }));
 	  }
 	  router.use("/static/docs", publisher.docsRouter());
+	  router.get("/cookie", async (_, res) => {
+	    const { expiresAt } = await httpAuth.issueUserCookie(res);
+	    res.json({ expiresAt: expiresAt.toISOString() });
+	  });
 	  return router;
-	}
-	function getBearerToken(header) {
-	  var _a;
-	  return (_a = header == null ? void 0 : header.match(/(?:Bearer)\s+(\S+)/i)) == null ? void 0 : _a[1];
 	}
 	function createEventStream(res) {
 	  var _a;
@@ -3540,7 +3568,7 @@ data: ${JSON.stringify(data)}
 	      locationTemplate,
 	      logger
 	    } = this.options;
-	    const limit = pLimit__default["default"](parallelismLimit != null ? parallelismLimit : 10);
+	    const limit = pLimit__default.default(parallelismLimit != null ? parallelismLimit : 10);
 	    const techDocsBaseUrl = await discovery.getBaseUrl("techdocs");
 	    const { token } = await tokenManager.getToken();
 	    const entities = await (catalogClient$1 != null ? catalogClient$1 : new catalogClient.CatalogClient({ discoveryApi: discovery })).getEntities(
@@ -3575,7 +3603,7 @@ data: ${JSON.stringify(data)}
 	        );
 	        try {
 	          const { token: newToken } = await tokenManager.getToken();
-	          const searchIndexResponse = await fetch__default["default"](
+	          const searchIndexResponse = await fetch__default.default(
 	            DefaultTechDocsCollator.constructDocsIndexUrl(
 	              techDocsBaseUrl,
 	              entityInfo
@@ -3590,8 +3618,8 @@ data: ${JSON.stringify(data)}
 	          return searchIndex.docs.map((doc) => {
 	            var _a2, _b, _c;
 	            return {
-	              title: unescape__default["default"](doc.title),
-	              text: unescape__default["default"](doc.text || ""),
+	              title: unescape__default.default(doc.title),
+	              text: unescape__default.default(doc.text || ""),
 	              location: this.applyArgsToFormat(
 	                locationTemplate || "/docs/:namespace/:kind/:name/:path",
 	                {
@@ -3654,7 +3682,7 @@ data: ${JSON.stringify(data)}
 	exports.DefaultTechDocsCollatorFactory = DefaultTechDocsCollatorFactory;
 	exports.createRouter = createRouter;
 	Object.keys(pluginTechdocsNode).forEach(function (k) {
-	  if (k !== 'default' && !exports.hasOwnProperty(k)) Object.defineProperty(exports, k, {
+	  if (k !== 'default' && !Object.prototype.hasOwnProperty.call(exports, k)) Object.defineProperty(exports, k, {
 	    enumerable: true,
 	    get: function () { return pluginTechdocsNode[k]; }
 	  });
@@ -3662,168 +3690,189 @@ data: ${JSON.stringify(data)}
 	
 } (index_cjs$1));
 
-(function (exports) {
+Object.defineProperty(alpha_cjs$1, '__esModule', { value: true });
 
-	Object.defineProperty(exports, '__esModule', { value: true });
+var backendCommon$1 = require$$0;
+var backendPluginApi$1 = require$$1;
+var pluginTechdocsNode = index_cjs$2;
+var Docker = require$$3$2;
+var pluginTechdocsBackend = index_cjs$1;
 
-	var backendCommon = require$$0;
-	var backendPluginApi = require$$1;
-	var pluginTechdocsNode = index_cjs$2;
-	var Docker = require$$3$2;
-	var pluginTechdocsBackend = index_cjs$1;
+function _interopDefaultCompat (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }
 
-	function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
+var Docker__default = /*#__PURE__*/_interopDefaultCompat(Docker);
 
-	var Docker__default = /*#__PURE__*/_interopDefaultLegacy(Docker);
+const techdocsPlugin = backendPluginApi$1.createBackendPlugin({
+  pluginId: "techdocs",
+  register(env) {
+    let docsBuildStrategy;
+    env.registerExtensionPoint(pluginTechdocsNode.techdocsBuildsExtensionPoint, {
+      setBuildStrategy(buildStrategy) {
+        if (docsBuildStrategy) {
+          throw new Error("DocsBuildStrategy may only be set once");
+        }
+        docsBuildStrategy = buildStrategy;
+      }
+    });
+    let customTechdocsGenerator;
+    env.registerExtensionPoint(pluginTechdocsNode.techdocsGeneratorExtensionPoint, {
+      setTechdocsGenerator(generator) {
+        if (customTechdocsGenerator) {
+          throw new Error("TechdocsGenerator may only be set once");
+        }
+        customTechdocsGenerator = generator;
+      }
+    });
+    env.registerInit({
+      deps: {
+        config: backendPluginApi$1.coreServices.rootConfig,
+        logger: backendPluginApi$1.coreServices.logger,
+        urlReader: backendPluginApi$1.coreServices.urlReader,
+        http: backendPluginApi$1.coreServices.httpRouter,
+        discovery: backendPluginApi$1.coreServices.discovery,
+        cache: backendPluginApi$1.coreServices.cache,
+        httpAuth: backendPluginApi$1.coreServices.httpAuth,
+        auth: backendPluginApi$1.coreServices.auth
+      },
+      async init({
+        config,
+        logger,
+        urlReader,
+        http,
+        discovery,
+        cache,
+        httpAuth,
+        auth
+      }) {
+        const winstonLogger = backendCommon$1.loggerToWinstonLogger(logger);
+        const preparers = await pluginTechdocsNode.Preparers.fromConfig(config, {
+          reader: urlReader,
+          logger: winstonLogger
+        });
+        const dockerClient = new Docker__default.default();
+        const containerRunner = new backendCommon$1.DockerContainerRunner({ dockerClient });
+        const generators = await pluginTechdocsNode.Generators.fromConfig(config, {
+          logger: winstonLogger,
+          containerRunner,
+          customGenerator: customTechdocsGenerator
+        });
+        const publisher = await pluginTechdocsNode.Publisher.fromConfig(config, {
+          logger: winstonLogger,
+          discovery
+        });
+        await publisher.getReadiness();
+        const cacheManager = backendCommon$1.cacheToPluginCacheManager(cache);
+        http.use(
+          await pluginTechdocsBackend.createRouter({
+            logger: winstonLogger,
+            cache: cacheManager,
+            docsBuildStrategy,
+            preparers,
+            generators,
+            publisher,
+            config,
+            discovery,
+            httpAuth,
+            auth
+          })
+        );
+        http.addAuthPolicy({
+          path: "/static",
+          allow: "user-cookie"
+        });
+      }
+    });
+  }
+});
 
-	const techdocsPlugin = backendPluginApi.createBackendPlugin({
-	  pluginId: "techdocs",
-	  register(env) {
-	    let docsBuildStrategy;
-	    env.registerExtensionPoint(pluginTechdocsNode.techdocsBuildsExtensionPoint, {
-	      setBuildStrategy(buildStrategy) {
-	        if (docsBuildStrategy) {
-	          throw new Error("DocsBuildStrategy may only be set once");
-	        }
-	        docsBuildStrategy = buildStrategy;
-	      }
-	    });
-	    env.registerInit({
-	      deps: {
-	        config: backendPluginApi.coreServices.rootConfig,
-	        logger: backendPluginApi.coreServices.logger,
-	        urlReader: backendPluginApi.coreServices.urlReader,
-	        http: backendPluginApi.coreServices.httpRouter,
-	        discovery: backendPluginApi.coreServices.discovery,
-	        cache: backendPluginApi.coreServices.cache
-	      },
-	      async init({ config, logger, urlReader, http, discovery, cache }) {
-	        const winstonLogger = backendCommon.loggerToWinstonLogger(logger);
-	        const preparers = await pluginTechdocsNode.Preparers.fromConfig(config, {
-	          reader: urlReader,
-	          logger: winstonLogger
-	        });
-	        const dockerClient = new Docker__default["default"]();
-	        const containerRunner = new backendCommon.DockerContainerRunner({ dockerClient });
-	        const generators = await pluginTechdocsNode.Generators.fromConfig(config, {
-	          logger: winstonLogger,
-	          containerRunner
-	        });
-	        const publisher = await pluginTechdocsNode.Publisher.fromConfig(config, {
-	          logger: winstonLogger,
-	          discovery
-	        });
-	        await publisher.getReadiness();
-	        const cacheManager = backendCommon.cacheToPluginCacheManager(cache);
-	        http.use(
-	          await pluginTechdocsBackend.createRouter({
-	            logger: winstonLogger,
-	            cache: cacheManager,
-	            docsBuildStrategy,
-	            preparers,
-	            generators,
-	            publisher,
-	            config,
-	            discovery
-	          })
-	        );
-	      }
-	    });
-	  }
-	});
-
-	exports["default"] = techdocsPlugin;
-	
-} (alpha_cjs$1));
-
-var techdocsPlugin = /*@__PURE__*/getDefaultExportFromCjs(alpha_cjs$1);
+var _default$1 = alpha_cjs$1.default = techdocsPlugin;
 
 var alpha_cjs = {};
 
-(function (exports) {
+Object.defineProperty(alpha_cjs, '__esModule', { value: true });
 
-	Object.defineProperty(exports, '__esModule', { value: true });
+var backendCommon = require$$0;
+var backendPluginApi = require$$1;
+var backendTasks = require$$2$1;
+var alpha$1 = require$$3$3;
+var pluginSearchBackendModuleTechdocs = index_cjs;
+var alpha$2 = require$$5$3;
 
-	var backendCommon = require$$0;
-	var backendPluginApi = require$$1;
-	var backendTasks = require$$2$1;
-	var alpha$1 = require$$3$3;
-	var pluginSearchBackendModuleTechdocs = index_cjs;
-	var alpha$2 = require$$5$1;
+const techdocsCollatorEntityTransformerExtensionPoint = backendPluginApi.createExtensionPoint({
+  id: "search.techdocsCollator.transformer"
+});
+var alpha = backendPluginApi.createBackendModule({
+  pluginId: "search",
+  moduleId: "techdocs-collator",
+  register(env) {
+    let transformer;
+    env.registerExtensionPoint(
+      techdocsCollatorEntityTransformerExtensionPoint,
+      {
+        setTransformer(newTransformer) {
+          if (transformer) {
+            throw new Error(
+              "TechDocs collator entity transformer may only be set once"
+            );
+          }
+          transformer = newTransformer;
+        }
+      }
+    );
+    env.registerInit({
+      deps: {
+        config: backendPluginApi.coreServices.rootConfig,
+        logger: backendPluginApi.coreServices.logger,
+        auth: backendPluginApi.coreServices.auth,
+        httpAuth: backendPluginApi.coreServices.httpAuth,
+        discovery: backendPluginApi.coreServices.discovery,
+        tokenManager: backendPluginApi.coreServices.tokenManager,
+        scheduler: backendPluginApi.coreServices.scheduler,
+        catalog: alpha$1.catalogServiceRef,
+        indexRegistry: alpha$2.searchIndexRegistryExtensionPoint
+      },
+      async init({
+        config,
+        logger,
+        auth,
+        httpAuth,
+        discovery,
+        tokenManager,
+        scheduler,
+        catalog,
+        indexRegistry
+      }) {
+        const defaultSchedule = {
+          frequency: { minutes: 10 },
+          timeout: { minutes: 15 },
+          initialDelay: { seconds: 3 }
+        };
+        const schedule = config.has("search.collators.techdocs.schedule") ? backendTasks.readTaskScheduleDefinitionFromConfig(
+          config.getConfig("search.collators.techdocs.schedule")
+        ) : defaultSchedule;
+        indexRegistry.addCollator({
+          schedule: scheduler.createScheduledTaskRunner(schedule),
+          factory: pluginSearchBackendModuleTechdocs.DefaultTechDocsCollatorFactory.fromConfig(config, {
+            discovery,
+            tokenManager,
+            auth,
+            httpAuth,
+            logger: backendCommon.loggerToWinstonLogger(logger),
+            catalogClient: catalog,
+            entityTransformer: transformer
+          })
+        });
+      }
+    });
+  }
+});
 
-	const techdocsCollatorEntityTransformerExtensionPoint = backendPluginApi.createExtensionPoint({
-	  id: "search.techdocsCollator.transformer"
-	});
-	var alpha = backendPluginApi.createBackendModule({
-	  pluginId: "search",
-	  moduleId: "techdocs-collator",
-	  register(env) {
-	    let transformer;
-	    env.registerExtensionPoint(
-	      techdocsCollatorEntityTransformerExtensionPoint,
-	      {
-	        setTransformer(newTransformer) {
-	          if (transformer) {
-	            throw new Error(
-	              "TechDocs collator entity transformer may only be set once"
-	            );
-	          }
-	          transformer = newTransformer;
-	        }
-	      }
-	    );
-	    env.registerInit({
-	      deps: {
-	        config: backendPluginApi.coreServices.rootConfig,
-	        logger: backendPluginApi.coreServices.logger,
-	        discovery: backendPluginApi.coreServices.discovery,
-	        tokenManager: backendPluginApi.coreServices.tokenManager,
-	        scheduler: backendPluginApi.coreServices.scheduler,
-	        catalog: alpha$1.catalogServiceRef,
-	        indexRegistry: alpha$2.searchIndexRegistryExtensionPoint
-	      },
-	      async init({
-	        config,
-	        logger,
-	        discovery,
-	        tokenManager,
-	        scheduler,
-	        catalog,
-	        indexRegistry
-	      }) {
-	        const defaultSchedule = {
-	          frequency: { minutes: 10 },
-	          timeout: { minutes: 15 },
-	          initialDelay: { seconds: 3 }
-	        };
-	        const schedule = config.has("search.collators.techdocs.schedule") ? backendTasks.readTaskScheduleDefinitionFromConfig(
-	          config.getConfig("search.collators.techdocs.schedule")
-	        ) : defaultSchedule;
-	        indexRegistry.addCollator({
-	          schedule: scheduler.createScheduledTaskRunner(schedule),
-	          factory: pluginSearchBackendModuleTechdocs.DefaultTechDocsCollatorFactory.fromConfig(config, {
-	            discovery,
-	            tokenManager,
-	            logger: backendCommon.loggerToWinstonLogger(logger),
-	            catalogClient: catalog,
-	            entityTransformer: transformer
-	          })
-	        });
-	      }
-	    });
-	  }
-	});
-
-	exports["default"] = alpha;
-	exports.techdocsCollatorEntityTransformerExtensionPoint = techdocsCollatorEntityTransformerExtensionPoint;
-	
-} (alpha_cjs));
-
-var techdocsSearchModule = /*@__PURE__*/getDefaultExportFromCjs(alpha_cjs);
+var _default = alpha_cjs.default = alpha;
+alpha_cjs.techdocsCollatorEntityTransformerExtensionPoint = techdocsCollatorEntityTransformerExtensionPoint;
 
 const dynamicPluginInstaller = {
   kind: "new",
-  install: () => [techdocsPlugin(), techdocsSearchModule()]
+  install: () => [_default$1(), _default()]
 };
 
 exports.dynamicPluginInstaller = dynamicPluginInstaller;

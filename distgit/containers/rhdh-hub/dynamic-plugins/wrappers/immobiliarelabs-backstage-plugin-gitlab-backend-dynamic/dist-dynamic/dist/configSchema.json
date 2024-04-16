@@ -20,6 +20,12 @@
           "default": true,
           "visibility": "backend",
           "type": "boolean"
+        },
+        "useOAuth": {
+          "description": "Activate Oauth/OIDC",
+          "default": "false",
+          "visibility": "backend",
+          "type": "boolean"
         }
       }
     }

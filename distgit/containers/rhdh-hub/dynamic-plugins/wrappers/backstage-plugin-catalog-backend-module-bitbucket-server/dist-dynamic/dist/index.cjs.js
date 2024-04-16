@@ -24,13 +24,9 @@ var require$$3__default = /*#__PURE__*/_interopDefaultLegacy(require$$3);
 var require$$4__default = /*#__PURE__*/_interopDefaultLegacy(require$$4);
 var require$$5__default = /*#__PURE__*/_interopDefaultLegacy(require$$5);
 
-function getDefaultExportFromCjs (x) {
-	return x && x.__esModule && Object.prototype.hasOwnProperty.call(x, 'default') ? x['default'] : x;
-}
+var alpha_cjs = {};
 
-var alpha_cjs$1 = {};
-
-var BitbucketServerEntityProvider8fd0fba3_cjs = {};
+var BitbucketServerEntityProviderF_8B4ZVW_cjs = {};
 
 var errors = require$$0__default["default"];
 var integration = require$$1__default["default"];
@@ -39,10 +35,10 @@ var fetch = require$$3__default["default"];
 var backendTasks = require$$4__default["default"];
 var pluginCatalogNode = require$$5__default["default"];
 
-function _interopDefaultLegacy$1 (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
+function _interopDefaultCompat (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }
 
-function _interopNamespace$1(e) {
-  if (e && e.__esModule) return e;
+function _interopNamespaceCompat(e) {
+  if (e && typeof e === 'object' && 'default' in e) return e;
   var n = Object.create(null);
   if (e) {
     Object.keys(e).forEach(function (k) {
@@ -55,12 +51,12 @@ function _interopNamespace$1(e) {
       }
     });
   }
-  n["default"] = e;
+  n.default = e;
   return Object.freeze(n);
 }
 
-var uuid__namespace = /*#__PURE__*/_interopNamespace$1(uuid);
-var fetch__default = /*#__PURE__*/_interopDefaultLegacy$1(fetch);
+var uuid__namespace = /*#__PURE__*/_interopNamespaceCompat(uuid);
+var fetch__default = /*#__PURE__*/_interopDefaultCompat(fetch);
 
 var __defProp$1 = Object.defineProperty;
 var __defNormalProp$1 = (obj, key, value) => key in obj ? __defProp$1(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
@@ -92,14 +88,14 @@ class BitbucketServerClient {
   }
   async getFile(options) {
     const base = new URL(this.config.apiBaseUrl);
-    return fetch__default["default"](
+    return fetch__default.default(
       `${base.protocol}//${base.host}/projects/${options.projectKey}/repos/${options.repo}/raw/${options.path}`,
       integration.getBitbucketServerRequestOptions(this.config)
     );
   }
   async getRepository(options) {
     const request = `${this.config.apiBaseUrl}/projects/${options.projectKey}/repos/${options.repo}`;
-    const response = await fetch__default["default"](
+    const response = await fetch__default.default(
       request,
       integration.getBitbucketServerRequestOptions(this.config)
     );
@@ -129,7 +125,7 @@ class BitbucketServerClient {
     return this.request(new fetch.Request(url.toString(), { method: "GET" }));
   }
   async request(req) {
-    return fetch__default["default"](req, integration.getBitbucketServerRequestOptions(this.config)).then(
+    return fetch__default.default(req, integration.getBitbucketServerRequestOptions(this.config)).then(
       (response) => {
         if (!response.ok) {
           throw new Error(
@@ -199,7 +195,7 @@ var __publicField = (obj, key, value) => {
   __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
   return value;
 };
-class BitbucketServerEntityProvider {
+class BitbucketServerEntityProvider$1 {
   constructor(config, integration, logger, taskRunner, parser) {
     __publicField(this, "integration");
     __publicField(this, "config");
@@ -236,7 +232,7 @@ class BitbucketServerEntityProvider {
         );
       }
       const taskRunner = (_a = options.schedule) != null ? _a : options.scheduler.createScheduledTaskRunner(providerConfig.schedule);
-      return new BitbucketServerEntityProvider(
+      return new BitbucketServerEntityProvider$1(
         providerConfig,
         integration,
         options.logger,
@@ -252,7 +248,7 @@ class BitbucketServerEntityProvider {
         id: taskId,
         fn: async () => {
           const logger = this.logger.child({
-            class: BitbucketServerEntityProvider.prototype.constructor.name,
+            class: BitbucketServerEntityProvider$1.prototype.constructor.name,
             taskId,
             taskInstanceId: uuid__namespace.v4()
           });
@@ -334,17 +330,15 @@ class BitbucketServerEntityProvider {
   }
 }
 
-BitbucketServerEntityProvider8fd0fba3_cjs.BitbucketServerClient = BitbucketServerClient;
-BitbucketServerEntityProvider8fd0fba3_cjs.BitbucketServerEntityProvider = BitbucketServerEntityProvider;
+BitbucketServerEntityProviderF_8B4ZVW_cjs.BitbucketServerClient = BitbucketServerClient;
+BitbucketServerEntityProviderF_8B4ZVW_cjs.BitbucketServerEntityProvider = BitbucketServerEntityProvider$1;
 
-(function (exports) {
+Object.defineProperty(alpha_cjs, '__esModule', { value: true });
 
-	Object.defineProperty(exports, '__esModule', { value: true });
-
-	var backendCommon = require$$0__default$1["default"];
-	var backendPluginApi = require$$1__default$1["default"];
-	var alpha = require$$2__default$1["default"];
-	var BitbucketServerEntityProvider = BitbucketServerEntityProvider8fd0fba3_cjs;
+var backendCommon = require$$0__default$1["default"];
+var backendPluginApi = require$$1__default$1["default"];
+var alpha = require$$2__default$1["default"];
+var BitbucketServerEntityProvider = BitbucketServerEntityProviderF_8B4ZVW_cjs;
 
 
 
@@ -352,34 +346,30 @@ BitbucketServerEntityProvider8fd0fba3_cjs.BitbucketServerEntityProvider = Bitbuc
 
 
 
-	const catalogModuleBitbucketServerEntityProvider = backendPluginApi.createBackendModule({
-	  pluginId: "catalog",
-	  moduleId: "bitbucket-server-entity-provider",
-	  register(env) {
-	    env.registerInit({
-	      deps: {
-	        catalog: alpha.catalogProcessingExtensionPoint,
-	        config: backendPluginApi.coreServices.rootConfig,
-	        logger: backendPluginApi.coreServices.logger,
-	        scheduler: backendPluginApi.coreServices.scheduler
-	      },
-	      async init({ catalog, config, logger, scheduler }) {
-	        const winstonLogger = backendCommon.loggerToWinstonLogger(logger);
-	        const providers = BitbucketServerEntityProvider.BitbucketServerEntityProvider.fromConfig(config, {
-	          logger: winstonLogger,
-	          scheduler
-	        });
-	        catalog.addEntityProvider(providers);
-	      }
-	    });
-	  }
-	});
+const catalogModuleBitbucketServerEntityProvider = backendPluginApi.createBackendModule({
+  pluginId: "catalog",
+  moduleId: "bitbucket-server-entity-provider",
+  register(env) {
+    env.registerInit({
+      deps: {
+        catalog: alpha.catalogProcessingExtensionPoint,
+        config: backendPluginApi.coreServices.rootConfig,
+        logger: backendPluginApi.coreServices.logger,
+        scheduler: backendPluginApi.coreServices.scheduler
+      },
+      async init({ catalog, config, logger, scheduler }) {
+        const winstonLogger = backendCommon.loggerToWinstonLogger(logger);
+        const providers = BitbucketServerEntityProvider.BitbucketServerEntityProvider.fromConfig(config, {
+          logger: winstonLogger,
+          scheduler
+        });
+        catalog.addEntityProvider(providers);
+      }
+    });
+  }
+});
 
-	exports["default"] = catalogModuleBitbucketServerEntityProvider;
-	
-} (alpha_cjs$1));
+var _default = alpha_cjs.default = catalogModuleBitbucketServerEntityProvider;
 
-var alpha_cjs = /*@__PURE__*/getDefaultExportFromCjs(alpha_cjs$1);
-
-exports["default"] = alpha_cjs;
+exports["default"] = _default;
 //# sourceMappingURL=index.cjs.js.map

@@ -3,36 +3,42 @@
 Object.defineProperty(exports, '__esModule', { value: true });
 
 var require$$0$1 = require('@backstage/backend-plugin-api');
-var require$$1$1 = require('@backstage/backend-common');
+var require$$5 = require('@backstage/backend-common');
 var require$$2$1 = require('@backstage/plugin-catalog-node/alpha');
-var require$$0 = require('@backstage/integration');
-var require$$1 = require('@backstage/plugin-catalog-node');
-var require$$2 = require('@octokit/graphql');
-var require$$3 = require('uuid');
-var require$$4 = require('@backstage/backend-tasks');
-var require$$5 = require('@backstage/catalog-model');
-var require$$6 = require('lodash');
-var require$$7 = require('minimatch');
+var require$$3$1 = require('@backstage/plugin-events-node');
+var require$$0 = require('@backstage/catalog-client');
+var require$$1 = require('@backstage/integration');
+var require$$2 = require('@octokit/rest');
+var require$$3 = require('lodash');
+var require$$4 = require('git-url-parse');
+var require$$6 = require('@backstage/plugin-catalog-node');
+var require$$7 = require('@octokit/graphql');
+var require$$8 = require('uuid');
+var require$$9 = require('@backstage/backend-tasks');
+var require$$10 = require('@backstage/catalog-model');
+var require$$11 = require('minimatch');
 
-function getDefaultExportFromCjs (x) {
-	return x && x.__esModule && Object.prototype.hasOwnProperty.call(x, 'default') ? x['default'] : x;
-}
+var alpha_cjs = {};
 
-var alpha_cjs$1 = {};
+var GithubEntityProviderCTh6g4dw_cjs = {};
 
-var GithubEntityProviderC0c9bd2d_cjs = {};
+var catalogClient = require$$0;
+var integration = require$$1;
+var rest = require$$2;
+var lodash = require$$3;
+var parseGitUrl = require$$4;
+var backendCommon$1 = require$$5;
+var pluginCatalogNode = require$$6;
+var graphql = require$$7;
+var uuid = require$$8;
+var backendTasks = require$$9;
+var catalogModel = require$$10;
+var minimatch = require$$11;
 
-var integration = require$$0;
-var pluginCatalogNode = require$$1;
-var graphql = require$$2;
-var uuid = require$$3;
-var backendTasks = require$$4;
-var catalogModel = require$$5;
-var lodash = require$$6;
-var minimatch = require$$7;
+function _interopDefaultCompat (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }
 
-function _interopNamespace$1(e) {
-  if (e && e.__esModule) return e;
+function _interopNamespaceCompat(e) {
+  if (e && typeof e === 'object' && 'default' in e) return e;
   var n = Object.create(null);
   if (e) {
     Object.keys(e).forEach(function (k) {
@@ -45,11 +51,89 @@ function _interopNamespace$1(e) {
       }
     });
   }
-  n["default"] = e;
+  n.default = e;
   return Object.freeze(n);
 }
 
-var uuid__namespace = /*#__PURE__*/_interopNamespace$1(uuid);
+var parseGitUrl__default = /*#__PURE__*/_interopDefaultCompat(parseGitUrl);
+var uuid__namespace = /*#__PURE__*/_interopNamespaceCompat(uuid);
+
+var __defProp$1 = Object.defineProperty;
+var __defNormalProp$1 = (obj, key, value) => key in obj ? __defProp$1(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+var __publicField$1 = (obj, key, value) => {
+  __defNormalProp$1(obj, typeof key !== "symbol" ? key + "" : key, value);
+  return value;
+};
+class GithubLocationAnalyzer {
+  constructor(options) {
+    __publicField$1(this, "catalogClient");
+    __publicField$1(this, "githubCredentialsProvider");
+    __publicField$1(this, "integrations");
+    __publicField$1(this, "auth");
+    this.catalogClient = new catalogClient.CatalogClient({ discoveryApi: options.discovery });
+    this.integrations = integration.ScmIntegrations.fromConfig(options.config);
+    this.githubCredentialsProvider = options.githubCredentialsProvider || integration.DefaultGithubCredentialsProvider.fromIntegrations(this.integrations);
+    this.auth = backendCommon$1.createLegacyAuthAdapters({
+      auth: options.auth,
+      discovery: options.discovery,
+      tokenManager: options.tokenManager
+    }).auth;
+  }
+  supports(url) {
+    const integration = this.integrations.byUrl(url);
+    return (integration == null ? void 0 : integration.type) === "github";
+  }
+  async analyze(options) {
+    const { url, catalogFilename } = options;
+    const { owner, name: repo } = parseGitUrl__default.default(url);
+    const catalogFile = catalogFilename || "catalog-info.yaml";
+    const query = `filename:${catalogFile} repo:${owner}/${repo}`;
+    const integration = this.integrations.github.byUrl(url);
+    if (!integration) {
+      throw new Error("Make sure you have a GitHub integration configured");
+    }
+    const { token: githubToken } = await this.githubCredentialsProvider.getCredentials({
+      url
+    });
+    const octokitClient = new rest.Octokit({
+      auth: githubToken,
+      baseUrl: integration.config.apiBaseUrl
+    });
+    const searchResult = await octokitClient.search.code({ q: query }).catch((e) => {
+      throw new Error(`Couldn't search repository for metadata file, ${e}`);
+    });
+    const exists = searchResult.data.total_count > 0;
+    if (exists) {
+      const repoInformation = await octokitClient.repos.get({ owner, repo }).catch((e) => {
+        throw new Error(`Couldn't fetch repo data, ${e}`);
+      });
+      const defaultBranch = repoInformation.data.default_branch;
+      const { token: serviceToken } = await this.auth.getPluginRequestToken({
+        onBehalfOf: await this.auth.getOwnServiceCredentials(),
+        targetPluginId: "catalog"
+      });
+      const result = await Promise.all(
+        searchResult.data.items.map((i) => `${lodash.trimEnd(url, "/")}/blob/${defaultBranch}/${i.path}`).map(async (target) => {
+          const addLocationResult = await this.catalogClient.addLocation(
+            {
+              type: "url",
+              target,
+              dryRun: true
+            },
+            { token: serviceToken }
+          );
+          return addLocationResult.entities.map((e) => ({
+            location: { type: "url", target },
+            isRegistered: !!addLocationResult.exists,
+            entity: e
+          }));
+        })
+      );
+      return { existing: result.flat() };
+    }
+    return { existing: [] };
+  }
+}
 
 const ANNOTATION_GITHUB_USER_LOGIN = "github.com/user-login";
 const ANNOTATION_GITHUB_TEAM_SLUG = "github.com/team-slug";
@@ -659,15 +743,17 @@ var __publicField = (obj, key, value) => {
   return value;
 };
 const TOPIC_REPO_PUSH = "github.push";
-class GithubEntityProvider {
-  constructor(config, integration$1, logger, taskRunner) {
+class GithubEntityProvider$1 {
+  constructor(config, integration$1, logger, taskRunner, events) {
     __publicField(this, "config");
+    __publicField(this, "events");
     __publicField(this, "logger");
     __publicField(this, "integration");
     __publicField(this, "scheduleFn");
     __publicField(this, "connection");
     __publicField(this, "githubCredentialsProvider");
     this.config = config;
+    this.events = events;
     this.integration = integration$1.config;
     this.logger = logger.child({
       target: this.getProviderName()
@@ -695,11 +781,12 @@ class GithubEntityProvider {
         );
       }
       const taskRunner = (_a = options.schedule) != null ? _a : options.scheduler.createScheduledTaskRunner(providerConfig.schedule);
-      return new GithubEntityProvider(
+      return new GithubEntityProvider$1(
         providerConfig,
         integration,
         options.logger,
-        taskRunner
+        taskRunner,
+        options.events
       );
     });
   }
@@ -709,7 +796,13 @@ class GithubEntityProvider {
   }
   /** {@inheritdoc @backstage/plugin-catalog-backend#EntityProvider.connect} */
   async connect(connection) {
+    var _a;
     this.connection = connection;
+    await ((_a = this.events) == null ? void 0 : _a.subscribe({
+      id: this.getProviderName(),
+      topics: [TOPIC_REPO_PUSH],
+      onEvent: (params) => this.onEvent(params)
+    }));
     return await this.scheduleFn();
   }
   createScheduleFn(taskRunner) {
@@ -719,7 +812,7 @@ class GithubEntityProvider {
         id: taskId,
         fn: async () => {
           const logger = this.logger.child({
-            class: GithubEntityProvider.prototype.constructor.name,
+            class: GithubEntityProvider$1.prototype.constructor.name,
             taskId,
             taskInstanceId: uuid__namespace.v4()
           });
@@ -741,7 +834,7 @@ class GithubEntityProvider {
     }
     const targets = await this.findCatalogFiles();
     const matchingTargets = this.matchesFilters(targets);
-    const entities = matchingTargets.map((repository) => this.createLocationUrl(repository)).map(GithubEntityProvider.toLocationSpec).map((location) => {
+    const entities = matchingTargets.map((repository) => this.createLocationUrl(repository)).map(GithubEntityProvider$1.toLocationSpec).map((location) => {
       return {
         locationKey: this.getProviderName(),
         entity: pluginCatalogNode.locationSpecToLocationEntity({ location })
@@ -921,7 +1014,7 @@ class GithubEntityProvider {
   }
   toDeferredEntities(targets) {
     return targets.map((target) => {
-      const location = GithubEntityProvider.toLocationSpec(target);
+      const location = GithubEntityProvider$1.toLocationSpec(target);
       return pluginCatalogNode.locationSpecToLocationEntity({ location });
     }).map((entity) => {
       return {
@@ -932,34 +1025,32 @@ class GithubEntityProvider {
   }
 }
 
-GithubEntityProviderC0c9bd2d_cjs.ANNOTATION_GITHUB_TEAM_SLUG = ANNOTATION_GITHUB_TEAM_SLUG;
-GithubEntityProviderC0c9bd2d_cjs.ANNOTATION_GITHUB_USER_LOGIN = ANNOTATION_GITHUB_USER_LOGIN;
-GithubEntityProviderC0c9bd2d_cjs.GithubEntityProvider = GithubEntityProvider;
-GithubEntityProviderC0c9bd2d_cjs.createAddEntitiesOperation = createAddEntitiesOperation;
-GithubEntityProviderC0c9bd2d_cjs.createRemoveEntitiesOperation = createRemoveEntitiesOperation;
-GithubEntityProviderC0c9bd2d_cjs.createReplaceEntitiesOperation = createReplaceEntitiesOperation;
-GithubEntityProviderC0c9bd2d_cjs.defaultOrganizationTeamTransformer = defaultOrganizationTeamTransformer;
-GithubEntityProviderC0c9bd2d_cjs.defaultUserTransformer = defaultUserTransformer;
-GithubEntityProviderC0c9bd2d_cjs.getOrganizationRepositories = getOrganizationRepositories;
-GithubEntityProviderC0c9bd2d_cjs.getOrganizationTeam = getOrganizationTeam;
-GithubEntityProviderC0c9bd2d_cjs.getOrganizationTeams = getOrganizationTeams;
-GithubEntityProviderC0c9bd2d_cjs.getOrganizationTeamsFromUsers = getOrganizationTeamsFromUsers;
-GithubEntityProviderC0c9bd2d_cjs.getOrganizationUsers = getOrganizationUsers;
-GithubEntityProviderC0c9bd2d_cjs.getOrganizationsFromUser = getOrganizationsFromUser;
-GithubEntityProviderC0c9bd2d_cjs.parseGithubOrgUrl = parseGithubOrgUrl;
-GithubEntityProviderC0c9bd2d_cjs.splitTeamSlug = splitTeamSlug;
-GithubEntityProviderC0c9bd2d_cjs.withLocations = withLocations;
+GithubEntityProviderCTh6g4dw_cjs.ANNOTATION_GITHUB_TEAM_SLUG = ANNOTATION_GITHUB_TEAM_SLUG;
+GithubEntityProviderCTh6g4dw_cjs.ANNOTATION_GITHUB_USER_LOGIN = ANNOTATION_GITHUB_USER_LOGIN;
+GithubEntityProviderCTh6g4dw_cjs.GithubEntityProvider = GithubEntityProvider$1;
+GithubEntityProviderCTh6g4dw_cjs.GithubLocationAnalyzer = GithubLocationAnalyzer;
+GithubEntityProviderCTh6g4dw_cjs.createAddEntitiesOperation = createAddEntitiesOperation;
+GithubEntityProviderCTh6g4dw_cjs.createRemoveEntitiesOperation = createRemoveEntitiesOperation;
+GithubEntityProviderCTh6g4dw_cjs.createReplaceEntitiesOperation = createReplaceEntitiesOperation;
+GithubEntityProviderCTh6g4dw_cjs.defaultOrganizationTeamTransformer = defaultOrganizationTeamTransformer;
+GithubEntityProviderCTh6g4dw_cjs.defaultUserTransformer = defaultUserTransformer;
+GithubEntityProviderCTh6g4dw_cjs.getOrganizationRepositories = getOrganizationRepositories;
+GithubEntityProviderCTh6g4dw_cjs.getOrganizationTeam = getOrganizationTeam;
+GithubEntityProviderCTh6g4dw_cjs.getOrganizationTeams = getOrganizationTeams;
+GithubEntityProviderCTh6g4dw_cjs.getOrganizationTeamsFromUsers = getOrganizationTeamsFromUsers;
+GithubEntityProviderCTh6g4dw_cjs.getOrganizationUsers = getOrganizationUsers;
+GithubEntityProviderCTh6g4dw_cjs.getOrganizationsFromUser = getOrganizationsFromUser;
+GithubEntityProviderCTh6g4dw_cjs.parseGithubOrgUrl = parseGithubOrgUrl;
+GithubEntityProviderCTh6g4dw_cjs.splitTeamSlug = splitTeamSlug;
+GithubEntityProviderCTh6g4dw_cjs.withLocations = withLocations;
 
-(function (exports) {
+Object.defineProperty(alpha_cjs, '__esModule', { value: true });
 
-	Object.defineProperty(exports, '__esModule', { value: true });
-
-	var backendPluginApi = require$$0$1;
-	var backendCommon = require$$1$1;
-	var alpha = require$$2$1;
-	var GithubEntityProvider = GithubEntityProviderC0c9bd2d_cjs;
-
-
+var backendPluginApi = require$$0$1;
+var backendCommon = require$$5;
+var alpha = require$$2$1;
+var pluginEventsNode = require$$3$1;
+var GithubEntityProvider = GithubEntityProviderCTh6g4dw_cjs;
 
 
 
@@ -967,34 +1058,56 @@ GithubEntityProviderC0c9bd2d_cjs.withLocations = withLocations;
 
 
 
-	const catalogModuleGithubEntityProvider = backendPluginApi.createBackendModule({
-	  pluginId: "catalog",
-	  moduleId: "github-entity-provider",
-	  register(env) {
-	    env.registerInit({
-	      deps: {
-	        catalog: alpha.catalogProcessingExtensionPoint,
-	        config: backendPluginApi.coreServices.rootConfig,
-	        logger: backendPluginApi.coreServices.logger,
-	        scheduler: backendPluginApi.coreServices.scheduler
-	      },
-	      async init({ catalog, config, logger, scheduler }) {
-	        catalog.addEntityProvider(
-	          GithubEntityProvider.GithubEntityProvider.fromConfig(config, {
-	            logger: backendCommon.loggerToWinstonLogger(logger),
-	            scheduler
-	          })
-	        );
-	      }
-	    });
-	  }
-	});
 
-	exports["default"] = catalogModuleGithubEntityProvider;
-	
-} (alpha_cjs$1));
 
-var alpha_cjs = /*@__PURE__*/getDefaultExportFromCjs(alpha_cjs$1);
 
-exports["default"] = alpha_cjs;
+
+
+const githubCatalogModule = backendPluginApi.createBackendModule({
+  pluginId: "catalog",
+  moduleId: "github",
+  register(env) {
+    env.registerInit({
+      deps: {
+        analyzers: alpha.catalogAnalysisExtensionPoint,
+        auth: backendPluginApi.coreServices.auth,
+        catalog: alpha.catalogProcessingExtensionPoint,
+        config: backendPluginApi.coreServices.rootConfig,
+        discovery: backendPluginApi.coreServices.discovery,
+        events: pluginEventsNode.eventsServiceRef,
+        logger: backendPluginApi.coreServices.logger,
+        scheduler: backendPluginApi.coreServices.scheduler
+      },
+      async init({
+        catalog,
+        config,
+        events,
+        logger,
+        scheduler,
+        analyzers,
+        discovery,
+        auth
+      }) {
+        analyzers.addLocationAnalyzer(
+          new GithubEntityProvider.GithubLocationAnalyzer({
+            discovery,
+            config,
+            auth
+          })
+        );
+        catalog.addEntityProvider(
+          GithubEntityProvider.GithubEntityProvider.fromConfig(config, {
+            events,
+            logger: backendCommon.loggerToWinstonLogger(logger),
+            scheduler
+          })
+        );
+      }
+    });
+  }
+});
+
+var _default = alpha_cjs.default = githubCatalogModule;
+
+exports["default"] = _default;
 //# sourceMappingURL=index.cjs.js.map

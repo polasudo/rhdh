@@ -13,13 +13,9 @@ var require$$4 = require('@backstage/backend-tasks');
 require('@backstage/catalog-model');
 require('lodash');
 
-function getDefaultExportFromCjs (x) {
-	return x && x.__esModule && Object.prototype.hasOwnProperty.call(x, 'default') ? x['default'] : x;
-}
+var alpha_cjs = {};
 
-var alpha_cjs$1 = {};
-
-var GitlabDiscoveryEntityProviderC1949eb0_cjs = {};
+var GitlabDiscoveryEntityProviderCfW32ioU_cjs = {};
 
 var integration = require$$0;
 var pluginCatalogNode = require$$1;
@@ -27,10 +23,10 @@ var uuid = require$$2;
 var fetch = require$$3;
 var backendTasks = require$$4;
 
-function _interopDefaultLegacy$1 (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
+function _interopDefaultCompat (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }
 
-function _interopNamespace$1(e) {
-  if (e && e.__esModule) return e;
+function _interopNamespaceCompat(e) {
+  if (e && typeof e === 'object' && 'default' in e) return e;
   var n = Object.create(null);
   if (e) {
     Object.keys(e).forEach(function (k) {
@@ -43,12 +39,12 @@ function _interopNamespace$1(e) {
       }
     });
   }
-  n["default"] = e;
+  n.default = e;
   return Object.freeze(n);
 }
 
-var uuid__namespace = /*#__PURE__*/_interopNamespace$1(uuid);
-var fetch__default = /*#__PURE__*/_interopDefaultLegacy$1(fetch);
+var uuid__namespace = /*#__PURE__*/_interopNamespaceCompat(uuid);
+var fetch__default = /*#__PURE__*/_interopDefaultCompat(fetch);
 
 var __defProp$1 = Object.defineProperty;
 var __defNormalProp$1 = (obj, key, value) => key in obj ? __defProp$1(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
@@ -109,7 +105,7 @@ class GitLabClient {
     let hasNextPage = false;
     let endCursor = null;
     do {
-      const response = await fetch__default["default"](
+      const response = await fetch__default.default(
         `${this.config.baseUrl}/api/graphql`,
         {
           method: "POST",
@@ -130,6 +126,7 @@ class GitLabClient {
                       name
                       description
                       fullPath
+                      visibility
                       parent {
                         id
                       }
@@ -163,6 +160,7 @@ class GitLabClient {
           name: groupItem.name,
           description: groupItem.description,
           full_path: groupItem.fullPath,
+          visibility: groupItem.visibility,
           parent_id: Number(
             groupItem.parent.id.replace(/^gid:\/\/gitlab\/Group\//, "")
           )
@@ -179,7 +177,7 @@ class GitLabClient {
     let hasNextPage = false;
     let endCursor = null;
     do {
-      const response = await fetch__default["default"](
+      const response = await fetch__default.default(
         `${this.config.baseUrl}/api/graphql`,
         {
           method: "POST",
@@ -269,7 +267,7 @@ class GitLabClient {
     )}/repository/files/${encodeURIComponent(filePath)}`;
     const request = new URL(`${this.config.apiBaseUrl}${endpoint}`);
     request.searchParams.append("ref", branch);
-    const response = await fetch__default["default"](request.toString(), {
+    const response = await fetch__default.default(request.toString(), {
       headers: integration.getGitLabRequestOptions(this.config).headers,
       method: "HEAD"
     });
@@ -303,7 +301,7 @@ class GitLabClient {
       }
     }
     this.logger.debug(`Fetching: ${request.toString()}`);
-    const response = await fetch__default["default"](
+    const response = await fetch__default.default(
       request.toString(),
       integration.getGitLabRequestOptions(this.config)
     );
@@ -384,7 +382,7 @@ var __publicField = (obj, key, value) => {
   __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
   return value;
 };
-class GitlabDiscoveryEntityProvider {
+class GitlabDiscoveryEntityProvider$1 {
   constructor(options) {
     __publicField(this, "config");
     __publicField(this, "integration");
@@ -420,7 +418,7 @@ class GitlabDiscoveryEntityProvider {
       }
       const taskRunner = (_a = options.schedule) != null ? _a : options.scheduler.createScheduledTaskRunner(providerConfig.schedule);
       providers.push(
-        new GitlabDiscoveryEntityProvider({
+        new GitlabDiscoveryEntityProvider$1({
           ...options,
           config: providerConfig,
           integration,
@@ -444,7 +442,7 @@ class GitlabDiscoveryEntityProvider {
         id: taskId,
         fn: async () => {
           const logger = this.logger.child({
-            class: GitlabDiscoveryEntityProvider.prototype.constructor.name,
+            class: GitlabDiscoveryEntityProvider$1.prototype.constructor.name,
             taskId,
             taskInstanceId: uuid__namespace.v4()
           });
@@ -525,19 +523,17 @@ class GitlabDiscoveryEntityProvider {
   }
 }
 
-GitlabDiscoveryEntityProviderC1949eb0_cjs.GitLabClient = GitLabClient;
-GitlabDiscoveryEntityProviderC1949eb0_cjs.GitlabDiscoveryEntityProvider = GitlabDiscoveryEntityProvider;
-GitlabDiscoveryEntityProviderC1949eb0_cjs.paginated = paginated;
-GitlabDiscoveryEntityProviderC1949eb0_cjs.readGitlabConfigs = readGitlabConfigs;
+GitlabDiscoveryEntityProviderCfW32ioU_cjs.GitLabClient = GitLabClient;
+GitlabDiscoveryEntityProviderCfW32ioU_cjs.GitlabDiscoveryEntityProvider = GitlabDiscoveryEntityProvider$1;
+GitlabDiscoveryEntityProviderCfW32ioU_cjs.paginated = paginated;
+GitlabDiscoveryEntityProviderCfW32ioU_cjs.readGitlabConfigs = readGitlabConfigs;
 
-(function (exports) {
+Object.defineProperty(alpha_cjs, '__esModule', { value: true });
 
-	Object.defineProperty(exports, '__esModule', { value: true });
-
-	var backendPluginApi = require$$0$1;
-	var backendCommon = require$$1$1;
-	var alpha = require$$2$1;
-	var GitlabDiscoveryEntityProvider = GitlabDiscoveryEntityProviderC1949eb0_cjs;
+var backendPluginApi = require$$0$1;
+var backendCommon = require$$1$1;
+var alpha = require$$2$1;
+var GitlabDiscoveryEntityProvider = GitlabDiscoveryEntityProviderCfW32ioU_cjs;
 
 
 
@@ -546,34 +542,30 @@ GitlabDiscoveryEntityProviderC1949eb0_cjs.readGitlabConfigs = readGitlabConfigs;
 
 
 
-	const catalogModuleGitlabDiscoveryEntityProvider = backendPluginApi.createBackendModule({
-	  pluginId: "catalog",
-	  moduleId: "gitlab-discovery-entity-provider",
-	  register(env) {
-	    env.registerInit({
-	      deps: {
-	        config: backendPluginApi.coreServices.rootConfig,
-	        catalog: alpha.catalogProcessingExtensionPoint,
-	        logger: backendPluginApi.coreServices.logger,
-	        scheduler: backendPluginApi.coreServices.scheduler
-	      },
-	      async init({ config, catalog, logger, scheduler }) {
-	        catalog.addEntityProvider(
-	          GitlabDiscoveryEntityProvider.GitlabDiscoveryEntityProvider.fromConfig(config, {
-	            logger: backendCommon.loggerToWinstonLogger(logger),
-	            scheduler
-	          })
-	        );
-	      }
-	    });
-	  }
-	});
+const catalogModuleGitlabDiscoveryEntityProvider = backendPluginApi.createBackendModule({
+  pluginId: "catalog",
+  moduleId: "gitlab-discovery-entity-provider",
+  register(env) {
+    env.registerInit({
+      deps: {
+        config: backendPluginApi.coreServices.rootConfig,
+        catalog: alpha.catalogProcessingExtensionPoint,
+        logger: backendPluginApi.coreServices.logger,
+        scheduler: backendPluginApi.coreServices.scheduler
+      },
+      async init({ config, catalog, logger, scheduler }) {
+        catalog.addEntityProvider(
+          GitlabDiscoveryEntityProvider.GitlabDiscoveryEntityProvider.fromConfig(config, {
+            logger: backendCommon.loggerToWinstonLogger(logger),
+            scheduler
+          })
+        );
+      }
+    });
+  }
+});
 
-	exports["default"] = catalogModuleGitlabDiscoveryEntityProvider;
-	
-} (alpha_cjs$1));
+var _default = alpha_cjs.default = catalogModuleGitlabDiscoveryEntityProvider;
 
-var alpha_cjs = /*@__PURE__*/getDefaultExportFromCjs(alpha_cjs$1);
-
-exports["default"] = alpha_cjs;
+exports["default"] = _default;
 //# sourceMappingURL=index.cjs.js.map

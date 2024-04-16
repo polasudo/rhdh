@@ -39,6 +39,7 @@ function getBasePath(config) {
 async function createRouter(options) {
   const { logger, config } = options;
   const secure = config.getOptionalBoolean("gitlab.proxySecure");
+  const useOAuth = config.getOptionalBoolean("gitlab.useOAuth");
   const basePath = getBasePath(config) || "";
   const gitlabIntegrations = integration.readGitLabIntegrationConfigs(
     config.getConfigArray("integrations.gitlab")
@@ -50,12 +51,20 @@ async function createRouter(options) {
   const filter = (_pathname, req) => {
     if (req.headers["authorization"])
       delete req.headers["authorization"];
+    if (req.headers["gitlab-authorization"]) {
+      req.headers["authorization"] = req.headers["gitlab-authorization"];
+      delete req.headers["gitlab-authorization"];
+    }
     return req.method === "GET";
   };
   const graphqlFilter = (_pathname, req) => {
     var _a;
     if (req.headers["authorization"])
       delete req.headers["authorization"];
+    if (req.headers["gitlab-authorization"]) {
+      req.headers["authorization"] = req.headers["gitlab-authorization"];
+      delete req.headers["gitlab-authorization"];
+    }
     return req.method === "POST" && !((_a = req.body.query) == null ? void 0 : _a.includes("mutation"));
   };
   for (const { host, apiBaseUrl, token } of gitlabIntegrations) {
@@ -66,7 +75,8 @@ async function createRouter(options) {
         target: apiUrl.origin,
         changeOrigin: true,
         headers: {
-          ...token ? { "PRIVATE-TOKEN": token } : {}
+          // If useOAuth is true, we don't not add the token
+          ...token && !useOAuth ? { "PRIVATE-TOKEN": token } : {}
         },
         secure,
         onProxyReq: (proxyReq, req) => {
@@ -92,7 +102,8 @@ async function createRouter(options) {
         target: apiUrl.origin,
         changeOrigin: true,
         headers: {
-          ...token ? { "PRIVATE-TOKEN": token } : {}
+          // If useOAuth is true, we don't not add the token
+          ...token && !useOAuth ? { "PRIVATE-TOKEN": token } : {}
         },
         secure,
         logProvider: () => logger,
