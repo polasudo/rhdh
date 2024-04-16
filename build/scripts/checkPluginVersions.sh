@@ -13,6 +13,7 @@
 
 # SCRIPT_DIR=$(cd "$(dirname "$0")" || exit; pwd)
 # FORCE=""
+DO_BUILD=1
 DO_PUSH=0
 DRYRUN=""
 GITLAB_PIPELINE="" # set "true" when running inside a gitlab pipeline to override default git push settings
@@ -31,19 +32,20 @@ Requires:
 
 Usage:
 
-$0 -s /path/to/sources -b 1.1.x [--push]
+$0 -s /path/to/sources -b stable-ref-branch [--push]
 
 Options:
   -b, --ref-branch           : Reference branch against which plugin versions should be incremented, like 1.1.x
   -t, --target-branch        : Destination branch where changes will be merged; default: $BRANCHUSED
   --pr-branch                : Use a specific pull request topic branch instead of generated one like $PR_BRANCH
   --push                     : In addition to reporting problems, generate a PR to push a fix
+  --nobuild                  : Skip 'yarn install' steps; no PR will be generated
   --gitlab-pipeline-push     : Use this flag to push changes when running inside a gitlab pipeline
   --dry-run                  : Do everything but create the PR; instead just display the PR contents
   -h, --help                 : Show this help
 
 Examples:
-  $0 -s /path/to/backstage-plugins -b 1.1.x
+  $0 -s /path/to/backstage-plugins -b 1.1.x --push
 
 EOF
 }
@@ -54,8 +56,9 @@ while [[ "$#" -gt 0 ]]; do
     '-t'|'--target-branch') BRANCHUSED="$2"; shift 1;; # base branch to update, eg., main
     '--pr-branch') PR_BRANCH="$2"; shift 1;;
     '-s') SOURCEDIR="$2"; shift 1;;
-    '--push') DO_PUSH=1;;
-    '--gitlab-pipeline-push') DO_PUSH=1; GITLAB_PIPELINE="true";;
+    '--nobuild') DO_BUILD=0; DO_PUSH=0;;
+    '--push') DO_PUSH=1; DO_BUILD=1;;
+    '--gitlab-pipeline-push') DO_PUSH=1; DO_BUILD=1; GITLAB_PIPELINE="true";;
     '--dry-run') DRYRUN="$1";;
     '-h'|'--help') usage;;
     *) echo "Unknown parameter used: $1."; usage; exit 1;;
@@ -96,12 +99,19 @@ HUSKY=0 git checkout "$BRANCHUSED" || true
 git branch "$PR_BRANCH" >/dev/null 2>&1 || true
 git checkout "$PR_BRANCH" || true
 
-# quietly install any updates to yarn.lock so PR will pass sniff test
-yarn install 2> >(grep -v warning 1>&2) 
+if [[ $DO_BUILD -eq 1 ]]; then
+  # quietly install any updates to yarn.lock so PR will pass sniff test
+  yarn install 2> >(grep -v warning 1>&2) 
+fi
 
 rootVer=""
 for d in ./ packages/* plugins/*; do if [[ -f "$d/package.json" ]]; then 
+    (( num_plugins=num_plugins+1 ))
+fi; done
+for d in ./ packages/* plugins/*; do if [[ -f "$d/package.json" ]]; then 
+    (( c=c+1 ))
     ver=$(jq -r '.version' "$d/package.json"); 
+    isPrivate=$(jq -r '.private' "$d/package.json"); 
     if [[ "$d" == "./" ]] && [[ $ver =~ ^([0-9]+)\.([0-9]+)\.([0-9]+) ]]; then 
       XX=${BASH_REMATCH[1]}
       YY=${BASH_REMATCH[2]}
@@ -110,15 +120,19 @@ for d in ./ packages/* plugins/*; do if [[ -f "$d/package.json" ]]; then
       (( XX=XX-2 ))
       rootVer="$XX.$YY.$ZZ"
     fi
-    if [[ ! "${plugins["$d"]}" ]]; then
-        echo -e "[INFO] ${blue}$d is new in $BRANCHUSED branch; nothing to do.${norm}"; echo
+
+    # do not bump private packages, new packages, and anything with version 0.0.0
+    if [[ "$d" != "./" ]] && [[ $isPrivate == "true" ]]; then
+        echo -e "[INFO] [$c/$num_plugins] ${blue}$d is marked private; nothing to do.${norm}"; echo
+    elif [[ ! "${plugins["$d"]}" ]]; then
+        echo -e "[INFO] [$c/$num_plugins] ${blue}$d is new in $BRANCHUSED branch; nothing to do.${norm}"; echo
     elif [[ $ver == "0.0.0" ]]; then
-        echo -e "[INFO] ${blue}$d is unversioned at 0.0.0; nothing to do.${norm}"; echo
+        echo -e "[INFO] [$c/$num_plugins] ${blue}$d is unversioned at 0.0.0; nothing to do.${norm}"; echo
     else
       ver=${ver%.*} # only want the x.y version here 
       if verlte "$ver" "${plugins["$d"]}"; then 
         # need to bump version
-        echo -en "[INFO] ${red}$d $ver needs to be incremented to greater than ${plugins["$d"]}${norm} (in $BRANCHUSED) ... "
+        echo -en "[INFO] [$c/$num_plugins] ${red}$d $ver needs to be incremented to greater than ${plugins["$d"]}${norm} (in $BRANCHUSED) ... "
         newver="$ver"
         if [[ $ver =~ ^([0-9]+)\.([0-9]+) ]]; then # increase the y digit
             XX=${BASH_REMATCH[1]}
@@ -140,7 +154,7 @@ for d in ./ packages/* plugins/*; do if [[ -f "$d/package.json" ]]; then
           echo
         fi
       else
-          echo -e "[INFO] ${green}$d $ver ${norm}($BRANCHUSED) > ${green}${plugins["$d"]}${norm} (in $BRANCH)"; echo
+          echo -e "[INFO] [$c/$num_plugins] ${green}$d $ver ${norm}($BRANCHUSED) > ${green}${plugins["$d"]}${norm} (in $BRANCH)"; echo
       fi
     fi
 fi; done
@@ -173,8 +187,10 @@ createPr() {
 }
 
 if [[ ${DO_PUSH} -eq 1 ]]; then
-  # quietly install any updates to yarn.lock so PR will pass sniff test
-  yarn install 2> >(grep -v warning 1>&2) 
+  if [[ $DO_BUILD -eq 1 ]]; then
+    # quietly install any updates to yarn.lock so PR will pass sniff test
+    yarn install 2> >(grep -v warning 1>&2) 
+  fi
   git commit -s -m "chore: checkPluginVersion.sh regen yarn.lock in $BRANCHUSED branch" .
   git pull origin "${BRANCHUSED}" || true
   set -x
@@ -182,4 +198,3 @@ if [[ ${DO_PUSH} -eq 1 ]]; then
   createPr "${PR_BRANCH}" "${BRANCHUSED}"
   set +x
 fi ## if DO_PUSH
-
