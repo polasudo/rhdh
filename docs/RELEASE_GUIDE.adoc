@@ -6,7 +6,18 @@ _TODO_: Think about how best to create a release guide (gantt chart, smartsheet,
 
 ## Code Freeze / Blockers Only / New Stream Day
 
-### Create branches (eg., 1.1.x, 1.2.x)
+Use the link:../build/scripts/tagRelease.sh[tagRelease.sh] script like this:
+```
+# to create 1.2.x + rhdh-1.2-rhel-9 branches, then update main + rhdh-1-rhel-9 branches
+export GITHUB_TOKEN=<your_GH_token>
+./build/scripts/tagRelease.sh -t 1.2 --branchfrom main -gh 1.2.x
+```
+
+Script will create/update 1.y branches and update the main + rhdh-1-rhel-9 branches with minor version bumps.
+
+NOTE: **_TODO_ https://issues.redhat.com/browse/RHIDP-931 verify branch creation and update steps work**
+
+### Create branches (eg., 1.2.x, 1.3.x)
 
 . Create 6 Github branches - run link:../build/scripts/tagRelease.sh[tagRelease.sh] 
 
@@ -28,64 +39,57 @@ _TODO_: Think about how best to create a release guide (gantt chart, smartsheet,
 .. [ ] https://pkgs.devel.redhat.com/cgit/containers/rhdh-operator/tree/?h=rhdh-1.1-rhel-9
 .. [ ] https://pkgs.devel.redhat.com/cgit/containers/rhdh-operator-bundle/tree/?h=rhdh-1.1-rhel-9
 
-. Request new Brew Targets & product variant (PV) be created via link:https://issues.redhat.com/browse/SPMM-15866[SPMM ticket like SPMM-15866] and by pinging @ahills / @siege on slack
-
-. Once the associated Errata PV is created, ProdSec gets notified and adds the appropriate CPE within a day or two. For questions, ping Martin Prpič or link:https://docs.engineering.redhat.com/pages/viewpage.action?spaceKey=PRODSEC&title=CPE[send an email] to prodsec-request@redhat.com.
- 
-
 ### Update main branch versions
 
-Submit PRs to fix versions in main.
+Bump versions in upstream main branches - run link:../build/scripts/tagRelease.sh[tagRelease.sh] 
 
 . [ ] janus-idp/backstage-plugins (_TODO_: migrate to link:https://github.com/backstage/community-plugins[backstage/community-plugins])
-.. [ ] bump package.json to new version 1.y+1
+.. [ ] Bump all non-private plugin & package package.json files to new version 1.y+1 - see link:../build/scripts/checkPluginVersions.sh[checkPluginVersions.sh] (called from link:../build/scripts/tagRelease.sh[tagRelease.sh])
 
-. [ ] janus-idp/backstage-showcase (_TODO_: migrate to link:https://github.com/redhat-developer/red-hat-developer-hub[rhdh])
-.. [ ] bump link:https://github.com/janus-idp/backstage-showcase/blob/main/package.json#L3[package.json] and e2e-tests/package.json to new 1.y+1 version
-.. [ ] verify https://github.com/janus-idp/backstage-showcase/blob/main/packages/app/src/build-metadata.json is correct (both Backstage and RHDH versions)
+. [ ] janus-idp/backstage-showcase (**_TODO_: migrate to link:https://issues.redhat.com/browse/RHIDP-1022[rhdh]**)
+.. [ ] Bump link:https://github.com/janus-idp/backstage-showcase/blob/main/package.json#L3[package.json] and e2e-tests/package.json to new 1.y+1 version
+.. [ ] Verify https://github.com/janus-idp/backstage-showcase/blob/main/packages/app/src/build-metadata.json is correct (both Backstage and RHDH versions)
 
-.. _TODO_: script this step? 
+. [ ] janus-idp/operator (**_TODO_: migrate to link:https://issues.redhat.com/browse/RHIDP-1021[rhdh-operator]**)
+.. [ ] Bump versions to 0.y+1 upstream and 1.y+1 downstream (link:https://github.com/janus-idp/operator/tree/main/.rhdh[.rhdh folder]):
+... [ ] Makefile
+... [ ] bundle/manifests/backstage-operator.clusterserviceversion.yaml
+... [ ] config/manager/kustomization.yaml
+... [ ] .rhdh/bundle/manifests/rhdh-operator.csv.yaml
 
-. [ ] janus-idp/operator (_TODO_: migrate to link:https://issues.redhat.com/browse/RHIDP-1021[rhdh-operator])
-.. [ ] bump versions to 0.y+1 upstream and 1.y+1 downstream (link:https://github.com/janus-idp/operator/tree/main/.rhdh[.rhdh folder]):
-... Makefile
-... bundle/manifests/backstage-operator.clusterserviceversion.yaml
-... config/manager/kustomization.yaml
-... .rhdh/bundle/manifests/rhdh-operator.csv.yaml
-
-NOTE: Dockerfile versions are derived from the backstage-showcase package.json version.
-
-.. __TODO__: script this step? 
+NOTE: Dockerfile version metadata downstream is derived from the backstage-showcase package.json version.
 
 ### Update rhdh-*-rhel-9 branch versions
 
-Submit PRs to fix version references in `upstream_repos.yml` for both the new rhdh-1.yy-rhel-9 and the rhdh-1-rhel-9 branch.
+Submit PR to fix version reference in `upstream_repos.yml` for both the new rhdh-1.yy-rhel-9 branch.
 
-Specifically:
+NOTE: **_TODO_: RHIDP-931 script this so it's done when the new branch is created**
 
-* link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/commit/ea34860faf4d976e2bd3920df1d0e781808f16a0[do not use main for 1.yy branch]
-* link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/commit/81d98cb9a865b3b92eb75ce8113b2019fb241f1e[bump 1.yy-1 to 1.yy]
 
-TODO: since we currently have to update both branches on code freeze, maybe it's more efficient to always only use `main` in `rhdh-1-rhel-9` and to only use `1.yy.x` in `rhdh-1.yy-rhel-9` branch? Then we only need ONE PR when we create the stable upstream branches.
+### Brew Targets, Product Variants, and CPEs
+
+. Request new Brew Targets & product variant (PV) be created via link:https://issues.redhat.com/browse/SPMM-15866[SPMM ticket like SPMM-15866] and by pinging @ahills / @siege on slack
+
+. Once the associated Errata PV is created, ProdSec gets notified and adds the appropriate CPE within a day or two. For questions, ping Martin Prpič or link:https://docs.engineering.redhat.com/pages/viewpage.action?spaceKey=PRODSEC&title=CPE[send an email] to prodsec-request@redhat.com.
 
 ### Trigger respins 
 
-. Create new gitlab pipeline schedule for 1.2 (to run in parallel with 1.x)
+. Create new gitlab pipeline schedule for stable branch 1.2 (to run in parallel with CI builds from 1.x)
 
 . Run pipelines from
 .. https://gitlab.cee.redhat.com/rhidp/rhdh/-/pipeline_schedules or 
 .. https://gitlab.cee.redhat.com/rhidp/rhdh/-/pipeline (by committing to the branches)
 
-. verify that after moving to 1.2 in main, we have:
-.. 1.1 == latest
-.. 1.2 == next
+. Verify that after moving to 1.3 in main, we have:
+.. 1.2 == latest
+.. 1.3 == next
 
 ... [ ] https://quay.io/repository/rhdh/rhdh-hub-rhel9?tab=tags
 ... [ ] https://quay.io/repository/rhdh/rhdh-rhel9-operator?tab=tags
 ... [ ] https://quay.io/repository/rhdh/rhdh-operator-bundle?tab=tags
 ... [ ] https://quay.io/repository/rhdh/iib?tab=tags
 
-. perform install smoke tests
+. Perform install smoke tests
 .. helm chart from https://github.com/rhdh-bot/openshift-helm-charts/tree/rhdh-1-rhel-9/installation#installation and https://github.com/rhdh-bot/openshift-helm-charts/tree/rhdh-1.1-rhel-9/installation#installation
 .. operator install from https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1-rhel-9/build/scripts/installCatalogSourceFromIIB.sh for `--latest` and `--next`
 
