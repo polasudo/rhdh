@@ -308,8 +308,8 @@ if [[ $PUBLISH -eq 1 ]]; then
     envsubst < "${SCRIPT_DIR}/installation/README.tmpl.md" > "${CATALOG_DIR}"/installation/README.md
     envsubst < "${SCRIPT_DIR}/installation/rhdh-next-ci-repo.tmpl.yaml" > "${CATALOG_DIR}"/installation/rhdh-next-ci-repo.yaml
 
-    # include installation script
-    cp "${SCRIPT_DIR}/install.sh" "${CATALOG_DIR}"/installation/install.sh
+    # include installation script, tuned to the current build
+    sed -r -e "s|x.y-zzz-CI|${CHART_VERSION}|" "${SCRIPT_DIR}/install.sh" > "${CATALOG_DIR}"/installation/install.sh
 
     # force push new files to the developer-hub-"${CHART_VERSION}" branch
 
