@@ -19,7 +19,12 @@ and for the Kaniko runner, using the latest release from https://github.com/Goog
 
 ```
 TODAY=$(date +%Y%m%d-%H%M)
-kaniko_version=1.19.2
+kaniko_version=1.22.0 # apr 18
+
+# previous versions
+# kaniko_version=1.14.0 # jan 11
+# kaniko_version=1.19.2 # jan 11
+
 sed -i build/dockerfiles/kaniko-ubi9.Dockerfile -r -e "s#(FROM gcr.io/kaniko-project/executor:v)[0-9.]+(-debug AS kaniko)#\1${kaniko_version}\2#"
 podman rmi gcr.io/kaniko-project/executor:${kaniko_version}-debug -f
 podman rmi registry.redhat.io/ubi9:latest -f

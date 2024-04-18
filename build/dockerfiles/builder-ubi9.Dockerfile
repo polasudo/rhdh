@@ -7,7 +7,7 @@ COPY distgit/containers/rhdh-hub/package.json /tmp/
 RUN \
     dnf -y -q update && \
     dnf module enable nodejs:18 -y && \
-    dnf -y -q install brotli-devel cmake gcc gcc-c++ git jq make nodejs npm openssl openssl-devel \
+    dnf -y -q install brotli-devel cmake gcc gcc-c++ git jq make nodejs npm openssl openssl-devel gettext \
         python3-pip rsync skopeo sudo zlib-devel && \
     pip3 install -q yq
 RUN \
