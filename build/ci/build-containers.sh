@@ -8,7 +8,9 @@
 
 # decide if we need to rebuild anything based on downstream sync results
 DO_BUILDS=""
-for REPO in rhdh-operator rhdh-hub rhdh-operator-bundle; do
+
+# create build plan to build 1 to 3 containers
+for REPO in rhdh-hub rhdh-operator rhdh-operator-bundle; do
   #  if change to hub, operator or bundle, trigger respin
   sync_check_repo=$(git diff --name-only HEAD~2 distgit/containers/$REPO/ || true)
   if [[ -f outputs2/sync-downstream.sh.$REPO.diff.txt ]] || [[ $sync_check_repo ]]; then
