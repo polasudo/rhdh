@@ -60,24 +60,14 @@ Examples:
     Developer Hub image:  quay.io/rhdh/rhdh-hub-rhel9:1.1-zzz
 
     # Run this manually on GA release day
-    # 1. use gh to log in as the bot (use incognito browser so you don't have to log out as yourself)
+    # 1. use gh to log in as the bot (not using exported github token) - can use incognito browser so you don't have to log out as yourself
     $ export GITHUB_TOKEN=
     $ gh auth login -h github.com
-        ? You're already logged into github.com. Do you want to re-authenticate? Yes
-        ? What is your preferred protocol for Git operations? HTTPS
-        ? How would you like to authenticate GitHub CLI? Login with a web browser
-        ! First copy your one-time code: F00D-CAFE
-        Press Enter to open github.com in your browser... 
-        Opening in existing browser session.
-        ✓ Authentication complete.
-        - gh config set -h github.com git_protocol https
-        ✓ Configured git protocol
-        ✓ Logged in as rhdh-bot
     # 2. Run a manual release as the bot:
     $ export GITHUB_TOKEN=ghp_rhdh-bot-token-here
-    $ $0 --chart-version 1.0.0 --rhdh-version 1.0-200 --catalog git@github.com:rhdh-bot/openshift-helm-charts.git --publish
-    Chart version:        1.0.0
-    Developer Hub image:  quay.io/rhdh/rhdh-hub-rhel9:1.0-200
+    $ $0 --chart-version 1.0.1 --rhdh-version 1.0-201 --catalog git@github.com:rhdh-bot/openshift-helm-charts.git --publish
+    Chart version:        1.0.1
+    Developer Hub image:  quay.io/rhdh/rhdh-hub-rhel9:1.0-201
 "
     exit
 }
