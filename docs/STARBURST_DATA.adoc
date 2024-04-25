@@ -1,0 +1,36 @@
+# RHDH Usage Data
+
+To collect some usage data of OCP customers with helm or operator install:
+
+NOTE: THIS DATA IS CONFIDENTIAL. DO NOT ABUSE.
+
+1. Log in at https://prod.sep.starburst.redhat.com/ui/insights/index.html
+
+2. Run some queries using data source = `ceph_datahub` and schema = `ccx`
+
+For example, using helm:
+
+```
+SELECT DISTINCT
+  ccx.view_helm_daily_installs.cluster_id, ccx_sensitive.cluster_accounts.ebs_account, ccx_sensitive.cluster_accounts.account_name, ccx.view_helm_daily_installs.name, ccx.view_helm_daily_installs.version, ccx.view_helm_daily_installs.date
+from
+  ccx.view_helm_daily_installs
+  INNER JOIN ccx_sensitive.cluster_accounts
+  ON ccx.view_helm_daily_installs.cluster_id = ccx_sensitive.cluster_accounts.cluster_id
+  where
+  name LIKE '%developer-hub%' and ccx_sensitive.cluster_accounts.account_name NOT IN ('Red Hat, Inc.', 'Red Hat', 'Red Hat Infrastructure GPTE', 'RED HAT, INC.', 'Red Hat EMEA', 'IBM', 'RED HAT IT/IS', 'Red Hat Asia-Pacific', 'redhat', 'Red Hat AB', 'Red Hat-Developers-Sandboxes', 'RedHat', 'PNT Shared Infrastructure (PSI Production Environment)')
+
+```
+
+For example, using operator:
+
+```
+SELECT DISTINCT
+  ccx.olm_operators.cluster_id, ccx_sensitive.cluster_accounts.ebs_account, ccx_sensitive.cluster_accounts.account_name, ccx.olm_operators.operator_name, ccx.olm_operators.operator_display_name, ccx.olm_operators.operator_version, ccx.olm_operators.update_time
+from
+  ccx.olm_operators
+  INNER JOIN ccx_sensitive.cluster_accounts
+  ON ccx.olm_operators.cluster_id = ccx_sensitive.cluster_accounts.cluster_id
+  where
+  (operator_name LIKE '%rhdh.%' and phase = 'Succeeded') and ccx_sensitive.cluster_accounts.account_name NOT IN ('Red Hat, Inc.', 'Red Hat', 'Red Hat Infrastructure GPTE', 'RED HAT, INC.', 'Red Hat EMEA', 'IBM', 'RED HAT IT/IS', 'Red Hat Asia-Pacific', 'redhat', 'Red Hat AB')
+```
