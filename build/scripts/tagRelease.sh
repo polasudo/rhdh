@@ -7,10 +7,13 @@
 #
 # SPDX-License-Identifier: EPL-2.0
 #
+# script to tag the janus/rhdh repos for a given release, or 
+# create stable branches + update main branches after branch creation
+SCRIPT_DIR=$(cd "$(dirname "$0")" || exit; pwd)
 
-# script to tag the janus/rhdh repos for a given release
+# RH production key, to use only in 1.yy.x stable branches; otherwise use the devel key for main
+SEGMENT_WRITE_KEY="mUr49Tkld5bj1lFFPxxqHrAzkQMRINvF"
 
-SCRIPT=$(readlink -f "$0"); SCRIPTPATH=$(dirname "$SCRIPT")
 # defaults
 # try to compute branches from currently checked out branch; else fall back to hard coded value
 TARGET_BRANCH="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || true)"
@@ -19,6 +22,7 @@ if [[ $TARGET_BRANCH != "rhdh-1."*"-rhel-9" ]]; then
 fi
 pkgs_devel_branch=${TARGET_BRANCH}
 
+DO_BUILD=1  # update yarn lock
 DO_PUSH=1   # push the commit
 
 # NOT USED
@@ -26,7 +30,9 @@ FORCE=""    # force push to the midstream repo in case of merge conflicts (use "
 
 pduser=rhdh-bot
 
-SOURCE_BRANCH="" # normally, use this script to create tags, not branches
+# normally, use this script to create tags, not branches
+# this also defines the branch to update after creating a new branch (eg., for a TARGET_BRANCH=1.2.x branch creation, bump SOURCE_BRANCH=main to 1.3.0)
+SOURCE_BRANCH="" 
 
 CLEAN="false" #  if set true, delete existing folders and do fresh checkouts
 
@@ -37,14 +43,16 @@ To create or update existing branches:
 Example: 
   $0 -t 1.1 --branchfrom main -gh 1.1.x -ghtoken \$GITHUB_TOKEN
 
-To create tags (and push updated CSV content into operator-bundle repo):
+To create tags (and push updates to 1.yy.x branches):
   $0 -v CSV_VERSION -t PROD_VERSION -gh GH_BRANCH -ghtoken GITHUB_TOKEN -pd GITLAB_AND_PKGS_DEVEL_BRANCH -pduser kerberos_user
 Example: 
   $0 -v 1.1.0 -t 1.1 -gh 1.1.x -pd rhdh-1.1-rhel-9 -ghtoken \$GITHUB_TOKEN
 
 Options:
-      --nopush                  do not push local changes; default: push changes
-      -pduser                   run as a different bot user; default: $pduser 
+    --nopush                  do not push local changes; default: push changes
+    --dry-run                 do everything but create the PR; instead just display the PR contents
+    --gitlab-pipeline-push    use this flag to push changes when running inside a gitlab pipeline
+    -pduser                   run as a different bot user; default: $pduser 
 "
 	exit 1
 fi
@@ -61,6 +69,10 @@ while [[ "$#" -gt 0 ]]; do
 	'-pduser') pduser="$2"; shift 1;;
 	'--clean') CLEAN="true"; shift 0;; # if set true, delete existing folders and do fresh checkouts
 	'--nopush') DO_PUSH=0; shift 1;;
+    '--gitlab-pipeline-push') DO_PUSH=1; DO_BUILD=1; GITLAB_PIPELINE="true";;
+    '--dry-run') DRYRUN="$1";;
+    '-h'|'--help') usage;;
+    *) echo "Unknown parameter used: $1."; usage; exit 1;;
   esac
   shift 1
 done
@@ -94,11 +106,17 @@ createPr() {
   git branch "${headBranch}" || true
   git checkout "${headBranch}"
   git merge "${baseBranch}"
-  git push origin "${headBranch}" ${FORCE}
+  # shellcheck disable=SC2086
+  git push origin "${headBranch}" # ${FORCE}
   # TODO replace with gitlab equivalent, maybe using API?
   if [[ $(/usr/bin/gh version 2>/dev/null || true) ]] || [[ $(which gh 2>/dev/null || true) ]]; then
-    gh pr create -f -B "${baseBranch}" -H "${headBranch}" -w || true
-
+    gh repo set-default "$(git remote get-url origin)"
+    # shellcheck disable=SC2086
+    gh pr create --fill-verbose -t "feat: tagRelease.sh bump versions in $baseBranch for ${PROD_VERSION} release" -B "${baseBranch}" -H "${headBranch}" ${DRYRUN} || true
+    # if not running in a gitlab pipeline, open the PR in a browser 
+    if [[ $GITLAB_PIPELINE != "true" ]]; then
+      gh pr view --web || true
+    fi
   else
     echo "[WARN] gh cli is required to generate pull requests. See https://github.com/cli/cli?tab=readme-ov-file#installation to install it."
     echo -n "# To manually create a pull request, go here: "
@@ -106,19 +124,13 @@ createPr() {
   fi
 }
 
+# for creating a new branch, or pushing changes to an existing branch (may require PR)
 doPush () {
-  set -x
-  BRANCHUSED="$1"
-  PR_BRANCH="pr-update-${BRANCHUSED}-$(date +%s)"
+  THE_BRANCH="$1"
+  PR_BRANCH="pr-update-${THE_BRANCH}-$(date +%s)"
 
-  git pull origin "${BRANCHUSED}" || true
-  PUSH_TRY="$(git push origin "${BRANCHUSED}" ${FORCE} 2>&1 || true)"
-  # shellcheck disable=SC2181
-  if [[ $? -gt 0 ]] || [[ $PUSH_TRY == *"protected branch hook declined"* ]]; then
-    # create pull request if target branch is restricted access
-    createPr "${PR_BRANCH}" "${BRANCHUSED}"
-  fi
-  set +x
+  git pull origin "${THE_BRANCH}" || true
+  createPr "${PR_BRANCH}" "${THE_BRANCH}"
 }
 
 # ############
@@ -164,9 +176,16 @@ pushBranchAndOrTagGH () {
 					git checkout "${TARGET_BRANCH}" || true
 					git pull origin "${TARGET_BRANCH}" || true
 
-					# TODO apply changes to janus plugins and showcase / rhdh repos
+					# changes to apply to new midstream 1.yy.x branch
+					# TODO verify this works once https://github.com/janus-idp/backstage-showcase/pull/1028/files#diff-b1450b0ddd25a7e521db090fce8fc0a8cffe8a5fb50c77f49669c8fb785ec0e4 is merged 
+					# 
+					# https://issues.redhat.com/browse/RHIDP-1311 apply the production key to the 1.yy.x stable branches, so we can use the devel key for main/CI builds
+					if [[ $d == "janus-idp/backstage-showcase" ]] || [[ $d == "redhat-developer/red-hat-developer-hub" ]]; then
+						sed -i .rhdh/docker/Dockerfile -r -e "s|(.*SEGMENT_WRITE_KEY=).*|\1$SEGMENT_WRITE_KEY|g"
+						COMMITMSG="chore: switch SEGMENT_WRITE_KEY in $TARGET_BRANCH"
+						git commit -s -m "${COMMITMSG}" .rhdh/docker/Dockerfile
+					fi
 
-					git pull origin "${TARGET_BRANCH}" || true
 					if [[ $DO_PUSH -eq 1 ]]; then 
 						doPush "${TARGET_BRANCH}"
 					fi
@@ -176,7 +195,24 @@ pushBranchAndOrTagGH () {
 					if [[ $DO_PUSH -eq 1 ]]; then 
 						git push origin "${CSV_VERSION}" || true
 					fi
+
+					# now bump TARGET_BRANCH = 1.yy.x branch to x.yy.(z+1)
+					getNextCSVZ "$CSV_VERSION" 
+					echo "[INFO] Next CSV version is $CSV_VERSION_Z / $CSV_VERSION_Z_OPERATOR"
+					if [[ $d == "janus-idp/backstage-showcase" ]] || [[ $d == "redhat-developer/red-hat-developer-hub" ]]; then
+						echo "[INFO] Bump $d to $CSV_VERSION_Z" 
+						updateShowcaseVersions "$TARGET_BRANCH" "$CSV_VERSION_Z"
+					elif [[ $d == "janus-idp/operator" ]] || [[ $d == "redhat-developer/red-hat-developer-hub-operator" ]]; then
+						echo "[INFO] Bump $d to $CSV_VERSION_Z / CSV_VERSION_Z_OPERATOR" 
+						updateOperatorVersions "$TARGET_BRANCH" "$CSV_VERSION_Z" "$CSV_VERSION_Z_OPERATOR"
+					elif [[ $d == "janus-idp/backstage-plugins" ]]; then
+						echo "[INFO] Bump $d to $CSV_VERSION_Z_PLUGINS" 
+						updatePluginsRootVersions "$TARGET_BRANCH" "$CSV_VERSION_Z_PLUGINS"
+					else
+						echo "[INFO] No version bumps needed for $d" 
+					fi
 				fi
+
 			popd >/dev/null || exit 1
 		fi
 	fi
@@ -214,9 +250,14 @@ pushTagGL ()
 					git checkout "${TARGET_BRANCH}" || true
 					git pull origin "${TARGET_BRANCH}" || true
 
-					# TODO apply changes to janus plugins and showcase / rhdh repos
+					# changes to apply to new midstream rhdh-1.yy-rhel-9 branch
+					if [[ $d == "rhdh" ]]; then # for rhidp/rhdh
+						sed -i upstream_repos.yml -r -e "s|- main|- ${TARGET_BRANCH}|g"
+						rm -f sync/*
+						COMMITMSG="chore: tagRelease.sh: use $TARGET_BRANCH in upstream_repos.yml; trigger full build"
+						git commit -s -m "${COMMITMSG}" sync/ upstream_repos.yml
+					fi
 
-					git pull origin "${TARGET_BRANCH}" || true
 					if [[ $DO_PUSH -eq 1 ]]; then 
 						doPush "${TARGET_BRANCH}"
 					fi
@@ -265,9 +306,8 @@ pushTagPD ()
 				git checkout "${TARGET_BRANCH}" || true
 				git pull origin "${TARGET_BRANCH}" || true
 
-				# TODO apply changes to janus plugins and showcase / rhdh repos
+				# currently, no changes to apply to new midstream rhdh-1.yy-rhel-9 branch (as this content is synced from midstream)
 
-				git pull origin "${TARGET_BRANCH}" || true
 				if [[ $DO_PUSH -eq 1 ]]; then 
 					doPush "${TARGET_BRANCH}"
 				fi
@@ -288,9 +328,6 @@ pushTagPD ()
 # UPSTREAM 
 ############
 
-# TODO add redhat-developer/red-hat-developer-hub-theme ?
-# TODO RHIDP-1025 add redhat-developer/red-hat-developer-hub-customization-provider?
-
 # TODO move janus-idp to redhat-developer
 	# RHIDP-1018 Sunset Janus IDP GH repos
 	# RHIDP-1019 Migrate Janus IDP plugins repo to backstage upstream
@@ -306,9 +343,196 @@ for repo in \
 	redhat-developer/rhdh-chart \
 	redhat-developer/red-hat-developer-hub-software-templates \
 	; do
+	# TODO add redhat-developer/red-hat-developer-hub-theme ?
 	pushBranchAndOrTagGH $repo 
 done
 
+MIDSTM_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "rhdh-1-rhel-9")
+if [[ ${MIDSTM_BRANCH} != "rhdh-"*"-rhel-"* ]]; then MIDSTM_BRANCH="rhdh-1-rhel-9"; fi
+
+function updatePluginVersions() {
+	# for janus-idp/backstage-plugins, run checkPluginVersions.sh
+	orgAndRepo="janus-idp/backstage-plugins"
+	d="${orgAndRepo/\//__}"
+	pushd "/tmp/tmp-checkouts/projects_${d}" >/dev/null || exit 1
+	git checkout "${SOURCE_BRANCH}" || true
+	
+	# get script
+	if [[ -x ${SCRIPT_DIR}/checkPluginVersions.sh ]]; then
+		CPV=${SCRIPT_DIR}/checkPluginVersions.sh
+	else
+		if [[ $VERBOSE -eq 1 ]]; then echo "Downloading checkPluginVersions.sh script from Github"; fi
+		pushd /tmp >/dev/null || exit
+		curl -sSLO "https://gitlab.cee.redhat.com/rhidp/rhdh/-/raw/${MIDSTM_BRANCH}/build/scripts/checkPluginVersions.sh" && chmod +x checkPluginVersions.sh
+		CPV=/tmp/checkPluginVersions.sh
+		popd >/dev/null || exit
+	fi
+
+	# TODO VERIFY THIS WORKS with 1.2 branch creation
+	$CPV -s "$(pwd)" -b "${TARGET_BRANCH}" --pr-branch "tagRelease.sh_branch_${TARGET_BRANCH}" --push
+
+	popd >/dev/null || exit 1
+}
+
+CSV_VERSION_Z=""
+CSV_VERSION_Z_OPERATOR=""
+CSV_VERSION_Z_PLUGINS=""
+getNextCSVZ() {
+	ver="$1"
+	if [[ $ver =~ ^([0-9]+)\.([0-9]+)\.([0-9]+) ]]; then # increase the z digit
+		XX=${BASH_REMATCH[1]}
+		YY=${BASH_REMATCH[2]}
+		ZZ=${BASH_REMATCH[3]}
+		(( ZZ=ZZ+1 ))
+		CSV_VERSION_Z="$XX.$YY.$ZZ"
+		(( XX=XX-1 ))
+		CSV_VERSION_Z_OPERATOR="$XX.$YY.$ZZ"
+		(( XX=XX-3 ))
+		CSV_VERSION_Z_PLUGINS="$XX.$YY.$ZZ"
+	fi
+}
+
+newver="1.y.0"
+newverOp="0.y.0"
+getXYplusOneFromBranch() {
+	ver="$1"
+	if [[ $ver =~ ^([0-9]+)\.([0-9]+)\..* ]]; then # increase the y digit
+		XX=${BASH_REMATCH[1]}
+		YY=${BASH_REMATCH[2]}
+		(( YY=YY+1 ))
+		newver="$XX.$YY.0"
+		(( XX=XX-1 ))
+		newverOp="$XX.$YY.0"
+	fi
+}
+
+getXYplusOneFromBranch "$TARGET_BRANCH"
+# echo "newver = $newver"
+# echo "newverOp = $newverOp"
+
+PR_BRANCH="pr-update-${SOURCE_BRANCH}-after-branching-${TARGET_BRANCH}-$(date +%s)"
+
+# for backstage-showcase, bump to specified version
+function updatePluginsRootVersions() {
+	the_branch="$1"
+	the_version="$2"
+	# for janus-idp/backstage-showcase
+	orgAndRepo="janus-idp/backstage-showcase"
+	d="${orgAndRepo/\//__}"
+	pushd "/tmp/tmp-checkouts/projects_${d}" >/dev/null || exit 1
+	git checkout "${the_branch}" || true
+
+	###############
+	# update 1 file
+	###############
+
+	d=package.json
+	jq -r --arg the_version "$the_version" '.version|=$the_version' $d > "${d}1"; mv -f "${d}1" "${d}"
+
+	if [[ ${DO_PUSH} -eq 1 ]]; then
+		COMMITMSG="chore: tagRelease.sh: bump to $the_version in $the_branch branch"
+		if [[ $DO_BUILD -eq 1 ]]; then
+			# quietly install any updates to yarn.lock so PR will pass sniff test
+			yarn install 2> >(grep -v warning 1>&2) 
+			COMMITMSG="${COMMITMSG} + regen yarn.lock"
+		fi
+		git commit -s -m "${COMMITMSG}" .
+		git pull origin "${the_branch}" || true
+		# create pull request if target branch is restricted access
+		createPr "${PR_BRANCH}" "${the_branch}"
+	fi ## if DO_PUSH
+
+	popd >/dev/null || exit 1
+}
+
+# for backstage-showcase, bump to specified version
+function updateShowcaseVersions() {
+	the_branch="$1"
+	the_version="$2"
+	# for janus-idp/backstage-showcase
+	orgAndRepo="janus-idp/backstage-showcase"
+	d="${orgAndRepo/\//__}"
+	pushd "/tmp/tmp-checkouts/projects_${d}" >/dev/null || exit 1
+	git checkout "${the_branch}" || true
+
+	################
+	# update 3 files
+	################
+
+	for d in package.json e2e-tests/package.json; do
+		jq -r --arg the_version "$the_version" '.version|=$the_version' $d > "${d}1"; mv -f "${d}1" "${d}"
+	done
+	sed -i packages/app/src/build-metadata.json -r \
+		-e "s/(\"RHDH Version: )[0-9.]+\"/\1$the_version\"/"
+
+	if [[ ${DO_PUSH} -eq 1 ]]; then
+		COMMITMSG="chore: tagRelease.sh: bump to $the_version in $the_branch branch"
+		if [[ $DO_BUILD -eq 1 ]]; then
+			# quietly install any updates to yarn.lock so PR will pass sniff test
+			yarn install 2> >(grep -v warning 1>&2) 
+			COMMITMSG="${COMMITMSG} + regen yarn.lock"
+		fi
+		git commit -s -m "${COMMITMSG}" .
+		git pull origin "${the_branch}" || true
+		# create pull request if target branch is restricted access
+		createPr "${PR_BRANCH}" "${the_branch}"
+	fi ## if DO_PUSH
+
+	popd >/dev/null || exit 1
+}
+
+# for operator, bump to specified version
+function updateOperatorVersions() {
+	the_branch="$1"
+	the_version="$2"
+	the_version_op="$3"
+	# for janus-idp/operator
+	orgAndRepo="janus-idp/operator"
+	d="${orgAndRepo/\//__}"
+	pushd "/tmp/tmp-checkouts/projects_${d}" >/dev/null || exit 1
+	git checkout "${the_branch}" || true
+
+	################
+	# update 4 files
+	################
+
+	# update Makefile
+	sed -i Makefile -r -e "s/(VERSION \?= )[0-9.]+/\1$the_version_op/" # 0.3.0
+	# update bundle/manifests/backstage-operator.clusterserviceversion.yaml
+	sed -i bundle/manifests/backstage-operator.clusterserviceversion.yaml -r \
+		-e "s/(skipRange: '>=0.0.1 <)[0-9.]+'/\1$the_version_op'/" \
+		-e "s/(name: backstage-operator.v)[0-9.]+/\1$the_version_op/" \
+		-e "s/(image: quay.io\/janus-idp\/operator:)[0-9.]+/\1$the_version_op/" \
+		-e "s/(^  version: )[0-9.]+/\1$the_version_op/" # 0.3.0
+	# update config/manager/kustomization.yaml
+	sed -i config/manager/kustomization.yaml -r \
+		-e "s/(^  newTag:  )[0-9.]+/\1$the_version_op/" # 0.3.0
+	# update .rhdh/bundle/manifests/rhdh-operator.csv.yaml use both 1.3.0 and 1.3 (three times for image ref replacements: operator, operator, hub)
+	sed -i .rhdh/bundle/manifests/rhdh-operator.csv.yaml -r \
+		-e "s/(skipRange: '>=1.0.0 <)[0-9.]+'/\1$the_version'/" \
+		-e "s/(name: rhdh-operator.v)[0-9.]+/\1$the_version/" \
+		-e "s/(^  version: )[0-9.]+/\1$the_version/" \
+		-e "s/(rhdh-rhdh-hub-rhel9:|rhdh-rhdh-rhel9-operator:)[0-9.]+/\1${the_version%.*}/" # replace with 1.3 
+
+	if [[ ${DO_PUSH} -eq 1 ]]; then
+		git commit -s -m "chore: tagRelease.sh: bump to $the_version in $the_branch branch" .
+		git pull origin "${the_branch}" || true
+		# create pull request if target branch is restricted access
+		createPr "${PR_BRANCH}" "${the_branch}"
+	fi ## if DO_PUSH
+
+	popd >/dev/null || exit 1
+}
+
+# now update main branches for the above branch creation
+# TODO VERIFY THIS WORKS with 1.2 branch creation
+if [[ ${SOURCE_BRANCH} ]]; then
+	# check for changes and push a PR for each repo
+	updatePluginVersions
+	updateShowcaseVersions "$SOURCE_BRANCH" "$newver"
+	updateOperatorVersions "$SOURCE_BRANCH" "$newver" "$newverOp"
+fi
+				
 # ############
 # MIDSTREAM 
 # ############
