@@ -15,9 +15,9 @@ export GITHUB_TOKEN=<your_GH_token>
 
 Script will create/update 1.y branches and update the main + rhdh-1-rhel-9 branches with minor version bumps.
 
-NOTE: **_TODO_ https://issues.redhat.com/browse/RHIDP-931 verify branch creation and update steps work**
-
 ### Create branches (eg., 1.2.x, 1.3.x)
+
+NOTE: **_TODO_ https://issues.redhat.com/browse/RHIDP-931 verify branch creation and update steps work**
 
 . Create 6 Github branches - run link:../build/scripts/tagRelease.sh[tagRelease.sh] 
 
@@ -41,6 +41,8 @@ NOTE: **_TODO_ https://issues.redhat.com/browse/RHIDP-931 verify branch creation
 
 ### Update main branch versions
 
+NOTE: **_TODO_ https://issues.redhat.com/browse/RHIDP-931 verify branch creation and update steps work**
+
 Bump versions in upstream main branches - run link:../build/scripts/tagRelease.sh[tagRelease.sh] 
 
 . [ ] janus-idp/backstage-plugins (_TODO_: migrate to link:https://github.com/backstage/community-plugins[backstage/community-plugins])
@@ -59,12 +61,11 @@ Bump versions in upstream main branches - run link:../build/scripts/tagRelease.s
 
 NOTE: Dockerfile version metadata downstream is derived from the backstage-showcase package.json version.
 
-### Update rhdh-*-rhel-9 branch versions
+### Update rhdh-1.yy-rhel-9 branch versions
 
-Submit PR to fix version reference in `upstream_repos.yml` for both the new rhdh-1.yy-rhel-9 branch.
+NOTE: **_TODO_ https://issues.redhat.com/browse/RHIDP-931 verify branch creation and update steps work**
 
-NOTE: **_TODO_: RHIDP-931 script this so it's done when the new branch is created**
-
+Submit PR (or just merge change) to fix version reference in `upstream_repos.yml` for the new rhdh-1.yy-rhel-9 branch; trigger a build from the new branch.
 
 ### Brew Targets, Product Variants, and CPEs
 

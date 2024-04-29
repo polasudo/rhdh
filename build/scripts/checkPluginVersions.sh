@@ -193,8 +193,6 @@ if [[ ${DO_PUSH} -eq 1 ]]; then
   fi
   git commit -s -m "chore: checkPluginVersion.sh regen yarn.lock in $BRANCHUSED branch" .
   git pull origin "${BRANCHUSED}" || true
-  set -x
   # create pull request if target branch is restricted access
   createPr "${PR_BRANCH}" "${BRANCHUSED}"
-  set +x
 fi ## if DO_PUSH
