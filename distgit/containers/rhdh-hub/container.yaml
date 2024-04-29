@@ -10,7 +10,7 @@ remote_sources:
   - name: upstream1
     remote_source:
       repo: https://gitlab.cee.redhat.com/rhidp/rhdh.git
-      ref: 2e7c3c9a9da6fef9542569cf3a385ecf8ff2ba54
+      ref: 57f7ea7cdd2b076a0431ece1283f014eb6bb224b
       pkg_managers:
         - yarn
       packages:
@@ -21,6 +21,7 @@ remote_sources:
           - path: distgit/containers/rhdh-hub/dynamic-plugins/wrappers/roadiehq-scaffolder-backend-module-http-request/dist-dynamic
           - path: distgit/containers/rhdh-hub/dynamic-plugins/wrappers/roadiehq-scaffolder-backend-argocd-dynamic/dist-dynamic
           - path: distgit/containers/rhdh-hub/dynamic-plugins/wrappers/roadiehq-backstage-plugin-argo-cd-backend-dynamic/dist-dynamic
+          - path: distgit/containers/rhdh-hub/dynamic-plugins/wrappers/parfuemerie-douglas-scaffolder-backend-module-azure-repositories/dist-dynamic
           - path: distgit/containers/rhdh-hub/dynamic-plugins/wrappers/immobiliarelabs-backstage-plugin-gitlab-backend-dynamic/dist-dynamic
           - path: distgit/containers/rhdh-hub/dynamic-plugins/wrappers/backstage-plugin-techdocs-backend-dynamic/dist-dynamic
           - path: distgit/containers/rhdh-hub/dynamic-plugins/wrappers/backstage-plugin-sonarqube-backend-dynamic/dist-dynamic
@@ -50,7 +51,7 @@ remote_sources:
   - name: upstream2
     remote_source:
       repo: https://gitlab.cee.redhat.com/rhidp/rhdh.git
-      ref: 2e7c3c9a9da6fef9542569cf3a385ecf8ff2ba54
+      ref: 57f7ea7cdd2b076a0431ece1283f014eb6bb224b
       pkg_managers:
         - pip
       packages:
