@@ -65,9 +65,13 @@ Examples:
     $ gh auth login -h github.com
     # 2. Run a manual release as the bot:
     $ export GITHUB_TOKEN=ghp_rhdh-bot-token-here
+    $ $0 --chart-version 1.1.2 --rhdh-version 1.1-107 --catalog git@github.com:rhdh-bot/openshift-helm-charts.git --publish
+        # OR
     $ $0 --chart-version 1.0.1 --rhdh-version 1.0-201 --catalog git@github.com:rhdh-bot/openshift-helm-charts.git --publish
     Chart version:        1.0.1
     Developer Hub image:  quay.io/rhdh/rhdh-hub-rhel9:1.0-201
+
+    # NOTE that the PR may not be created correctly! You may have to manually create a PR from the release-x.y.z branch.
 "
     exit
 }
@@ -310,7 +314,7 @@ if [[ $PUBLISH -eq 1 ]]; then
             { echo "[ERROR] Could not push to branch redhat-developer-hub-${CHART_VERSION}: must exit!"; exit 44; }
 
         if [[ $EXTRA_BRANCH ]]; then # force push to the rhdh-1.y-rhel-9 branch so we have a branch that changes over time
-            git clone --filter=blob:none --no-checkout --depth=1 -q "${CATALOG_FORK}" "${CATALOG_DIR}-2" && cd "${CATALOG_DIR}-2"
+            git clone --filter=blob:none --no-checkout --depth=1 -q "${CATALOG_FORK}" "${CATALOG_DIR}-2" && pushd "${CATALOG_DIR}-2" >/dev/null || exit 1
             git sparse-checkout init --cone
             git read-tree -mu HEAD
             git -C "${CATALOG_DIR}-2" checkout -q -b "${EXTRA_BRANCH}" 1>/dev/null 2>&1 || true
@@ -320,6 +324,7 @@ if [[ $PUBLISH -eq 1 ]]; then
             git -C "${CATALOG_DIR}-2" commit -q --no-verify --no-gpg-sign -s -m "chore: add redhat-developer-hub-${CHART_VERSION}" || exit 55
             git -C "${CATALOG_DIR}-2" push $QUIET origin "${EXTRA_BRANCH}" -f 2>/dev/null || \
                 { echo "[ERROR] Could not push to branch redhat-developer-hub-${CHART_VERSION}: must exit!"; exit 45; }
+            popd >/dev/null || exit 1
         fi
         echo; echo "Helm chart published. To install, see:
     https://github.com/rhdh-bot/openshift-helm-charts/tree/redhat-developer-hub-${CHART_VERSION}/installation"
@@ -353,11 +358,20 @@ if [[ $PUBLISH -eq 1 ]]; then
         git commit --no-gpg-sign -s -m "chore: chart: add Red Hat Developer ${CHART_VERSION}" "${CHART_VERSION}"
         git pull rhdh-bot release-"${CHART_VERSION}" || true
         git push rhdh-bot release-"${CHART_VERSION}"
-        hub pull-request -o -f -m "chore: chart: add RHDH ${CHART_VERSION}
 
-        chore: chart: add Red Hat Developer ${CHART_VERSION}
+        # Option 1: open the PR creation page
+        google-chrome "https://github.com/rhdh-bot/openshift-helm-charts/pull/new/${CHART_VERSION}"
 
-        Signed-off-by: RHDH Bot <rhdh-bot@redhat.com>" -b openshift-helm-charts:main -h rhdh-bot:release-"${CHART_VERSION}"
+        # Option 2: try to autofill the PR creation too
+        gh pr create --fill --base openshift-helm-charts:main --head rhdh-bot:release-"${CHART_VERSION}" -w
+
+        # option 3: use deprecated hub instead of gh cli
+        # hub pull-request -o -f -m "chore: chart: add RHDH ${CHART_VERSION}
+
+        # chore: chart: add Red Hat Developer ${CHART_VERSION}
+
+        # Signed-off-by: RHDH Bot <rhdh-bot@redhat.com>" -b openshift-helm-charts:main -h rhdh-bot:release-"${CHART_VERSION}"
+
         popd >/dev/null || exit 1
         rm -fr "/tmp/rhdh-bot-${CHART_VERSION}" /tmp/openshift-helm-charts-main
         popd >/dev/null || exit 1
@@ -399,7 +413,8 @@ fi
 if [[ $DEBUG -eq 1 ]]; then
     echo;echo "Delete old folders from branches redhat-developer-hub-${CHART_VERSION} and $EXTRA_BRANCH (except for $CHART_VERSION):"
 fi
-git clone --filter=blob:none -q "${CATALOG_FORK}" -b "redhat-developer-hub-${CHART_VERSION}" "${CATALOG_DIR}-3" 1>/dev/null 2>&1 && cd "${CATALOG_DIR}-3"
+cd /tmp
+git clone --filter=blob:none -q "${CATALOG_FORK}" -b "redhat-developer-hub-${CHART_VERSION}" "${CATALOG_DIR}-3" 1>/dev/null 2>&1 && pushd "${CATALOG_DIR}-3" >/dev/null || exit 1
 
 deleteDirs() {
     BRANCH="$1"
@@ -423,5 +438,7 @@ if [[ $EXTRA_BRANCH ]]; then
     git -C "${CATALOG_DIR}-3" checkout "$EXTRA_BRANCH" 1>/dev/null 2>&1 || true
     deleteDirs "$EXTRA_BRANCH"
 fi
+
+popd >/dev/null || exit 1
 
 rm -fr "${HELM_DIR}" "${CATALOG_DIR}" "${CATALOG_DIR}-2" "${CATALOG_DIR}-3"

@@ -124,7 +124,17 @@ Submit PR (or just merge change) to fix version reference in `upstream_repos.yml
 cd /tmp; git clone git@gitlab.cee.redhat.com:rhidp/rhdh.git --depth 1 && cd rhdh
 
 # use tag from https://quay.io/repository/rhdh/rhdh-hub-rhel9?tab=tags
-./build/helm/prepare.sh --chart-version 1.1.1 --rhdh-version 1.1-102 --catalog git@github.com:rhdh-bot/openshift-helm-charts.git --publish
+./build/helm/prepare.sh --chart-version 1.1.2 --rhdh-version 1.1-107 --catalog git@github.com:rhdh-bot/openshift-helm-charts.git --publish
+
+# the generated branch will be invalid for creating a PR, as it will be waaay out of date compared to the openshift main branch
+cd /tmp
+git clone git@github.com:openshift-helm-charts/charts.git --depth 1 && cd charts
+git remote add rhdh-bot git@github.com:rhdh-bot/openshift-helm-charts.git && git fetch rhdh-bot && git checkout release-1.1.2
+
+# create a pull request from the release-x.y.z branch of rhdh-bot to the openshift main branch
+export GITHUB_TOKEN=<your token here>
+gh pr create --fill --base main --head release-1.1.2 -w
+
 ```
 
 . [ ] link:../build/scripts/copyIIBsToQuay.sh[Release the operator IIB to Quay] so it doesn't expire.
