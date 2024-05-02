@@ -66,6 +66,7 @@ spec:
 
     * [Red Hat Developer Hub Product Page](https://www.redhat.com/en/technologies/cloud-computing/developer-hub)
     * [Product Documentation](https://access.redhat.com/documentation/en-us/red_hat_developer_hub)
+    * [Support](https://access.redhat.com/support)
     * [Life Cycle](https://access.redhat.com/node/7025299)
     * [Support Policies](https://access.redhat.com/policy/developerhub-support-policy)
     
@@ -168,7 +169,6 @@ spec:
       - name: rhdh-operator
         label:
           app: rhdh-operator
-        
         spec:
           replicas: 1
           selector:
@@ -330,6 +330,8 @@ spec:
     url: https://developers.redhat.com/products/developer-hub/overview/
   - name: Documentation
     url: https://access.redhat.com/documentation/en-us/red_hat_developer_hub
+  - name: Support
+    url: https://access.redhat.com/support
   - name: Backstage Operator (Upstream)
     url: https://github.com/janus-idp/operator
   - name: RHDH Operator (Downstream)
