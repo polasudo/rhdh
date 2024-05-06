@@ -371,14 +371,8 @@ if [[ $PUBLISH -eq 1 ]]; then
         gh repo set-default openshift-helm-charts/charts
         gh pr create -t "${COMMIT_MSG}" -b "${COMMIT_MSG}" --base main --head rhdh-bot:openshift-helm-charts:release-"${CHART_VERSION}"
         # open new PR in a browser
-        gh pr view rhdh-bot:release-"${CHART_VERSION}" --web 
-
-        # option 3: use deprecated hub instead of gh cli
-        # hub pull-request -o -f -m "chore: chart: add RHDH ${CHART_VERSION}
-
-        # chore: chart: add Red Hat Developer ${CHART_VERSION}
-
-        # Signed-off-by: RHDH Bot <rhdh-bot@redhat.com>" -b openshift-helm-charts:main -h rhdh-bot:release-"${CHART_VERSION}"
+        URL=$(gh pr view rhdh-bot:release-"${CHART_VERSION}" --json 'url' | jq -r '.url')
+        google-chrome "$URL" || true
 
         popd >/dev/null || exit 1
         rm -fr "/tmp/rhdh-bot-${CHART_VERSION}" /tmp/openshift-helm-charts-main
