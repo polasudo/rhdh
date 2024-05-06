@@ -65,6 +65,8 @@ Examples:
     $ gh auth login -h github.com
     # 2. Run a manual release as the bot:
     $ export GITHUB_TOKEN=ghp_rhdh-bot-token-here
+    $ $0 --chart-version 1.1.2+1714483424 --rhdh-version 1.1-107.1714483424 --catalog git@github.com:rhdh-bot/openshift-helm-charts.git --publish
+        # OR
     $ $0 --chart-version 1.1.2 --rhdh-version 1.1-107 --catalog git@github.com:rhdh-bot/openshift-helm-charts.git --publish
         # OR
     $ $0 --chart-version 1.0.1 --rhdh-version 1.0-201 --catalog git@github.com:rhdh-bot/openshift-helm-charts.git --publish
@@ -355,15 +357,21 @@ if [[ $PUBLISH -eq 1 ]]; then
         git checkout origin/main -b "release-${CHART_VERSION}" || true
         git checkout "release-${CHART_VERSION}" || true
         git add "${CHART_VERSION}"
-        git commit --no-gpg-sign -s -m "chore: chart: add Red Hat Developer ${CHART_VERSION}" "${CHART_VERSION}"
-        git pull rhdh-bot release-"${CHART_VERSION}" || true
+        COMMIT_MSG="chore: chart: add Red Hat Developer ${CHART_VERSION}"
+        git commit --no-gpg-sign -s -m "${COMMIT_MSG}" "${CHART_VERSION}" .
+        # delete branch (if exists)
+        git push rhdh-bot :release-"${CHART_VERSION}" || true
+        # create new branch
         git push rhdh-bot release-"${CHART_VERSION}"
 
         # Option 1: open the PR creation page
-        google-chrome "https://github.com/rhdh-bot/openshift-helm-charts/pull/new/${CHART_VERSION}"
+        echo "Creating PR https://github.com/openshift-helm-charts/charts/compare/main...rhdh-bot:openshift-helm-charts:release-${CHART_VERSION}?expand=1 ..."
 
-        # Option 2: try to autofill the PR creation too
-        gh pr create --fill --base openshift-helm-charts:main --head rhdh-bot:release-"${CHART_VERSION}" -w
+        # Option 2: create the PR automatically
+        gh repo set-default openshift-helm-charts/charts
+        gh pr create -t "${COMMIT_MSG}" -b "${COMMIT_MSG}" --base main --head rhdh-bot:openshift-helm-charts:release-"${CHART_VERSION}"
+        # open new PR in a browser
+        gh pr view rhdh-bot:release-"${CHART_VERSION}" --web 
 
         # option 3: use deprecated hub instead of gh cli
         # hub pull-request -o -f -m "chore: chart: add RHDH ${CHART_VERSION}
