@@ -357,10 +357,12 @@ if [[ $PUBLISH -eq 1 ]]; then
         git checkout origin/main -b "release-${CHART_VERSION}" || true
         git checkout "release-${CHART_VERSION}" || true
         git add "${CHART_VERSION}"
-        COMMIT_MSG="chore: chart: add Red Hat Developer ${CHART_VERSION}"
+        COMMIT_MSG="chore: chart: add Red Hat Developer ${CHART_VERSION} for registry.redhat.io/rhdh/rhdh-hub-rhel9:${RHDH_VERSION}"
         git commit --no-gpg-sign -s -m "${COMMIT_MSG}" "${CHART_VERSION}" .
         # delete branch (if exists)
-        git push rhdh-bot :release-"${CHART_VERSION}" || true
+        if [[ $(git ls-remote --heads git@github.com:rhdh-bot/openshift-helm-charts.git "refs/heads/release-${CHART_VERSION}") ]]; then 
+            git push rhdh-bot :release-"${CHART_VERSION}" || true
+        fi
         # create new branch
         git push rhdh-bot release-"${CHART_VERSION}"
 
@@ -372,7 +374,7 @@ if [[ $PUBLISH -eq 1 ]]; then
         gh pr create -t "${COMMIT_MSG}" -b "${COMMIT_MSG}" --base main --head rhdh-bot:openshift-helm-charts:release-"${CHART_VERSION}"
         # open new PR in a browser
         URL=$(gh pr view rhdh-bot:release-"${CHART_VERSION}" --json 'url' | jq -r '.url')
-        google-chrome "$URL" || true
+        google-chrome --incognito "$URL" || true
 
         popd >/dev/null || exit 1
         rm -fr "/tmp/rhdh-bot-${CHART_VERSION}" /tmp/openshift-helm-charts-main
