@@ -401,6 +401,11 @@ for ((i = 0; i < NUM_REPOS; i++)); do # echo $i
       # set RHDH description in index.html
       d="packages/app/public/index.html"
       sed -i -r -e "s#(<meta name=\"description\" content=\")(.+)(\" />)#\1$APPTITLE\3#" "$d"
+
+      # set build-metadata.json info, using upstream info: ${ROOTPATH}/sync/upstream_SHA_rhdh-hub ==> janus-idp/backstage-showcase main @ 2ff35695
+      upstream_repo_and_SHA=$(sed -r -e "s|([0-9a-f]+) = (.+) @ .+/([^/]+/[^/]+)|\3 \2 @ \1|" "${ROOTPATH}/sync/upstream_SHA_rhdh-hub")
+      sed -i packages/app/src/build-metadata.json -r \
+        -e 's|("Last Commit:.+)|"Last Commit: '"$upstream_repo_and_SHA"'"|'
     fi
     ##################################### rhdh-hub #####################################
 
