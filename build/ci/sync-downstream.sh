@@ -98,9 +98,11 @@ klist; git clone "ssh://rhdh-bot@pkgs.devel.redhat.com/containers/${CONTAINER_NA
 
   if [[ $CONTAINER_NAME == "rhdh-hub" ]]; then
     # set build-metadata.json info, using janus-idp/backstage-showcase main @ 2ff35695
-    midstream_repo_and_SHA="$(git remote -v | grep origin | grep -v push | sed -r -e "s|.+@(.+)\.git.+|\1|" | tr ":" "/") $DWNSTM_BRANCH @ $(git rev-parse --short=8 HEAD)"
-    sed -i "${CONTAINER_DIR}"/packages/app/src/build-metadata.json -r \
-      -e 's|"(Last Commit: )(.+)"|"Last Commit: \2", "Midstream: '"$midstream_repo_and_SHA"'"|'
+    pushd "${ROOTPATH}"/distgit/containers/"${CONTAINER_NAME}"/ >/dev/null || exit 1
+      midstream_repo_and_SHA="$(git remote -v | grep origin | grep -v push | sed -r -e "s|.+@(.+)\.git.+|\1|" | tr ":" "/") $(git rev-parse --abbrev-ref HEAD) @ $(git rev-parse --short=8 HEAD)"
+      sed -i "${CONTAINER_DIR}"/packages/app/src/build-metadata.json -r \
+        -e 's|"(Last Commit: )(.+)"|"Last Commit: \2", "Midstream: '"$midstream_repo_and_SHA"'"|'
+    popd >/dev/null || exit 1
   fi
   # store one unique diff file per downstream repo
   git diff --name-only | tee -a "/tmp/sync-downstream.sh.${CONTAINER_NAME}.diff.txt"
