@@ -1451,7 +1451,7 @@
     cross-fetch "^4.0.0"
     uri-template "^2.0.0"
 
-"@backstage/catalog-model@^1.4.5":
+"@backstage/catalog-model@^1.4.4", "@backstage/catalog-model@^1.4.5":
   version "1.4.5"
   resolved "https://registry.npmjs.org/@backstage/catalog-model/-/catalog-model-1.4.5.tgz#b8f6309ff12b72dffdfe852d615c553ae13452c0"
   integrity sha512-I4QOCy0pSXJikQWgC8MWj2zDRCgQnnmvnNOOnPFcg7hIIIzeV0sGp6d3Qi7bc2tvzXt3fT3biSOCgGOWi1IJKA==
@@ -1758,7 +1758,7 @@
     "@backstage/plugin-permission-node" "^0.7.28"
     "@backstage/types" "^1.1.1"
 
-"@backstage/plugin-catalog-react@^1.11.2", "@backstage/plugin-catalog-react@^1.11.3":
+"@backstage/plugin-catalog-react@^1.10.0", "@backstage/plugin-catalog-react@^1.11.2", "@backstage/plugin-catalog-react@^1.11.3":
   version "1.11.3"
   resolved "https://registry.npmjs.org/@backstage/plugin-catalog-react/-/plugin-catalog-react-1.11.3.tgz#e83948f3c921791066499d30ef487a9f4ce5964b"
   integrity sha512-WJPLLhYrRh6zPQ/lr1Lub+q8I7dd/kOfVklVxl3FmAK3Ad6z3IdK3Z7RrzUEHc2WVIE57bjnepEtBSSM9Xum/g==
@@ -2419,6 +2419,28 @@
     "@segment/analytics-next" "^1.58.0"
     prop-types "^15.8.1"
     react-use "^17.4.0"
+
+"@janus-idp/backstage-plugin-argocd@1.0.2":
+  version "1.0.2"
+  resolved "https://registry.npmjs.org/@janus-idp/backstage-plugin-argocd/-/backstage-plugin-argocd-1.0.2.tgz#604f78aca82a3565c1ec84a7783eb3ad22eb3fb2"
+  integrity sha512-unBo4+EkkS81eqyPKoaZJUdcxFmcfKwpO+OHar7IRoIy/bbsonC4Jv9msJKS/pTkzzjxsWW325p/PYrVxDVlpA==
+  dependencies:
+    "@backstage/catalog-model" "^1.4.4"
+    "@backstage/core-components" "^0.14.3"
+    "@backstage/core-plugin-api" "^1.9.1"
+    "@backstage/plugin-catalog-react" "^1.10.0"
+    "@backstage/theme" "^0.5.2"
+    "@kubernetes/client-node" "^0.20.0"
+    "@material-ui/core" "^4.9.13"
+    "@material-ui/icons" "^4.9.1"
+    "@material-ui/lab" "^4.0.0-alpha.61"
+    "@patternfly/patternfly" "^5.1.0"
+    "@patternfly/react-charts" "^7.1.1"
+    "@patternfly/react-core" "^5.1.2"
+    "@patternfly/react-icons" "^5.1.1"
+    "@patternfly/react-tokens" "^5.1.2"
+    moment "^2.30.1"
+    react-use "17.4.0"
 
 "@janus-idp/backstage-plugin-jfrog-artifactory@1.2.35":
   version "1.2.35"
@@ -9434,6 +9456,11 @@ mobx@^6.9.0:
   resolved "https://registry.npmjs.org/mobx/-/mobx-6.11.0.tgz#8a748b18c140892d1d0f28b71315f1f639180006"
   integrity sha512-qngYCmr0WJiFRSAtYe82DB7SbzvbhehkJjONs8ydynUwoazzUQHZdAlaJqUfks5j4HarhWsZrMRhV7HtSO9HOQ==
 
+moment@^2.30.1:
+  version "2.30.1"
+  resolved "https://registry.npmjs.org/moment/-/moment-2.30.1.tgz#f8c91c07b7a786e30c59926df530b4eac96974ae"
+  integrity sha512-uEmtNhbDOrWPFS+hdjFCBfy9f2YoyzRpwcl+DqpC6taX21FzsTLQVbMV/W7PzNSX6x/bhC1zA3c2UQ5NzH6how==
+
 moo@^0.5.0:
   version "0.5.2"
   resolved "https://registry.npmjs.org/moo/-/moo-0.5.2.tgz#f9fe82473bc7c184b0d32e2215d3f6e67278733c"
@@ -10337,7 +10364,7 @@ react-universal-interface@^0.6.2:
   resolved "https://registry.npmjs.org/react-universal-interface/-/react-universal-interface-0.6.2.tgz#5e8d438a01729a4dbbcbeeceb0b86be146fe2b3b"
   integrity sha512-dg8yXdcQmvgR13RIlZbTRQOoUrDciFVoSBZILwjE2LFISxZZ8loVJKAkuzswl5js8BHda79bIb2b84ehU8IjXw==
 
-react-use@^17.2.4, react-use@^17.3.2, react-use@^17.4.0:
+react-use@17.4.0, react-use@^17.2.4, react-use@^17.3.2, react-use@^17.4.0:
   version "17.4.0"
   resolved "https://registry.npmjs.org/react-use/-/react-use-17.4.0.tgz#cefef258b0a6c534a5c8021c2528ac6e1a4cdc6d"
   integrity sha512-TgbNTCA33Wl7xzIJegn1HndB4qTS9u03QUwyNycUnXaweZkE4Kq2SB+Yoxx8qbshkZGYBDvUXbXWRUmQDcZZ/Q==
