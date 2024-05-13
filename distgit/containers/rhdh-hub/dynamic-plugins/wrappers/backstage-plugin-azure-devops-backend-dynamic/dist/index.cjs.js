@@ -2,7 +2,7 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var pluginAzureDevopsBackend = require('@backstage/plugin-azure-devops-backend');
+var pluginAzureDevopsBackend = require('@backstage-community/plugin-azure-devops-backend');
 
 function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 

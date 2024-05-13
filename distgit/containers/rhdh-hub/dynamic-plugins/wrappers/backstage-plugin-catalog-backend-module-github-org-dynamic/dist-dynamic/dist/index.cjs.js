@@ -2,21 +2,21 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var require$$5 = require('@backstage/backend-common');
-var require$$1$1 = require('@backstage/backend-plugin-api');
+var require$$0$1 = require('@backstage/backend-plugin-api');
 var require$$9 = require('@backstage/backend-tasks');
 var require$$0 = require('@backstage/catalog-client');
 var require$$1 = require('@backstage/integration');
 var require$$2 = require('@octokit/rest');
 var require$$3 = require('lodash');
 var require$$4 = require('git-url-parse');
+var require$$5 = require('@backstage/backend-common');
 var require$$6 = require('@backstage/plugin-catalog-node');
 var require$$7 = require('@octokit/graphql');
 var require$$8 = require('uuid');
 var require$$10 = require('@backstage/catalog-model');
 var require$$11 = require('minimatch');
-var require$$4$1 = require('@backstage/plugin-catalog-node/alpha');
-var require$$5$1 = require('@backstage/plugin-events-node');
+var require$$3$1 = require('@backstage/plugin-catalog-node/alpha');
+var require$$4$1 = require('@backstage/plugin-events-node');
 
 function getDefaultExportFromCjs (x) {
 	return x && x.__esModule && Object.prototype.hasOwnProperty.call(x, 'default') ? x['default'] : x;
@@ -1509,15 +1509,10 @@ class GithubMultiOrgEntityProvider {
       logger,
       orgs: options.orgs,
       userTransformer: options.userTransformer,
-      teamTransformer: options.teamTransformer
+      teamTransformer: options.teamTransformer,
+      events: options.events
     });
     provider.schedule(options.schedule);
-    if (options.eventBroker) {
-      options.eventBroker.subscribe({
-        supportsEventTopics: provider.supportsEventTopics.bind(provider),
-        onEvent: provider.onEvent.bind(provider)
-      });
-    }
     return provider;
   }
   /** {@inheritdoc @backstage/plugin-catalog-backend#EntityProvider.getProviderName} */
@@ -1597,9 +1592,6 @@ class GithubMultiOrgEntityProvider {
       }))
     });
     markCommitComplete();
-  }
-  supportsEventTopics() {
-    return EVENT_TOPICS$1;
   }
   async onEvent(params) {
     var _a, _b, _c, _d;
@@ -2119,7 +2111,8 @@ class GithubOrgEntityProvider {
       gitHubConfig,
       githubCredentialsProvider: options.githubCredentialsProvider || integration.DefaultGithubCredentialsProvider.fromIntegrations(integrations),
       userTransformer: options.userTransformer,
-      teamTransformer: options.teamTransformer
+      teamTransformer: options.teamTransformer,
+      events: options.events
     });
     provider.schedule(options.schedule);
     return provider;
@@ -2189,7 +2182,6 @@ class GithubOrgEntityProvider {
     });
     markCommitComplete();
   }
-  /** {@inheritdoc @backstage/plugin-events-node#EventSubscriber.onEvent} */
   async onEvent(params) {
     const { logger } = this.options;
     logger.debug(`Received event from ${params.topic}`);
@@ -2232,10 +2224,6 @@ class GithubOrgEntityProvider {
       );
     }
     return;
-  }
-  /** {@inheritdoc @backstage/plugin-events-node#EventSubscriber.supportsEventTopics} */
-  supportsEventTopics() {
-    return EVENT_TOPICS;
   }
   async onTeamEditedInOrganization(event, createDeltaOperation) {
     var _a, _b;
@@ -2527,12 +2515,11 @@ index_cjs$1.GithubOrgReaderProcessor = GithubOrgReaderProcessor;
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 
-	var backendCommon = require$$5;
-	var backendPluginApi = require$$1$1;
+	var backendPluginApi = require$$0$1;
 	var backendTasks = require$$9;
 	var pluginCatalogBackendModuleGithub = index_cjs$1;
-	var alpha = require$$4$1;
-	var pluginEventsNode = require$$5$1;
+	var alpha = require$$3$1;
+	var pluginEventsNode = require$$4$1;
 
 	const githubOrgEntityProviderTransformsExtensionPoint = backendPluginApi.createExtensionPoint({
 	  id: "catalog.githubOrgEntityProvider"
@@ -2579,7 +2566,7 @@ index_cjs$1.GithubOrgReaderProcessor = GithubOrgReaderProcessor;
 	              schedule: scheduler.createScheduledTaskRunner(
 	                definition.schedule
 	              ),
-	              logger: backendCommon.loggerToWinstonLogger(logger),
+	              logger,
 	              userTransformer,
 	              teamTransformer
 	            })

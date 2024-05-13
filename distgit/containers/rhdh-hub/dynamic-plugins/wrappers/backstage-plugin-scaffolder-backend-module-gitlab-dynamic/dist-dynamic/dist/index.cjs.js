@@ -7,8 +7,8 @@ var require$$1 = require('@gitbeaker/node');
 var require$$2 = require('zod');
 var require$$3 = require('@backstage/errors');
 var require$$4 = require('@gitbeaker/rest');
-var require$$5 = require('luxon');
-var require$$6 = require('yaml');
+var require$$5 = require('yaml');
+var require$$6 = require('luxon');
 var require$$7 = require('path');
 var require$$8 = require('@backstage/backend-common');
 var require$$9 = require('@backstage/backend-plugin-api');
@@ -24,8 +24,8 @@ var node = require$$1;
 var zod = require$$2;
 var errors = require$$3;
 var rest = require$$4;
-var luxon = require$$5;
-var yaml = require$$6;
+var yaml = require$$5;
+var luxon = require$$6;
 var path = require$$7;
 var backendCommon = require$$8;
 var backendPluginApi = require$$9;
@@ -163,12 +163,81 @@ async function checkEpicScope(client, projectId, epicId) {
   }
 }
 
+const examples$5 = [
+  {
+    description: "Creating a group at the top level",
+    example: yaml__default.default.stringify({
+      steps: [
+        {
+          id: "gitlabGroup",
+          name: "Group",
+          action: "gitlab:group:ensureExists",
+          input: {
+            repoUrl: "gitlab.com",
+            path: ["group1"]
+          }
+        }
+      ]
+    })
+  },
+  {
+    description: "Create a group nested within another group",
+    example: yaml__default.default.stringify({
+      steps: [
+        {
+          id: "gitlabGroup",
+          name: "Group",
+          action: "gitlab:group:ensureExists",
+          input: {
+            repoUrl: "gitlab.com",
+            path: ["group1", "group2"]
+          }
+        }
+      ]
+    })
+  },
+  {
+    description: "Create a group nested within multiple other groups",
+    example: yaml__default.default.stringify({
+      steps: [
+        {
+          id: "gitlabGroup",
+          name: "Group",
+          action: "gitlab:group:ensureExists",
+          input: {
+            repoUrl: "gitlab.com",
+            path: ["group1", "group2", "group3"]
+          }
+        }
+      ]
+    })
+  },
+  {
+    description: "Create a group in dry run mode",
+    example: yaml__default.default.stringify({
+      steps: [
+        {
+          id: "gitlabGroup",
+          name: "Group",
+          action: "gitlab:group:ensureExists",
+          isDryRun: true,
+          input: {
+            repoUrl: "https://gitlab.com/my-repo",
+            path: ["group1", "group2", "group3"]
+          }
+        }
+      ]
+    })
+  }
+];
+
 const createGitlabGroupEnsureExistsAction = (options) => {
   const { integrations } = options;
   return pluginScaffolderNode.createTemplateAction({
     id: "gitlab:group:ensureExists",
     description: "Ensures a Gitlab group exists",
     supportsDryRun: true,
+    examples: examples$5,
     schema: {
       input: commonGitlabConfig.merge(
         zod.z.object({
@@ -223,10 +292,101 @@ const createGitlabGroupEnsureExistsAction = (options) => {
   });
 };
 
+const examples$4 = [
+  {
+    description: "Create a GitLab project deploy token with minimal options.",
+    example: yaml__default.default.stringify({
+      steps: [
+        {
+          id: "createDeployToken",
+          action: "gitlab:projectDeployToken:create",
+          name: "Create GitLab Project Deploy Token",
+          input: {
+            repoUrl: "gitlab.com?repo=repo&owner=owner",
+            projectId: "456",
+            name: "tokenname"
+          }
+        }
+      ]
+    })
+  },
+  {
+    description: "Create a GitLab project deploy token with custom scopes.",
+    example: yaml__default.default.stringify({
+      steps: [
+        {
+          id: "createDeployToken",
+          action: "gitlab:projectDeployToken:create",
+          name: "Create GitLab Project Deploy Token",
+          input: {
+            repoUrl: "gitlab.com?repo=repo&owner=owner",
+            projectId: "789",
+            name: "tokenname",
+            scopes: ["read_registry", "write_repository"]
+          }
+        }
+      ]
+    })
+  },
+  {
+    description: "Create a GitLab project deploy token with a specified name.",
+    example: yaml__default.default.stringify({
+      steps: [
+        {
+          id: "createDeployToken",
+          action: "gitlab:projectDeployToken:create",
+          name: "Create GitLab Project Deploy Token",
+          input: {
+            repoUrl: "gitlab.com?repo=repo&owner=owner",
+            projectId: "101112",
+            name: "my-custom-token"
+          }
+        }
+      ]
+    })
+  },
+  {
+    description: "Create a GitLab project deploy token with a numeric project ID.",
+    example: yaml__default.default.stringify({
+      steps: [
+        {
+          id: "createDeployToken",
+          action: "gitlab:projectDeployToken:create",
+          name: "Create GitLab Project Deploy Token",
+          input: {
+            repoUrl: "gitlab.com?repo=repo&owner=owner",
+            projectId: 42,
+            name: "tokenname"
+          }
+        }
+      ]
+    })
+  },
+  {
+    description: "Create a GitLab project deploy token with a custom username",
+    example: yaml__default.default.stringify({
+      steps: [
+        {
+          id: "createDeployToken",
+          action: "gitlab:projectDeployToken:create",
+          name: "Create GitLab Project Deploy Token",
+          input: {
+            repoUrl: "gitlab.com?repo=repo&owner=owner",
+            projectId: 42,
+            name: "tokenname",
+            username: "tokenuser"
+          }
+        }
+      ]
+    })
+  }
+];
+
 const createGitlabProjectDeployTokenAction = (options) => {
   const { integrations } = options;
   return pluginScaffolderNode.createTemplateAction({
     id: "gitlab:projectDeployToken:create",
+    examples: examples$4,
     schema: {
       input: commonGitlabConfig.merge(
         zod.z.object({
@@ -268,7 +428,7 @@ const createGitlabProjectDeployTokenAction = (options) => {
   });
 };
 
-const examples$2 = [
+const examples$3 = [
   {
     description: "Create a GitLab project access token with minimal options.",
     example: yaml__default.default.stringify({
@@ -358,7 +518,7 @@ const createGitlabProjectAccessTokenAction = (options) => {
   const { integrations } = options;
   return pluginScaffolderNode.createTemplateAction({
     id: "gitlab:projectAccessToken:create",
-    examples: examples$2,
+    examples: examples$3,
     schema: {
       input: zod.z.object({
         projectId: zod.z.union([zod.z.number(), zod.z.string()], {
@@ -480,7 +640,7 @@ const createGitlabProjectVariableAction = (options) => {
   });
 };
 
-const examples$1 = [
+const examples$2 = [
   {
     description: "Create a GitLab issue with minimal options",
     example: yaml__default.default.stringify({
@@ -601,7 +761,7 @@ const createGitlabIssueAction = (options) => {
   return pluginScaffolderNode.createTemplateAction({
     id: "gitlab:issues:create",
     description: "Creates a Gitlab issue.",
-    examples: examples$1,
+    examples: examples$2,
     schema: {
       input: commonGitlabConfig.merge(issueInputProperties),
       output: issueOutputProperties
@@ -682,9 +842,9 @@ const createGitlabIssueAction = (options) => {
   });
 };
 
-const examples = [
+const examples$1 = [
   {
-    description: "Initializes a git repository of the content in the workspace, and publishes it to GitLab.",
+    description: "Initializes a git repository with the content in the workspace, and publishes it to GitLab with the default configuration.",
     example: yaml__default.default.stringify({
       steps: [
         {
@@ -715,7 +875,7 @@ const examples = [
     })
   },
   {
-    description: "Sets the commit message on the repository. The default value is `initial commit`.",
+    description: "Initializes a GitLab repository with an initial commit message, if not set defaults to `initial commit`.",
     example: yaml__default.default.stringify({
       steps: [
         {
@@ -732,7 +892,7 @@ const examples = [
     })
   },
   {
-    description: "Initializes a git repository with additional settings.",
+    description: "Initializes a GitLab repository with aditional settings.",
     example: yaml__default.default.stringify({
       steps: [
         {
@@ -751,7 +911,7 @@ const examples = [
     })
   },
   {
-    description: "Initializes a git repository with branches settings",
+    description: "Initializes a GitLab repository with branch settings.",
     example: yaml__default.default.stringify({
       steps: [
         {
@@ -778,7 +938,7 @@ const examples = [
     })
   },
   {
-    description: "Initializes a git repository with environment variables",
+    description: "Initializes a GitLab repository with environment variables.",
     example: yaml__default.default.stringify({
       steps: [
         {
@@ -813,7 +973,7 @@ function createPublishGitlabAction(options) {
   return pluginScaffolderNode.createTemplateAction({
     id: "publish:gitlab",
     description: "Initializes a git repository of the content in the workspace, and publishes it to GitLab.",
-    examples,
+    examples: examples$1,
     schema: {
       input: {
         type: "object",
@@ -1182,10 +1342,135 @@ function createGitlabApi(options) {
   });
 }
 
+const examples = [
+  {
+    description: "Create a merge request with a specific assignee",
+    example: yaml__default.default.stringify({
+      steps: [
+        {
+          id: "createMergeRequest",
+          action: "publish:gitlab:merge-request",
+          name: "Create a Merge Request",
+          input: {
+            repoUrl: "gitlab.com?repo=repo&owner=owner",
+            title: "Create my new MR",
+            description: "This MR is really good",
+            sourcePath: "./path/to/my/changes",
+            branchName: "new-mr",
+            assignee: "my-assignee"
+          }
+        }
+      ]
+    })
+  },
+  {
+    description: "Create a merge request with removal of source branch after merge",
+    example: yaml__default.default.stringify({
+      steps: [
+        {
+          id: "createMergeRequest",
+          action: "publish:gitlab:merge-request",
+          name: "Create a Merge Request",
+          input: {
+            repoUrl: "gitlab.com?repo=repo&owner=owner",
+            title: "Create my new MR",
+            description: "This MR is really good",
+            sourcePath: "./path/to/my/changes",
+            branchName: "new-mr",
+            removeSourceBranch: true
+          }
+        }
+      ]
+    })
+  },
+  {
+    description: "Create a merge request with a target branch",
+    example: yaml__default.default.stringify({
+      steps: [
+        {
+          id: "createMergeRequest",
+          action: "publish:gitlab:merge-request",
+          name: "Create a Merge Request",
+          input: {
+            repoUrl: "gitlab.com?repo=repo&owner=owner",
+            title: "Create my new MR",
+            description: "This MR is really good",
+            sourcePath: "./path/to/my/changes",
+            branchName: "new-mr",
+            targetBranchName: "test",
+            targetPath: "Subdirectory"
+          }
+        }
+      ]
+    })
+  },
+  {
+    description: "Create a merge request with a commit action as create",
+    example: yaml__default.default.stringify({
+      steps: [
+        {
+          id: "createMergeRequest",
+          action: "publish:gitlab:merge-request",
+          name: "Create a Merge Request",
+          input: {
+            repoUrl: "gitlab.com?repo=repo&owner=owner",
+            title: "Create my new MR",
+            branchName: "new-mr",
+            description: "MR description",
+            commitAction: "create",
+            targetPath: "source"
+          }
+        }
+      ]
+    })
+  },
+  {
+    description: "Create a merge request with a commit action as delete",
+    example: yaml__default.default.stringify({
+      steps: [
+        {
+          id: "createMergeRequest",
+          action: "publish:gitlab:merge-request",
+          name: "Create a Merge Request",
+          input: {
+            repoUrl: "gitlab.com?repo=repo&owner=owner",
+            title: "Create my new MR",
+            branchName: "new-mr",
+            description: "MR description",
+            commitAction: "delete",
+            targetPath: "source"
+          }
+        }
+      ]
+    })
+  },
+  {
+    description: "Create a merge request with a commit action as update",
+    example: yaml__default.default.stringify({
+      steps: [
+        {
+          id: "createMergeRequest",
+          action: "publish:gitlab:merge-request",
+          name: "Create a Merge Request",
+          input: {
+            repoUrl: "gitlab.com?repo=repo&owner=owner",
+            title: "Create my new MR",
+            branchName: "new-mr",
+            description: "MR description",
+            commitAction: "update",
+            targetPath: "source"
+          }
+        }
+      ]
+    })
+  }
+];
+
 const createPublishGitlabMergeRequestAction = (options) => {
   const { integrations } = options;
   return pluginScaffolderNode.createTemplateAction({
     id: "publish:gitlab:merge-request",
+    examples,
     schema: {
       input: {
         required: ["repoUrl", "branchName"],

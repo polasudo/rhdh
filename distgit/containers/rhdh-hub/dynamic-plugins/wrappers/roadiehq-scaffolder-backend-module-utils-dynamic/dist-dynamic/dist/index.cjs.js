@@ -16,6 +16,8 @@ var require$$8 = require('lodash');
 var require$$9 = require('detect-indent');
 var require$$10 = require('jsonata');
 
+var yamlCAPzYRTX_cjs = {};
+
 var backendCommon = require$$0;
 var pluginScaffolderBackend = require$$1;
 var errors = require$$2;
@@ -36,7 +38,7 @@ var YAML__default = /*#__PURE__*/_interopDefaultCompat(YAML);
 var detectIndent__default = /*#__PURE__*/_interopDefaultCompat(detectIndent);
 var jsonata__default = /*#__PURE__*/_interopDefaultCompat(jsonata);
 
-function createZipAction() {
+function createZipAction$1() {
   return pluginScaffolderBackend.createTemplateAction({
     id: "roadiehq:utils:zip",
     description: "Zips the content of the path",
@@ -94,7 +96,7 @@ function createZipAction() {
   });
 }
 
-function createWriteFileAction() {
+function createWriteFileAction$1() {
   return pluginScaffolderBackend.createTemplateAction({
     id: "roadiehq:utils:fs:write",
     description: "Creates a file with the content on the given path",
@@ -151,7 +153,7 @@ function createWriteFileAction() {
   });
 }
 
-function createAppendFileAction() {
+function createAppendFileAction$1() {
   return pluginScaffolderBackend.createTemplateAction({
     id: "roadiehq:utils:fs:append",
     description: "Append content to the end of the given file, it will create the file if it does not exist.",
@@ -198,7 +200,7 @@ const parsers = {
   json: (cnt) => JSON.parse(cnt),
   multiyaml: (cnt) => YAML__default.default.parseAllDocuments(cnt).map((doc) => doc.toJSON())
 };
-function createParseFileAction() {
+function createParseFileAction$1() {
   return pluginScaffolderBackend.createTemplateAction({
     id: "roadiehq:utils:fs:parse",
     description: "Reads a file from the workspace and optionally parses it",
@@ -249,7 +251,7 @@ function createParseFileAction() {
   });
 }
 
-function createReplaceInFileAction() {
+function createReplaceInFileAction$1() {
   return pluginScaffolderNode.createTemplateAction({
     id: "roadiehq:utils:fs:replace",
     description: "Replaces content of a file with given values.",
@@ -369,7 +371,7 @@ function mergeArrayCustomiser(objValue, srcValue) {
   }
   return void 0;
 }
-function createMergeJSONAction({ actionId }) {
+function createMergeJSONAction$1({ actionId }) {
   return pluginScaffolderNode.createTemplateAction({
     id: actionId || "roadiehq:utils:json:merge",
     description: "Merge new data into an existing JSON file.",
@@ -458,7 +460,7 @@ function createMergeJSONAction({ actionId }) {
     }
   });
 }
-function createMergeAction() {
+function createMergeAction$1() {
   return pluginScaffolderNode.createTemplateAction({
     id: "roadiehq:utils:merge",
     description: "Merges data into an existing structured file.",
@@ -548,7 +550,7 @@ function createMergeAction() {
   });
 }
 
-function createSleepAction(options) {
+function createSleepAction$1(options) {
   return pluginScaffolderBackend.createTemplateAction({
     id: "roadiehq:utils:sleep",
     description: "Halts the scaffolding for the given amount of seconds",
@@ -583,7 +585,7 @@ function createSleepAction(options) {
   });
 }
 
-function createJSONataAction() {
+function createJSONataAction$1() {
   return pluginScaffolderBackend.createTemplateAction({
     id: "roadiehq:utils:jsonata",
     description: "Allows performing JSONata operations and transformations on input objects and produces the output result as a step output.",
@@ -626,7 +628,7 @@ function createJSONataAction() {
     async handler(ctx) {
       try {
         const expression = jsonata__default.default(ctx.input.expression);
-        const result = expression.evaluate(ctx.input.data);
+        const result = await expression.evaluate(ctx.input.data);
         ctx.output("result", result);
       } catch (e) {
         const message = e.hasOwnProperty("message") ? e.message : "unknown JSONata evaluation error";
@@ -638,7 +640,7 @@ function createJSONataAction() {
   });
 }
 
-function createYamlJSONataTransformAction() {
+function createYamlJSONataTransformAction$1() {
   return pluginScaffolderBackend.createTemplateAction({
     id: "roadiehq:utils:jsonata:yaml:transform",
     description: "Allows performing JSONata operations and transformations on a YAML file in the workspace. The result can be read from the `result` step output.",
@@ -702,13 +704,13 @@ function createYamlJSONataTransformAction() {
         data = YAML__default.default.parse(fs__default.default.readFileSync(sourceFilepath).toString());
       }
       const expression = jsonata__default.default(ctx.input.expression);
-      const result = expression.evaluate(data);
+      const result = await expression.evaluate(data);
       ctx.output("result", resultHandler(result));
     }
   });
 }
 
-function createJsonJSONataTransformAction() {
+function createJsonJSONataTransformAction$1() {
   return pluginScaffolderBackend.createTemplateAction({
     id: "roadiehq:utils:jsonata:json:transform",
     description: "Allows performing JSONata operations and transformations on a JSON file in the workspace. The result can be read from the `result` step output.",
@@ -772,13 +774,13 @@ function createJsonJSONataTransformAction() {
       );
       const data = JSON.parse(fs__default.default.readFileSync(sourceFilepath).toString());
       const expression = jsonata__default.default(ctx.input.expression);
-      const result = expression.evaluate(data);
+      const result = await expression.evaluate(data);
       ctx.output("result", resultHandler(result));
     }
   });
 }
 
-function createSerializeJsonAction() {
+function createSerializeJsonAction$1() {
   return pluginScaffolderBackend.createTemplateAction({
     id: "roadiehq:utils:serialize:json",
     description: "Allows performing serialization on an object",
@@ -827,7 +829,7 @@ function createSerializeJsonAction() {
   });
 }
 
-function createSerializeYamlAction() {
+function createSerializeYamlAction$1() {
   return pluginScaffolderNode.createTemplateAction({
     id: "roadiehq:utils:serialize:yaml",
     description: "Allows performing serialization on an object",
@@ -872,19 +874,48 @@ function createSerializeYamlAction() {
   });
 }
 
-var createAppendFileAction_1 = createAppendFileAction;
-var createJSONataAction_1 = createJSONataAction;
-var createJsonJSONataTransformAction_1 = createJsonJSONataTransformAction;
-var createMergeAction_1 = createMergeAction;
-var createMergeJSONAction_1 = createMergeJSONAction;
-var createParseFileAction_1 = createParseFileAction;
-var createReplaceInFileAction_1 = createReplaceInFileAction;
-var createSerializeJsonAction_1 = createSerializeJsonAction;
-var createSerializeYamlAction_1 = createSerializeYamlAction;
-var createSleepAction_1 = createSleepAction;
-var createWriteFileAction_1 = createWriteFileAction;
-var createYamlJSONataTransformAction_1 = createYamlJSONataTransformAction;
-var createZipAction_1 = createZipAction;
+yamlCAPzYRTX_cjs.createAppendFileAction = createAppendFileAction$1;
+yamlCAPzYRTX_cjs.createJSONataAction = createJSONataAction$1;
+yamlCAPzYRTX_cjs.createJsonJSONataTransformAction = createJsonJSONataTransformAction$1;
+yamlCAPzYRTX_cjs.createMergeAction = createMergeAction$1;
+yamlCAPzYRTX_cjs.createMergeJSONAction = createMergeJSONAction$1;
+yamlCAPzYRTX_cjs.createParseFileAction = createParseFileAction$1;
+yamlCAPzYRTX_cjs.createReplaceInFileAction = createReplaceInFileAction$1;
+yamlCAPzYRTX_cjs.createSerializeJsonAction = createSerializeJsonAction$1;
+yamlCAPzYRTX_cjs.createSerializeYamlAction = createSerializeYamlAction$1;
+yamlCAPzYRTX_cjs.createSleepAction = createSleepAction$1;
+yamlCAPzYRTX_cjs.createWriteFileAction = createWriteFileAction$1;
+yamlCAPzYRTX_cjs.createYamlJSONataTransformAction = createYamlJSONataTransformAction$1;
+yamlCAPzYRTX_cjs.createZipAction = createZipAction$1;
+
+var yaml = yamlCAPzYRTX_cjs;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+var createAppendFileAction = yaml.createAppendFileAction;
+var createJSONataAction = yaml.createJSONataAction;
+var createJsonJSONataTransformAction = yaml.createJsonJSONataTransformAction;
+var createMergeAction = yaml.createMergeAction;
+var createMergeJSONAction = yaml.createMergeJSONAction;
+var createParseFileAction = yaml.createParseFileAction;
+var createReplaceInFileAction = yaml.createReplaceInFileAction;
+var createSerializeJsonAction = yaml.createSerializeJsonAction;
+var createSerializeYamlAction = yaml.createSerializeYamlAction;
+var createSleepAction = yaml.createSleepAction;
+var createWriteFileAction = yaml.createWriteFileAction;
+var createYamlJSONataTransformAction = yaml.createYamlJSONataTransformAction;
+var createZipAction = yaml.createZipAction;
 
 const scaffolderBackendModuleUtils = backendPluginApi.createBackendModule({
   moduleId: "scaffolder-backend-module-utils",
@@ -897,19 +928,19 @@ const scaffolderBackendModuleUtils = backendPluginApi.createBackendModule({
       },
       async init({ scaffolder }) {
         for (const action of [
-          createZipAction_1,
-          createSleepAction_1,
-          createWriteFileAction_1,
-          createAppendFileAction_1,
-          createMergeJSONAction_1,
-          createMergeAction_1,
-          createParseFileAction_1,
-          createReplaceInFileAction_1,
-          createSerializeYamlAction_1,
-          createSerializeJsonAction_1,
-          createJSONataAction_1,
-          createYamlJSONataTransformAction_1,
-          createJsonJSONataTransformAction_1
+          createZipAction,
+          createSleepAction,
+          createWriteFileAction,
+          createAppendFileAction,
+          createMergeJSONAction,
+          createMergeAction,
+          createParseFileAction,
+          createReplaceInFileAction,
+          createSerializeYamlAction,
+          createSerializeJsonAction,
+          createJSONataAction,
+          createYamlJSONataTransformAction,
+          createJsonJSONataTransformAction
         ]) {
           scaffolder.addActions(action({}));
         }

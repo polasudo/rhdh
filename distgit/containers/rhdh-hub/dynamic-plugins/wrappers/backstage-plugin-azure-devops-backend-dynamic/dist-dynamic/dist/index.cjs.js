@@ -732,12 +732,17 @@ class AzureDevOpsApi {
     const policyEvaluationRecords = await client.getPolicyEvaluations(projectName, artifactId);
     return policyEvaluationRecords.map(convertPolicy).filter((policy) => Boolean(policy));
   }
-  async getAllTeams() {
+  async getAllTeams(options) {
     var _a;
     (_a = this.logger) == null ? void 0 : _a.debug("Getting all teams.");
     const webApi = await this.getWebApi();
     const client = await webApi.getCoreApi();
-    const webApiTeams = await client.getAllTeams();
+    const webApiTeams = await client.getAllTeams(
+      void 0,
+      options == null ? void 0 : options.limit,
+      void 0,
+      void 0
+    );
     const teams = webApiTeams.map((team) => ({
       id: team.id,
       name: team.name,
@@ -858,6 +863,7 @@ var __publicField = (obj, key, value) => {
   __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
   return value;
 };
+const DEFAULT_TEAMS_LIMIT = 100;
 class PullRequestsDashboardProvider {
   constructor(logger, azureDevOpsApi) {
     this.logger = logger;
@@ -869,9 +875,9 @@ class PullRequestsDashboardProvider {
     const provider = new PullRequestsDashboardProvider(logger, azureDevOpsApi);
     return provider;
   }
-  async readTeams() {
+  async readTeams(limit) {
     this.logger.info("Reading teams.");
-    let teams = await this.azureDevOpsApi.getAllTeams();
+    let teams = await this.azureDevOpsApi.getAllTeams({ limit });
     teams = teams.filter(
       (team) => team.name && team.projectName ? team.name !== `${team.projectName} Team` : true
     );
@@ -917,7 +923,7 @@ class PullRequestsDashboardProvider {
   }
   async getDashboardPullRequests(projectName, options) {
     const dashboardPullRequests = await this.azureDevOpsApi.getDashboardPullRequests(projectName, options);
-    await this.getAllTeams();
+    await this.getAllTeams({ limit: options.teamsLimit });
     return dashboardPullRequests.map((pr) => {
       var _a, _b;
       if ((_a = pr.createdBy) == null ? void 0 : _a.id) {
@@ -935,14 +941,16 @@ class PullRequestsDashboardProvider {
   }
   async getUserTeamIds(email) {
     var _a, _b;
-    await this.getAllTeams();
+    await this.getAllTeams({});
     return (_b = (_a = Array.from(this.teamMembers.values()).find(
       (teamMember) => teamMember.uniqueName === email
     )) == null ? void 0 : _a.memberOf) != null ? _b : [];
   }
-  async getAllTeams() {
+  async getAllTeams(options) {
+    var _a;
     if (!this.teams.size) {
-      await this.readTeams();
+      const maxTeams = (_a = options == null ? void 0 : options.limit) != null ? _a : DEFAULT_TEAMS_LIMIT;
+      await this.readTeams(maxTeams);
     }
     return Array.from(this.teams.values());
   }
@@ -951,7 +959,7 @@ class PullRequestsDashboardProvider {
 const DEFAULT_TOP = 10;
 async function createRouter(options) {
   const { logger, reader, config, permissions } = options;
-  if (config.getString("azureDevOps.token")) {
+  if (config.getOptionalString("azureDevOps.token")) {
     logger.warn(
       "The 'azureDevOps.token' has been deprecated, use 'integrations.azure' instead, for more details see: https://backstage.io/docs/integrations/azure/locations"
     );
@@ -1047,12 +1055,14 @@ async function createRouter(options) {
     var _a, _b;
     const { projectName, repoName } = req.params;
     const top = req.query.top ? Number(req.query.top) : DEFAULT_TOP;
+    const teamsLimit = req.query.teamsLimit ? Number(req.query.teamsLimit) : DEFAULT_TEAMS_LIMIT;
     const host = (_a = req.query.host) == null ? void 0 : _a.toString();
     const org = (_b = req.query.org) == null ? void 0 : _b.toString();
     const status = req.query.status ? Number(req.query.status) : pluginAzureDevopsCommon.PullRequestStatus.Active;
     const pullRequestOptions = {
       top,
-      status
+      status,
+      teamsLimit
     };
     const entityRef = req.query.entityRef;
     if (typeof entityRef !== "string") {
@@ -1087,10 +1097,12 @@ async function createRouter(options) {
   router.get("/dashboard-pull-requests/:projectName", async (req, res) => {
     const { projectName } = req.params;
     const top = req.query.top ? Number(req.query.top) : DEFAULT_TOP;
+    const teamsLimit = req.query.teamsLimit ? Number(req.query.teamsLimit) : DEFAULT_TEAMS_LIMIT;
     const status = req.query.status ? Number(req.query.status) : pluginAzureDevopsCommon.PullRequestStatus.Active;
     const pullRequestOptions = {
       top,
-      status
+      status,
+      teamsLimit
     };
     const token = pluginAuthNode.getBearerTokenFromAuthorizationHeader(
       req.header("authorization")
@@ -1114,8 +1126,9 @@ async function createRouter(options) {
     );
     res.status(200).json(pullRequests);
   });
-  router.get("/all-teams", async (_req, res) => {
-    const allTeams = await pullRequestsDashboardProvider.getAllTeams();
+  router.get("/all-teams", async (req, res) => {
+    const limit = req.query.limit ? Number(req.query.limit) : void 0;
+    const allTeams = await pullRequestsDashboardProvider.getAllTeams({ limit });
     res.status(200).json(allTeams);
   });
   router.get(
@@ -1242,7 +1255,7 @@ const azureDevOpsPlugin = backendPluginApi.createBackendPlugin({
         httpRouter.use(
           await createRouter({
             config,
-            logger: backendCommon.loggerToWinstonLogger(logger),
+            logger,
             reader,
             permissions
           })

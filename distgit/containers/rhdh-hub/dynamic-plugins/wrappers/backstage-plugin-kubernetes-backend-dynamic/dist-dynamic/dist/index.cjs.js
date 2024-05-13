@@ -2,14 +2,13 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var require$$16 = require('@backstage/backend-common');
 var require$$0$1 = require('@backstage/backend-plugin-api');
-var require$$2$1 = require('@backstage/plugin-catalog-node/alpha');
+var require$$1$1 = require('@backstage/plugin-catalog-node/alpha');
 var require$$0 = require('@aws-sdk/credential-providers');
 var require$$1 = require('@aws-sdk/signature-v4');
 var require$$2 = require('@aws-crypto/sha256-js');
 var require$$3 = require('@backstage/integration-aws-node');
-var require$$22 = require('@backstage/plugin-permission-common');
+var require$$21 = require('@backstage/plugin-permission-common');
 var lodash$1 = require('lodash');
 var require$$12 = require('luxon');
 var require$$5 = require('@azure/identity');
@@ -22,11 +21,11 @@ var require$$11 = require('express-promise-router');
 var require$$13 = require('@backstage/errors');
 var require$$14 = require('@backstage/catalog-client');
 var require$$15 = require('node:dns');
+var require$$16 = require('@backstage/backend-common');
 var require$$17 = require('@backstage/catalog-model');
 var require$$19 = require('node-fetch');
 var require$$20 = require('https');
-var require$$21 = require('@backstage/plugin-auth-node');
-var require$$23 = require('http-proxy-middleware');
+var require$$22 = require('http-proxy-middleware');
 
 function getAugmentedNamespace(n) {
   if (n.__esModule) return n;
@@ -70,7 +69,7 @@ const ANNOTATION_KUBERNETES_AWS_ASSUME_ROLE = "kubernetes.io/aws-assume-role";
 const ANNOTATION_KUBERNETES_AWS_CLUSTER_ID = "kubernetes.io/x-k8s-aws-id";
 const ANNOTATION_KUBERNETES_AWS_EXTERNAL_ID = "kubernetes.io/aws-external-id";
 
-const kubernetesProxyPermission = require$$22.createPermission({
+const kubernetesProxyPermission = require$$21.createPermission({
   name: "kubernetes.proxy",
   attributes: {}
 });
@@ -470,14 +469,13 @@ var luxon = require$$12;
 var errors = require$$13;
 var catalogClient = require$$14;
 var dns = require$$15;
-var backendCommon$1 = require$$16;
+var backendCommon = require$$16;
 var catalogModel = require$$17;
 var lodash = lodash$1;
 var fetch$1 = require$$19;
 var https$1 = require$$20;
-var pluginAuthNode = require$$21;
-var pluginPermissionCommon = require$$22;
-var httpProxyMiddleware = require$$23;
+var pluginPermissionCommon = require$$21;
+var httpProxyMiddleware = require$$22;
 
 function _interopDefaultCompat$1 (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }
 
@@ -925,7 +923,7 @@ function runPeriodically(fn, delayMs) {
 
 var name = "@backstage/plugin-kubernetes-backend";
 var description = "A Backstage backend plugin that integrates towards Kubernetes";
-var version = "0.16.4";
+var version = "0.17.0";
 var main = "src/index.ts";
 var types = "src/index.ts";
 var license = "Apache-2.0";
@@ -993,7 +991,7 @@ var dependencies = {
 	"@jest-mock/express": "^2.0.1",
 	"@kubernetes/client-node": "0.20.0",
 	"@types/express": "^4.17.6",
-	"@types/http-proxy-middleware": "^0.19.3",
+	"@types/http-proxy-middleware": "^1.0.0",
 	"@types/luxon": "^3.0.0",
 	compression: "^1.7.4",
 	cors: "^2.8.5",
@@ -1336,10 +1334,13 @@ const addResourceRoutesToRouter = (router, catalogApi, objectsProvider, auth, ht
   };
   router.post("/resources/workloads/query", async (req, res) => {
     const entity = await getEntityByReq(req);
-    const response = await objectsProvider.getKubernetesObjectsByEntity({
-      entity,
-      auth: req.body.auth
-    });
+    const response = await objectsProvider.getKubernetesObjectsByEntity(
+      {
+        entity,
+        auth: req.body.auth
+      },
+      { credentials: await httpAuth.credentials(req) }
+    );
     res.json(response);
   });
   router.post("/resources/custom/query", async (req, res) => {
@@ -1351,11 +1352,14 @@ const addResourceRoutesToRouter = (router, catalogApi, objectsProvider, auth, ht
     } else if (req.body.customResources.length === 0) {
       throw new errors.InputError("at least 1 customResource is required");
     }
-    const response = await objectsProvider.getCustomResourcesByEntity({
-      entity,
-      customResources: req.body.customResources,
-      auth: req.body.auth
-    });
+    const response = await objectsProvider.getCustomResourcesByEntity(
+      {
+        entity,
+        customResources: req.body.customResources,
+        auth: req.body.auth
+      },
+      { credentials: await httpAuth.credentials(req) }
+    );
     res.json(response);
   });
 };
@@ -1372,11 +1376,11 @@ class CatalogRelationServiceLocator {
     this.clusterSupplier = clusterSupplier;
   }
   // As this implementation always returns all clusters serviceId is ignored here
-  getClustersByEntity(entity, _requestContext) {
+  getClustersByEntity(entity, requestContext) {
     if (entity.relations && entity.relations.some(
       (r) => r.type === "dependsOn" && r.targetRef.includes("resource:")
     )) {
-      return this.clusterSupplier.getClusters().then((clusters) => {
+      return this.clusterSupplier.getClusters({ credentials: requestContext.credentials }).then((clusters) => {
         return {
           clusters: clusters.filter(
             (c) => this.doesEntityDependOnCluster(entity, c)
@@ -1408,8 +1412,8 @@ class MultiTenantServiceLocator {
     this.clusterSupplier = clusterSupplier;
   }
   // As this implementation always returns all clusters serviceId is ignored here
-  getClustersByEntity(_entity, _requestContext) {
-    return this.clusterSupplier.getClusters().then((clusters) => ({ clusters }));
+  getClustersByEntity(_entity, requestContext) {
+    return this.clusterSupplier.getClusters({ credentials: requestContext.credentials }).then((clusters) => ({ clusters }));
   }
 }
 
@@ -1425,8 +1429,8 @@ class SingleTenantServiceLocator {
     this.clusterSupplier = clusterSupplier;
   }
   // As this implementation always returns all clusters serviceId is ignored here
-  getClustersByEntity(_entity, _requestContext) {
-    return this.clusterSupplier.getClusters().then((clusters) => {
+  getClustersByEntity(_entity, requestContext) {
+    return this.clusterSupplier.getClusters({ credentials: requestContext.credentials }).then((clusters) => {
       var _a, _b;
       if ((_b = (_a = _entity.metadata) == null ? void 0 : _a.annotations) == null ? void 0 : _b["backstage.io/kubernetes-cluster"]) {
         return {
@@ -1580,30 +1584,32 @@ class KubernetesFanOutHandler {
     this.objectTypesToFetch = new Set(objectTypesToFetch);
     this.authStrategy = authStrategy;
   }
-  async getCustomResourcesByEntity({
-    entity,
-    auth,
-    customResources
-  }) {
+  async getCustomResourcesByEntity({ entity, auth, customResources }, options) {
     return this.fanOutRequests(
       entity,
       auth,
+      { credentials: options.credentials },
       /* @__PURE__ */ new Set(),
       customResources
     );
   }
-  async getKubernetesObjectsByEntity({
-    entity,
-    auth
-  }) {
-    return this.fanOutRequests(entity, auth, this.objectTypesToFetch);
+  async getKubernetesObjectsByEntity({ entity, auth }, options) {
+    return this.fanOutRequests(
+      entity,
+      auth,
+      {
+        credentials: options.credentials
+      },
+      this.objectTypesToFetch
+    );
   }
-  async fanOutRequests(entity, auth, objectTypesToFetch, customResources) {
+  async fanOutRequests(entity, auth, options, objectTypesToFetch, customResources) {
     var _a, _b, _c, _d, _e, _f, _g;
     const entityName = ((_b = (_a = entity.metadata) == null ? void 0 : _a.annotations) == null ? void 0 : _b["backstage.io/kubernetes-id"]) || ((_c = entity.metadata) == null ? void 0 : _c.name);
     const { clusters } = await this.serviceLocator.getClustersByEntity(entity, {
       objectTypesToFetch,
-      customResources: customResources != null ? customResources : []
+      customResources: customResources != null ? customResources : [],
+      credentials: options.credentials
     });
     this.logger.info(
       `entity.metadata.name=${entityName} clusterDetails=[${clusters.map((c) => c.name).join(", ")}]`
@@ -1920,9 +1926,15 @@ class KubernetesProxy {
     __publicField$1(this, "logger");
     __publicField$1(this, "clusterSupplier");
     __publicField$1(this, "authStrategy");
+    __publicField$1(this, "httpAuth");
     this.logger = options.logger;
     this.clusterSupplier = options.clusterSupplier;
     this.authStrategy = options.authStrategy;
+    const legacy = backendCommon.createLegacyAuthAdapters({
+      discovery: options.discovery,
+      httpAuth: options.httpAuth
+    });
+    this.httpAuth = legacy.httpAuth;
   }
   createRequestHandler(options) {
     const { permissionApi } = options;
@@ -1931,9 +1943,7 @@ class KubernetesProxy {
       const authorizeResponse = await permissionApi.authorize(
         [{ permission: pluginKubernetesCommon.kubernetesProxyPermission }],
         {
-          token: pluginAuthNode.getBearerTokenFromAuthorizationHeader(
-            req.header("authorization")
-          )
+          credentials: await this.httpAuth.credentials(req)
         }
       );
       const auth = authorizeResponse[0];
@@ -1958,7 +1968,8 @@ class KubernetesProxy {
     if (!middleware) {
       const logger = this.logger.child({ cluster: originalCluster.name });
       middleware = httpProxyMiddleware.createProxyMiddleware({
-        logProvider: () => logger,
+        // TODO: Add 'log' to LoggerService
+        logProvider: () => backendCommon.loggerToWinstonLogger(logger),
         ws: true,
         secure: !originalCluster.skipTLSVerify,
         changeOrigin: true,
@@ -1983,8 +1994,8 @@ class KubernetesProxy {
               cluster.caData
             )) == null ? void 0 : _a.toString()
           };
-          const authHeader = req.header(HEADER_KUBERNETES_AUTH);
-          if (authHeader) {
+          const authHeader = req.headers[HEADER_KUBERNETES_AUTH.toLocaleLowerCase("en-US")];
+          if (typeof authHeader === "string") {
             req.headers.authorization = authHeader;
           } else {
             const authObj = KubernetesProxy.authHeadersToKubernetesRequestAuth(
@@ -2007,7 +2018,7 @@ class KubernetesProxy {
             `Cluster '${originalCluster.name}' request error`,
             error
           );
-          logger.error(wrappedError);
+          logger.error("Kubernetes proxy error", wrappedError);
           const body = {
             error: errors.serializeError(wrappedError, {
               includeStack: process.env.NODE_ENV === "development"
@@ -2024,7 +2035,9 @@ class KubernetesProxy {
   }
   async getClusterForRequest(req) {
     const clusterName = req.headers[HEADER_KUBERNETES_CLUSTER.toLowerCase()];
-    const clusters = await this.clusterSupplier.getClusters();
+    const clusters = await this.clusterSupplier.getClusters({
+      credentials: await this.httpAuth.credentials(req)
+    });
     if (!clusters || clusters.length <= 0) {
       throw new errors.NotFoundError(`No Clusters configured`);
     }
@@ -2122,7 +2135,7 @@ class KubernetesBuilder {
         router: Router__default.default()
       };
     }
-    const { auth, httpAuth } = backendCommon$1.createLegacyAuthAdapters({
+    const { auth, httpAuth } = backendCommon.createLegacyAuthAdapters({
       auth: this.env.auth,
       httpAuth: this.env.httpAuth,
       discovery: this.env.discovery
@@ -2131,7 +2144,12 @@ class KubernetesBuilder {
     const fetcher = this.getFetcher();
     const clusterSupplier = this.getClusterSupplier();
     const authStrategyMap = this.getAuthStrategyMap();
-    const proxy = this.getProxy(logger, clusterSupplier);
+    const proxy = this.getProxy(
+      logger,
+      clusterSupplier,
+      this.env.discovery,
+      httpAuth
+    );
     const serviceLocator = this.getServiceLocator();
     const objectsProvider = this.getObjectsProvider({
       logger,
@@ -2212,7 +2230,7 @@ class KubernetesBuilder {
   }
   buildClusterSupplier(refreshInterval) {
     const config = this.env.config;
-    const { auth } = backendCommon$1.createLegacyAuthAdapters(this.env);
+    const { auth } = backendCommon.createLegacyAuthAdapters(this.env);
     this.clusterSupplier = getCombinedClusterSupplier(
       config,
       this.env.catalogApi,
@@ -2272,7 +2290,7 @@ class KubernetesBuilder {
   buildHttpServiceLocator(_clusterSupplier) {
     throw new Error("not implemented");
   }
-  buildProxy(logger, clusterSupplier) {
+  buildProxy(logger, clusterSupplier, discovery, httpAuth) {
     const authStrategyMap = this.getAuthStrategyMap();
     const authStrategy = new DispatchStrategy({
       authStrategyMap
@@ -2280,7 +2298,9 @@ class KubernetesBuilder {
     this.proxy = new KubernetesProxy({
       logger,
       clusterSupplier,
-      authStrategy
+      authStrategy,
+      discovery,
+      httpAuth
     });
     return this.proxy;
   }
@@ -2298,10 +2318,13 @@ class KubernetesBuilder {
       const serviceId = req.params.serviceId;
       const requestBody = req.body;
       try {
-        const response = await objectsProvider.getKubernetesObjectsByEntity({
-          entity: requestBody.entity,
-          auth: requestBody.auth || {}
-        });
+        const response = await objectsProvider.getKubernetesObjectsByEntity(
+          {
+            entity: requestBody.entity,
+            auth: requestBody.auth || {}
+          },
+          { credentials: await httpAuth.credentials(req) }
+        );
         res.json(response);
       } catch (e) {
         logger.error(
@@ -2411,9 +2434,9 @@ class KubernetesBuilder {
     }
     return objectTypesToFetch;
   }
-  getProxy(logger, clusterSupplier) {
+  getProxy(logger, clusterSupplier, discovery, httpAuth) {
     var _a;
-    return (_a = this.proxy) != null ? _a : this.buildProxy(logger, clusterSupplier);
+    return (_a = this.proxy) != null ? _a : this.buildProxy(logger, clusterSupplier, discovery, httpAuth);
   }
   getAuthStrategyMap() {
     var _a;
@@ -2571,9 +2594,8 @@ index_cjs.kubernetesServiceLocatorExtensionPoint = kubernetesServiceLocatorExten
 
 Object.defineProperty(alpha_cjs, '__esModule', { value: true });
 
-var backendCommon = require$$16;
 var backendPluginApi = require$$0$1;
-var alpha = require$$2$1;
+var alpha = require$$1$1;
 var pluginKubernetesBackend = index_cjs$1;
 var pluginKubernetesNode = index_cjs;
 
@@ -2711,9 +2733,8 @@ const kubernetesPlugin = backendPluginApi.createBackendPlugin({
         auth,
         httpAuth
       }) {
-        const winstonLogger = backendCommon.loggerToWinstonLogger(logger);
         const builder = pluginKubernetesBackend.KubernetesBuilder.createBuilder({
-          logger: winstonLogger,
+          logger,
           config,
           catalogApi,
           permissions,

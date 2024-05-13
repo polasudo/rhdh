@@ -3,9 +3,9 @@
 Object.defineProperty(exports, '__esModule', { value: true });
 
 var require$$0 = require('@backstage/backend-common');
-var require$$1 = require('@backstage/backend-plugin-api');
+var require$$27 = require('@backstage/backend-plugin-api');
 var require$$0$1 = require('path');
-var require$$1$1 = require('@backstage/integration');
+var require$$1 = require('@backstage/integration');
 var require$$3 = require('@backstage/errors');
 var require$$4 = require('child_process');
 var require$$5 = require('fs-extra');
@@ -31,23 +31,23 @@ var require$$24 = require('os');
 var require$$25 = require('@trendyol-js/openstack-swift-sdk');
 var require$$26 = require('@trendyol-js/openstack-swift-sdk/lib/types');
 var require$$3$2 = require('dockerode');
-var require$$1$2 = require('@backstage/catalog-client');
+var require$$1$1 = require('@backstage/catalog-client');
 var require$$5$2 = require('express-promise-router');
 var require$$5$1 = require('node-fetch');
 var require$$10$1 = require('winston');
 var require$$4$1 = require('lodash/unescape');
 var require$$3$1 = require('@backstage/plugin-catalog-common/alpha');
-var require$$2$1 = require('@backstage/backend-tasks');
-var require$$3$3 = require('@backstage/plugin-catalog-node/alpha');
-var require$$5$3 = require('@backstage/plugin-search-backend-node/alpha');
+var require$$1$2 = require('@backstage/backend-tasks');
+var require$$2$1 = require('@backstage/plugin-catalog-node/alpha');
+var require$$4$2 = require('@backstage/plugin-search-backend-node/alpha');
 
 var alpha_cjs$1 = {};
 
 var index_cjs$2 = {};
 
 var path = require$$0$1;
-var integration = require$$1$1;
-var backendCommon$3 = require$$0;
+var integration = require$$1;
+var backendCommon$2 = require$$0;
 var errors = require$$3;
 var child_process = require$$4;
 var fs = require$$5;
@@ -72,7 +72,7 @@ var express = require$$23;
 var os = require$$24;
 var openstackSwiftSdk = require$$25;
 var types = require$$26;
-var backendPluginApi$2 = require$$1;
+var backendPluginApi$2 = require$$27;
 
 function _interopDefaultCompat$2 (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }
 
@@ -326,7 +326,7 @@ const validateMkdocsYaml = async (inputDir, mkdocsYmlFileString) => {
     return void 0;
   }
   const parsedMkdocsYml = mkdocsYml;
-  if (parsedMkdocsYml.docs_dir && !backendCommon$3.isChildPath(inputDir, path.resolve(inputDir, parsedMkdocsYml.docs_dir))) {
+  if (parsedMkdocsYml.docs_dir && !backendCommon$2.isChildPath(inputDir, path.resolve(inputDir, parsedMkdocsYml.docs_dir))) {
     throw new Error(
       `docs_dir configuration value in mkdocs can't be an absolute directory or start with ../ for security reasons.
        Use relative paths instead which are resolved relative to your mkdocs.yml file location.`
@@ -722,7 +722,7 @@ const transformDirLocation = (entity, dirAnnotation, scmIntegrations) => {
       };
     }
     case "file": {
-      const target = backendCommon$3.resolveSafeChildPath(
+      const target = backendCommon$2.resolveSafeChildPath(
         path__default.default.dirname(location.target),
         dirAnnotation.target
       );
@@ -1991,7 +1991,7 @@ class LocalPublish {
     );
     if (!staticDocsDir) {
       try {
-        staticDocsDir = backendCommon$3.resolvePackagePath(
+        staticDocsDir = backendCommon$2.resolvePackagePath(
           "@backstage/plugin-techdocs-backend",
           "static/docs"
         );
@@ -2187,13 +2187,13 @@ class LocalPublish {
     let staticEntityPath = this.staticDocsDir;
     allParts.map((part) => part.split(path__default.default.sep)).flat().forEach((part, index) => {
       if (index < 3) {
-        staticEntityPath = backendCommon$3.resolveSafeChildPath(
+        staticEntityPath = backendCommon$2.resolveSafeChildPath(
           staticEntityPath,
           this.legacyPathCasing ? part : part.toLowerCase()
         );
         return;
       }
-      staticEntityPath = backendCommon$3.resolveSafeChildPath(staticEntityPath, part);
+      staticEntityPath = backendCommon$2.resolveSafeChildPath(staticEntityPath, part);
     });
     return staticEntityPath;
   }
@@ -2515,6 +2515,9 @@ const techdocsBuildsExtensionPoint = backendPluginApi$2.createExtensionPoint({
 const techdocsGeneratorExtensionPoint = backendPluginApi$2.createExtensionPoint({
   id: "techdocs.generator"
 });
+const techdocsPreparerExtensionPoint = backendPluginApi$2.createExtensionPoint({
+  id: "techdocs.preparer"
+});
 
 index_cjs$2.DirectoryPreparer = DirectoryPreparer;
 index_cjs$2.Generators = Generators;
@@ -2529,14 +2532,15 @@ index_cjs$2.getMkdocsYml = getMkdocsYml;
 index_cjs$2.parseReferenceAnnotation = parseReferenceAnnotation;
 index_cjs$2.techdocsBuildsExtensionPoint = techdocsBuildsExtensionPoint;
 index_cjs$2.techdocsGeneratorExtensionPoint = techdocsGeneratorExtensionPoint;
+index_cjs$2.techdocsPreparerExtensionPoint = techdocsPreparerExtensionPoint;
 index_cjs$2.transformDirLocation = transformDirLocation;
 
 var index_cjs$1 = {};
 
 var index_cjs = {};
 
-var backendCommon$2 = require$$0;
-var catalogClient = require$$1$2;
+var backendCommon$1 = require$$0;
+var catalogClient = require$$1$1;
 var catalogModel = require$$2;
 var alpha$3 = require$$3$1;
 var unescape = require$$4$1;
@@ -2609,7 +2613,7 @@ class DefaultTechDocsCollatorFactory {
     this.parallelismLimit = (_a = options.parallelismLimit) != null ? _a : 10;
     this.legacyPathCasing = (_b = options.legacyPathCasing) != null ? _b : false;
     this.entityTransformer = (_c = options.entityTransformer) != null ? _c : defaultTechDocsCollatorEntityTransformer;
-    this.auth = backendCommon$2.createLegacyAuthAdapters({
+    this.auth = backendCommon$1.createLegacyAuthAdapters({
       auth: options.auth,
       discovery: options.discovery,
       tokenManager: options.tokenManager
@@ -2764,12 +2768,12 @@ index_cjs.defaultTechDocsCollatorEntityTransformer = defaultTechDocsCollatorEnti
 (function (exports) {
 
 	var backendCommon = require$$0;
-	var catalogClient = require$$1$2;
+	var catalogClient = require$$1$1;
 	var catalogModel = require$$2;
 	var errors = require$$3;
 	var pluginTechdocsNode = index_cjs$2;
 	var router = require$$5$2;
-	var integration = require$$1$1;
+	var integration = require$$1;
 	var fetch = require$$5$1;
 	var pLimit = require$$11;
 	var stream = require$$8;
@@ -3500,10 +3504,6 @@ index_cjs.defaultTechDocsCollatorEntityTransformer = defaultTechDocsCollatorEnti
 	    router.use(createCacheMiddleware({ logger, cache }));
 	  }
 	  router.use("/static/docs", publisher.docsRouter());
-	  router.get("/cookie", async (_, res) => {
-	    const { expiresAt } = await httpAuth.issueUserCookie(res);
-	    res.json({ expiresAt: expiresAt.toISOString() });
-	  });
 	  return router;
 	}
 	function createEventStream(res) {
@@ -3692,8 +3692,8 @@ data: ${JSON.stringify(data)}
 
 Object.defineProperty(alpha_cjs$1, '__esModule', { value: true });
 
-var backendCommon$1 = require$$0;
-var backendPluginApi$1 = require$$1;
+var backendCommon = require$$0;
+var backendPluginApi$1 = require$$27;
 var pluginTechdocsNode = index_cjs$2;
 var Docker = require$$3$2;
 var pluginTechdocsBackend = index_cjs$1;
@@ -3723,6 +3723,17 @@ const techdocsPlugin = backendPluginApi$1.createBackendPlugin({
         customTechdocsGenerator = generator;
       }
     });
+    const customPreparers = /* @__PURE__ */ new Map();
+    env.registerExtensionPoint(pluginTechdocsNode.techdocsPreparerExtensionPoint, {
+      registerPreparer(protocol, preparer) {
+        if (customPreparers.has(protocol)) {
+          throw new Error(
+            `Preparer for protocol ${protocol} is already registered`
+          );
+        }
+        customPreparers.set(protocol, preparer);
+      }
+    });
     env.registerInit({
       deps: {
         config: backendPluginApi$1.coreServices.rootConfig,
@@ -3744,13 +3755,16 @@ const techdocsPlugin = backendPluginApi$1.createBackendPlugin({
         httpAuth,
         auth
       }) {
-        const winstonLogger = backendCommon$1.loggerToWinstonLogger(logger);
+        const winstonLogger = backendCommon.loggerToWinstonLogger(logger);
         const preparers = await pluginTechdocsNode.Preparers.fromConfig(config, {
           reader: urlReader,
           logger: winstonLogger
         });
+        for (const [protocol, preparer] of customPreparers.entries()) {
+          preparers.register(protocol, preparer);
+        }
         const dockerClient = new Docker__default.default();
-        const containerRunner = new backendCommon$1.DockerContainerRunner({ dockerClient });
+        const containerRunner = new backendCommon.DockerContainerRunner({ dockerClient });
         const generators = await pluginTechdocsNode.Generators.fromConfig(config, {
           logger: winstonLogger,
           containerRunner,
@@ -3761,7 +3775,7 @@ const techdocsPlugin = backendPluginApi$1.createBackendPlugin({
           discovery
         });
         await publisher.getReadiness();
-        const cacheManager = backendCommon$1.cacheToPluginCacheManager(cache);
+        const cacheManager = backendCommon.cacheToPluginCacheManager(cache);
         http.use(
           await pluginTechdocsBackend.createRouter({
             logger: winstonLogger,
@@ -3791,12 +3805,11 @@ var alpha_cjs = {};
 
 Object.defineProperty(alpha_cjs, '__esModule', { value: true });
 
-var backendCommon = require$$0;
-var backendPluginApi = require$$1;
-var backendTasks = require$$2$1;
-var alpha$1 = require$$3$3;
+var backendPluginApi = require$$27;
+var backendTasks = require$$1$2;
+var alpha$1 = require$$2$1;
 var pluginSearchBackendModuleTechdocs = index_cjs;
-var alpha$2 = require$$5$3;
+var alpha$2 = require$$4$2;
 
 const techdocsCollatorEntityTransformerExtensionPoint = backendPluginApi.createExtensionPoint({
   id: "search.techdocsCollator.transformer"
@@ -3857,7 +3870,7 @@ var alpha = backendPluginApi.createBackendModule({
             tokenManager,
             auth,
             httpAuth,
-            logger: backendCommon.loggerToWinstonLogger(logger),
+            logger,
             catalogClient: catalog,
             entityTransformer: transformer
           })

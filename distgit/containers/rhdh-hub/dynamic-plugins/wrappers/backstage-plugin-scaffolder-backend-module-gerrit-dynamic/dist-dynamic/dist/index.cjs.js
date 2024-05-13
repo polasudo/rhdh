@@ -30,7 +30,7 @@ var crypto__default = /*#__PURE__*/_interopDefaultCompat(crypto);
 var fetch__default = /*#__PURE__*/_interopDefaultCompat(fetch);
 var yaml__default = /*#__PURE__*/_interopDefaultCompat(yaml);
 
-const examples = [
+const examples$1 = [
   {
     description: "Initializes a Gerrit repository of contents in workspace and publish it to Gerrit with default configuration.",
     example: yaml__default.default.stringify({
@@ -204,7 +204,7 @@ function createPublishGerritAction(options) {
     id: "publish:gerrit",
     supportsDryRun: true,
     description: "Initializes a git repository of the content in the workspace, and publishes it to Gerrit.",
-    examples,
+    examples: examples$1,
     schema: {
       input: {
         type: "object",
@@ -338,6 +338,114 @@ function createPublishGerritAction(options) {
   });
 }
 
+const examples = [
+  {
+    description: "Creates a new Gerrit review with minimal options",
+    example: yaml__default.default.stringify({
+      steps: [
+        {
+          id: "publish",
+          action: "publish:gerrit:review",
+          name: "Publish new gerrit review",
+          input: {
+            repoUrl: "gerrithost.org?repo=repo&owner=owner",
+            gitCommitMessage: "Initial Commit Message"
+          }
+        }
+      ]
+    })
+  },
+  {
+    description: "Creates a new Gerrit review with gitAuthorName",
+    example: yaml__default.default.stringify({
+      steps: [
+        {
+          id: "publish",
+          action: "publish:gerrit:review",
+          name: "Publish new gerrit review",
+          input: {
+            repoUrl: "gerrithost.org?repo=repo&owner=owner",
+            gitCommitMessage: "Initial Commit Message",
+            gitAuthorName: "Test User"
+          }
+        }
+      ]
+    })
+  },
+  {
+    description: "Creates a new Gerrit review with gitAuthorEmail",
+    example: yaml__default.default.stringify({
+      steps: [
+        {
+          id: "publish",
+          action: "publish:gerrit:review",
+          name: "Publish new gerrit review",
+          input: {
+            repoUrl: "gerrithost.org?repo=repo&owner=owner",
+            gitCommitMessage: "Initial Commit Message",
+            gitAuthorName: "Test User",
+            gitAuthorEmail: "test.user@example.com"
+          }
+        }
+      ]
+    })
+  },
+  {
+    description: "Creates a new Gerrit review with custom branch",
+    example: yaml__default.default.stringify({
+      steps: [
+        {
+          id: "publish",
+          action: "publish:gerrit:review",
+          name: "Publish new gerrit review",
+          input: {
+            repoUrl: "gerrithost.org?repo=repo&owner=owner",
+            gitCommitMessage: "Initial Commit Message",
+            branch: "develop"
+          }
+        }
+      ]
+    })
+  },
+  {
+    description: "Creates a new Gerrit review with custom sourcePath",
+    example: yaml__default.default.stringify({
+      steps: [
+        {
+          id: "publish",
+          action: "publish:gerrit:review",
+          name: "Publish new gerrit review",
+          input: {
+            repoUrl: "gerrithost.org?repo=repo&owner=owner",
+            gitCommitMessage: "Initial Commit Message",
+            sourcePath: "./src"
+          }
+        }
+      ]
+    })
+  },
+  {
+    description: "Creates a new Gerrit review with all properties",
+    example: yaml__default.default.stringify({
+      steps: [
+        {
+          id: "publish",
+          action: "publish:gerrit:review",
+          name: "Publish new gerrit review",
+          input: {
+            repoUrl: "gerrithost.org?repo=repo&owner=owner",
+            gitCommitMessage: "Initial Commit Message",
+            gitAuthorName: "Test User",
+            gitAuthorEmail: "test.user@example.com",
+            branch: "develop",
+            sourcePath: "./src"
+          }
+        }
+      ]
+    })
+  }
+];
+
 const generateGerritChangeId = () => {
   const changeId = crypto__default.default.randomBytes(20).toString("hex");
   return `I${changeId}`;
@@ -347,6 +455,7 @@ function createPublishGerritReviewAction(options) {
   return pluginScaffolderNode.createTemplateAction({
     id: "publish:gerrit:review",
     description: "Creates a new Gerrit review.",
+    examples,
     schema: {
       input: {
         type: "object",

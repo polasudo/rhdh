@@ -280,13 +280,12 @@ const sonarqubePlugin = backendPluginApi.createBackendPlugin({
         httpRouter: backendPluginApi.coreServices.httpRouter
       },
       async init({ logger, config, httpRouter }) {
-        const winstonLogger = backendCommon.loggerToWinstonLogger(logger);
         httpRouter.use(
           await createRouter({
             /**
              * Logger for logging purposes
              */
-            logger: winstonLogger,
+            logger,
             /**
              * Info provider to be able to get all necessary information for the APIs
              */

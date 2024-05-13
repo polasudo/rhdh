@@ -3,14 +3,14 @@
 Object.defineProperty(exports, '__esModule', { value: true });
 
 var require$$0$1 = require('@backstage/backend-plugin-api');
-var require$$5 = require('@backstage/backend-common');
-var require$$2$1 = require('@backstage/plugin-catalog-node/alpha');
-var require$$3$1 = require('@backstage/plugin-events-node');
+var require$$1$1 = require('@backstage/plugin-catalog-node/alpha');
+var require$$2$1 = require('@backstage/plugin-events-node');
 var require$$0 = require('@backstage/catalog-client');
 var require$$1 = require('@backstage/integration');
 var require$$2 = require('@octokit/rest');
 var require$$3 = require('lodash');
 var require$$4 = require('git-url-parse');
+var require$$5 = require('@backstage/backend-common');
 var require$$6 = require('@backstage/plugin-catalog-node');
 var require$$7 = require('@octokit/graphql');
 var require$$8 = require('uuid');
@@ -27,7 +27,7 @@ var integration = require$$1;
 var rest = require$$2;
 var lodash = require$$3;
 var parseGitUrl = require$$4;
-var backendCommon$1 = require$$5;
+var backendCommon = require$$5;
 var pluginCatalogNode = require$$6;
 var graphql = require$$7;
 var uuid = require$$8;
@@ -73,7 +73,7 @@ class GithubLocationAnalyzer {
     this.catalogClient = new catalogClient.CatalogClient({ discoveryApi: options.discovery });
     this.integrations = integration.ScmIntegrations.fromConfig(options.config);
     this.githubCredentialsProvider = options.githubCredentialsProvider || integration.DefaultGithubCredentialsProvider.fromIntegrations(this.integrations);
-    this.auth = backendCommon$1.createLegacyAuthAdapters({
+    this.auth = backendCommon.createLegacyAuthAdapters({
       auth: options.auth,
       discovery: options.discovery,
       tokenManager: options.tokenManager
@@ -1047,10 +1047,10 @@ GithubEntityProviderCTh6g4dw_cjs.withLocations = withLocations;
 Object.defineProperty(alpha_cjs, '__esModule', { value: true });
 
 var backendPluginApi = require$$0$1;
-var backendCommon = require$$5;
-var alpha = require$$2$1;
-var pluginEventsNode = require$$3$1;
+var alpha = require$$1$1;
+var pluginEventsNode = require$$2$1;
 var GithubEntityProvider = GithubEntityProviderCTh6g4dw_cjs;
+
 
 
 
@@ -1098,7 +1098,7 @@ const githubCatalogModule = backendPluginApi.createBackendModule({
         catalog.addEntityProvider(
           GithubEntityProvider.GithubEntityProvider.fromConfig(config, {
             events,
-            logger: backendCommon.loggerToWinstonLogger(logger),
+            logger,
             scheduler
           })
         );

@@ -6,9 +6,10 @@ var require$$0 = require('@backstage/errors');
 var require$$1 = require('@backstage/integration');
 var require$$2 = require('@backstage/plugin-scaffolder-node');
 var require$$3 = require('node-fetch');
-var require$$4 = require('fs-extra');
-var require$$5 = require('@backstage/backend-plugin-api');
-var require$$6 = require('@backstage/plugin-scaffolder-node/alpha');
+var require$$4 = require('yaml');
+var require$$5 = require('fs-extra');
+var require$$6 = require('@backstage/backend-plugin-api');
+var require$$7 = require('@backstage/plugin-scaffolder-node/alpha');
 
 var index_cjs = {};
 
@@ -18,14 +19,130 @@ var errors = require$$0;
 var integration = require$$1;
 var pluginScaffolderNode = require$$2;
 var fetch = require$$3;
-var fs = require$$4;
-var backendPluginApi = require$$5;
-var alpha = require$$6;
+var yaml = require$$4;
+var fs = require$$5;
+var backendPluginApi = require$$6;
+var alpha = require$$7;
 
 function _interopDefaultCompat (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }
 
 var fetch__default = /*#__PURE__*/_interopDefaultCompat(fetch);
+var yaml__default = /*#__PURE__*/_interopDefaultCompat(yaml);
 var fs__default = /*#__PURE__*/_interopDefaultCompat(fs);
+
+const examples = [
+  {
+    description: "Initialize git repository with required properties",
+    example: yaml__default.default.stringify({
+      steps: [
+        {
+          action: "publish:bitbucketServer",
+          id: "publish-bitbucket-server-minimal",
+          name: "Publish To Bitbucket Server",
+          input: {
+            repoUrl: "hosted.bitbucket.com?project=project&repo=repo"
+          }
+        }
+      ]
+    })
+  },
+  {
+    description: "Initialize git repository with all properties",
+    example: yaml__default.default.stringify({
+      steps: [
+        {
+          action: "publish:bitbucketServer",
+          id: "publish-bitbucket-server-minimal",
+          name: "Publish To Bitbucket Server",
+          input: {
+            repoUrl: "hosted.bitbucket.com?project=project&repo=repo",
+            description: "This is a test repository",
+            repoVisibility: "private",
+            defaultBranch: "main",
+            sourcePath: "packages/backend",
+            enableLFS: false,
+            token: "test-token",
+            gitCommitMessage: "Init check commit",
+            gitAuthorName: "Test User",
+            gitAuthorEmail: "test.user@example.com"
+          }
+        }
+      ]
+    })
+  },
+  {
+    description: "Initialize git repository with public visibility",
+    example: yaml__default.default.stringify({
+      steps: [
+        {
+          action: "publish:bitbucketServer",
+          id: "publish-bitbucket-server-minimal",
+          name: "Publish To Bitbucket Server",
+          input: {
+            repoUrl: "hosted.bitbucket.com?project=project&repo=repo",
+            description: "This is a test repository",
+            repoVisibility: "public",
+            defaultBranch: "main",
+            sourcePath: "packages/backend",
+            enableLFS: true,
+            token: "test-token",
+            gitCommitMessage: "Init check commit",
+            gitAuthorName: "Test User",
+            gitAuthorEmail: "test.user@example.com"
+          }
+        }
+      ]
+    })
+  },
+  {
+    description: "Initialize git repository with different default branch",
+    example: yaml__default.default.stringify({
+      steps: [
+        {
+          action: "publish:bitbucketServer",
+          id: "publish-bitbucket-server-minimal",
+          name: "Publish To Bitbucket Server",
+          input: {
+            repoUrl: "hosted.bitbucket.com?project=project&repo=repo",
+            description: "This is a test repository",
+            repoVisibility: "public",
+            defaultBranch: "develop",
+            sourcePath: "packages/backend",
+            enableLFS: true,
+            token: "test-token",
+            gitCommitMessage: "Init check commit",
+            gitAuthorName: "Test User",
+            gitAuthorEmail: "test.user@example.com"
+          }
+        }
+      ]
+    })
+  },
+  {
+    description: "Initialize git repository with different source path",
+    example: yaml__default.default.stringify({
+      steps: [
+        {
+          action: "publish:bitbucketServer",
+          id: "publish-bitbucket-server-minimal",
+          name: "Publish To Bitbucket Server",
+          input: {
+            repoUrl: "hosted.bitbucket.com?project=project&repo=repo",
+            description: "This is a test repository",
+            repoVisibility: "public",
+            defaultBranch: "develop",
+            sourcePath: "packages/api",
+            enableLFS: true,
+            token: "test-token",
+            gitCommitMessage: "Init check commit",
+            gitAuthorName: "Test User",
+            gitAuthorEmail: "test.user@example.com"
+          }
+        }
+      ]
+    })
+  }
+];
 
 const createRepository = async (opts) => {
   const {
@@ -93,6 +210,7 @@ function createPublishBitbucketServerAction(options) {
   return pluginScaffolderNode.createTemplateAction({
     id: "publish:bitbucketServer",
     description: "Initializes a git repository of the content in the workspace, and publishes it to Bitbucket Server.",
+    examples,
     schema: {
       input: {
         type: "object",

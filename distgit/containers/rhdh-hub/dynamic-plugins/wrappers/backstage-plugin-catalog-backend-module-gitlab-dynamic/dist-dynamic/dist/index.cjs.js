@@ -3,8 +3,7 @@
 Object.defineProperty(exports, '__esModule', { value: true });
 
 var require$$0$1 = require('@backstage/backend-plugin-api');
-var require$$1$1 = require('@backstage/backend-common');
-var require$$2$1 = require('@backstage/plugin-catalog-node/alpha');
+var require$$1$1 = require('@backstage/plugin-catalog-node/alpha');
 var require$$0 = require('@backstage/integration');
 var require$$1 = require('@backstage/plugin-catalog-node');
 var require$$2 = require('uuid');
@@ -531,8 +530,7 @@ GitlabDiscoveryEntityProviderCfW32ioU_cjs.readGitlabConfigs = readGitlabConfigs;
 Object.defineProperty(alpha_cjs, '__esModule', { value: true });
 
 var backendPluginApi = require$$0$1;
-var backendCommon = require$$1$1;
-var alpha = require$$2$1;
+var alpha = require$$1$1;
 var GitlabDiscoveryEntityProvider = GitlabDiscoveryEntityProviderCfW32ioU_cjs;
 
 
@@ -556,7 +554,7 @@ const catalogModuleGitlabDiscoveryEntityProvider = backendPluginApi.createBacken
       async init({ config, catalog, logger, scheduler }) {
         catalog.addEntityProvider(
           GitlabDiscoveryEntityProvider.GitlabDiscoveryEntityProvider.fromConfig(config, {
-            logger: backendCommon.loggerToWinstonLogger(logger),
+            logger,
             scheduler
           })
         );

@@ -28,7 +28,7 @@ var yaml__default = /*#__PURE__*/_interopDefaultCompat(yaml);
 
 const examples = [
   {
-    description: "Initializes a git repository of the content in the workspace, and publishes it to Azure.",
+    description: "Initializes a git repository with the content in the workspace, and publishes it to Azure DevOps with the default configuration.",
     example: yaml__default.default.stringify({
       steps: [
         {
@@ -43,7 +43,7 @@ const examples = [
     })
   },
   {
-    description: "Add a description.",
+    description: "Initializes an Azure DevOps repository with a description.",
     example: yaml__default.default.stringify({
       steps: [
         {
@@ -59,7 +59,7 @@ const examples = [
     })
   },
   {
-    description: "Change the default branch.",
+    description: "Initializes an Azure DevOps repository with a default branch, if not set defaults to master",
     example: yaml__default.default.stringify({
       steps: [
         {
@@ -68,7 +68,6 @@ const examples = [
           name: "Publish to Azure",
           input: {
             repoUrl: "dev.azure.com?organization=organization&owner=project&repo=repo",
-            description: "Initialize a git repository",
             defaultBranch: "main"
           }
         }

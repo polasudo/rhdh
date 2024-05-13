@@ -7,6 +7,8 @@ var alpha = require('@backstage/plugin-scaffolder-node/alpha');
 var require$$0 = require('@backstage/plugin-scaffolder-backend');
 var require$$1 = require('cross-fetch');
 
+var backstageRequestDzBxwOx3_cjs = {};
+
 var pluginScaffolderBackend = require$$0;
 var crossFetch = require$$1;
 
@@ -63,7 +65,7 @@ const getObjFieldCaseInsensitively = (obj = {}, fieldName) => {
   return value;
 };
 
-function createHttpBackstageAction(options) {
+function createHttpBackstageAction$1(options) {
   const { discovery } = options;
   return pluginScaffolderBackend.createTemplateAction({
     id: "http:backstage:request",
@@ -107,7 +109,7 @@ function createHttpBackstageAction(options) {
           body: {
             title: "Request body",
             description: "The body you would like to pass to your request",
-            type: ["object", "string"]
+            type: ["object", "string", "array"]
           },
           logRequestPath: {
             title: "Request path logging",
@@ -197,7 +199,15 @@ function createHttpBackstageAction(options) {
   });
 }
 
-var createHttpBackstageAction_1 = createHttpBackstageAction;
+backstageRequestDzBxwOx3_cjs.createHttpBackstageAction = createHttpBackstageAction$1;
+
+var backstageRequest = backstageRequestDzBxwOx3_cjs;
+
+
+
+
+
+var createHttpBackstageAction = backstageRequest.createHttpBackstageAction;
 
 const scaffolderModuleHttpRequest = backendPluginApi.createBackendModule({
   moduleId: "scaffolder-backend-module-http-request",
@@ -209,7 +219,7 @@ const scaffolderModuleHttpRequest = backendPluginApi.createBackendModule({
         discovery: backendPluginApi.coreServices.discovery
       },
       async init({ scaffolder, discovery }) {
-        scaffolder.addActions(createHttpBackstageAction_1({ discovery }));
+        scaffolder.addActions(createHttpBackstageAction({ discovery }));
       }
     });
   }

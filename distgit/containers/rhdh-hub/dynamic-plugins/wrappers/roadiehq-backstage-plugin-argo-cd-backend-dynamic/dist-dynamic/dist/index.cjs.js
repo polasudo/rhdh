@@ -513,7 +513,8 @@ class ArgoService {
     const options = {
       method: "PUT",
       headers: {
-        Authorization: `Bearer ${argoToken}`
+        Authorization: `Bearer ${argoToken}`,
+        "Content-Type": "application/json"
       },
       body: JSON.stringify(data)
     };
@@ -895,7 +896,8 @@ class ArgoService {
     }
     const options = {
       headers: {
-        Authorization: `Bearer ${token}`
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json"
       },
       method: "GET"
     };
@@ -944,7 +946,8 @@ class ArgoService {
     }
     const options = {
       headers: {
-        Authorization: `Bearer ${token}`
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json"
       },
       method: "DELETE"
     };

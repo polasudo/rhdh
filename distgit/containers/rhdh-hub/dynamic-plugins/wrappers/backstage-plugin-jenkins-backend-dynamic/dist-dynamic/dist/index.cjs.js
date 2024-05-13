@@ -652,7 +652,6 @@ const jenkinsPlugin = backendPluginApi.createBackendPlugin({
         auth,
         httpAuth
       }) {
-        const winstonLogger = backendCommon.loggerToWinstonLogger(logger);
         const jenkinsInfoProvider = DefaultJenkinsInfoProvider.fromConfig({
           auth,
           httpAuth,
@@ -666,7 +665,7 @@ const jenkinsPlugin = backendPluginApi.createBackendPlugin({
             /**
              * Logger for logging purposes
              */
-            logger: winstonLogger,
+            logger,
             /**
              * Info provider to be able to get all necessary information for the APIs
              */

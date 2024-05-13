@@ -2,7 +2,7 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var pluginSonarqubeBackend = require('@backstage/plugin-sonarqube-backend');
+var pluginSonarqubeBackend = require('@backstage-community/plugin-sonarqube-backend');
 
 function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 

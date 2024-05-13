@@ -2,7 +2,7 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var pluginJenkinsBackend = require('@backstage/plugin-jenkins-backend');
+var pluginJenkinsBackend = require('@backstage-community/plugin-jenkins-backend');
 
 function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 

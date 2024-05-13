@@ -2,9 +2,8 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var require$$0$1 = require('@backstage/backend-common');
-var require$$1$1 = require('@backstage/backend-plugin-api');
-var require$$2$1 = require('@backstage/plugin-catalog-node/alpha');
+var require$$0$1 = require('@backstage/backend-plugin-api');
+var require$$1$1 = require('@backstage/plugin-catalog-node/alpha');
 var require$$0 = require('@backstage/errors');
 var require$$1 = require('@backstage/integration');
 var require$$2 = require('uuid');
@@ -16,7 +15,6 @@ function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'defau
 
 var require$$0__default$1 = /*#__PURE__*/_interopDefaultLegacy(require$$0$1);
 var require$$1__default$1 = /*#__PURE__*/_interopDefaultLegacy(require$$1$1);
-var require$$2__default$1 = /*#__PURE__*/_interopDefaultLegacy(require$$2$1);
 var require$$0__default = /*#__PURE__*/_interopDefaultLegacy(require$$0);
 var require$$1__default = /*#__PURE__*/_interopDefaultLegacy(require$$1);
 var require$$2__default = /*#__PURE__*/_interopDefaultLegacy(require$$2);
@@ -335,9 +333,8 @@ BitbucketServerEntityProviderF_8B4ZVW_cjs.BitbucketServerEntityProvider = Bitbuc
 
 Object.defineProperty(alpha_cjs, '__esModule', { value: true });
 
-var backendCommon = require$$0__default$1["default"];
-var backendPluginApi = require$$1__default$1["default"];
-var alpha = require$$2__default$1["default"];
+var backendPluginApi = require$$0__default$1["default"];
+var alpha = require$$1__default$1["default"];
 var BitbucketServerEntityProvider = BitbucketServerEntityProviderF_8B4ZVW_cjs;
 
 
@@ -358,9 +355,8 @@ const catalogModuleBitbucketServerEntityProvider = backendPluginApi.createBacken
         scheduler: backendPluginApi.coreServices.scheduler
       },
       async init({ catalog, config, logger, scheduler }) {
-        const winstonLogger = backendCommon.loggerToWinstonLogger(logger);
         const providers = BitbucketServerEntityProvider.BitbucketServerEntityProvider.fromConfig(config, {
-          logger: winstonLogger,
+          logger,
           scheduler
         });
         catalog.addEntityProvider(providers);
