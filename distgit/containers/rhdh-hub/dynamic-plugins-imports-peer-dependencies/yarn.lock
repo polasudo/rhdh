@@ -2465,10 +2465,10 @@
     prop-types "^15.8.1"
     react-use "^17.4.0"
 
-"@janus-idp/backstage-plugin-argocd@1.0.3":
-  version "1.0.3"
-  resolved "https://registry.npmjs.org/@janus-idp/backstage-plugin-argocd/-/backstage-plugin-argocd-1.0.3.tgz#332b2a49929261dac5f13efa60e669b67378a518"
-  integrity sha512-l2cTstaybw/2LLZowX0RCyckqqLnac6BQRtR6hy7qEHtNziuRH9uVfoIShkWarZMFukjIHUa3VtfwK1CZb1A+g==
+"@janus-idp/backstage-plugin-argocd@1.0.4":
+  version "1.0.4"
+  resolved "https://registry.npmjs.org/@janus-idp/backstage-plugin-argocd/-/backstage-plugin-argocd-1.0.4.tgz#9938c2d23ab74207f43043840256d09ee37c6727"
+  integrity sha512-7OT9qGhle4nZ016A5WCijT61hlLJyVxHSV1UWENPNcykIY5NtWhrtXI+KnJ61rjlqGDT8qD6CQy3NxLxIfSsew==
   dependencies:
     "@backstage/catalog-model" "^1.4.5"
     "@backstage/core-components" "^0.14.6"
