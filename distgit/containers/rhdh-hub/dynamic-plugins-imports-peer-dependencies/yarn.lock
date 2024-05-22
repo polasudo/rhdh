@@ -1232,7 +1232,7 @@
   dependencies:
     regenerator-runtime "^0.14.0"
 
-"@babel/runtime@^7.22.15", "@babel/runtime@^7.23.9":
+"@babel/runtime@^7.23.9":
   version "7.23.9"
   resolved "https://registry.npmjs.org/@babel/runtime/-/runtime-7.23.9.tgz#47791a15e4603bb5f905bc0753801cf21d6345f7"
   integrity sha512-0CX6F+BI2s9dkUqr08KFrAIZgNFj75rdBU/DjCyYLIaV/quFjkk6T+EJ2LkZHyZTbEV4L5p97mNkUsHl2wLFAw==
@@ -2613,10 +2613,10 @@
   dependencies:
     "@backstage/plugin-permission-common" "^0.7.13"
 
-"@janus-idp/backstage-plugin-rbac@1.18.2":
-  version "1.18.2"
-  resolved "https://registry.npmjs.org/@janus-idp/backstage-plugin-rbac/-/backstage-plugin-rbac-1.18.2.tgz#50fa7c88906fe874e03a1e819c42f00cb345d95e"
-  integrity sha512-LaF5+w5a7epVWet5BIBfyU15CbQLGeQGBgKjWjwvB14VwcynPI8o5LxhCFWAVE0lI6fOCdqUPhxl5399OqcDDw==
+"@janus-idp/backstage-plugin-rbac@1.20.2":
+  version "1.20.2"
+  resolved "https://registry.npmjs.org/@janus-idp/backstage-plugin-rbac/-/backstage-plugin-rbac-1.20.2.tgz#d49abbdaba08127e288459b1f280bc5e24b9cfe6"
+  integrity sha512-KGeFruajo+2qWojAno2CDbVNH7xCWKu38NsgQUVFfH4k5W6+sg5KO4ODu0flIN1TMg2DAXRVjIbfmWfpWzEIgA==
   dependencies:
     "@backstage/catalog-model" "^1.4.5"
     "@backstage/core-components" "^0.14.6"
@@ -2627,11 +2627,11 @@
     "@backstage/plugin-permission-react" "^0.4.22"
     "@backstage/theme" "^0.5.3"
     "@janus-idp/backstage-plugin-rbac-common" "1.4.2"
-    "@janus-idp/shared-react" "2.6.1"
+    "@janus-idp/shared-react" "2.6.2"
     "@material-ui/core" "^4.9.13"
     "@material-ui/icons" "^4.11.3"
     "@material-ui/lab" "^4.0.0-alpha.45"
-    "@mui/icons-material" "5.14.11"
+    "@mui/icons-material" "5.15.17"
     "@mui/material" "^5.14.18"
     "@rjsf/core" "^5.18.2"
     "@rjsf/mui" "^5.18.2"
@@ -2750,6 +2750,18 @@
   version "2.6.1"
   resolved "https://registry.npmjs.org/@janus-idp/shared-react/-/shared-react-2.6.1.tgz#803b2f6356348c078ec595d4b16d1ee7fe5128f3"
   integrity sha512-+I8ZcWZ0HBwJHjXrCKN+FY8Dex0R1voWxZ/E4HT9grGf/05XvbO3onL5b5vEGgERDUC6vyin6H7PJO0aezYdVg==
+  dependencies:
+    "@kubernetes/client-node" "^0.20.0"
+    classnames "^2.3.2"
+    date-fns "^2.30.0"
+    file-saver "^2.0.5"
+    lodash "^4.17.21"
+    mathjs "^11.11.2"
+
+"@janus-idp/shared-react@2.6.2":
+  version "2.6.2"
+  resolved "https://registry.npmjs.org/@janus-idp/shared-react/-/shared-react-2.6.2.tgz#5506d4f5d7343a037e648f37bb0723f08ee0c604"
+  integrity sha512-Yb52vFDJEI+9mKxFYr0PGFLDHn59YQr158sPeGFPI5n3pJw4exszbj1Z0mgzTRnOvOkcJ/C8gQFrThREl8HJBw==
   dependencies:
     "@kubernetes/client-node" "^0.20.0"
     classnames "^2.3.2"
@@ -3046,12 +3058,12 @@
   resolved "https://registry.npmjs.org/@mui/core-downloads-tracker/-/core-downloads-tracker-5.15.11.tgz#dcaf6156880e81e4547237fb781700485453e964"
   integrity sha512-JVrJ9Jo4gyU707ujnRzmE8ABBWpXd6FwL9GYULmwZRtfPg89ggXs/S3MStQkpJ1JRWfdLL6S5syXmgQGq5EDAw==
 
-"@mui/icons-material@5.14.11":
-  version "5.14.11"
-  resolved "https://registry.npmjs.org/@mui/icons-material/-/icons-material-5.14.11.tgz#ce563d1b6c7abc76f8a8048c970135601e7b49b5"
-  integrity sha512-aHReLasBuS/+hhPzbZCgZ0eTcZ2QRnoC2WNK7XvdAf3l+LjC1flzjh6GWw1tZJ5NHnZ+bivdwtLFQ8XTR96JkA==
+"@mui/icons-material@5.15.17":
+  version "5.15.17"
+  resolved "https://registry.npmjs.org/@mui/icons-material/-/icons-material-5.15.17.tgz#518c02354036f7df28c8f9890b1db6a3269fcc2f"
+  integrity sha512-xVzl2De7IY36s/keHX45YMiCpsIx3mNv2xwDgtBkRSnZQtVk+Gqufwj1ktUxEyjzEhBl0+PiNJqYC31C+n1n6A==
   dependencies:
-    "@babel/runtime" "^7.22.15"
+    "@babel/runtime" "^7.23.9"
 
 "@mui/material@^5.12.2":
   version "5.14.18"
