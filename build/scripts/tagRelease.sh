@@ -328,7 +328,8 @@ function updateOperatorVersions() {
 		-e "s/(skipRange: '>=1.0.0 <)[0-9.]+'/\1$the_version'/" \
 		-e "s/(name: rhdh-operator.v)[0-9.]+/\1$the_version/" \
 		-e "s/(^  version: )[0-9.]+/\1$the_version/" \
-		-e "s/(rhdh-rhdh-hub-rhel9:|rhdh-rhdh-rhel9-operator:)[0-9.]+/\1${the_version%.*}/" # replace with 1.3 
+		-e "s/(rhdh-rhdh-hub-rhel9:|rhdh-rhdh-rhel9-operator:)[0-9.]+/\1${the_version%.*}/" \
+		-e "s|(.*https://access.redhat.com/documentation/en-us/red_hat_developer_hub/)([0-9.]+)(/html-single/administration_guide_for_red_hat_developer_hub/index#assembly-rhdh-telemetry_admin-rhdh.*)|\1${the_version}\3|g" # replace with 1.3 
 
 	pwd; git diff || true
 	if [[ $(git diff || true ) ]] && [[ ${DO_PUSH} -eq 1 ]]; then
@@ -363,6 +364,38 @@ function updateDocVersions() {
 	pwd; git diff || true
 	if [[ $(git diff || true ) ]] && [[ ${DO_PUSH} -eq 1 ]]; then
 		COMMITMSG="chore: tagRelease.sh: bump to $the_version in $the_branch branch"
+		git commit --no-gpg-sign -s -m "${COMMITMSG}" .
+		git pull origin "${the_branch}" || true
+		# create pull request if target branch is restricted access
+		pr_branch="pr-bump-to-${the_version}-in-${the_branch}-$(date +%s)"
+		createPr "${pr_branch}" "${the_branch}"
+	fi ## if DO_PUSH
+
+	popd >/dev/null || exit 1
+}
+
+# for charts repo, bump to specified version
+function updateChartVersions(){
+    the_branch="$1"
+    the_version="$2"
+    # push path to repo onto the stack
+    orgAndRepo="redhat-developer/rhdh-chart"
+    d="${orgAndRepo/\//__}"
+    pushd "/tmp/tmp-checkouts/projects_${d}" >/dev/null || exit 1
+
+    # checkout branch
+    git checkout "${the_branch}" || true
+
+    # update telemetry link in README to new version 
+    sed -i ./charts/backstage/README.md -r -e "s|(.*https://access.redhat.com/documentation/en-us/red_hat_developer_hub/)([0-9.]+)(/html-single/administration_guide_for_red_hat_developer_hub/index#assembly-rhdh-telemetry_admin-rhdh.*)|\1${the_version}\3|g"
+
+    # update telemetry link in ./charts/backstage/Chart.yaml to new version
+     sed -i ./charts/backstage/Chart.yaml -r -e "s|(.*https://access.redhat.com/documentation/en-us/red_hat_developer_hub/)([0-9.]+)(/html-single/administration_guide_for_red_hat_developer_hub/index#assembly-rhdh-telemetry_admin-rhdh.*)|\1${the_version}\3|g"
+    
+    # if there are changes in the file and commit can be pushed
+    pwd; git diff || true
+	if [[ $(git diff || true ) ]] && [[ ${DO_PUSH} -eq 1 ]]; then
+		COMMITMSG="chore: Update chart doc links to ${the_version} in ${the_branch} branch"
 		git commit --no-gpg-sign -s -m "${COMMITMSG}" .
 		git pull origin "${the_branch}" || true
 		# create pull request if target branch is restricted access
@@ -453,6 +486,9 @@ pushBranchAndOrTagGH () {
 						# note: for now, only bump to the last RELEASED version in the docs
 						# so use CSV_VERSION=1.1.2 here (while showcase, operator, plugins move to 1.1.3 to prepare for a future release)
 						updateDocVersions "$TARGET_BRANCH" "$CSV_VERSION"
+					elif [[ $d == "redhat-developer__rhdh-chart"]]; then
+						echo "[INFO] Bump $d to $PROD_VERSION"
+						updateChartVersions "$TARGET_BRANCH" "$PROD_VERSION"
 					else
 						echo "[INFO] No version bumps needed for $d" 
 					fi
