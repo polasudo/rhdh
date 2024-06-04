@@ -2,7 +2,7 @@ repos:
   - repo: https://github.com/janus-idp/backstage-showcase
     branch:
       # list branch to fetch; if first not found, try second as fallback
-      - 1.2.x
+      - main
     # include the contents of the repo's root folder too?
     include_root: true
     # list of files/folders to exclude from upstream in this repo
@@ -24,7 +24,7 @@ repos:
   - repo: https://github.com/janus-idp/operator
     branch: 
       # list branch to fetch; if first not found, try second as fallback
-      - 1.2.x
+      - main
     include_root: true
     # list of files/folders to exclude from upstream in this repo
     exclude_root:
