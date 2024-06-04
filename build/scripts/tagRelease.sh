@@ -49,7 +49,7 @@ if [[ $# -lt 4 ]]; then
 To create or update existing branches:
   $0 -t PROD_VERSION --branchfrom SOURCE_GH_BRANCH -gh TARGET_GH_BRANCH -ghtoken GITHUB_TOKEN
 Example: 
-  $0 -t 1.1 --branchfrom main -gh 1.1.x -ghtoken \$GITHUB_TOKEN
+  $0 -t 1.2 --branchfrom main -gh 1.2.x -ghtoken \$GITHUB_TOKEN
 
 To create tags (and push updates to 1.yy.x branches):
 1. You should have a valid GITHUB_TOKEN for your user (for upstream PRs).
@@ -57,7 +57,7 @@ To create tags (and push updates to 1.yy.x branches):
 3. Run this
   $0 -v CSV_VERSION -t PROD_VERSION -gh GH_BRANCH -ghtoken GITHUB_TOKEN -pd GITLAB_AND_PKGS_DEVEL_BRANCH -pduser kerberos_user
 Example: 
-  $0 -v 1.1.2 -t 1.1 -gh 1.1.x -pd rhdh-1.1-rhel-9 --clean --force-update -ghtoken \$GITHUB_TOKEN -pduser $pduser
+  $0 -v 1.2.1 -t 1.2 -gh 1.2.x -pd rhdh-1.2-rhel-9 --clean --force-update -ghtoken \$GITHUB_TOKEN -pduser $pduser
 
 Options:
     --clean                   delete existing temp folders and do fresh checkouts
@@ -391,8 +391,10 @@ function updateChartVersions(){
 	rm -fr "/tmp/tmp-checkouts/projects_${d}_2" && git clone -q --depth 1 -b "${the_branch}" "https://github.com/${orgAndRepo}" "/tmp/tmp-checkouts/projects_${d}_2" || echo "Branch $clone_branch doesn't exist: skip!"
 	pushd "/tmp/tmp-checkouts/projects_${d}_2" >/dev/null || exit 1
 
+	files_to_bump="./charts/backstage/README.md ./charts/backstage/Chart.yaml"
+
     # update telemetry link in chart files to new version 
-	for file in ./charts/backstage/README.md ./charts/backstage/Chart.yaml; do
+	for file in $files_to_bump; do
 		sed -i "${file}" -r -e \
 			"s|(.*https://access.redhat.com/documentation/en-us/red_hat_developer_hub/)([0-9.]+)(/html-single/administration_guide_for_red_hat_developer_hub/index#assembly-rhdh-telemetry_admin-rhdh.*)|\1${the_version}\3|g"
 	done
@@ -400,8 +402,22 @@ function updateChartVersions(){
     # if there are changes in the file and commit can be pushed
     pwd; git diff || true
 	if [[ $(git diff || true ) ]] && [[ ${DO_PUSH} -eq 1 ]]; then
+
+		# bump chart version to x.y+1.0 when switching versions
+		chart_ver=$(yq -r '.version' ./charts/backstage/Chart.yaml)
+		if [[ $chart_ver =~ ^([0-9]+)\.([0-9]+)\..* ]]; then # increase the y digit
+			XX=${BASH_REMATCH[1]}
+			YY=${BASH_REMATCH[2]}
+			(( YY=YY+1 ))
+			newver="$XX.$YY.0"
+		fi
+		for file in $files_to_bump; do
+			sed -i "${file}" -r -e "s/(^version: |Version: |Version-)([0-9.]+)/\1$newver/g"
+		done
+		git diff || true
+
 		COMMITMSG="chore: tagRelease.sh: bump to ${the_version} in ${the_branch} branch"
-		git commit --no-gpg-sign -s -m "${COMMITMSG}" . || git commit --no-gpg-sign -s -m "${COMMITMSG}" .
+		git commit --no-gpg-sign -s -m "${COMMITMSG}" . || git commit --no-gpg-sign -s -m "${COMMITMSG}" . 
 		git pull origin "${the_branch}" || true
 		# create pull request if target branch is restricted access
 		pr_branch="pr-bump-to-${the_version}-in-${the_branch}-$(date +%s)"
@@ -634,11 +650,11 @@ for repo in \
     redhat-developer/rhdh-chart \
 	redhat-developer/red-hat-developers-documentation-rhdh \
     redhat-developer/red-hat-developer-hub-software-templates \
+	redhat-developer/red-hat-developer-hub-theme \
     janus-idp/operator \
     janus-idp/backstage-plugins \
     janus-idp/backstage-showcase \
 	; do
-	# TODO add redhat-developer/red-hat-developer-hub-theme ?
 	pushBranchAndOrTagGH $repo 
 done
 
@@ -648,7 +664,7 @@ done
 # TODO VERIFY THIS WORKS with 1.2 branch creation
 if [[ ${SOURCE_BRANCH} ]]; then
 	# check for changes and push a PR for each repo
-	# updatePluginVersions - DISABLED - see RHIDP-1720
+	## updatePluginVersions - DISABLED - see RHIDP-1720
 	updateOperatorVersions "$SOURCE_BRANCH" "$newver" "$newverOp"
 	updateDocVersions "$SOURCE_BRANCH" "$newver"
 	updateShowcaseVersions "$SOURCE_BRANCH" "$newver"
