@@ -705,15 +705,21 @@ ${peerDepPairs}
 
   # backstage-plugin-kubernetes-backend:export-dynamic: error Your lockfile needs to be updated, but yarn was run with `--frozen-lockfile`.
   # don't use --frozen-lockfile to see if that makes Cachito happy
-  insertYarn=" \&\& \$YARN --cwd dist-dynamic install --production --network-timeout 600000"
+  insertYarn=" --no-install \&\& \$YARN --cwd dist-dynamic install --production --network-timeout 600000"
   #shellcheck disable=SC2044,SC2143
+
+  # two options for janus-cli syntax (--in-place added June 2024):
+  # janus-cli package export-dynamic-plugin --in-place # front end - do NOT convert
+  # janus-cli package export-dynamic-plugin --embed-package @backstage/plugin-scaffolder-backend-module-bitbucket-cloud --override-interop default --no-embed-as-dependencies # back end - DO convert
   for d in $(find distgit/containers/rhdh-hub/dynamic-plugins -name package.json) ; do
-    if [[ $(grep -E 'export-dynamic-plugin' "$d" | grep -v -- '--network-timeout') ]]; then
-      echo "[INFO] Patch yarn command in ${d#distgit/containers/rhdh-hub/} ..."
+    # determine if this a front or back end plugin; only work on BACK END plugins
+    # see https://github.com/redhat-developer/rhdh-plugin-export-utils/blob/main/export-dynamic/export-dynamic.sh
+    if [[ "$(grep -e '"role" *: *"backend-plugin' package.json)" != "" ]] && [[ $(grep -E 'export-dynamic-plugin' "$d" | grep -v -- '--network-timeout') ]]; then
+      echo "[INFO] Patch yarn command in ${d#distgit/containers/rhdh-hub/} (back end plugins ONLY) ..."
       sed -i "$d" -r \
-      -e 's#("janus-cli package export-dynamic-plugin)(.+)"#\1 --no-install\2'"$insertYarn"'"#g'
+      -e 's#("janus-cli package export-dynamic-plugin.+)"#\1'"$insertYarn"'"#g'
       # debug
-      # grep -E "network-timeout|export-dynamic-plugin" "$d" || true
+      grep -E "network-timeout|export-dynamic-plugin" "$d" || true
     fi
   done
   echo "[INFO] <===================================== Patch embedded yarn commands ====================================="
