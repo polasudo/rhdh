@@ -117,21 +117,24 @@ git config --global advice.detachedHead false
 createPr() {
   headBranch=$1
   baseBranch=$2
-  git pull origin "${baseBranch}"
-  git branch "${headBranch}" || true
-  git checkout "${headBranch}"
-  git merge "${baseBranch}"
+  git pull origin "${baseBranch}" 1>/dev/null 2>&1 || true
+  git branch "${headBranch}" 2>/dev/null || true
+  git checkout "${headBranch}" 1>/dev/null 2>&1
+  git merge "${baseBranch}" 1>/dev/null 2>&1 || true
   # shellcheck disable=SC2086
-  git push origin "${headBranch}" # ${FORCE_PUSH}
-  # TODO replace with gitlab equivalent, maybe using API?
   if [[ $(/usr/bin/gh version 2>/dev/null || true) ]] || [[ $(which gh 2>/dev/null || true) ]]; then
-    gh repo set-default "$(git remote get-url origin)"
-    # shellcheck disable=SC2086
-    gh pr create --fill-verbose -t "feat: tagRelease.sh bump versions in $baseBranch for ${PROD_VERSION} release" -B "${baseBranch}" -H "${headBranch}" ${DRYRUN} || true
-    # if not running in a gitlab pipeline, open the PR in a browser 
-    if [[ $GITLAB_PIPELINE != "true" ]]; then
-      gh pr view --web || true
-    fi
+    if [[ $(git diff HEAD~1 2>/dev/null || true) ]]; then
+	  git push origin "${headBranch}" 1>/dev/null # ${FORCE_PUSH}
+ 	  gh repo set-default "$(git remote get-url origin)"
+	  # shellcheck disable=SC2086
+	  gh pr create --fill-verbose -t "feat: tagRelease.sh bump versions in $baseBranch for ${PROD_VERSION} release" -B "${baseBranch}" -H "${headBranch}" ${DRYRUN} || true
+	  # if not running in a gitlab pipeline, open the PR in a browser 
+	  if [[ $GITLAB_PIPELINE != "true" ]]; then
+		gh pr view --web || true
+	  fi
+	else
+		echo "No changes for which to create PR for $baseBranch"
+	fi
   else
     echo "[WARN] gh cli is required to generate pull requests. See https://github.com/cli/cli?tab=readme-ov-file#installation to install it."
     echo -n "# To manually create a pull request, go here: "
@@ -144,7 +147,7 @@ doPush () {
   the_branch="$1"
   pr_branch="pr-update-${the_branch}-$(date +%s)"
 
-  git pull origin "${the_branch}" || true
+  git pull origin "${the_branch}" 1>/dev/null 2>&1 || true
   createPr "${pr_branch}" "${the_branch}"
 }
 
@@ -192,32 +195,33 @@ getXYplusOneFromBranch() {
 	fi
 }
 
+# DISABLED - see RHIDP-1720
 # note that this will bump versions of all plugins' package.json AND the root package.json too
 # to bump only the root package.json, see updatePluginsRootVersion()
-function updatePluginVersions() {
-	# for janus-idp/backstage-plugins, run checkPluginVersions.sh
-	# TODO move to backstage/community-plugins
-	orgAndRepo="janus-idp/backstage-plugins"
-	d="${orgAndRepo/\//__}"
-	pushd "/tmp/tmp-checkouts/projects_${d}" >/dev/null || exit 1
-	git checkout "${SOURCE_BRANCH}" || true
+# function updatePluginVersions() {
+# 	# for janus-idp/backstage-plugins, run checkPluginVersions.sh
+# 	# TODO move to backstage/community-plugins
+# 	orgAndRepo="janus-idp/backstage-plugins"
+# 	d="${orgAndRepo/\//__}"
+# 	pushd "/tmp/tmp-checkouts/projects_${d}" >/dev/null || exit 1
+# 	git checkout "${SOURCE_BRANCH}" || true
 	
-	# get script
-	if [[ -x ${SCRIPT_DIR}/checkPluginVersions.sh ]]; then
-		CPV=${SCRIPT_DIR}/checkPluginVersions.sh
-	else
-		if [[ $VERBOSE -eq 1 ]]; then echo "Downloading checkPluginVersions.sh script from Github"; fi
-		pushd /tmp >/dev/null || exit
-		curl -sSLO "https://gitlab.cee.redhat.com/rhidp/rhdh/-/raw/${MIDSTM_BRANCH}/build/scripts/checkPluginVersions.sh" && chmod +x checkPluginVersions.sh
-		CPV=/tmp/checkPluginVersions.sh
-		popd >/dev/null || exit
-	fi
+# 	# get script
+# 	if [[ -x ${SCRIPT_DIR}/checkPluginVersions.sh ]]; then
+# 		CPV=${SCRIPT_DIR}/checkPluginVersions.sh
+# 	else
+# 		if [[ $VERBOSE -eq 1 ]]; then echo "Downloading checkPluginVersions.sh script from Github"; fi
+# 		pushd /tmp >/dev/null || exit
+# 		curl -sSLO "https://gitlab.cee.redhat.com/rhidp/rhdh/-/raw/${MIDSTM_BRANCH}/build/scripts/checkPluginVersions.sh" && chmod +x checkPluginVersions.sh
+# 		CPV=/tmp/checkPluginVersions.sh
+# 		popd >/dev/null || exit
+# 	fi
 
-	# TODO VERIFY THIS WORKS with 1.2 branch creation
-	$CPV -s "$(pwd)" -b "${TARGET_BRANCH}" --pr-branch "tagRelease.sh_branch_${TARGET_BRANCH}" --push
+# 	# TODO VERIFY THIS WORKS with 1.2 branch creation
+# 	$CPV -s "$(pwd)" -b "${TARGET_BRANCH}" --pr-branch "tagRelease.sh_branch_${TARGET_BRANCH}" --push
 
-	popd >/dev/null || exit 1
-}
+# 	popd >/dev/null || exit 1
+# }
 
 # for backstage-plugins, bump root package.json to specified version
 # to bump all plugins as well, see updatePluginVersions()
@@ -227,8 +231,8 @@ function updatePluginsRootVersion() {
 	# TODO move to backstage/community-plugins
 	orgAndRepo="janus-idp/backstage-plugins"
 	d="${orgAndRepo/\//__}"
-	pushd "/tmp/tmp-checkouts/projects_${d}" >/dev/null || exit 1
-	git checkout "${the_branch}" || true
+	rm -fr "/tmp/tmp-checkouts/projects_${d}_2" && git clone -q --depth 1 -b "${the_branch}" "https://github.com/${orgAndRepo}" "/tmp/tmp-checkouts/projects_${d}_2" || echo "Branch $clone_branch doesn't exist: skip!"
+	pushd "/tmp/tmp-checkouts/projects_${d}_2" >/dev/null || exit 1
 
 	###############
 	# update 1 file
@@ -264,8 +268,8 @@ function updateShowcaseVersions() {
 	# TODO move to red-hat-developer-hub
 	orgAndRepo="janus-idp/backstage-showcase"
 	d="${orgAndRepo/\//__}"
-	pushd "/tmp/tmp-checkouts/projects_${d}" >/dev/null || exit 1
-	git checkout "${the_branch}" || true
+	rm -fr "/tmp/tmp-checkouts/projects_${d}_2" && git clone -q --depth 1 -b "${the_branch}" "https://github.com/${orgAndRepo}" "/tmp/tmp-checkouts/projects_${d}_2" || echo "Branch $clone_branch doesn't exist: skip!"
+	pushd "/tmp/tmp-checkouts/projects_${d}_2" >/dev/null || exit 1
 
 	################
 	# update 3 files
@@ -305,8 +309,8 @@ function updateOperatorVersions() {
 	# TODO move to red-hat-developer-hub-operator
 	orgAndRepo="janus-idp/operator"
 	d="${orgAndRepo/\//__}"
-	pushd "/tmp/tmp-checkouts/projects_${d}" >/dev/null || exit 1
-	git checkout "${the_branch}" || true
+	rm -fr "/tmp/tmp-checkouts/projects_${d}_2" && git clone -q --depth 1 -b "${the_branch}" "https://github.com/${orgAndRepo}" "/tmp/tmp-checkouts/projects_${d}_2" || echo "Branch $clone_branch doesn't exist: skip!"
+	pushd "/tmp/tmp-checkouts/projects_${d}_2" >/dev/null || exit 1
 
 	################
 	# update 4 files
@@ -329,7 +333,7 @@ function updateOperatorVersions() {
 		-e "s/(name: rhdh-operator.v)[0-9.]+/\1$the_version/" \
 		-e "s/(^  version: )[0-9.]+/\1$the_version/" \
 		-e "s/(rhdh-rhdh-hub-rhel9:|rhdh-rhdh-rhel9-operator:)[0-9.]+/\1${the_version%.*}/" \
-		-e "s|(.*https://access.redhat.com/documentation/en-us/red_hat_developer_hub/)([0-9.]+)(/html-single/administration_guide_for_red_hat_developer_hub/index#assembly-rhdh-telemetry_admin-rhdh.*)|\1${the_version}\3|g" # replace with 1.3 
+		-e "s|(.*https://access.redhat.com/documentation/en-us/red_hat_developer_hub/)([0-9.]+)(/html-single/administration_guide_for_red_hat_developer_hub/index#assembly-rhdh-telemetry_admin-rhdh.*)|\1${the_version%.*}\3|g" # replace with 1.3 
 
 	pwd; git diff || true
 	if [[ $(git diff || true ) ]] && [[ ${DO_PUSH} -eq 1 ]]; then
@@ -349,8 +353,8 @@ function updateDocVersions() {
 	the_version="$2"
 	orgAndRepo="redhat-developer/red-hat-developers-documentation-rhdh"
 	d="${orgAndRepo/\//__}"
-	pushd "/tmp/tmp-checkouts/projects_${d}" >/dev/null || exit 1
-	git checkout "${the_branch}" || true
+	rm -fr "/tmp/tmp-checkouts/projects_${d}_2" && git clone -q --depth 1 -b "${the_branch}" "https://github.com/${orgAndRepo}" "/tmp/tmp-checkouts/projects_${d}_2" || echo "Branch $clone_branch doesn't exist: skip!"
+	pushd "/tmp/tmp-checkouts/projects_${d}_2" >/dev/null || exit 1
 
 	###############
 	# update 1 file
@@ -358,6 +362,7 @@ function updateDocVersions() {
 
 	d=artifacts/attributes.adoc
 	sed -i $d -r \
+		-e "s/(:product-version: ).+/\1${the_version%.*}/" \
 		-e "s/(:product-bundle-version: ).+/\1${the_version}/" \
 		-e "s/(:product-chart-version: ).+/\1${the_version}/"
 
@@ -377,26 +382,25 @@ function updateDocVersions() {
 # for charts repo, bump to specified version
 function updateChartVersions(){
     the_branch="$1"
-    the_version="$2"
+    the_version="$2" # 1.3.0
+    the_version="${the_version%.*}" # 1.3
     # push path to repo onto the stack
     orgAndRepo="redhat-developer/rhdh-chart"
     d="${orgAndRepo/\//__}"
-    pushd "/tmp/tmp-checkouts/projects_${d}" >/dev/null || exit 1
+	rm -fr "/tmp/tmp-checkouts/projects_${d}_2" && git clone -q --depth 1 -b "${the_branch}" "https://github.com/${orgAndRepo}" "/tmp/tmp-checkouts/projects_${d}_2" || echo "Branch $clone_branch doesn't exist: skip!"
+	pushd "/tmp/tmp-checkouts/projects_${d}_2" >/dev/null || exit 1
 
-    # checkout branch
-    git checkout "${the_branch}" || true
-
-    # update telemetry link in README to new version 
-    sed -i ./charts/backstage/README.md -r -e "s|(.*https://access.redhat.com/documentation/en-us/red_hat_developer_hub/)([0-9.]+)(/html-single/administration_guide_for_red_hat_developer_hub/index#assembly-rhdh-telemetry_admin-rhdh.*)|\1${the_version}\3|g"
-
-    # update telemetry link in ./charts/backstage/Chart.yaml to new version
-     sed -i ./charts/backstage/Chart.yaml -r -e "s|(.*https://access.redhat.com/documentation/en-us/red_hat_developer_hub/)([0-9.]+)(/html-single/administration_guide_for_red_hat_developer_hub/index#assembly-rhdh-telemetry_admin-rhdh.*)|\1${the_version}\3|g"
+    # update telemetry link in chart files to new version 
+	for file in ./charts/backstage/README.md ./charts/backstage/Chart.yaml; do
+		sed -i "${file}" -r -e \
+			"s|(.*https://access.redhat.com/documentation/en-us/red_hat_developer_hub/)([0-9.]+)(/html-single/administration_guide_for_red_hat_developer_hub/index#assembly-rhdh-telemetry_admin-rhdh.*)|\1${the_version}\3|g"
+	done
     
     # if there are changes in the file and commit can be pushed
     pwd; git diff || true
 	if [[ $(git diff || true ) ]] && [[ ${DO_PUSH} -eq 1 ]]; then
-		COMMITMSG="chore: Update chart doc links to ${the_version} in ${the_branch} branch"
-		git commit --no-gpg-sign -s -m "${COMMITMSG}" .
+		COMMITMSG="chore: tagRelease.sh: bump to ${the_version} in ${the_branch} branch"
+		git commit --no-gpg-sign -s -m "${COMMITMSG}" . || git commit --no-gpg-sign -s -m "${COMMITMSG}" .
 		git pull origin "${the_branch}" || true
 		# create pull request if target branch is restricted access
 		pr_branch="pr-bump-to-${the_version}-in-${the_branch}-$(date +%s)"
@@ -441,13 +445,18 @@ pushBranchAndOrTagGH () {
 				git config user.name "RHDH Build (${pduser})"
 				git remote set-url origin "https://${GITHUB_TOKEN}:x-oauth-basic@github.com/${orgAndRepo}"
 
-				git checkout --track "origin/${clone_branch}" -q || true
-				git pull -q
+				git checkout --track "origin/${clone_branch}" -q 2>/dev/null || true
+				git pull -q 2>/dev/null
+
+				#################################
+				## if doing a branching operation
+				#################################
+
 				if [[ ${SOURCE_BRANCH} ]]; then 
 					# create a branch or use existing
-					git branch "${TARGET_BRANCH}" || true
-					git checkout "${TARGET_BRANCH}" || true
-					git pull origin "${TARGET_BRANCH}" || true
+					git branch "${TARGET_BRANCH}" 2>/dev/null || true
+					git checkout "${TARGET_BRANCH}" 2>/dev/null || true
+					git pull origin "${TARGET_BRANCH}" 2>/dev/null || true
 
 					# changes to apply to new midstream 1.yy.x branch
 					# TODO verify this works once https://github.com/janus-idp/backstage-showcase/pull/1028/files#diff-b1450b0ddd25a7e521db090fce8fc0a8cffe8a5fb50c77f49669c8fb785ec0e4 is merged 
@@ -463,6 +472,11 @@ pushBranchAndOrTagGH () {
 						doPush "${TARGET_BRANCH}"
 					fi
 				fi
+
+				##############################
+				# if doing a tagging operation
+				##############################
+
 				if [[ $CSV_VERSION ]]; then # push a new tag (or no-op if exists)
 					git tag "${CSV_VERSION}" || true
 					if [[ $DO_PUSH -eq 1 ]]; then 
@@ -486,9 +500,6 @@ pushBranchAndOrTagGH () {
 						# note: for now, only bump to the last RELEASED version in the docs
 						# so use CSV_VERSION=1.1.2 here (while showcase, operator, plugins move to 1.1.3 to prepare for a future release)
 						updateDocVersions "$TARGET_BRANCH" "$CSV_VERSION"
-					elif [[ $d == "redhat-developer__rhdh-chart"]]; then
-						echo "[INFO] Bump $d to $PROD_VERSION"
-						updateChartVersions "$TARGET_BRANCH" "$PROD_VERSION"
 					else
 						echo "[INFO] No version bumps needed for $d" 
 					fi
@@ -523,13 +534,13 @@ pushTagGL ()
 			pushd "/tmp/tmp-checkouts/gitlab_${d}" >/dev/null || exit 1
 				git config user.email "${pduser}@redhat.com"
 				git config user.name "RHDH Build (${pduser})"
-				git checkout --track origin/"${pkgs_devel_branch}" -q || true
-				git pull -q
+				git checkout --track origin/"${pkgs_devel_branch}" -q 2>/dev/null || true
+				git pull -q 2>/dev/null
 				if [[ ${SOURCE_BRANCH} ]]; then 
 					# create a branch or use existing
-					git branch "${TARGET_BRANCH}" || true
-					git checkout "${TARGET_BRANCH}" || true
-					git pull origin "${TARGET_BRANCH}" || true
+					git branch "${TARGET_BRANCH}" 1>/dev/null 2>&1 || true
+					git checkout "${TARGET_BRANCH}" 1>/dev/null 2>&1  || true
+					git pull origin "${TARGET_BRANCH}" 1>/dev/null 2>&1  || true
 
 					# changes to apply to new midstream rhdh-1.yy-rhel-9 branch
 					if [[ $d == "rhdh" ]]; then # for rhidp/rhdh
@@ -576,16 +587,16 @@ pushTagPD ()
 			pushd "/tmp/tmp-checkouts/containers_${d}" >/dev/null || exit 1
 				git config user.email "${pduser}@redhat.com"
 				git config user.name "RHDH Build (${pduser})"
-				git checkout --track origin/"${pkgs_devel_branch}" -q || true
-				git pull -q
+				git checkout --track origin/"${pkgs_devel_branch}" -q 2>/dev/null || true
+				git pull -q 2>/dev/null
 			popd >/dev/null || exit 1
 		fi
 		pushd "/tmp/tmp-checkouts/containers_${d}" >/dev/null || exit 1
 			if [[ ${SOURCE_BRANCH} ]]; then 
 				# create a branch or use existing
-				git branch "${TARGET_BRANCH}" || true
-				git checkout "${TARGET_BRANCH}" || true
-				git pull origin "${TARGET_BRANCH}" || true
+				git branch "${TARGET_BRANCH}" 1>/dev/null || true
+				git checkout "${TARGET_BRANCH}" 1>/dev/null || true
+				git pull origin "${TARGET_BRANCH}" 1>/dev/null || true
 
 				# currently, no changes to apply to new midstream rhdh-1.yy-rhel-9 branch (as this content is synced from midstream)
 
@@ -636,10 +647,11 @@ done
 # TODO VERIFY THIS WORKS with 1.2 branch creation
 if [[ ${SOURCE_BRANCH} ]]; then
 	# check for changes and push a PR for each repo
-	updatePluginVersions
-	updateShowcaseVersions "$SOURCE_BRANCH" "$newver"
+	# updatePluginVersions - DISABLED - see RHIDP-1720
 	updateOperatorVersions "$SOURCE_BRANCH" "$newver" "$newverOp"
 	updateDocVersions "$SOURCE_BRANCH" "$newver"
+	updateShowcaseVersions "$SOURCE_BRANCH" "$newver"
+	updateChartVersions "$SOURCE_BRANCH" "$newver"
 fi
 				
 # ############
