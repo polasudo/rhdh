@@ -124,15 +124,16 @@ createPr() {
   # shellcheck disable=SC2086
   if [[ $(/usr/bin/gh version 2>/dev/null || true) ]] || [[ $(which gh 2>/dev/null || true) ]]; then
     if [[ $(git diff HEAD~1 2>/dev/null || true) ]]; then
+		# if github
 		if [[ $(git remote -v | grep github || true) ]]; then
-		git push origin "${headBranch}" 1>/dev/null # ${FORCE_PUSH}
-		gh repo set-default "$(git remote get-url origin)"
-		# shellcheck disable=SC2086
-		gh pr create --fill-verbose -t "feat: tagRelease.sh bump versions in $baseBranch for ${PROD_VERSION} release" -B "${baseBranch}" -H "${headBranch}" ${DRYRUN} || true
-		# if not running in a gitlab pipeline, open the PR in a browser 
-		if [[ $GITLAB_PIPELINE != "true" ]]; then
-			gh pr view --web || true
-		fi
+			git push origin "${headBranch}" 1>/dev/null # ${FORCE_PUSH}
+			gh repo set-default "$(git remote get-url origin)"
+			# shellcheck disable=SC2086
+			gh pr create --fill-verbose -t "feat: tagRelease.sh bump versions in $baseBranch for ${PROD_VERSION} release" -B "${baseBranch}" -H "${headBranch}" ${DRYRUN} || true
+			# if not running in a gitlab pipeline, open the PR in a browser 
+			if [[ $GITLAB_PIPELINE != "true" ]]; then
+				gh pr view --web || true
+			fi
 		else # not github
 			PR_URL=$(git push origin "${headBranch}" 2>&1 | grep "${headBranch}" | grep "https://" | sed -r -e "s/remote:   //")
 			echo "Create merge request at $PR_URL"
@@ -599,11 +600,13 @@ pushTagPD ()
 	if [[ $CSV_VERSION ]] && [[ $(git ls-remote "ssh://${pduser}@pkgs.devel.redhat.com/containers/${d}" "refs/tags/$CSV_VERSION") ]]; then
 		echo; echo "[WARN] https://pkgs.devel.redhat.com/cgit/containers/${d}/tag/?h=$CSV_VERSION already exists."
 	else
+		# convert 1.2.x to rhdh-1.2-rhel-9
+		DWNSTM_TARGET_BRANCH=rhdh-${TARGET_BRANCH/.x/-rhel-9}
 		echo; 
 		if [[ $SOURCE_BRANCH ]]; then
-			echo "== $d :: branch from $SOURCE_BRANCH to $TARGET_BRANCH =="
+			echo "== $d :: branch from $pkgs_devel_branch to $DWNSTM_TARGET_BRANCH =="
 		elif [[ $CSV_VERSION ]]; then
-			echo "== $d :: tag $CSV_VERSION from $TARGET_BRANCH =="
+			echo "== $d :: tag $CSV_VERSION from $DWNSTM_TARGET_BRANCH =="
 		fi
 		if [[ ! -d "/tmp/tmp-checkouts/containers_${d}" ]]; then
 			git clone -q -b "${pkgs_devel_branch}" "ssh://${pduser}@pkgs.devel.redhat.com/containers/${d}" "containers_${d}"
@@ -617,14 +620,15 @@ pushTagPD ()
 		pushd "/tmp/tmp-checkouts/containers_${d}" >/dev/null || exit 1
 			if [[ ${SOURCE_BRANCH} ]]; then 
 				# create a branch or use existing
-				git branch "${TARGET_BRANCH}" || true
-				git checkout "${TARGET_BRANCH}" 1>/dev/null || true
-				git pull origin "${TARGET_BRANCH}" 1>/dev/null || true
+				git branch --set-upstream-to="origin/${DWNSTM_TARGET_BRANCH}" "${DWNSTM_TARGET_BRANCH}" || true
+				git checkout --track origin/"${DWNSTM_TARGET_BRANCH}" 1>/dev/null || true
+				git pull origin "${DWNSTM_TARGET_BRANCH}" 1>/dev/null || true
+				git push origin "${DWNSTM_TARGET_BRANCH}" 1>/dev/null || true
 
 				# currently, no changes to apply to new midstream rhdh-1.yy-rhel-9 branch (as this content is synced from midstream)
 
 				if [[ $DO_PUSH -eq 1 ]]; then 
-					doPush "${TARGET_BRANCH}"
+					doPush "${DWNSTM_TARGET_BRANCH}"
 				fi
 			fi
 			if [[ $CSV_VERSION ]]; then # push a new tag (or no-op if exists)
@@ -652,30 +656,30 @@ getXYplusOneFromBranch "$TARGET_BRANCH"; # echo "newver = $newver; newverOp = $n
 	# RHIDP-1021 Migrate Janus IDP operator repo to redhat-developers org
 
 # branch and/or tag GH repos
-# for repo in \
-#     redhat-developer/rhdh-chart \
-# 	redhat-developer/red-hat-developers-documentation-rhdh \
-#     redhat-developer/red-hat-developer-hub-software-templates \
-# 	redhat-developer/red-hat-developer-hub-theme \
-#     janus-idp/operator \
-#     janus-idp/backstage-plugins \
-#     janus-idp/backstage-showcase \
-# 	; do
-# 	pushBranchAndOrTagGH $repo 
-# done
+for repo in \
+    redhat-developer/rhdh-chart \
+	redhat-developer/red-hat-developers-documentation-rhdh \
+    redhat-developer/red-hat-developer-hub-software-templates \
+	redhat-developer/red-hat-developer-hub-theme \
+    janus-idp/operator \
+    janus-idp/backstage-plugins \
+    janus-idp/backstage-showcase \
+	; do
+	pushBranchAndOrTagGH $repo 
+done
 
 # ###################################################################################################
 
-# # now update main branches for the above branch creation
-# # TODO VERIFY THIS WORKS with 1.2 branch creation
-# if [[ ${SOURCE_BRANCH} ]]; then
-# 	# check for changes and push a PR for each repo
-# 	## updatePluginVersions - DISABLED - see RHIDP-1720
-# 	updateOperatorVersions "$SOURCE_BRANCH" "$newver" "$newverOp"
-# 	updateDocVersions "$SOURCE_BRANCH" "$newver"
-# 	updateShowcaseVersions "$SOURCE_BRANCH" "$newver"
-# 	updateChartVersions "$SOURCE_BRANCH" "$newver"
-# fi
+# now update main branches for the above branch creation
+# TODO VERIFY THIS WORKS with 1.2 branch creation
+if [[ ${SOURCE_BRANCH} ]]; then
+	# check for changes and push a PR for each repo
+	## updatePluginVersions - DISABLED - see RHIDP-1720
+	updateOperatorVersions "$SOURCE_BRANCH" "$newver" "$newverOp"
+	updateDocVersions "$SOURCE_BRANCH" "$newver"
+	updateShowcaseVersions "$SOURCE_BRANCH" "$newver"
+	updateChartVersions "$SOURCE_BRANCH" "$newver"
+fi
 
 # ############
 # MIDSTREAM 
@@ -696,8 +700,8 @@ fi
 # DOWNSTREAM 
 # ############
 
-# tag pkgs.devel repos only (branches are created by SPMM ticket, eg., https://projects.engineering.redhat.com/browse/SPMM-2517)
-if [[ "${pkgs_devel_branch}" ]]; then
+# tag pkgs.devel repos only (branches are created by SPMM ticket, eg., https://projects.engineering.redhat.com/browse/SPMM-2517 or manually due to long timeouts)
+if [[ "${pkgs_devel_branch}" ]] && [[ $CSV_VERSION ]]; then
 	for repo in \
 		rhdh-hub \
 		rhdh-operator \
