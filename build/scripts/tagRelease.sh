@@ -118,20 +118,26 @@ createPr() {
   headBranch=$1
   baseBranch=$2
   git pull origin "${baseBranch}" 1>/dev/null 2>&1 || true
-  git branch "${headBranch}" 2>/dev/null || true
+  git branch "${headBranch}" || true
   git checkout "${headBranch}" 1>/dev/null 2>&1
   git merge "${baseBranch}" 1>/dev/null 2>&1 || true
   # shellcheck disable=SC2086
   if [[ $(/usr/bin/gh version 2>/dev/null || true) ]] || [[ $(which gh 2>/dev/null || true) ]]; then
     if [[ $(git diff HEAD~1 2>/dev/null || true) ]]; then
-	  git push origin "${headBranch}" 1>/dev/null # ${FORCE_PUSH}
- 	  gh repo set-default "$(git remote get-url origin)"
-	  # shellcheck disable=SC2086
-	  gh pr create --fill-verbose -t "feat: tagRelease.sh bump versions in $baseBranch for ${PROD_VERSION} release" -B "${baseBranch}" -H "${headBranch}" ${DRYRUN} || true
-	  # if not running in a gitlab pipeline, open the PR in a browser 
-	  if [[ $GITLAB_PIPELINE != "true" ]]; then
-		gh pr view --web || true
-	  fi
+		if [[ $(git remote -v | grep github || true) ]]; then
+		git push origin "${headBranch}" 1>/dev/null # ${FORCE_PUSH}
+		gh repo set-default "$(git remote get-url origin)"
+		# shellcheck disable=SC2086
+		gh pr create --fill-verbose -t "feat: tagRelease.sh bump versions in $baseBranch for ${PROD_VERSION} release" -B "${baseBranch}" -H "${headBranch}" ${DRYRUN} || true
+		# if not running in a gitlab pipeline, open the PR in a browser 
+		if [[ $GITLAB_PIPELINE != "true" ]]; then
+			gh pr view --web || true
+		fi
+		else # not github
+			PR_URL=$(git push origin "${headBranch}" 2>&1 | grep "${headBranch}" | grep "https://" | sed -r -e "s/remote:   //")
+			echo "Create merge request at $PR_URL"
+			google-chrome "$PR_URL"
+		fi
 	else
 		echo "No changes for which to create PR for $baseBranch"
 	fi
@@ -241,7 +247,7 @@ function updatePluginsRootVersion() {
 	d=package.json
 	jq -r --arg the_version "$the_version" '.version|=$the_version' $d > "${d}1"; mv -f "${d}1" "${d}"
 
-	pwd; git diff || true
+	echo -n "updatePluginsRootVersion: "; pwd; git diff || true
 	if [[ ${DO_PUSH} -eq 1 ]]; then
 		COMMITMSG="chore: tagRelease.sh: bump to $the_version in $the_branch branch"
 		if [[ $DO_BUILD -eq 1 ]]; then
@@ -281,7 +287,7 @@ function updateShowcaseVersions() {
 	sed -i packages/app/src/build-metadata.json -r \
 		-e "s/(\"RHDH Version: )[0-9.]+\"/\1$the_version\"/"
 
-	pwd; git diff || true
+	echo -n "updateShowcaseVersions: "; pwd; git diff || true
 	if [[ ${DO_PUSH} -eq 1 ]]; then
 		COMMITMSG="chore: tagRelease.sh: bump to $the_version in $the_branch branch"
 		if [[ $DO_BUILD -eq 1 ]]; then
@@ -335,7 +341,7 @@ function updateOperatorVersions() {
 		-e "s/(rhdh-rhdh-hub-rhel9:|rhdh-rhdh-rhel9-operator:)[0-9.]+/\1${the_version%.*}/" \
 		-e "s|(.*https://access.redhat.com/documentation/en-us/red_hat_developer_hub/)([0-9.]+)(/html-single/administration_guide_for_red_hat_developer_hub/index#assembly-rhdh-telemetry_admin-rhdh.*)|\1${the_version%.*}\3|g" # replace with 1.3 
 
-	pwd; git diff || true
+	echo -n "updateOperatorVersions: "; pwd; git diff || true
 	if [[ $(git diff || true ) ]] && [[ ${DO_PUSH} -eq 1 ]]; then
 		COMMITMSG="chore: tagRelease.sh: bump to $the_version in $the_branch branch"
 		git commit --no-gpg-sign -s -m "${COMMITMSG}" .
@@ -366,7 +372,7 @@ function updateDocVersions() {
 		-e "s/(:product-bundle-version: ).+/\1${the_version}/" \
 		-e "s/(:product-chart-version: ).+/\1${the_version}/"
 
-	pwd; git diff || true
+	echo -n "updateDocVersions: "; pwd; git diff || true
 	if [[ $(git diff || true ) ]] && [[ ${DO_PUSH} -eq 1 ]]; then
 		COMMITMSG="chore: tagRelease.sh: bump to $the_version in $the_branch branch"
 		git commit --no-gpg-sign -s -m "${COMMITMSG}" .
@@ -400,7 +406,7 @@ function updateChartVersions(){
 	done
     
     # if there are changes in the file and commit can be pushed
-    pwd; git diff || true
+    echo -n "updateChartVersions: "; pwd; git diff || true
 	if [[ $(git diff || true ) ]] && [[ ${DO_PUSH} -eq 1 ]]; then
 
 		# bump chart version to x.y+1.0 when switching versions
@@ -471,7 +477,7 @@ pushBranchAndOrTagGH () {
 
 				if [[ ${SOURCE_BRANCH} ]]; then 
 					# create a branch or use existing
-					git branch "${TARGET_BRANCH}" 2>/dev/null || true
+					git branch "${TARGET_BRANCH}" || true
 					git checkout "${TARGET_BRANCH}" 2>/dev/null || true
 					git pull origin "${TARGET_BRANCH}" 2>/dev/null || true
 
@@ -555,7 +561,7 @@ pushTagGL ()
 				git pull -q 2>/dev/null
 				if [[ ${SOURCE_BRANCH} ]]; then 
 					# create a branch or use existing
-					git branch "${TARGET_BRANCH}" 1>/dev/null 2>&1 || true
+					git branch "${TARGET_BRANCH}" || true
 					git checkout "${TARGET_BRANCH}" 1>/dev/null 2>&1  || true
 					git pull origin "${TARGET_BRANCH}" 1>/dev/null 2>&1  || true
 
@@ -611,7 +617,7 @@ pushTagPD ()
 		pushd "/tmp/tmp-checkouts/containers_${d}" >/dev/null || exit 1
 			if [[ ${SOURCE_BRANCH} ]]; then 
 				# create a branch or use existing
-				git branch "${TARGET_BRANCH}" 1>/dev/null || true
+				git branch "${TARGET_BRANCH}" || true
 				git checkout "${TARGET_BRANCH}" 1>/dev/null || true
 				git pull origin "${TARGET_BRANCH}" 1>/dev/null || true
 
@@ -646,37 +652,37 @@ getXYplusOneFromBranch "$TARGET_BRANCH"; # echo "newver = $newver; newverOp = $n
 	# RHIDP-1021 Migrate Janus IDP operator repo to redhat-developers org
 
 # branch and/or tag GH repos
-for repo in \
-    redhat-developer/rhdh-chart \
-	redhat-developer/red-hat-developers-documentation-rhdh \
-    redhat-developer/red-hat-developer-hub-software-templates \
-	redhat-developer/red-hat-developer-hub-theme \
-    janus-idp/operator \
-    janus-idp/backstage-plugins \
-    janus-idp/backstage-showcase \
-	; do
-	pushBranchAndOrTagGH $repo 
-done
+# for repo in \
+#     redhat-developer/rhdh-chart \
+# 	redhat-developer/red-hat-developers-documentation-rhdh \
+#     redhat-developer/red-hat-developer-hub-software-templates \
+# 	redhat-developer/red-hat-developer-hub-theme \
+#     janus-idp/operator \
+#     janus-idp/backstage-plugins \
+#     janus-idp/backstage-showcase \
+# 	; do
+# 	pushBranchAndOrTagGH $repo 
+# done
 
-###################################################################################################
+# ###################################################################################################
 
-# now update main branches for the above branch creation
-# TODO VERIFY THIS WORKS with 1.2 branch creation
-if [[ ${SOURCE_BRANCH} ]]; then
-	# check for changes and push a PR for each repo
-	## updatePluginVersions - DISABLED - see RHIDP-1720
-	updateOperatorVersions "$SOURCE_BRANCH" "$newver" "$newverOp"
-	updateDocVersions "$SOURCE_BRANCH" "$newver"
-	updateShowcaseVersions "$SOURCE_BRANCH" "$newver"
-	updateChartVersions "$SOURCE_BRANCH" "$newver"
-fi
-				
+# # now update main branches for the above branch creation
+# # TODO VERIFY THIS WORKS with 1.2 branch creation
+# if [[ ${SOURCE_BRANCH} ]]; then
+# 	# check for changes and push a PR for each repo
+# 	## updatePluginVersions - DISABLED - see RHIDP-1720
+# 	updateOperatorVersions "$SOURCE_BRANCH" "$newver" "$newverOp"
+# 	updateDocVersions "$SOURCE_BRANCH" "$newver"
+# 	updateShowcaseVersions "$SOURCE_BRANCH" "$newver"
+# 	updateChartVersions "$SOURCE_BRANCH" "$newver"
+# fi
+
 # ############
 # MIDSTREAM 
 # ############
 
 # branch or tag GL repo(s)
-if [[ "${pkgs_devel_branch}" ]] && [[ "${CSV_VERSION}" ]]; then
+if [[ "${pkgs_devel_branch}" ]]; then
 	for repo in \
 		rhdh \
 		; do
@@ -691,7 +697,7 @@ fi
 # ############
 
 # tag pkgs.devel repos only (branches are created by SPMM ticket, eg., https://projects.engineering.redhat.com/browse/SPMM-2517)
-if [[ "${pkgs_devel_branch}" ]] && [[ "${CSV_VERSION}" ]]; then
+if [[ "${pkgs_devel_branch}" ]]; then
 	for repo in \
 		rhdh-hub \
 		rhdh-operator \
