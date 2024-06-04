@@ -13,11 +13,6 @@ import Loader from './Loader';
 import { AppConfig } from '@backstage/config';
 import { DynamicRoot, StaticPlugins } from './DynamicRoot';
 import { DynamicPluginConfig } from '../../utils/dynamicUI/extractDynamicConfig';
-import { DynamicRootConfig } from './DynamicRootContext';
-
-export type ScalprumApiHolder = {
-  dynamicRootConfig: DynamicRootConfig;
-};
 
 const ScalprumRoot = ({
   apis,
@@ -70,17 +65,8 @@ const ScalprumRoot = ({
     return <Loader />;
   }
   const { dynamicPlugins, baseUrl, scalprumConfig } = value || {};
-  const scalprumApiHolder = {
-    dynamicRootConfig: {
-      dynamicRoutes: [],
-      entityTabOverrides: {},
-      mountPoints: {},
-      scaffolderFieldExtensions: [],
-    } as DynamicRootConfig,
-  };
   return (
-    <ScalprumProvider<ScalprumApiHolder>
-      api={scalprumApiHolder}
+    <ScalprumProvider
       config={scalprumConfig ?? {}}
       pluginSDKOptions={{
         pluginLoaderOptions: {
