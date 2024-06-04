@@ -1,8 +1,8 @@
 {
   "title": "RHDH Metadata",
   "card": [
-    "RHDH Version: 1.2.0",
+    "RHDH Version: 1.3.0",
     "Backstage Version: 1.26.5",
-    "Last Commit: janus-idp/backstage-showcase main @ c8251f19"
+    "Last Commit: janus-idp/backstage-showcase main @ 3f8850ba"
   ]
 }
