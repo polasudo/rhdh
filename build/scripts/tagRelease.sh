@@ -380,6 +380,7 @@ function updateDocVersions() {
 }
 
 # for charts repo, bump to specified version
+# TODO: chart version must increment (y+1) in charts/backstage/Chart.yaml and in README.md
 function updateChartVersions(){
     the_branch="$1"
     the_version="$2" # 1.3.0
