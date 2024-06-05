@@ -64,7 +64,7 @@ NOTE: **_TODO_ https://issues.redhat.com/browse/RHIDP-931 verify branch creation
 
 .. [ ] https://gitlab.cee.redhat.com/rhidp/rhdh/-/tree/rhdh-1.y-rhel-9 (from the rhdh-1-rhel-9 branch)
 
-. Create 3 new branches in pkgs.devel - run link:../build/scripts/tagRelease.sh[tagRelease.sh] 
+. Create 3 new branches in pkgs.devel MANUALLY (tagRelease.sh doesn't work for this due to timeouts)
 
 .. [ ] https://pkgs.devel.redhat.com/cgit/containers/rhdh-hub/tree/?h=rhdh-1.1-rhel-9
 .. [ ] https://pkgs.devel.redhat.com/cgit/containers/rhdh-operator/tree/?h=rhdh-1.1-rhel-9
