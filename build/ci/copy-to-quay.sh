@@ -184,7 +184,7 @@ checkIIBExists()
 {
     count=0
     interval=4 # check every x mins
-    max_count=120 # stop checking after y mins
+    max_count=240 # stop checking after y mins
     while [[ $count -le $max_count ]]; do # echo $count
         echo "[INFO] [$count/$max_count mins] Check for latest IIBs @ $(date +%H:%M:%S) ..." 
         # check if the IIB exists

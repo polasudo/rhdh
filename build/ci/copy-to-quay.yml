@@ -8,7 +8,7 @@ copy-to-quay:
     # for scheduled runs, check env var
     - if: $CI_PIPELINE_SOURCE == "schedule" && $DO_COPY_TO_QUAY == "True"
   # allow time for OSBS to get new IIBs published to pre-stage catalog, so we can filter and copy it to quay
-  timeout: 3 hours
+  timeout: 5 hours
   script:
     - |
       dnf -y -q install git
