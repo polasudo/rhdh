@@ -15,6 +15,14 @@ export GITHUB_TOKEN=<your_GH_token>
 
 Script will create/update 1.y branches and update the main + rhdh-1-rhel-9 branches with minor version bumps.
 
+### Brew Targets, Product Variants, and CPEs
+
+This can be done any time before starting the feature/code frozen builds from the new 1.y branc, but it's better to do it in advance so your builds don't fail due to the missing brew target / PV.
+
+. Request new Brew Targets & product variant (PV) be created via link:https://issues.redhat.com/browse/SPMM-16740[SPMM ticket like SPMM-16740] and by pinging @ahills / @siege on slack
+
+. Once the associated Errata PV is created, ProdSec gets notified and adds the appropriate CPE within a day or two. For questions, ping Martin Prpič or link:https://docs.engineering.redhat.com/pages/viewpage.action?spaceKey=PRODSEC&title=CPE[send an email] to prodsec-request@redhat.com.
+
 ### Create branches (eg., 1.2.x, 1.3.x)
 
 NOTE: **_TODO_ https://issues.redhat.com/browse/RHIDP-931 verify branch creation and update steps work**
@@ -66,12 +74,6 @@ NOTE: Dockerfile version metadata downstream is derived from the backstage-showc
 NOTE: **_TODO_ https://issues.redhat.com/browse/RHIDP-931 verify branch creation and update steps work**
 
 Submit PR (or just merge change) to fix version reference in `upstream_repos.yml` for the new rhdh-1.yy-rhel-9 branch; trigger a build from the new branch.
-
-### Brew Targets, Product Variants, and CPEs
-
-. Request new Brew Targets & product variant (PV) be created via link:https://issues.redhat.com/browse/SPMM-15866[SPMM ticket like SPMM-15866] and by pinging @ahills / @siege on slack
-
-. Once the associated Errata PV is created, ProdSec gets notified and adds the appropriate CPE within a day or two. For questions, ping Martin Prpič or link:https://docs.engineering.redhat.com/pages/viewpage.action?spaceKey=PRODSEC&title=CPE[send an email] to prodsec-request@redhat.com.
 
 ### Trigger respins 
 
