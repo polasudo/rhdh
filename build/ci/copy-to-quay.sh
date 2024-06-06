@@ -165,59 +165,60 @@ set +x
 echo "===== Quay images ===========>" | tee -a /tmp/copy-to-quay.sh.result.txt
 ./build/scripts/getLatestImageTags.sh -b "${MIDSTM_BRANCH}" --quay --tag "${DH_VERSION}-" --hide | tee -a /tmp/copy-to-quay.sh.result.txt
 
-echo "===== NVRs (requires brewkoji) ===========>" | tee -a /tmp/copy-to-quay.sh.result.txt
-cat <<EOF > /etc/yum.repos.d/latest-RCMTOOLS-2-RHEL-9.repo
-[latest-RCMTOOLS-2-RHEL-9]
-name=latest-RCMTOOLS-2-RHEL-9
-baseurl=https://download.devel.redhat.com/rel-eng/RCMTOOLS/latest-RCMTOOLS-2-RHEL-9/compose/BaseOS/\$basearch/os/
-enabled=1
-gpgcheck=0
-skip_if_unavailable=True
-EOF
-dnf -y -q install brewkoji || true
-./build/scripts/getLatestImageTags.sh -b "${MIDSTM_BRANCH}" --nvr | tee -a /tmp/copy-to-quay.sh.result.txt || true
+# echo "===== NVRs (requires brewkoji) ===========>" | tee -a /tmp/copy-to-quay.sh.result.txt
+# cat <<EOF > /etc/yum.repos.d/latest-RCMTOOLS-2-RHEL-9.repo
+# [latest-RCMTOOLS-2-RHEL-9]
+# name=latest-RCMTOOLS-2-RHEL-9
+# baseurl=https://download.devel.redhat.com/rel-eng/RCMTOOLS/latest-RCMTOOLS-2-RHEL-9/compose/BaseOS/\$basearch/os/
+# enabled=1
+# gpgcheck=0
+# skip_if_unavailable=True
+# EOF
+# dnf -y -q install brewkoji || true
+# ./build/scripts/getLatestImageTags.sh -b "${MIDSTM_BRANCH}" --nvr | tee -a /tmp/copy-to-quay.sh.result.txt || true
 
-echo "===== Quay IIBs (requires kaniko) ===========>" | tee -a /tmp/copy-to-quay.sh.result.txt
-# check if IIBs exist for the latest bundle
+# echo "===== Quay IIBs (requires kaniko) ===========>" | tee -a /tmp/copy-to-quay.sh.result.txt
+# # check if IIBs exist for the latest bundle
 
-checkIIBExists()
-{
-    count=0
-    interval=4 # check every x mins
-    max_count=240 # stop checking after y mins
-    while [[ $count -le $max_count ]]; do # echo $count
-        echo "[INFO] [$count/$max_count mins] Check for latest IIBs @ $(date +%H:%M:%S) ..." 
-        # check if the IIB exists
-        refUrlCheck=$(./build/scripts/getIIBsForBundle.sh -t ${DH_VERSION} || true)
-        if [[ -z ${refUrlCheck} ]] || \
-          [[ ${refUrlCheck} == *"ERROR"* ]] || \
-          [[ ${refUrlCheck} == *"not fetch ref_url from"* ]] || \
-          [[ ${refUrlCheck} == *"not read index_images.yml from"* ]]; then
-            echo "$refUrlCheck"
-            echo "[WARN] Cannot push new IIBs until they exist. Sleeping for $interval ..."
-          (( count=count+interval ))
-          sleep ${interval}m
-          refUrlCheck=""
-        elif [[ ${refUrlCheck} ]]; then
-            echo "[INFO] Latest IIBs:"
-            echo "${refUrlCheck}"
-            echo
+# checkIIBExists()
+# {
+#     count=0
+#     interval=4 # check every x mins
+#     max_count=240 # stop checking after y mins
+#     while [[ $count -le $max_count ]]; do # echo $count
+#         echo "[INFO] [$count/$max_count mins] Check for latest IIBs @ $(date +%H:%M:%S) ..." 
+#         # check if the IIB exists
+#         refUrlCheck=$(./build/scripts/getIIBsForBundle.sh -t ${DH_VERSION} || true)
+#         if [[ -z ${refUrlCheck} ]] || \
+#           [[ ${refUrlCheck} == *"ERROR"* ]] || \
+#           [[ ${refUrlCheck} == *"not fetch ref_url from"* ]] || \
+#           [[ ${refUrlCheck} == *"not read index_images.yml from"* ]]; then
+#             echo "$refUrlCheck"
+#             echo "[WARN] Cannot push new IIBs until they exist. Sleeping for $interval ..."
+#           (( count=count+interval ))
+#           sleep ${interval}m
+#           refUrlCheck=""
+#         elif [[ ${refUrlCheck} ]]; then
+#             echo "[INFO] Latest IIBs:"
+#             echo "${refUrlCheck}"
+#             echo
 
-            # TODO should we just run the Makefile#catalog-build + catalog-push
-            #  to create our own catalog source instead of filtering the official one?
-            # https://github.com/janus-idp/operator/blob/main/.github/workflows/pr-docker-build.yaml#L98C1-L102C114
-            # https://github.com/janus-idp/operator/blob/main/Makefile#L301-L310
+#             # TODO should we just run the Makefile#catalog-build + catalog-push
+#             #  to create our own catalog source instead of filtering the official one?
+#             # https://github.com/janus-idp/operator/blob/main/.github/workflows/pr-docker-build.yaml#L98C1-L102C114
+#             # https://github.com/janus-idp/operator/blob/main/Makefile#L301-L310
             
-            # to replace existing quay images, use --force flag or set an extra tag with "-e 1.1.1.RC"
-            ./build/scripts/copyIIBsToQuay.sh --push --kaniko --no-validate --authfile $REGISTRY_AUTH_FILE -v -t "${DH_VERSION}" | tee -a /tmp/copy-to-quay.sh.result.txt
-            return 0; break;
-        fi
-    done
-    # or report an error
-    if [[ -z $refUrlCheck ]]; then
-        echo "[ERROR] Could not find latest IIBs @ $(date +%H:%M:%S) - cannot push! Try running this pipeline again in a few hours." | tee -a /tmp/copy-to-quay.sh.result.txt
-        exit 1
-    fi
-}
+#             # to replace existing quay images, use --force flag or set an extra tag with "-e 1.1.1.RC"
+#             ./build/scripts/copyIIBsToQuay.sh --push --kaniko --no-validate --authfile $REGISTRY_AUTH_FILE -v -t "${DH_VERSION}" | tee -a /tmp/copy-to-quay.sh.result.txt
+#             return 0; break;
+#         fi
+#     done
+#     # or report an error
+#     if [[ -z $refUrlCheck ]]; then
+#         echo "[ERROR] Could not find latest IIBs @ $(date +%H:%M:%S) - cannot push! Try running this pipeline again in a few hours." | tee -a /tmp/copy-to-quay.sh.result.txt
+#         exit 1
+#     fi
+# }
 
-checkIIBExists
+# https://issues.redhat.com/browse/RHIDP-2570 - commented out for now because IIB check takes >8hrs 
+# checkIIBExists
