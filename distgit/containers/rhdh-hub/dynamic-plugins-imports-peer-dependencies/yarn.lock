@@ -3121,15 +3121,14 @@
   dependencies:
     "@backstage/plugin-permission-common" "^0.7.13"
 
-"@janus-idp/backstage-plugin-topology@1.21.9":
-  version "1.21.9"
-  resolved "https://registry.npmjs.org/@janus-idp/backstage-plugin-topology/-/backstage-plugin-topology-1.21.9.tgz#f5e071a7d6c7947238d989d7a5a26c2aad03f7ad"
-  integrity sha512-gJTtdYGTuldHodNbY702ENAGatH4lPcfin2SG1+rtHF1KMBND13Jo5tBAnMluCEf1/ogwtPHBO5dtvwCU/ns2g==
+"@janus-idp/backstage-plugin-topology@1.21.10":
+  version "1.21.10"
+  resolved "https://registry.npmjs.org/@janus-idp/backstage-plugin-topology/-/backstage-plugin-topology-1.21.10.tgz#ccaef537c36d4e0702e6bc904d03177b4b08318d"
+  integrity sha512-FFe8SMx8o9ugw1Cea57xab/k0R3yWY9isa/gVrdTuB2tYNVhlx0n18VKArQTnCT1n7wDaj2fUdp9S4e7eqAF0Q==
   dependencies:
     "@backstage/catalog-model" "^1.4.5"
     "@backstage/core-components" "^0.14.6"
     "@backstage/core-plugin-api" "^1.9.2"
-    "@backstage/plugin-catalog-common" "^1.0.23"
     "@backstage/plugin-catalog-react" "^1.11.3"
     "@backstage/plugin-kubernetes" "^0.11.9"
     "@backstage/plugin-kubernetes-common" "^0.7.5"
