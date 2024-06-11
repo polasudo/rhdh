@@ -6,6 +6,10 @@ The helm chart packages the following subcharts. Their respective values can be 
 
 {{ template "chart.requirementsTable" . }}
 
+## Telemetry data collection
+
+The telemetry data collection feature is enabled by default. Red Hat Developer Hub sends telemetry data to Red Hat by using the `backstage-plugin-analytics-provider-segment` plugin. To disable this and to learn what data is being collected, see [Red Hat Developer Hub documentation on telemetry data collection](https://access.redhat.com/documentation/en-us/red_hat_developer_hub/1.2/html-single/administration_guide_for_red_hat_developer_hub/index#assembly-rhdh-telemetry_admin-rhdh).
+
 ## Installation
 
 **Prerequisites**
@@ -131,7 +135,3 @@ Features enabled by the default chart configuration:
 3. Enables OpenShift-certified PostgreSQL database storage.
 
 For additional instance features, see [Red Hat Developer Hub documentation](https://developers.redhat.com/products/developer-hub).
-
-## Telemetry data collection
-
-The telemetry data collection feature is enabled by default. Red Hat Developer Hub sends telemetry data to Red Hat by using the `backstage-plugin-analytics-provider-segment` plugin. To disable this and to learn what data is being collected, see https://access.redhat.com/documentation/en-us/red_hat_developer_hub/1.2/html-single/administration_guide_for_red_hat_developer_hub/index#assembly-rhdh-telemetry_admin-rhdh
