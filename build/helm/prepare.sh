@@ -242,8 +242,7 @@ if [[ $CREATE_REPORT -eq 1 ]]; then
         echo "Creating a report.yaml via chart-verifier..."
     fi
 
-    # Check if it can connect to test cluster and the required pull secret exists.
-    oc get secrets/rhdh-pull-secret >/dev/null
+    # Check if it can connect to test cluster.
 
     podman run --rm -i --platform=linux/amd64 \
         -e KUBECONFIG=/.kube/config \

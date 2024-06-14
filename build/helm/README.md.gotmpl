@@ -23,15 +23,6 @@ The helm chart deploys Red Hat Developer Hub and includes the following prerequi
 
 **Procedure**
 
-Before proceeding to install the chart, download a Quay.io `pullSecret` associated with your [Red Hat Developer Hub subscription](https://developers.redhat.com/products/developer-hub). The pull secret grants you access to the developer preview version of the Red Hat Developer Hub. Without Quay.io access, the helm chart will not install.
-
-1. Go to [Quay.io](https://quay.io/) and log in.
-2. Open **Account Settings** in the menu available on the top-right side.
-3. Click *Generate Encrypted Password* and repeat your password and click *Verify*
-4. Select *Kubernetes Secret* tab and view or download the secret
-5. Change the secrets `.metadata.name` to `rhdh-pull-secret`
-5. Log into your OpenShift/Kubernetes cluster and create the secret
-
 ### OpenShift Helm Catalog
 
 1. Click the "Create" button at the top of the modal dialog on this page
