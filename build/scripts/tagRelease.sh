@@ -483,10 +483,8 @@ pushBranchAndOrTagGH () {
 					git pull origin "${TARGET_BRANCH}" 2>/dev/null || true
 
 					# changes to apply to new midstream 1.yy.x branch
-					# TODO verify this works once https://github.com/janus-idp/backstage-showcase/pull/1028/files#diff-b1450b0ddd25a7e521db090fce8fc0a8cffe8a5fb50c77f49669c8fb785ec0e4 is merged 
-					# 
 					# https://issues.redhat.com/browse/RHIDP-1311 apply the production key to the 1.yy.x stable branches, so we can use the devel key for main/CI builds
-					if [[ $d == "janus-idp/backstage-showcase" ]] || [[ $d == "redhat-developer/red-hat-developer-hub" ]]; then
+					if [[ $d == "janus-idp__backstage-showcase" ]] || [[ $d == "redhat-developer__red-hat-developer-hub" ]]; then
 						sed -i .rhdh/docker/Dockerfile -r -e "s|(.*SEGMENT_WRITE_KEY=).*|\1$SEGMENT_WRITE_KEY|g"
 						COMMITMSG="chore: switch SEGMENT_WRITE_KEY in $TARGET_BRANCH"
 						git commit --no-gpg-sign -s -m "${COMMITMSG}" .rhdh/docker/Dockerfile
@@ -671,7 +669,7 @@ done
 # ###################################################################################################
 
 # now update main branches for the above branch creation
-# TODO VERIFY THIS WORKS with 1.2 branch creation
+# TODO VERIFY THIS WORKS with 1.3 branch creation
 if [[ ${SOURCE_BRANCH} ]]; then
 	# check for changes and push a PR for each repo
 	## updatePluginVersions - DISABLED - see RHIDP-1720
