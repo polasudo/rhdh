@@ -22,6 +22,12 @@ See link:https://github.com/rhdh-bot/openshift-helm-charts/tree/rhdh-1-rhel-9/in
 
 See link:RHDH.adoc[RHDH.adoc] - `Operator installation`.
 
+## Is my issue a blocker for the upcoming 1.y release?
+
+See link:PROCESSES.adoc[PROCESSES.adoc] - `Blockers found after code freeze`. 
+
+See also link:RELEASE_GUIDE.adoc[RELEASE_GUIDE.adoc] - `Trigger respins`.
+
 ## For more info: 
 
 See link:RHDH.adoc[RHDH.adoc]

@@ -1,0 +1,24 @@
+# RHDH Team processes
+
+This is a living document! Please add to it as more processes and procedures need documenting.
+
+## Blockers found after code freeze
+
+* If it's an *_obvious blocker_* (can't install, core feature broken, discovered a CVE of Important or Major Impact, etc.) and everyone *_agrees_* it's a blocker, then
+** set the correct Priority and Fixversion in JIRA,
+** cherry-pick it with a `/cherry-pick 1.yy.x` command in a comment on the PR (where `1.yy.x` is the stable release branch, eg., 1.2.x, 1.3.x, 1.4.x) .
+** If the automatic cherry-pick fails, create one manually.
+** Notify whoever's running the builds for that release (eg., the Release Owner, or Nick/Paul/Fortune/etc.) that it's coming (a heads-up warning for planning).
+** Notify again when it's merged, so it can be built as soon as possible (rather than waiting 4hrs for the next pipeline run to check for changes in upstream).
+** Release Owner will then announce the new release candidate (RC) build in slack and @mention QE team, Doc team, PM + other relevant stakeholders.
+
+* If you think it *_could_* be a blocker, then
+** to get input from doc/qe/eng/management for *prioritization* and *scoping the risk/reward/impact*,
+** ask in slack and @mention various stakeholders for their input
+** If you don't get a response within an hour or two, try asking on a team or WG call. Note that real blockers need to be discussed immediately, as waiting a week or two for the next scheduled meeting may impact the schedule in a negative way.
+
+* If your late-discovered blockers *impact* the GA date or release *schedule*, then
+** please *ensure that Management (Product, Program) is aware* so they can track the revised plan.
+** This can either be in the form of the above slack convos, or as topics on a Scrum of Scrums, Team or Program call.
+** WG calls are also useful places to mention these potential blockers and schedule impacts.
+
