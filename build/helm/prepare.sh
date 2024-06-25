@@ -68,10 +68,11 @@ Examples:
     $ $0 --chart-version 1.1.4 --rhdh-version 1.1-107.1717076948 --catalog git@github.com:rhdh-bot/openshift-helm-charts.git --publish
     $ $0 --chart-version 1.0.3 --rhdh-version 1.0-201.1717076949 --catalog git@github.com:rhdh-bot/openshift-helm-charts.git --publish
         # OR
+    $ $0 --chart-version 1.2.0 --rhdh-version 1.2-105 --catalog git@github.com:rhdh-bot/openshift-helm-charts.git --publish
     $ $0 --chart-version 1.1.2 --rhdh-version 1.1-107 --catalog git@github.com:rhdh-bot/openshift-helm-charts.git --publish
     $ $0 --chart-version 1.0.1 --rhdh-version 1.0-201 --catalog git@github.com:rhdh-bot/openshift-helm-charts.git --publish
-    Chart version:        1.0.1
-    Developer Hub image:  quay.io/rhdh/rhdh-hub-rhel9:1.0-201
+    Chart version:        1.2.0
+    Developer Hub image:  quay.io/rhdh/rhdh-hub-rhel9:1.2-105
 
     # NOTE that the PR may not be created correctly! You may have to manually create a PR from the release-x.y.z branch.
 "
