@@ -2,11 +2,19 @@
 
 Some quickstart tips for building RHDH 1.0 wih Gitlab pipelines:
 
+## How to release a plugin from the 1.yy.x stable branch (not main):
+
+If you need to release a plugin manually from the stable branch (not main) see https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1-rhel-9/build/scripts/releasePlugin.sh[build/scripts/releasePlugin.sh]
+
 ## How to respin for upstream or midstream changes
+
+You can force a respin using this script: https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1-rhel-9/build/scripts/triggerRespin.sh[build/scripts/triggerRespin.sh]
 
 See link:RHDH-gitlab.adoc[RHDH-gitlab.adoc]
 
 ## How to force a respin without an upstream change
+
+You can force a respin using this script: https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1-rhel-9/build/scripts/triggerRespin.sh[build/scripts/triggerRespin.sh]
 
 See link:RHDH-gitlab.adoc[RHDH-gitlab.adoc]
 

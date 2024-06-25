@@ -1,5 +1,13 @@
 # How to build with Gitlab
 
+## How to release a plugin from the 1.yy.x branch
+
+If you need to release a plugin manually from the stable branch (not main) see https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1-rhel-9/build/scripts/releasePlugin.sh[build/scripts/releasePlugin.sh].
+
+Once released, you can then update the janus-idp/backstage-showcase package.json files, which will in turn trigger an update in midstream/downstream.
+
+See also https://issues.redhat.com/browse/RHIDP-2525
+
 ## How to respin because of a change upstream 
 
 . Push a change to either of the link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1-rhel-9/upstream_repos.yml[upstream repos] - make sure you're pushing to the correct branch for the downstream sync.
@@ -12,7 +20,7 @@ image::images/pipeline-schedules.png[Pipeline Schedules]
 
 ## How to respin because of a change midstream 
 
-. You can also trigger a build by pushing a commit into link:https://gitlab.cee.redhat.com/rhidp/rhdh/[this repo], but if there is no change upstream, the job will not rebuild the containers. 
+. You can also trigger a build by pushing a commit into link:https://gitlab.cee.redhat.com/rhidp/rhdh/[the rhidp/rhdh repo], but if there is no change upstream, the job will not rebuild the containers. 
 
 . To **force** a rebuild from the midstream without changing upstream, empty the appropriate file (of files) in the link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/tree/rhdh-1-rhel-9/sync[sync] folder, or run link:../build/scripts/triggerRespin.sh[triggerRespin.sh].
 
