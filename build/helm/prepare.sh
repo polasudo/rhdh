@@ -382,17 +382,17 @@ if [[ $PUBLISH -eq 1 ]]; then
     fi
 
     if [[ $CHART_VERSION != *"CI"* ]]; then
-        # purge old CI branches, but keep the most recent one (head -n -1)
+        # purge old CI branches, but keep the most recent one (sort -V | head -n -1)
         rm -fr "${CATALOG_DIR}"; git clone -q "${CATALOG_FORK}" "${CATALOG_DIR}"
         pushd "${CATALOG_DIR}" >/dev/null || exit 1
             # git remote -v
             # new branch name after April 9 2024
-            for d in $(git branch -a | grep -E "remotes/origin/redhat-developer-hub" | grep "redhat-developer-hub-${RHDH_VERSION%-*}-" | grep CI | sed -r -e "s#.*remotes/origin/##" | sort | head -n -1); do 
+            for d in $(git branch -a | grep -E "remotes/.*/redhat-developer-hub" | grep "redhat-developer-hub-${RHDH_VERSION%-*}-" | grep CI | sed -r -e "s#.*remotes/[^/]+/##" | sort -V | head -n -1); do 
                 git push origin ":${d}" 2>/dev/null
                 echo "Branch $d deleted"
             done
             # old branch name up to April 9 2024
-            for d in $(git branch -a | grep -E "remotes/origin/developer-hub" | grep "developer-hub-${RHDH_VERSION%-*}-" | grep CI | sed -r -e "s#.*remotes/origin/##" | sort | head -n -1); do 
+            for d in $(git branch -a | grep -E "remotes/.*/developer-hub" | grep "developer-hub-${RHDH_VERSION%-*}-" | grep CI | sed -r -e "s#.*remotes/[^/]+/##" | sort -V | head -n -1); do 
                 git push origin ":${d}" 2>/dev/null
                 echo "Branch $d deleted"
             done
