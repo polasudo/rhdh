@@ -399,6 +399,7 @@ if [[ $PUBLISH -eq 1 ]]; then
         popd >/dev/null || exit 1
     fi
 else
+    HELM_PROJECT="rhdh-${CHART_VERSION,,}"; HELM_PROJECT="${HELM_PROJECT//./-}"
     echo ""
     echo "Flag '--publish' is not set. Changes are not pushed to '$CATALOG_FORK'. Instead they can be previewed in:
 
@@ -407,9 +408,17 @@ This chart's folder:  $CATALOG_DIR/charts/redhat/redhat/redhat-developer-hub/${C
 
 To install this chart, run the following commands against your OCP cluster:
 
-    cd $CATALOG_DIR/charts/redhat/redhat/redhat-developer-hub/${CHART_VERSION}/; \
-    tar xzf redhat-developer-hub-${CHART_VERSION}.tgz && \
-    helm install -n <your-rhdh-project> --generate-name developer-hub/
+    oc new-project $HELM_PROJECT
+
+    pushd $CATALOG_DIR/charts/redhat/redhat/redhat-developer-hub/${CHART_VERSION}/ >/dev/null; \\
+    tar xzf redhat-developer-hub-${CHART_VERSION}.tgz && \\
+    helm upgrade redhat-developer-hub -i -n $HELM_PROJECT redhat-developer-hub/; \\
+    PASSWORD=\$(kubectl get secret redhat-developer-hub-postgresql -o jsonpath=\"{.data.password}\" | base64 -d); \\
+    CLUSTER_ROUTER_BASE=\$(oc get route console -n openshift-console -o=jsonpath='{.spec.host}' | sed 's/^[^.]*\.//'); \\
+    helm upgrade redhat-developer-hub -n $HELM_PROJECT \\
+      --set global.clusterRouterBase=\"\${CLUSTER_ROUTER_BASE}\" \\
+      --set global.postgresql.auth.password=\"\$PASSWORD\" redhat-developer-hub/; \\
+    popd >/dev/null
 "
 fi
 
