@@ -71,7 +71,14 @@ elif [[ $DWNSTM_BRANCH != "rhdh-1-rhel-9" ]] && [[ $next_tag == "???" ]]; then
   next_tag=$(./build/scripts/getLatestImageTags.sh -b "${DWNSTM_BRANCH}" --quay -c rhdh/rhdh-hub-rhel9 --latestNext next); next_tag=${next_tag##*:} 
 fi
 
+# use the correct branch of the chart repo
+if [[ $DWNSTM_BRANCH == "rhdh-1-rhel-9" ]]; then 
+  CHART_BRANCH="main"
+else
+  CHART_BRANCH="${next_tag%-*}.x" # from 1.2-105 -> 1.2.x
+fi
+
 pushd "build/helm/" >/dev/null || exit 1
     echo "Create chart for $next_tag" | tee /tmp/publish-helmchart.sh.result.txt
-    ./prepare.sh ${debugflag} --chart-version "${next_tag}-CI" --rhdh-version "${next_tag}" --extra-branch "${DWNSTM_BRANCH}" --catalog "https://rhdh-bot:${GITHUB_TOKEN}@github.com/rhdh-bot/openshift-helm-charts.git" --publish | tee -a /tmp/publish-helmchart.sh.result.txt
+    ./prepare.sh ${debugflag} --chart-version "${next_tag}-CI" --chart-branch "${CHART_BRANCH}" --rhdh-version "${next_tag}" --extra-branch "${DWNSTM_BRANCH}" --catalog "https://rhdh-bot:${GITHUB_TOKEN}@github.com/rhdh-bot/openshift-helm-charts.git" --publish | tee -a /tmp/publish-helmchart.sh.result.txt
 popd >/dev/null || exit 1
