@@ -5,7 +5,7 @@ CHART_VERSION="" # Developer Hub version (used as 'appVersion' in Chart.yaml and
 CATALOG_FORK="https://rhdh-bot:${GITHUB_TOKEN}@github.com/rhdh-bot/openshift-helm-charts.git" # Fork of "git@github.com:openshift-helm-charts/charts.git where you can push to
 PUBLISH=0 # Set to True to push to CATALOG_FORK
 CREATE_REPORT=0 # Set to True if you want to run https://github.com/redhat-certification/chart-verifier and create a report
-
+CHART_BRANCH="main" # can also be 1.2.x, etc.
 EXTRA_BRANCH="" # another branch to force push, eg., rhdh-1.2-rhel-9
 DEBUG=0
 QUIET="-q"
@@ -18,7 +18,7 @@ set -e
 
 usage ()
 {
-    echo "Usage: $0 --chart-version x.y.z --rhdh-version x.y-zzz --rev N [--catalog <git-url>] [--debug] [--publish] 
+    echo "Usage: $0 --chart-version x.y.z --rhdh-version x.y-zzz --chart-branch 1.2.x [--catalog <git-url>] [--debug] [--publish] 
 
 NOTE: This must be run using the GITHUB_TOKEN of rhdh-bot@redhat.com in order to push to that user's fork.
 
@@ -32,6 +32,7 @@ Options:
                               git@github.com:openshift-helm-charts/charts.git with write access
     --chart-version           Chart release version (used as 'version' in Chart.yaml)
     --rhdh-version            Developer Hub version (used as 'appVersion' in Chart.yaml and as image tag)
+    --chart-branch            branch of rhdh-charts to use as input, for example 1.2.x; default: main
     --debug                   Enable logging
     --help                    Prints this message
 
@@ -54,8 +55,8 @@ Examples:
 
     # Or, log into the quay.io/rhdh/ org, then compute the latest or next 1.1-zzz tag
     $ export GITHUB_TOKEN=ghp_rhdh-bot-token-here
-    $ $0 --latest --publish 
-    $ $0 --next --publish 
+    $ $0 --latest --publish --chart-branch 1.2.x
+    $ $0 --next --publish --chart-branch main
     Chart version:        1.1-zzz-CI
     Developer Hub image:  quay.io/rhdh/rhdh-hub-rhel9:1.1-zzz
 
@@ -66,12 +67,11 @@ Examples:
     # 2. Run a manual release as the bot:
     $ export GITHUB_TOKEN=ghp_rhdh-bot-token-here
     $ $0 --chart-version 1.1.4 --rhdh-version 1.1-107.1717076948 --catalog git@github.com:rhdh-bot/openshift-helm-charts.git --publish
-    $ $0 --chart-version 1.0.3 --rhdh-version 1.0-201.1717076949 --catalog git@github.com:rhdh-bot/openshift-helm-charts.git --publish
         # OR
-    $ $0 --chart-version 1.2.0 --rhdh-version 1.2-105 --catalog git@github.com:rhdh-bot/openshift-helm-charts.git --publish
-    $ $0 --chart-version 1.1.2 --rhdh-version 1.1-107 --catalog git@github.com:rhdh-bot/openshift-helm-charts.git --publish
-    $ $0 --chart-version 1.0.1 --rhdh-version 1.0-201 --catalog git@github.com:rhdh-bot/openshift-helm-charts.git --publish
-    Chart version:        1.2.0
+    $ $0 --chart-version 1.2.1 --rhdh-version 1.2-105 --chart-branch 1.2.x --catalog git@github.com:rhdh-bot/openshift-helm-charts.git --publish
+    $ $0 --chart-version 1.2.0 --rhdh-version 1.2-105 --chart-branch 1.1.x --catalog git@github.com:rhdh-bot/openshift-helm-charts.git --publish
+    $ $0 --chart-version 1.1.2 --rhdh-version 1.1-107 --chart-branch 1.1.x --catalog git@github.com:rhdh-bot/openshift-helm-charts.git --publish
+    Chart version:       1.2.1
     Developer Hub image:  quay.io/rhdh/rhdh-hub-rhel9:1.2-105
 
     # NOTE that the PR may not be created correctly! You may have to manually create a PR from the release-x.y.z branch.
@@ -92,6 +92,7 @@ while [[ "$#" -gt 0 ]]; do
     '--publish') PUBLISH=1;;
     '--catalog') CATALOG_FORK="$2"; shift 1;;
     '--chart-version') CHART_VERSION="$2"; shift 1;;
+    '--chart-branch') CHART_BRANCH="$2"; shift 1;;
     '--rhdh-version') RHDH_VERSION="$2"; shift 1;;
     '--create-report') CREATE_REPORT=1;;
     '--debug') DEBUG=1; QUIET="";;
@@ -104,7 +105,6 @@ if [[ ! $RHDH_VERSION ]]; then usage; fi
 
 HELM_DIR=$(mktemp -d)
 if [[ $DEBUG -eq 1 ]]; then echo "Running in HELM_DIR = $HELM_DIR"; fi
-HELM_SOURCE_REF="main"
 CATALOG_DIR=$(mktemp -d)
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 # TODO switch to jq wrapper version of yq (not mikefarah)
@@ -165,7 +165,7 @@ if [[ $DEBUG -eq 1 ]]; then
     echo "Fetching Janus-IDP chart..."
 fi
 # skip binaries with --filter=blob:none
-git clone --depth=1 -q --branch=${HELM_SOURCE_REF} https://github.com/redhat-developer/rhdh-chart.git "${HELM_DIR}"
+git clone --depth=1 -q --branch=${CHART_BRANCH} https://github.com/redhat-developer/rhdh-chart.git "${HELM_DIR}"
 
 if [[ $DEBUG -eq 1 ]]; then
     echo "Patching 'Chart.yaml', 'values.yaml', 'README.md.gotmpl'..."
