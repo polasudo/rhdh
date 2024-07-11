@@ -21,10 +21,13 @@ metadata:
     certified: 'true'
     containerImage: registry-proxy.engineering.redhat.com/rh-osbs/rhdh-rhdh-rhel9-operator:1.3
     createdAt: "2024-07-05T16:25:23Z"
-    description: Red Hat Developer Hub is a Red Hat supported version of Backstage.
+    description: |
+      Red Hat Developer Hub is a Red Hat supported version of Backstage.
       It comes with pre-built plug-ins, configuration settings, and deployment mechanisms,
       which can help streamline the process of setting up a self-managed internal
       developer portal for adopters who are just starting out.
+      Note: As of version 1.2, there is an option to use an external database when deploying RHDH.
+      Link: https://docs.redhat.com/en/documentation/red_hat_developer_hub/1.2/html/administration_guide_for_red_hat_developer_hub/assembly-configuring-external-postgresql-databases#assembly-configuring-external-postgresql-databases 
     operatorframework.io/suggested-namespace: rhdh-operator
     operators.openshift.io/valid-subscription: '["Red Hat Developer Hub"]'
     operators.operatorframework.io/builder: operator-sdk-v1.33.0
