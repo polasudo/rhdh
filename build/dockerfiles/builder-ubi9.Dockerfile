@@ -14,10 +14,17 @@ RUN \
 # hadolint ignore=SC3037,DL4006,DL3016
 RUN \
     # latest npm is 10 but build needs 9; yarn v1 assumes node-gyp is installed globally (RHIDP-694)
-    time npm install --global husky npm@9 node-gyp@9 prettier turbo yarn@1 @janus-idp/cli; \
+    time npm install --network-timeout=600000 --global npm@9 yarn@1; \
+    yarn config set network-timeout 600000 -g; \
+    yarn config set registry $(npm config get registry) -g; \
+    time yarn global add  husky node-gyp@9 prettier turbo @janus-idp/cli; 
+# hadolint ignore=SC3037,DL4006,DL3016
+RUN \
     # install node-gyp 9 and update if the build requires something newer
-    nodegyp_to_install=$(grep node-gyp /tmp/package.json | tr -d "\" " | sed -r -e "s/:/@^/"); \
-    time npm install --global "${nodegyp_to_install}"; \
+    nodegyp_to_install=$(grep node-gyp /tmp/package.json | tr -d ",\" " | sed -r -e "s/:/@^/"); \
+    time yarn global add  "${nodegyp_to_install}";
+# hadolint ignore=SC3037,DL4006,DL3016
+RUN \
     # list installed binaries and default locations
     for r in jq node node-gyp npm prettier turbo yq janus-cli; do echo -n "$(which $r) : "; "$r" --version; done; \
     echo -n "husky : "; husky -v
