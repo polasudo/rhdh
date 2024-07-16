@@ -210,6 +210,6 @@ cd /tmp; git clone git@gitlab.cee.redhat.com:rhidp/rhdh.git --depth 1 && cd rhdh
 
 Ongoing through the quarter, remember to:
 
+. Update the link:../build/dockerfiles/[gitlab pipeline runner images] at least once every quarter
 . Monitor GH-GL syncs and pipelines, as things can fail unexpectedly in OSBS or on gitlab runners
 . Monitor quay image updates to ensure everything is kept current and fresh relative to upstram branches
-

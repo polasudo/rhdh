@@ -19,11 +19,11 @@ and for the Kaniko runner, using the latest release from https://github.com/Goog
 
 ```
 TODAY=$(date +%Y%m%d-%H%M)
-kaniko_version=1.22.0 # apr 18
+kaniko_version=1.23.2 # 2024-07-16
 
 # previous versions
-# kaniko_version=1.14.0 # jan 11
-# kaniko_version=1.19.2 # jan 11
+# kaniko_version=1.22.0 # 2024-04-18
+# kaniko_version=1.19.2 # 2024-01-11
 
 sed -i build/dockerfiles/kaniko-ubi9.Dockerfile -r -e "s#(FROM gcr.io/kaniko-project/executor:v)[0-9.]+(-debug AS kaniko)#\1${kaniko_version}\2#"
 podman rmi gcr.io/kaniko-project/executor:${kaniko_version}-debug -f
@@ -33,4 +33,5 @@ podman build . --no-cache -f build/dockerfiles/kaniko-ubi9.Dockerfile --label qu
     -t quay.io/rhdh/gitlab-runner:kaniko-latest 
 podman push quay.io/rhdh/gitlab-runner:kaniko-${kaniko_version}-$TODAY
 podman push quay.io/rhdh/gitlab-runner:kaniko-latest
+
 ```

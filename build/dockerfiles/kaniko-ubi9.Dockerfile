@@ -1,5 +1,5 @@
 # change log at https://github.com/GoogleContainerTools/kaniko/releases
-FROM gcr.io/kaniko-project/executor:v1.22.0-debug AS kaniko
+FROM gcr.io/kaniko-project/executor:v1.23.2-debug AS kaniko
 
 # hadolint ignore=DL3006,DL3007
 FROM registry.redhat.io/ubi9:latest
