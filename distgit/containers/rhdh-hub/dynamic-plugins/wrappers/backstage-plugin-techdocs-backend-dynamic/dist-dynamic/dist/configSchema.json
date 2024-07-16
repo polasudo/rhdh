@@ -8,9 +8,6 @@
     "techdocs": {
       "description": "Configuration options for the techdocs-backend plugin",
       "type": "object",
-      "required": [
-        "builder"
-      ],
       "properties": {
         "builder": {
           "description": "Documentation building process depends on the builder attr",

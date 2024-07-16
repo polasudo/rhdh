@@ -11,10 +11,6 @@ require('path');
 var require$$6 = require('@backstage/backend-plugin-api');
 var require$$7 = require('@backstage/plugin-catalog-node/alpha');
 
-var index_cjs = {};
-
-Object.defineProperty(index_cjs, '__esModule', { value: true });
-
 var backendCommon = require$$0;
 var integration = require$$1;
 var Router = require$$2;
@@ -24,10 +20,10 @@ var bodyParser = require$$4;
 var backendPluginApi = require$$6;
 var alpha = require$$7;
 
-function _interopDefaultLegacy$1 (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
+function _interopDefaultCompat (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }
 
-var Router__default = /*#__PURE__*/_interopDefaultLegacy$1(Router);
-var bodyParser__default = /*#__PURE__*/_interopDefaultLegacy$1(bodyParser);
+var Router__default = /*#__PURE__*/_interopDefaultCompat(Router);
+var bodyParser__default = /*#__PURE__*/_interopDefaultCompat(bodyParser);
 
 function getBasePath(config) {
   const baseUrl = config.getOptionalString("backend.baseUrl");
@@ -35,6 +31,14 @@ function getBasePath(config) {
     return void 0;
   }
   return new URL(baseUrl).pathname.replace(/\/$/, "");
+}
+function headersManipulation(headers) {
+  if (headers["authorization"])
+    delete headers["authorization"];
+  if (headers["gitlab-authorization"]) {
+    headers["authorization"] = headers["gitlab-authorization"];
+    delete headers["gitlab-authorization"];
+  }
 }
 async function createRouter(options) {
   const { logger, config } = options;
@@ -44,27 +48,17 @@ async function createRouter(options) {
   const gitlabIntegrations = integration.readGitLabIntegrationConfigs(
     config.getConfigArray("integrations.gitlab")
   );
-  const router = Router__default["default"]();
-  router.use(bodyParser__default["default"].json());
-  router.use(bodyParser__default["default"].urlencoded({ extended: true }));
-  router.use(bodyParser__default["default"].text());
+  const router = Router__default.default();
+  router.use(bodyParser__default.default.json());
+  router.use(bodyParser__default.default.urlencoded({ extended: true }));
+  router.use(bodyParser__default.default.text());
   const filter = (_pathname, req) => {
-    if (req.headers["authorization"])
-      delete req.headers["authorization"];
-    if (req.headers["gitlab-authorization"]) {
-      req.headers["authorization"] = req.headers["gitlab-authorization"];
-      delete req.headers["gitlab-authorization"];
-    }
+    headersManipulation(req.headers);
     return req.method === "GET";
   };
   const graphqlFilter = (_pathname, req) => {
     var _a;
-    if (req.headers["authorization"])
-      delete req.headers["authorization"];
-    if (req.headers["gitlab-authorization"]) {
-      req.headers["authorization"] = req.headers["gitlab-authorization"];
-      delete req.headers["gitlab-authorization"];
-    }
+    headersManipulation(req.headers);
     return req.method === "POST" && !((_a = req.body.query) == null ? void 0 : _a.includes("mutation"));
   };
   for (const { host, apiBaseUrl, token } of gitlabIntegrations) {
@@ -235,11 +229,8 @@ const gitlabPlugin = backendPluginApi.createBackendPlugin({
     });
   }
 });
-
-index_cjs.GitlabFillerProcessor = GitlabFillerProcessor;
-var catalogPluginGitlabFillerProcessorModule_1 = index_cjs.catalogPluginGitlabFillerProcessorModule = catalogPluginGitlabFillerProcessorModule;
-index_cjs.createRouter = createRouter;
-var gitlabPlugin_1 = index_cjs.gitlabPlugin = gitlabPlugin;
+var catalogPluginGitlabFillerProcessorModule_1 = catalogPluginGitlabFillerProcessorModule;
+var gitlabPlugin_1 = gitlabPlugin;
 
 const dynamicPluginInstaller = {
   kind: "new",

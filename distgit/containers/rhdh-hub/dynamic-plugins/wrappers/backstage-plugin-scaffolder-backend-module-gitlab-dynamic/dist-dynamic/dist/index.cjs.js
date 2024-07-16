@@ -10,10 +10,9 @@ var require$$4 = require('@gitbeaker/rest');
 var require$$5 = require('yaml');
 var require$$6 = require('luxon');
 var require$$7 = require('path');
-var require$$8 = require('@backstage/backend-common');
-var require$$9 = require('@backstage/backend-plugin-api');
-var require$$10 = require('@backstage/plugin-scaffolder-node/alpha');
-var require$$11 = require('@backstage/integration');
+var require$$8 = require('@backstage/backend-plugin-api');
+var require$$9 = require('@backstage/plugin-scaffolder-node/alpha');
+var require$$10 = require('@backstage/integration');
 
 var index_cjs = {};
 
@@ -27,10 +26,9 @@ var rest = require$$4;
 var yaml = require$$5;
 var luxon = require$$6;
 var path = require$$7;
-var backendCommon = require$$8;
-var backendPluginApi = require$$9;
-var alpha = require$$10;
-var integration = require$$11;
+var backendPluginApi = require$$8;
+var alpha = require$$9;
+var integration = require$$10;
 
 function _interopDefaultCompat (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }
 
@@ -163,7 +161,7 @@ async function checkEpicScope(client, projectId, epicId) {
   }
 }
 
-const examples$5 = [
+const examples$7 = [
   {
     description: "Creating a group at the top level",
     example: yaml__default.default.stringify({
@@ -237,7 +235,7 @@ const createGitlabGroupEnsureExistsAction = (options) => {
     id: "gitlab:group:ensureExists",
     description: "Ensures a Gitlab group exists",
     supportsDryRun: true,
-    examples: examples$5,
+    examples: examples$7,
     schema: {
       input: commonGitlabConfig.merge(
         zod.z.object({
@@ -292,7 +290,7 @@ const createGitlabGroupEnsureExistsAction = (options) => {
   });
 };
 
-const examples$4 = [
+const examples$6 = [
   {
     description: "Create a GitLab project deploy token with minimal options.",
     example: yaml__default.default.stringify({
@@ -386,7 +384,7 @@ const createGitlabProjectDeployTokenAction = (options) => {
   const { integrations } = options;
   return pluginScaffolderNode.createTemplateAction({
     id: "gitlab:projectDeployToken:create",
-    examples: examples$4,
+    examples: examples$6,
     schema: {
       input: commonGitlabConfig.merge(
         zod.z.object({
@@ -428,7 +426,7 @@ const createGitlabProjectDeployTokenAction = (options) => {
   });
 };
 
-const examples$3 = [
+const examples$5 = [
   {
     description: "Create a GitLab project access token with minimal options.",
     example: yaml__default.default.stringify({
@@ -518,7 +516,7 @@ const createGitlabProjectAccessTokenAction = (options) => {
   const { integrations } = options;
   return pluginScaffolderNode.createTemplateAction({
     id: "gitlab:projectAccessToken:create",
-    examples: examples$3,
+    examples: examples$5,
     schema: {
       input: zod.z.object({
         projectId: zod.z.union([zod.z.number(), zod.z.string()], {
@@ -587,10 +585,152 @@ const createGitlabProjectAccessTokenAction = (options) => {
   });
 };
 
+const examples$4 = [
+  {
+    description: "Creating a GitLab project variable of type env_var",
+    example: yaml__default.default.stringify({
+      steps: [
+        {
+          id: "createVariable",
+          action: "gitlab:createGitlabProjectVariableAction",
+          name: "Create GitLab Project Variable",
+          input: {
+            repoUrl: "gitlab.com?repo=repo&owner=owner",
+            projectId: "123",
+            key: "MY_VARIABLE",
+            value: "my_value",
+            variableType: "env_var"
+          }
+        }
+      ]
+    })
+  },
+  {
+    description: "Creating a GitLab project variable of type file",
+    example: yaml__default.default.stringify({
+      steps: [
+        {
+          id: "createVariable",
+          action: "gitlab:createGitlabProjectVariableAction",
+          name: "Create GitLab Project Variable",
+          input: {
+            repoUrl: "gitlab.com?repo=repo&owner=owner",
+            projectId: "123",
+            key: "MY_VARIABLE",
+            value: "my-file-content",
+            variableType: "file"
+          }
+        }
+      ]
+    })
+  },
+  {
+    description: "Create a GitLab project variable that is protected.",
+    example: yaml__default.default.stringify({
+      steps: [
+        {
+          id: "createVariable",
+          action: "gitlab:createGitlabProjectVariableAction",
+          name: "Create GitLab Project Variable",
+          input: {
+            repoUrl: "gitlab.com?repo=repo&owner=owner",
+            projectId: "456",
+            key: "MY_VARIABLE",
+            value: "my_value",
+            variableType: "env_var",
+            variableProtected: true
+          }
+        }
+      ]
+    })
+  },
+  {
+    description: "Create a GitLab project variable with masked flag as true",
+    example: yaml__default.default.stringify({
+      steps: [
+        {
+          id: "createVariable",
+          action: "gitlab:createGitlabProjectVariableAction",
+          name: "Create GitLab Project Variable",
+          input: {
+            repoUrl: "gitlab.com?repo=repo&owner=owner",
+            projectId: "789",
+            key: "DB_PASSWORD",
+            value: "password123",
+            variableType: "env_var",
+            masked: true
+          }
+        }
+      ]
+    })
+  },
+  {
+    description: "Create a GitLab project variable that is expandable.",
+    example: yaml__default.default.stringify({
+      steps: [
+        {
+          id: "createVariable",
+          action: "gitlab:projectVariable:create",
+          name: "Create GitLab Project Variable",
+          input: {
+            repoUrl: "gitlab.com?repo=repo&owner=owner",
+            projectId: "123",
+            key: "MY_VARIABLE",
+            value: "my_value",
+            variableType: "env_var",
+            raw: true
+          }
+        }
+      ]
+    })
+  },
+  {
+    description: "Create a GitLab project variable with a specific environment scope.",
+    example: yaml__default.default.stringify({
+      steps: [
+        {
+          id: "createVariable",
+          action: "gitlab:projectVariable:create",
+          name: "Create GitLab Project Variable",
+          input: {
+            repoUrl: "gitlab.com?repo=repo&owner=owner",
+            projectId: "123",
+            key: "MY_VARIABLE",
+            value: "my_value",
+            variableType: "env_var",
+            environmentScope: "production"
+          }
+        }
+      ]
+    })
+  },
+  {
+    description: "Create a GitLab project variable with a wildcard environment scope.",
+    example: yaml__default.default.stringify({
+      steps: [
+        {
+          id: "createVariable",
+          action: "gitlab:projectVariable:create",
+          name: "Create GitLab Project Variable",
+          input: {
+            repoUrl: "gitlab.com?repo=repo&owner=owner",
+            projectId: "123",
+            key: "MY_VARIABLE",
+            value: "my_value",
+            variableType: "env_var",
+            environmentScope: "*"
+          }
+        }
+      ]
+    })
+  }
+];
+
 const createGitlabProjectVariableAction = (options) => {
   const { integrations } = options;
   return pluginScaffolderNode.createTemplateAction({
     id: "gitlab:projectVariable:create",
+    examples: examples$4,
     schema: {
       input: commonGitlabConfig.merge(
         zod.z.object({
@@ -640,7 +780,7 @@ const createGitlabProjectVariableAction = (options) => {
   });
 };
 
-const examples$2 = [
+const examples$3 = [
   {
     description: "Create a GitLab issue with minimal options",
     example: yaml__default.default.stringify({
@@ -761,7 +901,7 @@ const createGitlabIssueAction = (options) => {
   return pluginScaffolderNode.createTemplateAction({
     id: "gitlab:issues:create",
     description: "Creates a Gitlab issue.",
-    examples: examples$2,
+    examples: examples$3,
     schema: {
       input: commonGitlabConfig.merge(issueInputProperties),
       output: issueOutputProperties
@@ -842,7 +982,7 @@ const createGitlabIssueAction = (options) => {
   });
 };
 
-const examples$1 = [
+const examples$2 = [
   {
     description: "Initializes a git repository with the content in the workspace, and publishes it to GitLab with the default configuration.",
     example: yaml__default.default.stringify({
@@ -904,6 +1044,25 @@ const examples$1 = [
             settings: {
               ci_config_path: ".gitlab-ci.yml",
               visibility: "public"
+            }
+          }
+        }
+      ]
+    })
+  },
+  {
+    description: "Initializes a GitLab repository with fast forward merge and always squash settings.",
+    example: yaml__default.default.stringify({
+      steps: [
+        {
+          id: "publish",
+          action: "publish:gitlab",
+          name: "Publish to GitLab",
+          input: {
+            repoUrl: "gitlab.com?repo=project_name&owner=group_name",
+            settings: {
+              merge_method: "ff",
+              squash_option: "always"
             }
           }
         }
@@ -973,7 +1132,7 @@ function createPublishGitlabAction(options) {
   return pluginScaffolderNode.createTemplateAction({
     id: "publish:gitlab",
     description: "Initializes a git repository of the content in the workspace, and publishes it to GitLab.",
-    examples: examples$1,
+    examples: examples$2,
     schema: {
       input: {
         type: "object",
@@ -1057,6 +1216,18 @@ function createPublishGitlabAction(options) {
                 title: "Project description",
                 description: "Short project description",
                 type: "string"
+              },
+              merge_method: {
+                title: "Merge Method to use",
+                description: "Merge Methods (merge, rebase_merge, ff)",
+                type: "string",
+                enum: ["merge", "rebase_merge", "ff"]
+              },
+              squash_option: {
+                title: "Squash option",
+                description: "Set squash option for the project (never, always, default_on, default_off)",
+                type: "string",
+                enum: ["default_off", "default_on", "never", "always"]
               },
               topics: {
                 title: "Topic labels",
@@ -1342,7 +1513,7 @@ function createGitlabApi(options) {
   });
 }
 
-const examples = [
+const examples$1 = [
   {
     description: "Create a merge request with a specific assignee",
     example: yaml__default.default.stringify({
@@ -1470,7 +1641,7 @@ const createPublishGitlabMergeRequestAction = (options) => {
   const { integrations } = options;
   return pluginScaffolderNode.createTemplateAction({
     id: "publish:gitlab:merge-request",
-    examples,
+    examples: examples$1,
     schema: {
       input: {
         required: ["repoUrl", "branchName"],
@@ -1596,9 +1767,9 @@ const createPublishGitlabMergeRequestAction = (options) => {
       }
       let fileRoot;
       if (sourcePath) {
-        fileRoot = backendCommon.resolveSafeChildPath(ctx.workspacePath, sourcePath);
+        fileRoot = backendPluginApi.resolveSafeChildPath(ctx.workspacePath, sourcePath);
       } else if (targetPath) {
-        fileRoot = backendCommon.resolveSafeChildPath(ctx.workspacePath, targetPath);
+        fileRoot = backendPluginApi.resolveSafeChildPath(ctx.workspacePath, targetPath);
       } else {
         fileRoot = ctx.workspacePath;
       }
@@ -1660,10 +1831,68 @@ const createPublishGitlabMergeRequestAction = (options) => {
   });
 };
 
+const examples = [
+  {
+    description: "Push changes to gitlab repository with minimal changes",
+    example: yaml__default.default.stringify({
+      steps: [
+        {
+          id: "pushChanges",
+          action: "gitlab:repo:push",
+          name: "Push changes to gitlab repository",
+          input: {
+            repoUrl: "gitlab.com?repo=repo&owner=owner",
+            commitMessage: "Initial Commit",
+            branchName: "feature-branch"
+          }
+        }
+      ]
+    })
+  },
+  {
+    description: "Push changes to gitlab repository with a specific source and target path",
+    example: yaml__default.default.stringify({
+      steps: [
+        {
+          id: "pushChanges",
+          action: "gitlab:repo:push",
+          name: "Push changes to gitlab repository",
+          input: {
+            repoUrl: "gitlab.com?repo=repo&owner=owner",
+            commitMessage: "Initial Commit",
+            branchName: "feature-branch",
+            sourcePath: "src",
+            targetPath: "dest"
+          }
+        }
+      ]
+    })
+  },
+  {
+    description: "Push changes to gitlab repository with a specific commit action",
+    example: yaml__default.default.stringify({
+      steps: [
+        {
+          id: "pushChanges",
+          action: "gitlab:repo:push",
+          name: "Push changes to gitlab repository",
+          input: {
+            repoUrl: "gitlab.com?repo=repo&owner=owner",
+            commitMessage: "Initial Commit",
+            branchName: "feature-branch",
+            commitAction: "update"
+          }
+        }
+      ]
+    })
+  }
+];
+
 const createGitlabRepoPushAction = (options) => {
   const { integrations } = options;
   return pluginScaffolderNode.createTemplateAction({
     id: "gitlab:repo:push",
+    examples,
     schema: {
       input: {
         required: ["repoUrl", "branchName", "commitMessage"],
@@ -1744,7 +1973,7 @@ const createGitlabRepoPushAction = (options) => {
       });
       let fileRoot;
       if (sourcePath) {
-        fileRoot = backendCommon.resolveSafeChildPath(ctx.workspacePath, sourcePath);
+        fileRoot = backendPluginApi.resolveSafeChildPath(ctx.workspacePath, sourcePath);
       } else {
         fileRoot = ctx.workspacePath;
       }

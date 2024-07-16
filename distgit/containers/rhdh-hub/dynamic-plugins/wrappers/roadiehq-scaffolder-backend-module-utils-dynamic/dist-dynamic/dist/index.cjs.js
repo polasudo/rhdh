@@ -13,10 +13,11 @@ var require$$5 = require('yaml');
 var require$$6 = require('@backstage/plugin-scaffolder-node');
 var require$$7 = require('path');
 var require$$8 = require('lodash');
-var require$$9 = require('detect-indent');
-var require$$10 = require('jsonata');
+var require$$9 = require('yawn-yaml');
+var require$$10 = require('detect-indent');
+var require$$11 = require('jsonata');
 
-var yamlCAPzYRTX_cjs = {};
+var yamlCSkuC5qH_cjs = {};
 
 var backendCommon = require$$0;
 var pluginScaffolderBackend = require$$1;
@@ -27,14 +28,16 @@ var YAML = require$$5;
 var pluginScaffolderNode = require$$6;
 var path = require$$7;
 var lodash = require$$8;
-var detectIndent = require$$9;
-var jsonata = require$$10;
+var YAWN = require$$9;
+var detectIndent = require$$10;
+var jsonata = require$$11;
 
 function _interopDefaultCompat (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }
 
 var AdmZip__default = /*#__PURE__*/_interopDefaultCompat(AdmZip);
 var fs__default = /*#__PURE__*/_interopDefaultCompat(fs);
 var YAML__default = /*#__PURE__*/_interopDefaultCompat(YAML);
+var YAWN__default = /*#__PURE__*/_interopDefaultCompat(YAWN);
 var detectIndent__default = /*#__PURE__*/_interopDefaultCompat(detectIndent);
 var jsonata__default = /*#__PURE__*/_interopDefaultCompat(jsonata);
 
@@ -157,6 +160,7 @@ function createAppendFileAction$1() {
   return pluginScaffolderBackend.createTemplateAction({
     id: "roadiehq:utils:fs:append",
     description: "Append content to the end of the given file, it will create the file if it does not exist.",
+    supportsDryRun: true,
     schema: {
       input: {
         type: "object",
@@ -277,6 +281,10 @@ function createReplaceInFileAction$1() {
                   type: "string",
                   title: "A string to be replaced"
                 },
+                matchRegex: {
+                  type: "bool",
+                  title: "Use regex to match the find string"
+                },
                 replaceWith: {
                   type: "string",
                   title: "Text to be used to replace the found lines with"
@@ -306,7 +314,11 @@ function createReplaceInFileAction$1() {
           file.file
         );
         const content = fs__default.default.readFileSync(sourceFilepath).toString();
-        const replacedContent = content.replaceAll(file.find, file.replaceWith);
+        let find = file.find;
+        if (file.matchRegex) {
+          find = new RegExp(file.find, "g");
+        }
+        const replacedContent = content.replaceAll(find, file.replaceWith);
         fs__default.default.writeFileSync(sourceFilepath, replacedContent);
       }
     }
@@ -486,6 +498,12 @@ function createMergeAction$1() {
             title: "Merge Arrays?",
             description: "Where a value is an array the merge function should concatenate the provided array value with the target array"
           },
+          preserveYamlComments: {
+            type: "boolean",
+            default: false,
+            title: "Preserve Comments?",
+            description: "Will preserve standalone and inline comments in YAML files"
+          },
           options: {
             ...yamlOptionsSchema,
             description: `${yamlOptionsSchema.description}  (for YAML output only)`
@@ -530,14 +548,29 @@ function createMergeAction$1() {
         case ".yml":
         case ".yaml": {
           const newContent = typeof ctx.input.content === "string" ? YAML__default.default.parse(ctx.input.content) : ctx.input.content;
-          mergedContent = YAML__default.default.stringify(
-            lodash.mergeWith(
-              YAML__default.default.parse(originalContent),
+          if (ctx.input.preserveYamlComments) {
+            const yawn = new YAWN__default.default(originalContent);
+            const parsedOriginal = yawn.json;
+            const mergedJsonContent = lodash.mergeWith(
+              parsedOriginal,
               newContent,
               ctx.input.mergeArrays ? mergeArrayCustomiser : void 0
-            ),
-            ctx.input.options
-          );
+            );
+            yawn.json = mergedJsonContent;
+            mergedContent = YAML__default.default.stringify(
+              YAML__default.default.parseDocument(yawn.yaml),
+              ctx.input.options
+            );
+          } else {
+            mergedContent = YAML__default.default.stringify(
+              lodash.mergeWith(
+                YAML__default.default.parse(originalContent),
+                newContent,
+                ctx.input.mergeArrays ? mergeArrayCustomiser : void 0
+              ),
+              ctx.input.options
+            );
+          }
           break;
         }
       }
@@ -874,21 +907,22 @@ function createSerializeYamlAction$1() {
   });
 }
 
-yamlCAPzYRTX_cjs.createAppendFileAction = createAppendFileAction$1;
-yamlCAPzYRTX_cjs.createJSONataAction = createJSONataAction$1;
-yamlCAPzYRTX_cjs.createJsonJSONataTransformAction = createJsonJSONataTransformAction$1;
-yamlCAPzYRTX_cjs.createMergeAction = createMergeAction$1;
-yamlCAPzYRTX_cjs.createMergeJSONAction = createMergeJSONAction$1;
-yamlCAPzYRTX_cjs.createParseFileAction = createParseFileAction$1;
-yamlCAPzYRTX_cjs.createReplaceInFileAction = createReplaceInFileAction$1;
-yamlCAPzYRTX_cjs.createSerializeJsonAction = createSerializeJsonAction$1;
-yamlCAPzYRTX_cjs.createSerializeYamlAction = createSerializeYamlAction$1;
-yamlCAPzYRTX_cjs.createSleepAction = createSleepAction$1;
-yamlCAPzYRTX_cjs.createWriteFileAction = createWriteFileAction$1;
-yamlCAPzYRTX_cjs.createYamlJSONataTransformAction = createYamlJSONataTransformAction$1;
-yamlCAPzYRTX_cjs.createZipAction = createZipAction$1;
+yamlCSkuC5qH_cjs.createAppendFileAction = createAppendFileAction$1;
+yamlCSkuC5qH_cjs.createJSONataAction = createJSONataAction$1;
+yamlCSkuC5qH_cjs.createJsonJSONataTransformAction = createJsonJSONataTransformAction$1;
+yamlCSkuC5qH_cjs.createMergeAction = createMergeAction$1;
+yamlCSkuC5qH_cjs.createMergeJSONAction = createMergeJSONAction$1;
+yamlCSkuC5qH_cjs.createParseFileAction = createParseFileAction$1;
+yamlCSkuC5qH_cjs.createReplaceInFileAction = createReplaceInFileAction$1;
+yamlCSkuC5qH_cjs.createSerializeJsonAction = createSerializeJsonAction$1;
+yamlCSkuC5qH_cjs.createSerializeYamlAction = createSerializeYamlAction$1;
+yamlCSkuC5qH_cjs.createSleepAction = createSleepAction$1;
+yamlCSkuC5qH_cjs.createWriteFileAction = createWriteFileAction$1;
+yamlCSkuC5qH_cjs.createYamlJSONataTransformAction = createYamlJSONataTransformAction$1;
+yamlCSkuC5qH_cjs.createZipAction = createZipAction$1;
 
-var yaml = yamlCAPzYRTX_cjs;
+var yaml = yamlCSkuC5qH_cjs;
+
 
 
 

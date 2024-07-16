@@ -445,10 +445,10 @@ var index_esm = /*#__PURE__*/Object.freeze({
 	ANNOTATION_KUBERNETES_OIDC_TOKEN_PROVIDER: ANNOTATION_KUBERNETES_OIDC_TOKEN_PROVIDER,
 	ANNOTATION_KUBERNETES_SKIP_METRICS_LOOKUP: ANNOTATION_KUBERNETES_SKIP_METRICS_LOOKUP,
 	ANNOTATION_KUBERNETES_SKIP_TLS_VERIFY: ANNOTATION_KUBERNETES_SKIP_TLS_VERIFY,
-	detectErrors: detectErrors,
-	groupResponses: groupResponses,
 	kubernetesPermissions: kubernetesPermissions,
-	kubernetesProxyPermission: kubernetesProxyPermission
+	kubernetesProxyPermission: kubernetesProxyPermission,
+	detectErrors: detectErrors,
+	groupResponses: groupResponses
 });
 
 var require$$4 = /*@__PURE__*/getAugmentedNamespace(index_esm);
@@ -534,7 +534,7 @@ class AnonymousStrategy {
 var __defProp$c = Object.defineProperty;
 var __defNormalProp$c = (obj, key, value) => key in obj ? __defProp$c(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
 var __publicField$c = (obj, key, value) => {
-  __defNormalProp$c(obj, typeof key !== "symbol" ? key + "" : key, value);
+  __defNormalProp$c(obj, key + "" , value);
   return value;
 };
 const defaultRegion = "us-east-1";
@@ -710,7 +710,7 @@ class GoogleServiceAccountStrategy {
 var __defProp$a = Object.defineProperty;
 var __defNormalProp$a = (obj, key, value) => key in obj ? __defProp$a(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
 var __publicField$a = (obj, key, value) => {
-  __defNormalProp$a(obj, typeof key !== "symbol" ? key + "" : key, value);
+  __defNormalProp$a(obj, key + "" , value);
   return value;
 };
 class DispatchStrategy {
@@ -798,7 +798,7 @@ class OidcStrategy {
 var __defProp$9 = Object.defineProperty;
 var __defNormalProp$9 = (obj, key, value) => key in obj ? __defProp$9(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
 var __publicField$9 = (obj, key, value) => {
-  __defNormalProp$9(obj, typeof key !== "symbol" ? key + "" : key, value);
+  __defNormalProp$9(obj, key + "" , value);
   return value;
 };
 class ConfigClusterLocator {
@@ -923,7 +923,7 @@ function runPeriodically(fn, delayMs) {
 
 var name = "@backstage/plugin-kubernetes-backend";
 var description = "A Backstage backend plugin that integrates towards Kubernetes";
-var version = "0.17.0";
+var version = "0.17.1";
 var main = "src/index.ts";
 var types = "src/index.ts";
 var license = "Apache-2.0";
@@ -1367,7 +1367,7 @@ const addResourceRoutesToRouter = (router, catalogApi, objectsProvider, auth, ht
 var __defProp$6 = Object.defineProperty;
 var __defNormalProp$6 = (obj, key, value) => key in obj ? __defProp$6(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
 var __publicField$6 = (obj, key, value) => {
-  __defNormalProp$6(obj, typeof key !== "symbol" ? key + "" : key, value);
+  __defNormalProp$6(obj, key + "" , value);
   return value;
 };
 class CatalogRelationServiceLocator {
@@ -1403,7 +1403,7 @@ class CatalogRelationServiceLocator {
 var __defProp$5 = Object.defineProperty;
 var __defNormalProp$5 = (obj, key, value) => key in obj ? __defProp$5(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
 var __publicField$5 = (obj, key, value) => {
-  __defNormalProp$5(obj, typeof key !== "symbol" ? key + "" : key, value);
+  __defNormalProp$5(obj, key + "" , value);
   return value;
 };
 class MultiTenantServiceLocator {
@@ -1420,7 +1420,7 @@ class MultiTenantServiceLocator {
 var __defProp$4 = Object.defineProperty;
 var __defNormalProp$4 = (obj, key, value) => key in obj ? __defProp$4(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
 var __publicField$4 = (obj, key, value) => {
-  __defNormalProp$4(obj, typeof key !== "symbol" ? key + "" : key, value);
+  __defNormalProp$4(obj, key + "" , value);
   return value;
 };
 class SingleTenantServiceLocator {
@@ -1712,7 +1712,7 @@ class KubernetesFanOutHandler {
 var __defProp$2 = Object.defineProperty;
 var __defNormalProp$2 = (obj, key, value) => key in obj ? __defProp$2(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
 var __publicField$2 = (obj, key, value) => {
-  __defNormalProp$2(obj, typeof key !== "symbol" ? key + "" : key, value);
+  __defNormalProp$2(obj, key + "" , value);
   return value;
 };
 const isError = (fr) => fr.hasOwnProperty("errorType");

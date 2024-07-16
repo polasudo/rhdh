@@ -10,10 +10,9 @@ var require$$4 = require('libsodium-wrappers');
 var require$$5 = require('yaml');
 var require$$6 = require('@octokit/webhooks');
 var require$$7 = require('path');
-var require$$8 = require('@backstage/backend-common');
-var require$$9 = require('octokit-plugin-create-pull-request');
-var require$$10 = require('@backstage/backend-plugin-api');
-var require$$11 = require('@backstage/plugin-scaffolder-node/alpha');
+var require$$8 = require('octokit-plugin-create-pull-request');
+var require$$9 = require('@backstage/backend-plugin-api');
+var require$$10 = require('@backstage/plugin-scaffolder-node/alpha');
 
 var index_cjs = {};
 
@@ -27,10 +26,9 @@ var Sodium = require$$4;
 var yaml = require$$5;
 var webhooks = require$$6;
 var path = require$$7;
-var backendCommon = require$$8;
-var octokitPluginCreatePullRequest = require$$9;
-var backendPluginApi = require$$10;
-var alpha = require$$11;
+var octokitPluginCreatePullRequest = require$$8;
+var backendPluginApi = require$$9;
+var alpha = require$$10;
 
 function _interopDefaultCompat (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }
 
@@ -1967,6 +1965,65 @@ const examples$2 = [
     })
   },
   {
+    description: "Create a pull request with a git author name and email",
+    example: yaml__default.default.stringify({
+      steps: [
+        {
+          action: "publish:github:pull-request",
+          name: "Create a pull reuqest",
+          input: {
+            repoUrl: "github.com?repo=repo&owner=owner",
+            branchName: "new-app",
+            title: "Create my new app",
+            description: "This PR is really good",
+            gitAuthorName: "Foo Bar",
+            gitAuthorEmail: "foo@bar.example"
+          }
+        }
+      ]
+    })
+  },
+  {
+    description: "Create a pull request with a git author name",
+    example: yaml__default.default.stringify({
+      steps: [
+        {
+          action: "publish:github:pull-request",
+          name: "Create a pull reuqest",
+          input: {
+            repoUrl: "github.com?repo=repo&owner=owner",
+            branchName: "new-app",
+            title: "Create my new app",
+            description: "This PR is really good",
+            // gitAuthorEmail will be 'scaffolder@backstage.io'
+            // once one author attribute has been set we need to set both
+            gitAuthorName: "Foo Bar"
+          }
+        }
+      ]
+    })
+  },
+  {
+    description: "Create a pull request with a git author email",
+    example: yaml__default.default.stringify({
+      steps: [
+        {
+          action: "publish:github:pull-request",
+          name: "Create a pull reuqest",
+          input: {
+            repoUrl: "github.com?repo=repo&owner=owner",
+            branchName: "new-app",
+            title: "Create my new app",
+            description: "This PR is really good",
+            // gitAuthorName will be 'Scaffolder'
+            // once one author attribute has been set we need to set both
+            gitAuthorEmail: "foo@bar.example"
+          }
+        }
+      ]
+    })
+  },
+  {
     description: "Create a pull request with all parameters",
     example: yaml__default.default.stringify({
       steps: [
@@ -1985,7 +2042,9 @@ const examples$2 = [
             token: "gph_YourGitHubToken",
             reviewers: ["foobar"],
             teamReviewers: ["team-foo"],
-            commitMessage: "Commit for foo changes"
+            commitMessage: "Commit for foo changes",
+            gitAuthorName: "Foo Bar",
+            gitAuthorEmail: "foo@bar.example"
           }
         }
       ]
@@ -2022,7 +2081,8 @@ const createPublishGithubPullRequestAction = (options) => {
   const {
     integrations,
     githubCredentialsProvider,
-    clientFactory = defaultClientFactory
+    clientFactory = defaultClientFactory,
+    config
   } = options;
   return pluginScaffolderNode.createTemplateAction({
     id: "publish:github:pull-request",
@@ -2107,6 +2167,16 @@ const createPublishGithubPullRequestAction = (options) => {
             type: "boolean",
             title: "Force Fork",
             description: "Create pull request from a fork"
+          },
+          gitAuthorName: {
+            type: "string",
+            title: "Default Author Name",
+            description: "Sets the default author name for the commit. The default value is the authenticated user or 'Scaffolder'"
+          },
+          gitAuthorEmail: {
+            type: "string",
+            title: "Default Author Email",
+            description: "Sets the default author email for the commit. The default value is the authenticated user or 'scaffolder@backstage.io'"
           }
         }
       },
@@ -2132,6 +2202,7 @@ const createPublishGithubPullRequestAction = (options) => {
       }
     },
     async handler(ctx) {
+      var _a;
       const {
         repoUrl,
         branchName,
@@ -2146,7 +2217,9 @@ const createPublishGithubPullRequestAction = (options) => {
         teamReviewers,
         commitMessage,
         update,
-        forceFork
+        forceFork,
+        gitAuthorEmail,
+        gitAuthorName
       } = ctx.input;
       const { owner, repo, host } = pluginScaffolderNode.parseRepoUrl(repoUrl, integrations);
       if (!owner) {
@@ -2162,7 +2235,7 @@ const createPublishGithubPullRequestAction = (options) => {
         repo,
         token: providedToken
       });
-      const fileRoot = sourcePath ? backendCommon.resolveSafeChildPath(ctx.workspacePath, sourcePath) : ctx.workspacePath;
+      const fileRoot = sourcePath ? backendPluginApi.resolveSafeChildPath(ctx.workspacePath, sourcePath) : ctx.workspacePath;
       const directoryContents = await pluginScaffolderNode.serializeDirectoryContents(fileRoot, {
         gitignore: true
       });
@@ -2201,7 +2274,7 @@ const createPublishGithubPullRequestAction = (options) => {
           changes: [
             {
               files,
-              commit: commitMessage != null ? commitMessage : title
+              commit: (_a = commitMessage != null ? commitMessage : config == null ? void 0 : config.getOptionalString("scaffolder.defaultCommitMessage")) != null ? _a : title
             }
           ],
           body: description,
@@ -2210,6 +2283,29 @@ const createPublishGithubPullRequestAction = (options) => {
           update,
           forceFork
         };
+        const gitAuthorInfo = {
+          name: gitAuthorName != null ? gitAuthorName : config == null ? void 0 : config.getOptionalString("scaffolder.defaultAuthor.name"),
+          email: gitAuthorEmail != null ? gitAuthorEmail : config == null ? void 0 : config.getOptionalString("scaffolder.defaultAuthor.email")
+        };
+        if (gitAuthorInfo.name || gitAuthorInfo.email) {
+          if (Array.isArray(createOptions.changes)) {
+            createOptions.changes = createOptions.changes.map((change) => ({
+              ...change,
+              author: {
+                name: gitAuthorInfo.name || "Scaffolder",
+                email: gitAuthorInfo.email || "scaffolder@backstage.io"
+              }
+            }));
+          } else {
+            createOptions.changes = {
+              ...createOptions.changes,
+              author: {
+                name: gitAuthorInfo.name || "Scaffolder",
+                email: gitAuthorInfo.email || "scaffolder@backstage.io"
+              }
+            };
+          }
+        }
         if (targetBranchName) {
           createOptions.base = targetBranchName;
         }
@@ -2613,7 +2709,8 @@ const githubModule = backendPluginApi.createBackendModule({
           }),
           createPublishGithubPullRequestAction({
             integrations,
-            githubCredentialsProvider
+            githubCredentialsProvider,
+            config
           })
         );
       }

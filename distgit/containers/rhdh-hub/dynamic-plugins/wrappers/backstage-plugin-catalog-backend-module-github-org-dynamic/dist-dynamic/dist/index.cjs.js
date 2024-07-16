@@ -26,7 +26,7 @@ var index_cjs$2 = {};
 
 var index_cjs$1 = {};
 
-var GithubEntityProviderCTh6g4dw_cjs = {};
+var GithubEntityProviderCiEweAnD_cjs = {};
 
 var catalogClient = require$$0;
 var integration$1 = require$$1;
@@ -980,14 +980,18 @@ class GithubEntityProvider$1 {
       (commit) => [...commit.modified]
     );
     if (modified.length > 0) {
+      const catalogPath = this.config.catalogPath.startsWith("/") ? this.config.catalogPath.substring(1) : this.config.catalogPath;
       await this.connection.refresh({
         keys: [
-          ...modified.map(
-            (filePath) => `url:${event.repository.url}/tree/${branch}/${filePath}`
-          ),
-          ...modified.map(
-            (filePath) => `url:${event.repository.url}/blob/${branch}/${filePath}`
-          )
+          .../* @__PURE__ */ new Set([
+            ...modified.map(
+              (filePath) => `url:${event.repository.url}/tree/${branch}/${filePath}`
+            ),
+            ...modified.map(
+              (filePath) => `url:${event.repository.url}/blob/${branch}/${filePath}`
+            ),
+            `url:${event.repository.url}/tree/${branch}/${catalogPath}`
+          ])
         ]
       });
     }
@@ -1031,26 +1035,26 @@ class GithubEntityProvider$1 {
   }
 }
 
-GithubEntityProviderCTh6g4dw_cjs.ANNOTATION_GITHUB_TEAM_SLUG = ANNOTATION_GITHUB_TEAM_SLUG;
-GithubEntityProviderCTh6g4dw_cjs.ANNOTATION_GITHUB_USER_LOGIN = ANNOTATION_GITHUB_USER_LOGIN;
-GithubEntityProviderCTh6g4dw_cjs.GithubEntityProvider = GithubEntityProvider$1;
-GithubEntityProviderCTh6g4dw_cjs.GithubLocationAnalyzer = GithubLocationAnalyzer;
-GithubEntityProviderCTh6g4dw_cjs.createAddEntitiesOperation = createAddEntitiesOperation;
-GithubEntityProviderCTh6g4dw_cjs.createRemoveEntitiesOperation = createRemoveEntitiesOperation;
-GithubEntityProviderCTh6g4dw_cjs.createReplaceEntitiesOperation = createReplaceEntitiesOperation;
-GithubEntityProviderCTh6g4dw_cjs.defaultOrganizationTeamTransformer = defaultOrganizationTeamTransformer;
-GithubEntityProviderCTh6g4dw_cjs.defaultUserTransformer = defaultUserTransformer;
-GithubEntityProviderCTh6g4dw_cjs.getOrganizationRepositories = getOrganizationRepositories;
-GithubEntityProviderCTh6g4dw_cjs.getOrganizationTeam = getOrganizationTeam;
-GithubEntityProviderCTh6g4dw_cjs.getOrganizationTeams = getOrganizationTeams;
-GithubEntityProviderCTh6g4dw_cjs.getOrganizationTeamsFromUsers = getOrganizationTeamsFromUsers;
-GithubEntityProviderCTh6g4dw_cjs.getOrganizationUsers = getOrganizationUsers;
-GithubEntityProviderCTh6g4dw_cjs.getOrganizationsFromUser = getOrganizationsFromUser;
-GithubEntityProviderCTh6g4dw_cjs.parseGithubOrgUrl = parseGithubOrgUrl;
-GithubEntityProviderCTh6g4dw_cjs.splitTeamSlug = splitTeamSlug;
-GithubEntityProviderCTh6g4dw_cjs.withLocations = withLocations$1;
+GithubEntityProviderCiEweAnD_cjs.ANNOTATION_GITHUB_TEAM_SLUG = ANNOTATION_GITHUB_TEAM_SLUG;
+GithubEntityProviderCiEweAnD_cjs.ANNOTATION_GITHUB_USER_LOGIN = ANNOTATION_GITHUB_USER_LOGIN;
+GithubEntityProviderCiEweAnD_cjs.GithubEntityProvider = GithubEntityProvider$1;
+GithubEntityProviderCiEweAnD_cjs.GithubLocationAnalyzer = GithubLocationAnalyzer;
+GithubEntityProviderCiEweAnD_cjs.createAddEntitiesOperation = createAddEntitiesOperation;
+GithubEntityProviderCiEweAnD_cjs.createRemoveEntitiesOperation = createRemoveEntitiesOperation;
+GithubEntityProviderCiEweAnD_cjs.createReplaceEntitiesOperation = createReplaceEntitiesOperation;
+GithubEntityProviderCiEweAnD_cjs.defaultOrganizationTeamTransformer = defaultOrganizationTeamTransformer;
+GithubEntityProviderCiEweAnD_cjs.defaultUserTransformer = defaultUserTransformer;
+GithubEntityProviderCiEweAnD_cjs.getOrganizationRepositories = getOrganizationRepositories;
+GithubEntityProviderCiEweAnD_cjs.getOrganizationTeam = getOrganizationTeam;
+GithubEntityProviderCiEweAnD_cjs.getOrganizationTeams = getOrganizationTeams;
+GithubEntityProviderCiEweAnD_cjs.getOrganizationTeamsFromUsers = getOrganizationTeamsFromUsers;
+GithubEntityProviderCiEweAnD_cjs.getOrganizationUsers = getOrganizationUsers;
+GithubEntityProviderCiEweAnD_cjs.getOrganizationsFromUser = getOrganizationsFromUser;
+GithubEntityProviderCiEweAnD_cjs.parseGithubOrgUrl = parseGithubOrgUrl;
+GithubEntityProviderCiEweAnD_cjs.splitTeamSlug = splitTeamSlug;
+GithubEntityProviderCiEweAnD_cjs.withLocations = withLocations$1;
 
-var GithubEntityProvider = GithubEntityProviderCTh6g4dw_cjs;
+var GithubEntityProvider = GithubEntityProviderCiEweAnD_cjs;
 var integration = require$$1;
 var pluginCatalogNode = require$$6;
 var graphql = require$$7;
@@ -1510,7 +1514,8 @@ class GithubMultiOrgEntityProvider {
       orgs: options.orgs,
       userTransformer: options.userTransformer,
       teamTransformer: options.teamTransformer,
-      events: options.events
+      events: options.events,
+      alwaysUseDefaultNamespace: options.alwaysUseDefaultNamespace
     });
     provider.schedule(options.schedule);
     return provider;
@@ -1991,7 +1996,9 @@ class GithubMultiOrgEntityProvider {
     }
     const result = await GithubEntityProvider.defaultOrganizationTeamTransformer(team);
     if (result && result.spec) {
-      result.metadata.namespace = ctx.org.toLocaleLowerCase("en-US");
+      if (!this.options.alwaysUseDefaultNamespace) {
+        result.metadata.namespace = ctx.org.toLocaleLowerCase("en-US");
+      }
       result.spec.members = team.members.map(
         (user) => `${catalogModel.DEFAULT_NAMESPACE}/${user.login}`
       );
@@ -2521,6 +2528,31 @@ index_cjs$1.GithubOrgReaderProcessor = GithubOrgReaderProcessor;
 	var alpha = require$$3$1;
 	var pluginEventsNode = require$$4$1;
 
+	var __defProp = Object.defineProperty;
+	var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+	var __publicField = (obj, key, value) => {
+	  __defNormalProp(obj, key + "" , value);
+	  return value;
+	};
+	class GithubOrgEntityCleanerProvider {
+	  constructor(options) {
+	    this.options = options;
+	    __publicField(this, "logger");
+	    this.logger = options.logger.child({ target: this.getProviderName() });
+	  }
+	  getProviderName() {
+	    return `GithubOrgEntityProvider:${this.options.id}`;
+	  }
+	  async connect(connection) {
+	    connection.applyMutation({
+	      type: "full",
+	      entities: []
+	    }).catch((error) => {
+	      this.logger.error("Failed to clean up entities", error);
+	    });
+	  }
+	}
+
 	const githubOrgEntityProviderTransformsExtensionPoint = backendPluginApi.createExtensionPoint({
 	  id: "catalog.githubOrgEntityProvider"
 	});
@@ -2556,7 +2588,12 @@ index_cjs$1.GithubOrgReaderProcessor = GithubOrgReaderProcessor;
 	        scheduler: backendPluginApi.coreServices.scheduler
 	      },
 	      async init({ catalog, config, events, logger, scheduler }) {
-	        for (const definition of readDefinitionsFromConfig(config)) {
+	        var _a;
+	        const definitions = readDefinitionsFromConfig(config);
+	        for (const definition of definitions) {
+	          catalog.addEntityProvider(
+	            new GithubOrgEntityCleanerProvider({ id: definition.id, logger })
+	          );
 	          catalog.addEntityProvider(
 	            pluginCatalogBackendModuleGithub.GithubMultiOrgEntityProvider.fromConfig(config, {
 	              id: definition.id,
@@ -2568,7 +2605,8 @@ index_cjs$1.GithubOrgReaderProcessor = GithubOrgReaderProcessor;
 	              ),
 	              logger,
 	              userTransformer,
-	              teamTransformer
+	              teamTransformer,
+	              alwaysUseDefaultNamespace: definitions.length === 1 && ((_a = definition.orgs) == null ? void 0 : _a.length) === 1
 	            })
 	          );
 	        }

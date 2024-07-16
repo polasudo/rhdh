@@ -2,19 +2,26 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var require$$0$1 = require('@backstage/backend-plugin-api');
+var require$$1$1 = require('@backstage/backend-tasks');
+var require$$2$1 = require('@backstage/plugin-catalog-node/alpha');
 var require$$0 = require('@backstage/backend-common');
-var require$$27 = require('@backstage/backend-plugin-api');
-var require$$0$1 = require('path');
-var require$$1 = require('@backstage/integration');
-var require$$3 = require('@backstage/errors');
-var require$$4 = require('child_process');
-var require$$5 = require('fs-extra');
-var require$$6 = require('git-url-parse');
-var require$$7 = require('js-yaml');
-var require$$8 = require('stream');
+var require$$1 = require('@backstage/catalog-client');
 var require$$2 = require('@backstage/catalog-model');
+var require$$3 = require('@backstage/plugin-catalog-common/alpha');
+var require$$4 = require('lodash/unescape');
+var require$$5 = require('node-fetch');
+var require$$6 = require('p-limit');
+var require$$7 = require('stream');
+var require$$4$1 = require('@backstage/plugin-search-backend-node/alpha');
+var require$$0$2 = require('path');
+var require$$1$2 = require('@backstage/integration');
+var require$$3$1 = require('@backstage/errors');
+var require$$4$2 = require('child_process');
+var require$$5$1 = require('fs-extra');
+var require$$6$1 = require('git-url-parse');
+var require$$7$1 = require('js-yaml');
 var require$$10 = require('mime-types');
-var require$$11 = require('p-limit');
 var require$$12 = require('recursive-readdir');
 var require$$13 = require('@backstage/integration-aws-node');
 var require$$14 = require('@aws-sdk/client-s3');
@@ -31,32 +38,335 @@ var require$$24 = require('os');
 var require$$25 = require('@trendyol-js/openstack-swift-sdk');
 var require$$26 = require('@trendyol-js/openstack-swift-sdk/lib/types');
 var require$$3$2 = require('dockerode');
-var require$$1$1 = require('@backstage/catalog-client');
 var require$$5$2 = require('express-promise-router');
-var require$$5$1 = require('node-fetch');
 var require$$10$1 = require('winston');
-var require$$4$1 = require('lodash/unescape');
-var require$$3$1 = require('@backstage/plugin-catalog-common/alpha');
-var require$$1$2 = require('@backstage/backend-tasks');
-var require$$2$1 = require('@backstage/plugin-catalog-node/alpha');
-var require$$4$2 = require('@backstage/plugin-search-backend-node/alpha');
 
 var alpha_cjs$1 = {};
 
 var index_cjs$2 = {};
 
-var path = require$$0$1;
-var integration = require$$1;
-var backendCommon$2 = require$$0;
-var errors = require$$3;
-var child_process = require$$4;
-var fs = require$$5;
-var gitUrlParse = require$$6;
-var yaml = require$$7;
-var stream$1 = require$$8;
+var backendCommon$1 = require$$0;
+var catalogClient = require$$1;
 var catalogModel$1 = require$$2;
+var alpha$3 = require$$3;
+var unescape = require$$4;
+var fetch = require$$5;
+var pLimit = require$$6;
+var stream$1 = require$$7;
+
+function _interopDefaultCompat$2 (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }
+
+var unescape__default = /*#__PURE__*/_interopDefaultCompat$2(unescape);
+var fetch__default = /*#__PURE__*/_interopDefaultCompat$2(fetch);
+var pLimit__default = /*#__PURE__*/_interopDefaultCompat$2(pLimit);
+
+const getDocumentText = (entity) => {
+  var _a, _b, _c, _d;
+  const documentTexts = [];
+  documentTexts.push(entity.metadata.description || "");
+  if (catalogModel$1.isUserEntity(entity) || catalogModel$1.isGroupEntity(entity)) {
+    if ((_b = (_a = entity.spec) == null ? void 0 : _a.profile) == null ? void 0 : _b.displayName) {
+      documentTexts.push(entity.spec.profile.displayName);
+    }
+  }
+  if (catalogModel$1.isUserEntity(entity)) {
+    if ((_d = (_c = entity.spec) == null ? void 0 : _c.profile) == null ? void 0 : _d.email) {
+      documentTexts.push(entity.spec.profile.email);
+    }
+  }
+  return documentTexts.join(" : ");
+};
+const defaultTechDocsCollatorEntityTransformer = (entity) => {
+  var _a, _b, _c, _d, _e, _f;
+  return {
+    kind: entity.kind,
+    namespace: entity.metadata.namespace || "default",
+    annotations: entity.metadata.annotations || "",
+    name: entity.metadata.name || "",
+    title: entity.metadata.title || "",
+    text: getDocumentText(entity),
+    componentType: ((_b = (_a = entity.spec) == null ? void 0 : _a.type) == null ? void 0 : _b.toString()) || "other",
+    type: ((_d = (_c = entity.spec) == null ? void 0 : _c.type) == null ? void 0 : _d.toString()) || "other",
+    lifecycle: ((_e = entity.spec) == null ? void 0 : _e.lifecycle) || "",
+    owner: ((_f = entity.spec) == null ? void 0 : _f.owner) || "",
+    path: ""
+  };
+};
+
+var __defProp$b = Object.defineProperty;
+var __defNormalProp$b = (obj, key, value) => key in obj ? __defProp$b(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+var __publicField$b = (obj, key, value) => {
+  __defNormalProp$b(obj, typeof key !== "symbol" ? key + "" : key, value);
+  return value;
+};
+class DefaultTechDocsCollatorFactory {
+  constructor(options) {
+    __publicField$b(this, "type", "techdocs");
+    __publicField$b(this, "visibilityPermission", alpha$3.catalogEntityReadPermission);
+    __publicField$b(this, "discovery");
+    __publicField$b(this, "locationTemplate");
+    __publicField$b(this, "logger");
+    __publicField$b(this, "auth");
+    __publicField$b(this, "catalogClient");
+    __publicField$b(this, "parallelismLimit");
+    __publicField$b(this, "legacyPathCasing");
+    __publicField$b(this, "entityTransformer");
+    var _a, _b, _c;
+    this.discovery = options.discovery;
+    this.locationTemplate = options.locationTemplate || "/docs/:namespace/:kind/:name/:path";
+    this.logger = options.logger.child({ documentType: this.type });
+    this.catalogClient = options.catalogClient || new catalogClient.CatalogClient({ discoveryApi: options.discovery });
+    this.parallelismLimit = (_a = options.parallelismLimit) != null ? _a : 10;
+    this.legacyPathCasing = (_b = options.legacyPathCasing) != null ? _b : false;
+    this.entityTransformer = (_c = options.entityTransformer) != null ? _c : defaultTechDocsCollatorEntityTransformer;
+    this.auth = backendCommon$1.createLegacyAuthAdapters({
+      auth: options.auth,
+      discovery: options.discovery,
+      tokenManager: options.tokenManager
+    }).auth;
+  }
+  static fromConfig(config, options) {
+    const legacyPathCasing = config.getOptionalBoolean(
+      "techdocs.legacyUseCaseSensitiveTripletPaths"
+    ) || false;
+    const locationTemplate = config.getOptionalString(
+      "search.collators.techdocs.locationTemplate"
+    );
+    const parallelismLimit = config.getOptionalNumber(
+      "search.collators.techdocs.parallelismLimit"
+    );
+    return new DefaultTechDocsCollatorFactory({
+      ...options,
+      locationTemplate,
+      parallelismLimit,
+      legacyPathCasing
+    });
+  }
+  async getCollator() {
+    return stream$1.Readable.from(this.execute());
+  }
+  async *execute() {
+    const limit = pLimit__default.default(this.parallelismLimit);
+    const techDocsBaseUrl = await this.discovery.getBaseUrl("techdocs");
+    let entitiesRetrieved = 0;
+    let moreEntitiesToGet = true;
+    const batchSize = this.parallelismLimit * 50;
+    while (moreEntitiesToGet) {
+      const { token: catalogToken } = await this.auth.getPluginRequestToken({
+        onBehalfOf: await this.auth.getOwnServiceCredentials(),
+        targetPluginId: "catalog"
+      });
+      const entities = (await this.catalogClient.getEntities(
+        {
+          filter: {
+            "metadata.annotations.backstage.io/techdocs-ref": catalogClient.CATALOG_FILTER_EXISTS
+          },
+          limit: batchSize,
+          offset: entitiesRetrieved
+        },
+        { token: catalogToken }
+      )).items;
+      moreEntitiesToGet = entities.length === batchSize;
+      entitiesRetrieved += entities.length;
+      const docPromises = entities.filter((it) => {
+        var _a, _b;
+        return (_b = (_a = it.metadata) == null ? void 0 : _a.annotations) == null ? void 0 : _b["backstage.io/techdocs-ref"];
+      }).map(
+        (entity) => limit(async () => {
+          const entityInfo = DefaultTechDocsCollatorFactory.handleEntityInfoCasing(
+            this.legacyPathCasing,
+            {
+              kind: entity.kind,
+              namespace: entity.metadata.namespace || "default",
+              name: entity.metadata.name
+            }
+          );
+          try {
+            const { token: techdocsToken } = await this.auth.getPluginRequestToken({
+              onBehalfOf: await this.auth.getOwnServiceCredentials(),
+              targetPluginId: "techdocs"
+            });
+            const searchIndexResponse = await fetch__default.default(
+              DefaultTechDocsCollatorFactory.constructDocsIndexUrl(
+                techDocsBaseUrl,
+                entityInfo
+              ),
+              {
+                headers: {
+                  Authorization: `Bearer ${techdocsToken}`
+                }
+              }
+            );
+            const searchIndex = await Promise.race([
+              searchIndexResponse.json(),
+              new Promise((_resolve, reject) => {
+                setTimeout(() => {
+                  reject("Could not parse JSON in 5 seconds.");
+                }, 5e3);
+              })
+            ]);
+            return searchIndex.docs.map((doc) => {
+              var _a, _b, _c;
+              return {
+                ...this.entityTransformer(entity),
+                title: unescape__default.default(doc.title),
+                text: unescape__default.default(doc.text || ""),
+                location: this.applyArgsToFormat(
+                  this.locationTemplate || "/docs/:namespace/:kind/:name/:path",
+                  {
+                    ...entityInfo,
+                    path: doc.location
+                  }
+                ),
+                path: doc.location,
+                ...entityInfo,
+                entityTitle: entity.metadata.title,
+                componentType: ((_b = (_a = entity.spec) == null ? void 0 : _a.type) == null ? void 0 : _b.toString()) || "other",
+                lifecycle: ((_c = entity.spec) == null ? void 0 : _c.lifecycle) || "",
+                owner: getSimpleEntityOwnerString(entity),
+                authorization: {
+                  resourceRef: catalogModel$1.stringifyEntityRef(entity)
+                }
+              };
+            });
+          } catch (e) {
+            this.logger.debug(
+              `Failed to retrieve tech docs search index for entity ${entityInfo.namespace}/${entityInfo.kind}/${entityInfo.name}`,
+              e
+            );
+            return [];
+          }
+        })
+      );
+      yield* (await Promise.all(docPromises)).flat();
+    }
+  }
+  applyArgsToFormat(format, args) {
+    let formatted = format;
+    for (const [key, value] of Object.entries(args)) {
+      formatted = formatted.replace(`:${key}`, value);
+    }
+    return formatted;
+  }
+  static constructDocsIndexUrl(techDocsBaseUrl, entityInfo) {
+    return `${techDocsBaseUrl}/static/docs/${entityInfo.namespace}/${entityInfo.kind}/${entityInfo.name}/search/search_index.json`;
+  }
+  static handleEntityInfoCasing(legacyPaths, entityInfo) {
+    return legacyPaths ? entityInfo : Object.entries(entityInfo).reduce((acc, [key, value]) => {
+      return { ...acc, [key]: value.toLocaleLowerCase("en-US") };
+    }, {});
+  }
+}
+function getSimpleEntityOwnerString(entity) {
+  if (entity.relations) {
+    const owner = entity.relations.find((r) => r.type === catalogModel$1.RELATION_OWNED_BY);
+    if (owner) {
+      const { name } = catalogModel$1.parseEntityRef(owner.targetRef);
+      return name;
+    }
+  }
+  return "";
+}
+
+index_cjs$2.DefaultTechDocsCollatorFactory = DefaultTechDocsCollatorFactory;
+index_cjs$2.defaultTechDocsCollatorEntityTransformer = defaultTechDocsCollatorEntityTransformer;
+
+Object.defineProperty(alpha_cjs$1, '__esModule', { value: true });
+
+var backendPluginApi$2 = require$$0$1;
+var backendTasks = require$$1$1;
+var alpha$1 = require$$2$1;
+var pluginSearchBackendModuleTechdocs = index_cjs$2;
+var alpha$2 = require$$4$1;
+
+const techdocsCollatorEntityTransformerExtensionPoint = backendPluginApi$2.createExtensionPoint({
+  id: "search.techdocsCollator.transformer"
+});
+var alpha = backendPluginApi$2.createBackendModule({
+  pluginId: "search",
+  moduleId: "techdocs-collator",
+  register(env) {
+    let transformer;
+    env.registerExtensionPoint(
+      techdocsCollatorEntityTransformerExtensionPoint,
+      {
+        setTransformer(newTransformer) {
+          if (transformer) {
+            throw new Error(
+              "TechDocs collator entity transformer may only be set once"
+            );
+          }
+          transformer = newTransformer;
+        }
+      }
+    );
+    env.registerInit({
+      deps: {
+        config: backendPluginApi$2.coreServices.rootConfig,
+        logger: backendPluginApi$2.coreServices.logger,
+        auth: backendPluginApi$2.coreServices.auth,
+        httpAuth: backendPluginApi$2.coreServices.httpAuth,
+        discovery: backendPluginApi$2.coreServices.discovery,
+        tokenManager: backendPluginApi$2.coreServices.tokenManager,
+        scheduler: backendPluginApi$2.coreServices.scheduler,
+        catalog: alpha$1.catalogServiceRef,
+        indexRegistry: alpha$2.searchIndexRegistryExtensionPoint
+      },
+      async init({
+        config,
+        logger,
+        auth,
+        httpAuth,
+        discovery,
+        tokenManager,
+        scheduler,
+        catalog,
+        indexRegistry
+      }) {
+        const defaultSchedule = {
+          frequency: { minutes: 10 },
+          timeout: { minutes: 15 },
+          initialDelay: { seconds: 3 }
+        };
+        const schedule = config.has("search.collators.techdocs.schedule") ? backendTasks.readTaskScheduleDefinitionFromConfig(
+          config.getConfig("search.collators.techdocs.schedule")
+        ) : defaultSchedule;
+        indexRegistry.addCollator({
+          schedule: scheduler.createScheduledTaskRunner(schedule),
+          factory: pluginSearchBackendModuleTechdocs.DefaultTechDocsCollatorFactory.fromConfig(config, {
+            discovery,
+            tokenManager,
+            auth,
+            httpAuth,
+            logger,
+            catalogClient: catalog,
+            entityTransformer: transformer
+          })
+        });
+      }
+    });
+  }
+});
+
+var _default$1 = alpha_cjs$1.default = alpha;
+alpha_cjs$1.techdocsCollatorEntityTransformerExtensionPoint = techdocsCollatorEntityTransformerExtensionPoint;
+
+var alpha_cjs = {};
+
+var index_cjs$1 = {};
+
+var path = require$$0$2;
+var integration = require$$1$2;
+var backendPluginApi$1 = require$$0$1;
+var errors = require$$3$1;
+var child_process = require$$4$2;
+var fs = require$$5$1;
+var gitUrlParse = require$$6$1;
+var yaml = require$$7$1;
+var stream = require$$7;
+var catalogModel = require$$2;
 var mime = require$$10;
-var createLimiter = require$$11;
+var createLimiter = require$$6;
 var recursiveReadDir = require$$12;
 var integrationAwsNode = require$$13;
 var clientS3 = require$$14;
@@ -72,20 +382,19 @@ var express = require$$23;
 var os = require$$24;
 var openstackSwiftSdk = require$$25;
 var types = require$$26;
-var backendPluginApi$2 = require$$27;
 
-function _interopDefaultCompat$2 (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }
+function _interopDefaultCompat$1 (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }
 
-var path__default = /*#__PURE__*/_interopDefaultCompat$2(path);
-var fs__default = /*#__PURE__*/_interopDefaultCompat$2(fs);
-var gitUrlParse__default = /*#__PURE__*/_interopDefaultCompat$2(gitUrlParse);
-var yaml__default = /*#__PURE__*/_interopDefaultCompat$2(yaml);
-var mime__default = /*#__PURE__*/_interopDefaultCompat$2(mime);
-var createLimiter__default = /*#__PURE__*/_interopDefaultCompat$2(createLimiter);
-var recursiveReadDir__default = /*#__PURE__*/_interopDefaultCompat$2(recursiveReadDir);
-var JSON5__default = /*#__PURE__*/_interopDefaultCompat$2(JSON5);
-var express__default = /*#__PURE__*/_interopDefaultCompat$2(express);
-var os__default = /*#__PURE__*/_interopDefaultCompat$2(os);
+var path__default = /*#__PURE__*/_interopDefaultCompat$1(path);
+var fs__default = /*#__PURE__*/_interopDefaultCompat$1(fs);
+var gitUrlParse__default = /*#__PURE__*/_interopDefaultCompat$1(gitUrlParse);
+var yaml__default = /*#__PURE__*/_interopDefaultCompat$1(yaml);
+var mime__default = /*#__PURE__*/_interopDefaultCompat$1(mime);
+var createLimiter__default = /*#__PURE__*/_interopDefaultCompat$1(createLimiter);
+var recursiveReadDir__default = /*#__PURE__*/_interopDefaultCompat$1(recursiveReadDir);
+var JSON5__default = /*#__PURE__*/_interopDefaultCompat$1(JSON5);
+var express__default = /*#__PURE__*/_interopDefaultCompat$1(express);
+var os__default = /*#__PURE__*/_interopDefaultCompat$1(os);
 
 const getContentTypeForExtension = (ext) => {
   const defaultContentType = "text/plain; charset=utf-8";
@@ -155,7 +464,7 @@ const getStaleFiles = (newFiles, oldFiles) => {
 const getCloudPathForLocalPath = (entity, localPath = "", useLegacyPathCasing = false, externalStorageRootPath = "") => {
   var _a, _b;
   const relativeFilePathPosix = localPath.split(path__default.default.sep).join(path__default.default.posix.sep);
-  const entityRootDir = `${(_b = (_a = entity.metadata) == null ? void 0 : _a.namespace) != null ? _b : catalogModel$1.DEFAULT_NAMESPACE}/${entity.kind}/${entity.metadata.name}`;
+  const entityRootDir = `${(_b = (_a = entity.metadata) == null ? void 0 : _a.namespace) != null ? _b : catalogModel.DEFAULT_NAMESPACE}/${entity.kind}/${entity.metadata.name}`;
   const relativeFilePathTriplet = `${entityRootDir}/${relativeFilePathPosix}`;
   const destination = useLegacyPathCasing ? relativeFilePathTriplet : lowerCaseEntityTriplet(relativeFilePathTriplet);
   const destinationWithRoot = [
@@ -180,7 +489,7 @@ const runCommand = async ({
   command,
   args,
   options,
-  logStream = new stream$1.PassThrough()
+  logStream = new stream.PassThrough()
 }) => {
   await new Promise((resolve, reject) => {
     const process = child_process.spawn(command, args, options);
@@ -326,7 +635,7 @@ const validateMkdocsYaml = async (inputDir, mkdocsYmlFileString) => {
     return void 0;
   }
   const parsedMkdocsYml = mkdocsYml;
-  if (parsedMkdocsYml.docs_dir && !backendCommon$2.isChildPath(inputDir, path.resolve(inputDir, parsedMkdocsYml.docs_dir))) {
+  if (parsedMkdocsYml.docs_dir && !backendPluginApi$1.isChildPath(inputDir, path.resolve(inputDir, parsedMkdocsYml.docs_dir))) {
     throw new Error(
       `docs_dir configuration value in mkdocs can't be an absolute directory or start with ../ for security reasons.
        Use relative paths instead which are resolved relative to your mkdocs.yml file location.`
@@ -651,7 +960,7 @@ function readGeneratorConfig(config, logger) {
 var __defProp$9 = Object.defineProperty;
 var __defNormalProp$9 = (obj, key, value) => key in obj ? __defProp$9(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
 var __publicField$9 = (obj, key, value) => {
-  __defNormalProp$9(obj, typeof key !== "symbol" ? key + "" : key, value);
+  __defNormalProp$9(obj, key + "" , value);
   return value;
 };
 class Generators {
@@ -702,14 +1011,14 @@ const parseReferenceAnnotation = (annotationName, entity) => {
       `No location annotation provided in entity: ${entity.metadata.name}`
     );
   }
-  const { type, target } = catalogModel$1.parseLocationRef(annotation);
+  const { type, target } = catalogModel.parseLocationRef(annotation);
   return {
     type,
     target
   };
 };
 const transformDirLocation = (entity, dirAnnotation, scmIntegrations) => {
-  const location = catalogModel$1.getEntitySourceLocation(entity);
+  const location = catalogModel.getEntitySourceLocation(entity);
   switch (location.type) {
     case "url": {
       const target = scmIntegrations.resolveUrl({
@@ -722,7 +1031,7 @@ const transformDirLocation = (entity, dirAnnotation, scmIntegrations) => {
       };
     }
     case "file": {
-      const target = backendCommon$2.resolveSafeChildPath(
+      const target = backendPluginApi$1.resolveSafeChildPath(
         path__default.default.dirname(location.target),
         dirAnnotation.target
       );
@@ -877,7 +1186,7 @@ class UrlPreparer {
 var __defProp$6 = Object.defineProperty;
 var __defNormalProp$6 = (obj, key, value) => key in obj ? __defProp$6(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
 var __publicField$6 = (obj, key, value) => {
-  __defNormalProp$6(obj, typeof key !== "symbol" ? key + "" : key, value);
+  __defNormalProp$6(obj, key + "" , value);
   return value;
 };
 class Preparers {
@@ -1662,7 +1971,7 @@ var __publicField$3 = (obj, key, value) => {
   __defNormalProp$3(obj, typeof key !== "symbol" ? key + "" : key, value);
   return value;
 };
-class MigrateWriteStream extends stream$1.Writable {
+class MigrateWriteStream extends stream.Writable {
   constructor(logger, removeOriginal, concurrency) {
     super({ objectMode: true });
     __publicField$3(this, "logger");
@@ -1991,7 +2300,7 @@ class LocalPublish {
     );
     if (!staticDocsDir) {
       try {
-        staticDocsDir = backendCommon$2.resolvePackagePath(
+        staticDocsDir = backendPluginApi$1.resolvePackagePath(
           "@backstage/plugin-techdocs-backend",
           "static/docs"
         );
@@ -2026,7 +2335,7 @@ class LocalPublish {
       );
     } catch (error) {
       throw new errors.ForwardedError(
-        `Unable to publish TechDocs site for entity: ${catalogModel$1.stringifyEntityRef(
+        `Unable to publish TechDocs site for entity: ${catalogModel.stringifyEntityRef(
           entity
         )}`,
         error
@@ -2069,7 +2378,7 @@ class LocalPublish {
       );
     } catch (err) {
       throw new errors.ForwardedError(
-        `Unexpected entity when fetching metadata: ${catalogModel$1.stringifyEntityRef(
+        `Unexpected entity when fetching metadata: ${catalogModel.stringifyEntityRef(
           entityName
         )}`,
         err
@@ -2135,7 +2444,7 @@ class LocalPublish {
     } catch (err) {
       if (err.name === "NotAllowedError") {
         this.logger.error(
-          `Unexpected entity when checking if generated: ${catalogModel$1.stringifyEntityRef(
+          `Unexpected entity when checking if generated: ${catalogModel.stringifyEntityRef(
             entity
           )}`
         );
@@ -2187,22 +2496,22 @@ class LocalPublish {
     let staticEntityPath = this.staticDocsDir;
     allParts.map((part) => part.split(path__default.default.sep)).flat().forEach((part, index) => {
       if (index < 3) {
-        staticEntityPath = backendCommon$2.resolveSafeChildPath(
+        staticEntityPath = backendPluginApi$1.resolveSafeChildPath(
           staticEntityPath,
           this.legacyPathCasing ? part : part.toLowerCase()
         );
         return;
       }
-      staticEntityPath = backendCommon$2.resolveSafeChildPath(staticEntityPath, part);
+      staticEntityPath = backendPluginApi$1.resolveSafeChildPath(staticEntityPath, part);
     });
     return staticEntityPath;
   }
 }
 
-var __defProp$b = Object.defineProperty;
-var __defNormalProp$b = (obj, key, value) => key in obj ? __defProp$b(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
-var __publicField$b = (obj, key, value) => {
-  __defNormalProp$b(obj, typeof key !== "symbol" ? key + "" : key, value);
+var __defProp = Object.defineProperty;
+var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+var __publicField = (obj, key, value) => {
+  __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
   return value;
 };
 const streamToBuffer = (stream) => {
@@ -2218,16 +2527,16 @@ const streamToBuffer = (stream) => {
   });
 };
 const bufferToStream = (buffer) => {
-  const stream$1$1 = new stream$1.Readable();
-  stream$1$1.push(buffer);
-  stream$1$1.push(null);
-  return stream$1$1;
+  const stream$1 = new stream.Readable();
+  stream$1.push(buffer);
+  stream$1.push(null);
+  return stream$1;
 };
 class OpenStackSwiftPublish {
   constructor(options) {
-    __publicField$b(this, "storageClient");
-    __publicField$b(this, "containerName");
-    __publicField$b(this, "logger");
+    __publicField(this, "storageClient");
+    __publicField(this, "containerName");
+    __publicField(this, "logger");
     this.storageClient = options.storageClient;
     this.containerName = options.containerName;
     this.logger = options.logger;
@@ -2509,281 +2818,53 @@ class Publisher {
   }
 }
 
-const techdocsBuildsExtensionPoint = backendPluginApi$2.createExtensionPoint({
+const techdocsBuildsExtensionPoint = backendPluginApi$1.createExtensionPoint({
   id: "techdocs.builds"
 });
-const techdocsGeneratorExtensionPoint = backendPluginApi$2.createExtensionPoint({
+const techdocsGeneratorExtensionPoint = backendPluginApi$1.createExtensionPoint({
   id: "techdocs.generator"
 });
-const techdocsPreparerExtensionPoint = backendPluginApi$2.createExtensionPoint({
+const techdocsPreparerExtensionPoint = backendPluginApi$1.createExtensionPoint({
   id: "techdocs.preparer"
 });
 
-index_cjs$2.DirectoryPreparer = DirectoryPreparer;
-index_cjs$2.Generators = Generators;
-index_cjs$2.Preparers = Preparers;
-index_cjs$2.Publisher = Publisher;
-index_cjs$2.TechdocsGenerator = TechdocsGenerator;
-index_cjs$2.UrlPreparer = UrlPreparer;
-index_cjs$2.getDocFilesFromRepository = getDocFilesFromRepository;
-index_cjs$2.getLocationForEntity = getLocationForEntity;
-index_cjs$2.getMkDocsYml = getMkDocsYml;
-index_cjs$2.getMkdocsYml = getMkdocsYml;
-index_cjs$2.parseReferenceAnnotation = parseReferenceAnnotation;
-index_cjs$2.techdocsBuildsExtensionPoint = techdocsBuildsExtensionPoint;
-index_cjs$2.techdocsGeneratorExtensionPoint = techdocsGeneratorExtensionPoint;
-index_cjs$2.techdocsPreparerExtensionPoint = techdocsPreparerExtensionPoint;
-index_cjs$2.transformDirLocation = transformDirLocation;
-
-var index_cjs$1 = {};
+index_cjs$1.DirectoryPreparer = DirectoryPreparer;
+index_cjs$1.Generators = Generators;
+index_cjs$1.Preparers = Preparers;
+index_cjs$1.Publisher = Publisher;
+index_cjs$1.TechdocsGenerator = TechdocsGenerator;
+index_cjs$1.UrlPreparer = UrlPreparer;
+index_cjs$1.getDocFilesFromRepository = getDocFilesFromRepository;
+index_cjs$1.getLocationForEntity = getLocationForEntity;
+index_cjs$1.getMkDocsYml = getMkDocsYml;
+index_cjs$1.getMkdocsYml = getMkdocsYml;
+index_cjs$1.parseReferenceAnnotation = parseReferenceAnnotation;
+index_cjs$1.techdocsBuildsExtensionPoint = techdocsBuildsExtensionPoint;
+index_cjs$1.techdocsGeneratorExtensionPoint = techdocsGeneratorExtensionPoint;
+index_cjs$1.techdocsPreparerExtensionPoint = techdocsPreparerExtensionPoint;
+index_cjs$1.transformDirLocation = transformDirLocation;
 
 var index_cjs = {};
-
-var backendCommon$1 = require$$0;
-var catalogClient = require$$1$1;
-var catalogModel = require$$2;
-var alpha$3 = require$$3$1;
-var unescape = require$$4$1;
-var fetch = require$$5$1;
-var pLimit = require$$11;
-var stream = require$$8;
-
-function _interopDefaultCompat$1 (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }
-
-var unescape__default = /*#__PURE__*/_interopDefaultCompat$1(unescape);
-var fetch__default = /*#__PURE__*/_interopDefaultCompat$1(fetch);
-var pLimit__default = /*#__PURE__*/_interopDefaultCompat$1(pLimit);
-
-const getDocumentText = (entity) => {
-  var _a, _b, _c, _d;
-  const documentTexts = [];
-  documentTexts.push(entity.metadata.description || "");
-  if (catalogModel.isUserEntity(entity) || catalogModel.isGroupEntity(entity)) {
-    if ((_b = (_a = entity.spec) == null ? void 0 : _a.profile) == null ? void 0 : _b.displayName) {
-      documentTexts.push(entity.spec.profile.displayName);
-    }
-  }
-  if (catalogModel.isUserEntity(entity)) {
-    if ((_d = (_c = entity.spec) == null ? void 0 : _c.profile) == null ? void 0 : _d.email) {
-      documentTexts.push(entity.spec.profile.email);
-    }
-  }
-  return documentTexts.join(" : ");
-};
-const defaultTechDocsCollatorEntityTransformer = (entity) => {
-  var _a, _b, _c, _d, _e, _f;
-  return {
-    kind: entity.kind,
-    namespace: entity.metadata.namespace || "default",
-    annotations: entity.metadata.annotations || "",
-    name: entity.metadata.name || "",
-    title: entity.metadata.title || "",
-    text: getDocumentText(entity),
-    componentType: ((_b = (_a = entity.spec) == null ? void 0 : _a.type) == null ? void 0 : _b.toString()) || "other",
-    type: ((_d = (_c = entity.spec) == null ? void 0 : _c.type) == null ? void 0 : _d.toString()) || "other",
-    lifecycle: ((_e = entity.spec) == null ? void 0 : _e.lifecycle) || "",
-    owner: ((_f = entity.spec) == null ? void 0 : _f.owner) || "",
-    path: ""
-  };
-};
-
-var __defProp = Object.defineProperty;
-var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
-var __publicField = (obj, key, value) => {
-  __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
-  return value;
-};
-class DefaultTechDocsCollatorFactory {
-  constructor(options) {
-    __publicField(this, "type", "techdocs");
-    __publicField(this, "visibilityPermission", alpha$3.catalogEntityReadPermission);
-    __publicField(this, "discovery");
-    __publicField(this, "locationTemplate");
-    __publicField(this, "logger");
-    __publicField(this, "auth");
-    __publicField(this, "catalogClient");
-    __publicField(this, "parallelismLimit");
-    __publicField(this, "legacyPathCasing");
-    __publicField(this, "entityTransformer");
-    var _a, _b, _c;
-    this.discovery = options.discovery;
-    this.locationTemplate = options.locationTemplate || "/docs/:namespace/:kind/:name/:path";
-    this.logger = options.logger.child({ documentType: this.type });
-    this.catalogClient = options.catalogClient || new catalogClient.CatalogClient({ discoveryApi: options.discovery });
-    this.parallelismLimit = (_a = options.parallelismLimit) != null ? _a : 10;
-    this.legacyPathCasing = (_b = options.legacyPathCasing) != null ? _b : false;
-    this.entityTransformer = (_c = options.entityTransformer) != null ? _c : defaultTechDocsCollatorEntityTransformer;
-    this.auth = backendCommon$1.createLegacyAuthAdapters({
-      auth: options.auth,
-      discovery: options.discovery,
-      tokenManager: options.tokenManager
-    }).auth;
-  }
-  static fromConfig(config, options) {
-    const legacyPathCasing = config.getOptionalBoolean(
-      "techdocs.legacyUseCaseSensitiveTripletPaths"
-    ) || false;
-    const locationTemplate = config.getOptionalString(
-      "search.collators.techdocs.locationTemplate"
-    );
-    const parallelismLimit = config.getOptionalNumber(
-      "search.collators.techdocs.parallelismLimit"
-    );
-    return new DefaultTechDocsCollatorFactory({
-      ...options,
-      locationTemplate,
-      parallelismLimit,
-      legacyPathCasing
-    });
-  }
-  async getCollator() {
-    return stream.Readable.from(this.execute());
-  }
-  async *execute() {
-    const limit = pLimit__default.default(this.parallelismLimit);
-    const techDocsBaseUrl = await this.discovery.getBaseUrl("techdocs");
-    let entitiesRetrieved = 0;
-    let moreEntitiesToGet = true;
-    const batchSize = this.parallelismLimit * 50;
-    while (moreEntitiesToGet) {
-      const { token: catalogToken } = await this.auth.getPluginRequestToken({
-        onBehalfOf: await this.auth.getOwnServiceCredentials(),
-        targetPluginId: "catalog"
-      });
-      const entities = (await this.catalogClient.getEntities(
-        {
-          filter: {
-            "metadata.annotations.backstage.io/techdocs-ref": catalogClient.CATALOG_FILTER_EXISTS
-          },
-          limit: batchSize,
-          offset: entitiesRetrieved
-        },
-        { token: catalogToken }
-      )).items;
-      moreEntitiesToGet = entities.length === batchSize;
-      entitiesRetrieved += entities.length;
-      const docPromises = entities.filter((it) => {
-        var _a, _b;
-        return (_b = (_a = it.metadata) == null ? void 0 : _a.annotations) == null ? void 0 : _b["backstage.io/techdocs-ref"];
-      }).map(
-        (entity) => limit(async () => {
-          const entityInfo = DefaultTechDocsCollatorFactory.handleEntityInfoCasing(
-            this.legacyPathCasing,
-            {
-              kind: entity.kind,
-              namespace: entity.metadata.namespace || "default",
-              name: entity.metadata.name
-            }
-          );
-          try {
-            const { token: techdocsToken } = await this.auth.getPluginRequestToken({
-              onBehalfOf: await this.auth.getOwnServiceCredentials(),
-              targetPluginId: "techdocs"
-            });
-            const searchIndexResponse = await fetch__default.default(
-              DefaultTechDocsCollatorFactory.constructDocsIndexUrl(
-                techDocsBaseUrl,
-                entityInfo
-              ),
-              {
-                headers: {
-                  Authorization: `Bearer ${techdocsToken}`
-                }
-              }
-            );
-            const searchIndex = await Promise.race([
-              searchIndexResponse.json(),
-              new Promise((_resolve, reject) => {
-                setTimeout(() => {
-                  reject("Could not parse JSON in 5 seconds.");
-                }, 5e3);
-              })
-            ]);
-            return searchIndex.docs.map((doc) => {
-              var _a, _b, _c;
-              return {
-                ...this.entityTransformer(entity),
-                title: unescape__default.default(doc.title),
-                text: unescape__default.default(doc.text || ""),
-                location: this.applyArgsToFormat(
-                  this.locationTemplate || "/docs/:namespace/:kind/:name/:path",
-                  {
-                    ...entityInfo,
-                    path: doc.location
-                  }
-                ),
-                path: doc.location,
-                ...entityInfo,
-                entityTitle: entity.metadata.title,
-                componentType: ((_b = (_a = entity.spec) == null ? void 0 : _a.type) == null ? void 0 : _b.toString()) || "other",
-                lifecycle: ((_c = entity.spec) == null ? void 0 : _c.lifecycle) || "",
-                owner: getSimpleEntityOwnerString(entity),
-                authorization: {
-                  resourceRef: catalogModel.stringifyEntityRef(entity)
-                }
-              };
-            });
-          } catch (e) {
-            this.logger.debug(
-              `Failed to retrieve tech docs search index for entity ${entityInfo.namespace}/${entityInfo.kind}/${entityInfo.name}`,
-              e
-            );
-            return [];
-          }
-        })
-      );
-      yield* (await Promise.all(docPromises)).flat();
-    }
-  }
-  applyArgsToFormat(format, args) {
-    let formatted = format;
-    for (const [key, value] of Object.entries(args)) {
-      formatted = formatted.replace(`:${key}`, value);
-    }
-    return formatted;
-  }
-  static constructDocsIndexUrl(techDocsBaseUrl, entityInfo) {
-    return `${techDocsBaseUrl}/static/docs/${entityInfo.namespace}/${entityInfo.kind}/${entityInfo.name}/search/search_index.json`;
-  }
-  static handleEntityInfoCasing(legacyPaths, entityInfo) {
-    return legacyPaths ? entityInfo : Object.entries(entityInfo).reduce((acc, [key, value]) => {
-      return { ...acc, [key]: value.toLocaleLowerCase("en-US") };
-    }, {});
-  }
-}
-function getSimpleEntityOwnerString(entity) {
-  if (entity.relations) {
-    const owner = entity.relations.find((r) => r.type === catalogModel.RELATION_OWNED_BY);
-    if (owner) {
-      const { name } = catalogModel.parseEntityRef(owner.targetRef);
-      return name;
-    }
-  }
-  return "";
-}
-
-index_cjs.DefaultTechDocsCollatorFactory = DefaultTechDocsCollatorFactory;
-index_cjs.defaultTechDocsCollatorEntityTransformer = defaultTechDocsCollatorEntityTransformer;
 
 (function (exports) {
 
 	var backendCommon = require$$0;
-	var catalogClient = require$$1$1;
+	var catalogClient = require$$1;
 	var catalogModel = require$$2;
-	var errors = require$$3;
-	var pluginTechdocsNode = index_cjs$2;
+	var errors = require$$3$1;
+	var pluginTechdocsNode = index_cjs$1;
 	var router = require$$5$2;
-	var integration = require$$1;
-	var fetch = require$$5$1;
-	var pLimit = require$$11;
-	var stream = require$$8;
+	var integration = require$$1$2;
+	var fetch = require$$5;
+	var pLimit = require$$6;
+	var stream = require$$7;
 	var winston = require$$10$1;
-	var fs = require$$5;
+	var fs = require$$5$1;
 	var os = require$$24;
-	var path = require$$0$1;
-	var unescape = require$$4$1;
-	var alpha = require$$3$1;
-	var pluginSearchBackendModuleTechdocs = index_cjs;
+	var path = require$$0$2;
+	var unescape = require$$4;
+	var alpha = require$$3;
+	var pluginSearchBackendModuleTechdocs = index_cjs$2;
 
 	function _interopDefaultCompat (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }
 
@@ -3328,7 +3409,7 @@ index_cjs.defaultTechDocsCollatorEntityTransformer = defaultTechDocsCollatorEnti
 	var __defProp$1 = Object.defineProperty;
 	var __defNormalProp$1 = (obj, key, value) => key in obj ? __defProp$1(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
 	var __publicField$1 = (obj, key, value) => {
-	  __defNormalProp$1(obj, typeof key !== "symbol" ? key + "" : key, value);
+	  __defNormalProp$1(obj, key + "" , value);
 	  return value;
 	};
 	class DefaultDocsBuildStrategy {
@@ -3340,7 +3421,9 @@ index_cjs.defaultTechDocsCollatorEntityTransformer = defaultTechDocsCollatorEnti
 	    return new DefaultDocsBuildStrategy(config);
 	  }
 	  async shouldBuild(_) {
-	    return this.config.getString("techdocs.builder") === "local";
+	    return [void 0, "local"].includes(
+	      this.config.getOptionalString("techdocs.builder")
+	    );
 	  }
 	}
 
@@ -3688,21 +3771,21 @@ data: ${JSON.stringify(data)}
 	  });
 	});
 	
-} (index_cjs$1));
+} (index_cjs));
 
-Object.defineProperty(alpha_cjs$1, '__esModule', { value: true });
+Object.defineProperty(alpha_cjs, '__esModule', { value: true });
 
 var backendCommon = require$$0;
-var backendPluginApi$1 = require$$27;
-var pluginTechdocsNode = index_cjs$2;
+var backendPluginApi = require$$0$1;
+var pluginTechdocsNode = index_cjs$1;
 var Docker = require$$3$2;
-var pluginTechdocsBackend = index_cjs$1;
+var pluginTechdocsBackend = index_cjs;
 
 function _interopDefaultCompat (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }
 
 var Docker__default = /*#__PURE__*/_interopDefaultCompat(Docker);
 
-const techdocsPlugin = backendPluginApi$1.createBackendPlugin({
+const techdocsPlugin = backendPluginApi.createBackendPlugin({
   pluginId: "techdocs",
   register(env) {
     let docsBuildStrategy;
@@ -3736,14 +3819,14 @@ const techdocsPlugin = backendPluginApi$1.createBackendPlugin({
     });
     env.registerInit({
       deps: {
-        config: backendPluginApi$1.coreServices.rootConfig,
-        logger: backendPluginApi$1.coreServices.logger,
-        urlReader: backendPluginApi$1.coreServices.urlReader,
-        http: backendPluginApi$1.coreServices.httpRouter,
-        discovery: backendPluginApi$1.coreServices.discovery,
-        cache: backendPluginApi$1.coreServices.cache,
-        httpAuth: backendPluginApi$1.coreServices.httpAuth,
-        auth: backendPluginApi$1.coreServices.auth
+        config: backendPluginApi.coreServices.rootConfig,
+        logger: backendPluginApi.coreServices.logger,
+        urlReader: backendPluginApi.coreServices.urlReader,
+        http: backendPluginApi.coreServices.httpRouter,
+        discovery: backendPluginApi.coreServices.discovery,
+        cache: backendPluginApi.coreServices.cache,
+        httpAuth: backendPluginApi.coreServices.httpAuth,
+        auth: backendPluginApi.coreServices.auth
       },
       async init({
         config,
@@ -3799,93 +3882,11 @@ const techdocsPlugin = backendPluginApi$1.createBackendPlugin({
   }
 });
 
-var _default$1 = alpha_cjs$1.default = techdocsPlugin;
-
-var alpha_cjs = {};
-
-Object.defineProperty(alpha_cjs, '__esModule', { value: true });
-
-var backendPluginApi = require$$27;
-var backendTasks = require$$1$2;
-var alpha$1 = require$$2$1;
-var pluginSearchBackendModuleTechdocs = index_cjs;
-var alpha$2 = require$$4$2;
-
-const techdocsCollatorEntityTransformerExtensionPoint = backendPluginApi.createExtensionPoint({
-  id: "search.techdocsCollator.transformer"
-});
-var alpha = backendPluginApi.createBackendModule({
-  pluginId: "search",
-  moduleId: "techdocs-collator",
-  register(env) {
-    let transformer;
-    env.registerExtensionPoint(
-      techdocsCollatorEntityTransformerExtensionPoint,
-      {
-        setTransformer(newTransformer) {
-          if (transformer) {
-            throw new Error(
-              "TechDocs collator entity transformer may only be set once"
-            );
-          }
-          transformer = newTransformer;
-        }
-      }
-    );
-    env.registerInit({
-      deps: {
-        config: backendPluginApi.coreServices.rootConfig,
-        logger: backendPluginApi.coreServices.logger,
-        auth: backendPluginApi.coreServices.auth,
-        httpAuth: backendPluginApi.coreServices.httpAuth,
-        discovery: backendPluginApi.coreServices.discovery,
-        tokenManager: backendPluginApi.coreServices.tokenManager,
-        scheduler: backendPluginApi.coreServices.scheduler,
-        catalog: alpha$1.catalogServiceRef,
-        indexRegistry: alpha$2.searchIndexRegistryExtensionPoint
-      },
-      async init({
-        config,
-        logger,
-        auth,
-        httpAuth,
-        discovery,
-        tokenManager,
-        scheduler,
-        catalog,
-        indexRegistry
-      }) {
-        const defaultSchedule = {
-          frequency: { minutes: 10 },
-          timeout: { minutes: 15 },
-          initialDelay: { seconds: 3 }
-        };
-        const schedule = config.has("search.collators.techdocs.schedule") ? backendTasks.readTaskScheduleDefinitionFromConfig(
-          config.getConfig("search.collators.techdocs.schedule")
-        ) : defaultSchedule;
-        indexRegistry.addCollator({
-          schedule: scheduler.createScheduledTaskRunner(schedule),
-          factory: pluginSearchBackendModuleTechdocs.DefaultTechDocsCollatorFactory.fromConfig(config, {
-            discovery,
-            tokenManager,
-            auth,
-            httpAuth,
-            logger,
-            catalogClient: catalog,
-            entityTransformer: transformer
-          })
-        });
-      }
-    });
-  }
-});
-
-var _default = alpha_cjs.default = alpha;
-alpha_cjs.techdocsCollatorEntityTransformerExtensionPoint = techdocsCollatorEntityTransformerExtensionPoint;
+var _default = alpha_cjs.default = techdocsPlugin;
 
 const dynamicPluginInstaller = {
   kind: "new",
-  install: () => [_default$1(), _default()]
+  install: () => [_default(), _default$1()]
 };
 
 exports.dynamicPluginInstaller = dynamicPluginInstaller;
