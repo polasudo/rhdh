@@ -20,7 +20,8 @@ BREW=0
 QUIET=0
 # by default show all images; optionally filter for one or more, eg 'devfile|plugin|udi'
 REGEX_FILTER=""
-
+# by default show tags; use this to show digests only (eg., for use with a script that copies images inside an airgap)
+SHOW_DIGESTS_ONLY=0
 # defaults to pass to getIIBsForBundle.sh
 OCP_VER=""
 
@@ -44,6 +45,7 @@ Options:
   -i, --filter         Rather than return ALL images in the build, include a subset using grep -E
   -q, --quiet          Quiet output: show 'image:tag' instead of default 'tag :: image@sha'
   -qq, --quieter       Quieter output: omit everything but related images
+  --digests            Instead of showing tags, just show image digests as seen in the IIB/CSV
 
 Examples:
   $0 quay.io/rhdh/rhdh-operator-bundle:$PROD_VER -y -i 'hub'
@@ -71,6 +73,7 @@ while [[ "$#" -gt 0 ]]; do
     '-v')              QUIET=0;;
     '-q'|'--quiet')    QUIET=1;;
     '-qq'|'--quieter') QUIET=2;;
+    '--digests') SHOW_DIGESTS_ONLY=1;;
     *) IMAGES="${IMAGES} $1";;
   esac
   shift 1
@@ -141,7 +144,9 @@ for imageAndTag in $IMAGES; do
                   tag="NOT FOUND!"
               fi
           fi
-          if [[ $QUIET -gt 0 ]]; then
+          if [[ $SHOW_DIGESTS_ONLY -eq 1 ]]; then
+            echo "$related_image"
+          elif [[ $QUIET -gt 0 ]]; then
             echo "${related_image%@sha256*}:$tag"
           else
             echo "$tag :: $related_image"

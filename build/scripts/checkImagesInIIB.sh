@@ -21,6 +21,8 @@ QUIET=""
 QUIETER=""
 # by default show all images; optionally filter for one or more, eg 'hub|postgresql'
 REGEX_FILTER=""
+# by default show tags; use this to show digests only (eg., for use with a script that copies images inside an airgap)
+SHOW_DIGESTS_ONLY=""
 
 usage () {
   echo "For a given IIB container, check that the bundle image's RELATED_IMAGE's digests align to specific images
@@ -38,6 +40,7 @@ Options:
   -i, --filter         Rather than return ALL images in the build, include a subset using grep -E
   -q, --quiet          Quiet output: show fewer steps
   -qq, --quieter       Quieter output: omit everything but related images
+  --digests            Instead of showing tags, just show image digests as seen in the IIB/CSV
 
 Examples:
   $0 brew.registry.redhat.io/rh-osbs/iib-pub-pending:v4.12 --brew --quay --filter 'dashboard|operator|registry-rhel|udi' --quiet
@@ -49,12 +52,13 @@ if [[ $# -lt 1 ]]; then usage; exit; fi
 
 while [[ "$#" -gt 0 ]]; do
   case $1 in
-    '-y'|'--quay') QUAY="--quay"; shift 0;;
-    '--brew') BREW="--brew"; shift 0;;
+    '-y'|'--quay') QUAY="--quay";;
+    '--brew') BREW="--brew";;
     '-i'|'--filter') REGEX_FILTER="$2"; shift 1;;
-    '-q'|'--quiet') QUIET="--quiet"; shift 0;;
-    '-qq'|'--quieter') QUIET="--quiet"; QUIETER="true"; shift 0;;
-    *) IMAGES="${IMAGES} $1"; shift 0;;
+    '-q'|'--quiet') QUIET="--quiet";;
+    '-qq'|'--quieter') QUIET="--quiet"; QUIETER="true";;
+    '--digests') SHOW_DIGESTS_ONLY="$1";;
+    *) IMAGES="${IMAGES} $1";;
   esac
   shift 1
 done
@@ -115,5 +119,5 @@ for IIB_IMAGE in $IMAGES; do
         echo "[INFO] CSV contains:"
         fi
     fi
-    "${SCRIPTPATH}/checkImagesInCSV.sh" "${bundleContainer}" ${QUAY} "${QUIET}" ${BREW} -i "$REGEX_FILTER"
+    "${SCRIPTPATH}/checkImagesInCSV.sh" "${bundleContainer}" ${QUAY} "${QUIET}" ${BREW} "${SHOW_DIGESTS_ONLY}" -i "${REGEX_FILTER}"
 done
