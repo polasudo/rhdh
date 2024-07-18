@@ -106,7 +106,11 @@ for IIB_IMAGE in $IMAGES; do
         imageWithSHA=$(grep '"schema": "olm.bundle"' -A3 ${catalogJson/channel.json/${bundle}.bundle.json} | tail -1 | sed -r -e 's@.+image": "(.+)".+@\1@')
     fi
 
-    if [[ $QUIETER != "true" ]]; then echo "[INFO] Bundle Image SHA: $imageWithSHA"; fi
+    if [[ $SHOW_DIGESTS_ONLY ]]; then 
+      echo "$imageWithSHA"
+    elif [[ $QUIETER != "true" ]]; then 
+      echo "[INFO] Bundle Image SHA: $imageWithSHA"
+    fi
     # Got quay.io/rhdh/rhdh-operator-bundle:1.0-13
     bundleContainers=$("${SCRIPTPATH}"/getTagForSHA.sh "${imageWithSHA}" ${QUAY} "${QUIET}")
     # extract the last value or the failure (tokenize to remove "For..." and "Got..." if we're not in quiet mode)
