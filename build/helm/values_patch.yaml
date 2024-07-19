@@ -3,11 +3,12 @@ upstream:
   backstage:
     image:
       registry: registry.redhat.io
-      repository: rhdh/rhdh-hub-rhel9
-      # Digest is set via prepare.sh script
-      # version: "${RHDH_DIGEST_RRIO}"
+      repository: rhdh/rhdh-hub-rhel9@sha256
+      # tag is set to digest via prepare.sh script
+      # tag: "${RHDH_DIGEST}"
   postgresql:
     image:
       registry: registry.redhat.io
-      repository: rhel9/postgresql-15
-      version: "${POSTGRESQL_DIGEST}"
+      repository: rhel9/postgresql-15@sha256
+      # tag is set to digest via prepare.sh script
+      # tag: "${POSTGRESQL_DIGEST}"

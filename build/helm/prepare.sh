@@ -8,6 +8,7 @@ CREATE_REPORT=0 # Set to True if you want to run https://github.com/redhat-certi
 CHART_BRANCH="main" # can also be 1.2.x, etc.
 EXTRA_BRANCH="" # another branch to force push, eg., rhdh-1.2-rhel-9
 DELETE_OLD_BRANCHES=0 # set to 1 to purge old 1.2-zzz branches from the rhdh-bot repo when pushing a 1.2.z release to the openshift charts repo
+DO_LATEST=0 # if we want to generate a chart for the :latest, we need to set a --chart-branch 
 DEBUG=0
 QUIET="-q"
 
@@ -24,7 +25,9 @@ usage ()
 NOTE: This must be run using the GITHUB_TOKEN of rhdh-bot@redhat.com in order to push to that user's fork.
 
 Options:
-    --latest, --next          Compute the most recent tag (by semver sort rules) in quay.io/rhdh/rhdh-hub-rhel9, and use that tag in chart
+    --latest --chart-branch 1.y.x   Compute the most recent 1.y-zzz tag (by semver sort rules) in quay.io/rhdh/rhdh-hub-rhel9, and use that tag in chart
+    --next   --chart-branch main    Compute the most recent tag (by semver sort rules) from quay.io/rhdh/rhdh-hub-rhel9:next, and use that tag in chart
+
     --publish                 Push the changes to branch developer-hub-\${CHART_VERSION} of the repository specified by --catalog
     --extra-branch            Push changes to an extra branch, such as rhdh-1.1-rhel-9
     --create-report           Create a report via https://github.com/redhat-certification/chart-verifier.
@@ -51,17 +54,17 @@ Examples:
     Prepare and push a release to git@github.com:[your-github-fork]/openshift-helm-charts.git:
 
     # Published on every build in gitlab via the rhdh-bot user - see RHIDP-33
-    $ TAG=1.1-zzz; $0 --chart-version \${TAG}-CI --rhdh-version \${TAG} --extra-branch rhdh-1.1-rhel-9 \\
+    $ TAG=1.y-zzz; $0 --chart-version \${TAG}-CI --rhdh-version \${TAG} --extra-branch rhdh-1.y-rhel-9 \\
         --catalog git@github.com:rhdh-bot/openshift-helm-charts.git --publish
-    Chart version:        1.1-zzz-CI
-    Developer Hub image:  quay.io/rhdh/rhdh-hub-rhel9:1.1-zzz
+    Chart version:        1.y-zzz-CI
+    Developer Hub image:  quay.io/rhdh/rhdh-hub-rhel9:1.y-zzz
 
-     # Or, log into the quay.io and registry.redhat.io to be able to pull container metadata, then compute the latest or next 1.1-zzz tag
+     # Or, log into the quay.io and registry.redhat.io to be able to pull container metadata, then compute the latest 1.2-zz or next 1.3-zzz tag
     $ export GITHUB_TOKEN=ghp_rhdh-bot-token-here
-    $ $0 --latest --publish --chart-branch 1.2.x
-    $ $0 --next --publish --chart-branch main
-    Chart version:        1.1-zzz-CI
-    Developer Hub image:  quay.io/rhdh/rhdh-hub-rhel9:1.1-zzz
+    $ $0 --latest --chart-branch 1.2.x --publish
+    $ $0 --next --chart-branch main --publish
+    Chart version:        1.3-zzz-CI
+    Developer Hub image:  quay.io/rhdh/rhdh-hub-rhel9:1.3-zzz
 
     # Run this manually on GA release day
     # 1. use gh to log in as the bot (not using exported github token) - can use incognito browser so you don't have to log out as yourself
@@ -70,7 +73,7 @@ Examples:
     # 2. Run a manual release as the bot:
     $ export GITHUB_TOKEN=ghp_rhdh-bot-token-here
     $ $0 --chart-version 1.2.1 --rhdh-version 1.2-105.1719294777 --chart-branch 1.2.x --catalog git@github.com:rhdh-bot/openshift-helm-charts.git --publish
-    $ $0 --chart-version 1.2.0 --rhdh-version 1.2-105 --chart-branch 1.1.x --catalog git@github.com:rhdh-bot/openshift-helm-charts.git --publish
+    $ $0 --chart-version 1.2.0 --rhdh-version 1.2-105 --chart-branch 1.2.x --catalog git@github.com:rhdh-bot/openshift-helm-charts.git --publish
     $ $0 --chart-version 1.1.4 --rhdh-version 1.1-107.1717076948 --chart-branch 1.1.x --catalog git@github.com:rhdh-bot/openshift-helm-charts.git --publish
     Chart version:       1.2.1
     Developer Hub image:  quay.io/rhdh/rhdh-hub-rhel9:1.2-105
@@ -83,29 +86,27 @@ Examples:
 # Commandline args
 while [[ "$#" -gt 0 ]]; do
   case $1 in
-    # TODO should this actually grab the appropriate branch?
-    '--latest') 
-        next_tag=$(skopeo inspect docker://quay.io/rhdh/rhdh-hub-rhel9:latest | jq -r '.RepoTags[]' | grep -v -E "next|latest" | grep -- "-" | sort -uV | tail -1 || true)
-        RHDH_DIGEST_QUAY=$(skopeo inspect docker://quay.io/rhdh/rhdh-hub-rhel9:latest | jq -r '.Digest')
-        RHDH_DIGEST_RRIO=$(skopeo inspect docker://registry.redhat.io/rhdh/rhdh-hub-rhel9:latest | jq -r '.Digest')
-        POSTGRESQL_DIGEST=$(skopeo inspect docker://registry.redhat.io/rhel9/postgresql-15:latest | jq -r '.Digest')
-        CHART_VERSION=${next_tag}-CI
-        RHDH_VERSION=${next_tag}
-        echo "Create chart for $next_tag";;
+    '--latest') DO_LATEST=1;;
     '--next')
         next_tag=$(skopeo inspect docker://quay.io/rhdh/rhdh-hub-rhel9:next | jq -r '.RepoTags[]' | grep -v -E "next|latest" | grep -- "-" | sort -uV | tail -1 || true)
-        RHDH_DIGEST_QUAY=$(skopeo inspect docker://quay.io/rhdh/rhdh-hub-rhel9:next | jq -r '.Digest')
-        RHDH_DIGEST_RRIO=$(skopeo inspect docker://registry.redhat.io/rhdh/rhdh-hub-rhel9:next | jq -r '.Digest')
-        POSTGRESQL_DIGEST=$(skopeo inspect docker://registry.redhat.io/rhel9/postgresql-15:latest | jq -r '.Digest')
+        RHDH_DIGEST=$(skopeo inspect docker://quay.io/rhdh/rhdh-hub-rhel9:"${next_tag}" | jq -r '.Digest')
         CHART_VERSION=${next_tag}-CI
         RHDH_VERSION=${next_tag}
-        echo "Create chart for $next_tag";;
+        echo "Create chart for $RHDH_VERSION";;
     '--extra-branch') EXTRA_BRANCH="$2"; shift 1;;
     '--publish') PUBLISH=1;;
     '--catalog') CATALOG_FORK="$2"; shift 1;;
     '--chart-version') CHART_VERSION="$2"; shift 1;;
     '--chart-branch') CHART_BRANCH="$2"; shift 1;;
-    '--rhdh-version') RHDH_VERSION="$2"; shift 1;;
+    '--rhdh-version') RHDH_VERSION="$2"; 
+        if [[ ! $CHART_VERSION ]]; then usage; fi
+        if [[ $CHART_VERSION == *"CI"* ]]; then 
+            RHDH_DIGEST=$(skopeo inspect docker://quay.io/rhdh/rhdh-hub-rhel9:"${RHDH_VERSION}" | jq -r '.Digest')
+        else
+            RHDH_DIGEST=$(skopeo inspect docker://registry.redhat.io/rhdh/rhdh-hub-rhel9:"${RHDH_VERSION}" | jq -r '.Digest')
+        fi
+        echo "Create chart for $RHDH_VERSION ($CHART_VERSION)";
+        shift 1;;
     '--create-report') CREATE_REPORT=1;;
     '--delete-old-branches') DELETE_OLD_BRANCHES=1;;
     '--debug') DEBUG=1; QUIET="";;
@@ -114,7 +115,23 @@ while [[ "$#" -gt 0 ]]; do
   shift 1
 done
 
+if [[ $DO_LATEST -eq 1 ]]; then
+    if [[ ! $CHART_BRANCH ]] || [[ $CHART_BRANCH == "main" ]]; then usage; fi
+    next_tag=$(skopeo inspect docker://quay.io/rhdh/rhdh-hub-rhel9:next | jq -r '.RepoTags[]' | grep -v -E "next|latest" | grep -- "-" | sort -uV | grep "${CHART_BRANCH/.x/}" | tail -1 || true)
+    RHDH_DIGEST=$(skopeo inspect docker://quay.io/rhdh/rhdh-hub-rhel9:"${next_tag}" | jq -r '.Digest')
+    CHART_VERSION=${next_tag}-CI
+    RHDH_VERSION=${next_tag}
+    echo "Create chart for $RHDH_VERSION ($CHART_BRANCH)"
+fi
+
 if [[ ! $RHDH_VERSION ]]; then usage; fi
+
+POSTGRESQL_DIGEST=$(skopeo inspect docker://registry.redhat.io/rhel9/postgresql-15:latest | jq -r '.Digest')
+
+# trim the sha256: prefix off, since we're treating this like a tag 
+# image.repository already ends in @sha256
+POSTGRESQL_DIGEST="${POSTGRESQL_DIGEST//sha256:/}"
+RHDH_DIGEST="${RHDH_DIGEST//sha256:/}"
 
 HELM_DIR=$(mktemp -d)
 if [[ $DEBUG -eq 1 ]]; then echo "Running in HELM_DIR = $HELM_DIR"; fi
@@ -204,20 +221,26 @@ else
     " "${HELM_DIR}"/charts/backstage/Chart.yaml
 fi
 
+echo "Set image digests in charts/backstage/values.yaml: 
+* RHDH_DIGEST = $RHDH_DIGEST, 
+* POSTGRESQL_DIGEST = $POSTGRESQL_DIGEST"
 if [[ $CHART_VERSION == *"CI"* ]]; then 
     # echo "Using quay.io for CI build"
     $YQ -i "
     . *= load(\"${SCRIPT_DIR}/values_patch.yaml\") |
     .upstream.backstage.image.registry=\"quay.io\" |
-    .upstream.backstage.image.tag=\"${RHDH_DIGEST_QUAY}\"
+    .upstream.backstage.image.tag=\"${RHDH_DIGEST}\" |
+    .upstream.postgresql.image.tag=\"${POSTGRESQL_DIGEST}\"
 " "${HELM_DIR}"/charts/backstage/values.yaml
 else
     # echo "Using reg.rh.io for GA build"
     $YQ -i "
     . *= load(\"${SCRIPT_DIR}/values_patch.yaml\") |
-    .upstream.backstage.image.tag=\"${RHDH_DIGEST_RRIO}\"
+    .upstream.backstage.image.tag=\"${RHDH_DIGEST}\" |
+    .upstream.postgresql.image.tag=\"${POSTGRESQL_DIGEST}\"
 " "${HELM_DIR}"/charts/backstage/values.yaml
 fi
+# yq '.upstream.backstage.image , .upstream.postgresql.image' "${HELM_DIR}"/charts/backstage/values.yaml
 
 # Replace uncertified curl image with ubi9 in the test template (the file is not a valid yaml for yq)
 sed -e "s%quay.io/curl/curl:latest%registry.redhat.io/ubi9:latest%" -i "${HELM_DIR}"/charts/backstage/templates/tests/test-connection.yaml
