@@ -109,6 +109,14 @@ if [[ -f "${CI_PROJECT_DIR}/.secure_files/rhdh-bot.pat" ]]; then
     echo -n "[INFO]: Log into $REGISTRY ... "
     echo "${QUAY_TOKEN}" | skopeo login -u="${QUAY_USER}" --password-stdin ${REGISTRY} -v --authfile $REGISTRY_AUTH_FILE
 
+    # login to registry.redhat.io as rhdh-bot
+    RRIO_USERNAME=$(grep -E -v "^#" "${CI_PROJECT_DIR}/.secure_files/rhdh_bot_registry_redhat_io.user")
+    RRIO_PASSWORD=$(grep -E -v "^#" "${CI_PROJECT_DIR}/.secure_files/rhdh_bot_registry_redhat_io.pwd")
+    export RRIO_PASSWORD
+    REGISTRY="registry.redhat.io"
+    echo -n "[INFO]: Log into $REGISTRY ... "
+    echo "${RRIO_PASSWORD}" | skopeo login -u="${RRIO_USERNAME}" --password-stdin ${REGISTRY} -v --authfile $REGISTRY_AUTH_FILE
+
     # set up kerberos and log in as the rhdh-bot
     cp "build/ci/krb5.conf" /etc/krb5.conf; # cat /etc/krb5.conf
     sed -i /etc/ssh/ssh_config -r \
