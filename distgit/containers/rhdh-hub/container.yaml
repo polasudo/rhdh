@@ -10,7 +10,7 @@ remote_sources:
   - name: upstream1
     remote_source:
       repo: https://gitlab.cee.redhat.com/rhidp/rhdh.git
-      ref: 7a72bbdd9790f015b9fa074bcda1e50cbd0ab936
+      ref: 5c1a3f8e5cbb9737ffde67a41ac41ff0b1c7e802
       pkg_managers:
         - yarn
       packages:
@@ -54,7 +54,7 @@ remote_sources:
   - name: upstream2
     remote_source:
       repo: https://gitlab.cee.redhat.com/rhidp/rhdh.git
-      ref: 7a72bbdd9790f015b9fa074bcda1e50cbd0ab936
+      ref: 5c1a3f8e5cbb9737ffde67a41ac41ff0b1c7e802
       pkg_managers:
         - pip
       packages:
