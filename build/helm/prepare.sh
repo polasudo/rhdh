@@ -19,7 +19,7 @@ set -e
 
 usage ()
 {
-    echo "Usage: $0 --chart-version x.y.z --rhdh-version x.y-zzz --chart-branch 1.2.x [--catalog <git-url>] [--debug] [--publish] 
+    echo "Usage: $0 --chart-version x.y.z --rhdh-version x.y-zzz --chart-branch 1.2.x [--catalog <git-url>] [--debug] [--publish]
 
 NOTE: This must be run using the GITHUB_TOKEN of rhdh-bot@redhat.com in order to push to that user's fork.
 
@@ -56,7 +56,7 @@ Examples:
     Chart version:        1.1-zzz-CI
     Developer Hub image:  quay.io/rhdh/rhdh-hub-rhel9:1.1-zzz
 
-    # Or, log into the quay.io/rhdh/ org, then compute the latest or next 1.1-zzz tag
+     # Or, log into the quay.io and registry.redhat.io to be able to pull container metadata, then compute the latest or next 1.1-zzz tag
     $ export GITHUB_TOKEN=ghp_rhdh-bot-token-here
     $ $0 --latest --publish --chart-branch 1.2.x
     $ $0 --next --publish --chart-branch main
@@ -84,8 +84,19 @@ Examples:
 while [[ "$#" -gt 0 ]]; do
   case $1 in
     # TODO should this actually grab the appropriate branch?
-    '--next'|'--latest') 
+    '--latest') 
         next_tag=$(skopeo inspect docker://quay.io/rhdh/rhdh-hub-rhel9:latest | jq -r '.RepoTags[]' | grep -v -E "next|latest" | grep -- "-" | sort -uV | tail -1 || true)
+        RHDH_DIGEST_QUAY=$(skopeo inspect docker://quay.io/rhdh/rhdh-hub-rhel9:latest | jq -r '.Digest')
+        RHDH_DIGEST_RRIO=$(skopeo inspect docker://registry.redhat.io/rhdh/rhdh-hub-rhel9:latest | jq -r '.Digest')
+        POSTGRESQL_DIGEST=$(skopeo inspect docker://registry.redhat.io/rhel9/postgresql-15:latest | jq -r '.Digest')
+        CHART_VERSION=${next_tag}-CI
+        RHDH_VERSION=${next_tag}
+        echo "Create chart for $next_tag";;
+    '--next')
+        next_tag=$(skopeo inspect docker://quay.io/rhdh/rhdh-hub-rhel9:next | jq -r '.RepoTags[]' | grep -v -E "next|latest" | grep -- "-" | sort -uV | tail -1 || true)
+        RHDH_DIGEST_QUAY=$(skopeo inspect docker://quay.io/rhdh/rhdh-hub-rhel9:next | jq -r '.Digest')
+        RHDH_DIGEST_RRIO=$(skopeo inspect docker://registry.redhat.io/rhdh/rhdh-hub-rhel9:next | jq -r '.Digest')
+        POSTGRESQL_DIGEST=$(skopeo inspect docker://registry.redhat.io/rhel9/postgresql-15:latest | jq -r '.Digest')
         CHART_VERSION=${next_tag}-CI
         RHDH_VERSION=${next_tag}
         echo "Create chart for $next_tag";;
@@ -193,16 +204,18 @@ else
     " "${HELM_DIR}"/charts/backstage/Chart.yaml
 fi
 
-$YQ -i "
-    . *= load(\"${SCRIPT_DIR}/values_patch.yaml\") |
-    .upstream.backstage.image.tag=\"${RHDH_VERSION}\"
-" "${HELM_DIR}"/charts/backstage/values.yaml
-
 if [[ $CHART_VERSION == *"CI"* ]]; then 
     # echo "Using quay.io for CI build"
     $YQ -i "
     . *= load(\"${SCRIPT_DIR}/values_patch.yaml\") |
-    .upstream.backstage.image.registry=\"quay.io\"
+    .upstream.backstage.image.registry=\"quay.io\" |
+    .upstream.backstage.image.tag=\"${RHDH_DIGEST_QUAY}\"
+" "${HELM_DIR}"/charts/backstage/values.yaml
+else
+    # echo "Using reg.rh.io for GA build"
+    $YQ -i "
+    . *= load(\"${SCRIPT_DIR}/values_patch.yaml\") |
+    .upstream.backstage.image.tag=\"${RHDH_DIGEST_RRIO}\"
 " "${HELM_DIR}"/charts/backstage/values.yaml
 fi
 

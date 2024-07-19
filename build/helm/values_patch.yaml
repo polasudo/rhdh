@@ -4,10 +4,10 @@ upstream:
     image:
       registry: registry.redhat.io
       repository: rhdh/rhdh-hub-rhel9
-      # Tag is set via prepare.sh script
-      # tag: "${RHDH_VERSION}"
+      # Digest is set via prepare.sh script
+      # version: "${RHDH_DIGEST_RRIO}"
   postgresql:
     image:
       registry: registry.redhat.io
       repository: rhel9/postgresql-15
-      tag: latest
+      version: "${POSTGRESQL_DIGEST}"
