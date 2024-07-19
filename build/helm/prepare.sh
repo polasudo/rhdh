@@ -117,7 +117,8 @@ done
 
 if [[ $DO_LATEST -eq 1 ]]; then
     if [[ ! $CHART_BRANCH ]] || [[ $CHART_BRANCH == "main" ]]; then usage; fi
-    next_tag=$(skopeo inspect docker://quay.io/rhdh/rhdh-hub-rhel9:next | jq -r '.RepoTags[]' | grep -v -E "next|latest" | grep -- "-" | sort -uV | grep "${CHART_BRANCH/.x/}" | tail -1 || true)
+    # get all tags but find the ones starting with 1.yy-, then sort those and return the most recent one
+    next_tag=$(skopeo inspect docker://quay.io/rhdh/rhdh-hub-rhel9:next | jq -r '.RepoTags[]' | grep -v -E "next|latest" | grep -- "-" | grep "${CHART_BRANCH/.x/-}" | sort -uV  | tail -1 || true)
     RHDH_DIGEST=$(skopeo inspect docker://quay.io/rhdh/rhdh-hub-rhel9:"${next_tag}" | jq -r '.Digest')
     CHART_VERSION=${next_tag}-CI
     RHDH_VERSION=${next_tag}
