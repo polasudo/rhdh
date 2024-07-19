@@ -26,7 +26,6 @@ metadata:
       It comes with pre-built plug-ins and configuration settings, supports use of an external database, and can
       help streamline the process of setting up a self-managed internal
       developer portal for adopters who are just starting out.
-      Link: https://docs.redhat.com/en/documentation/red_hat_developer_hub/1.2/html/administration_guide_for_red_hat_developer_hub/assembly-configuring-external-postgresql-databases#assembly-configuring-external-postgresql-databases
     operatorframework.io/suggested-namespace: rhdh-operator
     operators.openshift.io/valid-subscription: '["Red Hat Developer Hub"]'
     operators.operatorframework.io/builder: operator-sdk-v1.33.0
@@ -82,6 +81,8 @@ spec:
     * [Product Documentation](https://access.redhat.com/documentation/en-us/red_hat_developer_hub)
     * [Life Cycle](https://access.redhat.com/node/7025299)
     * [Support Policies](https://access.redhat.com/policy/developerhub-support-policy)
+    * [Configuring external PostgreSQL databases](https://docs.redhat.com/en/documentation/red_hat_developer_hub/1.2/html/administration_guide_for_red_hat_developer_hub/assembly-configuring-external-postgresql-databases#assembly-configuring-external-postgresql-databases)
+
     
   displayName: Red Hat Developer Hub Operator
   icon:
