@@ -27,7 +27,7 @@ usage () {
 
 while [[ "$#" -gt 0 ]]; do
   case $1 in
-    '--dry-run') DRY_RUN="$1"; shift 1;;
+    '--dry-run') DRY_RUN="$1";;
     '-d') BASE_DIR="$2"; shift 1;;
     *) PLUGIN_DIRS="$PLUGIN_DIRS $1";;
   esac
