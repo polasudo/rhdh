@@ -301,6 +301,13 @@ for ((i = 0; i < NUM_REPOS; i++)); do # echo $i
   popd >/dev/null || exit 1
   # set +x
 
+  # use this to set ENV var in container image so we can get this via skopeo inspect without downloading the container image
+  if [[ $CONTAINER_NAME == "rhdh-hub" ]]; then
+    upstream_repo_and_SHA__hub="$repo/tree/$branch @ $SHA"
+  elif [[ $CONTAINER_NAME == "rhdh-operator"* ]]; then
+    upstream_repo_and_SHA__operator="$repo/tree/$branch @ $SHA"
+  fi
+
   # remove checked out files
   # shellcheck disable=SC2086
   if [[ $(yq --arg i "$i" -r '.repos['$i'].include_root' "${UPSTREAM_FILE}") == "false" ]]; then
@@ -325,10 +332,6 @@ for ((i = 0; i < NUM_REPOS; i++)); do # echo $i
     ##################################### rhdh-operator-bundle #####################################
     # if processing the upstream operator, also make some changes to the operator-bundle folder dowstream
     if [[ $destination_folder == *"rhdh-operator"* ]]; then
-      # set using upstream info: ${ROOTPATH}/sync/upstream_SHA_rhdh-operator ==> janus-idp/operator main @ 2ff35695
-      # also set ENV var in container image so we can get this via skopeo inspect without downloading the container image
-      upstream_repo_and_SHA__operator=$(sed -r -e "s|([0-9a-f]+) = (.+) @ .+/([^/]+/[^/]+)|\3 \2 @ \1|" "${ROOTPATH}/sync/upstream_SHA_rhdh-operator")
-
       echo -n " and ${destination_folder%/}-bundle ... "
       BUNDLEDIR="${ROOTPATH}/${destination_folder%/}-bundle"
       # copy the contents of bundle/ into distgit/containers/rhdh-operator-bundle/
@@ -412,8 +415,6 @@ for ((i = 0; i < NUM_REPOS; i++)); do # echo $i
       sed -i -r -e "s#(<meta name=\"description\" content=\")(.+)(\" />)#\1$APPTITLE\3#" "$d"
 
       # set build-metadata.json info, using upstream info: ${ROOTPATH}/sync/upstream_SHA_rhdh-hub ==> janus-idp/backstage-showcase main @ 2ff35695
-      # also set ENV var in container image so we can get this via skopeo inspect without downloading a 900M container image
-      upstream_repo_and_SHA__hub=$(sed -r -e "s|([0-9a-f]+) = (.+) @ .+/([^/]+/[^/]+)|\3 \2 @ \1|" "${ROOTPATH}/sync/upstream_SHA_rhdh-hub")
       sed -i packages/app/src/build-metadata.json -r \
         -e 's|("Last Commit:.+)|"Last Commit: '"$upstream_repo_and_SHA__hub"'"|'
     fi
