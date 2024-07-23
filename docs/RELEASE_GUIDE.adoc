@@ -125,6 +125,10 @@ You should see new tags added here:
 
 https://quay.io/repository/rhdh/iib?tab=tags
 
+If the script fails with an error like this, try again in an hour or two:
+```
+[ERROR] Could not fetch ref_url from https://resultsdb-api.engineering.redhat.com/api/v2.0/results/latest?testcases=cvp.redhat.detailed.operator-catalog-initialization-bundle-image&item=rhdh-operator-bundle-container-1.3-30
+```
 ====
 +
 . Verify that after moving to 1.3 in main, we have:
@@ -142,7 +146,7 @@ https://quay.io/repository/rhdh/iib?tab=tags
 +
 [WARNING]
 ====
-If the changes you expect are not seen when installing via Operator, but are seen via Helm, re-run the `copyIIBsToQuay.sh` script again and check if there's a newer catalog source (index bundle) available. It can take several hours for a completed operator-bundle build to produce a matching IIB build for all the supported OCP versions.
+If the changes you expect are not seen when installing via Operator, but are seen via Helm, re-run the `copyIIBsToQuay.sh` script again (see **IMPORTANT** note above) and check if there's a newer catalog source (index bundle) available. It can take several hours for a completed operator-bundle build to produce a matching IIB build for all the supported OCP versions, so you may have to try again a few times.
 ====
 +
 . Push the latest images into the errata in progress
