@@ -216,6 +216,10 @@ NUM_REPOS=$(grep -v -E " +#" "${UPSTREAM_FILE}" | grep -c "repo:") # 2
 # fp=0 # cound of fetched plugins from upstream
 # cp=0 # count of converted/transformed plugins (midstreamed)
 
+# upstream build metadata to add as ENV vars in the containers
+upstream_repo_and_SHA__hub=""
+upstream_repo_and_SHA__operator=""
+
 commitMsg=""
 # num_plugins=0 # total number of plugins to fetch/build
 destination_folders=""
@@ -321,6 +325,10 @@ for ((i = 0; i < NUM_REPOS; i++)); do # echo $i
     ##################################### rhdh-operator-bundle #####################################
     # if processing the upstream operator, also make some changes to the operator-bundle folder dowstream
     if [[ $destination_folder == *"rhdh-operator"* ]]; then
+      # set using upstream info: ${ROOTPATH}/sync/upstream_SHA_rhdh-operator ==> janus-idp/operator main @ 2ff35695
+      # also set ENV var in container image so we can get this via skopeo inspect without downloading the container image
+      upstream_repo_and_SHA__operator=$(sed -r -e "s|([0-9a-f]+) = (.+) @ .+/([^/]+/[^/]+)|\3 \2 @ \1|" "${ROOTPATH}/sync/upstream_SHA_rhdh-operator")
+
       echo -n " and ${destination_folder%/}-bundle ... "
       BUNDLEDIR="${ROOTPATH}/${destination_folder%/}-bundle"
       # copy the contents of bundle/ into distgit/containers/rhdh-operator-bundle/
@@ -403,9 +411,10 @@ for ((i = 0; i < NUM_REPOS; i++)); do # echo $i
       sed -i -r -e "s#(<meta name=\"description\" content=\")(.+)(\" />)#\1$APPTITLE\3#" "$d"
 
       # set build-metadata.json info, using upstream info: ${ROOTPATH}/sync/upstream_SHA_rhdh-hub ==> janus-idp/backstage-showcase main @ 2ff35695
-      upstream_repo_and_SHA=$(sed -r -e "s|([0-9a-f]+) = (.+) @ .+/([^/]+/[^/]+)|\3 \2 @ \1|" "${ROOTPATH}/sync/upstream_SHA_rhdh-hub")
+      # also set ENV var in container image so we can get this via skopeo inspect without downloading a 900M container image
+      upstream_repo_and_SHA__hub=$(sed -r -e "s|([0-9a-f]+) = (.+) @ .+/([^/]+/[^/]+)|\3 \2 @ \1|" "${ROOTPATH}/sync/upstream_SHA_rhdh-hub")
       sed -i packages/app/src/build-metadata.json -r \
-        -e 's|("Last Commit:.+)|"Last Commit: '"$upstream_repo_and_SHA"'"|'
+        -e 's|("Last Commit:.+)|"Last Commit: '"$upstream_repo_and_SHA__hub"'"|'
     fi
     ##################################### rhdh-hub #####################################
 
@@ -483,6 +492,8 @@ sed -i '/# append Brew metadata here/q' distgit/containers/rhdh-hub/Dockerfile.i
 cat <<EOT >>distgit/containers/rhdh-hub/Dockerfile.in
 ENV SUMMARY="Red Hat Developer Hub container" \\
     DESCRIPTION="Red Hat Developer Hub container" \\
+    UPSTREAM_REPO="${upstream_repo_and_SHA__hub}" \\
+    MIDSTREAM_REPO="gitlab.cee.redhat.com/rhidp/rhdh ${DWNSTM_BRANCH}" \\
     PRODNAME="rhdh" \\
     COMPNAME="hub"
 
@@ -517,6 +528,8 @@ sed -i '/# append Brew metadata here/q' distgit/containers/rhdh-operator/Dockerf
 cat <<EOT >>distgit/containers/rhdh-operator/Dockerfile.in
 ENV SUMMARY="Red Hat Developer Hub operator" \\
     DESCRIPTION="Red Hat Developer Hub operator" \\
+    UPSTREAM_REPO="${upstream_repo_and_SHA__operator}" \\
+    MIDSTREAM_REPO="gitlab.cee.redhat.com/rhidp/rhdh ${DWNSTM_BRANCH}" \\
     PRODNAME="rhdh" \\
     COMPNAME="operator"
 
@@ -540,6 +553,8 @@ sed -i '/# append Brew metadata here/q' distgit/containers/rhdh-operator-bundle/
 cat <<EOT >>distgit/containers/rhdh-operator-bundle/Dockerfile.in
 ENV SUMMARY="Red Hat Developer Hub operator bundle" \\
     DESCRIPTION="Red Hat Developer Hub operator bundle" \\
+    UPSTREAM_REPO="${upstream_repo_and_SHA__operator}" \\
+    MIDSTREAM_REPO="gitlab.cee.redhat.com/rhidp/rhdh ${DWNSTM_BRANCH}" \\
     PRODNAME="rhdh" \\
     COMPNAME="operator-bundle"
 

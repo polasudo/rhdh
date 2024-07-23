@@ -96,14 +96,19 @@ klist; git clone "ssh://rhdh-bot@pkgs.devel.redhat.com/containers/${CONTAINER_NA
   # update downstream container.yaml to have the same sha values as in the midstream
   sed -i "${CONTAINER_DIR}/container.yaml" -r -e "s/ref: ([a-z0-9]+)/ref: $midSHA/"
 
-  if [[ $CONTAINER_NAME == "rhdh-hub" ]]; then
-    # set build-metadata.json info, using janus-idp/backstage-showcase main @ 2ff35695
-    pushd "${ROOTPATH}"/distgit/containers/"${CONTAINER_NAME}"/ >/dev/null || exit 1
-      midstream_repo_and_SHA="$(git remote -v | grep origin | grep -v push | sed -r -e "s|.+@(.+)\.git.+|\1|" | tr ":" "/") $(git rev-parse --abbrev-ref HEAD) @ $(git rev-parse --short=8 HEAD)"
+  pushd "${ROOTPATH}"/distgit/containers/"${CONTAINER_NAME}"/ >/dev/null || exit 1
+    midstream_repo_and_SHA="$(git remote -v | grep origin | grep -v push | sed -r -e "s|.+@(.+)\.git.+|\1|" | tr ":" "/") $(git rev-parse --abbrev-ref HEAD) @ $(git rev-parse --short=8 HEAD)"
+    # set MIDSTREAM_REPO env var in Dockerfile
+    for df in "${CONTAINER_DIR}"/Dockerfile.in "${CONTAINER_DIR}"/Dockerfile; do
+      sed -i $df -r -e "s|(MIDSTREAM_REPO=)\".+\"|\1\"${midstream_repo_and_SHA}\"|"
+    done
+    if [[ $CONTAINER_NAME == "rhdh-hub" ]] && [[ -f "${CONTAINER_DIR}"/packages/app/src/build-metadata.json ]]; then
+      # set build-metadata.json info, using janus-idp/backstage-showcase main @ 2ff35695
       sed -i "${CONTAINER_DIR}"/packages/app/src/build-metadata.json -r \
         -e 's|"(Last Commit: )(.+)"|"Last Commit: \2", "Midstream: '"$midstream_repo_and_SHA"'"|'
-    popd >/dev/null || exit 1
-  fi
+    fi
+  popd >/dev/null || exit 1
+
   # store one unique diff file per downstream repo
   git diff --name-only | tee -a "/tmp/sync-downstream.sh.${CONTAINER_NAME}.diff.txt"
   # commit and push changes
