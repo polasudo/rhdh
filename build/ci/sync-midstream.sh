@@ -312,9 +312,9 @@ for ((i = 0; i < NUM_REPOS; i++)); do # echo $i
     done
     echo -n "[INFO] [In $(pwd)] Sync upstream folder $TMPDIR/repo${i}/ to midstream ${destination_folder}... "
     pushd "$TMPDIR/" >/dev/null || exit 1
-    set -x
+    # set -x
     rsync -azq --delete $TMPDIR/repo${i}/* $TMPDIR/repo${i}/.??* "${ROOTPATH}/${destination_folder}/" --exclude=.git ${excludesFlags}
-    set +x
+    # set +x
 
     ##################################### rhdh-hub #####################################
     # if processing the upstream showcase/hub, also make some changes to the hub folder dowstream
@@ -382,6 +382,7 @@ for ((i = 0; i < NUM_REPOS; i++)); do # echo $i
 
     ##################################### rhdh-hub #####################################
     # apply branding changes
+    # shellcheck disable=SC2016
     if [[ $destination_folder == *"rhdh-hub"* ]]; then
       # transform app.title in app-config*.yaml to "Red Hat Developer Hub"
       # adds RHDH theming and logos
