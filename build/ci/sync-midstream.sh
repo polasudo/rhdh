@@ -217,8 +217,8 @@ NUM_REPOS=$(grep -v -E " +#" "${UPSTREAM_FILE}" | grep -c "repo:") # 2
 # cp=0 # count of converted/transformed plugins (midstreamed)
 
 # upstream build metadata to add as ENV vars in the containers
-upstream_repo_and_SHA__hub=""
-upstream_repo_and_SHA__operator=""
+upstream_repo_hub=""
+upstream_repo_op=""
 
 commitMsg=""
 # num_plugins=0 # total number of plugins to fetch/build
@@ -255,6 +255,12 @@ for ((i = 0; i < NUM_REPOS; i++)); do # echo $i
     # set -x
     branch="$(git branch --show-current)"
     SHA="$(git rev-parse --short=8 HEAD)"
+    if [[ $CONTAINER_NAME == "rhdh-hub" ]]; then
+      upstream_repo_hub="$repo/tree/$branch @ $SHA"
+    elif [[ $CONTAINER_NAME == "rhdh-operator" ]] || [[ $CONTAINER_NAME == "rhdh-operator-bundle" ]]; then
+      upstream_repo_op="$repo/tree/$branch @ $SHA"
+    fi
+
     # cat "${ROOTPATH}/sync/upstream_SHA_${CONTAINER_NAME}"; echo "$SHA = $branch @ $repo"
     # if the current SHA file contains the current SHA/branch/repo combination, then there's nothing to sync! 
     if [[ -f "${ROOTPATH}/sync/upstream_SHA_${CONTAINER_NAME}" ]] && [[ $(cat "${ROOTPATH}/sync/upstream_SHA_${CONTAINER_NAME}") == *"$SHA = $branch @ $repo"* ]]; then
@@ -300,13 +306,6 @@ for ((i = 0; i < NUM_REPOS; i++)); do # echo $i
     ##################################### rhdh-operator-bundle #####################################
   popd >/dev/null || exit 1
   # set +x
-
-  # use this to set ENV var in container image so we can get this via skopeo inspect without downloading the container image
-  if [[ $CONTAINER_NAME == "rhdh-hub" ]]; then
-    upstream_repo_and_SHA__hub="$repo/tree/$branch @ $SHA"
-  elif [[ $CONTAINER_NAME == "rhdh-operator"* ]]; then
-    upstream_repo_and_SHA__operator="$repo/tree/$branch @ $SHA"
-  fi
 
   # remove checked out files
   # shellcheck disable=SC2086
@@ -416,7 +415,7 @@ for ((i = 0; i < NUM_REPOS; i++)); do # echo $i
 
       # set build-metadata.json info, using upstream info: ${ROOTPATH}/sync/upstream_SHA_rhdh-hub ==> janus-idp/backstage-showcase main @ 2ff35695
       sed -i packages/app/src/build-metadata.json -r \
-        -e 's|("Last Commit:.+)|"Last Commit: '"$upstream_repo_and_SHA__hub"'"|'
+        -e 's|("Last Commit:.+)|"Last Commit: '"$upstream_repo_hub"'"|'
     fi
     ##################################### rhdh-hub #####################################
 
@@ -489,12 +488,20 @@ if [[ "$NUM_SKIPS" == "$NUM_REPOS" ]]; then
   exit 0
 fi
 
+# use this to set ENV var in container image so we can get this via skopeo inspect without downloading the container image
+# upstream_repo_and_SHA__hub=$(sed -r -e "s|([0-9a-f]+) = (.+) @ .+/([^/]+/[^/]+)|\3 \2 @ \1|" "${ROOTPATH}/sync/upstream_SHA_rhdh-hub")
+# upstream_repo_and_SHA__operator=$(sed -r -e "s|([0-9a-f]+) = (.+) @ .+/([^/]+/[^/]+)|\3 \2 @ \1|" "${ROOTPATH}/sync/upstream_SHA_rhdh-operator")
+echo "Using upstream repos:
+* hub: ${upstream_repo_hub}
+* operator: ${upstream_repo_op}
+"
+
 # append Brew metadata here
 sed -i '/# append Brew metadata here/q' distgit/containers/rhdh-hub/Dockerfile.in
 cat <<EOT >>distgit/containers/rhdh-hub/Dockerfile.in
 ENV SUMMARY="Red Hat Developer Hub container" \\
     DESCRIPTION="Red Hat Developer Hub container" \\
-    UPSTREAM_REPO="${upstream_repo_and_SHA__hub}" \\
+    UPSTREAM_REPO="${upstream_repo_hub}" \\
     MIDSTREAM_REPO="gitlab.cee.redhat.com/rhidp/rhdh ${DWNSTM_BRANCH}" \\
     PRODNAME="rhdh" \\
     COMPNAME="hub"
@@ -530,7 +537,7 @@ sed -i '/# append Brew metadata here/q' distgit/containers/rhdh-operator/Dockerf
 cat <<EOT >>distgit/containers/rhdh-operator/Dockerfile.in
 ENV SUMMARY="Red Hat Developer Hub operator" \\
     DESCRIPTION="Red Hat Developer Hub operator" \\
-    UPSTREAM_REPO="${upstream_repo_and_SHA__operator}" \\
+    UPSTREAM_REPO="${upstream_repo_op}" \\
     MIDSTREAM_REPO="gitlab.cee.redhat.com/rhidp/rhdh ${DWNSTM_BRANCH}" \\
     PRODNAME="rhdh" \\
     COMPNAME="operator"
@@ -555,7 +562,7 @@ sed -i '/# append Brew metadata here/q' distgit/containers/rhdh-operator-bundle/
 cat <<EOT >>distgit/containers/rhdh-operator-bundle/Dockerfile.in
 ENV SUMMARY="Red Hat Developer Hub operator bundle" \\
     DESCRIPTION="Red Hat Developer Hub operator bundle" \\
-    UPSTREAM_REPO="${upstream_repo_and_SHA__operator}" \\
+    UPSTREAM_REPO="${upstream_repo_op}" \\
     MIDSTREAM_REPO="gitlab.cee.redhat.com/rhidp/rhdh ${DWNSTM_BRANCH}" \\
     PRODNAME="rhdh" \\
     COMPNAME="operator-bundle"
@@ -947,6 +954,17 @@ echo "$gitdiff" > "/tmp/sync-midstream.sh.diff.txt"
         -e 's|repo: \$\{CI_RHDH_UPSTREAM_URL\}|repo: '"$UPSTREAM_REPO"'|' \
         -e 's|ref: \$\{CI_RHDH_UPSTREAM_COMMIT\}|ref: '"$UPSTREAM_COMMIT"'|' container.yaml.in > container.yaml && git add container.yaml*
       echo "[INFO] Generated $d/container.yaml from .in file (CPaaS bypass)"
+
+      for df in Dockerfile.in Dockerfile; do
+        upstream_repo=""
+        if [[ $d == *"rhdh-hub"* ]]; then 
+          upstream_repo="${upstream_repo_hub}"
+        elif  [[ $d == *"rhdh-operator"* ]]; then 
+          upstream_repo="${upstream_repo_op}"
+        fi
+        echo "[INFO] In $d / $df, set UPSTREAM_REPO = $upstream_repo"
+        sed -i $df -r -e "s|(UPSTREAM_REPO=)\".+\"|\1\"${upstream_repo}\"|"
+      done
     popd >/dev/null || exit 1
   done
 
