@@ -22,7 +22,7 @@ COPY metadata /metadata/
 ENV SUMMARY="Red Hat Developer Hub operator bundle" \
     DESCRIPTION="Red Hat Developer Hub operator bundle" \
     UPSTREAM_REPO="https://github.com/janus-idp/operator/tree/main @ bb549e4e" \
-    MIDSTREAM_REPO="gitlab.cee.redhat.com/rhidp/rhdh rhdh-1-rhel-9" \
+    MIDSTREAM_REPO="https://gitlab.cee.redhat.com/rhidp/rhdh/-/commits/rhdh-1-rhel-9" \
     PRODNAME="rhdh" \
     COMPNAME="operator-bundle"
 
