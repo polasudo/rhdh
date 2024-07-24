@@ -2826,10 +2826,10 @@
     "@material-ui/lab" "^4.0.0-alpha.45"
     react-use "^17.4.0"
 
-"@janus-idp/backstage-plugin-keycloak-backend@1.10.0":
-  version "1.10.0"
-  resolved "https://registry.npmjs.org/@janus-idp/backstage-plugin-keycloak-backend/-/backstage-plugin-keycloak-backend-1.10.0.tgz#749ebf5e71a17a6edd2cccbbaa87100023d9bccc"
-  integrity sha512-xEIpqq4R73wn/DOHxAnFEkwCUgcrGZ8x7Cu00aroYymCfTfUR5pMu/s+YtrtAJC+6q7p4Egi2owhZUbf/AAdQg==
+"@janus-idp/backstage-plugin-keycloak-backend@1.11.1":
+  version "1.11.1"
+  resolved "https://registry.npmjs.org/@janus-idp/backstage-plugin-keycloak-backend/-/backstage-plugin-keycloak-backend-1.11.1.tgz#6177cb48237a5970dc34453e92a335042924e74a"
+  integrity sha512-lEFKeu/36SQb6K0pFnC78Qw608xe1NI51PK1HySMqCw93JrCwmvksM4OierVFscDAFVEy70yJefrbDX76LMO3Q==
   dependencies:
     "@backstage/backend-common" "^0.22.0"
     "@backstage/backend-dynamic-feature-service" "^0.2.10"
