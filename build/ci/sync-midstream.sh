@@ -491,9 +491,13 @@ fi
 # use this to set ENV var in container image so we can get this via skopeo inspect without downloading the container image
 # upstream_repo_and_SHA__hub=$(sed -r -e "s|([0-9a-f]+) = (.+) @ .+/([^/]+/[^/]+)|\3 \2 @ \1|" "${ROOTPATH}/sync/upstream_SHA_rhdh-hub")
 # upstream_repo_and_SHA__operator=$(sed -r -e "s|([0-9a-f]+) = (.+) @ .+/([^/]+/[^/]+)|\3 \2 @ \1|" "${ROOTPATH}/sync/upstream_SHA_rhdh-operator")
+midstream_repo="https://gitlab.cee.redhat.com/rhidp/rhdh/-/commits/${DWNSTM_BRANCH}"
 echo "Using upstream repos:
 * hub: ${upstream_repo_hub}
 * operator: ${upstream_repo_op}
+
+Using midstream_repo:
+* ${midstream_repo}
 "
 
 # append Brew metadata here
@@ -502,7 +506,7 @@ cat <<EOT >>distgit/containers/rhdh-hub/Dockerfile.in
 ENV SUMMARY="Red Hat Developer Hub container" \\
     DESCRIPTION="Red Hat Developer Hub container" \\
     UPSTREAM_REPO="${upstream_repo_hub}" \\
-    MIDSTREAM_REPO="gitlab.cee.redhat.com/rhidp/rhdh ${DWNSTM_BRANCH}" \\
+    MIDSTREAM_REPO="${midstream_repo}" \\
     PRODNAME="rhdh" \\
     COMPNAME="hub"
 
@@ -538,7 +542,7 @@ cat <<EOT >>distgit/containers/rhdh-operator/Dockerfile.in
 ENV SUMMARY="Red Hat Developer Hub operator" \\
     DESCRIPTION="Red Hat Developer Hub operator" \\
     UPSTREAM_REPO="${upstream_repo_op}" \\
-    MIDSTREAM_REPO="gitlab.cee.redhat.com/rhidp/rhdh ${DWNSTM_BRANCH}" \\
+    MIDSTREAM_REPO="${midstream_repo}" \\
     PRODNAME="rhdh" \\
     COMPNAME="operator"
 
@@ -563,7 +567,7 @@ cat <<EOT >>distgit/containers/rhdh-operator-bundle/Dockerfile.in
 ENV SUMMARY="Red Hat Developer Hub operator bundle" \\
     DESCRIPTION="Red Hat Developer Hub operator bundle" \\
     UPSTREAM_REPO="${upstream_repo_op}" \\
-    MIDSTREAM_REPO="gitlab.cee.redhat.com/rhidp/rhdh ${DWNSTM_BRANCH}" \\
+    MIDSTREAM_REPO="${midstream_repo}" \\
     PRODNAME="rhdh" \\
     COMPNAME="operator-bundle"
 

@@ -97,7 +97,7 @@ klist; git clone "ssh://rhdh-bot@pkgs.devel.redhat.com/containers/${CONTAINER_NA
   sed -i "${CONTAINER_DIR}/container.yaml" -r -e "s/ref: ([a-z0-9]+)/ref: $midSHA/"
 
   pushd "${ROOTPATH}"/distgit/containers/"${CONTAINER_NAME}"/ >/dev/null || exit 1
-    midstream_repo_and_SHA="$(git remote -v | grep origin | grep -v push | sed -r -e "s|.+@(.+)\.git.+|\1|" | tr ":" "/") $(git rev-parse --abbrev-ref HEAD) @ $(git rev-parse --short=8 HEAD)"
+    midstream_repo_and_SHA="https://$(git remote -v | grep origin | grep -v push | sed -r -e "s|.+@(.+)\.git.+|\1|" | tr ":" "/")/-/commits/$(git rev-parse --abbrev-ref HEAD) @ $(git rev-parse --short=8 HEAD)"
     # set MIDSTREAM_REPO env var in Dockerfile
     for df in "${CONTAINER_DIR}"/Dockerfile.in "${CONTAINER_DIR}"/Dockerfile; do
       sed -i $df -r -e "s|(MIDSTREAM_REPO=)\".+\"|\1\"${midstream_repo_and_SHA}\"|"
