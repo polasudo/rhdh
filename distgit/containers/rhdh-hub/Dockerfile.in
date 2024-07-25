@@ -190,7 +190,7 @@ WORKDIR $CONTAINER_SOURCE/
 # Downstream only - install techdocs dependencies using cachito sources
 COPY $REMOTE_SOURCES/upstream2 $REMOTE_SOURCES_DIR/upstream2/
 # hadolint ignore=DL3013,DL3041,SC2086
-RUN microdnf update -y && \
+RUN microdnf update --setopt=install_weak_deps=0 -y && \
   microdnf install -y python3.11 python3.11-pip python3.11-devel make cmake cpp gcc gcc-c++; \
   ln -s /usr/bin/pip3.11 /usr/bin/pip3; \
   ln -s /usr/bin/pip3.11 /usr/bin/pip; \
@@ -265,7 +265,7 @@ ENTRYPOINT ["node", "packages/backend", "--no-node-snapshot", "--config", "app-c
 # append Brew metadata here
 ENV SUMMARY="Red Hat Developer Hub container" \
     DESCRIPTION="Red Hat Developer Hub container" \
-    UPSTREAM_REPO="https://github.com/janus-idp/backstage-showcase/tree/main @ 7f1e5a0d" \
+    UPSTREAM_REPO="https://github.com/janus-idp/backstage-showcase/tree/main @ 7e143e3c" \
     MIDSTREAM_REPO="https://gitlab.cee.redhat.com/rhidp/rhdh/-/commits/rhdh-1-rhel-9" \
     PRODNAME="rhdh" \
     COMPNAME="hub"
