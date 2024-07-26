@@ -153,6 +153,19 @@ If the changes you expect are not seen when installing via Operator, but are see
 
 . Verify CHI grades from the Container page; if needed, update to a newer base image or explicitly install patched RPMs, and respin 
 
+## Release Candidates
+
+Once the code freeze is achieved and all the last minute changes have stopped, youll want to:
+
+* disable the 1.y pipeline so you don't get any unexpected/unapproved changes in the release candidate
+* ensure you've run `copyIIBsToQuay.sh` to update the IIBs for the RC
+* copy the latest NVRs into the errata
+* move the errata to `QE` and trigger a push to stage
+* collect the NVRs and quay images into an email and send it to QE with a subject like `RHDH 1.2.2 RC-07-24 is ready for QE`
+* copy the contents of that email into slack #team-rhdh channel
+
+If a second RC build is needed, re-enable the scheduled pipeline (or trigger a pipeline manually), and repeat the above steps. 
+
 ## During GA week
 
 . Push errata to stage for QE review
