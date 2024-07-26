@@ -21,7 +21,7 @@ COPY metadata /metadata/
 # append Brew metadata here
 ENV SUMMARY="Red Hat Developer Hub operator bundle" \
     DESCRIPTION="Red Hat Developer Hub operator bundle" \
-    UPSTREAM_REPO="https://github.com/janus-idp/operator/tree/main @ bb549e4e" \
+    UPSTREAM_REPO="https://github.com/janus-idp/operator/tree/main @ 00f55552" \
     MIDSTREAM_REPO="https://gitlab.cee.redhat.com/rhidp/rhdh/-/commits/rhdh-1-rhel-9" \
     PRODNAME="rhdh" \
     COMPNAME="operator-bundle"
