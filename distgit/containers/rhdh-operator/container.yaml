@@ -10,7 +10,7 @@ remote_sources:
   - name: upstream1
     remote_source:
       repo: https://gitlab.cee.redhat.com/rhidp/rhdh.git
-      ref: e8d8420efa35a98a8ea18772c7a4869ec579cacc
+      ref: 5d99fe8b9828c74dde84cf86c69af772cde7d6cb
       pkg_managers:
         - gomod
       flags:
