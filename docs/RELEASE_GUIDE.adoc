@@ -221,7 +221,7 @@ https://github.com/openshift-helm-charts/charts/pull/1556
 cd /tmp; git clone git@gitlab.cee.redhat.com:rhidp/rhdh.git --depth 1 && cd rhdh
 
 # use tag from https://quay.io/repository/rhdh/rhdh-operator-bundle?tab=tags
-./build/scripts/copyIIBsToQuay.sh -t 1.1-122 --force --push --latest -e 1.1.1.GA
+./build/scripts/copyIIBsToQuay.sh -t 1.2-121 --force --push --latest -e 1.2.2.GA
 ```
 
 . [ ] link:../build/scripts/tagRelease.sh[Tag the repos listed above]
@@ -229,7 +229,7 @@ cd /tmp; git clone git@gitlab.cee.redhat.com:rhidp/rhdh.git --depth 1 && cd rhdh
 ```
 cd /tmp; git clone git@gitlab.cee.redhat.com:rhidp/rhdh.git --depth 1 && cd rhdh
 
-./build/scripts/tagRelease.sh -v 1.1.1 -t 1.1 -gh 1.1.x -pd rhdh-1.1-rhel-9 -ghtoken $GITHUB_TOKEN
+./build/scripts/tagRelease.sh -v 1.2.2 -t 1.2 -gh 1.2.x -pd rhdh-1.2-rhel-9 -ghtoken $GITHUB_TOKEN
 
 ```
 
