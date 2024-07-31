@@ -306,4 +306,4 @@ var _ = When("create backstage with CR configured", func() {
 
 // mounting/injecting secret by key only
 
-// TODO test for Raw Config https://github.com/redhat-developer/rhdh-operator/issues/202
+// TODO test for Raw Config https://github.com/janus-idp/operator/issues/202

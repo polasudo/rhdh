@@ -33,12 +33,12 @@ BUNDLE_METADATA_OPTS ?= $(BUNDLE_CHANNELS) $(BUNDLE_DEFAULT_CHANNEL)
 # This variable is used to construct full image tags for bundle and catalog images.
 #
 # For example, running 'make bundle-build bundle-push catalog-build catalog-push' will build and push both
-# quay.io/rhdh/upstream-rhdh-rhel9-operator-bundle:$VERSION and quay.io/rhdh/upstream-rhdh-rhel9-operator-catalog:$VERSION.
-IMAGE_TAG_BASE ?= quay.io/rhdh/upstream-rhdh-rhel9-operator
+# quay.io/rhdh/rhdh-operator-bundle:$VERSION and quay.io/rhdh/iib:$VERSION.
+IMAGE_TAG_BASE ?= quay.io/rhdh/rhdh-rhel9-operator
 
 # BUNDLE_IMG defines the image:tag used for the bundle.
 # You can use it as an arg. (E.g make bundle-build BUNDLE_IMG=<some-registry>/<project-name-bundle>:<tag>)
-BUNDLE_IMG ?= $(IMAGE_TAG_BASE)-bundle:$(VERSION)
+BUNDLE_IMG ?= quay.io/rhdh/rhdh-operator-bundle:$(VERSION)
 
 # BUNDLE_GEN_FLAGS are the flags passed to the operator-sdk generate bundle command
 BUNDLE_GEN_FLAGS ?= -q --overwrite --version $(VERSION) $(BUNDLE_METADATA_OPTS)
@@ -60,7 +60,7 @@ ENVTEST_K8S_VERSION = 1.25.0
 # it has to be defined as a set of YAML files inside ./config/manager/$(CONF_DIR) directory
 # to use other config - add a directory with config and run 'CONF_DIR=<dir-name> make ...'
 # TODO find better place than ./config/manager (but not ./config/overlays) ?
-# TODO it works only for make run, needs supporting make deploy as well https://github.com/redhat-developer/rhdh-operator/issues/47
+# TODO it works only for make run, needs supporting make deploy as well https://github.com/janus-idp/operator/issues/47
 CONF_DIR ?= default-config
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
@@ -337,7 +337,7 @@ bundle-push: ## Push bundle image to registry
 BUNDLE_IMGS ?= $(BUNDLE_IMG)
 
 # The image tag given to the resulting catalog image (e.g. make catalog-build CATALOG_IMG=example.com/operator-catalog:v0.2.0).
-CATALOG_IMG ?= $(IMAGE_TAG_BASE)-catalog:$(VERSION)
+CATALOG_IMG ?= quay.io/rhdh/iib:$(VERSION)
 
 # Set CATALOG_BASE_IMG to an existing catalog image tag to add $BUNDLE_IMGS to that image.
 ifneq ($(origin CATALOG_BASE_IMG), undefined)
