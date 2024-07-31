@@ -189,22 +189,30 @@ If a second RC build is needed, re-enable the scheduled pipeline (or trigger a p
 . [ ] link:../build/helm/prepare.sh[Push the helm chart].
 +
 ```
-CHART_VERSION=1.1.2
-RHDH_VERSION=1.1-107
-export GITHUB_TOKEN=<your token here>
+# log in as the bot
+git config --global user.name "rhdh-bot service account"
+git config --global user.email "rhdh-bot@redhat.com"
+export GITHUB_TOKEN=ghp_***** 
+gh auth status
 
-cd /tmp; git clone git@gitlab.cee.redhat.com:rhidp/rhdh.git --depth 1 && cd rhdh
+# create pull request
+./build/helm/prepare.sh --chart-version 1.2.2 --rhdh-version 1.2-132 --chart-branch 1.2.x --catalog git@github.com:rhdh-bot/openshift-helm-charts.git --publish
+```
 
-# use tag from https://quay.io/repository/rhdh/rhdh-hub-rhel9?tab=tags
-./build/helm/prepare.sh --chart-version "${CHART_VERSION}"" --rhdh-version "${RHDH_VERSION}" --catalog git@github.com:rhdh-bot/openshift-helm-charts.git --publish
-
-# the generated branch will be invalid for creating a PR, as it will be waaay out of date compared to the openshift main branch
-cd /tmp
-git clone git@github.com:openshift-helm-charts/charts.git --depth 1 && cd charts
-git remote add rhdh-bot git@github.com:rhdh-bot/openshift-helm-charts.git && git fetch rhdh-bot && git checkout release-${CHART_VERSION}
-
-# create a pull request from the release-${CHART_VERSION} branch of rhdh-bot to the openshift main branch
-gh pr create --fill --base openshift-helm-charts:main --head rhdh-bot:release-"${CHART_VERSION}" -w
+You should see something like this:
+```
+Create chart for 1.2-132 (1.2.2)
+Set image digests in charts/backstage/values.yaml: 
+* RHDH_DIGEST = 9709e056f194a24c809dd82b4ab10aa05a9c31574e68ae8d1a5e91de19237045, 
+* POSTGRESQL_DIGEST = f1f581d8974799f17d4707f9161b2d0568a07255e535ca3be3b36ce254b091a4
+...
+Chart version:        1.2.2
+Developer Hub image:  registry.redhat.io/rhdh/rhdh-hub-rhel9:1.2-132
+Branch:               https://github.com/rhdh-bot/openshift-helm-charts/tree/redhat-developer-hub-1.2.2
+...
+[release-1.2.2 daf0844] chore: chart: add Red Hat Developer 1.2.2 for registry.redhat.io/rhdh/rhdh-hub-rhel9:1.2-132
+...
+https://github.com/openshift-helm-charts/charts/pull/1556
 ```
 
 . [ ] link:../build/scripts/copyIIBsToQuay.sh[Release the operator IIB to Quay] so it doesn't expire.

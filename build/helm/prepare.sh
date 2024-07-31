@@ -72,11 +72,10 @@ Examples:
     $ gh auth login -h github.com
     # 2. Run a manual release as the bot:
     $ export GITHUB_TOKEN=ghp_rhdh-bot-token-here
-    $ $0 --chart-version 1.2.1 --rhdh-version 1.2-105.1719294777 --chart-branch 1.2.x --catalog git@github.com:rhdh-bot/openshift-helm-charts.git --publish
-    $ $0 --chart-version 1.2.0 --rhdh-version 1.2-105 --chart-branch 1.2.x --catalog git@github.com:rhdh-bot/openshift-helm-charts.git --publish
+    $ $0 --chart-version 1.2.2 --rhdh-version 1.2-132 --chart-branch 1.2.x --catalog git@github.com:rhdh-bot/openshift-helm-charts.git --publish
     $ $0 --chart-version 1.1.4 --rhdh-version 1.1-107.1717076948 --chart-branch 1.1.x --catalog git@github.com:rhdh-bot/openshift-helm-charts.git --publish
-    Chart version:       1.2.1
-    Developer Hub image:  quay.io/rhdh/rhdh-hub-rhel9:1.2-105
+    Chart version:       1.2.2
+    Developer Hub image:  quay.io/rhdh/rhdh-hub-rhel9:1.2-132
 
     # NOTE that the PR may not be created correctly! You may have to manually create a PR from the release-x.y.z branch.
 "
