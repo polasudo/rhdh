@@ -33,8 +33,8 @@ BUNDLE_METADATA_OPTS ?= $(BUNDLE_CHANNELS) $(BUNDLE_DEFAULT_CHANNEL)
 # This variable is used to construct full image tags for bundle and catalog images.
 #
 # For example, running 'make bundle-build bundle-push catalog-build catalog-push' will build and push both
-# quay.io/janus-idp/operator-bundle:$VERSION and quay.io/janus-idp/operator-catalog:$VERSION.
-IMAGE_TAG_BASE ?= quay.io/janus-idp/operator
+# quay.io/rhdh/upstream-rhdh-rhel9-operator-bundle:$VERSION and quay.io/rhdh/upstream-rhdh-rhel9-operator-catalog:$VERSION.
+IMAGE_TAG_BASE ?= quay.io/rhdh/upstream-rhdh-rhel9-operator
 
 # BUNDLE_IMG defines the image:tag used for the bundle.
 # You can use it as an arg. (E.g make bundle-build BUNDLE_IMG=<some-registry>/<project-name-bundle>:<tag>)
@@ -60,7 +60,7 @@ ENVTEST_K8S_VERSION = 1.25.0
 # it has to be defined as a set of YAML files inside ./config/manager/$(CONF_DIR) directory
 # to use other config - add a directory with config and run 'CONF_DIR=<dir-name> make ...'
 # TODO find better place than ./config/manager (but not ./config/overlays) ?
-# TODO it works only for make run, needs supporting make deploy as well https://github.com/janus-idp/operator/issues/47
+# TODO it works only for make run, needs supporting make deploy as well https://github.com/redhat-developer/rhdh-operator/issues/47
 CONF_DIR ?= default-config
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)

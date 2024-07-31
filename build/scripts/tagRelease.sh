@@ -314,7 +314,7 @@ function updateOperatorVersions() {
 	the_version="$2"
 	the_version_op="$3"
 	# TODO move to red-hat-developer-hub-operator
-	orgAndRepo="janus-idp/operator"
+	orgAndRepo="redhat-developer/rhdh-operator"
 	d="${orgAndRepo/\//__}"
 	rm -fr "/tmp/tmp-checkouts/projects_${d}_2" && git clone -q --depth 1 -b "${the_branch}" "https://github.com/${orgAndRepo}" "/tmp/tmp-checkouts/projects_${d}_2" || echo "Branch $clone_branch doesn't exist: skip!"
 	pushd "/tmp/tmp-checkouts/projects_${d}_2" >/dev/null || exit 1
@@ -659,7 +659,7 @@ for repo in \
 	redhat-developer/red-hat-developers-documentation-rhdh \
     redhat-developer/red-hat-developer-hub-software-templates \
 	redhat-developer/red-hat-developer-hub-theme \
-    janus-idp/operator \
+    redhat-developer/rhdh-operator \
     janus-idp/backstage-plugins \
     janus-idp/backstage-showcase \
 	; do

@@ -21,7 +21,7 @@ repos:
       - upstream_repos.yaml
     destination_folder: distgit/containers/rhdh-hub/
 
-  - repo: https://github.com/janus-idp/operator
+  - repo: https://github.com/redhat-developer/rhdh-operator
     branch: 
       # list branch to fetch; if first not found, try second as fallback
       - main

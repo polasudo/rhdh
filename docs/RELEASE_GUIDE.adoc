@@ -54,7 +54,7 @@ NOTE: **_TODO_ https://issues.redhat.com/browse/RHIDP-931 verify branch creation
 
 .. [ ] https://github.com/janus-idp/backstage-plugins/branches/all?query=1.&lastTab=overview
 .. [ ] https://github.com/janus-idp/backstage-showcase/branches/all?query=1.&lastTab=overview
-.. [ ] https://github.com/janus-idp/operator/branches/all?query=1.&lastTab=overview
+.. [ ] https://github.com/redhat-developer/rhdh-operator/branches/all?query=1.&lastTab=overview
 
 .. [ ] https://github.com/redhat-developer/red-hat-developers-documentation-rhdh/branches/all?query=1.&lastTab=overview
 .. [ ] https://github.com/redhat-developer/rhdh-chart/branches/all?query=1.&lastTab=overview
@@ -83,8 +83,8 @@ Bump versions in upstream main branches - run link:../build/scripts/tagRelease.s
 .. [ ] Bump link:https://github.com/janus-idp/backstage-showcase/blob/main/package.json#L3[package.json] and e2e-tests/package.json to new 1.y+1 version
 .. [ ] Verify https://github.com/janus-idp/backstage-showcase/blob/main/packages/app/src/build-metadata.json is correct (both Backstage and RHDH versions)
 
-. [ ] janus-idp/operator (**_TODO_: migrate to link:https://issues.redhat.com/browse/RHIDP-1021[rhdh-operator]**)
-.. [ ] Bump versions to 0.y+1 upstream and 1.y+1 downstream (link:https://github.com/janus-idp/operator/tree/main/.rhdh[.rhdh folder]):
+. [ ] redhat-developer/rhdh-operator
+.. [ ] Bump versions to 0.y+1 upstream and 1.y+1 downstream (link:https://github.com/redhat-developer/rhdh-operator/tree/main/.rhdh[.rhdh folder]):
 ... [ ] Makefile
 ... [ ] bundle/manifests/backstage-operator.clusterserviceversion.yaml
 ... [ ] config/manager/kustomization.yaml
@@ -237,7 +237,7 @@ cd /tmp; git clone git@gitlab.cee.redhat.com:rhidp/rhdh.git --depth 1 && cd rhdh
 
 . Smoke tests using clusterbot
 .. [ ] Operator: smoke test the ability to:
-... [ ] install from `fast` - see link:https://github.com/janus-idp/operator/blob/main/.rhdh/docs/installing-ci-builds.adoc[installation]
+... [ ] install from `fast` - see link:https://github.com/redhat-developer/rhdh-operator/blob/main/.rhdh/docs/installing-ci-builds.adoc[installation]
 ... [ ] switch to `fast-1.1` or `fast-1.2` subscription channel
 ... [ ] verify update from of 1.1.0 -> 1.1.1 (or 1.2.0)
 .. [ ] Helm Chart: smoke test the ability

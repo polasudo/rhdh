@@ -38,7 +38,7 @@ usage() {
 echo "
 
 ######################################################################################################################################
-For a simpler version of this script, see https://github.com/janus-idp/operator/blob/main/.rhdh/scripts/install-rhdh-catalog-source.sh 
+For a simpler version of this script, see https://github.com/redhat-developer/rhdh-operator/blob/main/.rhdh/scripts/install-rhdh-catalog-source.sh 
 ######################################################################################################################################
 
 This script streamlines testing IIB images by configuring an OpenShift cluster to enable it to use the specified IIB image

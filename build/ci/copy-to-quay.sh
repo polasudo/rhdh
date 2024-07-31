@@ -205,8 +205,8 @@ echo "===== Quay images ===========>" | tee -a /tmp/copy-to-quay.sh.result.txt
 
 #             # TODO should we just run the Makefile#catalog-build + catalog-push
 #             #  to create our own catalog source instead of filtering the official one?
-#             # https://github.com/janus-idp/operator/blob/main/.github/workflows/pr-docker-build.yaml#L98C1-L102C114
-#             # https://github.com/janus-idp/operator/blob/main/Makefile#L301-L310
+#             # https://github.com/redhat-developer/rhdh-operator/blob/main/.github/workflows/pr-docker-build.yaml#L98C1-L102C114
+#             # https://github.com/redhat-developer/rhdh-operator/blob/main/Makefile#L301-L310
             
 #             # to replace existing quay images, use --force flag or set an extra tag with "-e 1.1.1.RC"
 #             ./build/scripts/copyIIBsToQuay.sh --push --kaniko --no-validate --authfile $REGISTRY_AUTH_FILE -v -t "${DH_VERSION}" | tee -a /tmp/copy-to-quay.sh.result.txt

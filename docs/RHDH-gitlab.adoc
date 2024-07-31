@@ -12,7 +12,7 @@ See also https://issues.redhat.com/browse/RHIDP-2525
 
 . Push a change to either of the link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1-rhel-9/upstream_repos.yml[upstream repos] - make sure you're pushing to the correct branch for the downstream sync.
     ** https://github.com/janus-idp/backstage-showcase
-    ** https://github.com/janus-idp/operator
+    ** https://github.com/redhat-developer/rhdh-operator
 
 . Wait until the next scheduled build (runs every 3 or 4 hours) or trigger a pipeline job from the link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/pipeline_schedules[Pipeline Schedules] page using the play icon:
 

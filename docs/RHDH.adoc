@@ -18,8 +18,8 @@ We use GitHub issues for upstream, link:https://issues.redhat.com/browse/RHIDP[R
 
 . https://github.com/janus-idp/backstage-plugins (Collection of Backstage plugins, some of which are included in the RHDH hub container)
 . https://github.com/janus-idp/backstage-showcase (Janus branded, transformed to RHDH hub container)
-. https://github.com/janus-idp/operator (Janus branded Operator, link:https://github.com/janus-idp/operator/tree/main/.rhdh[transformed] to RHDH operator and operator-bundle container)
-. https://github.com/janus-idp/operator/tree/main/bundle (Janus branded Operator Bundle, link:https://github.com/janus-idp/operator/tree/main/.rhdh[transformed] to RHDH operator-bundle container)
+. https://github.com/redhat-developer/rhdh-operator (Janus branded Operator, link:https://github.com/redhat-developer/rhdh-operator/tree/main/.rhdh[transformed] to RHDH operator and operator-bundle container)
+. https://github.com/redhat-developer/rhdh-operator/tree/main/bundle (Janus branded Operator Bundle, link:https://github.com/redhat-developer/rhdh-operator/tree/main/.rhdh[transformed] to RHDH operator-bundle container)
 
 ### Midstream and downstream repos
 
@@ -209,12 +209,12 @@ Process should be the same as for building the hub container.
 Note these changes to upstream content:
 
 * upstream for the operator: 
-  ** https://github.com/janus-idp/operator
-  ** https://github.com/janus-idp/operator/tree/main/.rhdh/docker/Dockerfile
+  ** https://github.com/redhat-developer/rhdh-operator
+  ** https://github.com/redhat-developer/rhdh-operator/tree/main/.rhdh/docker/Dockerfile
 
 * upstream for the operator-bundle:
-  ** https://github.com/janus-idp/operator/tree/main/bundle
-  ** https://github.com/janus-idp/operator/tree/main/.rhdh
+  ** https://github.com/redhat-developer/rhdh-operator/tree/main/bundle
+  ** https://github.com/redhat-developer/rhdh-operator/tree/main/.rhdh
 
 CI builds are now published to Quay automatically every 4 hours, including a new link:https://quay.io/repository/rhdh/iib?tab=tags[IIB] you can use as a CatalogSource to link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1-rhel-9/build/scripts/installCatalogSourceFromIIB.sh[install the latest or next build].
 
@@ -231,7 +231,7 @@ CI builds are now published to Quay automatically every 4 hours, including a new
 oc login --token=sha256~z6Whfzg3Q-Gy345vIAOd5f4ghhha5o0sgqgIRipgmcY --server=https://api.ci-ab-12345-678900.cluster-here.rhcloud.com:6443
 ```
 +
-. Log in to quay.io and registry.redhat.io, and use those tokens as pull secrets in your cluster -- see link:https://github.com/janus-idp/operator/blob/main/.rhdh/docs/installing-ci-builds.adoc[installing-ci-builds.adoc] for more on this and a scripted solution.
+. Log in to quay.io and registry.redhat.io, and use those tokens as pull secrets in your cluster -- see link:https://github.com/redhat-developer/rhdh-operator/blob/main/.rhdh/docs/installing-ci-builds.adoc[installing-ci-builds.adoc] for more on this and a scripted solution.
 ** Your user should have read permission for link:http://quay.io/rhdh[quay.io/rhdh] images
 ** If you don't, send your quay username to @nboldt in Slack to be added
 

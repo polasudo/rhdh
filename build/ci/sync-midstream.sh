@@ -337,7 +337,7 @@ for ((i = 0; i < NUM_REPOS; i++)); do # echo $i
       # NOTE: if we add any .dotfiles in bundle/, add $TMPDIR/repo${i}/bundle/.??* to regexes copied 
       rsync -azq --delete $TMPDIR/repo${i}/bundle/* $TMPDIR/repo${i}/.gitignore "${BUNDLEDIR}/" --exclude=.git ${excludesFlags}
 
-      # downstream CSV and annotations are stored in https://github.com/janus-idp/operator/tree/main/.rhdh/bundle/
+      # downstream CSV and annotations are stored in https://github.com/redhat-developer/rhdh-operator/tree/main/.rhdh/bundle/
       # append overrides from the .rhdh/ tree: CSV and annotations
       rsync -azq $TMPDIR/repo${i}/.rhdh/bundle/* "${BUNDLEDIR}/" --exclude=.git ${excludesFlags}
       # and copy .rhdh/docker/bundle.Dockerfile to Dockerfile.in
