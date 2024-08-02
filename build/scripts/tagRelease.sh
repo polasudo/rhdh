@@ -129,7 +129,7 @@ createPr() {
 			git push origin "${headBranch}" 1>/dev/null # ${FORCE_PUSH}
 			gh repo set-default "$(git remote get-url origin)"
 			# shellcheck disable=SC2086
-			gh pr create --fill-verbose -t "feat: tagRelease.sh bump versions in $baseBranch for ${PROD_VERSION} release" -B "${baseBranch}" -H "${headBranch}" ${DRYRUN} || true
+			gh pr create --fill -B "${baseBranch}" -H "${headBranch}" ${DRYRUN} || true
 			# if not running in a gitlab pipeline, open the PR in a browser 
 			if [[ $GITLAB_PIPELINE != "true" ]]; then
 				gh pr view --web || true
@@ -158,7 +158,7 @@ doPush () {
   createPr "${pr_branch}" "${the_branch}"
 }
 
-# compute the next .z versions based on the input CVS version
+# compute the next .z versions based on the input CSV version
 # eg., for 1.1.2 get 1.1.3 (showcase repo, RHDH CSV), 0.1.3 (operator repo, upstream CSV), and 3.1.3 (plugins repo root package.json)
 CSV_VERSION_Z=""
 CSV_VERSION_Z_OPERATOR=""
@@ -182,7 +182,7 @@ getNextCSVZ() {
 	fi
 }
 
-# compute the next .z versions based on the input CVS version
+# compute the next .z versions based on the input CSV version
 # eg., for 1.1.2 get 1.1.3 (showcase repo, RHDH CSV), 0.1.3 (operator repo, upstream CSV)
 newver="1.y.0"
 newverOp="0.y.0"
@@ -641,7 +641,13 @@ pushTagPD ()
 
 ####################################
 
-getXYplusOneFromBranch "$TARGET_BRANCH"; # echo "newver = $newver; newverOp = $newverOp"
+getXYplusOneFromBranch "$TARGET_BRANCH"
+# eg., for 1.2.2 get 1.2.3 (showcase repo, RHDH CSV), 0.2.3 (operator repo, upstream CSV)
+# echo "newver = $newver; newverOp = $newverOp"
+
+# getNextCSVZ
+# # eg., for 1.2.2 get 1.2.3 (showcase repo, RHDH CSV), 0.2.3 (operator repo, upstream CSV), and 3.2.3 (plugins repo root package.json)
+# echo "CSV_VERSION_Z = $CSV_VERSION_Z; CSV_VERSION_Z_OPERATOR = $CSV_VERSION_Z_OPERATOR; CSV_VERSION_Z_PLUGINS = $CSV_VERSION_Z_PLUGINS"
 
 ############
 # UPSTREAM 
