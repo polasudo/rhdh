@@ -472,6 +472,8 @@ for ((i = 0; i < NUM_REPOS; i++)); do # echo $i
       -e "s#FROM (registry.access.redhat.com|registry.redhat.io)/#FROM #g" \
       `# Use registry-proxy.engineering.redhat.com/rh-osbs/rhel9-go-toolset for Brew` \
       -e "s#FROM(.+)ubi9/go-toolset#FROM\1rhel9/go-toolset#g" \
+      `# remove @SHA256:digest suffixes that were added by renovate` \
+      -e "s#FROM (.+):(.+)(\@sha256:[0-9a-f]+)([A-Za-z ]*)#FROM \1:\2\4#g" \
       `# Remove unnecessary intermediate named stages (which Brew doesn't like); rename initial stage from skeleton to builder`
     # -e "/FROM (skeleton|deps|cleanup) AS .+/d" -e "s/--from=build //" -e "s/--from=cleanup/--from=builder/" -e "s/AS skeleton/AS builder/"
 
