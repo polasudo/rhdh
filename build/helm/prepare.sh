@@ -180,11 +180,11 @@ fi
 # TODO switch to jq wrapper version of yq (not mikefarah)
 if ! command -v $YQ &> /dev/null; then
     echo "Installing mikefarah yq version $mikefarahyq_version ..."
-    curl -sSLo $YQ https://github.com/mikefarah/yq/releases/download/v${mikefarahyq_version}/yq_linux_amd64 && chmod +x $YQ
+    curl -sSLo $YQ https://github.com/mikefarah/yq/releases/download/v${mikefarahyq_version}/yq_linux_amd64 && chmod +x "$YQ"
 fi
 
 for c in gh git helm helm-docs oc podman $YQ; do
-    if ! command -v $c &> /dev/null; then
+    if ! command -v "$c" &> /dev/null; then
         echo "Command not found: '$c'"
         usage
     fi
@@ -195,10 +195,10 @@ if [[ $DEBUG -eq 1 ]]; then
     echo "Fetching Janus-IDP chart..."
 fi
 # skip binaries with --filter=blob:none
-git clone --depth=1 -q --branch=${CHART_BRANCH} https://github.com/redhat-developer/rhdh-chart.git "${HELM_DIR}"
+git clone --depth=1 -q --branch="${CHART_BRANCH}" https://github.com/redhat-developer/rhdh-chart.git "${HELM_DIR}"
 
 if [[ $DEBUG -eq 1 ]]; then
-    echo "Patching 'Chart.yaml', 'values.yaml', 'README.md.gotmpl'..."
+    echo "Patching 'Chart.yaml', 'values.yaml', 'README.md.gotmpl' from branch ${CHART_BRANCH} ..."
 fi
 
 # TODO revise these to use jq wrapper version of yq (not mikefarah)
