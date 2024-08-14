@@ -20,7 +20,7 @@ metadata:
     categories: Developer Tools
     certified: 'true'
     containerImage: registry-proxy.engineering.redhat.com/rh-osbs/rhdh-rhdh-rhel9-operator:1.3
-    createdAt: "2024-08-12T16:26:07Z"
+    createdAt: "2024-08-14T13:25:27Z"
     description: Red Hat Developer Hub is a Red Hat supported version of Backstage.
       It comes with pre-built plug-ins and configuration settings, supports use of an external database, and can
       help streamline the process of setting up a self-managed internal
@@ -349,14 +349,8 @@ spec:
   - name: RHDH Operator (Downstream)
     url: https://gitlab.cee.redhat.com/rhidp/rhdh/
   maintainers:
-  - email: asoro@redhat.com
-    name: Armel Soro
-  - email: cdaley@redhat.com
-    name: Corey Daley
-  - email: gazarenk@redhat.com
-    name: Gennady Azarenkov
-  - email: nboldt@redhat.com
-    name: Nick Boldt
+  - email: rhdh-notifications@redhat.com
+    name: Red Hat Developer Team
   maturity: alpha
   minKubeVersion: 1.25.0
   provider:
