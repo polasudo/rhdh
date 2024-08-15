@@ -2,28 +2,27 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var backendPluginApi = require('@backstage/backend-plugin-api');
+var require$$0 = require('@backstage/backend-plugin-api');
 var require$$2 = require('@backstage/integration');
 var alpha = require('@backstage/plugin-scaffolder-node/alpha');
-var require$$0 = require('@backstage/backend-common');
 var require$$1 = require('@backstage/errors');
-var require$$3 = require('@backstage/plugin-scaffolder-backend');
-var require$$4 = require('azure-devops-node-api');
-var require$$5 = require('path');
+var require$$3 = require('@backstage/plugin-scaffolder-node');
+var require$$4 = require('@backstage/backend-common');
+var require$$5 = require('azure-devops-node-api');
+var require$$6 = require('@backstage/cli-common');
+var require$$7 = require('path');
 
-var index_cjs = {};
-
-Object.defineProperty(index_cjs, '__esModule', { value: true });
-
-var backendCommon = require$$0;
+var backendPluginApi = require$$0;
 var errors = require$$1;
 var integration = require$$2;
-var pluginScaffolderBackend = require$$3;
-var azdev = require$$4;
-var path = require$$5;
+var pluginScaffolderNode = require$$3;
+var backendCommon = require$$4;
+var azdev = require$$5;
+var cliCommon = require$$6;
+var path = require$$7;
 
-function _interopNamespace$1(e) {
-  if (e && e.__esModule) return e;
+function _interopNamespaceCompat(e) {
+  if (e && typeof e === 'object' && 'default' in e) return e;
   var n = Object.create(null);
   if (e) {
     Object.keys(e).forEach(function (k) {
@@ -36,11 +35,11 @@ function _interopNamespace$1(e) {
       }
     });
   }
-  n["default"] = e;
+  n.default = e;
   return Object.freeze(n);
 }
 
-var azdev__namespace = /*#__PURE__*/_interopNamespace$1(azdev);
+var azdev__namespace = /*#__PURE__*/_interopNamespaceCompat(azdev);
 
 async function cloneRepo({
   dir,
@@ -56,16 +55,14 @@ async function cloneRepo({
   });
   await git.clone({
     url: remoteUrl,
-    dir
+    dir,
+    ref: branch,
+    noCheckout: false
   });
   await git.addRemote({
     dir,
     remote,
     url: remoteUrl
-  });
-  await git.checkout({
-    dir,
-    ref: branch
   });
 }
 async function commitAndPushBranch({
@@ -170,7 +167,7 @@ async function updateADOPullRequest({
 
 const cloneAzureRepoAction = (options) => {
   const { integrations } = options;
-  return pluginScaffolderBackend.createTemplateAction({
+  return pluginScaffolderNode.createTemplateAction({
     id: "azure:repo:clone",
     description: "Clone an Azure repository into the workspace directory.",
     schema: {
@@ -210,7 +207,7 @@ const cloneAzureRepoAction = (options) => {
       var _a;
       const { remoteUrl, branch } = ctx.input;
       const targetPath = (_a = ctx.input.targetPath) != null ? _a : "./";
-      const outputDir = backendCommon.resolveSafeChildPath(ctx.workspacePath, targetPath);
+      const outputDir = backendPluginApi.resolveSafeChildPath(ctx.workspacePath, targetPath);
       const provider = integration.DefaultAzureDevOpsCredentialsProvider.fromIntegrations(integrations);
       const credentials = await provider.getCredentials({ url: remoteUrl });
       let auth;
@@ -243,7 +240,7 @@ const getRepoSourceDirectory = (workspacePath, sourcePath) => {
       ""
     );
     const path$1 = path.join(workspacePath, safeSuffix);
-    if (!backendCommon.isChildPath(workspacePath, path$1)) {
+    if (!cliCommon.isChildPath(workspacePath, path$1)) {
       throw new Error("Invalid source path");
     }
     return path$1;
@@ -253,7 +250,7 @@ const getRepoSourceDirectory = (workspacePath, sourcePath) => {
 
 const pushAzureRepoAction = (options) => {
   const { integrations, config } = options;
-  return pluginScaffolderBackend.createTemplateAction({
+  return pluginScaffolderNode.createTemplateAction({
     id: "azure:repo:push",
     description: "Push the content in the workspace to a remote Azure repository.",
     schema: {
@@ -313,7 +310,7 @@ const pushAzureRepoAction = (options) => {
 
 const pullRequestAzureRepoAction = (options) => {
   const { integrations } = options;
-  return pluginScaffolderBackend.createTemplateAction({
+  return pluginScaffolderNode.createTemplateAction({
     id: "azure:repo:pr",
     description: "Create a PR to a repository in Azure DevOps.",
     schema: {
@@ -425,7 +422,7 @@ const pullRequestAzureRepoAction = (options) => {
         const updateProperties = {
           autoCompleteSetBy: { id: (_g = pullRequestResponse.createdBy) == null ? void 0 : _g.id },
           // the idea here is that if you want to fire-and-forget the PR by setting autocomplete, you don't also want
-          // the branch to stick around afterwards.  
+          // the branch to stick around afterwards.
           completionOptions: {
             deleteSourceBranch: true
           }
@@ -447,18 +444,18 @@ const pullRequestAzureRepoAction = (options) => {
   });
 };
 
-var cloneAzureRepoAction_1 = index_cjs.cloneAzureRepoAction = cloneAzureRepoAction;
-var pullRequestAzureRepoAction_1 = index_cjs.pullRequestAzureRepoAction = pullRequestAzureRepoAction;
-var pushAzureRepoAction_1 = index_cjs.pushAzureRepoAction = pushAzureRepoAction;
+var cloneAzureRepoAction_1 = cloneAzureRepoAction;
+var pullRequestAzureRepoAction_1 = pullRequestAzureRepoAction;
+var pushAzureRepoAction_1 = pushAzureRepoAction;
 
-const azureRepositoriesActions = backendPluginApi.createBackendModule({
+const azureRepositoriesActions = require$$0.createBackendModule({
   moduleId: "scaffolder-backend-azure-repositories",
   pluginId: "scaffolder",
   register(env) {
     env.registerInit({
       deps: {
         scaffolder: alpha.scaffolderActionsExtensionPoint,
-        config: backendPluginApi.coreServices.rootConfig
+        config: require$$0.coreServices.rootConfig
       },
       async init({ config, scaffolder }) {
         const integrations = require$$2.ScmIntegrations.fromConfig(config);
