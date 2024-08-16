@@ -38,55 +38,6 @@ backend:
   database:
     client: better-sqlite3
     connection: ':memory:'
-proxy:
-  endpoints:
-    /quay/api:
-      target: https://quay.io/
-      headers:
-        X-Requested-With: 'XMLHttpRequest'
-      changeOrigin: true
-      secure: true
-    /sonarqube:
-      target: ${SONARQUBE_URL}/api
-      allowedMethods: ['GET']
-      auth: ${SONARQUBE_TOKEN}
-    /jenkins/api:
-      target: ${JENKINS_URL}
-      headers:
-        Authorization: ${JENKINS_TOKEN}
-    /jira/api:
-      target: ${JIRA_URL}
-      headers:
-        Authorization: ${JIRA_TOKEN}
-        Accept: 'application/json'
-        Content-Type: 'application/json'
-        X-Atlassian-Token: 'no-check'
-        User-Agent: ${JIRA_USER_AGENT}
-    /acr/api:
-      target: ${ACR_URL}
-      changeOrigin: true
-      headers:
-        Authorization: 'Bearer ${ACR_AUTH_TOKEN}'
-      secure: true
-    /jfrog-artifactory/api:
-      target: ${ARTIFACTORY_URL}
-      headers:
-        Authorization: Bearer ${ARTIFACTORY_TOKEN}
-      secure: ${ARTIFACTORY_SECURE}
-    /pagerduty:
-      target: https://api.pagerduty.com
-      headers:
-        Authorization: Token token=${PAGERDUTY_TOKEN}
-    /dynatrace:
-      target: ${DYNATRACE_API_URL}
-      headers:
-        Authorization: 'Api-Token ${DYNATRACE_ACCESS_TOKEN}'
-    /nexus-repository-manager:
-      target: ${NEXUS_REPOSITORY_MANAGER_URL}
-      headers:
-        X-Requested-With: 'XMLHttpRequest'
-      changeOrigin: true
-      secure: ${NEXUS_REPOSITORY_MANAGER_SECURE}
 scaffolder: {}
 catalog:
   import:
