@@ -16,7 +16,7 @@ require('@backstage/plugin-catalog-node');
 
 var alpha_cjs = {};
 
-var MicrosoftGraphOrgEntityProviderDz277Dql_cjs = {};
+var MicrosoftGraphOrgEntityProviderMdJJRFUn_cjs = {};
 
 var catalogModel = require$$0;
 var lodash = require$$1;
@@ -93,8 +93,8 @@ class MicrosoftGraphClient {
    * @param queryMode - Mode to use while querying. Some features are only available at "advanced".
    */
   async *requestCollection(path, query, queryMode) {
-    const appliedQueryMode = (query == null ? void 0 : query.search) ? "advanced" : queryMode != null ? queryMode : "basic";
-    if (appliedQueryMode === "advanced" && ((query == null ? void 0 : query.filter) || (query == null ? void 0 : query.select))) {
+    const appliedQueryMode = query?.search ? "advanced" : queryMode ?? "basic";
+    if (appliedQueryMode === "advanced" && (query?.filter || query?.select)) {
       query.count = true;
     }
     const headers = appliedQueryMode === "advanced" ? {
@@ -126,15 +126,14 @@ class MicrosoftGraphClient {
    * @param headers - optional HTTP headers
    */
   async requestApi(path, query, headers) {
-    var _a;
     const queryString = qs__default.default.stringify(
       {
-        $search: query == null ? void 0 : query.search,
-        $filter: query == null ? void 0 : query.filter,
-        $select: (_a = query == null ? void 0 : query.select) == null ? void 0 : _a.join(","),
-        $expand: query == null ? void 0 : query.expand,
-        $count: query == null ? void 0 : query.count,
-        $top: query == null ? void 0 : query.top
+        $search: query?.search,
+        $filter: query?.filter,
+        $select: query?.select?.join(","),
+        $expand: query?.expand,
+        $count: query?.count,
+        $top: query?.top
       },
       {
         addQueryPrefix: true,
@@ -169,7 +168,7 @@ class MicrosoftGraphClient {
         }
       });
     } catch (e) {
-      if ((e == null ? void 0 : e.code) === "ETIMEDOUT" && retryCount > 0) {
+      if (e?.code === "ETIMEDOUT" && retryCount > 0) {
         return this.requestRaw(url, headers, retryCount - 1);
       }
       throw e;
@@ -333,12 +332,11 @@ class MicrosoftGraphClient {
 const DEFAULT_PROVIDER_ID = "default";
 const DEFAULT_TARGET = "https://graph.microsoft.com/v1.0";
 function readMicrosoftGraphConfig(config) {
-  var _a, _b;
   const providers = [];
-  const providerConfigs = (_a = config.getOptionalConfigArray("providers")) != null ? _a : [];
+  const providerConfigs = config.getOptionalConfigArray("providers") ?? [];
   for (const providerConfig of providerConfigs) {
     const target = lodash.trimEnd(
-      (_b = providerConfig.getOptionalString("target")) != null ? _b : DEFAULT_TARGET,
+      providerConfig.getOptionalString("target") ?? DEFAULT_TARGET,
       "/"
     );
     const authority = providerConfig.getOptionalString("authority");
@@ -419,9 +417,8 @@ function readProviderConfigs(config) {
   });
 }
 function readProviderConfig(id, config) {
-  var _a;
   const target = lodash.trimEnd(
-    (_a = config.getOptionalString("target")) != null ? _a : DEFAULT_TARGET,
+    config.getOptionalString("target") ?? DEFAULT_TARGET,
     "/"
   );
   const authority = config.getOptionalString("authority");
@@ -623,14 +620,10 @@ function buildOrgHierarchy(groups) {
 function buildMemberOf(groups, users) {
   const groupsByName = new Map(groups.map((g) => [g.metadata.name, g]));
   users.forEach((user) => {
-    var _a;
     const transitiveMemberOf = /* @__PURE__ */ new Set();
     const todo = [
-      ...(_a = user.spec.memberOf) != null ? _a : [],
-      ...groups.filter((g) => {
-        var _a2;
-        return (_a2 = g.spec.members) == null ? void 0 : _a2.includes(user.metadata.name);
-      }).map((g) => g.metadata.name)
+      ...user.spec.memberOf ?? [],
+      ...groups.filter((g) => g.spec.members?.includes(user.metadata.name)).map((g) => g.metadata.name)
     ];
     for (; ; ) {
       const current = todo.pop();
@@ -640,7 +633,7 @@ function buildMemberOf(groups, users) {
       if (!transitiveMemberOf.has(current)) {
         transitiveMemberOf.add(current);
         const group = groupsByName.get(current);
-        if (group == null ? void 0 : group.spec.parent) {
+        if (group?.spec.parent) {
           todo.push(group.spec.parent);
         }
       }
@@ -724,36 +717,34 @@ async function readMicrosoftGraphUsersInGroups(client, options) {
   };
 }
 async function readMicrosoftGraphOrganization(client, tenantId, options) {
-  var _a;
   const organization = await client.getOrganization(tenantId);
-  const transformer = (_a = options == null ? void 0 : options.transformer) != null ? _a : defaultOrganizationTransformer;
+  const transformer = options?.transformer ?? defaultOrganizationTransformer;
   const rootGroup = await transformer(organization);
   return { rootGroup };
 }
 async function readMicrosoftGraphGroups(client, tenantId, options) {
-  var _a;
   const groups = [];
   const groupMember = /* @__PURE__ */ new Map();
   const groupMemberOf = /* @__PURE__ */ new Map();
   const limiter = limiterFactory__default.default(10);
   const { rootGroup } = await readMicrosoftGraphOrganization(client, tenantId, {
-    transformer: options == null ? void 0 : options.organizationTransformer
+    transformer: options?.organizationTransformer
   });
   if (rootGroup) {
     groupMember.set(rootGroup.metadata.name, /* @__PURE__ */ new Set());
     groups.push(rootGroup);
   }
-  const transformer = (_a = options == null ? void 0 : options.groupTransformer) != null ? _a : defaultGroupTransformer;
+  const transformer = options?.groupTransformer ?? defaultGroupTransformer;
   const promises = [];
   for await (const group of client.getGroups(
     {
-      expand: options == null ? void 0 : options.groupExpand,
-      filter: options == null ? void 0 : options.groupFilter,
-      search: options == null ? void 0 : options.groupSearch,
-      select: options == null ? void 0 : options.groupSelect,
+      expand: options?.groupExpand,
+      filter: options?.groupFilter,
+      search: options?.groupSearch,
+      select: options?.groupSelect,
       top: PAGE_SIZE
     },
-    options == null ? void 0 : options.queryMode
+    options?.queryMode
   )) {
     promises.push(
       limiter(async () => {
@@ -823,8 +814,7 @@ function resolveRelations(rootGroup, groups, users, groupMember, groupMemberOf) 
     });
   }
   groups.forEach((group) => {
-    var _a;
-    const id = (_a = group.metadata.annotations[MICROSOFT_GRAPH_GROUP_ID_ANNOTATION]) != null ? _a : group.metadata.annotations[MICROSOFT_GRAPH_TENANT_ID_ANNOTATION];
+    const id = group.metadata.annotations[MICROSOFT_GRAPH_GROUP_ID_ANNOTATION] ?? group.metadata.annotations[MICROSOFT_GRAPH_TENANT_ID_ANNOTATION];
     retrieveItems(groupMember, id).forEach((m) => {
       const childGroup = groupMap.get(m);
       if (childGroup) {
@@ -854,7 +844,7 @@ function resolveRelations(rootGroup, groups, users, groupMember, groupMemberOf) 
   buildMemberOf(groups, users);
 }
 async function readMicrosoftGraphOrg(client, tenantId, options) {
-  const users = [];
+  let users = [];
   if (options.userGroupMemberFilter || options.userGroupMemberSearch) {
     const { users: usersInGroups } = await readMicrosoftGraphUsersInGroups(
       client,
@@ -870,7 +860,7 @@ async function readMicrosoftGraphOrg(client, tenantId, options) {
         logger: options.logger
       }
     );
-    users.push(...usersInGroups);
+    users = usersInGroups;
   } else {
     const { users: usersWithFilter } = await readMicrosoftGraphUsers(client, {
       queryMode: options.queryMode,
@@ -881,7 +871,7 @@ async function readMicrosoftGraphOrg(client, tenantId, options) {
       transformer: options.userTransformer,
       logger: options.logger
     });
-    users.push(...usersWithFilter);
+    users = usersWithFilter;
   }
   const { groups, rootGroup, groupMember, groupMemberOf } = await readMicrosoftGraphGroups(client, tenantId, {
     queryMode: options.queryMode,
@@ -899,7 +889,7 @@ async function readMicrosoftGraphOrg(client, tenantId, options) {
 }
 async function transformUsers(client, users, logger, loadUserPhotos = true, transformer) {
   const limiter = limiterFactory__default.default(10);
-  const resolvedTransformer = transformer != null ? transformer : defaultUserTransformer;
+  const resolvedTransformer = transformer ?? defaultUserTransformer;
   const promises = [];
   const entities = [];
   for await (const user of users) {
@@ -944,22 +934,15 @@ function ensureItem(target, key, value) {
   set.add(value);
 }
 function retrieveItems(target, key) {
-  var _a;
-  return (_a = target.get(key)) != null ? _a : /* @__PURE__ */ new Set();
+  return target.get(key) ?? /* @__PURE__ */ new Set();
 }
 
-var __defProp = Object.defineProperty;
-var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
-var __publicField = (obj, key, value) => {
-  __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
-  return value;
-};
 class MicrosoftGraphOrgEntityProvider$1 {
   constructor(options) {
     this.options = options;
-    __publicField(this, "connection");
-    __publicField(this, "scheduleFn");
   }
+  connection;
+  scheduleFn;
   static fromConfig(configRoot, options) {
     if ("id" in options) {
       return [
@@ -976,13 +959,12 @@ class MicrosoftGraphOrgEntityProvider$1 {
       return transformers[id];
     }
     return readProviderConfigs(configRoot).map((providerConfig) => {
-      var _a;
       if (!options.schedule && !providerConfig.schedule) {
         throw new Error(
           `No schedule provided neither via code nor config for MicrosoftGraphOrgEntityProvider:${providerConfig.id}.`
         );
       }
-      const taskRunner = (_a = options.schedule) != null ? _a : options.scheduler.createScheduledTaskRunner(providerConfig.schedule);
+      const taskRunner = options.schedule ?? options.scheduler.createScheduledTaskRunner(providerConfig.schedule);
       const provider = new MicrosoftGraphOrgEntityProvider$1({
         id: providerConfig.id,
         provider: providerConfig,
@@ -998,6 +980,10 @@ class MicrosoftGraphOrgEntityProvider$1 {
         organizationTransformer: getTransformer(
           providerConfig.id,
           options.organizationTransformer
+        ),
+        providerConfigTransformer: getTransformer(
+          providerConfig.id,
+          options.providerConfigTransformer
         )
       });
       if (taskRunner !== "manual") {
@@ -1031,6 +1017,7 @@ class MicrosoftGraphOrgEntityProvider$1 {
       userTransformer: options.userTransformer,
       groupTransformer: options.groupTransformer,
       organizationTransformer: options.organizationTransformer,
+      providerConfigTransformer: options.providerConfigTransformer,
       logger,
       provider
     });
@@ -1045,21 +1032,19 @@ class MicrosoftGraphOrgEntityProvider$1 {
   }
   /** {@inheritdoc @backstage/plugin-catalog-backend#EntityProvider.connect} */
   async connect(connection) {
-    var _a;
     this.connection = connection;
-    await ((_a = this.scheduleFn) == null ? void 0 : _a.call(this));
+    await this.scheduleFn?.();
   }
   /**
    * Runs one complete ingestion loop. Call this method regularly at some
    * appropriate cadence.
    */
   async read(options) {
-    var _a;
     if (!this.connection) {
       throw new Error("Not initialized");
     }
-    const logger = (_a = options == null ? void 0 : options.logger) != null ? _a : this.options.logger;
-    const provider = this.options.provider;
+    const logger = options?.logger ?? this.options.logger;
+    const provider = this.options.providerConfigTransformer ? await this.options.providerConfigTransformer(this.options.provider) : this.options.provider;
     const { markReadComplete } = trackProgress(logger);
     const client = MicrosoftGraphClient.create(this.options.provider);
     const { users, groups } = await readMicrosoftGraphOrg(
@@ -1069,6 +1054,7 @@ class MicrosoftGraphOrgEntityProvider$1 {
         userExpand: provider.userExpand,
         userFilter: provider.userFilter,
         userSelect: provider.userSelect,
+        loadUserPhotos: provider.loadUserPhotos,
         userGroupMemberFilter: provider.userGroupMemberFilter,
         userGroupMemberSearch: provider.userGroupMemberSearch,
         groupExpand: provider.groupExpand,
@@ -1134,8 +1120,7 @@ function trackProgress(logger) {
   return { markReadComplete };
 }
 function withLocations(providerId, entity) {
-  var _a, _b, _c;
-  const uid = ((_a = entity.metadata.annotations) == null ? void 0 : _a[MICROSOFT_GRAPH_USER_ID_ANNOTATION]) || ((_b = entity.metadata.annotations) == null ? void 0 : _b[MICROSOFT_GRAPH_GROUP_ID_ANNOTATION]) || ((_c = entity.metadata.annotations) == null ? void 0 : _c[MICROSOFT_GRAPH_TENANT_ID_ANNOTATION]) || entity.metadata.name;
+  const uid = entity.metadata.annotations?.[MICROSOFT_GRAPH_USER_ID_ANNOTATION] || entity.metadata.annotations?.[MICROSOFT_GRAPH_GROUP_ID_ANNOTATION] || entity.metadata.annotations?.[MICROSOFT_GRAPH_TENANT_ID_ANNOTATION] || entity.metadata.name;
   const location = `msgraph:${providerId}/${encodeURIComponent(uid)}`;
   return lodash.merge(
     {
@@ -1150,26 +1135,26 @@ function withLocations(providerId, entity) {
   );
 }
 
-MicrosoftGraphOrgEntityProviderDz277Dql_cjs.MICROSOFT_EMAIL_ANNOTATION = MICROSOFT_EMAIL_ANNOTATION;
-MicrosoftGraphOrgEntityProviderDz277Dql_cjs.MICROSOFT_GRAPH_GROUP_ID_ANNOTATION = MICROSOFT_GRAPH_GROUP_ID_ANNOTATION;
-MicrosoftGraphOrgEntityProviderDz277Dql_cjs.MICROSOFT_GRAPH_TENANT_ID_ANNOTATION = MICROSOFT_GRAPH_TENANT_ID_ANNOTATION;
-MicrosoftGraphOrgEntityProviderDz277Dql_cjs.MICROSOFT_GRAPH_USER_ID_ANNOTATION = MICROSOFT_GRAPH_USER_ID_ANNOTATION;
-MicrosoftGraphOrgEntityProviderDz277Dql_cjs.MicrosoftGraphClient = MicrosoftGraphClient;
-MicrosoftGraphOrgEntityProviderDz277Dql_cjs.MicrosoftGraphOrgEntityProvider = MicrosoftGraphOrgEntityProvider$1;
-MicrosoftGraphOrgEntityProviderDz277Dql_cjs.defaultGroupTransformer = defaultGroupTransformer;
-MicrosoftGraphOrgEntityProviderDz277Dql_cjs.defaultOrganizationTransformer = defaultOrganizationTransformer;
-MicrosoftGraphOrgEntityProviderDz277Dql_cjs.defaultUserTransformer = defaultUserTransformer;
-MicrosoftGraphOrgEntityProviderDz277Dql_cjs.normalizeEntityName = normalizeEntityName;
-MicrosoftGraphOrgEntityProviderDz277Dql_cjs.readMicrosoftGraphConfig = readMicrosoftGraphConfig;
-MicrosoftGraphOrgEntityProviderDz277Dql_cjs.readMicrosoftGraphOrg = readMicrosoftGraphOrg;
-MicrosoftGraphOrgEntityProviderDz277Dql_cjs.readProviderConfig = readProviderConfig;
-MicrosoftGraphOrgEntityProviderDz277Dql_cjs.readProviderConfigs = readProviderConfigs;
+MicrosoftGraphOrgEntityProviderMdJJRFUn_cjs.MICROSOFT_EMAIL_ANNOTATION = MICROSOFT_EMAIL_ANNOTATION;
+MicrosoftGraphOrgEntityProviderMdJJRFUn_cjs.MICROSOFT_GRAPH_GROUP_ID_ANNOTATION = MICROSOFT_GRAPH_GROUP_ID_ANNOTATION;
+MicrosoftGraphOrgEntityProviderMdJJRFUn_cjs.MICROSOFT_GRAPH_TENANT_ID_ANNOTATION = MICROSOFT_GRAPH_TENANT_ID_ANNOTATION;
+MicrosoftGraphOrgEntityProviderMdJJRFUn_cjs.MICROSOFT_GRAPH_USER_ID_ANNOTATION = MICROSOFT_GRAPH_USER_ID_ANNOTATION;
+MicrosoftGraphOrgEntityProviderMdJJRFUn_cjs.MicrosoftGraphClient = MicrosoftGraphClient;
+MicrosoftGraphOrgEntityProviderMdJJRFUn_cjs.MicrosoftGraphOrgEntityProvider = MicrosoftGraphOrgEntityProvider$1;
+MicrosoftGraphOrgEntityProviderMdJJRFUn_cjs.defaultGroupTransformer = defaultGroupTransformer;
+MicrosoftGraphOrgEntityProviderMdJJRFUn_cjs.defaultOrganizationTransformer = defaultOrganizationTransformer;
+MicrosoftGraphOrgEntityProviderMdJJRFUn_cjs.defaultUserTransformer = defaultUserTransformer;
+MicrosoftGraphOrgEntityProviderMdJJRFUn_cjs.normalizeEntityName = normalizeEntityName;
+MicrosoftGraphOrgEntityProviderMdJJRFUn_cjs.readMicrosoftGraphConfig = readMicrosoftGraphConfig;
+MicrosoftGraphOrgEntityProviderMdJJRFUn_cjs.readMicrosoftGraphOrg = readMicrosoftGraphOrg;
+MicrosoftGraphOrgEntityProviderMdJJRFUn_cjs.readProviderConfig = readProviderConfig;
+MicrosoftGraphOrgEntityProviderMdJJRFUn_cjs.readProviderConfigs = readProviderConfigs;
 
 Object.defineProperty(alpha_cjs, '__esModule', { value: true });
 
 var backendPluginApi = require$$0$1;
 var alpha = require$$1$1;
-var MicrosoftGraphOrgEntityProvider = MicrosoftGraphOrgEntityProviderDz277Dql_cjs;
+var MicrosoftGraphOrgEntityProvider = MicrosoftGraphOrgEntityProviderMdJJRFUn_cjs;
 
 
 
@@ -1193,6 +1178,7 @@ const catalogModuleMicrosoftGraphOrgEntityProvider = backendPluginApi.createBack
       let userTransformer;
       let groupTransformer;
       let organizationTransformer;
+      let providerConfigTransformer;
       env.registerExtensionPoint(
         microsoftGraphOrgEntityProviderTransformExtensionPoint,
         {
@@ -1213,6 +1199,12 @@ const catalogModuleMicrosoftGraphOrgEntityProvider = backendPluginApi.createBack
               throw new Error("Organization transformer may only be set once");
             }
             organizationTransformer = transformer;
+          },
+          setProviderConfigTransformer(transformer) {
+            if (providerConfigTransformer) {
+              throw new Error("Provider transformer may only be set once");
+            }
+            providerConfigTransformer = transformer;
           }
         }
       );
@@ -1230,7 +1222,8 @@ const catalogModuleMicrosoftGraphOrgEntityProvider = backendPluginApi.createBack
               scheduler,
               userTransformer,
               groupTransformer,
-              organizationTransformer
+              organizationTransformer,
+              providerConfigTransformer
             })
           );
         }

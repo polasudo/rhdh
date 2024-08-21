@@ -306,13 +306,15 @@ class ArgoService {
     resourceVersion,
     destinationServer
   }) {
-    const data = this.buildArgoProjectPayload({
-      projectName,
-      namespace,
-      sourceRepo,
-      resourceVersion,
-      destinationServer
-    });
+    const data = {
+      project: this.buildArgoProjectPayload({
+        projectName,
+        namespace,
+        sourceRepo,
+        resourceVersion,
+        destinationServer
+      })
+    };
     const options = {
       method: "PUT",
       headers: {

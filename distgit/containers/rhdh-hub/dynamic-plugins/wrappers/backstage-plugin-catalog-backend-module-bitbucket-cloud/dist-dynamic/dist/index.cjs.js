@@ -49,7 +49,7 @@ function getAugmentedNamespace(n) {
 
 var alpha_cjs = {};
 
-var BitbucketCloudEntityProviderCTjViEQW_cjs = {};
+var BitbucketCloudEntityProviderCt8mLBA_cjs = {};
 
 class WithPagination {
   constructor(createUrl, fetch) {
@@ -72,14 +72,13 @@ class WithPagination {
     } while (url);
   }
   async *iterateResults(options) {
-    var _a;
     const opts = { page: 1, pagelen: 100, ...options };
     let url = this.createUrl(opts);
     let res;
     do {
       res = await this.fetch(url);
       url = res.next ? new URL(res.next) : void 0;
-      for (const item of (_a = res.values) != null ? _a : []) {
+      for (const item of res.values ?? []) {
         yield item;
       }
     } while (url);
@@ -111,6 +110,22 @@ class BitbucketCloudClient {
         ...paginationOptions,
         ...options
       }),
+      (url) => this.getTypeMapped(url)
+    );
+  }
+  listProjectsByWorkspace(workspace, options) {
+    const workspaceEnc = encodeURIComponent(workspace);
+    return new WithPagination(
+      (paginationOptions) => this.createUrl(`/workspaces/${workspaceEnc}/projects`, {
+        ...paginationOptions,
+        ...options
+      }),
+      (url) => this.getTypeMapped(url)
+    );
+  }
+  listWorkspaces(options) {
+    return new WithPagination(
+      (paginationOptions) => this.createUrl("/workspaces", { ...paginationOptions, ...options }),
       (url) => this.getTypeMapped(url)
     );
   }
@@ -151,6 +166,8 @@ class BitbucketCloudClient {
         "utf8"
       );
       headers.Authorization = `Basic ${buffer.toString("base64")}`;
+    } else if (this.config.token) {
+      headers.Authorization = `Bearer ${this.config.token}`;
     }
     return headers;
   }
@@ -247,9 +264,8 @@ function readProviderConfigs(config) {
   });
 }
 function readProviderConfig(id, config) {
-  var _a;
   const workspace = config.getString("workspace");
-  const catalogPath = (_a = config.getOptionalString("catalogPath")) != null ? _a : DEFAULT_CATALOG_PATH;
+  const catalogPath = config.getOptionalString("catalogPath") ?? DEFAULT_CATALOG_PATH;
   const projectKeyPattern = config.getOptionalString("filters.projectKey");
   const repoSlugPattern = config.getOptionalString("filters.repoSlug");
   const schedule = config.has("schedule") ? backendTasks.readTaskScheduleDefinitionFromConfig(config.getConfig("schedule")) : void 0;
@@ -275,36 +291,19 @@ function compileRegExp(pattern) {
   return new RegExp(fullLinePattern);
 }
 
-var __defProp = Object.defineProperty;
-var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
-var __publicField = (obj, key, value) => {
-  __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
-  return value;
-};
 const DEFAULT_BRANCH = "master";
 const TOPIC_REPO_PUSH = "bitbucketCloud.repo:push";
 const ANNOTATION_BITBUCKET_CLOUD_REPO_URL = "bitbucket.org/repo-url";
 class BitbucketCloudEntityProvider$1 {
-  constructor(config, integration, logger, taskRunner, catalogApi, events, tokenManager) {
-    __publicField(this, "client");
-    __publicField(this, "config");
-    __publicField(this, "logger");
-    __publicField(this, "scheduleFn");
-    __publicField(this, "catalogApi");
-    __publicField(this, "events");
-    __publicField(this, "tokenManager");
-    __publicField(this, "connection");
-    __publicField(this, "eventConfigErrorThrown", false);
-    this.client = pluginBitbucketCloudCommon.BitbucketCloudClient.fromConfig(integration.config);
-    this.config = config;
-    this.logger = logger.child({
-      target: this.getProviderName()
-    });
-    this.scheduleFn = this.createScheduleFn(taskRunner);
-    this.catalogApi = catalogApi;
-    this.events = events;
-    this.tokenManager = tokenManager;
-  }
+  client;
+  config;
+  logger;
+  scheduleFn;
+  catalogApi;
+  events;
+  tokenManager;
+  connection;
+  eventConfigErrorThrown = false;
   static fromConfig(config, options) {
     const integrations = integration.ScmIntegrations.fromConfig(config);
     const integration$1 = integrations.bitbucketCloud.byHost("bitbucket.org");
@@ -315,13 +314,12 @@ class BitbucketCloudEntityProvider$1 {
       throw new Error("Either schedule or scheduler must be provided.");
     }
     return readProviderConfigs(config).map((providerConfig) => {
-      var _a;
       if (!options.schedule && !providerConfig.schedule) {
         throw new Error(
           `No schedule provided neither via code nor config for bitbucketCloud-provider:${providerConfig.id}.`
         );
       }
-      const taskRunner = (_a = options.schedule) != null ? _a : options.scheduler.createScheduledTaskRunner(providerConfig.schedule);
+      const taskRunner = options.schedule ?? options.scheduler.createScheduledTaskRunner(providerConfig.schedule);
       return new BitbucketCloudEntityProvider$1(
         providerConfig,
         integration$1,
@@ -332,6 +330,17 @@ class BitbucketCloudEntityProvider$1 {
         options.tokenManager
       );
     });
+  }
+  constructor(config, integration, logger, taskRunner, catalogApi, events, tokenManager) {
+    this.client = pluginBitbucketCloudCommon.BitbucketCloudClient.fromConfig(integration.config);
+    this.config = config;
+    this.logger = logger.child({
+      target: this.getProviderName()
+    });
+    this.scheduleFn = this.createScheduleFn(taskRunner);
+    this.catalogApi = catalogApi;
+    this.events = events;
+    this.tokenManager = tokenManager;
   }
   createScheduleFn(schedule) {
     return async () => {
@@ -541,9 +550,8 @@ class BitbucketCloudEntityProvider$1 {
     });
   }
   static toUrl(repository, filePath) {
-    var _a, _b;
     const repoUrl = repository.links.html.href;
-    const branch = (_b = (_a = repository.mainbranch) == null ? void 0 : _a.name) != null ? _b : DEFAULT_BRANCH;
+    const branch = repository.mainbranch?.name ?? DEFAULT_BRANCH;
     return `${repoUrl}/src/${branch}/${filePath}`;
   }
   static toLocationSpec(target) {
@@ -555,14 +563,14 @@ class BitbucketCloudEntityProvider$1 {
   }
 }
 
-BitbucketCloudEntityProviderCTjViEQW_cjs.BitbucketCloudEntityProvider = BitbucketCloudEntityProvider$1;
+BitbucketCloudEntityProviderCt8mLBA_cjs.BitbucketCloudEntityProvider = BitbucketCloudEntityProvider$1;
 
 Object.defineProperty(alpha_cjs, '__esModule', { value: true });
 
 var backendPluginApi = require$$0__default$1["default"];
 var alpha = require$$1__default["default"];
 var pluginEventsNode = require$$2__default$1["default"];
-var BitbucketCloudEntityProvider = BitbucketCloudEntityProviderCTjViEQW_cjs;
+var BitbucketCloudEntityProvider = BitbucketCloudEntityProviderCt8mLBA_cjs;
 
 
 

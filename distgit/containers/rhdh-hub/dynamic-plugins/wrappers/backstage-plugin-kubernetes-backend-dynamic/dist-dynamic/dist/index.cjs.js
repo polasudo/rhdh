@@ -145,24 +145,22 @@ function isPodReadinessProbeUnready({
   container,
   containerStatus
 }) {
-  var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j;
-  if (containerStatus.ready || ((_b = (_a = containerStatus.state) == null ? void 0 : _a.running) == null ? void 0 : _b.startedAt) === void 0 || !container.readinessProbe) {
+  if (containerStatus.ready || containerStatus.state?.running?.startedAt === void 0 || !container.readinessProbe) {
     return false;
   }
   const startDateTime = require$$12.DateTime.fromISO(
-    (_d = (_c = containerStatus.state) == null ? void 0 : _c.running) == null ? void 0 : _d.startedAt
+    containerStatus.state?.running?.startedAt
   ).plus({
-    seconds: (_f = (_e = container.readinessProbe) == null ? void 0 : _e.initialDelaySeconds) != null ? _f : 0
+    seconds: container.readinessProbe?.initialDelaySeconds ?? 0
   }).plus({
-    seconds: ((_h = (_g = container.readinessProbe) == null ? void 0 : _g.periodSeconds) != null ? _h : 0) * ((_j = (_i = container.readinessProbe) == null ? void 0 : _i.failureThreshold) != null ? _j : 0)
+    seconds: (container.readinessProbe?.periodSeconds ?? 0) * (container.readinessProbe?.failureThreshold ?? 0)
   });
   return startDateTime < require$$12.DateTime.now();
 }
 const podToContainerSpecsAndStatuses = (pod) => {
-  var _a, _b, _c, _d;
-  const specs = lodash$1.groupBy((_b = (_a = pod.spec) == null ? void 0 : _a.containers) != null ? _b : [], (value) => value.name);
+  const specs = lodash$1.groupBy(pod.spec?.containers ?? [], (value) => value.name);
   const result = [];
-  for (const cs of (_d = (_c = pod.status) == null ? void 0 : _c.containerStatuses) != null ? _d : []) {
+  for (const cs of pod.status?.containerStatuses ?? []) {
     const spec = specs[cs.name];
     if (spec.length > 0) {
       result.push({
@@ -174,36 +172,31 @@ const podToContainerSpecsAndStatuses = (pod) => {
   return result;
 };
 const readinessProbeProposedFixes = (pod) => {
-  var _a, _b, _c, _d;
-  const firstUnreadyContainerStatus = (_b = (_a = pod.status) == null ? void 0 : _a.containerStatuses) == null ? void 0 : _b.find(
+  const firstUnreadyContainerStatus = pod.status?.containerStatuses?.find(
     (cs) => {
       return cs.ready === false;
     }
   );
   return {
     errorType: "ReadinessProbeFailed",
-    rootCauseExplanation: `The container ${firstUnreadyContainerStatus == null ? void 0 : firstUnreadyContainerStatus.name} failed to start properly, but is not crashing`,
+    rootCauseExplanation: `The container ${firstUnreadyContainerStatus?.name} failed to start properly, but is not crashing`,
     actions: [
       "Ensure that the container starts correctly locally",
       "Check the container's logs looking for error during startup"
     ],
     type: "events",
-    podName: (_d = (_c = pod.metadata) == null ? void 0 : _c.name) != null ? _d : ""
+    podName: pod.metadata?.name ?? ""
   };
 };
 const restartingPodProposedFixes = (pod) => {
-  var _a, _b, _c;
-  const lastTerminatedCs = ((_b = (_a = pod.status) == null ? void 0 : _a.containerStatuses) != null ? _b : []).find(
-    (cs) => {
-      var _a2;
-      return ((_a2 = cs.lastState) == null ? void 0 : _a2.terminated) !== void 0;
-    }
+  const lastTerminatedCs = (pod.status?.containerStatuses ?? []).find(
+    (cs) => cs.lastState?.terminated !== void 0
   );
-  const lastTerminated = (_c = lastTerminatedCs == null ? void 0 : lastTerminatedCs.lastState) == null ? void 0 : _c.terminated;
+  const lastTerminated = lastTerminatedCs?.lastState?.terminated;
   if (!lastTerminated) {
     return void 0;
   }
-  switch (lastTerminated == null ? void 0 : lastTerminated.reason) {
+  switch (lastTerminated?.reason) {
     case "Unknown":
       return {
         // TODO check this one, it's more likely a cluster issue
@@ -237,18 +230,11 @@ const restartingPodProposedFixes = (pod) => {
   }
 };
 const waitingProposedFix = (pod) => {
-  var _a, _b, _c, _d, _e;
-  const waitingCs = ((_b = (_a = pod.status) == null ? void 0 : _a.containerStatuses) != null ? _b : []).find(
-    (cs) => {
-      var _a2;
-      return ((_a2 = cs.state) == null ? void 0 : _a2.waiting) !== void 0;
-    }
+  const waitingCs = (pod.status?.containerStatuses ?? []).find(
+    (cs) => cs.state?.waiting !== void 0
   );
-  const waiting = ((_d = (_c = pod.status) == null ? void 0 : _c.containerStatuses) != null ? _d : []).map((cs) => {
-    var _a2;
-    return (_a2 = cs.state) == null ? void 0 : _a2.waiting;
-  }).find((w) => (w == null ? void 0 : w.reason) !== void 0);
-  switch (waiting == null ? void 0 : waiting.reason) {
+  const waiting = (pod.status?.containerStatuses ?? []).map((cs) => cs.state?.waiting).find((w) => w?.reason !== void 0);
+  switch (waiting?.reason) {
     case "InvalidImageName":
       return {
         errorType: "InvalidImageName",
@@ -271,10 +257,10 @@ const waitingProposedFix = (pod) => {
     case "CrashLoopBackOff":
       return {
         errorType: "CrashLoopBackOff",
-        rootCauseExplanation: `The container ${waitingCs == null ? void 0 : waitingCs.name} has crashed many times, it will be exponentially restarted until it stops crashing`,
+        rootCauseExplanation: `The container ${waitingCs?.name} has crashed many times, it will be exponentially restarted until it stops crashing`,
         actions: ["Check the crash logs for stacktraces"],
         type: "logs",
-        container: (_e = waitingCs == null ? void 0 : waitingCs.name) != null ? _e : "unknown"
+        container: waitingCs?.name ?? "unknown"
       };
     case "CreateContainerConfigError":
       return {
@@ -294,67 +280,53 @@ const waitingProposedFix = (pod) => {
 const podErrorMappers = [
   {
     detectErrors: (pod) => {
-      return podToContainerSpecsAndStatuses(pod).filter(isPodReadinessProbeUnready).map((cs) => {
-        var _a, _b, _c, _d;
-        return {
-          type: "readiness-probe-taking-too-long",
-          message: `The container ${cs.container.name} failed to start properly, but is not crashing`,
-          severity: 4,
-          proposedFix: readinessProbeProposedFixes(pod),
-          sourceRef: {
-            name: (_b = (_a = pod.metadata) == null ? void 0 : _a.name) != null ? _b : "unknown pod",
-            namespace: (_d = (_c = pod.metadata) == null ? void 0 : _c.namespace) != null ? _d : "unknown namespace",
-            kind: "Pod",
-            apiGroup: "v1"
-          },
-          occurrenceCount: 1
-        };
-      });
+      return podToContainerSpecsAndStatuses(pod).filter(isPodReadinessProbeUnready).map((cs) => ({
+        type: "readiness-probe-taking-too-long",
+        message: `The container ${cs.container.name} failed to start properly, but is not crashing`,
+        severity: 4,
+        proposedFix: readinessProbeProposedFixes(pod),
+        sourceRef: {
+          name: pod.metadata?.name ?? "unknown pod",
+          namespace: pod.metadata?.namespace ?? "unknown namespace",
+          kind: "Pod",
+          apiGroup: "v1"
+        },
+        occurrenceCount: 1
+      }));
     }
   },
   {
     detectErrors: (pod) => {
-      var _a, _b;
-      return ((_b = (_a = pod.status) == null ? void 0 : _a.containerStatuses) != null ? _b : []).filter((cs) => {
-        var _a2, _b2;
-        return ((_b2 = (_a2 = cs.state) == null ? void 0 : _a2.waiting) == null ? void 0 : _b2.message) !== void 0;
-      }).map((cs) => {
-        var _a2, _b2, _c, _d, _e, _f, _g;
-        return {
-          type: "container-waiting",
-          message: (_c = (_b2 = (_a2 = cs.state) == null ? void 0 : _a2.waiting) == null ? void 0 : _b2.message) != null ? _c : "container waiting",
-          severity: 4,
-          proposedFix: waitingProposedFix(pod),
-          sourceRef: {
-            name: (_e = (_d = pod.metadata) == null ? void 0 : _d.name) != null ? _e : "unknown pod",
-            namespace: (_g = (_f = pod.metadata) == null ? void 0 : _f.namespace) != null ? _g : "unknown namespace",
-            kind: "Pod",
-            apiGroup: "v1"
-          },
-          occurrenceCount: 1
-        };
-      });
+      return (pod.status?.containerStatuses ?? []).filter((cs) => cs.state?.waiting?.message !== void 0).map((cs) => ({
+        type: "container-waiting",
+        message: cs.state?.waiting?.message ?? "container waiting",
+        severity: 4,
+        proposedFix: waitingProposedFix(pod),
+        sourceRef: {
+          name: pod.metadata?.name ?? "unknown pod",
+          namespace: pod.metadata?.namespace ?? "unknown namespace",
+          kind: "Pod",
+          apiGroup: "v1"
+        },
+        occurrenceCount: 1
+      }));
     }
   },
   {
     detectErrors: (pod) => {
-      var _a, _b;
-      return ((_b = (_a = pod.status) == null ? void 0 : _a.containerStatuses) != null ? _b : []).filter((cs) => cs.restartCount > 0).map((cs) => {
-        var _a2, _b2, _c, _d;
-        return {
-          type: "containers-restarting",
-          message: `container=${cs.name} restarted ${cs.restartCount} times`,
-          severity: 4,
-          proposedFix: restartingPodProposedFixes(pod),
-          sourceRef: {
-            name: (_b2 = (_a2 = pod.metadata) == null ? void 0 : _a2.name) != null ? _b2 : "unknown pod",
-            namespace: (_d = (_c = pod.metadata) == null ? void 0 : _c.namespace) != null ? _d : "unknown namespace",
-            kind: "Pod",
-            apiGroup: "v1"
-          },
-          occurrenceCount: cs.restartCount
-        };
-      });
+      return (pod.status?.containerStatuses ?? []).filter((cs) => cs.restartCount > 0).map((cs) => ({
+        type: "containers-restarting",
+        message: `container=${cs.name} restarted ${cs.restartCount} times`,
+        severity: 4,
+        proposedFix: restartingPodProposedFixes(pod),
+        sourceRef: {
+          name: pod.metadata?.name ?? "unknown pod",
+          namespace: pod.metadata?.namespace ?? "unknown namespace",
+          kind: "Pod",
+          apiGroup: "v1"
+        },
+        occurrenceCount: cs.restartCount
+      }));
     }
   }
 ];
@@ -363,22 +335,18 @@ const detectErrorsInPods = (pods) => detectErrorsInObjects(pods, podErrorMappers
 const deploymentErrorMappers = [
   {
     detectErrors: (deployment) => {
-      var _a, _b;
-      return ((_b = (_a = deployment.status) == null ? void 0 : _a.conditions) != null ? _b : []).filter((c) => c.status === "False").filter((c) => c.message !== void 0).map((c) => {
-        var _a2, _b2, _c, _d, _e;
-        return {
-          type: "condition-message-present",
-          message: (_a2 = c.message) != null ? _a2 : "",
-          severity: 6,
-          sourceRef: {
-            name: (_c = (_b2 = deployment.metadata) == null ? void 0 : _b2.name) != null ? _c : "unknown hpa",
-            namespace: (_e = (_d = deployment.metadata) == null ? void 0 : _d.namespace) != null ? _e : "unknown namespace",
-            kind: "Deployment",
-            apiGroup: "apps/v1"
-          },
-          occurrenceCount: 1
-        };
-      });
+      return (deployment.status?.conditions ?? []).filter((c) => c.status === "False").filter((c) => c.message !== void 0).map((c) => ({
+        type: "condition-message-present",
+        message: c.message ?? "",
+        severity: 6,
+        sourceRef: {
+          name: deployment.metadata?.name ?? "unknown hpa",
+          namespace: deployment.metadata?.namespace ?? "unknown namespace",
+          kind: "Deployment",
+          apiGroup: "apps/v1"
+        },
+        occurrenceCount: 1
+      }));
     }
   }
 ];
@@ -387,18 +355,17 @@ const detectErrorsInDeployments = (deployments) => detectErrorsInObjects(deploym
 const hpaErrorMappers = [
   {
     detectErrors: (hpa) => {
-      var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j;
-      if (((_b = (_a = hpa.spec) == null ? void 0 : _a.maxReplicas) != null ? _b : -1) === ((_c = hpa.status) == null ? void 0 : _c.currentReplicas)) {
+      if ((hpa.spec?.maxReplicas ?? -1) === hpa.status?.currentReplicas) {
         return [
           {
             type: "hpa-max-current-replicas",
-            message: `Current number of replicas (${(_d = hpa.status) == null ? void 0 : _d.currentReplicas}) is equal to the configured max number of replicas (${(_f = (_e = hpa.spec) == null ? void 0 : _e.maxReplicas) != null ? _f : -1})`,
+            message: `Current number of replicas (${hpa.status?.currentReplicas}) is equal to the configured max number of replicas (${hpa.spec?.maxReplicas ?? -1})`,
             severity: 8,
             sourceRef: {
-              name: (_h = (_g = hpa.metadata) == null ? void 0 : _g.name) != null ? _h : "unknown hpa",
-              namespace: (_j = (_i = hpa.metadata) == null ? void 0 : _i.namespace) != null ? _j : "unknown namespace",
+              name: hpa.metadata?.name ?? "unknown hpa",
+              namespace: hpa.metadata?.namespace ?? "unknown namespace",
               kind: "HorizontalPodAutoscaler",
-              apiGroup: "autoscaling/v1"
+              apiGroup: "autoscaling/v2"
             },
             occurrenceCount: 1
           }
@@ -531,24 +498,17 @@ class AnonymousStrategy {
   }
 }
 
-var __defProp$c = Object.defineProperty;
-var __defNormalProp$c = (obj, key, value) => key in obj ? __defProp$c(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
-var __publicField$c = (obj, key, value) => {
-  __defNormalProp$c(obj, key + "" , value);
-  return value;
-};
 const defaultRegion = "us-east-1";
 class AwsIamStrategy {
+  credsManager;
   constructor(opts) {
-    __publicField$c(this, "credsManager");
     this.credsManager = integrationAwsNode.DefaultAwsCredentialsManager.fromConfig(opts.config);
   }
   async getCredential(clusterDetails) {
-    var _a;
     return {
       type: "bearer token",
       token: await this.getBearerToken(
-        (_a = clusterDetails.authMetadata[pluginKubernetesCommon.ANNOTATION_KUBERNETES_AWS_CLUSTER_ID]) != null ? _a : clusterDetails.name,
+        clusterDetails.authMetadata[pluginKubernetesCommon.ANNOTATION_KUBERNETES_AWS_CLUSTER_ID] ?? clusterDetails.name,
         clusterDetails.authMetadata[pluginKubernetesCommon.ANNOTATION_KUBERNETES_AWS_ASSUME_ROLE],
         clusterDetails.authMetadata[pluginKubernetesCommon.ANNOTATION_KUBERNETES_AWS_EXTERNAL_ID]
       )
@@ -558,8 +518,7 @@ class AwsIamStrategy {
     return [];
   }
   async getBearerToken(clusterId, assumeRole, externalId) {
-    var _a, _b;
-    const region = (_a = process.env.AWS_REGION) != null ? _a : defaultRegion;
+    const region = process.env.AWS_REGION ?? defaultRegion;
     let credentials = (await this.credsManager.getCredentialProvider()).sdkCredentialProvider;
     if (assumeRole) {
       credentials = credentialProviders.fromTemporaryCredentials({
@@ -596,13 +555,10 @@ class AwsIamStrategy {
       },
       { expiresIn: 0 }
     );
-    const query = Object.keys((_b = request == null ? void 0 : request.query) != null ? _b : {}).map(
-      (q) => {
-        var _a2;
-        return `${encodeURIComponent(q)}=${encodeURIComponent(
-          (_a2 = request.query) == null ? void 0 : _a2[q]
-        )}`;
-      }
+    const query = Object.keys(request?.query ?? {}).map(
+      (q) => `${encodeURIComponent(q)}=${encodeURIComponent(
+        request.query?.[q]
+      )}`
     ).join("&");
     const url = `https://${request.hostname}${request.path}?${query}`;
     return `k8s-aws-v1.${Buffer.from(url).toString("base64url")}`;
@@ -612,20 +568,14 @@ class AwsIamStrategy {
   }
 }
 
-var __defProp$b = Object.defineProperty;
-var __defNormalProp$b = (obj, key, value) => key in obj ? __defProp$b(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
-var __publicField$b = (obj, key, value) => {
-  __defNormalProp$b(obj, typeof key !== "symbol" ? key + "" : key, value);
-  return value;
-};
 const aksScope = "6dae42f8-4368-4678-94ff-3960e28e3630/.default";
 class AzureIdentityStrategy {
   constructor(logger, tokenCredential = new identity.DefaultAzureCredential()) {
     this.logger = logger;
     this.tokenCredential = tokenCredential;
-    __publicField$b(this, "accessToken", { token: "", expiresOnTimestamp: 0 });
-    __publicField$b(this, "newTokenPromise");
   }
+  accessToken = { token: "", expiresOnTimestamp: 0 };
+  newTokenPromise;
   async getCredential() {
     if (!this.tokenRequiresRefresh()) {
       return { type: "bearer token", token: this.accessToken.token };
@@ -707,15 +657,9 @@ class GoogleServiceAccountStrategy {
   }
 }
 
-var __defProp$a = Object.defineProperty;
-var __defNormalProp$a = (obj, key, value) => key in obj ? __defProp$a(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
-var __publicField$a = (obj, key, value) => {
-  __defNormalProp$a(obj, key + "" , value);
-  return value;
-};
 class DispatchStrategy {
+  strategyMap;
   constructor(options) {
-    __publicField$a(this, "strategyMap");
     this.strategyMap = options.authStrategyMap;
   }
   getCredential(clusterDetails, auth) {
@@ -768,14 +712,13 @@ class ServiceAccountStrategy {
 
 class OidcStrategy {
   async getCredential(clusterDetails, authConfig) {
-    var _a;
     const oidcTokenProvider = clusterDetails.authMetadata[pluginKubernetesCommon.ANNOTATION_KUBERNETES_OIDC_TOKEN_PROVIDER];
     if (!oidcTokenProvider || oidcTokenProvider === "") {
       throw new Error(
         `oidc authProvider requires a configured oidcTokenProvider`
       );
     }
-    const token = (_a = authConfig.oidc) == null ? void 0 : _a[oidcTokenProvider];
+    const token = authConfig.oidc?.[oidcTokenProvider];
     if (!token) {
       throw new Error(
         `Auth token not found under oidc.${oidcTokenProvider} in request body`
@@ -795,29 +738,22 @@ class OidcStrategy {
   }
 }
 
-var __defProp$9 = Object.defineProperty;
-var __defNormalProp$9 = (obj, key, value) => key in obj ? __defProp$9(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
-var __publicField$9 = (obj, key, value) => {
-  __defNormalProp$9(obj, key + "" , value);
-  return value;
-};
 class ConfigClusterLocator {
+  clusterDetails;
   constructor(clusterDetails) {
-    __publicField$9(this, "clusterDetails");
     this.clusterDetails = clusterDetails;
   }
   static fromConfig(config, authStrategy) {
     const clusterNames = /* @__PURE__ */ new Set();
     return new ConfigClusterLocator(
       config.getConfigArray("clusters").map((c) => {
-        var _a, _b, _c;
         const authMetadataBlock = c.getOptional("authMetadata");
         const name = c.getString("name");
         if (clusterNames.has(name)) {
           throw new Error(`Duplicate cluster name '${name}'`);
         }
         clusterNames.add(name);
-        const authProvider = (_a = authMetadataBlock == null ? void 0 : authMetadataBlock[pluginKubernetesCommon.ANNOTATION_KUBERNETES_AUTH_PROVIDER]) != null ? _a : c.getOptionalString("authProvider");
+        const authProvider = authMetadataBlock?.[pluginKubernetesCommon.ANNOTATION_KUBERNETES_AUTH_PROVIDER] ?? c.getOptionalString("authProvider");
         if (!authProvider) {
           throw new Error(
             `cluster '${name}' has no auth provider configured; this must be specified via the 'authProvider' or 'authMetadata.${pluginKubernetesCommon.ANNOTATION_KUBERNETES_AUTH_PROVIDER}' parameter`
@@ -828,8 +764,8 @@ class ConfigClusterLocator {
           name,
           ...title && { title },
           url: c.getString("url"),
-          skipTLSVerify: (_b = c.getOptionalBoolean("skipTLSVerify")) != null ? _b : false,
-          skipMetricsLookup: (_c = c.getOptionalBoolean("skipMetricsLookup")) != null ? _c : false,
+          skipTLSVerify: c.getOptionalBoolean("skipTLSVerify") ?? false,
+          skipMetricsLookup: c.getOptionalBoolean("skipMetricsLookup") ?? false,
           caData: c.getOptionalString("caData"),
           caFile: c.getOptionalString("caFile"),
           authMetadata: {
@@ -922,19 +858,40 @@ function runPeriodically(fn, delayMs) {
 }
 
 var name = "@backstage/plugin-kubernetes-backend";
+var version = "0.18.3";
 var description = "A Backstage backend plugin that integrates towards Kubernetes";
-var version = "0.17.1";
-var main = "src/index.ts";
-var types = "src/index.ts";
-var license = "Apache-2.0";
+var backstage = {
+	role: "backend-plugin",
+	pluginId: "kubernetes",
+	pluginPackages: [
+		"@backstage/plugin-kubernetes",
+		"@backstage/plugin-kubernetes-backend",
+		"@backstage/plugin-kubernetes-common",
+		"@backstage/plugin-kubernetes-node",
+		"@backstage/plugin-kubernetes-react"
+	]
+};
 var publishConfig = {
 	access: "public"
 };
+var keywords = [
+	"backstage",
+	"kubernetes"
+];
+var homepage = "https://backstage.io";
+var repository = {
+	type: "git",
+	url: "https://github.com/backstage/backstage",
+	directory: "plugins/kubernetes-backend"
+};
+var license = "Apache-2.0";
 var exports$1 = {
 	".": "./src/index.ts",
 	"./alpha": "./src/alpha.ts",
 	"./package.json": "./package.json"
 };
+var main = "src/index.ts";
+var types = "src/index.ts";
 var typesVersions = {
 	"*": {
 		alpha: [
@@ -945,28 +902,18 @@ var typesVersions = {
 		]
 	}
 };
-var backstage = {
-	role: "backend-plugin"
-};
-var homepage = "https://backstage.io";
-var repository = {
-	type: "git",
-	url: "https://github.com/backstage/backstage",
-	directory: "plugins/kubernetes-backend"
-};
-var keywords = [
-	"backstage",
-	"kubernetes"
+var files = [
+	"dist",
+	"config.d.ts"
 ];
-var configSchema = "config.d.ts";
 var scripts = {
-	start: "backstage-cli package start",
 	build: "backstage-cli package build",
+	clean: "backstage-cli package clean",
 	lint: "backstage-cli package lint",
-	test: "backstage-cli package test",
 	prepack: "backstage-cli package prepack",
 	postpack: "backstage-cli package postpack",
-	clean: "backstage-cli package clean"
+	start: "backstage-cli package start",
+	test: "backstage-cli package test"
 };
 var dependencies = {
 	"@aws-crypto/sha256-js": "^5.0.0",
@@ -1019,29 +966,26 @@ var devDependencies = {
 	supertest: "^6.1.3",
 	ws: "^8.13.0"
 };
-var files = [
-	"dist",
-	"config.d.ts"
-];
+var configSchema = "config.d.ts";
 var packageinfo = {
 	name: name,
-	description: description,
 	version: version,
-	main: main,
-	types: types,
-	license: license,
-	publishConfig: publishConfig,
-	exports: exports$1,
-	typesVersions: typesVersions,
+	description: description,
 	backstage: backstage,
+	publishConfig: publishConfig,
+	keywords: keywords,
 	homepage: homepage,
 	repository: repository,
-	keywords: keywords,
-	configSchema: configSchema,
+	license: license,
+	exports: exports$1,
+	main: main,
+	types: types,
+	typesVersions: typesVersions,
+	files: files,
 	scripts: scripts,
 	dependencies: dependencies,
 	devDependencies: devDependencies,
-	files: files
+	configSchema: configSchema
 };
 
 class GkeClusterLocator {
@@ -1052,18 +996,17 @@ class GkeClusterLocator {
     this.hasClusterDetails = hasClusterDetails;
   }
   static fromConfigWithClient(config, client, refreshInterval) {
-    var _a, _b, _c, _d, _e, _f;
-    const matchingResourceLabels = (_b = (_a = config.getOptionalConfigArray("matchingResourceLabels")) == null ? void 0 : _a.map((mrl) => {
+    const matchingResourceLabels = config.getOptionalConfigArray("matchingResourceLabels")?.map((mrl) => {
       return { key: mrl.getString("key"), value: mrl.getString("value") };
-    })) != null ? _b : [];
+    }) ?? [];
     const storeAuthProviderString = config.getOptionalString("authProvider") === "googleServiceAccount" ? "googleServiceAccount" : "google";
     const options = {
       projectId: config.getString("projectId"),
       authProvider: storeAuthProviderString,
-      region: (_c = config.getOptionalString("region")) != null ? _c : "-",
-      skipTLSVerify: (_d = config.getOptionalBoolean("skipTLSVerify")) != null ? _d : false,
-      skipMetricsLookup: (_e = config.getOptionalBoolean("skipMetricsLookup")) != null ? _e : false,
-      exposeDashboard: (_f = config.getOptionalBoolean("exposeDashboard")) != null ? _f : false,
+      region: config.getOptionalString("region") ?? "-",
+      skipTLSVerify: config.getOptionalBoolean("skipTLSVerify") ?? false,
+      skipMetricsLookup: config.getOptionalBoolean("skipMetricsLookup") ?? false,
+      exposeDashboard: config.getOptionalBoolean("exposeDashboard") ?? false,
       matchingResourceLabels
     };
     const gkeClusterLocator = new GkeClusterLocator(options, client);
@@ -1087,15 +1030,13 @@ class GkeClusterLocator {
     );
   }
   async getClusters() {
-    var _a;
     if (!this.hasClusterDetails) {
       await this.refreshClusters();
     }
-    return (_a = this.clusterDetails) != null ? _a : [];
+    return this.clusterDetails ?? [];
   }
   // TODO pass caData into the object
   async refreshClusters() {
-    var _a;
     const {
       projectId,
       region,
@@ -1110,32 +1051,29 @@ class GkeClusterLocator {
     };
     try {
       const [response] = await this.client.listClusters(request);
-      this.clusterDetails = ((_a = response.clusters) != null ? _a : []).filter((r) => {
-        return matchingResourceLabels == null ? void 0 : matchingResourceLabels.every((mrl) => {
+      this.clusterDetails = (response.clusters ?? []).filter((r) => {
+        return matchingResourceLabels?.every((mrl) => {
           if (!r.resourceLabels) {
             return false;
           }
           return r.resourceLabels[mrl.key] === mrl.value;
         });
-      }).map((r) => {
-        var _a2, _b;
-        return {
-          // TODO filter out clusters which don't have name or endpoint
-          name: (_a2 = r.name) != null ? _a2 : "unknown",
-          url: `https://${(_b = r.endpoint) != null ? _b : ""}`,
-          authMetadata: { [pluginKubernetesCommon.ANNOTATION_KUBERNETES_AUTH_PROVIDER]: authProvider },
-          skipTLSVerify,
-          skipMetricsLookup,
-          ...exposeDashboard ? {
-            dashboardApp: "gke",
-            dashboardParameters: {
-              projectId,
-              region,
-              clusterName: r.name
-            }
-          } : {}
-        };
-      });
+      }).map((r) => ({
+        // TODO filter out clusters which don't have name or endpoint
+        name: r.name ?? "unknown",
+        url: `https://${r.endpoint ?? ""}`,
+        authMetadata: { [pluginKubernetesCommon.ANNOTATION_KUBERNETES_AUTH_PROVIDER]: authProvider },
+        skipTLSVerify,
+        skipMetricsLookup,
+        ...exposeDashboard ? {
+          dashboardApp: "gke",
+          dashboardParameters: {
+            projectId,
+            region,
+            clusterName: r.name
+          }
+        } : {}
+      }));
       this.hasClusterDetails = true;
     } catch (e) {
       throw new errors.ForwardedError(
@@ -1146,19 +1084,13 @@ class GkeClusterLocator {
   }
 }
 
-var __defProp$8 = Object.defineProperty;
-var __defNormalProp$8 = (obj, key, value) => key in obj ? __defProp$8(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
-var __publicField$8 = (obj, key, value) => {
-  __defNormalProp$8(obj, typeof key !== "symbol" ? key + "" : key, value);
-  return value;
-};
 function isObject(obj) {
   return typeof obj === "object" && obj !== null && !Array.isArray(obj);
 }
 class CatalogClusterLocator {
+  catalogClient;
+  auth;
   constructor(catalogClient, auth) {
-    __publicField$8(this, "catalogClient");
-    __publicField$8(this, "auth");
     this.catalogClient = catalogClient;
     this.auth = auth;
   }
@@ -1180,7 +1112,7 @@ class CatalogClusterLocator {
       {
         filter: [filter]
       },
-      (options == null ? void 0 : options.credentials) ? {
+      options?.credentials ? {
         token: (await this.auth.getPluginRequestToken({
           onBehalfOf: options.credentials,
           targetPluginId: "catalog"
@@ -1218,18 +1150,12 @@ class CatalogClusterLocator {
   }
 }
 
-var __defProp$7 = Object.defineProperty;
-var __defNormalProp$7 = (obj, key, value) => key in obj ? __defProp$7(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
-var __publicField$7 = (obj, key, value) => {
-  __defNormalProp$7(obj, typeof key !== "symbol" ? key + "" : key, value);
-  return value;
-};
 class LocalKubectlProxyClusterLocator {
+  clusterDetails;
+  // verbatim: when false, IPv4 addresses are placed before IPv6 addresses, ignoring the order from the DNS resolver
+  // By default kubectl proxy listens on 127.0.0.1 instead of [::1]
+  lookupPromise = dns__default.default.promises.lookup("localhost", { verbatim: false });
   constructor() {
-    __publicField$7(this, "clusterDetails");
-    // verbatim: when false, IPv4 addresses are placed before IPv6 addresses, ignoring the order from the DNS resolver
-    // By default kubectl proxy listens on 127.0.0.1 instead of [::1]
-    __publicField$7(this, "lookupPromise", dns__default.default.promises.lookup("localhost", { verbatim: false }));
     this.clusterDetails = [
       {
         name: "local",
@@ -1364,15 +1290,9 @@ const addResourceRoutesToRouter = (router, catalogApi, objectsProvider, auth, ht
   });
 };
 
-var __defProp$6 = Object.defineProperty;
-var __defNormalProp$6 = (obj, key, value) => key in obj ? __defProp$6(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
-var __publicField$6 = (obj, key, value) => {
-  __defNormalProp$6(obj, key + "" , value);
-  return value;
-};
 class CatalogRelationServiceLocator {
+  clusterSupplier;
   constructor(clusterSupplier) {
-    __publicField$6(this, "clusterSupplier");
     this.clusterSupplier = clusterSupplier;
   }
   // As this implementation always returns all clusters serviceId is ignored here
@@ -1392,23 +1312,14 @@ class CatalogRelationServiceLocator {
   }
   doesEntityDependOnCluster(entity, cluster) {
     return entity.relations.some(
-      (rel) => {
-        var _a;
-        return rel.type === "dependsOn" && rel.targetRef === `resource:${(_a = entity.metadata.namespace) != null ? _a : "default"}/${cluster.name}`;
-      }
+      (rel) => rel.type === "dependsOn" && rel.targetRef === `resource:${entity.metadata.namespace ?? "default"}/${cluster.name}`
     );
   }
 }
 
-var __defProp$5 = Object.defineProperty;
-var __defNormalProp$5 = (obj, key, value) => key in obj ? __defProp$5(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
-var __publicField$5 = (obj, key, value) => {
-  __defNormalProp$5(obj, key + "" , value);
-  return value;
-};
 class MultiTenantServiceLocator {
+  clusterSupplier;
   constructor(clusterSupplier) {
-    __publicField$5(this, "clusterSupplier");
     this.clusterSupplier = clusterSupplier;
   }
   // As this implementation always returns all clusters serviceId is ignored here
@@ -1417,28 +1328,18 @@ class MultiTenantServiceLocator {
   }
 }
 
-var __defProp$4 = Object.defineProperty;
-var __defNormalProp$4 = (obj, key, value) => key in obj ? __defProp$4(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
-var __publicField$4 = (obj, key, value) => {
-  __defNormalProp$4(obj, key + "" , value);
-  return value;
-};
 class SingleTenantServiceLocator {
+  clusterSupplier;
   constructor(clusterSupplier) {
-    __publicField$4(this, "clusterSupplier");
     this.clusterSupplier = clusterSupplier;
   }
   // As this implementation always returns all clusters serviceId is ignored here
   getClustersByEntity(_entity, requestContext) {
     return this.clusterSupplier.getClusters({ credentials: requestContext.credentials }).then((clusters) => {
-      var _a, _b;
-      if ((_b = (_a = _entity.metadata) == null ? void 0 : _a.annotations) == null ? void 0 : _b["backstage.io/kubernetes-cluster"]) {
+      if (_entity.metadata?.annotations?.["backstage.io/kubernetes-cluster"]) {
         return {
           clusters: clusters.filter(
-            (c) => {
-              var _a2, _b2;
-              return c.name === ((_b2 = (_a2 = _entity.metadata) == null ? void 0 : _a2.annotations) == null ? void 0 : _b2["backstage.io/kubernetes-cluster"]);
-            }
+            (c) => c.name === _entity.metadata?.annotations?.["backstage.io/kubernetes-cluster"]
           )
         };
       }
@@ -1447,12 +1348,6 @@ class SingleTenantServiceLocator {
   }
 }
 
-var __defProp$3 = Object.defineProperty;
-var __defNormalProp$3 = (obj, key, value) => key in obj ? __defProp$3(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
-var __publicField$3 = (obj, key, value) => {
-  __defNormalProp$3(obj, typeof key !== "symbol" ? key + "" : key, value);
-  return value;
-};
 const DEFAULT_OBJECTS = [
   {
     group: "",
@@ -1498,7 +1393,7 @@ const DEFAULT_OBJECTS = [
   },
   {
     group: "autoscaling",
-    apiVersion: "v1",
+    apiVersion: "v2",
     plural: "horizontalpodautoscalers",
     objectType: "horizontalpodautoscalers"
   },
@@ -1563,6 +1458,12 @@ const toClientSafePodMetrics = (podMetrics) => {
   });
 };
 class KubernetesFanOutHandler {
+  logger;
+  fetcher;
+  serviceLocator;
+  customResources;
+  objectTypesToFetch;
+  authStrategy;
   constructor({
     logger,
     fetcher,
@@ -1571,12 +1472,6 @@ class KubernetesFanOutHandler {
     objectTypesToFetch = DEFAULT_OBJECTS,
     authStrategy
   }) {
-    __publicField$3(this, "logger");
-    __publicField$3(this, "fetcher");
-    __publicField$3(this, "serviceLocator");
-    __publicField$3(this, "customResources");
-    __publicField$3(this, "objectTypesToFetch");
-    __publicField$3(this, "authStrategy");
     this.logger = logger;
     this.fetcher = fetcher;
     this.serviceLocator = serviceLocator;
@@ -1604,18 +1499,17 @@ class KubernetesFanOutHandler {
     );
   }
   async fanOutRequests(entity, auth, options, objectTypesToFetch, customResources) {
-    var _a, _b, _c, _d, _e, _f, _g;
-    const entityName = ((_b = (_a = entity.metadata) == null ? void 0 : _a.annotations) == null ? void 0 : _b["backstage.io/kubernetes-id"]) || ((_c = entity.metadata) == null ? void 0 : _c.name);
+    const entityName = entity.metadata?.annotations?.["backstage.io/kubernetes-id"] || entity.metadata?.name;
     const { clusters } = await this.serviceLocator.getClustersByEntity(entity, {
       objectTypesToFetch,
-      customResources: customResources != null ? customResources : [],
+      customResources: customResources ?? [],
       credentials: options.credentials
     });
     this.logger.info(
       `entity.metadata.name=${entityName} clusterDetails=[${clusters.map((c) => c.name).join(", ")}]`
     );
-    const labelSelector = ((_e = (_d = entity.metadata) == null ? void 0 : _d.annotations) == null ? void 0 : _e["backstage.io/kubernetes-label-selector"]) || `backstage.io/kubernetes-id=${entityName}`;
-    const namespace = (_g = (_f = entity.metadata) == null ? void 0 : _f.annotations) == null ? void 0 : _g["backstage.io/kubernetes-namespace"];
+    const labelSelector = entity.metadata?.annotations?.["backstage.io/kubernetes-label-selector"] || `backstage.io/kubernetes-id=${entityName}`;
+    const namespace = entity.metadata?.annotations?.["backstage.io/kubernetes-namespace"];
     return Promise.all(
       clusters.map(async (clusterDetails) => {
         const credential = await this.authStrategy.getCredential(
@@ -1657,10 +1551,7 @@ class KubernetesFanOutHandler {
   toObjectsByEntityResponse(clusterObjects) {
     return {
       items: clusterObjects.filter(
-        (item) => item.errors !== void 0 && item.errors.length >= 1 || item.resources !== void 0 && item.resources.length >= 1 && item.resources.some((fr) => {
-          var _a;
-          return ((_a = fr.resources) == null ? void 0 : _a.length) >= 1;
-        })
+        (item) => item.errors !== void 0 && item.errors.length >= 1 || item.resources !== void 0 && item.resources.length >= 1 && item.resources.some((fr) => fr.resources?.length >= 1)
       )
     };
   }
@@ -1690,10 +1581,7 @@ class KubernetesFanOutHandler {
       return [result, []];
     }
     const namespaces = new Set(
-      result.responses.filter(isPodFetchResponse).flatMap((r) => r.resources).map((p) => {
-        var _a;
-        return (_a = p.metadata) == null ? void 0 : _a.namespace;
-      }).filter(isString)
+      result.responses.filter(isPodFetchResponse).flatMap((r) => r.resources).map((p) => p.metadata?.namespace).filter(isString)
     );
     if (namespaces.size === 0) {
       return [result, []];
@@ -1709,21 +1597,14 @@ class KubernetesFanOutHandler {
   }
 }
 
-var __defProp$2 = Object.defineProperty;
-var __defNormalProp$2 = (obj, key, value) => key in obj ? __defProp$2(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
-var __publicField$2 = (obj, key, value) => {
-  __defNormalProp$2(obj, key + "" , value);
-  return value;
-};
 const isError = (fr) => fr.hasOwnProperty("errorType");
 function fetchResultsToResponseWrapper(results) {
-  var _a, _b;
   const groupBy = lodash__default.default.groupBy(results, (value) => {
     return isError(value) ? "errors" : "responses";
   });
   return {
-    errors: (_a = groupBy.errors) != null ? _a : [],
-    responses: (_b = groupBy.responses) != null ? _b : []
+    errors: groupBy.errors ?? [],
+    responses: groupBy.responses ?? []
   };
 }
 const statusCodeToErrorType = (statusCode) => {
@@ -1741,8 +1622,8 @@ const statusCodeToErrorType = (statusCode) => {
   }
 };
 class KubernetesClientBasedFetcher {
+  logger;
   constructor({ logger }) {
-    __publicField$2(this, "logger");
     this.logger = logger;
   }
   fetchObjectsForService(params) {
@@ -1861,7 +1742,6 @@ class KubernetesClientBasedFetcher {
     return authProvider !== "localKubectlProxy" && credential.type === "anonymous";
   }
   fetchArgs(clusterDetails, credential) {
-    var _a;
     const requestInit = {
       method: "GET",
       headers: {
@@ -1875,10 +1755,10 @@ class KubernetesClientBasedFetcher {
     const url = new URL(clusterDetails.url);
     if (url.protocol === "https:") {
       requestInit.agent = new https__namespace$1.Agent({
-        ca: (_a = clientNode$1.bufferFromFileOrString(
+        ca: clientNode$1.bufferFromFileOrString(
           clusterDetails.caFile,
           clusterDetails.caData
-        )) != null ? _a : void 0,
+        ) ?? void 0,
         rejectUnauthorized: !clusterDetails.skipTLSVerify,
         ...credential.type === "x509 client certificate" && {
           cert: credential.cert,
@@ -1912,21 +1792,15 @@ class KubernetesClientBasedFetcher {
   }
 }
 
-var __defProp$1 = Object.defineProperty;
-var __defNormalProp$1 = (obj, key, value) => key in obj ? __defProp$1(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
-var __publicField$1 = (obj, key, value) => {
-  __defNormalProp$1(obj, typeof key !== "symbol" ? key + "" : key, value);
-  return value;
-};
 const HEADER_KUBERNETES_CLUSTER = "Backstage-Kubernetes-Cluster";
 const HEADER_KUBERNETES_AUTH = "Backstage-Kubernetes-Authorization";
 class KubernetesProxy {
+  middlewareForClusterName = /* @__PURE__ */ new Map();
+  logger;
+  clusterSupplier;
+  authStrategy;
+  httpAuth;
   constructor(options) {
-    __publicField$1(this, "middlewareForClusterName", /* @__PURE__ */ new Map());
-    __publicField$1(this, "logger");
-    __publicField$1(this, "clusterSupplier");
-    __publicField$1(this, "authStrategy");
-    __publicField$1(this, "httpAuth");
     this.logger = options.logger;
     this.clusterSupplier = options.clusterSupplier;
     this.authStrategy = options.authStrategy;
@@ -1939,7 +1813,6 @@ class KubernetesProxy {
   createRequestHandler(options) {
     const { permissionApi } = options;
     return async (req, res, next) => {
-      var _a, _b;
       const authorizeResponse = await permissionApi.authorize(
         [{ permission: pluginKubernetesCommon.kubernetesProxyPermission }],
         {
@@ -1952,7 +1825,7 @@ class KubernetesProxy {
         return;
       }
       const middleware = await this.getMiddleware(req);
-      if (((_a = req.header("connection")) == null ? void 0 : _a.toLowerCase()) === "upgrade" && ((_b = req.header("upgrade")) == null ? void 0 : _b.toLowerCase()) === "websocket") {
+      if (req.header("connection")?.toLowerCase() === "upgrade" && req.header("upgrade")?.toLowerCase() === "websocket") {
         middleware.upgrade(req, req.socket, void 0);
       } else {
         middleware(req, res, next);
@@ -1982,17 +1855,16 @@ class KubernetesProxy {
           );
         },
         router: async (req) => {
-          var _a;
           const cluster = await this.getClusterForRequest(req);
           const url = new URL(cluster.url);
           const target = {
             protocol: url.protocol,
             host: url.hostname,
             port: url.port,
-            ca: (_a = clientNode$1.bufferFromFileOrString(
+            ca: clientNode$1.bufferFromFileOrString(
               cluster.caFile,
               cluster.caData
-            )) == null ? void 0 : _a.toString()
+            )?.toString()
           };
           const authHeader = req.headers[HEADER_KUBERNETES_AUTH.toLocaleLowerCase("en-US")];
           if (typeof authHeader === "string") {
@@ -2097,25 +1969,19 @@ class KubernetesProxy {
   }
 }
 
-var __defProp$d = Object.defineProperty;
-var __defNormalProp$d = (obj, key, value) => key in obj ? __defProp$d(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
-var __publicField$d = (obj, key, value) => {
-  __defNormalProp$d(obj, typeof key !== "symbol" ? key + "" : key, value);
-  return value;
-};
 class KubernetesBuilder {
   constructor(env) {
     this.env = env;
-    __publicField$d(this, "clusterSupplier");
-    __publicField$d(this, "defaultClusterRefreshInterval", luxon.Duration.fromObject({
-      minutes: 60
-    }));
-    __publicField$d(this, "objectsProvider");
-    __publicField$d(this, "fetcher");
-    __publicField$d(this, "serviceLocator");
-    __publicField$d(this, "proxy");
-    __publicField$d(this, "authStrategyMap");
   }
+  clusterSupplier;
+  defaultClusterRefreshInterval = luxon.Duration.fromObject({
+    minutes: 60
+  });
+  objectsProvider;
+  fetcher;
+  serviceLocator;
+  proxy;
+  authStrategyMap;
   static createBuilder(env) {
     return new KubernetesBuilder(env);
   }
@@ -2214,8 +2080,7 @@ class KubernetesBuilder {
     return this;
   }
   buildCustomResources() {
-    var _a;
-    const customResources = ((_a = this.env.config.getOptionalConfigArray("kubernetes.customResources")) != null ? _a : []).map(
+    const customResources = (this.env.config.getOptionalConfigArray("kubernetes.customResources") ?? []).map(
       (c) => ({
         group: c.getString("group"),
         apiVersion: c.getString("apiVersion"),
@@ -2393,23 +2258,19 @@ class KubernetesBuilder {
     );
   }
   getFetcher() {
-    var _a;
-    return (_a = this.fetcher) != null ? _a : this.buildFetcher();
+    return this.fetcher ?? this.buildFetcher();
   }
   getClusterSupplier() {
-    var _a;
-    return (_a = this.clusterSupplier) != null ? _a : this.buildClusterSupplier(this.defaultClusterRefreshInterval);
+    return this.clusterSupplier ?? this.buildClusterSupplier(this.defaultClusterRefreshInterval);
   }
   getServiceLocator() {
-    var _a;
-    return (_a = this.serviceLocator) != null ? _a : this.buildServiceLocator(
+    return this.serviceLocator ?? this.buildServiceLocator(
       this.getServiceLocatorMethod(),
       this.getClusterSupplier()
     );
   }
   getObjectsProvider(options) {
-    var _a;
-    return (_a = this.objectsProvider) != null ? _a : this.buildObjectsProvider(options);
+    return this.objectsProvider ?? this.buildObjectsProvider(options);
   }
   getObjectTypesToFetch() {
     const objectTypesToFetchStrings = this.env.config.getOptionalStringArray(
@@ -2425,7 +2286,7 @@ class KubernetesBuilder {
       );
     }
     if (apiVersionOverrides) {
-      objectTypesToFetch = objectTypesToFetch != null ? objectTypesToFetch : DEFAULT_OBJECTS;
+      objectTypesToFetch = objectTypesToFetch ?? DEFAULT_OBJECTS;
       for (const obj of objectTypesToFetch) {
         if (apiVersionOverrides.has(obj.objectType)) {
           obj.apiVersion = apiVersionOverrides.getString(obj.objectType);
@@ -2435,12 +2296,10 @@ class KubernetesBuilder {
     return objectTypesToFetch;
   }
   getProxy(logger, clusterSupplier, discovery, httpAuth) {
-    var _a;
-    return (_a = this.proxy) != null ? _a : this.buildProxy(logger, clusterSupplier, discovery, httpAuth);
+    return this.proxy ?? this.buildProxy(logger, clusterSupplier, discovery, httpAuth);
   }
   getAuthStrategyMap() {
-    var _a;
-    return (_a = this.authStrategyMap) != null ? _a : this.buildAuthStrategyMap();
+    return this.authStrategyMap ?? this.buildAuthStrategyMap();
   }
 }
 
@@ -2523,9 +2382,8 @@ class PinnipedHelper {
     );
   }
   async exchangeClusterTokentoClientCerts(clusterDetails, pinnipedParams) {
-    var _a, _b;
     const url = new URL(clusterDetails.url);
-    const apiGroup = (_b = (_a = pinnipedParams.tokenCredentialRequest) == null ? void 0 : _a.apiGroup) != null ? _b : "login.concierge.pinniped.dev/v1alpha1";
+    const apiGroup = pinnipedParams.tokenCredentialRequest?.apiGroup ?? "login.concierge.pinniped.dev/v1alpha1";
     url.pathname = `/apis/${apiGroup}/tokencredentialrequests`;
     const requestInit = this.buildRequestForPinniped(
       url,
@@ -2555,9 +2413,8 @@ class PinnipedHelper {
     return Promise.reject(data.status.message);
   }
   buildRequestForPinniped(url, clusterDetails, pinnipedParams) {
-    var _a, _b, _c;
     const body = {
-      apiVersion: (_b = (_a = pinnipedParams.tokenCredentialRequest) == null ? void 0 : _a.apiGroup) != null ? _b : "login.concierge.pinniped.dev/v1alpha1",
+      apiVersion: pinnipedParams.tokenCredentialRequest?.apiGroup ?? "login.concierge.pinniped.dev/v1alpha1",
       kind: "TokenCredentialRequest",
       spec: {
         authenticator: pinnipedParams.authenticator,
@@ -2574,10 +2431,10 @@ class PinnipedHelper {
     };
     if (url.protocol === "https:") {
       requestInit.agent = new https__namespace.Agent({
-        ca: (_c = clientNode.bufferFromFileOrString(
+        ca: clientNode.bufferFromFileOrString(
           clusterDetails.caFile,
           clusterDetails.caData
-        )) != null ? _c : void 0,
+        ) ?? void 0,
         rejectUnauthorized: !clusterDetails.skipTLSVerify
       });
     }
@@ -2599,16 +2456,8 @@ var alpha = require$$1$1;
 var pluginKubernetesBackend = index_cjs$1;
 var pluginKubernetesNode = index_cjs;
 
-var __defProp = Object.defineProperty;
-var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
-var __publicField = (obj, key, value) => {
-  __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
-  return value;
-};
 class ObjectsProvider {
-  constructor() {
-    __publicField(this, "objectsProvider");
-  }
+  objectsProvider;
   getObjectsProvider() {
     return this.objectsProvider;
   }
@@ -2622,9 +2471,7 @@ class ObjectsProvider {
   }
 }
 class ClusterSuplier {
-  constructor() {
-    __publicField(this, "clusterSupplier");
-  }
+  clusterSupplier;
   getClusterSupplier() {
     return this.clusterSupplier;
   }
@@ -2638,9 +2485,7 @@ class ClusterSuplier {
   }
 }
 class Fetcher {
-  constructor() {
-    __publicField(this, "fetcher");
-  }
+  fetcher;
   getFetcher() {
     return this.fetcher;
   }
@@ -2654,9 +2499,7 @@ class Fetcher {
   }
 }
 class ServiceLocator {
-  constructor() {
-    __publicField(this, "serviceLocator");
-  }
+  serviceLocator;
   getServiceLocator() {
     return this.serviceLocator;
   }
@@ -2670,8 +2513,8 @@ class ServiceLocator {
   }
 }
 class AuthStrategy {
+  authStrategies;
   constructor() {
-    __publicField(this, "authStrategies");
     this.authStrategies = new Array();
   }
   static addAuthStrategiesFromArray(authStrategies, builder) {

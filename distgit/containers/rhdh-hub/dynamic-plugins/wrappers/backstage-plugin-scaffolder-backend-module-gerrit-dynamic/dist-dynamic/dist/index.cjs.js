@@ -332,7 +332,7 @@ function createPublishGerritAction(options) {
         gitAuthorInfo
       });
       ctx.output("remoteUrl", remoteUrl);
-      ctx.output("commitHash", commitResult == null ? void 0 : commitResult.commitHash);
+      ctx.output("commitHash", commitResult?.commitHash);
       ctx.output("repoContentsUrl", repoContentsUrl);
     }
   });
@@ -507,7 +507,6 @@ function createPublishGerritReviewAction(options) {
       }
     },
     async handler(ctx) {
-      var _a;
       const {
         repoUrl,
         branch = "master",
@@ -549,7 +548,7 @@ Change-Id: ${changeId}`;
       });
       const repoContentsUrl = `${integrationConfig.config.gitilesBaseUrl}/${repo}/+/refs/heads/${branch}`;
       const reviewUrl = `${integrationConfig.config.baseUrl}/#/q/${changeId}`;
-      (_a = ctx.logger) == null ? void 0 : _a.info(`Review available on ${reviewUrl}`);
+      ctx.logger?.info(`Review available on ${reviewUrl}`);
       ctx.output("repoContentsUrl", repoContentsUrl);
       ctx.output("reviewUrl", reviewUrl);
     }

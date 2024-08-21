@@ -3,18 +3,19 @@
 Object.defineProperty(exports, '__esModule', { value: true });
 
 var require$$0$1 = require('@backstage/backend-plugin-api');
-var require$$9 = require('@backstage/backend-tasks');
+var require$$10 = require('@backstage/backend-tasks');
 var require$$0 = require('@backstage/catalog-client');
 var require$$1 = require('@backstage/integration');
 var require$$2 = require('@octokit/rest');
 var require$$3 = require('lodash');
 var require$$4 = require('git-url-parse');
 var require$$5 = require('@backstage/backend-common');
-var require$$6 = require('@backstage/plugin-catalog-node');
-var require$$7 = require('@octokit/graphql');
-var require$$8 = require('uuid');
-var require$$10 = require('@backstage/catalog-model');
-var require$$11 = require('minimatch');
+var require$$6 = require('path');
+var require$$7 = require('@backstage/plugin-catalog-node');
+var require$$8 = require('@octokit/graphql');
+var require$$9 = require('uuid');
+var require$$11 = require('@backstage/catalog-model');
+var require$$12 = require('minimatch');
 var require$$3$1 = require('@backstage/plugin-catalog-node/alpha');
 var require$$4$1 = require('@backstage/plugin-events-node');
 
@@ -26,7 +27,7 @@ var index_cjs$2 = {};
 
 var index_cjs$1 = {};
 
-var GithubEntityProviderCiEweAnD_cjs = {};
+var GithubEntityProviderCJpx_erw_cjs = {};
 
 var catalogClient = require$$0;
 var integration$1 = require$$1;
@@ -34,12 +35,13 @@ var rest = require$$2;
 var lodash$1 = require$$3;
 var parseGitUrl = require$$4;
 var backendCommon = require$$5;
-var pluginCatalogNode$1 = require$$6;
-var graphql$1 = require$$7;
-var uuid$1 = require$$8;
-var backendTasks = require$$9;
-var catalogModel$1 = require$$10;
-var minimatch = require$$11;
+var path = require$$6;
+var pluginCatalogNode$1 = require$$7;
+var graphql$1 = require$$8;
+var uuid$1 = require$$9;
+var backendTasks = require$$10;
+var catalogModel$1 = require$$11;
+var minimatch = require$$12;
 
 function _interopDefaultCompat (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }
 
@@ -64,18 +66,12 @@ function _interopNamespaceCompat$1(e) {
 var parseGitUrl__default = /*#__PURE__*/_interopDefaultCompat(parseGitUrl);
 var uuid__namespace$1 = /*#__PURE__*/_interopNamespaceCompat$1(uuid$1);
 
-var __defProp$1$1 = Object.defineProperty;
-var __defNormalProp$1$1 = (obj, key, value) => key in obj ? __defProp$1$1(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
-var __publicField$1$1 = (obj, key, value) => {
-  __defNormalProp$1$1(obj, typeof key !== "symbol" ? key + "" : key, value);
-  return value;
-};
 class GithubLocationAnalyzer {
+  catalogClient;
+  githubCredentialsProvider;
+  integrations;
+  auth;
   constructor(options) {
-    __publicField$1$1(this, "catalogClient");
-    __publicField$1$1(this, "githubCredentialsProvider");
-    __publicField$1$1(this, "integrations");
-    __publicField$1$1(this, "auth");
     this.catalogClient = new catalogClient.CatalogClient({ discoveryApi: options.discovery });
     this.integrations = integration$1.ScmIntegrations.fromConfig(options.config);
     this.githubCredentialsProvider = options.githubCredentialsProvider || integration$1.DefaultGithubCredentialsProvider.fromIntegrations(this.integrations);
@@ -87,13 +83,15 @@ class GithubLocationAnalyzer {
   }
   supports(url) {
     const integration = this.integrations.byUrl(url);
-    return (integration == null ? void 0 : integration.type) === "github";
+    return integration?.type === "github";
   }
   async analyze(options) {
     const { url, catalogFilename } = options;
     const { owner, name: repo } = parseGitUrl__default.default(url);
     const catalogFile = catalogFilename || "catalog-info.yaml";
-    const query = `filename:${catalogFile} repo:${owner}/${repo}`;
+    const extension = path.extname(catalogFile);
+    const extensionQuery = !lodash$1.isEmpty(extension) ? `extension:${extension.replace(".", "")}` : "";
+    const query = `filename:${catalogFile} ${extensionQuery} repo:${owner}/${repo}`;
     const integration = this.integrations.github.byUrl(url);
     if (!integration) {
       throw new Error("Make sure you have a GitHub integration configured");
@@ -159,14 +157,10 @@ const defaultUserTransformer = async (item, _ctx) => {
       memberOf: []
     }
   };
-  if (item.bio)
-    entity.metadata.description = item.bio;
-  if (item.name)
-    entity.spec.profile.displayName = item.name;
-  if (item.email)
-    entity.spec.profile.email = item.email;
-  if (item.avatarUrl)
-    entity.spec.profile.picture = item.avatarUrl;
+  if (item.bio) entity.metadata.description = item.bio;
+  if (item.name) entity.spec.profile.displayName = item.name;
+  if (item.email) entity.spec.profile.email = item.email;
+  if (item.avatarUrl) entity.spec.profile.picture = item.avatarUrl;
   return entity;
 };
 const defaultOrganizationTeamTransformer = async (team) => {
@@ -213,26 +207,19 @@ function parseGithubOrgUrl(urlString) {
   throw new Error(`Expected a URL pointing to /<org>`);
 }
 function satisfiesTopicFilter(topics, topicFilter) {
-  var _a, _b, _c, _d;
-  if (!topicFilter)
-    return true;
-  if (!topicFilter.include && !topicFilter.exclude)
-    return true;
-  if (!((_a = topicFilter.include) == null ? void 0 : _a.length) && !((_b = topicFilter.exclude) == null ? void 0 : _b.length))
-    return true;
-  if (((_c = topicFilter.include) == null ? void 0 : _c.length) && !topicFilter.exclude) {
+  if (!topicFilter) return true;
+  if (!topicFilter.include && !topicFilter.exclude) return true;
+  if (!topicFilter.include?.length && !topicFilter.exclude?.length) return true;
+  if (topicFilter.include?.length && !topicFilter.exclude) {
     for (const topic of topics) {
-      if (topicFilter.include.includes(topic))
-        return true;
+      if (topicFilter.include.includes(topic)) return true;
     }
     return false;
   }
-  if (!topicFilter.include && ((_d = topicFilter.exclude) == null ? void 0 : _d.length)) {
-    if (!topics.length)
-      return true;
+  if (!topicFilter.include && topicFilter.exclude?.length) {
+    if (!topics.length) return true;
     for (const topic of topics) {
-      if (topicFilter.exclude.includes(topic))
-        return false;
+      if (topicFilter.exclude.includes(topic)) return false;
     }
     return true;
   }
@@ -243,15 +230,13 @@ function satisfiesTopicFilter(topics, topicFilter) {
     const matchesExclude = !satisfiesTopicFilter(topics, {
       exclude: topicFilter.exclude
     });
-    if (matchesExclude)
-      return false;
+    if (matchesExclude) return false;
     return matchesInclude;
   }
   return true;
 }
 function satisfiesForkFilter(allowForks, isFork) {
-  if (!allowForks && isFork)
-    return false;
+  if (!allowForks && isFork) return false;
   return true;
 }
 function splitTeamSlug(slug) {
@@ -275,10 +260,9 @@ function satisfiesVisibilityFilter(visibilities, visibility) {
 }
 
 function withLocations$1(baseUrl, org, entity) {
-  var _a, _b;
-  const login = ((_a = entity.metadata.annotations) == null ? void 0 : _a[ANNOTATION_GITHUB_USER_LOGIN]) || entity.metadata.name;
+  const login = entity.metadata.annotations?.[ANNOTATION_GITHUB_USER_LOGIN] || entity.metadata.name;
   let team = entity.metadata.name;
-  const slug = (_b = entity.metadata.annotations) == null ? void 0 : _b[ANNOTATION_GITHUB_TEAM_SLUG];
+  const slug = entity.metadata.annotations?.[ANNOTATION_GITHUB_TEAM_SLUG];
   if (slug) {
     const [_, slugTeam] = splitTeamSlug(slug);
     team = slugTeam;
@@ -318,10 +302,7 @@ async function getOrganizationUsers(client, org, tokenType, userTransformer = de
     client,
     query,
     org,
-    (r) => {
-      var _a;
-      return (_a = r.organization) == null ? void 0 : _a.membersWithRole;
-    },
+    (r) => r.organization?.membersWithRole,
     userTransformer,
     {
       org,
@@ -381,10 +362,7 @@ async function getOrganizationTeams(client, org, teamTransformer = defaultOrgani
     client,
     query,
     org,
-    (r) => {
-      var _a;
-      return (_a = r.organization) == null ? void 0 : _a.teams;
-    },
+    (r) => r.organization?.teams,
     materialisedTeams,
     { org }
   );
@@ -448,10 +426,7 @@ async function getOrganizationTeamsFromUsers(client, org, userLogins, teamTransf
     client,
     query,
     org,
-    (r) => {
-      var _a;
-      return (_a = r.organization) == null ? void 0 : _a.teams;
-    },
+    (r) => r.organization?.teams,
     materialisedTeams,
     { org, userLogins }
   );
@@ -471,17 +446,13 @@ async function getOrganizationsFromUser(client, user) {
     client,
     query,
     "",
-    (r) => {
-      var _a;
-      return (_a = r.user) == null ? void 0 : _a.organizations;
-    },
+    (r) => r.user?.organizations,
     async (o) => o.login,
     { user }
   );
   return { orgs };
 }
 async function getOrganizationTeam(client, org, teamSlug, teamTransformer = defaultOrganizationTeamTransformer) {
-  var _a, _b;
   const query = `
   query teams($org: String!, $teamSlug: String!) {
       organization(login: $org) {
@@ -522,15 +493,14 @@ async function getOrganizationTeam(client, org, teamSlug, teamTransformer = defa
     org,
     teamSlug
   });
-  if (!((_a = response.organization) == null ? void 0 : _a.team))
+  if (!response.organization?.team)
     throw new Error(`Found no match for team ${teamSlug}`);
-  const team = await materialisedTeam((_b = response.organization) == null ? void 0 : _b.team, {
+  const team = await materialisedTeam(response.organization?.team, {
     query,
     client,
     org
   });
-  if (!team)
-    throw new Error(`Can't transform for team ${teamSlug}`);
+  if (!team) throw new Error(`Can't transform for team ${teamSlug}`);
   return { team };
 }
 async function getOrganizationRepositories(client, org, catalogPath) {
@@ -583,14 +553,57 @@ async function getOrganizationRepositories(client, org, catalogPath) {
     client,
     query,
     org,
-    (r) => {
-      var _a;
-      return (_a = r.repositoryOwner) == null ? void 0 : _a.repositories;
-    },
+    (r) => r.repositoryOwner?.repositories,
     async (x) => x,
     { org, catalogPathRef }
   );
   return { repositories };
+}
+async function getOrganizationRepository(client, org, repoName, catalogPath) {
+  let relativeCatalogPathRef;
+  if (catalogPath.startsWith("/")) {
+    relativeCatalogPathRef = catalogPath.substring(1);
+  } else {
+    relativeCatalogPathRef = catalogPath;
+  }
+  const catalogPathRef = `HEAD:${relativeCatalogPathRef}`;
+  const query = `
+    query repository($org: String!, $repoName: String!, $catalogPathRef: String!) {
+      repositoryOwner(login: $org) {
+        repository(name: $repoName) {
+          name
+          catalogInfoFile: object(expression: $catalogPathRef) {
+            __typename
+            ... on Blob {
+              id
+              text
+            }
+          }
+          url
+          isArchived
+          isFork
+          visibility
+          repositoryTopics(first: 100) {
+            nodes {
+              ... on RepositoryTopic {
+                topic {
+                  name
+                }
+              }
+            }
+          }
+          defaultBranchRef {
+            name
+          }
+        }
+      }
+    }`;
+  const response = await client(query, {
+    org,
+    repoName,
+    catalogPathRef
+  });
+  return response.repositoryOwner?.repository || null;
 }
 async function getTeamMembers(client, org, teamSlug) {
   const query = `
@@ -608,10 +621,7 @@ async function getTeamMembers(client, org, teamSlug) {
     client,
     query,
     org,
-    (r) => {
-      var _a, _b;
-      return (_b = (_a = r.organization) == null ? void 0 : _a.team) == null ? void 0 : _b.members;
-    },
+    (r) => r.organization?.team?.members,
     async (user) => user,
     { org, teamSlug }
   );
@@ -690,22 +700,21 @@ function readProviderConfigs(config) {
   });
 }
 function readProviderConfig(id, config) {
-  var _a, _b, _c, _d;
   const organization = config.getString("organization");
-  const catalogPath = (_a = config.getOptionalString("catalogPath")) != null ? _a : DEFAULT_CATALOG_PATH;
-  const host = (_b = config.getOptionalString("host")) != null ? _b : "github.com";
+  const catalogPath = config.getOptionalString("catalogPath") ?? DEFAULT_CATALOG_PATH;
+  const host = config.getOptionalString("host") ?? "github.com";
   const repositoryPattern = config.getOptionalString("filters.repository");
   const branchPattern = config.getOptionalString("filters.branch");
-  const allowForks = (_c = config.getOptionalBoolean("filters.allowForks")) != null ? _c : true;
-  const topicFilterInclude = config == null ? void 0 : config.getOptionalStringArray(
+  const allowForks = config.getOptionalBoolean("filters.allowForks") ?? true;
+  const topicFilterInclude = config?.getOptionalStringArray(
     "filters.topic.include"
   );
-  const topicFilterExclude = config == null ? void 0 : config.getOptionalStringArray(
+  const topicFilterExclude = config?.getOptionalStringArray(
     "filters.topic.exclude"
   );
-  const validateLocationsExist = (_d = config == null ? void 0 : config.getOptionalBoolean("validateLocationsExist")) != null ? _d : false;
+  const validateLocationsExist = config?.getOptionalBoolean("validateLocationsExist") ?? false;
   const catalogPathContainsWildcard = catalogPath.includes("*");
-  const visibilityFilterInclude = config == null ? void 0 : config.getOptionalStringArray("filters.visibility");
+  const visibilityFilterInclude = config?.getOptionalStringArray("filters.visibility");
   if (validateLocationsExist && catalogPathContainsWildcard) {
     throw Error(
       `Error while processing GitHub provider config. The catalog path ${catalogPath} contains a wildcard, which is incompatible with validation of locations existing before emitting them. Ensure that validateLocationsExist is set to false.`
@@ -742,38 +751,21 @@ function compileRegExp(pattern) {
   return new RegExp(fullLinePattern);
 }
 
-var __defProp$5 = Object.defineProperty;
-var __defNormalProp$5 = (obj, key, value) => key in obj ? __defProp$5(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
-var __publicField$5 = (obj, key, value) => {
-  __defNormalProp$5(obj, typeof key !== "symbol" ? key + "" : key, value);
-  return value;
-};
-const TOPIC_REPO_PUSH = "github.push";
+const EVENT_TOPICS$2 = ["github.push", "github.repository"];
 class GithubEntityProvider$1 {
-  constructor(config, integration$1$1, logger, taskRunner, events) {
-    __publicField$5(this, "config");
-    __publicField$5(this, "events");
-    __publicField$5(this, "logger");
-    __publicField$5(this, "integration");
-    __publicField$5(this, "scheduleFn");
-    __publicField$5(this, "connection");
-    __publicField$5(this, "githubCredentialsProvider");
-    this.config = config;
-    this.events = events;
-    this.integration = integration$1$1.config;
-    this.logger = logger.child({
-      target: this.getProviderName()
-    });
-    this.scheduleFn = this.createScheduleFn(taskRunner);
-    this.githubCredentialsProvider = integration$1.SingleInstanceGithubCredentialsProvider.create(integration$1$1.config);
-  }
+  config;
+  events;
+  logger;
+  integration;
+  scheduleFn;
+  connection;
+  githubCredentialsProvider;
   static fromConfig(config, options) {
     if (!options.schedule && !options.scheduler) {
       throw new Error("Either schedule or scheduler must be provided.");
     }
     const integrations = integration$1.ScmIntegrations.fromConfig(config);
     return readProviderConfigs(config).map((providerConfig) => {
-      var _a;
       const integrationHost = providerConfig.host;
       const integration = integrations.github.byHost(integrationHost);
       if (!integration) {
@@ -786,7 +778,7 @@ class GithubEntityProvider$1 {
           `No schedule provided neither via code nor config for github-provider:${providerConfig.id}.`
         );
       }
-      const taskRunner = (_a = options.schedule) != null ? _a : options.scheduler.createScheduledTaskRunner(providerConfig.schedule);
+      const taskRunner = options.schedule ?? options.scheduler.createScheduledTaskRunner(providerConfig.schedule);
       return new GithubEntityProvider$1(
         providerConfig,
         integration,
@@ -796,19 +788,28 @@ class GithubEntityProvider$1 {
       );
     });
   }
+  constructor(config, integration$1$1, logger, taskRunner, events) {
+    this.config = config;
+    this.events = events;
+    this.integration = integration$1$1.config;
+    this.logger = logger.child({
+      target: this.getProviderName()
+    });
+    this.scheduleFn = this.createScheduleFn(taskRunner);
+    this.githubCredentialsProvider = integration$1.SingleInstanceGithubCredentialsProvider.create(integration$1$1.config);
+  }
   /** {@inheritdoc @backstage/plugin-catalog-backend#EntityProvider.getProviderName} */
   getProviderName() {
     return `github-provider:${this.config.id}`;
   }
   /** {@inheritdoc @backstage/plugin-catalog-backend#EntityProvider.connect} */
   async connect(connection) {
-    var _a;
     this.connection = connection;
-    await ((_a = this.events) == null ? void 0 : _a.subscribe({
+    await this.events?.subscribe({
       id: this.getProviderName(),
-      topics: [TOPIC_REPO_PUSH],
+      topics: EVENT_TOPICS$2,
       onEvent: (params) => this.onEvent(params)
-    }));
+    });
     return await this.scheduleFn();
   }
   createScheduleFn(taskRunner) {
@@ -840,12 +841,7 @@ class GithubEntityProvider$1 {
     }
     const targets = await this.findCatalogFiles();
     const matchingTargets = this.matchesFilters(targets);
-    const entities = matchingTargets.map((repository) => this.createLocationUrl(repository)).map(GithubEntityProvider$1.toLocationSpec).map((location) => {
-      return {
-        locationKey: this.getProviderName(),
-        entity: pluginCatalogNode$1.locationSpecToLocationEntity({ location })
-      };
-    });
+    const entities = this.toDeferredEntitiesFromRepos(matchingTargets);
     await this.connection.applyMutation({
       type: "full",
       entities
@@ -854,33 +850,27 @@ class GithubEntityProvider$1 {
       `Read ${targets.length} GitHub repositories (${entities.length} matching the pattern)`
     );
   }
-  // go to the server and get all of the repositories
-  async findCatalogFiles() {
+  async createGraphqlClient() {
     const organization = this.config.organization;
     const host = this.integration.host;
-    const catalogPath = this.config.catalogPath;
     const orgUrl = `https://${host}/${organization}`;
     const { headers } = await this.githubCredentialsProvider.getCredentials({
       url: orgUrl
     });
-    const client = graphql$1.graphql.defaults({
+    return graphql$1.graphql.defaults({
       baseUrl: this.integration.apiBaseUrl,
       headers
     });
+  }
+  // go to the server and get all repositories
+  async findCatalogFiles() {
+    const organization = this.config.organization;
+    const catalogPath = this.config.catalogPath;
+    const client = await this.createGraphqlClient();
     const { repositories: repositoriesFromGithub } = await getOrganizationRepositories(client, organization, catalogPath);
-    const repositories = repositoriesFromGithub.map((r) => {
-      var _a, _b;
-      return {
-        url: r.url,
-        name: r.name,
-        defaultBranchRef: (_a = r.defaultBranchRef) == null ? void 0 : _a.name,
-        repositoryTopics: r.repositoryTopics.nodes.map((t) => t.topic.name),
-        isArchived: r.isArchived,
-        isFork: r.isFork,
-        isCatalogInfoFilePresent: ((_b = r.catalogInfoFile) == null ? void 0 : _b.__typename) === "Blob" && r.catalogInfoFile.text !== "",
-        visibility: r.visibility
-      };
-    });
+    const repositories = repositoriesFromGithub.map(
+      this.createRepoFromGithubResponse
+    );
     if (this.config.validateLocationsExist) {
       return repositories.filter(
         (repository) => repository.isCatalogInfoFilePresent
@@ -889,20 +879,17 @@ class GithubEntityProvider$1 {
     return repositories;
   }
   matchesFilters(repositories) {
-    var _a, _b, _c, _d, _e, _f;
-    const repositoryFilter = (_a = this.config.filters) == null ? void 0 : _a.repository;
-    const topicFilters = (_b = this.config.filters) == null ? void 0 : _b.topic;
-    const allowForks = (_d = (_c = this.config.filters) == null ? void 0 : _c.allowForks) != null ? _d : true;
-    const visibilities = (_f = (_e = this.config.filters) == null ? void 0 : _e.visibility) != null ? _f : [];
-    const matchingRepositories = repositories.filter((r) => {
+    const repositoryFilter = this.config.filters?.repository;
+    const topicFilters = this.config.filters?.topic;
+    const allowForks = this.config.filters?.allowForks ?? true;
+    const visibilities = this.config.filters?.visibility ?? [];
+    return repositories.filter((r) => {
       const repoTopics = r.repositoryTopics;
       return !r.isArchived && (!repositoryFilter || repositoryFilter.test(r.name)) && satisfiesTopicFilter(repoTopics, topicFilters) && satisfiesForkFilter(allowForks, r.isFork) && satisfiesVisibilityFilter(visibilities, r.visibility) && r.defaultBranchRef;
     });
-    return matchingRepositories;
   }
   createLocationUrl(repository) {
-    var _a;
-    const branch = ((_a = this.config.filters) == null ? void 0 : _a.branch) || repository.defaultBranchRef || "-";
+    const branch = this.config.filters?.branch || repository.defaultBranchRef || "-";
     const catalogFile = this.config.catalogPath.startsWith("/") ? this.config.catalogPath.substring(1) : this.config.catalogPath;
     return `${repository.url}/blob/${branch}/${catalogFile}`;
   }
@@ -916,20 +903,29 @@ class GithubEntityProvider$1 {
   /** {@inheritdoc @backstage/plugin-events-node#EventSubscriber.onEvent} */
   async onEvent(params) {
     this.logger.debug(`Received event from ${params.topic}`);
-    if (params.topic !== TOPIC_REPO_PUSH) {
-      return;
+    if (EVENT_TOPICS$2.some((topic) => topic === params.topic)) {
+      if (!this.connection) {
+        throw new Error("Not initialized");
+      }
+      switch (params.topic) {
+        case "github.push":
+          await this.onPush(params.eventPayload);
+          return;
+        case "github.repository":
+          await this.onRepoChange(params.eventPayload);
+          return;
+        default:
+          this.logger.warn(
+            `Missing implementation for event of topic ${params.topic}`
+          );
+      }
     }
-    await this.onRepoPush(params.eventPayload);
   }
   /** {@inheritdoc @backstage/plugin-events-node#EventSubscriber.supportsEventTopics} */
   supportsEventTopics() {
-    return [TOPIC_REPO_PUSH];
+    return EVENT_TOPICS$2;
   }
-  async onRepoPush(event) {
-    var _a;
-    if (!this.connection) {
-      throw new Error("Not initialized");
-    }
+  async onPush(event) {
     if (this.config.organization !== event.repository.organization) {
       this.logger.debug(
         `skipping push event from organization ${event.repository.organization}`
@@ -939,23 +935,12 @@ class GithubEntityProvider$1 {
     const repoName = event.repository.name;
     const repoUrl = event.repository.url;
     this.logger.debug(`handle github:push event for ${repoName} - ${repoUrl}`);
-    const branch = ((_a = this.config.filters) == null ? void 0 : _a.branch) || event.repository.default_branch;
+    const branch = this.config.filters?.branch || event.repository.default_branch;
     if (!event.ref.includes(branch)) {
       this.logger.debug(`skipping push event from ref ${event.ref}`);
       return;
     }
-    const repository = {
-      url: event.repository.url,
-      name: event.repository.name,
-      defaultBranchRef: event.repository.default_branch,
-      repositoryTopics: event.repository.topics,
-      isArchived: event.repository.archived,
-      isFork: event.repository.fork,
-      // we can consider this file present because
-      // only the catalog file will be recovered from the commits
-      isCatalogInfoFilePresent: true,
-      visibility: event.repository.visibility
-    };
+    const repository = this.createRepoFromEvent(event);
     const matchingTargets = this.matchesFilters([repository]);
     if (matchingTargets.length === 0) {
       this.logger.debug(
@@ -1006,6 +991,221 @@ class GithubEntityProvider$1 {
       `Processed Github push event: added ${added.length} - removed ${removed.length} - modified ${modified.length}`
     );
   }
+  async onRepoChange(event) {
+    if (this.config.organization !== event.repository.organization) {
+      this.logger.debug(
+        `skipping repository event from organization ${event.repository.organization}`
+      );
+      return;
+    }
+    const action = event.action;
+    switch (action) {
+      case "archived":
+        await this.onRepoArchived(event);
+        return;
+      case "created":
+        return;
+      case "deleted":
+        await this.onRepoDeleted(event);
+        return;
+      case "edited":
+        await this.onRepoEdited(event);
+        return;
+      case "privatized":
+        return;
+      case "publicized":
+        return;
+      case "renamed":
+        await this.onRepoRenamed(event);
+        return;
+      case "transferred":
+        await this.onRepoTransferred(event);
+        return;
+      case "unarchived":
+        await this.onRepoUnarchived(event);
+        return;
+      default:
+        this.logger.warn(
+          `Missing implementation for event of topic repository with action ${action}`
+        );
+    }
+  }
+  /**
+   * A repository was archived.
+   *
+   * Removes all entities associated with the repository.
+   *
+   * @param event - The repository archived event.
+   * @private
+   */
+  async onRepoArchived(event) {
+    const repository = this.createRepoFromEvent(event);
+    await this.removeEntitiesForRepo(repository);
+    this.logger.debug(
+      `Removed entities for archived repository ${repository.name}`
+    );
+  }
+  /**
+   * A repository was deleted.
+   *
+   * Removes all entities associated with the repository.
+   *
+   * @param event - The repository deleted event.
+   * @private
+   */
+  async onRepoDeleted(event) {
+    const repository = this.createRepoFromEvent(event);
+    await this.removeEntitiesForRepo(repository);
+    this.logger.debug(
+      `Removed entities for deleted repository ${repository.name}`
+    );
+  }
+  /**
+   * The topics, default branch, description, or homepage of a repository was changed.
+   *
+   * We are interested in potential topic changes as these can be used as part of the filters.
+   *
+   * Removes all entities associated with the repository if the repository no longer matches the filters.
+   *
+   * @param event - The repository edited event.
+   * @private
+   */
+  async onRepoEdited(event) {
+    const repository = this.createRepoFromEvent(event);
+    const matchingTargets = this.matchesFilters([repository]);
+    if (matchingTargets.length === 0) {
+      await this.removeEntitiesForRepo(repository);
+    }
+  }
+  /**
+   * The name of a repository was changed.
+   *
+   * Removes all entities associated with the repository's old name.
+   * Creates new entities for the repository's new name if it still matches the filters.
+   *
+   * @param event - The repository renamed event.
+   * @private
+   */
+  async onRepoRenamed(event) {
+    const repository = this.createRepoFromEvent(event);
+    const oldRepoName = event.changes.repository.name.from;
+    const urlParts = event.repository.url.split("/");
+    urlParts[urlParts.length - 1] = oldRepoName;
+    const oldRepoUrl = urlParts.join("/");
+    const oldRepository = {
+      ...repository,
+      name: oldRepoName,
+      url: oldRepoUrl
+    };
+    await this.removeEntitiesForRepo(oldRepository);
+    const matchingTargets = this.matchesFilters([repository]);
+    if (matchingTargets.length === 0) {
+      this.logger.debug(
+        `skipping repository transferred event for repository ${repository.name} because it didn't match provider filters`
+      );
+      return;
+    }
+    await this.addEntitiesForRepo(repository);
+  }
+  /**
+   * Ownership of the repository was transferred to a user or organization account.
+   * This event is only sent to the account where the ownership is transferred.
+   * To receive the `repository.transferred` event, the new owner account must have the GitHub App installed,
+   * and the App must be subscribed to "Repository" events.
+   *
+   * Creates new entities for the repository if it matches the filters.
+   *
+   * @param event - The repository unarchived event.
+   * @private
+   */
+  async onRepoTransferred(event) {
+    const repository = this.createRepoFromEvent(event);
+    const matchingTargets = this.matchesFilters([repository]);
+    if (matchingTargets.length === 0) {
+      this.logger.debug(
+        `skipping repository transferred event for repository ${repository.name} because it didn't match provider filters`
+      );
+      return;
+    }
+    await this.addEntitiesForRepo(repository);
+  }
+  /**
+   * A previously archived repository was unarchived.
+   *
+   * Creates new entities for the repository if it matches the filters.
+   *
+   * @param event - The repository unarchived event.
+   * @private
+   */
+  async onRepoUnarchived(event) {
+    const repository = this.createRepoFromEvent(event);
+    const matchingTargets = this.matchesFilters([repository]);
+    if (matchingTargets.length === 0) {
+      this.logger.debug(
+        `skipping repository transferred event for repository ${repository.name} because it didn't match provider filters`
+      );
+      return;
+    }
+    await this.addEntitiesForRepo(repository);
+  }
+  async removeEntitiesForRepo(repository) {
+    const removed = this.toDeferredEntitiesFromRepos([repository]);
+    await this.connection.applyMutation({
+      type: "delta",
+      added: [],
+      removed
+    });
+  }
+  async addEntitiesForRepo(repository) {
+    if (this.config.validateLocationsExist) {
+      const organization = this.config.organization;
+      const catalogPath = this.config.catalogPath;
+      const client = await this.createGraphqlClient();
+      const repositoryFromGithub = await getOrganizationRepository(
+        client,
+        organization,
+        repository.name,
+        catalogPath
+      ).then((r) => r ? this.createRepoFromGithubResponse(r) : null);
+      if (!repositoryFromGithub?.isCatalogInfoFilePresent) {
+        return;
+      }
+    }
+    const added = this.toDeferredEntitiesFromRepos([repository]);
+    await this.connection.applyMutation({
+      type: "delta",
+      added,
+      removed: []
+    });
+  }
+  createRepoFromEvent(event) {
+    return {
+      url: event.repository.url,
+      name: event.repository.name,
+      defaultBranchRef: event.repository.default_branch,
+      repositoryTopics: event.repository.topics,
+      isArchived: event.repository.archived,
+      isFork: event.repository.fork,
+      // we can consider this file present because
+      // only the catalog file will be recovered from the commits
+      isCatalogInfoFilePresent: true,
+      visibility: event.repository.visibility
+    };
+  }
+  createRepoFromGithubResponse(repositoryResponse) {
+    return {
+      url: repositoryResponse.url,
+      name: repositoryResponse.name,
+      defaultBranchRef: repositoryResponse.defaultBranchRef?.name,
+      repositoryTopics: repositoryResponse.repositoryTopics.nodes.map(
+        (t) => t.topic.name
+      ),
+      isArchived: repositoryResponse.isArchived,
+      isFork: repositoryResponse.isFork,
+      isCatalogInfoFilePresent: repositoryResponse.catalogInfoFile?.__typename === "Blob" && repositoryResponse.catalogInfoFile.text !== "",
+      visibility: repositoryResponse.visibility
+    };
+  }
   collectDeferredEntitiesFromCommit(repositoryUrl, branch, commits, transformOperation) {
     const catalogFiles = this.collectFilesFromCommit(
       commits,
@@ -1033,34 +1233,43 @@ class GithubEntityProvider$1 {
       };
     });
   }
+  toDeferredEntitiesFromRepos(repositories) {
+    return repositories.map((repository) => this.createLocationUrl(repository)).map(GithubEntityProvider$1.toLocationSpec).map((location) => {
+      return {
+        locationKey: this.getProviderName(),
+        entity: pluginCatalogNode$1.locationSpecToLocationEntity({ location })
+      };
+    });
+  }
 }
 
-GithubEntityProviderCiEweAnD_cjs.ANNOTATION_GITHUB_TEAM_SLUG = ANNOTATION_GITHUB_TEAM_SLUG;
-GithubEntityProviderCiEweAnD_cjs.ANNOTATION_GITHUB_USER_LOGIN = ANNOTATION_GITHUB_USER_LOGIN;
-GithubEntityProviderCiEweAnD_cjs.GithubEntityProvider = GithubEntityProvider$1;
-GithubEntityProviderCiEweAnD_cjs.GithubLocationAnalyzer = GithubLocationAnalyzer;
-GithubEntityProviderCiEweAnD_cjs.createAddEntitiesOperation = createAddEntitiesOperation;
-GithubEntityProviderCiEweAnD_cjs.createRemoveEntitiesOperation = createRemoveEntitiesOperation;
-GithubEntityProviderCiEweAnD_cjs.createReplaceEntitiesOperation = createReplaceEntitiesOperation;
-GithubEntityProviderCiEweAnD_cjs.defaultOrganizationTeamTransformer = defaultOrganizationTeamTransformer;
-GithubEntityProviderCiEweAnD_cjs.defaultUserTransformer = defaultUserTransformer;
-GithubEntityProviderCiEweAnD_cjs.getOrganizationRepositories = getOrganizationRepositories;
-GithubEntityProviderCiEweAnD_cjs.getOrganizationTeam = getOrganizationTeam;
-GithubEntityProviderCiEweAnD_cjs.getOrganizationTeams = getOrganizationTeams;
-GithubEntityProviderCiEweAnD_cjs.getOrganizationTeamsFromUsers = getOrganizationTeamsFromUsers;
-GithubEntityProviderCiEweAnD_cjs.getOrganizationUsers = getOrganizationUsers;
-GithubEntityProviderCiEweAnD_cjs.getOrganizationsFromUser = getOrganizationsFromUser;
-GithubEntityProviderCiEweAnD_cjs.parseGithubOrgUrl = parseGithubOrgUrl;
-GithubEntityProviderCiEweAnD_cjs.splitTeamSlug = splitTeamSlug;
-GithubEntityProviderCiEweAnD_cjs.withLocations = withLocations$1;
+GithubEntityProviderCJpx_erw_cjs.ANNOTATION_GITHUB_TEAM_SLUG = ANNOTATION_GITHUB_TEAM_SLUG;
+GithubEntityProviderCJpx_erw_cjs.ANNOTATION_GITHUB_USER_LOGIN = ANNOTATION_GITHUB_USER_LOGIN;
+GithubEntityProviderCJpx_erw_cjs.GithubEntityProvider = GithubEntityProvider$1;
+GithubEntityProviderCJpx_erw_cjs.GithubLocationAnalyzer = GithubLocationAnalyzer;
+GithubEntityProviderCJpx_erw_cjs.createAddEntitiesOperation = createAddEntitiesOperation;
+GithubEntityProviderCJpx_erw_cjs.createRemoveEntitiesOperation = createRemoveEntitiesOperation;
+GithubEntityProviderCJpx_erw_cjs.createReplaceEntitiesOperation = createReplaceEntitiesOperation;
+GithubEntityProviderCJpx_erw_cjs.defaultOrganizationTeamTransformer = defaultOrganizationTeamTransformer;
+GithubEntityProviderCJpx_erw_cjs.defaultUserTransformer = defaultUserTransformer;
+GithubEntityProviderCJpx_erw_cjs.getOrganizationRepositories = getOrganizationRepositories;
+GithubEntityProviderCJpx_erw_cjs.getOrganizationTeam = getOrganizationTeam;
+GithubEntityProviderCJpx_erw_cjs.getOrganizationTeams = getOrganizationTeams;
+GithubEntityProviderCJpx_erw_cjs.getOrganizationTeamsFromUsers = getOrganizationTeamsFromUsers;
+GithubEntityProviderCJpx_erw_cjs.getOrganizationUsers = getOrganizationUsers;
+GithubEntityProviderCJpx_erw_cjs.getOrganizationsFromUser = getOrganizationsFromUser;
+GithubEntityProviderCJpx_erw_cjs.parseGithubOrgUrl = parseGithubOrgUrl;
+GithubEntityProviderCJpx_erw_cjs.splitTeamSlug = splitTeamSlug;
+GithubEntityProviderCJpx_erw_cjs.withLocations = withLocations$1;
 
-var GithubEntityProvider = GithubEntityProviderCiEweAnD_cjs;
+var GithubEntityProvider = GithubEntityProviderCJpx_erw_cjs;
 var integration = require$$1;
-var pluginCatalogNode = require$$6;
-var graphql = require$$7;
-var catalogModel = require$$10;
+var pluginCatalogNode = require$$7;
+var graphql = require$$8;
+var catalogModel = require$$11;
 var lodash = require$$3;
-var uuid = require$$8;
+var uuid = require$$9;
+
 
 
 
@@ -1089,16 +1298,12 @@ function _interopNamespaceCompat(e) {
 var uuid__namespace = /*#__PURE__*/_interopNamespaceCompat(uuid);
 
 function readGithubMultiOrgConfig(config) {
-  var _a;
-  const orgConfigs = (_a = config.getOptionalConfigArray("orgs")) != null ? _a : [];
-  return orgConfigs.map((c) => {
-    var _a2, _b;
-    return {
-      name: c.getString("name"),
-      groupNamespace: ((_a2 = c.getOptionalString("groupNamespace")) != null ? _a2 : c.getString("name")).toLowerCase(),
-      userNamespace: (_b = c.getOptionalString("userNamespace")) != null ? _b : void 0
-    };
-  });
+  const orgConfigs = config.getOptionalConfigArray("orgs") ?? [];
+  return orgConfigs.map((c) => ({
+    name: c.getString("name"),
+    groupNamespace: (c.getOptionalString("groupNamespace") ?? c.getString("name")).toLowerCase(),
+    userNamespace: c.getOptionalString("userNamespace") ?? void 0
+  }));
 }
 
 function buildOrgHierarchy(groups) {
@@ -1124,16 +1329,14 @@ function buildOrgHierarchy(groups) {
   }
 }
 function assignGroupsToUsers(users, groups) {
-  var _a;
   const groupMemberUsers = new Map(
     groups.map((group) => {
-      var _a2;
       const groupKey = group.metadata.namespace && group.metadata.namespace !== catalogModel.DEFAULT_NAMESPACE ? `${group.metadata.namespace}/${group.metadata.name}` : group.metadata.name;
       return [
         groupKey,
-        ((_a2 = group.spec.members) == null ? void 0 : _a2.map(
+        group.spec.members?.map(
           (m) => catalogModel.stringifyEntityRef(catalogModel.parseEntityRef(m, { defaultKind: "user" }))
-        )) || []
+        ) || []
       ];
     })
   );
@@ -1141,7 +1344,7 @@ function assignGroupsToUsers(users, groups) {
   for (const [groupName, userRefs] of groupMemberUsers.entries()) {
     for (const ref of userRefs) {
       const user = usersByRef.get(ref);
-      if (user && !((_a = user.spec.memberOf) == null ? void 0 : _a.includes(groupName))) {
+      if (user && !user.spec.memberOf?.includes(groupName)) {
         if (!user.spec.memberOf) {
           user.spec.memberOf = [];
         }
@@ -1151,21 +1354,10 @@ function assignGroupsToUsers(users, groups) {
   }
 }
 
-var __defProp$4 = Object.defineProperty;
-var __defNormalProp$4 = (obj, key, value) => key in obj ? __defProp$4(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
-var __publicField$4 = (obj, key, value) => {
-  __defNormalProp$4(obj, typeof key !== "symbol" ? key + "" : key, value);
-  return value;
-};
 class GithubDiscoveryProcessor {
-  constructor(options) {
-    __publicField$4(this, "integrations");
-    __publicField$4(this, "logger");
-    __publicField$4(this, "githubCredentialsProvider");
-    this.integrations = options.integrations;
-    this.logger = options.logger;
-    this.githubCredentialsProvider = options.githubCredentialsProvider || integration.DefaultGithubCredentialsProvider.fromIntegrations(this.integrations);
-  }
+  integrations;
+  logger;
+  githubCredentialsProvider;
   static fromConfig(config, options) {
     const integrations = integration.ScmIntegrations.fromConfig(config);
     return new GithubDiscoveryProcessor({
@@ -1173,17 +1365,21 @@ class GithubDiscoveryProcessor {
       integrations
     });
   }
+  constructor(options) {
+    this.integrations = options.integrations;
+    this.logger = options.logger;
+    this.githubCredentialsProvider = options.githubCredentialsProvider || integration.DefaultGithubCredentialsProvider.fromIntegrations(this.integrations);
+  }
   getProcessorName() {
     return "GithubDiscoveryProcessor";
   }
   async readLocation(location, _optional, emit) {
-    var _a, _b;
     if (location.type !== "github-discovery") {
       return false;
     }
-    const gitHubConfig = (_a = this.integrations.github.byUrl(
+    const gitHubConfig = this.integrations.github.byUrl(
       location.target
-    )) == null ? void 0 : _a.config;
+    )?.config;
     if (!gitHubConfig) {
       throw new Error(
         `There is no GitHub integration that matches ${location.target}. Please add a configuration entry for it under integrations.github`
@@ -1215,7 +1411,7 @@ class GithubDiscoveryProcessor {
       `Read ${repositories.length} GitHub repositories (${matching.length} matching the pattern) in ${duration} seconds`
     );
     for (const repository of matching) {
-      const branchName = branch === "-" ? (_b = repository.defaultBranchRef) == null ? void 0 : _b.name : branch;
+      const branchName = branch === "-" ? repository.defaultBranchRef?.name : branch;
       if (!branchName) {
         this.logger.info(
           `the repository ${repository.url} does not have a default branch, skipping`
@@ -1270,24 +1466,18 @@ function areUserEntities(entities) {
   return entities.every((e) => catalogModel.isUserEntity(e));
 }
 
-var __defProp$3 = Object.defineProperty;
-var __defNormalProp$3 = (obj, key, value) => key in obj ? __defProp$3(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
-var __publicField$3 = (obj, key, value) => {
-  __defNormalProp$3(obj, typeof key !== "symbol" ? key + "" : key, value);
-  return value;
-};
 class GithubMultiOrgReaderProcessor {
   constructor(options) {
     this.options = options;
-    __publicField$3(this, "integrations");
-    __publicField$3(this, "orgs");
-    __publicField$3(this, "logger");
-    __publicField$3(this, "githubCredentialsProvider");
     this.integrations = options.integrations;
     this.logger = options.logger;
     this.orgs = options.orgs;
     this.githubCredentialsProvider = options.githubCredentialsProvider || integration.DefaultGithubCredentialsProvider.fromIntegrations(this.integrations);
   }
+  integrations;
+  orgs;
+  logger;
+  githubCredentialsProvider;
   static fromConfig(config, options) {
     const c = config.getOptionalConfig("catalog.processors.githubMultiOrg");
     const integrations = integration.ScmIntegrations.fromConfig(config);
@@ -1301,13 +1491,12 @@ class GithubMultiOrgReaderProcessor {
     return "GithubMultiOrgReaderProcessor";
   }
   async readLocation(location, _optional, emit) {
-    var _a;
     if (location.type !== "github-multi-org") {
       return false;
     }
-    const gitHubConfig = (_a = this.integrations.github.byUrl(
+    const gitHubConfig = this.integrations.github.byUrl(
       location.target
-    )) == null ? void 0 : _a.config;
+    )?.config;
     if (!gitHubConfig) {
       throw new Error(
         `There is no GitHub integration that matches ${location.target}. Please add a configuration entry for it under integrations.github`
@@ -1349,10 +1538,7 @@ class GithubMultiOrgReaderProcessor {
             if (result && catalogModel.isGroupEntity(result)) {
               result.metadata.namespace = orgConfig.groupNamespace;
               result.spec.members = team.members.map(
-                (user) => {
-                  var _a2;
-                  return `${(_a2 = orgConfig.userNamespace) != null ? _a2 : catalogModel.DEFAULT_NAMESPACE}/${user.login}`;
-                }
+                (user) => `${orgConfig.userNamespace ?? catalogModel.DEFAULT_NAMESPACE}/${user.login}`
               );
             }
             return result;
@@ -1403,27 +1589,21 @@ class GithubMultiOrgReaderProcessor {
   }
 }
 
-var __defProp$2 = Object.defineProperty;
-var __defNormalProp$2 = (obj, key, value) => key in obj ? __defProp$2(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
-var __publicField$2 = (obj, key, value) => {
-  __defNormalProp$2(obj, typeof key !== "symbol" ? key + "" : key, value);
-  return value;
-};
 class GithubOrgReaderProcessor {
-  constructor(options) {
-    __publicField$2(this, "integrations");
-    __publicField$2(this, "logger");
-    __publicField$2(this, "githubCredentialsProvider");
-    this.integrations = options.integrations;
-    this.githubCredentialsProvider = options.githubCredentialsProvider || integration.DefaultGithubCredentialsProvider.fromIntegrations(this.integrations);
-    this.logger = options.logger;
-  }
+  integrations;
+  logger;
+  githubCredentialsProvider;
   static fromConfig(config, options) {
     const integrations = integration.ScmIntegrations.fromConfig(config);
     return new GithubOrgReaderProcessor({
       ...options,
       integrations
     });
+  }
+  constructor(options) {
+    this.integrations = options.integrations;
+    this.githubCredentialsProvider = options.githubCredentialsProvider || integration.DefaultGithubCredentialsProvider.fromIntegrations(this.integrations);
+    this.logger = options.logger;
   }
   getProcessorName() {
     return "GithubOrgReaderProcessor";
@@ -1457,8 +1637,7 @@ class GithubOrgReaderProcessor {
     return true;
   }
   async createClient(orgUrl) {
-    var _a;
-    const gitHubConfig = (_a = this.integrations.github.byUrl(orgUrl)) == null ? void 0 : _a.config;
+    const gitHubConfig = this.integrations.github.byUrl(orgUrl)?.config;
     if (!gitHubConfig) {
       throw new Error(
         `There is no GitHub Org provider that matches ${orgUrl}. Please add a configuration for an integration.`
@@ -1475,12 +1654,6 @@ class GithubOrgReaderProcessor {
   }
 }
 
-var __defProp$1 = Object.defineProperty;
-var __defNormalProp$1 = (obj, key, value) => key in obj ? __defProp$1(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
-var __publicField$1 = (obj, key, value) => {
-  __defNormalProp$1(obj, typeof key !== "symbol" ? key + "" : key, value);
-  return value;
-};
 const EVENT_TOPICS$1 = [
   "github.installation",
   "github.membership",
@@ -1490,13 +1663,12 @@ const EVENT_TOPICS$1 = [
 class GithubMultiOrgEntityProvider {
   constructor(options) {
     this.options = options;
-    __publicField$1(this, "connection");
-    __publicField$1(this, "scheduleFn");
   }
+  connection;
+  scheduleFn;
   static fromConfig(config, options) {
-    var _a;
     const integrations = integration.ScmIntegrations.fromConfig(config);
-    const gitHubConfig = (_a = integrations.github.byUrl(options.githubUrl)) == null ? void 0 : _a.config;
+    const gitHubConfig = integrations.github.byUrl(options.githubUrl)?.config;
     if (!gitHubConfig) {
       throw new Error(
         `There is no GitHub integration that matches ${options.githubUrl}. Please add a configuration entry for it under integrations.github.`
@@ -1526,29 +1698,27 @@ class GithubMultiOrgEntityProvider {
   }
   /** {@inheritdoc @backstage/plugin-catalog-backend#EntityProvider.connect} */
   async connect(connection) {
-    var _a, _b;
     this.connection = connection;
-    await ((_a = this.options.events) == null ? void 0 : _a.subscribe({
+    await this.options.events?.subscribe({
       id: this.getProviderName(),
       topics: EVENT_TOPICS$1,
       onEvent: (params) => this.onEvent(params)
-    }));
-    await ((_b = this.scheduleFn) == null ? void 0 : _b.call(this));
+    });
+    await this.scheduleFn?.();
   }
   /**
    * Runs one single complete ingestion. This is only necessary if you use
    * manual scheduling.
    */
   async read(options) {
-    var _a, _b;
     if (!this.connection) {
       throw new Error("Not initialized");
     }
-    const logger = (_a = options == null ? void 0 : options.logger) != null ? _a : this.options.logger;
+    const logger = options?.logger ?? this.options.logger;
     const { markReadComplete } = trackProgress$1(logger);
     const allUsersMap = /* @__PURE__ */ new Map();
     const allTeams = [];
-    const orgsToProcess = ((_b = this.options.orgs) == null ? void 0 : _b.length) ? this.options.orgs : await this.getAllOrgs(this.options.gitHubConfig);
+    const orgsToProcess = this.options.orgs?.length ? this.options.orgs : await this.getAllOrgs(this.options.gitHubConfig);
     for (const org of orgsToProcess) {
       const { headers, type: tokenType } = await this.options.githubCredentialsProvider.getCredentials({
         url: `${this.options.githubUrl}/${org}`
@@ -1599,15 +1769,14 @@ class GithubMultiOrgEntityProvider {
     markCommitComplete();
   }
   async onEvent(params) {
-    var _a, _b, _c, _d;
     const { logger } = this.options;
     logger.debug(`Received event from ${params.topic}`);
-    const orgs = ((_a = this.options.orgs) == null ? void 0 : _a.length) ? this.options.orgs : await this.getAllOrgs(this.options.gitHubConfig);
+    const orgs = this.options.orgs?.length ? this.options.orgs : await this.getAllOrgs(this.options.gitHubConfig);
     const eventPayload = params.eventPayload;
     if (!orgs.includes(
-      (_c = (_b = eventPayload.installation) == null ? void 0 : _b.account) == null ? void 0 : _c.login
+      eventPayload.installation?.account?.login
     ) && !orgs.includes(
-      (_d = eventPayload.organization) == null ? void 0 : _d.login
+      eventPayload.organization?.login
     )) {
       return;
     }
@@ -1676,10 +1845,7 @@ class GithubMultiOrgEntityProvider {
           orgClient,
           userOrg,
           users.map(
-            (u) => {
-              var _a;
-              return ((_a = u.metadata.annotations) == null ? void 0 : _a[GithubEntityProvider.ANNOTATION_GITHUB_USER_LOGIN]) || u.metadata.name;
-            }
+            (u) => u.metadata.annotations?.[GithubEntityProvider.ANNOTATION_GITHUB_USER_LOGIN] || u.metadata.name
           ),
           this.defaultMultiOrgTeamTransformer.bind(this)
         );
@@ -1733,7 +1899,7 @@ class GithubMultiOrgEntityProvider {
         name,
         avatarUrl,
         login,
-        email: email != null ? email : void 0
+        email: email ?? void 0
       },
       {
         org,
@@ -1772,7 +1938,6 @@ class GithubMultiOrgEntityProvider {
     });
   }
   async onTeamChangeInOrganization(event) {
-    var _a, _b;
     if (!this.connection) {
       throw new Error("Not initialized");
     }
@@ -1791,8 +1956,8 @@ class GithubMultiOrgEntityProvider {
         slug,
         editTeamUrl: `${url}/edit`,
         combinedSlug: `${org}/${slug}`,
-        description: description != null ? description : void 0,
-        parentTeam: { slug: ((_b = (_a = event.team) == null ? void 0 : _a.parent) == null ? void 0 : _b.slug) || "" },
+        description: description ?? void 0,
+        parentTeam: { slug: event.team?.parent?.slug || "" },
         // entity will be removed or is new
         members: []
       },
@@ -1811,7 +1976,6 @@ class GithubMultiOrgEntityProvider {
     });
   }
   async onTeamEditedInOrganization(event, applicableOrgs) {
-    var _a, _b, _c, _d, _e, _f;
     if (!this.connection) {
       throw new Error("Not initialized");
     }
@@ -1836,9 +2000,9 @@ class GithubMultiOrgEntityProvider {
       tokenType,
       this.options.userTransformer
     );
-    const usersFromChangedGroup = catalogModel.isGroupEntity(team) ? ((_a = team.spec.members) == null ? void 0 : _a.map(
+    const usersFromChangedGroup = catalogModel.isGroupEntity(team) ? team.spec.members?.map(
       (m) => catalogModel.stringifyEntityRef(catalogModel.parseEntityRef(m, { defaultKind: "user" }))
-    )) || [] : [];
+    ) || [] : [];
     const usersToRebuild = users.filter(
       (u) => usersFromChangedGroup.includes(catalogModel.stringifyEntityRef(u))
     );
@@ -1855,10 +2019,7 @@ class GithubMultiOrgEntityProvider {
           orgClient,
           userOrg,
           usersToRebuild.map(
-            (u) => {
-              var _a2;
-              return ((_a2 = u.metadata.annotations) == null ? void 0 : _a2[GithubEntityProvider.ANNOTATION_GITHUB_USER_LOGIN]) || u.metadata.name;
-            }
+            (u) => u.metadata.annotations?.[GithubEntityProvider.ANNOTATION_GITHUB_USER_LOGIN] || u.metadata.name
           ),
           this.defaultMultiOrgTeamTransformer.bind(this)
         );
@@ -1867,15 +2028,15 @@ class GithubMultiOrgEntityProvider {
         }
       }
     }
-    const oldName = ((_b = event.changes.name) == null ? void 0 : _b.from) || "";
+    const oldName = event.changes.name?.from || "";
     const oldSlug = oldName.toLowerCase().replaceAll(/\s/gi, "-");
     const oldGroup = await this.defaultMultiOrgTeamTransformer(
       {
-        name: (_c = event.changes.name) == null ? void 0 : _c.from,
+        name: event.changes.name?.from,
         slug: oldSlug,
         combinedSlug: `${org}/${oldSlug}`,
-        description: (_d = event.changes.description) == null ? void 0 : _d.from,
-        parentTeam: { slug: ((_f = (_e = event.team) == null ? void 0 : _e.parent) == null ? void 0 : _f.slug) || "" },
+        description: event.changes.description?.from,
+        parentTeam: { slug: event.team?.parent?.slug || "" },
         // entity will be removed
         members: []
       },
@@ -1925,7 +2086,7 @@ class GithubMultiOrgEntityProvider {
         name,
         avatarUrl,
         login,
-        email: email != null ? email : void 0
+        email: email ?? void 0
       },
       {
         org,
@@ -2056,11 +2217,10 @@ function trackProgress$1(logger) {
   return { markReadComplete };
 }
 function withLocations(baseUrl, entity) {
-  var _a, _b;
-  const login = ((_a = entity.metadata.annotations) == null ? void 0 : _a[GithubEntityProvider.ANNOTATION_GITHUB_USER_LOGIN]) || entity.metadata.name;
+  const login = entity.metadata.annotations?.[GithubEntityProvider.ANNOTATION_GITHUB_USER_LOGIN] || entity.metadata.name;
   let org = entity.metadata.namespace;
   let team = entity.metadata.name;
-  const slug = (_b = entity.metadata.annotations) == null ? void 0 : _b[GithubEntityProvider.ANNOTATION_GITHUB_TEAM_SLUG];
+  const slug = entity.metadata.annotations?.[GithubEntityProvider.ANNOTATION_GITHUB_TEAM_SLUG];
   if (slug) {
     const [slugOrg, slugTeam] = GithubEntityProvider.splitTeamSlug(slug);
     org = slugOrg;
@@ -2080,12 +2240,6 @@ function withLocations(baseUrl, entity) {
   );
 }
 
-var __defProp = Object.defineProperty;
-var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
-var __publicField = (obj, key, value) => {
-  __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
-  return value;
-};
 const EVENT_TOPICS = [
   "github.membership",
   "github.organization",
@@ -2094,15 +2248,14 @@ const EVENT_TOPICS = [
 class GithubOrgEntityProvider {
   constructor(options) {
     this.options = options;
-    __publicField(this, "credentialsProvider");
-    __publicField(this, "connection");
-    __publicField(this, "scheduleFn");
     this.credentialsProvider = options.githubCredentialsProvider || integration.SingleInstanceGithubCredentialsProvider.create(this.options.gitHubConfig);
   }
+  credentialsProvider;
+  connection;
+  scheduleFn;
   static fromConfig(config, options) {
-    var _a;
     const integrations = integration.ScmIntegrations.fromConfig(config);
-    const gitHubConfig = (_a = integrations.github.byUrl(options.orgUrl)) == null ? void 0 : _a.config;
+    const gitHubConfig = integrations.github.byUrl(options.orgUrl)?.config;
     if (!gitHubConfig) {
       throw new Error(
         `There is no GitHub Org provider that matches ${options.orgUrl}. Please add a configuration for an integration.`
@@ -2130,25 +2283,23 @@ class GithubOrgEntityProvider {
   }
   /** {@inheritdoc @backstage/plugin-catalog-backend#EntityProvider.connect} */
   async connect(connection) {
-    var _a, _b;
     this.connection = connection;
-    await ((_a = this.options.events) == null ? void 0 : _a.subscribe({
+    await this.options.events?.subscribe({
       id: this.getProviderName(),
       topics: EVENT_TOPICS,
       onEvent: (params) => this.onEvent(params)
-    }));
-    await ((_b = this.scheduleFn) == null ? void 0 : _b.call(this));
+    });
+    await this.scheduleFn?.();
   }
   /**
    * Runs one single complete ingestion. This is only necessary if you use
    * manual scheduling.
    */
   async read(options) {
-    var _a;
     if (!this.connection) {
       throw new Error("Not initialized");
     }
-    const logger = (_a = options == null ? void 0 : options.logger) != null ? _a : this.options.logger;
+    const logger = options?.logger ?? this.options.logger;
     const { markReadComplete } = trackProgress(logger);
     const { headers, type: tokenType } = await this.credentialsProvider.getCredentials({
       url: this.options.orgUrl
@@ -2233,7 +2384,6 @@ class GithubOrgEntityProvider {
     return;
   }
   async onTeamEditedInOrganization(event, createDeltaOperation) {
-    var _a, _b;
     if (!this.connection) {
       throw new Error("Not initialized");
     }
@@ -2277,10 +2427,10 @@ class GithubOrgEntityProvider {
         assignGroupsToUsers(usersToRebuild, teams);
       }
     }
-    const oldName = ((_a = event.changes.name) == null ? void 0 : _a.from) || event.team.name;
+    const oldName = event.changes.name?.from || event.team.name;
     const oldSlug = oldName.toLowerCase().replaceAll(/\s/gi, "-");
-    const oldDescription = ((_b = event.changes.description) == null ? void 0 : _b.from) || event.team.description;
-    const oldDescriptionSlug = oldDescription == null ? void 0 : oldDescription.toLowerCase().replaceAll(/\s/gi, "-");
+    const oldDescription = event.changes.description?.from || event.team.description;
+    const oldDescriptionSlug = oldDescription?.toLowerCase().replaceAll(/\s/gi, "-");
     const { removed } = createDeltaOperation(org, [
       {
         ...team,
@@ -2353,7 +2503,6 @@ class GithubOrgEntityProvider {
     });
   }
   async onTeamChangeInOrganization(event, createDeltaOperation) {
-    var _a, _b;
     if (!this.connection) {
       throw new Error("Not initialized");
     }
@@ -2374,7 +2523,7 @@ class GithubOrgEntityProvider {
         editTeamUrl: `${url}/edit`,
         combinedSlug: `${org}/${slug}`,
         description: description || void 0,
-        parentTeam: { slug: ((_b = (_a = event.team) == null ? void 0 : _a.parent) == null ? void 0 : _b.slug) || "" },
+        parentTeam: { slug: event.team?.parent?.slug || "" },
         // entity will be removed
         members: []
       },
@@ -2523,23 +2672,17 @@ index_cjs$1.GithubOrgReaderProcessor = GithubOrgReaderProcessor;
 	Object.defineProperty(exports, '__esModule', { value: true });
 
 	var backendPluginApi = require$$0$1;
-	var backendTasks = require$$9;
+	var backendTasks = require$$10;
 	var pluginCatalogBackendModuleGithub = index_cjs$1;
 	var alpha = require$$3$1;
 	var pluginEventsNode = require$$4$1;
 
-	var __defProp = Object.defineProperty;
-	var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
-	var __publicField = (obj, key, value) => {
-	  __defNormalProp(obj, key + "" , value);
-	  return value;
-	};
 	class GithubOrgEntityCleanerProvider {
 	  constructor(options) {
 	    this.options = options;
-	    __publicField(this, "logger");
 	    this.logger = options.logger.child({ target: this.getProviderName() });
 	  }
+	  logger;
 	  getProviderName() {
 	    return `GithubOrgEntityProvider:${this.options.id}`;
 	  }
@@ -2588,7 +2731,6 @@ index_cjs$1.GithubOrgReaderProcessor = GithubOrgReaderProcessor;
 	        scheduler: backendPluginApi.coreServices.scheduler
 	      },
 	      async init({ catalog, config, events, logger, scheduler }) {
-	        var _a;
 	        const definitions = readDefinitionsFromConfig(config);
 	        for (const definition of definitions) {
 	          catalog.addEntityProvider(
@@ -2606,7 +2748,7 @@ index_cjs$1.GithubOrgReaderProcessor = GithubOrgReaderProcessor;
 	              logger,
 	              userTransformer,
 	              teamTransformer,
-	              alwaysUseDefaultNamespace: definitions.length === 1 && ((_a = definition.orgs) == null ? void 0 : _a.length) === 1
+	              alwaysUseDefaultNamespace: definitions.length === 1 && definition.orgs?.length === 1
 	            })
 	          );
 	        }

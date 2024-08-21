@@ -36,7 +36,7 @@ const examples = [
           action: "publish:azure",
           name: "Publish to Azure",
           input: {
-            repoUrl: "dev.azure.com?organization=organization&owner=project&repo=repo"
+            repoUrl: "dev.azure.com?organization=organization&project=project&repo=repo"
           }
         }
       ]
@@ -51,7 +51,7 @@ const examples = [
           action: "publish:azure",
           name: "Publish to Azure",
           input: {
-            repoUrl: "dev.azure.com?organization=organization&owner=project&repo=repo",
+            repoUrl: "dev.azure.com?organization=organization&project=project&repo=repo",
             description: "Initialize a git repository"
           }
         }
@@ -67,7 +67,7 @@ const examples = [
           action: "publish:azure",
           name: "Publish to Azure",
           input: {
-            repoUrl: "dev.azure.com?organization=organization&owner=project&repo=repo",
+            repoUrl: "dev.azure.com?organization=organization&project=project&repo=repo",
             defaultBranch: "main"
           }
         }
@@ -150,7 +150,6 @@ function createPublishAzureAction(options) {
       }
     },
     async handler(ctx) {
-      var _a, _b;
       const {
         repoUrl,
         defaultBranch = "master",
@@ -158,7 +157,7 @@ function createPublishAzureAction(options) {
         gitAuthorName,
         gitAuthorEmail
       } = ctx.input;
-      const { owner, repo, host, organization } = pluginScaffolderNode.parseRepoUrl(
+      const { project, repo, host, organization } = pluginScaffolderNode.parseRepoUrl(
         repoUrl,
         integrations
       );
@@ -175,14 +174,17 @@ function createPublishAzureAction(options) {
           `No credentials provided ${url}, please check your integrations config`
         );
       }
-      const authHandler = ctx.input.token || (credentials == null ? void 0 : credentials.type) === "pat" ? azureDevopsNodeApi.getPersonalAccessTokenHandler((_a = ctx.input.token) != null ? _a : credentials.token) : azureDevopsNodeApi.getBearerHandler(credentials.token);
+      const authHandler = ctx.input.token || credentials?.type === "pat" ? azureDevopsNodeApi.getPersonalAccessTokenHandler(ctx.input.token ?? credentials.token) : azureDevopsNodeApi.getBearerHandler(credentials.token);
       const webApi = new azureDevopsNodeApi.WebApi(url, authHandler);
       const client = await webApi.getGitApi();
       const createOptions = { name: repo };
-      const returnedRepo = await client.createRepository(createOptions, owner);
+      const returnedRepo = await client.createRepository(
+        createOptions,
+        project
+      );
       if (!returnedRepo) {
         throw new errors.InputError(
-          `Unable to create the repository with Organization ${organization}, Project ${owner} and Repo ${repo}.
+          `Unable to create the repository with Organization ${organization}, Project ${project} and Repo ${repo}.
           Please make sure that both the Org and Project are typed corrected and exist.`
         );
       }
@@ -196,14 +198,19 @@ function createPublishAzureAction(options) {
       if (!repositoryId) {
         throw new errors.InputError("No Id returned from create repository for Azure");
       }
-      const repoContentsUrl = remoteUrl;
+      const repoContentsUrl = returnedRepo.webUrl;
+      if (!repoContentsUrl) {
+        throw new errors.InputError(
+          "No web URL returned from create repository for Azure"
+        );
+      }
       const gitAuthorInfo = {
         name: gitAuthorName ? gitAuthorName : config.getOptionalString("scaffolder.defaultAuthor.name"),
         email: gitAuthorEmail ? gitAuthorEmail : config.getOptionalString("scaffolder.defaultAuthor.email")
       };
-      const auth = ctx.input.token || (credentials == null ? void 0 : credentials.type) === "pat" ? {
+      const auth = ctx.input.token || credentials?.type === "pat" ? {
         username: "notempty",
-        password: (_b = ctx.input.token) != null ? _b : credentials.token
+        password: ctx.input.token ?? credentials.token
       } : { token: credentials.token };
       const commitResult = await pluginScaffolderNode.initRepoAndPush({
         dir: pluginScaffolderNode.getRepoSourceDirectory(ctx.workspacePath, ctx.input.sourcePath),
@@ -214,7 +221,7 @@ function createPublishAzureAction(options) {
         commitMessage: gitCommitMessage ? gitCommitMessage : config.getOptionalString("scaffolder.defaultCommitMessage"),
         gitAuthorInfo
       });
-      ctx.output("commitHash", commitResult == null ? void 0 : commitResult.commitHash);
+      ctx.output("commitHash", commitResult?.commitHash);
       ctx.output("remoteUrl", remoteUrl);
       ctx.output("repoContentsUrl", repoContentsUrl);
       ctx.output("repositoryId", repositoryId);

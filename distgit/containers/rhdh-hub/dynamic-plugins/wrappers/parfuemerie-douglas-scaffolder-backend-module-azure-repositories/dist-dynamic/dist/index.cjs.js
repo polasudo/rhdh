@@ -2,24 +2,29 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var require$$0 = require('@backstage/backend-plugin-api');
+var require$$1 = require('@backstage/backend-plugin-api');
 var require$$2 = require('@backstage/integration');
-var alpha = require('@backstage/plugin-scaffolder-node/alpha');
-var require$$1 = require('@backstage/errors');
-var require$$3 = require('@backstage/plugin-scaffolder-node');
-var require$$4 = require('@backstage/backend-common');
-var require$$5 = require('azure-devops-node-api');
-var require$$6 = require('@backstage/cli-common');
-var require$$7 = require('path');
+var require$$0 = require('@backstage/plugin-scaffolder-node/alpha');
+var require$$3 = require('@backstage/errors');
+var require$$4 = require('@backstage/plugin-scaffolder-node');
+var require$$5 = require('@backstage/backend-common');
+var require$$6 = require('azure-devops-node-api');
+var require$$7 = require('@backstage/cli-common');
+var require$$8 = require('path');
 
-var backendPluginApi = require$$0;
-var errors = require$$1;
+var index_cjs = {};
+
+Object.defineProperty(index_cjs, '__esModule', { value: true });
+
+var alpha = require$$0;
+var backendPluginApi = require$$1;
 var integration = require$$2;
-var pluginScaffolderNode = require$$3;
-var backendCommon = require$$4;
-var azdev = require$$5;
-var cliCommon = require$$6;
-var path = require$$7;
+var errors = require$$3;
+var pluginScaffolderNode = require$$4;
+var backendCommon = require$$5;
+var azdev = require$$6;
+var cliCommon = require$$7;
+var path = require$$8;
 
 function _interopNamespaceCompat(e) {
   if (e && typeof e === 'object' && 'default' in e) return e;
@@ -74,18 +79,17 @@ async function commitAndPushBranch({
   gitAuthorInfo,
   branch = "scaffolder"
 }) {
-  var _a, _b;
   const authorInfo = {
-    name: (_a = gitAuthorInfo == null ? void 0 : gitAuthorInfo.name) != null ? _a : "Scaffolder",
-    email: (_b = gitAuthorInfo == null ? void 0 : gitAuthorInfo.email) != null ? _b : "scaffolder@backstage.io"
+    name: gitAuthorInfo?.name ?? "Scaffolder",
+    email: gitAuthorInfo?.email ?? "scaffolder@backstage.io"
   };
   const git = backendCommon.Git.fromAuth({
     onAuth: async (url) => {
       const credentials = await credentialsProvider.getCredentials({ url });
-      logger.info(`Using ${credentials == null ? void 0 : credentials.type} credentials for ${url}`);
-      if ((credentials == null ? void 0 : credentials.type) === "pat") {
+      logger.info(`Using ${credentials?.type} credentials for ${url}`);
+      if (credentials?.type === "pat") {
         return { username: "not-empty", password: credentials.token };
-      } else if ((credentials == null ? void 0 : credentials.type) === "bearer") {
+      } else if (credentials?.type === "bearer") {
         return {
           headers: {
             Authorization: `Bearer ${credentials.token}`
@@ -204,18 +208,17 @@ const cloneAzureRepoAction = (options) => {
       }
     },
     async handler(ctx) {
-      var _a;
       const { remoteUrl, branch } = ctx.input;
-      const targetPath = (_a = ctx.input.targetPath) != null ? _a : "./";
+      const targetPath = ctx.input.targetPath ?? "./";
       const outputDir = backendPluginApi.resolveSafeChildPath(ctx.workspacePath, targetPath);
       const provider = integration.DefaultAzureDevOpsCredentialsProvider.fromIntegrations(integrations);
       const credentials = await provider.getCredentials({ url: remoteUrl });
       let auth;
       if (ctx.input.token) {
         auth = { username: "not-empty", password: ctx.input.token };
-      } else if ((credentials == null ? void 0 : credentials.type) === "pat") {
+      } else if (credentials?.type === "pat") {
         auth = { username: "not-empty", password: credentials.token };
-      } else if ((credentials == null ? void 0 : credentials.type) === "bearer") {
+      } else if (credentials?.type === "bearer") {
         auth = { token: credentials.token };
       } else {
         throw new errors.InputError(
@@ -386,18 +389,17 @@ const pullRequestAzureRepoAction = (options) => {
       }
     },
     async handler(ctx) {
-      var _a, _b, _c, _d, _e, _f, _g;
       const { title, repoId, server, project, supportsIterations } = ctx.input;
-      const sourceBranch = (_a = `refs/heads/${ctx.input.sourceBranch}`) != null ? _a : `refs/heads/scaffolder`;
-      const targetBranch = (_b = `refs/heads/${ctx.input.targetBranch}`) != null ? _b : `refs/heads/main`;
-      const host = server != null ? server : "dev.azure.com";
+      const sourceBranch = `refs/heads/${ctx.input.sourceBranch}` ?? `refs/heads/scaffolder`;
+      const targetBranch = `refs/heads/${ctx.input.targetBranch}` ?? `refs/heads/main`;
+      const host = server ?? "dev.azure.com";
       const provider = integration.DefaultAzureDevOpsCredentialsProvider.fromIntegrations(integrations);
       const url = `https://${host}/${ctx.input.organization}`;
       const credentials = await provider.getCredentials({ url });
-      const org = (_c = ctx.input.organization) != null ? _c : "not-empty";
-      const token = (_d = ctx.input.token) != null ? _d : credentials == null ? void 0 : credentials.token;
-      const description = (_e = ctx.input.description) != null ? _e : "";
-      const autoComplete = (_f = ctx.input.autoComplete) != null ? _f : false;
+      const org = ctx.input.organization ?? "not-empty";
+      const token = ctx.input.token ?? credentials?.token;
+      const description = ctx.input.description ?? "";
+      const autoComplete = ctx.input.autoComplete ?? false;
       if (!token) {
         throw new errors.InputError(`No token credentials provided for ${url}`);
       }
@@ -420,7 +422,7 @@ const pullRequestAzureRepoAction = (options) => {
       });
       if (autoComplete) {
         const updateProperties = {
-          autoCompleteSetBy: { id: (_g = pullRequestResponse.createdBy) == null ? void 0 : _g.id },
+          autoCompleteSetBy: { id: pullRequestResponse.createdBy?.id },
           // the idea here is that if you want to fire-and-forget the PR by setting autocomplete, you don't also want
           // the branch to stick around afterwards.
           completionOptions: {
@@ -444,18 +446,36 @@ const pullRequestAzureRepoAction = (options) => {
   });
 };
 
-var cloneAzureRepoAction_1 = cloneAzureRepoAction;
-var pullRequestAzureRepoAction_1 = pullRequestAzureRepoAction;
-var pushAzureRepoAction_1 = pushAzureRepoAction;
+const scaffolderModuleAzureRepositories = backendPluginApi.createBackendModule({
+  pluginId: "scaffolder",
+  moduleId: "azure-repos",
+  register(env) {
+    env.registerInit({
+      deps: {
+        scaffolder: alpha.scaffolderActionsExtensionPoint,
+        config: backendPluginApi.coreServices.rootConfig
+      },
+      async init({ scaffolder, config }) {
+        const integrations = integration.ScmIntegrations.fromConfig(config);
+        scaffolder.addActions(cloneAzureRepoAction({ integrations }), pushAzureRepoAction({ integrations, config }), pullRequestAzureRepoAction({ integrations }));
+      }
+    });
+  }
+});
 
-const azureRepositoriesActions = require$$0.createBackendModule({
+var cloneAzureRepoAction_1 = index_cjs.cloneAzureRepoAction = cloneAzureRepoAction;
+index_cjs.default = scaffolderModuleAzureRepositories;
+var pullRequestAzureRepoAction_1 = index_cjs.pullRequestAzureRepoAction = pullRequestAzureRepoAction;
+var pushAzureRepoAction_1 = index_cjs.pushAzureRepoAction = pushAzureRepoAction;
+
+const azureRepositoriesActions = require$$1.createBackendModule({
   moduleId: "scaffolder-backend-azure-repositories",
   pluginId: "scaffolder",
   register(env) {
     env.registerInit({
       deps: {
-        scaffolder: alpha.scaffolderActionsExtensionPoint,
-        config: require$$0.coreServices.rootConfig
+        scaffolder: require$$0.scaffolderActionsExtensionPoint,
+        config: require$$1.coreServices.rootConfig
       },
       async init({ config, scaffolder }) {
         const integrations = require$$2.ScmIntegrations.fromConfig(config);

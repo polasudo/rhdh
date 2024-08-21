@@ -285,7 +285,6 @@ function createPublishBitbucketServerAction(options) {
       }
     },
     async handler(ctx) {
-      var _a;
       const {
         repoUrl,
         description,
@@ -308,7 +307,7 @@ function createPublishBitbucketServerAction(options) {
           `No matching integration configuration for host ${host}, please check your integrations config`
         );
       }
-      const token = (_a = ctx.input.token) != null ? _a : integrationConfig.config.token;
+      const token = ctx.input.token ?? integrationConfig.config.token;
       const authConfig = {
         ...integrationConfig.config,
         ...{ token }
@@ -352,7 +351,7 @@ function createPublishBitbucketServerAction(options) {
       if (enableLFS) {
         await performEnableLFS({ authorization, host, project, repo });
       }
-      ctx.output("commitHash", commitResult == null ? void 0 : commitResult.commitHash);
+      ctx.output("commitHash", commitResult?.commitHash);
       ctx.output("remoteUrl", remoteUrl);
       ctx.output("repoContentsUrl", repoContentsUrl);
     }
@@ -570,6 +569,31 @@ const createBranch = async (opts) => {
   }
   return await response.json();
 };
+const getDefaultBranch = async (opts) => {
+  const { project, repo, authorization, apiBaseUrl } = opts;
+  let response;
+  const options = {
+    method: "GET",
+    headers: {
+      Authorization: authorization,
+      "Content-Type": "application/json"
+    }
+  };
+  try {
+    response = await fetch__default.default(
+      `${apiBaseUrl}/projects/${project}/repos/${repo}/default-branch`,
+      options
+    );
+  } catch (error) {
+    throw error;
+  }
+  const { displayId } = await response.json();
+  const defaultBranch = displayId;
+  if (!defaultBranch) {
+    throw new Error(`Could not fetch default branch for ${project}/${repo}`);
+  }
+  return defaultBranch;
+};
 function createPublishBitbucketServerPullRequestAction(options) {
   const { integrations, config } = options;
   return pluginScaffolderNode.createTemplateAction({
@@ -632,12 +656,11 @@ function createPublishBitbucketServerPullRequestAction(options) {
       }
     },
     async handler(ctx) {
-      var _a, _b;
       const {
         repoUrl,
         title,
         description,
-        targetBranch = "master",
+        targetBranch,
         sourceBranch,
         gitAuthorName,
         gitAuthorEmail
@@ -654,7 +677,7 @@ function createPublishBitbucketServerPullRequestAction(options) {
           `No matching integration configuration for host ${host}, please check your integrations config`
         );
       }
-      const token = (_a = ctx.input.token) != null ? _a : integrationConfig.config.token;
+      const token = ctx.input.token ?? integrationConfig.config.token;
       const authConfig = {
         ...integrationConfig.config,
         ...{ token }
@@ -667,10 +690,19 @@ function createPublishBitbucketServerPullRequestAction(options) {
         );
       }
       const apiBaseUrl = integrationConfig.config.apiBaseUrl;
+      let finalTargetBranch = targetBranch;
+      if (!finalTargetBranch) {
+        finalTargetBranch = await getDefaultBranch({
+          project,
+          repo,
+          authorization,
+          apiBaseUrl
+        });
+      }
       const toRef = await findBranches({
         project,
         repo,
-        branchName: targetBranch,
+        branchName: finalTargetBranch,
         authorization,
         apiBaseUrl
       });
@@ -736,7 +768,7 @@ function createPublishBitbucketServerPullRequestAction(options) {
           dir: tempDir,
           auth,
           logger: ctx.logger,
-          commitMessage: (_b = description != null ? description : config.getOptionalString("scaffolder.defaultCommitMessage")) != null ? _b : "",
+          commitMessage: description ?? config.getOptionalString("scaffolder.defaultCommitMessage") ?? "",
           gitAuthorInfo,
           branch: sourceBranch
         });

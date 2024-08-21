@@ -33,8 +33,7 @@ function getBasePath(config) {
   return new URL(baseUrl).pathname.replace(/\/$/, "");
 }
 function headersManipulation(headers) {
-  if (headers["authorization"])
-    delete headers["authorization"];
+  if (headers["authorization"]) delete headers["authorization"];
   if (headers["gitlab-authorization"]) {
     headers["authorization"] = headers["gitlab-authorization"];
     delete headers["gitlab-authorization"];
@@ -57,9 +56,8 @@ async function createRouter(options) {
     return req.method === "GET";
   };
   const graphqlFilter = (_pathname, req) => {
-    var _a;
     headersManipulation(req.headers);
-    return req.method === "POST" && !((_a = req.body.query) == null ? void 0 : _a.includes("mutation"));
+    return req.method === "POST" && !req.body.query?.includes("mutation");
   };
   for (const { host, apiBaseUrl, token } of gitlabIntegrations) {
     const apiUrl = new URL(apiBaseUrl);
@@ -114,7 +112,7 @@ async function createRouter(options) {
 function getProjectPath(target, subPath) {
   const url = new URL(target);
   const out = url.pathname.split("/blob/").splice(0, 1).join("/").split("/-").splice(0, 1).join("/").slice(1);
-  subPath = (subPath == null ? void 0 : subPath.startsWith("/")) ? subPath.slice(1) : subPath;
+  subPath = subPath?.startsWith("/") ? subPath.slice(1) : subPath;
   if (subPath && out.startsWith(subPath)) {
     return out.replace(subPath, "").split("/").filter(Boolean).join("/");
   }
@@ -125,16 +123,10 @@ const GITLAB_PROJECT_SLUG = "gitlab.com/project-slug";
 const GITLAB_PROJECT_ID = "gitlab.com/project-id";
 const GITLAB_INSTANCE = "gitlab.com/instance";
 
-var __defProp = Object.defineProperty;
-var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
-var __publicField = (obj, key, value) => {
-  __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
-  return value;
-};
 class GitlabFillerProcessor {
+  allowedKinds;
+  gitLabIntegrationsConfig;
   constructor(config) {
-    __publicField(this, "allowedKinds");
-    __publicField(this, "gitLabIntegrationsConfig");
     const allowedKinds = config.getOptionalStringArray(
       "gitlab.allowedKinds"
     ) || ["Component"];
@@ -149,7 +141,6 @@ class GitlabFillerProcessor {
     return "GitlabFillerProcessor";
   }
   async postProcessEntity(entity, location, _emit) {
-    var _a, _b, _c;
     if (this.isAllowedEntity(entity)) {
       const gitlabInstanceConfig = this.getGitlabInstanceConfig(
         location.target
@@ -157,10 +148,10 @@ class GitlabFillerProcessor {
       if (gitlabInstanceConfig) {
         if (!entity.metadata.annotations)
           entity.metadata.annotations = {};
-        if (!((_a = entity.metadata.annotations) == null ? void 0 : _a[GITLAB_INSTANCE])) {
-          entity.metadata.annotations[GITLAB_INSTANCE] = gitlabInstanceConfig == null ? void 0 : gitlabInstanceConfig.host;
+        if (!entity.metadata.annotations?.[GITLAB_INSTANCE]) {
+          entity.metadata.annotations[GITLAB_INSTANCE] = gitlabInstanceConfig?.host;
         }
-        if (!((_b = entity.metadata.annotations) == null ? void 0 : _b[GITLAB_PROJECT_ID]) && !((_c = entity.metadata.annotations) == null ? void 0 : _c[GITLAB_PROJECT_SLUG])) {
+        if (!entity.metadata.annotations?.[GITLAB_PROJECT_ID] && !entity.metadata.annotations?.[GITLAB_PROJECT_SLUG]) {
           entity.metadata.annotations[GITLAB_PROJECT_SLUG] = getProjectPath(
             location.target,
             this.getGitlabSubPath(gitlabInstanceConfig)
@@ -171,8 +162,7 @@ class GitlabFillerProcessor {
     return entity;
   }
   getGitlabSubPath(config) {
-    if (config.baseUrl)
-      return new URL(config.baseUrl).pathname;
+    if (config.baseUrl) return new URL(config.baseUrl).pathname;
     return;
   }
   getGitlabInstanceConfig(target) {

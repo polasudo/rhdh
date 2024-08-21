@@ -9,6 +9,7 @@ var require$$3 = require('yaml');
 var require$$4 = require('@backstage/backend-plugin-api');
 var require$$5 = require('@backstage/plugin-scaffolder-node/alpha');
 var require$$6 = require('@backstage/integration');
+var require$$7 = require('@backstage/plugin-bitbucket-cloud-common');
 
 var index_cjs = {};
 
@@ -21,6 +22,7 @@ var yaml = require$$3;
 var backendPluginApi = require$$4;
 var alpha = require$$5;
 var integration = require$$6;
+var pluginBitbucketCloudCommon = require$$7;
 
 function _interopDefaultCompat (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }
 
@@ -340,7 +342,7 @@ function createPublishBitbucketCloudAction(options) {
         ),
         gitAuthorInfo
       });
-      ctx.output("commitHash", commitResult == null ? void 0 : commitResult.commitHash);
+      ctx.output("commitHash", commitResult?.commitHash);
       ctx.output("remoteUrl", remoteUrl);
       ctx.output("repoContentsUrl", repoContentsUrl);
     }
@@ -692,7 +694,6 @@ const createBitbucketPipelinesRunAction = (options) => {
     },
     supportsDryRun: false,
     async handler(ctx) {
-      var _a;
       const { workspace, repo_slug, body, token } = ctx.input;
       const host = "bitbucket.org";
       const integrationConfig = integrations.bitbucketCloud.byHost(host);
@@ -710,7 +711,7 @@ const createBitbucketPipelinesRunAction = (options) => {
               Accept: "application/json",
               "Content-Type": "application/json"
             },
-            body: (_a = JSON.stringify(body)) != null ? _a : {}
+            body: JSON.stringify(body) ?? {}
           }
         );
       } catch (e) {
@@ -732,6 +733,54 @@ const createBitbucketPipelinesRunAction = (options) => {
   });
 };
 
+async function handleAutocompleteRequest({
+  resource,
+  token,
+  context
+}) {
+  const client = pluginBitbucketCloudCommon.BitbucketCloudClient.fromConfig({
+    host: "bitbucket.org",
+    apiBaseUrl: "https://api.bitbucket.org/2.0",
+    token
+  });
+  switch (resource) {
+    case "workspaces": {
+      const result = [];
+      for await (const page of client.listWorkspaces().iteratePages()) {
+        const slugs = [...page.values].map((p) => p.slug);
+        result.push(...slugs);
+      }
+      return { results: result.map((title) => ({ title })) };
+    }
+    case "projects": {
+      if (!context.workspace)
+        throw new errors.InputError("Missing workspace context parameter");
+      const result = [];
+      for await (const page of client.listProjectsByWorkspace(context.workspace).iteratePages()) {
+        const keys = [...page.values].map((p) => p.key);
+        result.push(...keys);
+      }
+      return { results: result.map((title) => ({ title })) };
+    }
+    case "repositories": {
+      if (!context.workspace || !context.project)
+        throw new errors.InputError(
+          "Missing workspace and/or project context parameter"
+        );
+      const result = [];
+      for await (const page of client.listRepositoriesByWorkspace(context.workspace, {
+        q: `project.key="${context.project}"`
+      }).iteratePages()) {
+        const slugs = [...page.values].map((p) => p.slug);
+        result.push(...slugs);
+      }
+      return { results: result.map((title) => ({ title })) };
+    }
+    default:
+      throw new errors.InputError(`Invalid resource: ${resource}`);
+  }
+}
+
 const bitbucketCloudModule = backendPluginApi.createBackendModule({
   moduleId: "bitbucketCloud",
   pluginId: "scaffolder",
@@ -739,14 +788,19 @@ const bitbucketCloudModule = backendPluginApi.createBackendModule({
     registerInit({
       deps: {
         scaffolder: alpha.scaffolderActionsExtensionPoint,
+        autocomplete: alpha.scaffolderAutocompleteExtensionPoint,
         config: backendPluginApi.coreServices.rootConfig
       },
-      async init({ scaffolder, config }) {
+      async init({ scaffolder, config, autocomplete }) {
         const integrations = integration.ScmIntegrations.fromConfig(config);
         scaffolder.addActions(
           createPublishBitbucketCloudAction({ integrations, config }),
           createBitbucketPipelinesRunAction({ integrations })
         );
+        autocomplete.addAutocompleteProvider({
+          id: "bitbucket-cloud",
+          handler: handleAutocompleteRequest
+        });
       }
     });
   }

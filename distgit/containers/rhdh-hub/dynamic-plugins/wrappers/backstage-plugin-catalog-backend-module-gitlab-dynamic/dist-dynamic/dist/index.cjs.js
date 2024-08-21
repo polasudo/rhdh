@@ -16,7 +16,7 @@ require('lodash');
 
 var alpha_cjs = {};
 
-var GitlabDiscoveryEntityProviderCjTYReyJ_cjs = {};
+var GitlabDiscoveryEntityProviderCnNBta0h_cjs = {};
 
 var integration = require$$0;
 var pluginCatalogNode = require$$1;
@@ -50,25 +50,25 @@ var fetch__default = /*#__PURE__*/_interopDefaultCompat(fetch);
 var path__namespace = /*#__PURE__*/_interopNamespaceCompat(path);
 
 function readGitlabConfig(id, config) {
-  var _a, _b, _c, _d, _e, _f, _g, _h, _i;
-  const group = (_a = config.getOptionalString("group")) != null ? _a : "";
+  const group = config.getOptionalString("group") ?? "";
   const host = config.getString("host");
   const branch = config.getOptionalString("branch");
-  const fallbackBranch = (_b = config.getOptionalString("fallbackBranch")) != null ? _b : "master";
-  const catalogFile = (_c = config.getOptionalString("entityFilename")) != null ? _c : "catalog-info.yaml";
+  const fallbackBranch = config.getOptionalString("fallbackBranch") ?? "master";
+  const catalogFile = config.getOptionalString("entityFilename") ?? "catalog-info.yaml";
   const projectPattern = new RegExp(
-    (_d = config.getOptionalString("projectPattern")) != null ? _d : /[\s\S]*/
+    config.getOptionalString("projectPattern") ?? /[\s\S]*/
   );
   const userPattern = new RegExp(
-    (_e = config.getOptionalString("userPattern")) != null ? _e : /[\s\S]*/
+    config.getOptionalString("userPattern") ?? /[\s\S]*/
   );
   const groupPattern = new RegExp(
-    (_f = config.getOptionalString("groupPattern")) != null ? _f : /[\s\S]*/
+    config.getOptionalString("groupPattern") ?? /[\s\S]*/
   );
-  const orgEnabled = (_g = config.getOptionalBoolean("orgEnabled")) != null ? _g : false;
-  const allowInherited = (_h = config.getOptionalBoolean("allowInherited")) != null ? _h : false;
-  const skipForkedRepos = (_i = config.getOptionalBoolean("skipForkedRepos")) != null ? _i : false;
+  const orgEnabled = config.getOptionalBoolean("orgEnabled") ?? false;
+  const allowInherited = config.getOptionalBoolean("allowInherited") ?? false;
+  const skipForkedRepos = config.getOptionalBoolean("skipForkedRepos") ?? false;
   const schedule = config.has("schedule") ? backendTasks.readTaskScheduleDefinitionFromConfig(config.getConfig("schedule")) : void 0;
+  const restrictUsersToGroup = config.getOptionalBoolean("restrictUsersToGroup") ?? false;
   return {
     id,
     group,
@@ -82,7 +82,8 @@ function readGitlabConfig(id, config) {
     schedule,
     orgEnabled,
     allowInherited,
-    skipForkedRepos
+    skipForkedRepos,
+    restrictUsersToGroup
   };
 }
 function readGitlabConfigs(config) {
@@ -97,16 +98,10 @@ function readGitlabConfigs(config) {
   return configs;
 }
 
-var __defProp$1 = Object.defineProperty;
-var __defNormalProp$1 = (obj, key, value) => key in obj ? __defProp$1(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
-var __publicField$1 = (obj, key, value) => {
-  __defNormalProp$1(obj, typeof key !== "symbol" ? key + "" : key, value);
-  return value;
-};
 class GitLabClient {
+  config;
+  logger;
   constructor(options) {
-    __publicField$1(this, "config");
-    __publicField$1(this, "logger");
     this.config = options.config;
     this.logger = options.logger;
   }
@@ -117,9 +112,9 @@ class GitLabClient {
     return this.config.host !== "gitlab.com";
   }
   async listProjects(options) {
-    if (options == null ? void 0 : options.group) {
+    if (options?.group) {
       return this.pagedRequest(
-        `/groups/${encodeURIComponent(options == null ? void 0 : options.group)}/projects`,
+        `/groups/${encodeURIComponent(options?.group)}/projects`,
         {
           ...options,
           include_subgroups: true
@@ -143,6 +138,12 @@ class GitLabClient {
     const response = await this.nonPagedRequest(`/users/${userId}`, options);
     return response;
   }
+  async listGroupMembers(groupPath, options) {
+    return this.pagedRequest(
+      `/groups/${encodeURIComponent(groupPath)}/members/all`,
+      options
+    );
+  }
   async listUsers(options) {
     return this.pagedRequest(`/users?`, {
       ...options,
@@ -151,13 +152,10 @@ class GitLabClient {
     });
   }
   async listSaaSUsers(groupPath, options) {
-    return this.pagedRequest(
-      `/groups/${encodeURIComponent(groupPath)}/members/all`,
-      {
-        ...options,
-        show_seat_info: true
-      }
-    ).then((resp) => {
+    return this.listGroupMembers(groupPath, {
+      ...options,
+      show_seat_info: true
+    }).then((resp) => {
       resp.items = resp.items.filter((user) => user.is_using_seat);
       return resp;
     });
@@ -166,7 +164,6 @@ class GitLabClient {
     return this.pagedRequest(`/groups`, options);
   }
   async listDescendantGroups(groupPath) {
-    var _a, _b;
     const items = [];
     let hasNextPage = false;
     let endCursor = null;
@@ -212,14 +209,14 @@ class GitLabClient {
       if (response.errors) {
         throw new Error(`GraphQL errors: ${JSON.stringify(response.errors)}`);
       }
-      if (!((_b = (_a = response.data.group) == null ? void 0 : _a.descendantGroups) == null ? void 0 : _b.nodes)) {
+      if (!response.data.group?.descendantGroups?.nodes) {
         this.logger.warn(
           `Couldn't get groups under ${groupPath}. The provided token might not have sufficient permissions`
         );
         continue;
       }
       for (const groupItem of response.data.group.descendantGroups.nodes.filter(
-        (group) => group == null ? void 0 : group.id
+        (group) => group?.id
       )) {
         const formattedGroupResponse = {
           id: Number(groupItem.id.replace(/^gid:\/\/gitlab\/Group\//, "")),
@@ -238,7 +235,6 @@ class GitLabClient {
     return { items };
   }
   async getGroupMembers(groupPath, relations) {
-    var _a, _b;
     const items = [];
     let hasNextPage = false;
     let endCursor = null;
@@ -293,17 +289,14 @@ class GitLabClient {
       if (response.errors) {
         throw new Error(`GraphQL errors: ${JSON.stringify(response.errors)}`);
       }
-      if (!((_b = (_a = response.data.group) == null ? void 0 : _a.groupMembers) == null ? void 0 : _b.nodes)) {
+      if (!response.data.group?.groupMembers?.nodes) {
         this.logger.warn(
           `Couldn't get members for group ${groupPath}. The provided token might not have sufficient permissions`
         );
         continue;
       }
       for (const userItem of response.data.group.groupMembers.nodes.filter(
-        (user) => {
-          var _a2;
-          return (_a2 = user.user) == null ? void 0 : _a2.id;
-        }
+        (user) => user.user?.id
       )) {
         const formattedUserResponse = {
           id: Number(userItem.user.id.replace(/^gid:\/\/gitlab\/User\//, "")),
@@ -420,39 +413,15 @@ async function* paginated(request, options) {
   } while (res.nextPage);
 }
 
-var __defProp = Object.defineProperty;
-var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
-var __publicField = (obj, key, value) => {
-  __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
-  return value;
-};
 const TOPIC_REPO_PUSH = "gitlab.push";
 class GitlabDiscoveryEntityProvider$1 {
-  /**
-   * Constructs a GitlabDiscoveryEntityProvider instance.
-   *
-   * @param options - Configuration options including config, integration, logger, and taskRunner.
-   */
-  constructor(options) {
-    __publicField(this, "config");
-    __publicField(this, "integration");
-    __publicField(this, "logger");
-    __publicField(this, "scheduleFn");
-    __publicField(this, "connection");
-    __publicField(this, "events");
-    __publicField(this, "gitLabClient");
-    this.config = options.config;
-    this.integration = options.integration;
-    this.logger = options.logger.child({
-      target: this.getProviderName()
-    });
-    this.scheduleFn = this.createScheduleFn(options.taskRunner);
-    this.events = options.events;
-    this.gitLabClient = new GitLabClient({
-      config: this.integration.config,
-      logger: this.logger
-    });
-  }
+  config;
+  integration;
+  logger;
+  scheduleFn;
+  connection;
+  events;
+  gitLabClient;
   static fromConfig(config, options) {
     if (!options.schedule && !options.scheduler) {
       throw new Error("Either schedule or scheduler must be provided.");
@@ -461,7 +430,6 @@ class GitlabDiscoveryEntityProvider$1 {
     const integrations = integration.ScmIntegrations.fromConfig(config).gitlab;
     const providers = [];
     providerConfigs.forEach((providerConfig) => {
-      var _a;
       const integration = integrations.byHost(providerConfig.host);
       if (!integration) {
         throw new Error(
@@ -473,7 +441,7 @@ class GitlabDiscoveryEntityProvider$1 {
           `No schedule provided neither via code nor config for GitlabDiscoveryEntityProvider:${providerConfig.id}.`
         );
       }
-      const taskRunner = (_a = options.schedule) != null ? _a : options.scheduler.createScheduledTaskRunner(providerConfig.schedule);
+      const taskRunner = options.schedule ?? options.scheduler.createScheduledTaskRunner(providerConfig.schedule);
       providers.push(
         new GitlabDiscoveryEntityProvider$1({
           ...options,
@@ -484,6 +452,24 @@ class GitlabDiscoveryEntityProvider$1 {
       );
     });
     return providers;
+  }
+  /**
+   * Constructs a GitlabDiscoveryEntityProvider instance.
+   *
+   * @param options - Configuration options including config, integration, logger, and taskRunner.
+   */
+  constructor(options) {
+    this.config = options.config;
+    this.integration = options.integration;
+    this.logger = options.logger.child({
+      target: this.getProviderName()
+    });
+    this.scheduleFn = this.createScheduleFn(options.taskRunner);
+    this.events = options.events;
+    this.gitLabClient = new GitLabClient({
+      config: this.integration.config,
+      logger: this.logger
+    });
   }
   getProviderName() {
     return `GitlabDiscoveryEntityProvider:${this.config.id}`;
@@ -576,8 +562,7 @@ class GitlabDiscoveryEntityProvider$1 {
     });
   }
   createLocationSpec(project) {
-    var _a, _b;
-    const project_branch = (_b = (_a = this.config.branch) != null ? _a : project.default_branch) != null ? _b : this.config.fallbackBranch;
+    const project_branch = this.config.branch ?? project.default_branch ?? this.config.fallbackBranch;
     return {
       type: "url",
       target: `${project.web_url}/-/blob/${project_branch}/${this.config.catalogFile}`,
@@ -590,7 +575,6 @@ class GitlabDiscoveryEntityProvider$1 {
    * @param event - The push event payload.
    */
   async onRepoPush(event) {
-    var _a, _b;
     if (!this.connection) {
       throw new Error(
         `Gitlab discovery connection not initialized for ${this.getProviderName()}`
@@ -645,7 +629,7 @@ class GitlabDiscoveryEntityProvider$1 {
       });
     }
     if (modified.length > 0) {
-      const projectBranch = (_b = (_a = this.config.branch) != null ? _a : event.project.default_branch) != null ? _b : this.config.fallbackBranch;
+      const projectBranch = this.config.branch ?? event.project.default_branch ?? this.config.fallbackBranch;
       await this.connection.refresh({
         keys: [
           ...modified.map(
@@ -693,8 +677,7 @@ class GitlabDiscoveryEntityProvider$1 {
    * @returns An array of location specs.
    */
   createLocationSpecCommitedFiles(project, addedFiles) {
-    var _a, _b;
-    const projectBranch = (_b = (_a = this.config.branch) != null ? _a : project.default_branch) != null ? _b : this.config.fallbackBranch;
+    const projectBranch = this.config.branch ?? project.default_branch ?? this.config.fallbackBranch;
     const matchingFiles = addedFiles.filter(
       (file) => path__namespace.basename(file) === this.config.catalogFile
     );
@@ -730,8 +713,7 @@ class GitlabDiscoveryEntityProvider$1 {
     });
   }
   async shouldProcessProject(project, client) {
-    var _a, _b, _c, _d;
-    if (!this.config.projectPattern.test((_a = project.path_with_namespace) != null ? _a : "")) {
+    if (!this.config.projectPattern.test(project.path_with_namespace ?? "")) {
       this.logger.debug(
         `Skipping project ${project.path_with_namespace} as it does not match the project pattern ${this.config.projectPattern}.`
       );
@@ -749,9 +731,9 @@ class GitlabDiscoveryEntityProvider$1 {
       );
       return false;
     }
-    const project_branch = (_c = (_b = this.config.branch) != null ? _b : project.default_branch) != null ? _c : this.config.fallbackBranch;
+    const project_branch = this.config.branch ?? project.default_branch ?? this.config.fallbackBranch;
     const hasFile = await client.hasFile(
-      (_d = project.path_with_namespace) != null ? _d : "",
+      project.path_with_namespace ?? "",
       project_branch,
       this.config.catalogFile
     );
@@ -759,17 +741,17 @@ class GitlabDiscoveryEntityProvider$1 {
   }
 }
 
-GitlabDiscoveryEntityProviderCjTYReyJ_cjs.GitLabClient = GitLabClient;
-GitlabDiscoveryEntityProviderCjTYReyJ_cjs.GitlabDiscoveryEntityProvider = GitlabDiscoveryEntityProvider$1;
-GitlabDiscoveryEntityProviderCjTYReyJ_cjs.paginated = paginated;
-GitlabDiscoveryEntityProviderCjTYReyJ_cjs.readGitlabConfigs = readGitlabConfigs;
+GitlabDiscoveryEntityProviderCnNBta0h_cjs.GitLabClient = GitLabClient;
+GitlabDiscoveryEntityProviderCnNBta0h_cjs.GitlabDiscoveryEntityProvider = GitlabDiscoveryEntityProvider$1;
+GitlabDiscoveryEntityProviderCnNBta0h_cjs.paginated = paginated;
+GitlabDiscoveryEntityProviderCnNBta0h_cjs.readGitlabConfigs = readGitlabConfigs;
 
 Object.defineProperty(alpha_cjs, '__esModule', { value: true });
 
 var backendPluginApi = require$$0$1;
 var alpha = require$$1$1;
 var pluginEventsNode = require$$2$1;
-var GitlabDiscoveryEntityProvider = GitlabDiscoveryEntityProviderCjTYReyJ_cjs;
+var GitlabDiscoveryEntityProvider = GitlabDiscoveryEntityProviderCnNBta0h_cjs;
 
 
 
