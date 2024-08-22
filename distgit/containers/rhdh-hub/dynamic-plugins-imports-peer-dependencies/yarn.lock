@@ -2675,19 +2675,6 @@
   resolved "https://registry.npmjs.org/@ioredis/commands/-/commands-1.2.0.tgz#6d61b3097470af1fdbbe622795b8921d42018e11"
   integrity sha512-Sx1pU8EM64o2BrqNpEO1CNLtKQwyhuXuqyfH7oGKCk+1a33d2r5saW8zNwm3j6BTExtjrv2BxTgzzkMwts6vGg==
 
-"@janus-idp/backstage-plugin-3scale-backend@1.8.1":
-  version "1.8.1"
-  resolved "https://registry.npmjs.org/@janus-idp/backstage-plugin-3scale-backend/-/backstage-plugin-3scale-backend-1.8.1.tgz#0414d525a4a068c3e42baf1731393a12e1c3da07"
-  integrity sha512-h7d9GIhCMsZ1Jc6+MxVlo3tpx9GkwRUW9oHFblMNG2s/7I7rDhXzcN1nMaHmNExh0tbU0yKYYxrI9rU2WpUlJg==
-  dependencies:
-    "@backstage/backend-common" "^0.23.3"
-    "@backstage/backend-dynamic-feature-service" "^0.2.15"
-    "@backstage/backend-plugin-api" "^0.7.0"
-    "@backstage/backend-tasks" "^0.5.27"
-    "@backstage/catalog-model" "^1.5.0"
-    "@backstage/config" "^1.2.0"
-    "@backstage/plugin-catalog-node" "^1.12.4"
-
 "@janus-idp/backstage-plugin-aap-backend@1.9.3":
   version "1.9.3"
   resolved "https://registry.npmjs.org/@janus-idp/backstage-plugin-aap-backend/-/backstage-plugin-aap-backend-1.9.3.tgz#f182b4285ae51f56386a6ec6192009818bf66719"

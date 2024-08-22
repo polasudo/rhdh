@@ -7,7 +7,6 @@
   },
   "packageManager": "yarn@1.22.19",
   "dependencies": {
-    "@janus-idp/backstage-plugin-3scale-backend": "1.8.1",
     "@janus-idp/backstage-plugin-aap-backend": "1.9.3",
     "@janus-idp/backstage-plugin-acr": "1.7.11",
     "@janus-idp/backstage-plugin-analytics-provider-segment": "1.7.2",
