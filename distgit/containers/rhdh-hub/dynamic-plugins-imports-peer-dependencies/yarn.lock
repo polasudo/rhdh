@@ -2751,18 +2751,6 @@
     moment "^2.30.1"
     react-use "17.5.1"
 
-"@janus-idp/backstage-plugin-catalog-backend-module-scaffolder-relation-processor@1.3.2":
-  version "1.3.2"
-  resolved "https://registry.npmjs.org/@janus-idp/backstage-plugin-catalog-backend-module-scaffolder-relation-processor/-/backstage-plugin-catalog-backend-module-scaffolder-relation-processor-1.3.2.tgz#452b3ae27e82d9d3a189fb99c07b4d4bd5a4e5c8"
-  integrity sha512-7sEJQXvU81NKTDMdsGfcuJBjq8x/FkaZ+ef9VnkeE4LyzWK7JKr7Wez2O4ChGCjqY86vK8SsUcRPDQCHdxLOhw==
-  dependencies:
-    "@backstage/backend-common" "^0.23.3"
-    "@backstage/backend-dynamic-feature-service" "^0.2.15"
-    "@backstage/backend-plugin-api" "^0.7.0"
-    "@backstage/catalog-model" "^1.5.0"
-    "@backstage/plugin-catalog-common" "^1.0.25"
-    "@backstage/plugin-catalog-node" "^1.12.4"
-
 "@janus-idp/backstage-plugin-jfrog-artifactory@1.7.5":
   version "1.7.5"
   resolved "https://registry.npmjs.org/@janus-idp/backstage-plugin-jfrog-artifactory/-/backstage-plugin-jfrog-artifactory-1.7.5.tgz#d4222ca3835646f806c91cc1205877ab51827a76"
