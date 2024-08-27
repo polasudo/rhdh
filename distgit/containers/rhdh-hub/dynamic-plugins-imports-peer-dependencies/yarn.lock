@@ -2878,18 +2878,18 @@
     "@material-ui/lab" "4.0.0-alpha.61"
     react-use "^17.4.0"
 
-"@janus-idp/backstage-plugin-rbac-common@1.8.2":
-  version "1.8.2"
-  resolved "https://registry.npmjs.org/@janus-idp/backstage-plugin-rbac-common/-/backstage-plugin-rbac-common-1.8.2.tgz#9ae045a984d77ef0b2834ae4aec2370cf5d6ad21"
-  integrity sha512-Gfi9xyhR4gFIn9c5ge7b66cB6p5sRMzYoAZWtQKfo6ewkIdsyN0ZRkHY4sO4lAH33CVZghUDSpn6iAbT28HBYg==
+"@janus-idp/backstage-plugin-rbac-common@1.9.0":
+  version "1.9.0"
+  resolved "https://registry.npmjs.org/@janus-idp/backstage-plugin-rbac-common/-/backstage-plugin-rbac-common-1.9.0.tgz#825a24151ec810cf55709156813ce448a52a1d9d"
+  integrity sha512-gTIDcuAr1UwHELCvcGbpudTJPcNQ779PSpt10FOnS+r3uEPrTDrJAbPgMEEocQDEgmdvJ7BWrCdnjIXCfPJHWQ==
   dependencies:
     "@backstage/errors" "^1.2.4"
     "@backstage/plugin-permission-common" "^0.8.0"
 
-"@janus-idp/backstage-plugin-rbac@1.28.2":
-  version "1.28.2"
-  resolved "https://registry.npmjs.org/@janus-idp/backstage-plugin-rbac/-/backstage-plugin-rbac-1.28.2.tgz#a5d2839591e8f30ce51a5932dd968a91c1d1368a"
-  integrity sha512-EW2GxT81tbNnee3byzktD5LHVRxwJp80BB/fM1kDNY4qMylkhrBBXNumDUIzVqmfIfI+oZVH8h3QuNsjs0yKXQ==
+"@janus-idp/backstage-plugin-rbac@1.28.4":
+  version "1.28.4"
+  resolved "https://registry.npmjs.org/@janus-idp/backstage-plugin-rbac/-/backstage-plugin-rbac-1.28.4.tgz#96389e9fad1d098a3773f42091946b464ee3a2f0"
+  integrity sha512-iwjX3ttJGV+XAKGSYshNcoisAEcGjF6qSiAN2w3u28lHv0n/iciwSRRslL8z+eEJRlIrdslBE6CW+GcP0zAWJA==
   dependencies:
     "@backstage/catalog-model" "^1.5.0"
     "@backstage/core-components" "^0.14.9"
@@ -2899,7 +2899,7 @@
     "@backstage/plugin-permission-common" "^0.8.0"
     "@backstage/plugin-permission-react" "^0.4.24"
     "@backstage/theme" "^0.5.6"
-    "@janus-idp/backstage-plugin-rbac-common" "1.8.2"
+    "@janus-idp/backstage-plugin-rbac-common" "1.9.0"
     "@janus-idp/shared-react" "2.10.0"
     "@material-ui/core" "^4.9.13"
     "@material-ui/icons" "^4.11.3"
