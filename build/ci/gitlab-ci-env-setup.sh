@@ -23,12 +23,15 @@ dnf config-manager --add-repo https://rhsm-pulp.corp.redhat.com/content/dist/lay
 # add repo to resolve brewkoji, and ignore gpg check
 # http://download.devel.redhat.com/rel-eng/RCMTOOLS/latest-RCMTOOLS-2-RHEL-9/compose/BaseOS/x86_64/os/
 # https://download.hosts.prod.upshift.rdu2.redhat.com/rel-eng/RCMTOOLS/latest-RCMTOOLS-2-RHEL-9/compose/BaseOS/x86_64/os/
+
+# dnf config-manager --save --setopt=latest-RCMTOOLS-2-RHEL-9.sslverify=false
 cat <<EOL >> /etc/yum.repos.d/latest-RCMTOOLS-2-RHEL-9.repo
 [latest-RCMTOOLS-2-RHEL-9]
 name=latest-RCMTOOLS-2-RHEL-9
 baseurl=https://download.hosts.prod.upshift.rdu2.redhat.com/rel-eng/RCMTOOLS/latest-RCMTOOLS-2-RHEL-9/compose/BaseOS/x86_64/os/
 enabled=1
 gpgcheck=0
+sslverify=0
 skip_if_unavailable=False
 EOL
 dnf clean all; dnf update -y
