@@ -21,12 +21,19 @@ curl -sSLkO https://hdn.corp.redhat.com/rhel7-csb-stage/RPMS/noarch/redhat-inter
 # add repo to resolve helm
 dnf config-manager --add-repo https://rhsm-pulp.corp.redhat.com/content/dist/layered/rhel8/x86_64/ocp-tools/4.12/os/ -q
 # add repo to resolve brewkoji, and ignore gpg check
-dnf config-manager --add-repo http://download.devel.redhat.com/rel-eng/RCMTOOLS/latest-RCMTOOLS-2-RHEL-9/compose/BaseOS/x86_64/os/ -q
-cat <<EOL >> /etc/yum.repos.d/download.devel.redhat.com_rel-eng_RCMTOOLS_latest-RCMTOOLS-2-RHEL-9_compose_BaseOS_x86_64_os_.repo
+# http://download.devel.redhat.com/rel-eng/RCMTOOLS/latest-RCMTOOLS-2-RHEL-9/compose/BaseOS/x86_64/os/
+# https://download.hosts.prod.upshift.rdu2.redhat.com/rel-eng/RCMTOOLS/latest-RCMTOOLS-2-RHEL-9/compose/BaseOS/x86_64/os/
+cat <<EOL >> /etc/yum.repos.d/latest-RCMTOOLS-2-RHEL-9.repo
+[latest-RCMTOOLS-2-RHEL-9]
+name=latest-RCMTOOLS-2-RHEL-9
+baseurl=https://download.hosts.prod.upshift.rdu2.redhat.com/rel-eng/RCMTOOLS/latest-RCMTOOLS-2-RHEL-9/compose/BaseOS/x86_64/os/
+enabled=1
 gpgcheck=0
-skip_if_unavailable=True
+skip_if_unavailable=False
 EOL
-dnf -y -q install helm redhat-internal-cert-install*.rpm brewkoji koji-containerbuild krb5-workstation
+dnf clean all; dnf update -y
+dnf -y -q install helm redhat-internal-cert-install*.rpm krb5-workstation
+dnf -y install brewkoji koji-containerbuild 
 rm -f redhat-internal-cert-install*.rpm
 
 # add ~/.ssh/known_hosts entry for gitlab.cee.redhat.com and pkgs.devel.redhat.com
