@@ -2783,10 +2783,10 @@
     lodash "^4.17.21"
     uuid "^9.0.1"
 
-"@janus-idp/backstage-plugin-nexus-repository-manager@1.9.4":
-  version "1.9.4"
-  resolved "https://registry.npmjs.org/@janus-idp/backstage-plugin-nexus-repository-manager/-/backstage-plugin-nexus-repository-manager-1.9.4.tgz#0c596b45b8a4cac09c8f47ce48047f2cff76ef3f"
-  integrity sha512-RMQB8X6JLYgJfYOQQPVqpK/p+TgKtbzWGbyOVU5X0gEP9ZqfaRCzUQjeOifjvdNY+K/5eufuhNZ+piOT3NQBdA==
+"@janus-idp/backstage-plugin-nexus-repository-manager@1.9.5":
+  version "1.9.5"
+  resolved "https://registry.npmjs.org/@janus-idp/backstage-plugin-nexus-repository-manager/-/backstage-plugin-nexus-repository-manager-1.9.5.tgz#6800ef643534f00facd5208797def345073b0b9a"
+  integrity sha512-BI7TupsP1wJSiY2kPe+skHkuMZCqiYz21Y7ynutjzBgHGMLiLvcX8SuuZmu2aqyy5fw7U7GBBxr6xzhHpJKKjg==
   dependencies:
     "@backstage/catalog-model" "^1.5.0"
     "@backstage/core-components" "^0.14.9"
@@ -2799,13 +2799,14 @@
     "@material-ui/lab" "^4.0.0-alpha.45"
     react-use "^17.4.0"
 
-"@janus-idp/backstage-plugin-ocm-backend@4.3.1":
-  version "4.3.1"
-  resolved "https://registry.npmjs.org/@janus-idp/backstage-plugin-ocm-backend/-/backstage-plugin-ocm-backend-4.3.1.tgz#dee763d83443de90a6033832888399e7b27d3df4"
-  integrity sha512-Pk/Pv1OjN7iY0Bf9cUltqLF3jgUml/7iICU/pYbvrQzfCtPPBIv9CajkqNFOZg5OipY+BpaprMH+KPgO7H50og==
+"@janus-idp/backstage-plugin-ocm-backend@4.4.0":
+  version "4.4.0"
+  resolved "https://registry.npmjs.org/@janus-idp/backstage-plugin-ocm-backend/-/backstage-plugin-ocm-backend-4.4.0.tgz#2c670df5783fe4b7ed7a566e3ace06b3862a395f"
+  integrity sha512-FmAvIUj2XgzgYeU9E5LwWeovZZ2qMAjyEh8lJpLchqo2/1HVy+7SjT+6M2jIQxX+1/fRgdhbTn3ziHZq4EObeg==
   dependencies:
     "@backstage/backend-common" "^0.23.3"
     "@backstage/backend-dynamic-feature-service" "^0.2.15"
+    "@backstage/backend-openapi-utils" "^0.1.15"
     "@backstage/backend-plugin-api" "^0.7.0"
     "@backstage/backend-tasks" "^0.5.27"
     "@backstage/catalog-client" "^1.6.5"
@@ -2829,10 +2830,10 @@
   dependencies:
     "@backstage/plugin-permission-common" "^0.8.0"
 
-"@janus-idp/backstage-plugin-ocm@4.4.2":
-  version "4.4.2"
-  resolved "https://registry.npmjs.org/@janus-idp/backstage-plugin-ocm/-/backstage-plugin-ocm-4.4.2.tgz#eb6983ae71ba6fbcbf3f30ff382698fe9ac8f514"
-  integrity sha512-wyeLptaJq3+j88uBMku3NVSeewxuoRn6wz43abIKSOq/7ON6ji5WrwAkasGmalwBz3CQU1xH92YeUDdMGBeKJQ==
+"@janus-idp/backstage-plugin-ocm@4.4.4":
+  version "4.4.4"
+  resolved "https://registry.npmjs.org/@janus-idp/backstage-plugin-ocm/-/backstage-plugin-ocm-4.4.4.tgz#a7d725bedcd34c5efd0a7b431cae307799cea341"
+  integrity sha512-WE0ZSpXBT7Qj0OGxLegoGKMvNqY90Xz+wk6HQGDb1/F4/KXvWymgUzClDOQ57VmgCkxq07E4qRt4DM/uBZk3EA==
   dependencies:
     "@backstage/catalog-model" "^1.5.0"
     "@backstage/core-components" "^0.14.9"
@@ -2886,10 +2887,10 @@
     "@backstage/errors" "^1.2.4"
     "@backstage/plugin-permission-common" "^0.8.0"
 
-"@janus-idp/backstage-plugin-rbac@1.28.4":
-  version "1.28.4"
-  resolved "https://registry.npmjs.org/@janus-idp/backstage-plugin-rbac/-/backstage-plugin-rbac-1.28.4.tgz#96389e9fad1d098a3773f42091946b464ee3a2f0"
-  integrity sha512-iwjX3ttJGV+XAKGSYshNcoisAEcGjF6qSiAN2w3u28lHv0n/iciwSRRslL8z+eEJRlIrdslBE6CW+GcP0zAWJA==
+"@janus-idp/backstage-plugin-rbac@1.29.0":
+  version "1.29.0"
+  resolved "https://registry.npmjs.org/@janus-idp/backstage-plugin-rbac/-/backstage-plugin-rbac-1.29.0.tgz#29995d69b442e6cb220a5910faee904162414ed0"
+  integrity sha512-iuTYXotCBe8mJE8rgXOdmOdn8NXg/4sr8fijOSvo++QXfjmIM6x8Glrlci64lKEsD8csTNGLxHqxxDG/FVZy8A==
   dependencies:
     "@backstage/catalog-model" "^1.5.0"
     "@backstage/core-components" "^0.14.9"
@@ -2922,10 +2923,10 @@
   dependencies:
     "@backstage/plugin-permission-common" "^0.8.0"
 
-"@janus-idp/backstage-plugin-tekton@3.12.2":
-  version "3.12.2"
-  resolved "https://registry.npmjs.org/@janus-idp/backstage-plugin-tekton/-/backstage-plugin-tekton-3.12.2.tgz#bfc191d7dac245d4b4a66577e3ba76c33941afa6"
-  integrity sha512-FlckQOfMCDQFc8mO3nJxqsPSvfyw7EzYQKfsaqZpxHahEnxs8zvVV0UfZzDpp4AA1vO0yBHBJ3LgZPuDoP0M9w==
+"@janus-idp/backstage-plugin-tekton@3.12.3":
+  version "3.12.3"
+  resolved "https://registry.npmjs.org/@janus-idp/backstage-plugin-tekton/-/backstage-plugin-tekton-3.12.3.tgz#d4b7394b4c73c88fa43b1bd5daf4acbcb26a9c75"
+  integrity sha512-+8iZYwpbmsSntRsV9fmwF8m2UnAt7IWAsCXgJRinIbq1H3KENY7zUxmOIZXJ9adDI/H0gdo/7fP5JcDFJvFhjQ==
   dependencies:
     "@aonic-ui/pipelines" "^1.1.1"
     "@backstage/catalog-model" "^1.5.0"
@@ -2962,10 +2963,10 @@
   dependencies:
     "@backstage/plugin-permission-common" "^0.8.0"
 
-"@janus-idp/backstage-plugin-topology@1.25.2":
-  version "1.25.2"
-  resolved "https://registry.npmjs.org/@janus-idp/backstage-plugin-topology/-/backstage-plugin-topology-1.25.2.tgz#516ac35edb96282ea89644477c9ee3a9aee7e527"
-  integrity sha512-RpZfafQqd29IR4nrBEIy/k6a7OV/HzXE1JGGhN6vPn6+juOD4tpFCg4qGH6rq3+NWJbADOHqd1IhOcIn6/XexA==
+"@janus-idp/backstage-plugin-topology@1.27.0":
+  version "1.27.0"
+  resolved "https://registry.npmjs.org/@janus-idp/backstage-plugin-topology/-/backstage-plugin-topology-1.27.0.tgz#f777a589b70477163fdb352ad39a5e9665c7f9f2"
+  integrity sha512-IZguTNXvEqX6ABYltSF8+1hEPXbZgIGJjHCYFx4rTeV+VCs7xpZ7MlHb23mbhMVJnYYdyJsYFycIuduNk1hMXw==
   dependencies:
     "@backstage/catalog-model" "^1.5.0"
     "@backstage/core-components" "^0.14.9"
@@ -3015,16 +3016,16 @@
     yaml "^2.3.3"
     zod "^3.22.4"
 
-"@janus-idp/backstage-scaffolder-backend-module-servicenow@1.7.1":
-  version "1.7.1"
-  resolved "https://registry.npmjs.org/@janus-idp/backstage-scaffolder-backend-module-servicenow/-/backstage-scaffolder-backend-module-servicenow-1.7.1.tgz#7b82477c64fb080e583e246a785caf03cfb4b34c"
-  integrity sha512-sU0n0lSr27GSGLkOL7foDz03/rzH/Deutulr67ve/sbrTBU+que/lNn1kzt6XNQo2ceSwaxc2rTb4xg44o9Sew==
+"@janus-idp/backstage-scaffolder-backend-module-servicenow@1.7.2":
+  version "1.7.2"
+  resolved "https://registry.npmjs.org/@janus-idp/backstage-scaffolder-backend-module-servicenow/-/backstage-scaffolder-backend-module-servicenow-1.7.2.tgz#ee41079816078f87753f3ec9388fdfd0706331eb"
+  integrity sha512-YFrO2OHmiziGn7A4Ae5TPHmMGa0lI8guGESaM0ctXdtfYys28RtfuBAmwOo662LBZoLr1W2g5J2cZx5AYTWCqA==
   dependencies:
     "@backstage/backend-dynamic-feature-service" "^0.2.15"
     "@backstage/backend-plugin-api" "^0.7.0"
     "@backstage/plugin-scaffolder-node" "^0.4.8"
     abort-controller "^3.0.0"
-    axios "^1.6.8"
+    axios "^1.7.4"
     form-data "^4.0.0"
     yaml "^2.3.3"
     zod "^3.22.4"
@@ -6512,10 +6513,10 @@ axios@^0.26.1:
   dependencies:
     follow-redirects "^1.14.8"
 
-axios@^1.6.8:
-  version "1.6.8"
-  resolved "https://registry.npmjs.org/axios/-/axios-1.6.8.tgz#66d294951f5d988a00e87a0ffb955316a619ea66"
-  integrity sha512-v/ZHtJDU39mDpyBoFVkETcd/uNdxrWRrg3bKpOKzXFA6Bvqopts6ALSMU3y6ijYxbw2B+wPrIv46egTzJXCLGQ==
+axios@^1.7.4:
+  version "1.7.5"
+  resolved "https://registry.npmjs.org/axios/-/axios-1.7.5.tgz#21eed340eb5daf47d29b6e002424b3e88c8c54b1"
+  integrity sha512-fZu86yCo+svH3uqJ/yTdQ0QHpQu5oL+/QE+QPSv6BZSkDAoky9vytxp7u5qk83OJFS3kEBcesWni9WTZAv3tSw==
   dependencies:
     follow-redirects "^1.15.6"
     form-data "^4.0.0"
