@@ -202,33 +202,32 @@ getXYplusOneFromBranch() {
 	fi
 }
 
-# DISABLED - see RHIDP-1720
 # note that this will bump versions of all plugins' package.json AND the root package.json too
 # to bump only the root package.json, see updatePluginsRootVersion()
-# function updatePluginVersions() {
-# 	# for janus-idp/backstage-plugins, run checkPluginVersions.sh
-# 	# TODO move to backstage/community-plugins
-# 	orgAndRepo="janus-idp/backstage-plugins"
-# 	d="${orgAndRepo/\//__}"
-# 	pushd "/tmp/tmp-checkouts/projects_${d}" >/dev/null || exit 1
-# 	git checkout "${SOURCE_BRANCH}" || true
+function updatePluginVersions() {
+	# for janus-idp/backstage-plugins, run checkPluginVersions.sh
+	# TODO move to backstage/community-plugins
+	orgAndRepo="janus-idp/backstage-plugins"
+	d="${orgAndRepo/\//__}"
+	pushd "/tmp/tmp-checkouts/projects_${d}" >/dev/null || exit 1
+	git checkout "${SOURCE_BRANCH}" || true
 	
-# 	# get script
-# 	if [[ -x ${SCRIPT_DIR}/checkPluginVersions.sh ]]; then
-# 		CPV=${SCRIPT_DIR}/checkPluginVersions.sh
-# 	else
-# 		if [[ $VERBOSE -eq 1 ]]; then echo "Downloading checkPluginVersions.sh script from Github"; fi
-# 		pushd /tmp >/dev/null || exit
-# 		curl -sSLO "https://gitlab.cee.redhat.com/rhidp/rhdh/-/raw/${MIDSTM_BRANCH}/build/scripts/checkPluginVersions.sh" && chmod +x checkPluginVersions.sh
-# 		CPV=/tmp/checkPluginVersions.sh
-# 		popd >/dev/null || exit
-# 	fi
+	# get script
+	if [[ -x ${SCRIPT_DIR}/checkPluginVersions.sh ]]; then
+		CPV=${SCRIPT_DIR}/checkPluginVersions.sh
+	else
+		if [[ $VERBOSE -eq 1 ]]; then echo "Downloading checkPluginVersions.sh script from Github"; fi
+		pushd /tmp >/dev/null || exit
+		curl -sSLO "https://gitlab.cee.redhat.com/rhidp/rhdh/-/raw/${MIDSTM_BRANCH}/build/scripts/checkPluginVersions.sh" && chmod +x checkPluginVersions.sh
+		CPV=/tmp/checkPluginVersions.sh
+		popd >/dev/null || exit
+	fi
 
-# 	# TODO VERIFY THIS WORKS with 1.2 branch creation
-# 	$CPV -s "$(pwd)" -b "${TARGET_BRANCH}" --pr-branch "tagRelease.sh_branch_${TARGET_BRANCH}" --push
+	# TODO VERIFY THIS WORKS with 1.3 branch creation
+	$CPV -s "$(pwd)" -b "${TARGET_BRANCH}" --pr-branch "tagRelease.sh_branch_${TARGET_BRANCH}" --push
 
-# 	popd >/dev/null || exit 1
-# }
+	popd >/dev/null || exit 1
+}
 
 # for backstage-plugins, bump root package.json to specified version
 # to bump all plugins as well, see updatePluginVersions()
@@ -678,7 +677,7 @@ done
 # TODO VERIFY THIS WORKS with 1.3 branch creation
 if [[ ${SOURCE_BRANCH} ]]; then
 	# check for changes and push a PR for each repo
-	## updatePluginVersions - DISABLED - see RHIDP-1720
+	updatePluginVersions
 	updateOperatorVersions "$SOURCE_BRANCH" "$newver" "$newverOp"
 	updateDocVersions "$SOURCE_BRANCH" "$newver"
 	updateShowcaseVersions "$SOURCE_BRANCH" "$newver"
