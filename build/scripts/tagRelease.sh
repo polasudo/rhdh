@@ -14,6 +14,8 @@ SCRIPT_DIR=$(cd "$(dirname "$0")" || exit; pwd)
 # RH production key, to use only in 1.yy.x stable branches; otherwise use the devel key for main
 SEGMENT_WRITE_KEY="mUr49Tkld5bj1lFFPxxqHrAzkQMRINvF"
 
+TMPDIR="/tmp/tmp-checkouts"
+
 # defaults
 
 MIDSTM_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "rhdh-1-rhel-9")
@@ -29,6 +31,9 @@ pkgs_devel_branch=${TARGET_BRANCH}
 DO_BUILD=1  # update yarn lock
 DO_PUSH=1   # push the commit
 DO_UPDATE=0 # force update of 1.yy.x branches, even if tag already exists
+SKIP_GH=0   # skip updates to GH repos
+SKIP_GL=0   # skip updates to GL repos
+SKIP_PD=0   # skip updates to plgs.devel repos
 
 # make builds faster
 export HUSKY=0
@@ -49,7 +54,7 @@ if [[ $# -lt 4 ]]; then
 To create or update existing branches:
   $0 -t PROD_VERSION --branchfrom SOURCE_GH_BRANCH -gh TARGET_GH_BRANCH -ghtoken GITHUB_TOKEN
 Example: 
-  $0 -t 1.2 --branchfrom main -gh 1.2.x -ghtoken \$GITHUB_TOKEN
+  $0 -t 1.3 --branchfrom main -gh 1.3.x -ghtoken \$GITHUB_TOKEN
 
 To create tags (and push updates to 1.yy.x branches):
 1. You should have a valid GITHUB_TOKEN for your user (for upstream PRs).
@@ -67,6 +72,10 @@ Options:
     --gitlab-pipeline-push    use this flag to push changes when running inside a gitlab pipeline
     -ghtoken                  run as a different GH user instead of the local environment's \$GITHUB_TOKEN
     -pduser                   run as a different bot user; default: $pduser 
+    -tmpdir                   temporry dir for checkouts; default $TMPDIR
+    --skip-gh                 skip github updates
+    --skip-gl                 skip gitlab updates
+    --skip-pd                 skip pkgs.devel updates
 "
 	exit 1
 fi
@@ -83,10 +92,14 @@ while [[ "$#" -gt 0 ]]; do
 	'-pduser') pduser="$2"; shift 1;;
 	'--clean') CLEAN="true"; shift 0;; # if set true, delete existing folders and do fresh checkouts
 	'--nopush') DO_PUSH=0; shift 1;;
-    '--gitlab-pipeline-push') DO_PUSH=1; DO_BUILD=1; GITLAB_PIPELINE="true";;
-    '--dry-run') DRYRUN="$1";;
-    '--force-update') DO_UPDATE=1;;
-    '-h'|'--help') usage;;
+	'--gitlab-pipeline-push') DO_PUSH=1; DO_BUILD=1; GITLAB_PIPELINE="true";;
+	'--dry-run') DRYRUN="$1";;
+	'--force-update') DO_UPDATE=1;;
+	'-tmpdir') TMPDIR="$2"; shift 1;;
+	'--skip-gh') SKIP_GH=1;;
+	'--skip-gl') SKIP_GL=1;;
+	'--skip-pd') SKIP_PD=1;;
+	'-h'|'--help') usage;;
     *) echo "Unknown parameter used: $1."; usage; exit 1;;
   esac
   shift 1
@@ -97,11 +110,11 @@ if [[ ! ${PROD_VERSION} ]]; then
 fi
 
 if [[ ${CLEAN} == "true" ]]; then
-	rm -fr /tmp/tmp-checkouts || true
+	rm -fr "$TMPDIR" || true
 fi
 
-mkdir -p /tmp/tmp-checkouts
-cd /tmp/tmp-checkouts
+mkdir -p "$TMPDIR"
+cd "$TMPDIR"
 
 set -e
 
@@ -209,7 +222,7 @@ function updatePluginVersions() {
 	# TODO move to backstage/community-plugins
 	orgAndRepo="janus-idp/backstage-plugins"
 	d="${orgAndRepo/\//__}"
-	pushd "/tmp/tmp-checkouts/projects_${d}" >/dev/null || exit 1
+	pushd ""$TMPDIR"/projects_${d}" >/dev/null || exit 1
 	git checkout "${SOURCE_BRANCH}" || true
 	
 	# get script
@@ -224,7 +237,9 @@ function updatePluginVersions() {
 	fi
 
 	# TODO VERIFY THIS WORKS with 1.3 branch creation
+	set -x
 	$CPV -s "$(pwd)" -b "${TARGET_BRANCH}" --pr-branch "tagRelease.sh_branch_${TARGET_BRANCH}" --push
+	set +x
 
 	popd >/dev/null || exit 1
 }
@@ -237,8 +252,8 @@ function updatePluginsRootVersion() {
 	# TODO move to backstage/community-plugins
 	orgAndRepo="janus-idp/backstage-plugins"
 	d="${orgAndRepo/\//__}"
-	rm -fr "/tmp/tmp-checkouts/projects_${d}_2" && git clone -q --depth 1 -b "${the_branch}" "https://github.com/${orgAndRepo}" "/tmp/tmp-checkouts/projects_${d}_2" || echo "Branch $clone_branch doesn't exist: skip!"
-	pushd "/tmp/tmp-checkouts/projects_${d}_2" >/dev/null || exit 1
+	rm -fr ""$TMPDIR"/projects_${d}_2" && git clone -q --depth 1 -b "${the_branch}" "https://github.com/${orgAndRepo}" ""$TMPDIR"/projects_${d}_2" || echo "Branch $clone_branch doesn't exist: skip!"
+	pushd ""$TMPDIR"/projects_${d}_2" >/dev/null || exit 1
 
 	###############
 	# update 1 file
@@ -274,8 +289,8 @@ function updateShowcaseVersions() {
 	# TODO move to red-hat-developer-hub
 	orgAndRepo="janus-idp/backstage-showcase"
 	d="${orgAndRepo/\//__}"
-	rm -fr "/tmp/tmp-checkouts/projects_${d}_2" && git clone -q --depth 1 -b "${the_branch}" "https://github.com/${orgAndRepo}" "/tmp/tmp-checkouts/projects_${d}_2" || echo "Branch $clone_branch doesn't exist: skip!"
-	pushd "/tmp/tmp-checkouts/projects_${d}_2" >/dev/null || exit 1
+	rm -fr ""$TMPDIR"/projects_${d}_2" && git clone -q --depth 1 -b "${the_branch}" "https://github.com/${orgAndRepo}" ""$TMPDIR"/projects_${d}_2" || echo "Branch $clone_branch doesn't exist: skip!"
+	pushd ""$TMPDIR"/projects_${d}_2" >/dev/null || exit 1
 
 	################
 	# update 3 files
@@ -315,8 +330,8 @@ function updateOperatorVersions() {
 	# TODO move to red-hat-developer-hub-operator
 	orgAndRepo="redhat-developer/rhdh-operator"
 	d="${orgAndRepo/\//__}"
-	rm -fr "/tmp/tmp-checkouts/projects_${d}_2" && git clone -q --depth 1 -b "${the_branch}" "https://github.com/${orgAndRepo}" "/tmp/tmp-checkouts/projects_${d}_2" || echo "Branch $clone_branch doesn't exist: skip!"
-	pushd "/tmp/tmp-checkouts/projects_${d}_2" >/dev/null || exit 1
+	rm -fr ""$TMPDIR"/projects_${d}_2" && git clone -q --depth 1 -b "${the_branch}" "https://github.com/${orgAndRepo}" ""$TMPDIR"/projects_${d}_2" || echo "Branch $clone_branch doesn't exist: skip!"
+	pushd ""$TMPDIR"/projects_${d}_2" >/dev/null || exit 1
 
 	################
 	# update 4 files
@@ -359,8 +374,8 @@ function updateDocVersions() {
 	the_version="$2"
 	orgAndRepo="redhat-developer/red-hat-developers-documentation-rhdh"
 	d="${orgAndRepo/\//__}"
-	rm -fr "/tmp/tmp-checkouts/projects_${d}_2" && git clone -q --depth 1 -b "${the_branch}" "https://github.com/${orgAndRepo}" "/tmp/tmp-checkouts/projects_${d}_2" || echo "Branch $clone_branch doesn't exist: skip!"
-	pushd "/tmp/tmp-checkouts/projects_${d}_2" >/dev/null || exit 1
+	rm -fr ""$TMPDIR"/projects_${d}_2" && git clone -q --depth 1 -b "${the_branch}" "https://github.com/${orgAndRepo}" ""$TMPDIR"/projects_${d}_2" || echo "Branch $clone_branch doesn't exist: skip!"
+	pushd ""$TMPDIR"/projects_${d}_2" >/dev/null || exit 1
 
 	###############
 	# update 1 file
@@ -394,8 +409,8 @@ function updateChartVersions(){
     # push path to repo onto the stack
     orgAndRepo="redhat-developer/rhdh-chart"
     d="${orgAndRepo/\//__}"
-	rm -fr "/tmp/tmp-checkouts/projects_${d}_2" && git clone -q --depth 1 -b "${the_branch}" "https://github.com/${orgAndRepo}" "/tmp/tmp-checkouts/projects_${d}_2" || echo "Branch $clone_branch doesn't exist: skip!"
-	pushd "/tmp/tmp-checkouts/projects_${d}_2" >/dev/null || exit 1
+	rm -fr ""$TMPDIR"/projects_${d}_2" && git clone -q --depth 1 -b "${the_branch}" "https://github.com/${orgAndRepo}" ""$TMPDIR"/projects_${d}_2" || echo "Branch $clone_branch doesn't exist: skip!"
+	pushd ""$TMPDIR"/projects_${d}_2" >/dev/null || exit 1
 
 	files_to_bump="./charts/backstage/README.md ./charts/backstage/Chart.yaml"
 
@@ -458,11 +473,13 @@ pushBranchAndOrTagGH () {
 		else # if source branch not set (tagging operation) or target branch already exists
 			clone_branch=${TARGET_BRANCH}
 		fi
-		if [[ ! -d "/tmp/tmp-checkouts/projects_${d}" ]]; then
+		# echo "[DEBUG] Using clone_branch=$clone_branch ..."
+		
+		if [[ ! -d ""$TMPDIR"/projects_${d}" ]]; then
 			git clone -q --depth 1 -b "${clone_branch}" "https://github.com/${orgAndRepo}" "projects_${d}" || echo "Branch $clone_branch doesn't exist: skip!"
 		fi
-		if [[ -d "/tmp/tmp-checkouts/projects_${d}" ]]; then
-			pushd "/tmp/tmp-checkouts/projects_${d}" >/dev/null || exit 1
+		if [[ -d ""$TMPDIR"/projects_${d}" ]]; then
+			pushd ""$TMPDIR"/projects_${d}" >/dev/null || exit 1
 				export GITHUB_TOKEN="${GITHUB_TOKEN}"
 				git config user.email "${pduser}@redhat.com"
 				git config user.name "RHDH Build (${pduser})"
@@ -480,6 +497,11 @@ pushBranchAndOrTagGH () {
 					git branch "${TARGET_BRANCH}" || true
 					git checkout "${TARGET_BRANCH}" 2>/dev/null || true
 					git pull origin "${TARGET_BRANCH}" 2>/dev/null || true
+
+					if [[ $DO_PUSH -eq 1 ]]; then
+						echo "git push origin ${TARGET_BRANCH} ..."
+						git push origin "${TARGET_BRANCH}" 2>/dev/null || true
+					fi
 
 					# changes to apply to new midstream 1.yy.x branch
 					# https://issues.redhat.com/browse/RHIDP-1311 apply the production key to the 1.yy.x stable branches, so we can use the devel key for main/CI builds
@@ -542,37 +564,41 @@ pushTagGL ()
 	if [[ $CSV_VERSION ]] && [[ $(git ls-remote "https://gitlab.cee.redhat.com/rhidp/${d}.git/" "refs/tags/$CSV_VERSION") ]]; then
 		echo; echo "[WARN] https://gitlab.cee.redhat.com/rhidp/${d}/-/tree/${CSV_VERSION}?ref_type=tags already exists."
 	else
+		# convert 1.2.x to rhdh-1.2-rhel-9
+		DWNSTM_TARGET_BRANCH=rhdh-${TARGET_BRANCH/.x/-rhel-9}
 		echo;
 		if [[ $SOURCE_BRANCH ]]; then
-			echo "== $d :: branch from $SOURCE_BRANCH to $TARGET_BRANCH =="
+			echo "== $d :: branch from $MIDSTM_BRANCH to $DWNSTM_TARGET_BRANCH =="
 		elif [[ $CSV_VERSION ]]; then
-			echo "== $d :: tag $CSV_VERSION from $TARGET_BRANCH =="
+			echo "== $d :: tag $CSV_VERSION from $DWNSTM_TARGET_BRANCH =="
 		fi
-		if [[ ! -d "/tmp/tmp-checkouts/gitlab_${d}" ]]; then
-			git clone -q --depth 1 -b "${pkgs_devel_branch}" "git@gitlab.cee.redhat.com:rhidp/${d}.git" "gitlab_${d}" || echo "Branch $pkgs_devel_branch doesn't exist: skip!"
+		if [[ ! -d ""$TMPDIR"/gitlab_${d}" ]]; then
+			git clone -q --depth 1 -b "${MIDSTM_BRANCH}" "git@gitlab.cee.redhat.com:rhidp/${d}.git" "gitlab_${d}" || echo "Branch $MIDSTM_BRANCH doesn't exist: skip!"
 		fi
-		if [[ -d "/tmp/tmp-checkouts/gitlab_${d}" ]]; then
-			pushd "/tmp/tmp-checkouts/gitlab_${d}" >/dev/null || exit 1
+		if [[ -d ""$TMPDIR"/gitlab_${d}" ]]; then
+			pushd ""$TMPDIR"/gitlab_${d}" >/dev/null || exit 1
 				git config user.email "${pduser}@redhat.com"
 				git config user.name "RHDH Build (${pduser})"
-				git checkout --track origin/"${pkgs_devel_branch}" -q 2>/dev/null || true
+				git checkout --track origin/"${MIDSTM_BRANCH}" -q 2>/dev/null || true
 				git pull -q 2>/dev/null
 				if [[ ${SOURCE_BRANCH} ]]; then 
 					# create a branch or use existing
-					git branch "${TARGET_BRANCH}" || true
-					git checkout "${TARGET_BRANCH}" 1>/dev/null 2>&1  || true
-					git pull origin "${TARGET_BRANCH}" 1>/dev/null 2>&1  || true
+					git branch --set-upstream-to="origin/${DWNSTM_TARGET_BRANCH}" "${DWNSTM_TARGET_BRANCH}" || git branch "${DWNSTM_TARGET_BRANCH}" || true
+					git checkout --track origin/"${DWNSTM_TARGET_BRANCH}" 1>/dev/null || true
+					git pull origin "${DWNSTM_TARGET_BRANCH}" 1>/dev/null || true
+					git push origin "${DWNSTM_TARGET_BRANCH}" 1>/dev/null || true
 
 					# changes to apply to new midstream rhdh-1.yy-rhel-9 branch
 					if [[ $d == "rhdh" ]]; then # for rhidp/rhdh
-						sed -i upstream_repos.yml -r -e "s|- main|- ${TARGET_BRANCH}|g"
+						sed -i upstream_repos.yml -r -e "s|- main|- ${DWNSTM_TARGET_BRANCH}|g"
 						rm -f sync/*
-						COMMITMSG="chore: tagRelease.sh: use $TARGET_BRANCH in upstream_repos.yml; trigger full build"
+						COMMITMSG="chore: tagRelease.sh: use $DWNSTM_TARGET_BRANCH in upstream_repos.yml; trigger full build"
 						git commit --no-gpg-sign -s -m "${COMMITMSG}" sync/ upstream_repos.yml
 					fi
 
 					if [[ $DO_PUSH -eq 1 ]]; then 
-						doPush "${TARGET_BRANCH}"
+						git push origin "${DWNSTM_TARGET_BRANCH}" 1>/dev/null 2>&1  || true
+						doPush "${DWNSTM_TARGET_BRANCH}"
 					fi
 				fi
 				if [[ $CSV_VERSION ]]; then # push a new tag (or no-op if exists)
@@ -605,26 +631,29 @@ pushTagPD ()
 		elif [[ $CSV_VERSION ]]; then
 			echo "== $d :: tag $CSV_VERSION from $DWNSTM_TARGET_BRANCH =="
 		fi
-		if [[ ! -d "/tmp/tmp-checkouts/containers_${d}" ]]; then
-			git clone -q -b "${pkgs_devel_branch}" "ssh://${pduser}@pkgs.devel.redhat.com/containers/${d}" "containers_${d}"
-			pushd "/tmp/tmp-checkouts/containers_${d}" >/dev/null || exit 1
+		if [[ ! -d ""$TMPDIR"/containers_${d}" ]]; then
+			git clone -q --depth 1 -b "${pkgs_devel_branch}" "ssh://${pduser}@pkgs.devel.redhat.com/containers/${d}" "containers_${d}"
+			pushd ""$TMPDIR"/containers_${d}" >/dev/null || exit 1
 				git config user.email "${pduser}@redhat.com"
 				git config user.name "RHDH Build (${pduser})"
 				git checkout --track origin/"${pkgs_devel_branch}" -q 2>/dev/null || true
 				git pull -q 2>/dev/null
 			popd >/dev/null || exit 1
 		fi
-		pushd "/tmp/tmp-checkouts/containers_${d}" >/dev/null || exit 1
+		pushd ""$TMPDIR"/containers_${d}" >/dev/null || exit 1
 			if [[ ${SOURCE_BRANCH} ]]; then 
 				# create a branch or use existing
-				git branch --set-upstream-to="origin/${DWNSTM_TARGET_BRANCH}" "${DWNSTM_TARGET_BRANCH}" || true
+				set -x 
+				git branch --set-upstream-to="origin/${DWNSTM_TARGET_BRANCH}" "${DWNSTM_TARGET_BRANCH}" || git branch "${DWNSTM_TARGET_BRANCH}" || true
 				git checkout --track origin/"${DWNSTM_TARGET_BRANCH}" 1>/dev/null || true
 				git pull origin "${DWNSTM_TARGET_BRANCH}" 1>/dev/null || true
 				git push origin "${DWNSTM_TARGET_BRANCH}" 1>/dev/null || true
+				set +x 
 
 				# currently, no changes to apply to new midstream rhdh-1.yy-rhel-9 branch (as this content is synced from midstream)
 
 				if [[ $DO_PUSH -eq 1 ]]; then 
+					git push origin "${DWNSTM_TARGET_BRANCH}" 1>/dev/null || true
 					doPush "${DWNSTM_TARGET_BRANCH}"
 				fi
 			fi
@@ -659,29 +688,33 @@ getXYplusOneFromBranch "$TARGET_BRANCH"
 	# RHIDP-1021 Migrate Janus IDP operator repo to redhat-developers org
 
 # branch and/or tag GH repos
-for repo in \
-    redhat-developer/rhdh-chart \
-	redhat-developer/red-hat-developers-documentation-rhdh \
-    redhat-developer/red-hat-developer-hub-software-templates \
-	redhat-developer/red-hat-developer-hub-theme \
-    redhat-developer/rhdh-operator \
-    janus-idp/backstage-plugins \
-    janus-idp/backstage-showcase \
-	; do
-	pushBranchAndOrTagGH $repo 
-done
+if [[ $SKIP_GH -eq 0 ]]; then
+	for repo in \
+		redhat-developer/rhdh-chart \
+		redhat-developer/red-hat-developers-documentation-rhdh \
+		redhat-developer/red-hat-developer-hub-software-templates \
+		redhat-developer/red-hat-developer-hub-theme \
+		redhat-developer/rhdh-operator \
+		janus-idp/backstage-showcase \
+		janus-idp/backstage-plugins \
+		; do
+		pushBranchAndOrTagGH $repo 
+	done
+fi
 
 # ###################################################################################################
 
 # now update main branches for the above branch creation
-# TODO VERIFY THIS WORKS with 1.3 branch creation
-if [[ ${SOURCE_BRANCH} ]]; then
-	# check for changes and push a PR for each repo
-	updatePluginVersions
-	updateOperatorVersions "$SOURCE_BRANCH" "$newver" "$newverOp"
-	updateDocVersions "$SOURCE_BRANCH" "$newver"
-	updateShowcaseVersions "$SOURCE_BRANCH" "$newver"
-	updateChartVersions "$SOURCE_BRANCH" "$newver"
+if [[ $SKIP_GH -eq 0 ]]; then
+	if [[ ${SOURCE_BRANCH} ]]; then
+		# check for changes and push a PR for each repo
+		# TODO VERIFY THIS WORKS with 1.3 branch creation
+		updatePluginVersions # requires manual commits to janus plugins repo / missing gpg key?
+		updateOperatorVersions "$SOURCE_BRANCH" "$newver" "$newverOp"
+		updateDocVersions "$SOURCE_BRANCH" "$newver"
+		updateShowcaseVersions "$SOURCE_BRANCH" "$newver"
+		updateChartVersions "$SOURCE_BRANCH" "$newver"
+	fi
 fi
 
 # ############
@@ -689,14 +722,16 @@ fi
 # ############
 
 # branch or tag GL repo(s)
-if [[ "${pkgs_devel_branch}" ]]; then
-	for repo in \
-		rhdh \
-		; do
-	  pushTagGL $repo
-	done
-	# cleanup
-	rm -fr /tmp/tmp-checkouts/*
+if [[ $SKIP_GL -eq 0 ]]; then
+	if [[ "${pkgs_devel_branch}" ]]; then
+		for repo in \
+			rhdh \
+			; do
+		pushTagGL $repo
+		done
+		# cleanup
+		rm -fr "$TMPDIR"/*
+	fi
 fi
 
 # ############
@@ -704,15 +739,31 @@ fi
 # ############
 
 # tag pkgs.devel repos only (branches are created by SPMM ticket, eg., https://projects.engineering.redhat.com/browse/SPMM-2517 or manually due to long timeouts)
-if [[ "${pkgs_devel_branch}" ]] && [[ $CSV_VERSION ]]; then
-	for repo in \
-		rhdh-hub \
-		rhdh-operator \
-		rhdh-operator-bundle \
-		; do
-	  pushTagPD $repo
-	done
+if [[ $SKIP_PD -eq 0 ]]; then
+	if [[ "${pkgs_devel_branch}" ]] && [[ $CSV_VERSION ]]; then
+		for repo in \
+			rhdh-hub \
+			rhdh-operator \
+			rhdh-operator-bundle \
+			; do
+		pushTagPD $repo
+		done
+	else
+		echo "
+You must tag pkgs.devel repos manually due to long timeouts:
+
+DWNSTM_TARGET_BRANCH=\"rhdh-${TARGET_BRANCH/.x/-rhel-9}\"
+for d in hub operator operator-bundle; do
+	pushd ~/5/5-pkgs.devel_\$d >/dev/null || exit
+	git restore --staged .; git restore .
+	git checkout rhdh-1-rhel-9; git pull origin rhdh-1-rhel-9
+	git branch \$DWNSTM_TARGET_BRANCH
+	git checkout \"\$DWNSTM_TARGET_BRANCH\"
+	git push origin \"\$DWNSTM_TARGET_BRANCH\"
+	popd >/dev/null || exit
+done"
+	fi
 fi
 
 # cleanup
-rm -fr /tmp/tmp-checkouts
+rm -fr "$TMPDIR"
