@@ -738,7 +738,7 @@ fi
 # DOWNSTREAM 
 # ############
 
-# tag pkgs.devel repos only (branches are created by SPMM ticket, eg., https://projects.engineering.redhat.com/browse/SPMM-2517 or manually due to long timeouts)
+# tag pkgs.devel repos 
 if [[ $SKIP_PD -eq 0 ]]; then
 	if [[ "${pkgs_devel_branch}" ]] && [[ $CSV_VERSION ]]; then
 		for repo in \
@@ -750,7 +750,7 @@ if [[ $SKIP_PD -eq 0 ]]; then
 		done
 	else
 		echo "
-You must tag pkgs.devel repos manually due to long timeouts:
+You must branch pkgs.devel repos manually - as these steps might fail due to long-running processes (and need to be repeated):
 
 DWNSTM_TARGET_BRANCH=\"rhdh-${TARGET_BRANCH/.x/-rhel-9}\"
 for d in hub operator operator-bundle; do
@@ -761,7 +761,11 @@ for d in hub operator operator-bundle; do
 	git checkout \"\$DWNSTM_TARGET_BRANCH\"
 	git push origin \"\$DWNSTM_TARGET_BRANCH\"
 	popd >/dev/null || exit
-done"
+done
+
+Now submit a ticket like https://issues.redhat.com/browse/SPMM-17463 to get new Errata PV and Brew targets created.
+NOTE: this may no longer be needed once we switch to Konflux.
+"
 	fi
 fi
 

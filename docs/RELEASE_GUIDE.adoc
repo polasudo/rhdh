@@ -16,7 +16,7 @@ Reject those requests and send them to PM/QE/Doc for approval as these should ha
 
 ### Brew Targets, Product Variants, and CPEs
 
-. Request new Brew Targets & product variant (PV) be created via link:https://issues.redhat.com/browse/SPMM-16740[SPMM ticket like SPMM-16740] and by pinging @ahills / @siege on slack
+. Request new Brew Targets & product variant (PV) be created via link:https://issues.redhat.com/browse/SPMM-17463[SPMM ticket like SPMM-17463] and by pinging @ahills / @siege on slack
 
 . Once the associated Errata PV is created, ProdSec gets notified and adds the appropriate CPE within a day or two. For questions, ping Martin Prpič or link:https://docs.engineering.redhat.com/pages/viewpage.action?spaceKey=PRODSEC&title=CPE[send an email] to prodsec-request@redhat.com.
 
