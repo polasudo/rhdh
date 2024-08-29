@@ -4,4 +4,4 @@ annotations:
   operators.operatorframework.io.bundle.metadata.v1: metadata/
   operators.operatorframework.io.bundle.package.v1: rhdh
   operators.operatorframework.io.bundle.channel.default.v1: fast
-  operators.operatorframework.io.bundle.channels.v1: fast,fast-1.3
+  operators.operatorframework.io.bundle.channels.v1: fast,fast-1.4
