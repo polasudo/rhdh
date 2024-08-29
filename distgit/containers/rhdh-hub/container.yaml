@@ -10,7 +10,7 @@ remote_sources:
   - name: upstream1
     remote_source:
       repo: https://gitlab.cee.redhat.com/rhidp/rhdh.git
-      ref: e9e8888b456c979c3de8d8204c1d3e26188c39cb
+      ref: 191b1141c463c48062d8e8efc350ec9d191055aa
       pkg_managers:
         - yarn
       packages:
@@ -44,6 +44,8 @@ remote_sources:
           - path: distgit/containers/rhdh-hub/dynamic-plugins/wrappers/backstage-plugin-catalog-backend-module-bitbucket-server/dist-dynamic
           - path: distgit/containers/rhdh-hub/dynamic-plugins/wrappers/backstage-plugin-catalog-backend-module-bitbucket-cloud/dist-dynamic
           - path: distgit/containers/rhdh-hub/dynamic-plugins/wrappers/backstage-plugin-azure-devops-backend-dynamic/dist-dynamic
+          - path: distgit/containers/rhdh-hub/dynamic-plugins/wrappers/backstage-community-plugin-redhat-argocd/dist-dynamic
+          - path: distgit/containers/rhdh-hub/dynamic-plugins/wrappers/backstage-community-plugin-redhat-argocd-common/dist-dynamic
           - path: distgit/containers/rhdh-hub/dynamic-plugins/wrappers/backstage-community-plugin-catalog-backend-module-scaffolder-relation-processor/dist-dynamic
           - path: distgit/containers/rhdh-hub/dynamic-plugins/wrappers/backstage-community-plugin-3scale-backend/dist-dynamic
           - path: distgit/containers/rhdh-hub/dynamic-plugins-imports-peer-dependencies
@@ -59,7 +61,7 @@ remote_sources:
   - name: upstream2
     remote_source:
       repo: https://gitlab.cee.redhat.com/rhidp/rhdh.git
-      ref: e9e8888b456c979c3de8d8204c1d3e26188c39cb
+      ref: 191b1141c463c48062d8e8efc350ec9d191055aa
       pkg_managers:
         - pip
       packages:
