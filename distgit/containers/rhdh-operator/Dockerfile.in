@@ -85,7 +85,7 @@ ENTRYPOINT ["/manager"]
 # append Brew metadata here
 ENV SUMMARY="Red Hat Developer Hub operator" \
     DESCRIPTION="Red Hat Developer Hub operator" \
-    UPSTREAM_REPO="https://github.com/redhat-developer/rhdh-operator/tree/1.3.x @ a06da3f9" \
+    UPSTREAM_REPO="https://github.com/redhat-developer/rhdh-operator/tree/main @ d0ab36a6" \
     MIDSTREAM_REPO="https://gitlab.cee.redhat.com/rhidp/rhdh/-/commits/rhdh-1-rhel-9" \
     PRODNAME="rhdh" \
     COMPNAME="operator"

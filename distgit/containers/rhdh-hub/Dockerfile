@@ -248,7 +248,7 @@ ENV NPM_CONFIG_ignore-scripts='true'
 
 # gGVM6sYRK0D0ndVX22BOtS7NRcxPej8t is key for dev environment
 # Use production key in stable 1.yy.x branch; use dev key in main for CI/next builds
-ENV SEGMENT_WRITE_KEY=mUr49Tkld5bj1lFFPxxqHrAzkQMRINvF
+ENV SEGMENT_WRITE_KEY=gGVM6sYRK0D0ndVX22BOtS7NRcxPej8t
 ENV SEGMENT_TEST_MODE=false
 
 # RHIDP-2217: corporate proxy support (configured using 'global-agent')
@@ -266,7 +266,7 @@ ENTRYPOINT ["node", "packages/backend", "--no-node-snapshot", "--config", "app-c
 # append Brew metadata here
 ENV SUMMARY="Red Hat Developer Hub container" \
     DESCRIPTION="Red Hat Developer Hub container" \
-    UPSTREAM_REPO="https://github.com/janus-idp/backstage-showcase/tree/1.3.x @ d606e728" \
+    UPSTREAM_REPO="https://github.com/janus-idp/backstage-showcase/tree/main @ 3ac30abb" \
     MIDSTREAM_REPO="https://gitlab.cee.redhat.com/rhidp/rhdh/-/commits/rhdh-1-rhel-9" \
     PRODNAME="rhdh" \
     COMPNAME="hub"
