@@ -72,7 +72,7 @@ Examples:
     $ gh auth login -h github.com
     # 2. Run a manual release as the bot:
     $ export GITHUB_TOKEN=ghp_rhdh-bot-token-here
-    $ $0 --chart-version 1.2.2 --rhdh-version 1.2-132 --chart-branch 1.2.x --catalog git@github.com:rhdh-bot/openshift-helm-charts.git --publish
+    $ $0 --chart-version 1.2.3 --rhdh-version 1.2-136 --chart-branch 1.2.x --catalog git@github.com:rhdh-bot/openshift-helm-charts.git --publish
     $ $0 --chart-version 1.1.4 --rhdh-version 1.1-107.1717076948 --chart-branch 1.1.x --catalog git@github.com:rhdh-bot/openshift-helm-charts.git --publish
     Chart version:       1.2.2
     Developer Hub image:  quay.io/rhdh/rhdh-hub-rhel9:1.2-132
