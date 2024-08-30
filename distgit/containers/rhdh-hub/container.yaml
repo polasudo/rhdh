@@ -10,7 +10,7 @@ remote_sources:
   - name: upstream1
     remote_source:
       repo: https://gitlab.cee.redhat.com/rhidp/rhdh.git
-      ref: 191b1141c463c48062d8e8efc350ec9d191055aa
+      ref: c9ff512281fc1aa9b17555c47a6326770e96314b
       pkg_managers:
         - yarn
       packages:
@@ -56,12 +56,13 @@ remote_sources:
           - path: distgit/containers/rhdh-hub/dynamic-plugins-imports-peer-dependencies/janus-idp-backstage-plugin-ocm-backend/dist-dynamic
           - path: distgit/containers/rhdh-hub/dynamic-plugins-imports-peer-dependencies/janus-idp-backstage-plugin-keycloak-backend/dist-dynamic
           - path: distgit/containers/rhdh-hub/dynamic-plugins-imports-peer-dependencies/janus-idp-backstage-plugin-catalog-backend-module-scaffolder-relation-processor/dist-dynamic
+          - path: distgit/containers/rhdh-hub/dynamic-plugins-imports-peer-dependencies/janus-idp-backstage-plugin-bulk-import-backend/dist-dynamic
           - path: distgit/containers/rhdh-hub/dynamic-plugins-imports-peer-dependencies/janus-idp-backstage-plugin-aap-backend/dist-dynamic
           - path: distgit/containers/rhdh-hub/dynamic-plugins-imports-peer-dependencies/janus-idp-backstage-plugin-3scale-backend/dist-dynamic
   - name: upstream2
     remote_source:
       repo: https://gitlab.cee.redhat.com/rhidp/rhdh.git
-      ref: 191b1141c463c48062d8e8efc350ec9d191055aa
+      ref: c9ff512281fc1aa9b17555c47a6326770e96314b
       pkg_managers:
         - pip
       packages:
