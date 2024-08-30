@@ -16,7 +16,7 @@ require('@backstage/plugin-catalog-node');
 
 var alpha_cjs = {};
 
-var MicrosoftGraphOrgEntityProviderMdJJRFUn_cjs = {};
+var MicrosoftGraphOrgEntityProviderBkGFhBQB_cjs = {};
 
 var catalogModel = require$$0;
 var lodash = require$$1;
@@ -563,24 +563,22 @@ async function defaultGroupTransformer(group, groupPhoto) {
   return entity;
 }
 async function defaultUserTransformer(user, userPhoto) {
-  if (!user.id || !user.displayName || !user.mail) {
+  if (!user.id || !user.displayName) {
     return void 0;
   }
-  const name = normalizeEntityName(user.mail);
+  const name = user.mail ? normalizeEntityName(user.mail) : normalizeEntityName(user.userPrincipalName);
   const entity = {
     apiVersion: "backstage.io/v1alpha1",
     kind: "User",
     metadata: {
       name,
       annotations: {
-        [MICROSOFT_EMAIL_ANNOTATION]: user.mail,
         [MICROSOFT_GRAPH_USER_ID_ANNOTATION]: user.id
       }
     },
     spec: {
       profile: {
-        displayName: user.displayName,
-        email: user.mail
+        displayName: user.displayName
         // TODO: Additional fields?
         // jobTitle: user.jobTitle || undefined,
         // officeLocation: user.officeLocation || undefined,
@@ -589,6 +587,10 @@ async function defaultUserTransformer(user, userPhoto) {
       memberOf: []
     }
   };
+  if (user.mail) {
+    entity.metadata.annotations[MICROSOFT_EMAIL_ANNOTATION] = user.mail;
+    entity.spec.profile.email = user.mail;
+  }
   if (userPhoto) {
     entity.spec.profile.picture = userPhoto;
   }
@@ -1135,26 +1137,26 @@ function withLocations(providerId, entity) {
   );
 }
 
-MicrosoftGraphOrgEntityProviderMdJJRFUn_cjs.MICROSOFT_EMAIL_ANNOTATION = MICROSOFT_EMAIL_ANNOTATION;
-MicrosoftGraphOrgEntityProviderMdJJRFUn_cjs.MICROSOFT_GRAPH_GROUP_ID_ANNOTATION = MICROSOFT_GRAPH_GROUP_ID_ANNOTATION;
-MicrosoftGraphOrgEntityProviderMdJJRFUn_cjs.MICROSOFT_GRAPH_TENANT_ID_ANNOTATION = MICROSOFT_GRAPH_TENANT_ID_ANNOTATION;
-MicrosoftGraphOrgEntityProviderMdJJRFUn_cjs.MICROSOFT_GRAPH_USER_ID_ANNOTATION = MICROSOFT_GRAPH_USER_ID_ANNOTATION;
-MicrosoftGraphOrgEntityProviderMdJJRFUn_cjs.MicrosoftGraphClient = MicrosoftGraphClient;
-MicrosoftGraphOrgEntityProviderMdJJRFUn_cjs.MicrosoftGraphOrgEntityProvider = MicrosoftGraphOrgEntityProvider$1;
-MicrosoftGraphOrgEntityProviderMdJJRFUn_cjs.defaultGroupTransformer = defaultGroupTransformer;
-MicrosoftGraphOrgEntityProviderMdJJRFUn_cjs.defaultOrganizationTransformer = defaultOrganizationTransformer;
-MicrosoftGraphOrgEntityProviderMdJJRFUn_cjs.defaultUserTransformer = defaultUserTransformer;
-MicrosoftGraphOrgEntityProviderMdJJRFUn_cjs.normalizeEntityName = normalizeEntityName;
-MicrosoftGraphOrgEntityProviderMdJJRFUn_cjs.readMicrosoftGraphConfig = readMicrosoftGraphConfig;
-MicrosoftGraphOrgEntityProviderMdJJRFUn_cjs.readMicrosoftGraphOrg = readMicrosoftGraphOrg;
-MicrosoftGraphOrgEntityProviderMdJJRFUn_cjs.readProviderConfig = readProviderConfig;
-MicrosoftGraphOrgEntityProviderMdJJRFUn_cjs.readProviderConfigs = readProviderConfigs;
+MicrosoftGraphOrgEntityProviderBkGFhBQB_cjs.MICROSOFT_EMAIL_ANNOTATION = MICROSOFT_EMAIL_ANNOTATION;
+MicrosoftGraphOrgEntityProviderBkGFhBQB_cjs.MICROSOFT_GRAPH_GROUP_ID_ANNOTATION = MICROSOFT_GRAPH_GROUP_ID_ANNOTATION;
+MicrosoftGraphOrgEntityProviderBkGFhBQB_cjs.MICROSOFT_GRAPH_TENANT_ID_ANNOTATION = MICROSOFT_GRAPH_TENANT_ID_ANNOTATION;
+MicrosoftGraphOrgEntityProviderBkGFhBQB_cjs.MICROSOFT_GRAPH_USER_ID_ANNOTATION = MICROSOFT_GRAPH_USER_ID_ANNOTATION;
+MicrosoftGraphOrgEntityProviderBkGFhBQB_cjs.MicrosoftGraphClient = MicrosoftGraphClient;
+MicrosoftGraphOrgEntityProviderBkGFhBQB_cjs.MicrosoftGraphOrgEntityProvider = MicrosoftGraphOrgEntityProvider$1;
+MicrosoftGraphOrgEntityProviderBkGFhBQB_cjs.defaultGroupTransformer = defaultGroupTransformer;
+MicrosoftGraphOrgEntityProviderBkGFhBQB_cjs.defaultOrganizationTransformer = defaultOrganizationTransformer;
+MicrosoftGraphOrgEntityProviderBkGFhBQB_cjs.defaultUserTransformer = defaultUserTransformer;
+MicrosoftGraphOrgEntityProviderBkGFhBQB_cjs.normalizeEntityName = normalizeEntityName;
+MicrosoftGraphOrgEntityProviderBkGFhBQB_cjs.readMicrosoftGraphConfig = readMicrosoftGraphConfig;
+MicrosoftGraphOrgEntityProviderBkGFhBQB_cjs.readMicrosoftGraphOrg = readMicrosoftGraphOrg;
+MicrosoftGraphOrgEntityProviderBkGFhBQB_cjs.readProviderConfig = readProviderConfig;
+MicrosoftGraphOrgEntityProviderBkGFhBQB_cjs.readProviderConfigs = readProviderConfigs;
 
 Object.defineProperty(alpha_cjs, '__esModule', { value: true });
 
 var backendPluginApi = require$$0$1;
 var alpha = require$$1$1;
-var MicrosoftGraphOrgEntityProvider = MicrosoftGraphOrgEntityProviderMdJJRFUn_cjs;
+var MicrosoftGraphOrgEntityProvider = MicrosoftGraphOrgEntityProviderBkGFhBQB_cjs;
 
 
 
