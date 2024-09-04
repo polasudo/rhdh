@@ -11,7 +11,7 @@
 
 # see also .gitlab-ci.yml and upstream_repos.yml
 
-set -x
+# set -x
 set -e
 
 SCRIPT=$(readlink -f "$0")
@@ -884,17 +884,10 @@ for d in distgit/containers/rhdh-hub distgit/containers/rhdh-operator distgit/co
     done
     set -e
     ## generate Dockerfile from Dockerfile.in for OSBS
-    echo "Chewing on $d / Dockerfile..." 
-    cat Dockerfile.in | wc -l
     sed -i '/# append Brew metadata here/q' Dockerfile.in
-    cat Dockerfile.in | wc -l
-
     cat "$TMPDIR/${d##*rhdh-}.Dockerfile.foot" >> Dockerfile.in
-    cat Dockerfile.in | wc -l
 
     sed -r -e 's|\$\{CI_X_VERSION\}\.\$\{CI_Y_VERSION\}|'"$DH_VERSION"'|' Dockerfile.in > Dockerfile
-    cat Dockerfile.in | wc -l
-    cat Dockerfile | wc -l
 
     ## generate Containerfile for Konflux
     # use upstream Dockerfiles for hub and operator
@@ -907,13 +900,9 @@ for d in distgit/containers/rhdh-hub distgit/containers/rhdh-operator distgit/co
       cp -f Dockerfile Containerfile
     fi
     if [[ $d != "distgit/containers/rhdh-operator-bundle" ]] && [[ -f "$TMPDIR/${d##*rhdh-}.Dockerfile.foot" ]]; then
-      echo "Munching on $d / Containerfile..." 
-      cat Dockerfile.in | wc -l
       sed -i '/# append Brew metadata here/q' Containerfile
-      cat Dockerfile.in | wc -l
     
       cat "$TMPDIR/${d##*rhdh-}.Dockerfile.foot" >> Containerfile
-      cat Dockerfile.in | wc -l
       sed -r -e 's|\$\{CI_X_VERSION\}\.\$\{CI_Y_VERSION\}|'"$DH_VERSION"'|' -i "Containerfile"
 
     fi
