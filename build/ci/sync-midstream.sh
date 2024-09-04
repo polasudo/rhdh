@@ -974,6 +974,23 @@ echo "$gitdiff" > "/tmp/sync-midstream.sh.diff.txt"
     popd >/dev/null || exit 1
   done
 
+  ########################################################################################################
+  ## copy Dockerfile to Containerfile for use in Konflux
+  ## TODO in future we can drop the need for OSBS-specific files entirely?
+  ########################################################################################################
+
+# [build] Error: building at STEP "COPY $EXTERNAL_SOURCE_NESTED/.yarn ./.yarn": 
+# checking on sources under "/var/workdir/source/distgit/containers/rhdh-hub": 
+# copier: stat: "/upstream1/app/distgit/containers/rhdh-hub/.yarn": no such file or directory
+## Fix: replace REMOTE_SOURCES with actual value, /var/workdir/source/distgit/containers/rhdh-hub or just "." ?
+  for d in rhdh-hub rhdh-operator; do
+    sed -r \
+      -e "s|ENV EXTERNAL_SOURCE=.+|ENV EXTERNAL_SOURCE=\.|g" \
+      -e "s|CONTAINER_SOURCE=.+|CONTAINER_SOURCE=/opt/app-root/src|g" \
+      "distgit/containers/${d}/Dockerfile" > "distgit/containers/${d}/Containerfile"
+      git add "distgit/containers/${d}/Containerfile" || true
+  done
+
   # commit it all
   git commit -s -m "chore: Update:${commitMsg} upstream_sources.yml to $newSHA" . || true
 fi ## if DO_COMMIT
