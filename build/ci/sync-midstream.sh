@@ -272,7 +272,7 @@ for ((i = 0; i < NUM_REPOS; i++)); do # echo $i
       fi
       (( NUM_SKIPS = NUM_SKIPS + 1 ))
       popd >/dev/null || exit 1
-      rm -fr $TMPDIR/repo${i}
+      # rm -fr $TMPDIR/repo${i}
       continue
     fi
 
@@ -310,7 +310,8 @@ for ((i = 0; i < NUM_REPOS; i++)); do # echo $i
   # remove checked out files
   # shellcheck disable=SC2086
   if [[ $(yq --arg i "$i" -r '.repos['$i'].include_root' "${UPSTREAM_FILE}") == "false" ]]; then
-    rm -fr "$TMPDIR/repo${i}"
+    # rm -fr "$TMPDIR/repo${i}"
+    continue
   else
     excludesList="$(yq --arg i "$i" -r '.repos['$i'].exclude_root[]' "${UPSTREAM_FILE}")"
     for ex in $excludesList; do
@@ -322,13 +323,13 @@ for ((i = 0; i < NUM_REPOS; i++)); do # echo $i
     rsync -azq --delete $TMPDIR/repo${i}/* $TMPDIR/repo${i}/.??* "${ROOTPATH}/${destination_folder}/" --exclude=.git ${excludesFlags}
     # set +x
 
-    ##################################### konflux containerfiles #####################################
-    if [[ $destination_folder == *"rhdh-hub"* ]]; then
-      rsync -azq $TMPDIR/repo${i}/docker/Dockerfile "${ROOTPATH}/${destination_folder%/}/Containerfile" --exclude=.git ${excludesFlags}
-    elif [[ $destination_folder == *"rhdh-operator"* ]]; then
-      rsync -azq $TMPDIR/repo${i}/docker/Dockerfile "${ROOTPATH}/${destination_folder%/}/Containerfile" --exclude=.git ${excludesFlags}
-      rsync -azq $TMPDIR/repo${i}/docker/bundle.Dockerfile "${ROOTPATH}/${destination_folder%/}-bundle/Containerfile" --exclude=.git ${excludesFlags}
-    fi
+    # ##################################### konflux containerfiles #####################################
+    # if [[ $destination_folder == *"rhdh-hub"* ]]; then
+    #   rsync -azq $TMPDIR/repo${i}/docker/Dockerfile "${ROOTPATH}/${destination_folder%/}/Containerfile" --exclude=.git ${excludesFlags}
+    # elif [[ $destination_folder == *"rhdh-operator"* ]]; then
+    #   rsync -azq $TMPDIR/repo${i}/docker/Dockerfile "${ROOTPATH}/${destination_folder%/}/Containerfile" --exclude=.git ${excludesFlags}
+    #   rsync -azq $TMPDIR/repo${i}/docker/bundle.Dockerfile "${ROOTPATH}/${destination_folder%/}-bundle/Containerfile" --exclude=.git ${excludesFlags}
+    # fi
 
     ##################################### rhdh-hub #####################################
     # if processing the upstream showcase/hub, also make some changes to the hub folder dowstream
@@ -383,7 +384,7 @@ for ((i = 0; i < NUM_REPOS; i++)); do # echo $i
     ##################################### rhdh-operator-bundle #####################################
 
     popd >/dev/null || exit 1
-    rm -fr "$TMPDIR/repo${i}"
+    # rm -fr "$TMPDIR/repo${i}"
     echo "done."
   fi
 
@@ -999,6 +1000,13 @@ echo "$gitdiff" > "/tmp/sync-midstream.sh.diff.txt"
   #     "distgit/containers/${d}/Dockerfile" > "distgit/containers/${d}/Containerfile"
   #     git add "distgit/containers/${d}/Containerfile" || true
   # done
+  
+  ##################################### konflux containerfiles #####################################
+  cp -fv "$TMPDIR/repo0/docker/Dockerfile" "${ROOTPATH}/distgit/containers/rhdh-hub/Containerfile"
+  cp -fv "$TMPDIR/repo1/docker/Dockerfile" "${ROOTPATH}/distgit/containers/rhdh-operator/Containerfile"
+  cp -fv "$TMPDIR/repo1/docker/bundle.Dockerfile" "${ROOTPATH}/distgit/containers/rhdh-operator-bundle/Containerfile"
+  # TODO do we need to add Brew metadata and remove upstream LABELs?
+
 
   # commit it all
   git commit -s -m "chore: Update:${commitMsg} upstream_sources.yml to $newSHA" . || true
@@ -1031,3 +1039,6 @@ if [[ $GITLAB_PIPELINE == "true" ]]; then
   git push origin "HEAD:$CI_COMMIT_REF_NAME" -o ci.skip ${FORCE} || exit 16
   set +x
 fi
+
+# cleanup
+for ((i = 0; i < NUM_REPOS; i++)); do rm -fr "$TMPDIR/repo${i}"; done
