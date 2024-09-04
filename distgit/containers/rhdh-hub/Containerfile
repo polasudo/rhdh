@@ -32,7 +32,7 @@ RUN dnf install -y -q --allowerasing --nobest nodejs-devel nodejs-libs \
   dnf update -y && dnf clean all
 
 # Downstream sources
-ENV EXTERNAL_SOURCE_NESTED=$REMOTE_SOURCES/upstream1/app/distgit/containers/rhdh-hub
+ENV EXTERNAL_SOURCE_NESTED=.
 # /remote-source/
 ENV CONTAINER_SOURCE=/opt/app-root/src
 
@@ -183,7 +183,7 @@ FROM ubi9/nodejs-20-minimal:1-57 AS runner
 USER 0
 
 # Downstream sources
-ENV EXTERNAL_SOURCE_NESTED=$REMOTE_SOURCES/upstream1/app/distgit/containers/rhdh-hub
+ENV EXTERNAL_SOURCE_NESTED=.
 
 ENV CONTAINER_SOURCE=/opt/app-root/src
 WORKDIR $CONTAINER_SOURCE/
