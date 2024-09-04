@@ -983,7 +983,7 @@ echo "$gitdiff" > "/tmp/sync-midstream.sh.diff.txt"
 # checking on sources under "/var/workdir/source/distgit/containers/rhdh-hub": 
 # copier: stat: "/upstream1/app/distgit/containers/rhdh-hub/.yarn": no such file or directory
 ## Fix: replace REMOTE_SOURCES with actual value, /var/workdir/source/distgit/containers/rhdh-hub or just "." ?
-  for d in rhdh-hub rhdh-operator; do
+  for d in rhdh-hub rhdh-operator rhdh-operator-bundle; do
     sed -r \
       -e "s|ENV EXTERNAL_SOURCE=.+|ENV EXTERNAL_SOURCE=\.|g" \
       -e "s|CONTAINER_SOURCE=.+|CONTAINER_SOURCE=/opt/app-root/src|g" \
