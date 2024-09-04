@@ -322,6 +322,14 @@ for ((i = 0; i < NUM_REPOS; i++)); do # echo $i
     rsync -azq --delete $TMPDIR/repo${i}/* $TMPDIR/repo${i}/.??* "${ROOTPATH}/${destination_folder}/" --exclude=.git ${excludesFlags}
     # set +x
 
+    ##################################### konflux containerfiles #####################################
+    if [[ $destination_folder == *"rhdh-hub"* ]]; then
+      rsync -azq $TMPDIR/repo${i}/docker/Dockerfile "${ROOTPATH}/${destination_folder%/}/Containerfile" --exclude=.git ${excludesFlags}
+    elif [[ $destination_folder == *"rhdh-operator"* ]]; then
+      rsync -azq $TMPDIR/repo${i}/docker/Dockerfile "${ROOTPATH}/${destination_folder%/}/Containerfile" --exclude=.git ${excludesFlags}
+      rsync -azq $TMPDIR/repo${i}/docker/bundle.Dockerfile "${ROOTPATH}/${destination_folder%/}-bundle/Containerfile" --exclude=.git ${excludesFlags}
+    fi
+
     ##################################### rhdh-hub #####################################
     # if processing the upstream showcase/hub, also make some changes to the hub folder dowstream
     if [[ $destination_folder == *"rhdh-hub"* ]]; then
@@ -985,6 +993,7 @@ echo "$gitdiff" > "/tmp/sync-midstream.sh.diff.txt"
 ## Fix: replace REMOTE_SOURCES with actual value, /var/workdir/source/distgit/containers/rhdh-hub or just "." ?
   for d in rhdh-hub rhdh-operator rhdh-operator-bundle; do
     sed -r \
+      -e "s|ENV EXTERNAL_SOURCE_NESTED=.+|ENV EXTERNAL_SOURCE_NESTED=\.|g" \
       -e "s|ENV EXTERNAL_SOURCE=.+|ENV EXTERNAL_SOURCE=\.|g" \
       -e "s|CONTAINER_SOURCE=.+|CONTAINER_SOURCE=/opt/app-root/src|g" \
       "distgit/containers/${d}/Dockerfile" > "distgit/containers/${d}/Containerfile"

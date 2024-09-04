@@ -13,7 +13,7 @@
 # limitations under the License.
 
 #@follow_tag(registry.redhat.io/rhel9/go-toolset:latest)
-FROM rhel9/go-toolset:1.21.11-7 AS builder
+FROM registry.access.redhat.com/ubi9/go-toolset:1.21.11-7@sha256:d128c3d36878251f039606f144ef2608746c3203708b722295e6c571df1d8613 AS builder
 # hadolint ignore=DL3002
 USER 0
 ENV GOPATH=/go/
@@ -22,16 +22,16 @@ RUN dnf -q -y update
 
 # Upstream sources
 # Downstream comment
-# ENV EXTERNAL_SOURCE=.
-# ENV CONTAINER_SOURCE=/opt/app-root/src
-# WORKDIR /workspace
+ENV EXTERNAL_SOURCE=.
+ENV CONTAINER_SOURCE=/opt/app-root/src
+WORKDIR /workspace
 #/ Downstream comment
 
 # Downstream sources
 # Downstream uncomment
-ENV EXTERNAL_SOURCE=.
-ENV CONTAINER_SOURCE=/opt/app-root/src
-WORKDIR $CONTAINER_SOURCE/
+# ENV EXTERNAL_SOURCE=$REMOTE_SOURCES/upstream1/app/distgit/containers/rhdh-operator
+# ENV CONTAINER_SOURCE=$REMOTE_SOURCES_DIR
+# WORKDIR $CONTAINER_SOURCE/
 #/ Downstream uncomment
 
 COPY $EXTERNAL_SOURCE ./
@@ -39,12 +39,12 @@ COPY $EXTERNAL_SOURCE ./
 # cache deps before building and copying source so that we don't need to re-download as much
 # and so that source changes don't invalidate our downloaded layer
 # Downstream comment
-# RUN go mod download
+RUN go mod download
 #/ Downstream comment
 
 # Downstream uncomment
-COPY $REMOTE_SOURCES/upstream1/cachito.env ./
-RUN source ./cachito.env && rm -f ./cachito.env && mkdir -p /workspace
+# COPY $REMOTE_SOURCES/upstream1/cachito.env ./
+# RUN source ./cachito.env && rm -f ./cachito.env && mkdir -p /workspace
 #/ Downstream uncomment
 
 # Build
@@ -54,17 +54,17 @@ RUN export ARCH="$(uname -m)" && if [[ ${ARCH} == "x86_64" ]]; then export ARCH=
 
 # Install openssl for FIPS support
 #@follow_tag(registry.redhat.io/ubi9/ubi-minimal:latest)
-FROM ubi9-minimal:9.4-1194 AS runtime
+FROM registry.access.redhat.com/ubi9-minimal:9.4-1194@sha256:104cf11d890aeb7dd5728b7d7732e175a0e4018f1bb00d2faebcc8f6bf29bd52 AS runtime
 RUN microdnf update --setopt=install_weak_deps=0 -y && microdnf install -y openssl; microdnf clean -y all
 
 # Upstream sources
 # Downstream comment
-# ENV CONTAINER_SOURCE=/opt/app-root/src
+ENV CONTAINER_SOURCE=/workspace
 #/ Downstream comment
 
 # Downstream sources
 # Downstream uncomment
-ENV CONTAINER_SOURCE=/opt/app-root/src
+# ENV CONTAINER_SOURCE=$REMOTE_SOURCES_DIR
 #/ Downstream uncomment
 
 ENV HOME=/ \
@@ -82,23 +82,3 @@ WORKDIR ${HOME}
 
 ENTRYPOINT ["/manager"]
 
-# append Brew metadata here
-ENV SUMMARY="Red Hat Developer Hub operator" \
-    DESCRIPTION="Red Hat Developer Hub operator" \
-    UPSTREAM_REPO="https://github.com/redhat-developer/rhdh-operator/tree/main @ bb864a35" \
-    MIDSTREAM_REPO="https://gitlab.cee.redhat.com/rhidp/rhdh/-/commits/rhdh-1-rhel-9" \
-    PRODNAME="rhdh" \
-    COMPNAME="operator"
-
-LABEL summary="$SUMMARY" \
-      description="$DESCRIPTION" \
-      io.k8s.description="$DESCRIPTION" \
-      io.k8s.display-name="$DESCRIPTION" \
-      io.openshift.tags="$PRODNAME,$COMPNAME" \
-      com.redhat.component="$PRODNAME-$COMPNAME-container" \
-      name="$PRODNAME/$PRODNAME-rhel9-$COMPNAME" \
-      version="1.4" \
-      license="ASLv2" \
-      maintainer="RHDH Team <rhdh-bot@redhat.com>" \
-      io.openshift.expose-services="" \
-      usage=""
