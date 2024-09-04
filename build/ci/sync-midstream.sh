@@ -68,7 +68,7 @@ Options:
 
 Examples:
 
-    $0 --nobuild --nopush -b ${DWNSTM_BRANCH} -f ${UPSTREAM_FILE##*/}
+    $0 --nobuild --nopush -b ${DWNSTM_BRANCH} --force -f ${UPSTREAM_FILE##*/}
     $0 -y
 "
   exit 0
@@ -513,7 +513,9 @@ Using midstream_repo:
 
 # append Brew metadata here
 sed -i '/# append Brew metadata here/q' distgit/containers/rhdh-hub/Dockerfile.in
-cat <<EOT >>distgit/containers/rhdh-hub/Dockerfile.in
+sed -i '/# append Brew metadata here/q' distgit/containers/rhdh-hub/Dockerfile
+sed -i '/# append Brew metadata here/q' distgit/containers/rhdh-hub/Containerfile
+cat <<EOT >$TMPDIR/hub.Dockerfile.foot
 ENV SUMMARY="Red Hat Developer Hub container" \\
     DESCRIPTION="Red Hat Developer Hub container" \\
     UPSTREAM_REPO="${upstream_repo_hub}" \\
@@ -534,7 +536,8 @@ LABEL summary="\$SUMMARY" \\
       io.openshift.expose-services="" \\
       usage=""
 EOT
-echo "[INFO] Added metadata to distgit/containers/rhdh-hub/Dockerfile.in"
+echo "[INFO] Added metadata to $TMPDIR/hub.Dockerfile.foot"
+
 mkdir -p distgit/containers/rhdh-hub/.git/
 cat <<EOT >distgit/containers/rhdh-hub/.git/config
 [core]
@@ -549,7 +552,9 @@ echo "[INFO] Generated distgit/containers/rhdh-hub/.git/config for use with Husk
 
 # append Brew metadata here
 sed -i '/# append Brew metadata here/q' distgit/containers/rhdh-operator/Dockerfile.in
-cat <<EOT >>distgit/containers/rhdh-operator/Dockerfile.in
+sed -i '/# append Brew metadata here/q' distgit/containers/rhdh-operator/Dockerfile
+sed -i '/# append Brew metadata here/q' distgit/containers/rhdh-operator/Containerfile
+cat <<EOT >$TMPDIR/operator.Dockerfile.foot
 ENV SUMMARY="Red Hat Developer Hub operator" \\
     DESCRIPTION="Red Hat Developer Hub operator" \\
     UPSTREAM_REPO="${upstream_repo_op}" \\
@@ -570,11 +575,13 @@ LABEL summary="\$SUMMARY" \\
       io.openshift.expose-services="" \\
       usage=""
 EOT
-echo "[INFO] Added metadata to distgit/containers/rhdh-operator/Dockerfile.in"
+echo "[INFO] Added metadata to $TMPDIR/operator.Dockerfile.foot"
 
-# append Brew metadata here
+# append Brew metadata here - DO NOT USE a .foot file!!
 sed -i '/# append Brew metadata here/q' distgit/containers/rhdh-operator-bundle/Dockerfile.in
-cat <<EOT >>distgit/containers/rhdh-operator-bundle/Dockerfile.in
+sed -i '/# append Brew metadata here/q' distgit/containers/rhdh-operator-bundle/Dockerfile
+sed -i '/# append Brew metadata here/q' distgit/containers/rhdh-operator-bundle/Containerfile
+cat <<EOT >$TMPDIR/operator-bundle.Dockerfile.foot
 ENV SUMMARY="Red Hat Developer Hub operator bundle" \\
     DESCRIPTION="Red Hat Developer Hub operator bundle" \\
     UPSTREAM_REPO="${upstream_repo_op}" \\
@@ -604,7 +611,7 @@ LABEL operators.operatorframework.io.bundle.mediatype.v1=registry+v1 \\
       io.openshift.expose-services="" \\
       usage=""
 EOT
-echo "[INFO] Added metadata to distgit/containers/rhdh-operator-bundle/Dockerfile.in"
+echo "[INFO] Added metadata to $TMPDIR/operator-bundle.Dockerfile.foot"
 
 # build the plugins
 if [[ $DO_BUILD -eq 1 ]]; then
@@ -876,8 +883,40 @@ for d in distgit/containers/rhdh-hub distgit/containers/rhdh-operator distgit/co
         find . -name "${ignored}" -exec rm -fr {} \; 2>/dev/null
     done
     set -e
-    # generate Dockerfile from Dockerfile.in
+    ## generate Dockerfile from Dockerfile.in for OSBS
+    echo "Chewing on $d / Dockerfile..." 
+    cat Dockerfile.in | wc -l
+    sed -i '/# append Brew metadata here/q' Dockerfile.in
+    cat Dockerfile.in | wc -l
+
+    cat "$TMPDIR/${d##*rhdh-}.Dockerfile.foot" >> Dockerfile.in
+    cat Dockerfile.in | wc -l
+
     sed -r -e 's|\$\{CI_X_VERSION\}\.\$\{CI_Y_VERSION\}|'"$DH_VERSION"'|' Dockerfile.in > Dockerfile
+    cat Dockerfile.in | wc -l
+    cat Dockerfile | wc -l
+
+    ## generate Containerfile for Konflux
+    # use upstream Dockerfiles for hub and operator
+    if [[ $d == "distgit/containers/rhdh-hub" ]]; then
+      cp -f "$TMPDIR/repo0/docker/Dockerfile" Containerfile
+    elif [[ $d == "distgit/containers/rhdh-operator" ]]; then
+      cp -f "$TMPDIR/repo1/docker/Dockerfile" Containerfile
+    elif [[ $d == "distgit/containers/rhdh-operator-bundle" ]]; then
+      # for bundle use the downstream OSBS Dockerfile with the correct LABEL and ENV  values
+      cp -f Dockerfile Containerfile
+    fi
+    if [[ $d != "distgit/containers/rhdh-operator-bundle" ]] && [[ -f "$TMPDIR/${d##*rhdh-}.Dockerfile.foot" ]]; then
+      echo "Munching on $d / Containerfile..." 
+      cat Dockerfile.in | wc -l
+      sed -i '/# append Brew metadata here/q' Containerfile
+      cat Dockerfile.in | wc -l
+    
+      cat "$TMPDIR/${d##*rhdh-}.Dockerfile.foot" >> Containerfile
+      cat Dockerfile.in | wc -l
+      sed -r -e 's|\$\{CI_X_VERSION\}\.\$\{CI_Y_VERSION\}|'"$DH_VERSION"'|' -i "Containerfile"
+
+    fi
 
     ##################################### rhdh-operator-bundle #####################################
     # generate annotations from upstream file in .rhdh/bundle/metadata/annotations.yaml
@@ -983,32 +1022,6 @@ echo "$gitdiff" > "/tmp/sync-midstream.sh.diff.txt"
     popd >/dev/null || exit 1
   done
 
-  ########################################################################################################
-  ## copy Dockerfile to Containerfile for use in Konflux
-  ## TODO in future we can drop the need for OSBS-specific files entirely?
-  ########################################################################################################
-
-# [build] Error: building at STEP "COPY $EXTERNAL_SOURCE_NESTED/.yarn ./.yarn": 
-# checking on sources under "/var/workdir/source/distgit/containers/rhdh-hub": 
-# copier: stat: "/upstream1/app/distgit/containers/rhdh-hub/.yarn": no such file or directory
-## Fix: replace REMOTE_SOURCES with actual value, /var/workdir/source/distgit/containers/rhdh-hub or just "." ?
-  # for d in rhdh-hub rhdh-operator rhdh-operator-bundle; do
-  #   sed -r \
-  #     -e "s|ENV EXTERNAL_SOURCE_NESTED=.+|ENV EXTERNAL_SOURCE_NESTED=\.|g" \
-  #     -e "s|ENV EXTERNAL_SOURCE=.+|ENV EXTERNAL_SOURCE=\.|g" \
-  #     -e "s|CONTAINER_SOURCE=.+|CONTAINER_SOURCE=/opt/app-root/src|g" \
-  #     "distgit/containers/${d}/Dockerfile" > "distgit/containers/${d}/Containerfile"
-  #     git add "distgit/containers/${d}/Containerfile" || true
-  # done
-  
-  ##################################### konflux containerfiles #####################################
-  cp -fv "$TMPDIR/repo0/docker/Dockerfile" "${ROOTPATH}/distgit/containers/rhdh-hub/Containerfile"
-  cp -fv "$TMPDIR/repo1/docker/Dockerfile" "${ROOTPATH}/distgit/containers/rhdh-operator/Containerfile"
-  cp -fv "$TMPDIR/repo1/docker/bundle.Dockerfile" "${ROOTPATH}/distgit/containers/rhdh-operator-bundle/Containerfile"
-  # TODO do we need to add Brew metadata and remove upstream LABELs?
-
-
-  # commit it all
   git commit -s -m "chore: Update:${commitMsg} upstream_sources.yml to $newSHA" . || true
 fi ## if DO_COMMIT
 

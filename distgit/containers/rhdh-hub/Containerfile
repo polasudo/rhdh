@@ -170,3 +170,22 @@ ENV GLOBAL_AGENT_ENVIRONMENT_VARIABLE_NAMESPACE=''
 ENTRYPOINT ["node", "packages/backend", "--no-node-snapshot", "--config", "app-config.yaml", "--config", "app-config.example.yaml", "--config", "app-config.example.production.yaml"]
 
 # append Brew metadata here
+ENV SUMMARY="Red Hat Developer Hub container" \
+    DESCRIPTION="Red Hat Developer Hub container" \
+    UPSTREAM_REPO="https://github.com/janus-idp/backstage-showcase/tree/main @ 0622f70f" \
+    MIDSTREAM_REPO="https://gitlab.cee.redhat.com/rhidp/rhdh/-/commits/rhdh-1-rhel-9" \
+    PRODNAME="rhdh" \
+    COMPNAME="hub"
+
+LABEL summary="$SUMMARY" \
+      description="$DESCRIPTION" \
+      io.k8s.description="$DESCRIPTION" \
+      io.k8s.display-name="$DESCRIPTION" \
+      io.openshift.tags="$PRODNAME,$COMPNAME" \
+      com.redhat.component="$PRODNAME-$COMPNAME-container" \
+      name="$PRODNAME/$PRODNAME-$COMPNAME-rhel9" \
+      version="1.4" \
+      license="ASLv2" \
+      maintainer="RHDH Team <rhdh-bot@redhat.com>" \
+      io.openshift.expose-services="" \
+      usage=""
