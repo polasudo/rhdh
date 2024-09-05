@@ -10,7 +10,7 @@ remote_sources:
   - name: upstream1
     remote_source:
       repo: https://gitlab.cee.redhat.com/rhidp/rhdh.git
-      ref: a9e4f0c81c96f3b69f70d98d7ea7c1771bd37d4e
+      ref: e167ef0f419857029c8206b533f01b45d403c879
       pkg_managers:
         - yarn
       packages:
@@ -47,6 +47,7 @@ remote_sources:
           - path: distgit/containers/rhdh-hub/dynamic-plugins/wrappers/backstage-community-plugin-redhat-argocd/dist-dynamic
           - path: distgit/containers/rhdh-hub/dynamic-plugins/wrappers/backstage-community-plugin-redhat-argocd-common/dist-dynamic
           - path: distgit/containers/rhdh-hub/dynamic-plugins/wrappers/backstage-community-plugin-catalog-backend-module-scaffolder-relation-processor/dist-dynamic
+          - path: distgit/containers/rhdh-hub/dynamic-plugins/wrappers/backstage-community-plugin-catalog-backend-module-pingidentity/dist-dynamic
           - path: distgit/containers/rhdh-hub/dynamic-plugins/wrappers/backstage-community-plugin-3scale-backend/dist-dynamic
           - path: distgit/containers/rhdh-hub/dynamic-plugins-imports-peer-dependencies
           - path: distgit/containers/rhdh-hub/dynamic-plugins-imports-peer-dependencies/janus-idp-backstage-scaffolder-backend-module-sonarqube/dist-dynamic
@@ -62,7 +63,7 @@ remote_sources:
   - name: upstream2
     remote_source:
       repo: https://gitlab.cee.redhat.com/rhidp/rhdh.git
-      ref: a9e4f0c81c96f3b69f70d98d7ea7c1771bd37d4e
+      ref: e167ef0f419857029c8206b533f01b45d403c879
       pkg_managers:
         - pip
       packages:
