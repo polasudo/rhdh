@@ -23,7 +23,9 @@
   },
   "scripts": {},
   "dependencies": {
-    "@janus-idp/cli": "1.13.1"
+    "@janus-idp/cli": "^1.13.1",
+    "@smithy/util-utf8": "~2",
+    "@aws-sdk/util-utf8-browser": "^3"
   },
   "devDependencies": {},
   "files": [
@@ -55,7 +57,5 @@
       "@smithy/util-utf8": "^2.0.0"
     }
   },
-  "resolutions": {
-    "@aws-sdk/util-utf8-browser": "npm:@smithy/util-utf8@~2"
-  }
+  "resolutions": {}
 }
