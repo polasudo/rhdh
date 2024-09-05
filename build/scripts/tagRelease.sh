@@ -711,7 +711,8 @@ if [[ $SKIP_GH -eq 0 ]]; then
 		# TODO VERIFY THIS WORKS with 1.3 branch creation
 		updatePluginVersions # requires manual commits to janus plugins repo / missing gpg key?
 		updateOperatorVersions "$SOURCE_BRANCH" "$newver" "$newverOp"
-		updateDocVersions "$SOURCE_BRANCH" "$newver"
+		## CCS has requested that we not bump the version in main branch, as they prefer manual steps to automation.
+		## updateDocVersions "$SOURCE_BRANCH" "$newver"
 		updateShowcaseVersions "$SOURCE_BRANCH" "$newver"
 		updateChartVersions "$SOURCE_BRANCH" "$newver"
 	fi
