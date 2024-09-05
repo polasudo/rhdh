@@ -958,6 +958,14 @@ echo "$gitdiff" > "/tmp/sync-midstream.sh.diff.txt"
     ./build/ci/cancel-pipeline.sh
   fi
 
+  ## include license files from hub and operator in /licenses folder to make Konflux happy
+  for d in rhdh-hub rhdh-operator; do
+    if [[ -f distgit/containers/${d}/LICENSE ]]; then
+      cp -f distgit/containers/${d}/LICENSE licenses/${d}-LICENSE
+      git add licenses/${d}-LICENSE 1>/dev/null 2>&1 || true
+    fi
+  done
+
   #################################################################
   # first commit: update any changed files, plus sync/upstream_SHA*
   #################################################################
