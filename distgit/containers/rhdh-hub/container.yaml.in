@@ -22,6 +22,7 @@ remote_sources:
           - path: distgit/containers/rhdh-hub/dynamic-plugins/wrappers/roadiehq-scaffolder-backend-argocd-dynamic/dist-dynamic
           - path: distgit/containers/rhdh-hub/dynamic-plugins/wrappers/roadiehq-backstage-plugin-argo-cd-backend-dynamic/dist-dynamic
           - path: distgit/containers/rhdh-hub/dynamic-plugins/wrappers/parfuemerie-douglas-scaffolder-backend-module-azure-repositories/dist-dynamic
+          - path: distgit/containers/rhdh-hub/dynamic-plugins/wrappers/pagerduty-backstage-plugin-backend-dynamic/dist-dynamic
           - path: distgit/containers/rhdh-hub/dynamic-plugins/wrappers/immobiliarelabs-backstage-plugin-gitlab-backend-dynamic/dist-dynamic
           - path: distgit/containers/rhdh-hub/dynamic-plugins/wrappers/backstage-plugin-techdocs-backend-dynamic/dist-dynamic
           - path: distgit/containers/rhdh-hub/dynamic-plugins/wrappers/backstage-plugin-sonarqube-backend-dynamic/dist-dynamic
