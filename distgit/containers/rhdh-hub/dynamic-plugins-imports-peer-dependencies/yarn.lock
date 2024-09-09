@@ -2972,10 +2972,10 @@
     "@backstage/errors" "^1.2.4"
     "@backstage/plugin-permission-common" "^0.8.0"
 
-"@janus-idp/backstage-plugin-rbac@1.29.0":
-  version "1.29.0"
-  resolved "https://registry.npmjs.org/@janus-idp/backstage-plugin-rbac/-/backstage-plugin-rbac-1.29.0.tgz#29995d69b442e6cb220a5910faee904162414ed0"
-  integrity sha512-iuTYXotCBe8mJE8rgXOdmOdn8NXg/4sr8fijOSvo++QXfjmIM6x8Glrlci64lKEsD8csTNGLxHqxxDG/FVZy8A==
+"@janus-idp/backstage-plugin-rbac@1.29.2":
+  version "1.29.2"
+  resolved "https://registry.npmjs.org/@janus-idp/backstage-plugin-rbac/-/backstage-plugin-rbac-1.29.2.tgz#b52ce9ff96dc44b2673e405f7d6d65c118f805c0"
+  integrity sha512-SG5GQGFnfhgpMg/X+ckRI6ejQAACdFQYTjeMMbnVuZvGbarvL4/9mSmPRggwYFFsvMQUF4XTfDmmeFKyUyVbYw==
   dependencies:
     "@backstage/catalog-model" "^1.5.0"
     "@backstage/core-components" "^0.14.9"
@@ -2986,7 +2986,7 @@
     "@backstage/plugin-permission-react" "^0.4.24"
     "@backstage/theme" "^0.5.6"
     "@janus-idp/backstage-plugin-rbac-common" "1.9.0"
-    "@janus-idp/shared-react" "2.10.0"
+    "@janus-idp/shared-react" "2.10.1"
     "@material-ui/core" "^4.9.13"
     "@material-ui/icons" "^4.11.3"
     "@material-ui/lab" "^4.0.0-alpha.45"
@@ -3129,6 +3129,23 @@
   version "2.10.0"
   resolved "https://registry.npmjs.org/@janus-idp/shared-react/-/shared-react-2.10.0.tgz#17818a94fcf484b76e53f1a4f3773df4a4eb46d2"
   integrity sha512-rjhpg8xmK+yQWytu/5MmhjjpB+7LMfjlGOiy1yZLphyqKNlJgD+ATGpId85rqNwwDa8U/KG+EzFz+OTd+YlQdA==
+  dependencies:
+    "@backstage/catalog-model" "1.5.0"
+    "@backstage/core-plugin-api" "^1.9.3"
+    "@backstage/plugin-kubernetes-common" "0.8.0"
+    "@backstage/plugin-kubernetes-react" "0.4.0"
+    "@kubernetes/client-node" "^0.20.0"
+    classnames "^2.3.2"
+    date-fns "^2.30.0"
+    file-saver "^2.0.5"
+    lodash "^4.17.21"
+    mathjs "^11.11.2"
+    react-use "^17.5.0"
+
+"@janus-idp/shared-react@2.10.1":
+  version "2.10.1"
+  resolved "https://registry.npmjs.org/@janus-idp/shared-react/-/shared-react-2.10.1.tgz#3eb5687595fef7201f378a03c27bd0ab473eb6c1"
+  integrity sha512-SsNUv+bBoI8lDxrXpiWtLSCgW1Lh4jj5xgU+R8HMysB3mXYdvBcENrjNYgmgYzKpDNIIVnuhJCyPM2foRC2h3w==
   dependencies:
     "@backstage/catalog-model" "1.5.0"
     "@backstage/core-plugin-api" "^1.9.3"

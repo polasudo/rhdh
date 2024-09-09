@@ -36,7 +36,6 @@ remote_sources:
           - path: distgit/containers/rhdh-hub/dynamic-plugins/wrappers/backstage-plugin-jenkins-backend-dynamic/dist-dynamic
           - path: distgit/containers/rhdh-hub/dynamic-plugins/wrappers/backstage-plugin-catalog-backend-module-msgraph-dynamic/dist-dynamic
           - path: distgit/containers/rhdh-hub/dynamic-plugins/wrappers/backstage-plugin-catalog-backend-module-logs/dist-dynamic
-          - path: distgit/containers/rhdh-hub/dynamic-plugins/wrappers/backstage-plugin-catalog-backend-module-ldap-dynamic
           - path: distgit/containers/rhdh-hub/dynamic-plugins/wrappers/backstage-plugin-catalog-backend-module-ldap-dynamic/dist-dynamic
           - path: distgit/containers/rhdh-hub/dynamic-plugins/wrappers/backstage-plugin-catalog-backend-module-gitlab-org-dynamic/dist-dynamic
           - path: distgit/containers/rhdh-hub/dynamic-plugins/wrappers/backstage-plugin-catalog-backend-module-gitlab-dynamic/dist-dynamic
