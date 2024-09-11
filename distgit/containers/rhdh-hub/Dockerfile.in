@@ -225,8 +225,7 @@ COPY $EXTERNAL_SOURCE_NESTED/patches/ ./patches/
 # Copy script to gather dynamic plugins; copy embedded dynamic plugins to root folder; fix permissions
 COPY docker/install-dynamic-plugins.py docker/install-dynamic-plugins.sh ./
 RUN chmod -R a+r ./dynamic-plugins/ ./install-dynamic-plugins.py; \
-  chmod -R a+rx ./install-dynamic-plugins.sh; \
-  rm -fr dynamic-plugins-root && cp -R dynamic-plugins/dist/ dynamic-plugins-root
+  chmod -R a+rx ./install-dynamic-plugins.sh;
 
 # Downstream only - fix for https://issues.redhat.com/browse/RHIDP-728
 RUN mkdir /opt/app-root/src/.npm
@@ -266,7 +265,7 @@ ENTRYPOINT ["node", "packages/backend", "--no-node-snapshot", "--config", "app-c
 # append Brew metadata here
 ENV SUMMARY="Red Hat Developer Hub container" \
     DESCRIPTION="Red Hat Developer Hub container" \
-    UPSTREAM_REPO="https://github.com/janus-idp/backstage-showcase/tree/main @ 45f52b81" \
+    UPSTREAM_REPO="https://github.com/janus-idp/backstage-showcase/tree/main @ 8ffc7e86" \
     MIDSTREAM_REPO="https://gitlab.cee.redhat.com/rhidp/rhdh/-/commits/rhdh-1-rhel-9" \
     PRODNAME="rhdh" \
     COMPNAME="hub"
