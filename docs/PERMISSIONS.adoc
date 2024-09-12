@@ -62,9 +62,11 @@ To be able to stage npm files to link:https://spmm.pages.redhat.com/util-ansible
 Example: https://issues.redhat.com/browse/SPMM-13576
 
 
-## Secret files in this repo
+## Secret / secure files in this repo
 
-This repo contains a folder called secrets/ which is encrypted with git-crypt. Send your GPG key to an authorized user if you need access to this folder. Authorized users can then add you to the permissions list.
+This repo contains a folder called secrets/ which is encrypted with git-crypt. 
+
+Secrets have been removed and are now located in link:https://vault.bitwarden.com/[BitWarden] under the link:https://rover.redhat.com/groups/group/rhdh-prod[Rhdh Prod] rover group.
 
 Current authorized users include (but are not limited to):
 
@@ -72,20 +74,10 @@ Current authorized users include (but are not limited to):
 * Tomas Kral <tkral@redhat.com>
 * Corey Daley <cdaley@redhat.com>
 
-See also:
-* https://github.com/AGWA/git-crypt#using-git-crypt
-* https://buddy.works/guides/git-crypt#defining-files-to-encrypt
+If you need to add a new authorized user, ask one of the existing authorized users in the link:https://rover.redhat.com/groups/group/rhdh-prod[Rhdh Prod] rover group to add you to that group.
 
-To add a new user, first import their key:
-
-    $ gpg --import shadowman.gpg
-
-Then get their USER_ID, which could be any unique identifier like email address:
-
-    $ gpg --list-key corey
-
-    uid           [ unknown] Corey Daley <cdaley@redhat.com>
-
-Then install their key to the repo, using the `--trusted` flag:
-
-    $ git-crypt add-gpg-user --trusted cdaley@redhat.com
+[IMPORTANT]
+====
+When changing any secret values in BitWarden that are used in Gitlab pipelines in this repo, you MUST upload a NEW FILE as secure file
+to https://gitlab.cee.redhat.com/rhidp/rhdh/-/settings/ci_cd -> Secure Files
+====
