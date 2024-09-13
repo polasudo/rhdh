@@ -1,0 +1,4 @@
+Konflux expects to see pipelines for each application (y-stream) in its own branch.
+
+* rhdh-1-rhel-9 is reserved for 1.y builds (CI only).
+* rhdh-1.y-rhel-9 branches can be released as GA builds.
