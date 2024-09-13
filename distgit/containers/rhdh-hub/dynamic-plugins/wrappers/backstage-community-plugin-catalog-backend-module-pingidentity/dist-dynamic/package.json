@@ -1,6 +1,6 @@
 {
   "name": "backstage-community-plugin-catalog-backend-module-pingidentity-dynamic",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "main": "./dist/index.cjs.js",
   "types": "src/index.ts",
   "license": "Apache-2.0",
@@ -23,7 +23,6 @@
   },
   "scripts": {},
   "dependencies": {
-    "@janus-idp/cli": "^1.13.1",
     "@smithy/util-utf8": "~2",
     "@aws-sdk/util-utf8-browser": "^3"
   },
