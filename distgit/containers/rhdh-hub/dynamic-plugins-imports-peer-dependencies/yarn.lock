@@ -2758,10 +2758,10 @@
     prop-types "^15.8.1"
     react-use "^17.4.0"
 
-"@janus-idp/backstage-plugin-bulk-import-backend@1.4.1":
-  version "1.4.1"
-  resolved "https://registry.npmjs.org/@janus-idp/backstage-plugin-bulk-import-backend/-/backstage-plugin-bulk-import-backend-1.4.1.tgz#08122991f185e9cc59eed994c76e61bcad847399"
-  integrity sha512-DeQFKjyUzqv8HXyfIo08pSgwaztBr9J/h6flqeQZXCI2WUeVtb5uNBzXBHuVHlvEA2ROr3YbNNVjJ37Wgge5kA==
+"@janus-idp/backstage-plugin-bulk-import-backend@1.5.1":
+  version "1.5.1"
+  resolved "https://registry.npmjs.org/@janus-idp/backstage-plugin-bulk-import-backend/-/backstage-plugin-bulk-import-backend-1.5.1.tgz#b865616dc881cb83db223846100320577fbe0bf7"
+  integrity sha512-pk5c3Y5bDTujng1/S+yPLsFh7Riqir1nkiTPzDwP384OPMs1VSzK11maYoq25JDCTRPoNk/DdmKEyKGhNAQ5jg==
   dependencies:
     "@backstage/backend-app-api" "^0.8.0"
     "@backstage/backend-common" "^0.23.3"
@@ -2799,10 +2799,10 @@
   dependencies:
     "@backstage/plugin-permission-common" "^0.8.0"
 
-"@janus-idp/backstage-plugin-bulk-import@1.4.6":
-  version "1.4.6"
-  resolved "https://registry.npmjs.org/@janus-idp/backstage-plugin-bulk-import/-/backstage-plugin-bulk-import-1.4.6.tgz#486bfbb36c0428c6a46b91a79fd2c3026a5c5f65"
-  integrity sha512-zSEbhfDwFDFB9VKEFPQShaEH0dCg5tcY9N0JZlWeOWAq1jYIgvfsE7MHLWQOdslD9cCGCu4cW/PFM98PSoXJ+A==
+"@janus-idp/backstage-plugin-bulk-import@1.4.7":
+  version "1.4.7"
+  resolved "https://registry.npmjs.org/@janus-idp/backstage-plugin-bulk-import/-/backstage-plugin-bulk-import-1.4.7.tgz#30781498ef8ced02de13c70dc2f2b9d5deb241d7"
+  integrity sha512-IAjuZcsy4ihm34rAOZQDn08Jw8jj3lr0YPRvi1oN+ZryMo54Zjm0mheNyL2IknqTvgEJrsDdCT83TUwCckabKA==
   dependencies:
     "@backstage/catalog-model" "^1.5.0"
     "@backstage/core-components" "^0.14.9"
