@@ -20,7 +20,8 @@
 
 # Stage 1 - Build nodejs skeleton
 #@follow_tag(registry.access.redhat.com/ubi9/nodejs-20:1)
-FROM ubi9/nodejs-20:1-54 AS build
+# https://registry.access.redhat.com/ubi9/nodejs-20
+FROM ubi9/nodejs-20:1-59.1725906894 AS build
 # hadolint ignore=DL3002
 USER 0
 
@@ -179,7 +180,8 @@ RUN "$YARN" install --frozen-lockfile --production --network-timeout 600000
 
 # Stage 5 - Build the runner image
 #@follow_tag(registry.access.redhat.com/ubi9/nodejs-20-minimal:1)
-FROM ubi9/nodejs-20-minimal:1-57 AS runner
+# https://registry.access.redhat.com/ubi9/nodejs-20-minimal
+FROM ubi9/nodejs-20-minimal:1-63.1725851021 AS runner
 USER 0
 
 # Downstream sources
@@ -265,7 +267,7 @@ ENTRYPOINT ["node", "packages/backend", "--no-node-snapshot", "--config", "app-c
 # append Brew metadata here
 ENV SUMMARY="Red Hat Developer Hub container" \
     DESCRIPTION="Red Hat Developer Hub container" \
-    UPSTREAM_REPO="https://github.com/janus-idp/backstage-showcase/tree/main @ ca614cd9" \
+    UPSTREAM_REPO="https://github.com/janus-idp/backstage-showcase/tree/main @ 01cc4f29" \
     MIDSTREAM_REPO="https://gitlab.cee.redhat.com/rhidp/rhdh/-/commits/rhdh-1-rhel-9" \
     PRODNAME="rhdh" \
     COMPNAME="hub"

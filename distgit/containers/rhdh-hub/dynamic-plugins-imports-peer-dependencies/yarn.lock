@@ -2758,10 +2758,10 @@
     prop-types "^15.8.1"
     react-use "^17.4.0"
 
-"@janus-idp/backstage-plugin-bulk-import-backend@1.5.1":
-  version "1.5.1"
-  resolved "https://registry.npmjs.org/@janus-idp/backstage-plugin-bulk-import-backend/-/backstage-plugin-bulk-import-backend-1.5.1.tgz#b865616dc881cb83db223846100320577fbe0bf7"
-  integrity sha512-pk5c3Y5bDTujng1/S+yPLsFh7Riqir1nkiTPzDwP384OPMs1VSzK11maYoq25JDCTRPoNk/DdmKEyKGhNAQ5jg==
+"@janus-idp/backstage-plugin-bulk-import-backend@1.5.2":
+  version "1.5.2"
+  resolved "https://registry.npmjs.org/@janus-idp/backstage-plugin-bulk-import-backend/-/backstage-plugin-bulk-import-backend-1.5.2.tgz#f6677d92bb9c8a942b49949404b3b0aa520d5518"
+  integrity sha512-cilWLNdyl4nxo9ciIkgKODt6rQ+TnKu/TfVu0Wh3kvnpyBzOBe25G2Ux8e79qypkA51rBbODETMgzc8hsxF1GQ==
   dependencies:
     "@backstage/backend-app-api" "^0.8.0"
     "@backstage/backend-common" "^0.23.3"
