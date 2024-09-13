@@ -22,7 +22,9 @@ spec:
   - name: revision
     value: '{{revision}}'
   - name: output-image
-    value: quay.io/redhat-user-workloads/rhdh-tenant/rhdh/rhdh-hub:{{revision}}
+    value: quay.io/rhdh/rhdh-hub-rhel9:{{revision}}
+  - name: image-expires-after
+    value: 30d
   - name: dockerfile
     value: Containerfile
   - name: path-context
