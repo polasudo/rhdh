@@ -2872,10 +2872,10 @@
     "@material-ui/lab" "^4.0.0-alpha.45"
     react-use "^17.4.0"
 
-"@janus-idp/backstage-plugin-ocm-backend@4.4.0":
-  version "4.4.0"
-  resolved "https://registry.npmjs.org/@janus-idp/backstage-plugin-ocm-backend/-/backstage-plugin-ocm-backend-4.4.0.tgz#2c670df5783fe4b7ed7a566e3ace06b3862a395f"
-  integrity sha512-FmAvIUj2XgzgYeU9E5LwWeovZZ2qMAjyEh8lJpLchqo2/1HVy+7SjT+6M2jIQxX+1/fRgdhbTn3ziHZq4EObeg==
+"@janus-idp/backstage-plugin-ocm-backend@4.4.1":
+  version "4.4.1"
+  resolved "https://registry.npmjs.org/@janus-idp/backstage-plugin-ocm-backend/-/backstage-plugin-ocm-backend-4.4.1.tgz#ed4c8c3154242fd32ba1e8b1b3e46e33e61fe17d"
+  integrity sha512-DHRCE4eyF3rNiyzGT/ChXLn8GQzKoU/c2FGKlswyDkq9dtXJI/59niK1krrYjuuD9jcxhghq+KF0qb4bBsNfKw==
   dependencies:
     "@backstage/backend-common" "^0.23.3"
     "@backstage/backend-dynamic-feature-service" "^0.2.15"
