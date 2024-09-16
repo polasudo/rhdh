@@ -2799,10 +2799,10 @@
   dependencies:
     "@backstage/plugin-permission-common" "^0.8.0"
 
-"@janus-idp/backstage-plugin-bulk-import@1.4.7":
-  version "1.4.7"
-  resolved "https://registry.npmjs.org/@janus-idp/backstage-plugin-bulk-import/-/backstage-plugin-bulk-import-1.4.7.tgz#30781498ef8ced02de13c70dc2f2b9d5deb241d7"
-  integrity sha512-IAjuZcsy4ihm34rAOZQDn08Jw8jj3lr0YPRvi1oN+ZryMo54Zjm0mheNyL2IknqTvgEJrsDdCT83TUwCckabKA==
+"@janus-idp/backstage-plugin-bulk-import@1.4.9":
+  version "1.4.9"
+  resolved "https://registry.npmjs.org/@janus-idp/backstage-plugin-bulk-import/-/backstage-plugin-bulk-import-1.4.9.tgz#3b402e4afdeb36f487f23746b4fffc128b00b8e1"
+  integrity sha512-fjPekz0wrUrWK9py5Ng56sdY9P3pjmHdgyv9oxNafYrFjts0arNpN4SPz8PLBIIpMoL9VQEpxI8ELJCjcBY68Q==
   dependencies:
     "@backstage/catalog-model" "^1.5.0"
     "@backstage/core-components" "^0.14.9"
@@ -3036,10 +3036,10 @@
   dependencies:
     "@backstage/plugin-permission-common" "^0.8.0"
 
-"@janus-idp/backstage-plugin-topology@1.27.3":
-  version "1.27.3"
-  resolved "https://registry.npmjs.org/@janus-idp/backstage-plugin-topology/-/backstage-plugin-topology-1.27.3.tgz#3a38b2ab86ab7cbaa7a63ecaffb8cb89aafef8fd"
-  integrity sha512-tkXq1koWwT7MvgvnF6KzslRtyo3euFefuZ+4cplDt9aqfXRpyZl+pGJ4bVoP+/vtbS9GxlRtGoNlRkDPAXJTAQ==
+"@janus-idp/backstage-plugin-topology@1.27.5":
+  version "1.27.5"
+  resolved "https://registry.npmjs.org/@janus-idp/backstage-plugin-topology/-/backstage-plugin-topology-1.27.5.tgz#7eb36a05f0543818ca4b15c044f4530d82335fd5"
+  integrity sha512-0wHDGUfeyXQhcg+bzcqDBiYWtyyiF/ZskzwWylxVD0RVLcY04td18zTise4Sk/td54+qghnNrhpmtSZizt589g==
   dependencies:
     "@backstage/catalog-model" "^1.5.0"
     "@backstage/core-components" "^0.14.9"
