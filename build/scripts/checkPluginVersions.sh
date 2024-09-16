@@ -11,6 +11,8 @@
 # Run locally, use --push flag to generate a PR
 # Run in a headless pipeline, use --gitlab-pipeline-push to generate a PR
 
+# NOTE: Private plugins will not be incremented.
+
 # SCRIPT_DIR=$(cd "$(dirname "$0")" || exit; pwd)
 # FORCE=""
 DO_BUILD=1
@@ -86,18 +88,18 @@ green="\033[1;32m"
 blue="\033[1;34m"
 red="\033[1;31m"
 
-HUSKY=0 git checkout "$BRANCH" || true
+HUSKY=0 git checkout "$BRANCH" 2>/dev/null || true
 for d in plugins/* packages/* ./; do if [[ -f "$d/package.json" ]]; then 
     ver=$(jq -r '.version' "$d/package.json"); ver=${ver%.*} # only want the x.y version here 
     plugins["$d"]="$ver"
     # echo "$d ${plugins["$d"]}"
 fi; done
 
-HUSKY=0 git checkout "$BRANCHUSED" || true
+HUSKY=0 git checkout "$BRANCHUSED" 2>/dev/null || true
 
 # make changes in a PR topic branch
 git branch "$PR_BRANCH" >/dev/null 2>&1 || true
-git checkout "$PR_BRANCH" || true
+git checkout "$PR_BRANCH" 2>/dev/null || true
 
 if [[ $DO_BUILD -eq 1 ]]; then
   # quietly install any updates to yarn.lock so PR will pass sniff test
@@ -150,7 +152,7 @@ for d in ./ packages/* plugins/*; do if [[ -f "$d/package.json" ]]; then
           echo -e "${green}$newver${norm}"
           echo "- Bumped to $newver in $BRANCHUSED branch for next release $rootVer" >> "$d/.versionhistory.md"
           git add "$d/.versionhistory.md" >/dev/null 2>&1 || exit 2
-          git commit -s -m "feat: checkPluginVersion.sh bump $d to $newver in $BRANCHUSED" "$d/.versionhistory.md" # >/dev/null 2>&1 || exit 3
+          git commit -s -m "feat: checkPluginVersion.sh bump $d to $newver in $BRANCHUSED" "$d/.versionhistory.md" >/dev/null 2>&1 || exit 3
           echo
         fi
       else
@@ -191,7 +193,7 @@ if [[ ${DO_PUSH} -eq 1 ]]; then
     # quietly install any updates to yarn.lock so PR will pass sniff test
     yarn install 2> >(grep -v warning 1>&2) 
   fi
-  git commit -s -m "chore: checkPluginVersion.sh regen yarn.lock in $BRANCHUSED branch" .
+  git commit -s -m "chore: checkPluginVersion.sh regen yarn.lock in $BRANCHUSED branch" 2>/dev/null
   git pull origin "${BRANCHUSED}" || true
   # create pull request if target branch is restricted access
   createPr "${PR_BRANCH}" "${BRANCHUSED}"
