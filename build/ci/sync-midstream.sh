@@ -363,7 +363,7 @@ for ((i = 0; i < NUM_REPOS; i++)); do # echo $i
           done
 
           # replace default backstage deployment name backstage-sample with developer-hub
-          for yml in manifests/rhdh-operator.csv.yaml config/samples/_v1alpha1_backstage.yaml; do
+          for yml in manifests/rhdh-operator.clusterserviceversion.yaml config/samples/_v1alpha1_backstage.yaml; do
             if [[ -f $yml ]]; then
               sed -i $yml -r -e "s/backstage-sample/developer-hub/g"
               if [[ $(git diff --name-only $yml) ]]; then # also update createdAt timestamp
@@ -376,7 +376,7 @@ for ((i = 0; i < NUM_REPOS; i++)); do # echo $i
         popd >/dev/null || exit 1
       done
 
-      # use rhdh-operator.csv.yaml instead of backstage csv
+      # use rhdh-operator.clusterserviceversion.yaml instead of backstage csv
       pushd "${BUNDLEDIR}" >/dev/null || exit 1
         git add . || true
       popd >/dev/null || exit 1
@@ -534,7 +534,8 @@ LABEL summary="\$SUMMARY" \\
       license="ASLv2" \\
       maintainer="RHDH Team <rhdh-bot@redhat.com>" \\
       io.openshift.expose-services="" \\
-      usage=""
+      usage="" \\
+      konflux.additional-tags="\${CI_X_VERSION}.\${CI_Y_VERSION}"
 EOT
 echo "[INFO] Added metadata to $TMPDIR/hub.Dockerfile.foot"
 
@@ -573,11 +574,11 @@ LABEL summary="\$SUMMARY" \\
       license="ASLv2" \\
       maintainer="RHDH Team <rhdh-bot@redhat.com>" \\
       io.openshift.expose-services="" \\
-      usage=""
+      usage="" \\
+      konflux.additional-tags="\${CI_X_VERSION}.\${CI_Y_VERSION}"
 EOT
 echo "[INFO] Added metadata to $TMPDIR/operator.Dockerfile.foot"
 
-# append Brew metadata here - DO NOT USE a .foot file!!
 sed -i '/# append Brew metadata here/q' distgit/containers/rhdh-operator-bundle/Dockerfile.in
 sed -i '/# append Brew metadata here/q' distgit/containers/rhdh-operator-bundle/Dockerfile
 sed -i '/# append Brew metadata here/q' distgit/containers/rhdh-operator-bundle/Containerfile
@@ -609,7 +610,12 @@ LABEL operators.operatorframework.io.bundle.mediatype.v1=registry+v1 \\
       license="ASLv2" \\
       maintainer="RHDH Team <rhdh-bot@redhat.com>" \\
       io.openshift.expose-services="" \\
-      usage=""
+      usage="" \\
+      konflux.additional-tags="\${CI_X_VERSION}.\${CI_Y_VERSION}"
+      distribution-scope="public" \\
+      release="1" \\
+      url="https://red.ht/rhdh" \\
+      vendor="Red Hat"
 EOT
 echo "[INFO] Added metadata to $TMPDIR/operator-bundle.Dockerfile.foot"
 

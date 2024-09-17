@@ -348,8 +348,8 @@ function updateOperatorVersions() {
 	# update config/manager/kustomization.yaml
 	sed -i config/manager/kustomization.yaml -r \
 		-e "s/(^  newTag:  )[0-9.]+/\1$the_version_op/" # 0.3.0
-	# update .rhdh/bundle/manifests/rhdh-operator.csv.yaml use both 1.3.0 and 1.3 (three times for image ref replacements: operator, operator, hub)
-	sed -i .rhdh/bundle/manifests/rhdh-operator.csv.yaml -r \
+	# update .rhdh/bundle/manifests/rhdh-operator.clusterserviceversion.yaml use both 1.3.0 and 1.3 (three times for image ref replacements: operator, operator, hub)
+	sed -i .rhdh/bundle/manifests/rhdh-operator.clusterserviceversion.yaml -r \
 		-e "s/(skipRange: '>=1.0.0 <)[0-9.]+'/\1$the_version'/" \
 		-e "s/(name: rhdh-operator.v)[0-9.]+/\1$the_version/" \
 		-e "s/(^  version: )[0-9.]+/\1$the_version/" \
