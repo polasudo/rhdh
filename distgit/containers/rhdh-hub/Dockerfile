@@ -283,4 +283,5 @@ LABEL summary="$SUMMARY" \
       license="ASLv2" \
       maintainer="RHDH Team <rhdh-bot@redhat.com>" \
       io.openshift.expose-services="" \
-      usage=""
+      usage="" \
+      konflux.additional-tags="1.4"
