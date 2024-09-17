@@ -88,7 +88,7 @@ Bump versions in upstream main branches - run link:../build/scripts/tagRelease.s
 ... [ ] Makefile
 ... [ ] bundle/manifests/backstage-operator.clusterserviceversion.yaml
 ... [ ] config/manager/kustomization.yaml
-... [ ] .rhdh/bundle/manifests/rhdh-operator.csv.yaml
+... [ ] .rhdh/bundle/manifests/rhdh-operator.clusterserviceversion.yaml
 
 NOTE: Dockerfile version metadata downstream is derived from the backstage-showcase package.json version.
 
