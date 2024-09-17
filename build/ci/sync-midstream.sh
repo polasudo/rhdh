@@ -531,6 +531,7 @@ LABEL summary="\$SUMMARY" \\
       com.redhat.component="\$PRODNAME-\$COMPNAME-container" \\
       name="\$PRODNAME/\$PRODNAME-\$COMPNAME-rhel9" \\
       version="\${CI_X_VERSION}.\${CI_Y_VERSION}" \\
+      release="\${Z_release_hub}" \\
       license="ASLv2" \\
       maintainer="RHDH Team <rhdh-bot@redhat.com>" \\
       io.openshift.expose-services="" \\
@@ -571,6 +572,7 @@ LABEL summary="\$SUMMARY" \\
       com.redhat.component="\$PRODNAME-\$COMPNAME-container" \\
       name="\$PRODNAME/\$PRODNAME-rhel9-\$COMPNAME" \\
       version="\${CI_X_VERSION}.\${CI_Y_VERSION}" \\
+      release="\${Z_release_operator}" \\
       license="ASLv2" \\
       maintainer="RHDH Team <rhdh-bot@redhat.com>" \\
       io.openshift.expose-services="" \\
@@ -607,15 +609,15 @@ LABEL operators.operatorframework.io.bundle.mediatype.v1=registry+v1 \\
       com.redhat.component="\$PRODNAME-\$COMPNAME-container" \\
       name="\$PRODNAME/\$PRODNAME-\$COMPNAME" \\
       version="\${CI_X_VERSION}.\${CI_Y_VERSION}" \\
+      release="\${Z_release_bundle}" \\
       license="ASLv2" \\
       maintainer="RHDH Team <rhdh-bot@redhat.com>" \\
       io.openshift.expose-services="" \\
       usage="" \\
       konflux.additional-tags="\${CI_X_VERSION}.\${CI_Y_VERSION}" \\
       distribution-scope="public" \\
-      release="1" \\
       url="https://red.ht/rhdh" \\
-      vendor="Red Hat"
+      vendor="Red Hat, Inc."
 EOT
 echo "[INFO] Added metadata to $TMPDIR/operator-bundle.Dockerfile.foot"
 
@@ -910,8 +912,26 @@ for d in distgit/containers/rhdh-hub distgit/containers/rhdh-operator distgit/co
     
       cat "$TMPDIR/${d##*rhdh-}.Dockerfile.foot" >> Containerfile
       sed -r -e 's|\$\{CI_X_VERSION\}\.\$\{CI_Y_VERSION\}|'"$DH_VERSION"'|' -i "Containerfile"
-
     fi
+
+    ##################################### set NVR values for Konflux #####################################
+    # remove release= value from Dockerfile (OSBS creates this)
+    sed -r -i '/release=".+"/d' Dockerfile
+    # set release value in Containerfile (Konflux does not do this)
+    nextReleaseNum=000
+    if [[ $d == "distgit/containers/rhdh-hub" ]]; then
+      image=rhdh/rhdh-hub-rhel9
+      nextReleaseNum=$("${ROOTPATH}"/build/scripts/getNextReleaseNum.sh -b "${DWNSTM_BRANCH}" --tag "${DH_VERSION}" -c "$image")
+    elif [[ $d == "distgit/containers/rhdh-operator" ]]; then
+      image="rhdh/rhdh-rhel9-operator"
+      nextReleaseNum=$("${ROOTPATH}"/build/scripts/getNextReleaseNum.sh -b "${DWNSTM_BRANCH}" --tag "${DH_VERSION}" -c "$image")
+    elif [[ $d == "distgit/containers/rhdh-operator-bundle" ]]; then
+      image="rhdh/rhdh-operator-bundle"
+      nextReleaseNum=$("${ROOTPATH}"/build/scripts/getNextReleaseNum.sh -b "${DWNSTM_BRANCH}" --tag "${DH_VERSION}" -c "$image")
+    fi
+    echo "Set image version and release: $image:$DH_VERSION-$nextReleaseNum"
+    sed -r -i "s/release=\".+\"/release=\"$nextReleaseNum\"/" Containerfile
+    ##################################### set NVR values for Konflux #####################################
 
     ##################################### rhdh-operator-bundle #####################################
     # generate annotations from upstream file in .rhdh/bundle/metadata/annotations.yaml
