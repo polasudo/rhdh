@@ -12,12 +12,10 @@
 # so that MSR will think the plugin already exists and will skip it
 
 # SCRIPT_DIR=$(cd "$(dirname "$0")" || exit; pwd)
-SECRETS_DIR=$(cd "$(dirname "$0")/../../secrets/" || exit; pwd)
 DRY_RUN=""
 PLUGIN_DIRS=""
 
-if [[ ! $NPM_TOKEN ]]; then NPM_TOKEN=$(grep -v -E "^#" "${SECRETS_DIR}"/janus-idp.npm.token); fi
-if [[ ! $NPM_TOKEN ]]; then echo "NPM_TOKEN not set!"; exit 1; fi
+if [[ ! $NPM_TOKEN ]]; then echo "NPM_TOKEN not set! Get latest token from https://vault.bitwarden.com/"; exit 1; fi
 
 if [[ ! $GITHUB_TOKEN ]]; then echo "GITHUB_TOKEN not set!"; exit 1; fi
 
