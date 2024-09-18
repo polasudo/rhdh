@@ -531,7 +531,7 @@ LABEL summary="\$SUMMARY" \\
       com.redhat.component="\$PRODNAME-\$COMPNAME-container" \\
       name="\$PRODNAME/\$PRODNAME-\$COMPNAME-rhel9" \\
       version="\${CI_X_VERSION}.\${CI_Y_VERSION}" \\
-      release="\${Z_release_hub}" \\
+      release="RELEASE_NUMBER" \\
       license="ASLv2" \\
       maintainer="RHDH Team <rhdh-bot@redhat.com>" \\
       io.openshift.expose-services="" \\
@@ -572,7 +572,7 @@ LABEL summary="\$SUMMARY" \\
       com.redhat.component="\$PRODNAME-\$COMPNAME-container" \\
       name="\$PRODNAME/\$PRODNAME-rhel9-\$COMPNAME" \\
       version="\${CI_X_VERSION}.\${CI_Y_VERSION}" \\
-      release="\${Z_release_operator}" \\
+      release="RELEASE_NUMBER" \\
       license="ASLv2" \\
       maintainer="RHDH Team <rhdh-bot@redhat.com>" \\
       io.openshift.expose-services="" \\
@@ -609,7 +609,7 @@ LABEL operators.operatorframework.io.bundle.mediatype.v1=registry+v1 \\
       com.redhat.component="\$PRODNAME-\$COMPNAME-container" \\
       name="\$PRODNAME/\$PRODNAME-\$COMPNAME" \\
       version="\${CI_X_VERSION}.\${CI_Y_VERSION}" \\
-      release="\${Z_release_bundle}" \\
+      release="RELEASE_NUMBER" \\
       license="ASLv2" \\
       maintainer="RHDH Team <rhdh-bot@redhat.com>" \\
       io.openshift.expose-services="" \\
@@ -930,7 +930,7 @@ for d in distgit/containers/rhdh-hub distgit/containers/rhdh-operator distgit/co
       nextReleaseNum=$("${ROOTPATH}"/build/scripts/getNextReleaseNum.sh -b "${DWNSTM_BRANCH}" --tag "${DH_VERSION}" -c "$image")
     fi
     echo "Set image version and release: $image:$DH_VERSION-$nextReleaseNum"
-    sed -r -i "s/release=\".+\"/release=\"$nextReleaseNum\"/" Containerfile
+    sed -r -e "s/release=\"RELEASE_NUMBER\"/release=\"$nextReleaseNum\"/" -i Containerfile
     ##################################### set NVR values for Konflux #####################################
 
     ##################################### rhdh-operator-bundle #####################################
