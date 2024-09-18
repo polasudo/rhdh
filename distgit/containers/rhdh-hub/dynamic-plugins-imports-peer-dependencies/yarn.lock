@@ -2960,10 +2960,10 @@
     "@backstage/errors" "^1.2.4"
     "@backstage/plugin-permission-common" "^0.8.0"
 
-"@janus-idp/backstage-plugin-rbac@1.29.4":
-  version "1.29.4"
-  resolved "https://registry.npmjs.org/@janus-idp/backstage-plugin-rbac/-/backstage-plugin-rbac-1.29.4.tgz#a9504dbd7d709096cc28c638e98173ef7b6e257f"
-  integrity sha512-t9BfMnTXIlHhJ2BHWfzfUC3UKM5gwru0BZ1f5nFAjzTgu3C7+WhkpOd/QMHCZOfDkH45CwLuoWrKOn5FCQCtOg==
+"@janus-idp/backstage-plugin-rbac@1.29.5":
+  version "1.29.5"
+  resolved "https://registry.npmjs.org/@janus-idp/backstage-plugin-rbac/-/backstage-plugin-rbac-1.29.5.tgz#8492a196ca10e4f54e3b2276ddea3dc6633b2361"
+  integrity sha512-85ApGPKbfZRaV1p5zrf4QpPIKu7JZUL+o+nwv94eFWZYJtw7243Gpe69dz5XARrljrz2LkdH4YhnTyoejKdlXA==
   dependencies:
     "@backstage/catalog-model" "^1.5.0"
     "@backstage/core-components" "^0.14.9"
