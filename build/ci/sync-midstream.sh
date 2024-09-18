@@ -921,13 +921,13 @@ for d in distgit/containers/rhdh-hub distgit/containers/rhdh-operator distgit/co
     nextReleaseNum=000
     if [[ $d == "distgit/containers/rhdh-hub" ]]; then
       image=rhdh/rhdh-hub-rhel9
-      nextReleaseNum=$("${ROOTPATH}"/build/scripts/getNextReleaseNum.sh -b "${DWNSTM_BRANCH}" --tag "${DH_VERSION}" -c "$image")
+      nextReleaseNum=$("${ROOTPATH}"/build/scripts/getNextReleaseNum.sh -b "${DWNSTM_BRANCH}" --tag "${DH_VERSION}" -c "$image" -q)
     elif [[ $d == "distgit/containers/rhdh-operator" ]]; then
       image="rhdh/rhdh-rhel9-operator"
-      nextReleaseNum=$("${ROOTPATH}"/build/scripts/getNextReleaseNum.sh -b "${DWNSTM_BRANCH}" --tag "${DH_VERSION}" -c "$image")
+      nextReleaseNum=$("${ROOTPATH}"/build/scripts/getNextReleaseNum.sh -b "${DWNSTM_BRANCH}" --tag "${DH_VERSION}" -c "$image" -q)
     elif [[ $d == "distgit/containers/rhdh-operator-bundle" ]]; then
       image="rhdh/rhdh-operator-bundle"
-      nextReleaseNum=$("${ROOTPATH}"/build/scripts/getNextReleaseNum.sh -b "${DWNSTM_BRANCH}" --tag "${DH_VERSION}" -c "$image")
+      nextReleaseNum=$("${ROOTPATH}"/build/scripts/getNextReleaseNum.sh -b "${DWNSTM_BRANCH}" --tag "${DH_VERSION}" -c "$image" -q)
     fi
     echo "Set image version and release: $image:$DH_VERSION-$nextReleaseNum"
     sed -r -e "s/release=\"RELEASE_NUMBER\"/release=\"$nextReleaseNum\"/" -i Containerfile

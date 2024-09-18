@@ -49,6 +49,5 @@ LABEL operators.operatorframework.io.bundle.mediatype.v1=registry+v1 \
       usage="" \
       konflux.additional-tags="1.4" \
       distribution-scope="public" \
-      release="1" \
       url="https://red.ht/rhdh" \
-      vendor="Red Hat"
+      vendor="Red Hat, Inc."
