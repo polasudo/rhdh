@@ -11,7 +11,7 @@
 # create stable branches + update main branches after branch creation
 SCRIPT_DIR=$(cd "$(dirname "$0")" || exit; pwd)
 
-# RH production key, to use only in 1.yy.x stable branches; otherwise use the devel key for main
+# RH production key, to use only in release-1.yy stable branches; otherwise use the devel key for main
 SEGMENT_WRITE_KEY="mUr49Tkld5bj1lFFPxxqHrAzkQMRINvF"
 
 TMPDIR="/tmp/tmp-checkouts"
@@ -30,7 +30,7 @@ pkgs_devel_branch=${TARGET_BRANCH}
 
 DO_BUILD=1  # update yarn lock
 DO_PUSH=1   # push the commit
-DO_UPDATE=0 # force update of 1.yy.x branches, even if tag already exists
+DO_UPDATE=0 # force update of release-1.yy branches, even if tag already exists
 SKIP_GH=0   # skip updates to GH repos
 SKIP_GL=0   # skip updates to GL repos
 SKIP_PD=0   # skip updates to plgs.devel repos
@@ -44,7 +44,7 @@ export HUSKY=0
 pduser=rhdh-bot
 
 # normally, use this script to create tags, not branches
-# this also defines the branch to update after creating a new branch (eg., for a TARGET_BRANCH=1.2.x branch creation, bump SOURCE_BRANCH=main to 1.3.0)
+# this also defines the branch to update after creating a new branch (eg., for a TARGET_BRANCH=release-1.3 branch creation, bump SOURCE_BRANCH=main to 1.4.0)
 SOURCE_BRANCH="" 
 
 CLEAN="false" #  if set true, delete existing folders and do fresh checkouts
@@ -54,19 +54,19 @@ if [[ $# -lt 4 ]]; then
 To create or update existing branches:
   $0 -t PROD_VERSION --branchfrom SOURCE_GH_BRANCH -gh TARGET_GH_BRANCH -ghtoken GITHUB_TOKEN
 Example: 
-  $0 -t 1.3 --branchfrom main -gh 1.3.x -ghtoken \$GITHUB_TOKEN
+  $0 -t 1.3 --branchfrom main -gh release-1.3 -ghtoken \$GITHUB_TOKEN
 
-To create tags (and push updates to 1.yy.x branches):
+To create tags (and push updates to release-1.yy branches):
 1. You should have a valid GITHUB_TOKEN for your user (for upstream PRs).
 2. You should have a valid $pduser kerberos login (for mid- and downstreeam pushes).
 3. Run this
   $0 -v CSV_VERSION -t PROD_VERSION -gh GH_BRANCH -ghtoken GITHUB_TOKEN -pd GITLAB_AND_PKGS_DEVEL_BRANCH -pduser kerberos_user
 Example: 
-  $0 -v 1.2.1 -t 1.2 -gh 1.2.x -pd rhdh-1.2-rhel-9 --clean --force-update -ghtoken \$GITHUB_TOKEN -pduser $pduser
+  $0 -v 1.3.0 -t 1.3 -gh release-1.3 -pd rhdh-1.3-rhel-9 --clean --force-update -ghtoken \$GITHUB_TOKEN -pduser $pduser
 
 Options:
     --clean                   delete existing temp folders and do fresh checkouts
-    --force-update            update the 1.yy.x branch even if the tag already exists
+    --force-update            update the release-1.yy branch even if the tag already exists
     --nopush                  do not push local changes; default: push changes
     --dry-run                 do everything but create the PR; instead just display the PR contents
     --gitlab-pipeline-push    use this flag to push changes when running inside a gitlab pipeline
@@ -503,8 +503,8 @@ pushBranchAndOrTagGH () {
 						git push origin "${TARGET_BRANCH}" 2>/dev/null || true
 					fi
 
-					# changes to apply to new midstream 1.yy.x branch
-					# https://issues.redhat.com/browse/RHIDP-1311 apply the production key to the 1.yy.x stable branches, so we can use the devel key for main/CI builds
+					# changes to apply to new midstream release-1.yy branch
+					# https://issues.redhat.com/browse/RHIDP-1311 apply the production key to the release-1.yy stable branches, so we can use the devel key for main/CI builds
 					if [[ $d == "janus-idp__backstage-showcase" ]] || [[ $d == "redhat-developer__red-hat-developer-hub" ]]; then
 						sed -i .rhdh/docker/Dockerfile -r -e "s|(.*SEGMENT_WRITE_KEY=).*|\1$SEGMENT_WRITE_KEY|g"
 						COMMITMSG="chore: switch SEGMENT_WRITE_KEY in $TARGET_BRANCH"
@@ -526,7 +526,7 @@ pushBranchAndOrTagGH () {
 						git push origin "${CSV_VERSION}" || true
 					fi
 
-					# now bump TARGET_BRANCH = 1.yy.x branch to x.yy.(z+1)
+					# now bump TARGET_BRANCH = release-1.yy branch to x.yy.(z+1)
 					getNextCSVZ "$CSV_VERSION" 
 					# echo "[INFO] Next CSV version is $CSV_VERSION_Z / $CSV_VERSION_Z_OPERATOR"
 					if [[ $d == "janus-idp__backstage-showcase" ]] || [[ $d == "redhat-developer__red-hat-developer-hub" ]]; then
@@ -564,8 +564,8 @@ pushTagGL ()
 	if [[ $CSV_VERSION ]] && [[ $(git ls-remote "https://gitlab.cee.redhat.com/rhidp/${d}.git/" "refs/tags/$CSV_VERSION") ]]; then
 		echo; echo "[WARN] https://gitlab.cee.redhat.com/rhidp/${d}/-/tree/${CSV_VERSION}?ref_type=tags already exists."
 	else
-		# convert 1.2.x to rhdh-1.2-rhel-9
-		DWNSTM_TARGET_BRANCH=rhdh-${TARGET_BRANCH/.x/-rhel-9}
+		# convert release-1.3 to rhdh-1.3-rhel-9
+		DWNSTM_TARGET_BRANCH=rhdh-${TARGET_BRANCH/release-/}-rhel-9
 		echo;
 		if [[ $SOURCE_BRANCH ]]; then
 			echo "== $d :: branch from $MIDSTM_BRANCH to $DWNSTM_TARGET_BRANCH =="
@@ -623,8 +623,8 @@ pushTagPD ()
 	if [[ $CSV_VERSION ]] && [[ $(git ls-remote "ssh://${pduser}@pkgs.devel.redhat.com/containers/${d}" "refs/tags/$CSV_VERSION") ]]; then
 		echo; echo "[WARN] https://pkgs.devel.redhat.com/cgit/containers/${d}/tag/?h=$CSV_VERSION already exists."
 	else
-		# convert 1.2.x to rhdh-1.2-rhel-9
-		DWNSTM_TARGET_BRANCH=rhdh-${TARGET_BRANCH/.x/-rhel-9}
+		# convert release-1.3 to rhdh-1.3-rhel-9
+		DWNSTM_TARGET_BRANCH=rhdh-${TARGET_BRANCH/release-/}-rhel-9
 		echo; 
 		if [[ $SOURCE_BRANCH ]]; then
 			echo "== $d :: branch from $pkgs_devel_branch to $DWNSTM_TARGET_BRANCH =="
@@ -753,7 +753,7 @@ if [[ $SKIP_PD -eq 0 ]]; then
 		echo "
 You must branch pkgs.devel repos manually - as these steps might fail due to long-running processes (and need to be repeated):
 
-DWNSTM_TARGET_BRANCH=\"rhdh-${TARGET_BRANCH/.x/-rhel-9}\"
+DWNSTM_TARGET_BRANCH=\"rhdh-${TARGET_BRANCH/release-/}-rhel-9\"
 for d in hub operator operator-bundle; do
 	pushd ~/5/5-pkgs.devel_\$d >/dev/null || exit
 	git restore --staged .; git restore .

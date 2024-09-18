@@ -37,7 +37,7 @@ Usage:
 $0 -s /path/to/sources -b stable-ref-branch [--push]
 
 Options:
-  -b, --ref-branch           : Reference branch against which plugin versions should be incremented, like 1.1.x
+  -b, --ref-branch           : Reference branch against which plugin versions should be incremented, like release-1.3
   -t, --target-branch        : Destination branch where changes will be merged; default: $BRANCHUSED
   --pr-branch                : Use a specific pull request topic branch instead of generated one like $PR_BRANCH
   --push                     : In addition to reporting problems, generate a PR to push a fix
@@ -47,14 +47,14 @@ Options:
   -h, --help                 : Show this help
 
 Examples:
-  $0 -s /path/to/backstage-plugins -b 1.1.x --push
+  $0 -s /path/to/backstage-plugins -b release-1.3 --push
 
 EOF
 }
 
 while [[ "$#" -gt 0 ]]; do
   case $1 in
-    '-b'|'--ref-branch') BRANCH="$2"; shift 1;;        # reference branch, eg., 1.1.x 
+    '-b'|'--ref-branch') BRANCH="$2"; shift 1;;        # reference branch, eg., release-1.3 
     '-t'|'--target-branch') BRANCHUSED="$2"; shift 1;; # base branch to update, eg., main
     '--pr-branch') PR_BRANCH="$2"; shift 1;;
     '-s') SOURCEDIR="$2"; shift 1;;

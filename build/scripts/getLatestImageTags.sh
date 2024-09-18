@@ -41,7 +41,7 @@ getDHVersion ()
 			DWNSTM_BRANCH="rhdh-${VERSION}-rhel-9"
 		else 
 			DWNSTM_BRANCH="rhdh-1-rhel-9"
-			VERSION="1.x"
+			VERSION="1.next"
 		fi
 	else
 		DH_VERSION=${DWNSTM_BRANCH/rhdh-/}; DH_VERSION=${DH_VERSION/-rhel-9/}

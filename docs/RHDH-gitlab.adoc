@@ -1,6 +1,6 @@
 # How to build with Gitlab
 
-## How to release a plugin from the 1.yy.x branch
+## How to release a plugin from the release-1.yy branch
 
 If you need to release a plugin manually from the stable branch (not main) see https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1-rhel-9/build/scripts/releasePlugin.sh[build/scripts/releasePlugin.sh].
 
