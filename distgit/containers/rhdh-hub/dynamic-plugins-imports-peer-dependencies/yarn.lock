@@ -2758,10 +2758,10 @@
     prop-types "^15.8.1"
     react-use "^17.4.0"
 
-"@janus-idp/backstage-plugin-bulk-import-backend@1.5.2":
-  version "1.5.2"
-  resolved "https://registry.npmjs.org/@janus-idp/backstage-plugin-bulk-import-backend/-/backstage-plugin-bulk-import-backend-1.5.2.tgz#f6677d92bb9c8a942b49949404b3b0aa520d5518"
-  integrity sha512-cilWLNdyl4nxo9ciIkgKODt6rQ+TnKu/TfVu0Wh3kvnpyBzOBe25G2Ux8e79qypkA51rBbODETMgzc8hsxF1GQ==
+"@janus-idp/backstage-plugin-bulk-import-backend@1.5.3":
+  version "1.5.3"
+  resolved "https://registry.npmjs.org/@janus-idp/backstage-plugin-bulk-import-backend/-/backstage-plugin-bulk-import-backend-1.5.3.tgz#3da3bdc2aeb8361dbc5ae69eadd1d6dfa38877d3"
+  integrity sha512-i3W5v52d4unAQEJUDwNPoXjeowp5/Xi1xYsLAQ9ATQKWfY/j5tpyj9lNt23sawrs9siH/AHP0+SEyOYpXxBBqw==
   dependencies:
     "@backstage/backend-app-api" "^0.8.0"
     "@backstage/backend-common" "^0.23.3"
@@ -2840,10 +2840,10 @@
     "@material-ui/lab" "^4.0.0-alpha.45"
     react-use "^17.4.0"
 
-"@janus-idp/backstage-plugin-keycloak-backend@1.13.1":
-  version "1.13.1"
-  resolved "https://registry.npmjs.org/@janus-idp/backstage-plugin-keycloak-backend/-/backstage-plugin-keycloak-backend-1.13.1.tgz#487c9f04e07411ddc697ff0d43e27722e5a9d10d"
-  integrity sha512-vbIK1xP5uCSkQtqw1zaa2sT/f9sarn5jiOAPYP86yMvgwglmt0DFb9VsydDERZlg6ZAaxp8UD28dSAr/dYg7RQ==
+"@janus-idp/backstage-plugin-keycloak-backend@1.13.2":
+  version "1.13.2"
+  resolved "https://registry.npmjs.org/@janus-idp/backstage-plugin-keycloak-backend/-/backstage-plugin-keycloak-backend-1.13.2.tgz#e4dc92368833052a8cb26a0ce9f8ed2dbe58d540"
+  integrity sha512-DRMCyfMNg1oHWEbjxnlTP41cA2hT7pYeJntzdWuvb4Zer4MivOykfZ3VkyT0UQfFkrlR0/yEbVfV7H96wBybpA==
   dependencies:
     "@backstage/backend-common" "^0.23.3"
     "@backstage/backend-dynamic-feature-service" "^0.2.15"
@@ -2933,10 +2933,10 @@
   dependencies:
     "@backstage/plugin-permission-common" "^0.8.0"
 
-"@janus-idp/backstage-plugin-quay@1.11.3":
-  version "1.11.3"
-  resolved "https://registry.npmjs.org/@janus-idp/backstage-plugin-quay/-/backstage-plugin-quay-1.11.3.tgz#d6a7c40bafbe56cc993dad68dca44edb76c938aa"
-  integrity sha512-l/Okh9u6Jsr1Ez1fJixV30p3lZq2cWisHh8XS6n2y31OcdBCe/GIgL5udXKbb92F/fyC0mqf/Ix1FvDs9NHAUA==
+"@janus-idp/backstage-plugin-quay@1.11.7":
+  version "1.11.7"
+  resolved "https://registry.npmjs.org/@janus-idp/backstage-plugin-quay/-/backstage-plugin-quay-1.11.7.tgz#bb6001a8fc21e49c7f2dcfb63d7255528802d600"
+  integrity sha512-C4bopAgG3qgPe/GRDqvkiBfnz43uT9y0VHVXb8DYt9famAG0YU5YDzPVlOAdSGh+vKau8YBrjjf9jdI7Q02GhQ==
   dependencies:
     "@backstage/catalog-model" "^1.5.0"
     "@backstage/core-components" "^0.14.9"
@@ -2946,7 +2946,7 @@
     "@backstage/plugin-permission-react" "^0.4.24"
     "@backstage/theme" "^0.5.6"
     "@janus-idp/backstage-plugin-quay-common" "1.0.2"
-    "@janus-idp/shared-react" "2.10.0"
+    "@janus-idp/shared-react" "2.10.3"
     "@material-ui/core" "^4.12.2"
     "@material-ui/icons" "^4.11.3"
     "@material-ui/lab" "4.0.0-alpha.61"
@@ -2996,10 +2996,10 @@
   dependencies:
     "@backstage/plugin-permission-common" "^0.8.0"
 
-"@janus-idp/backstage-plugin-tekton@3.12.3":
-  version "3.12.3"
-  resolved "https://registry.npmjs.org/@janus-idp/backstage-plugin-tekton/-/backstage-plugin-tekton-3.12.3.tgz#d4b7394b4c73c88fa43b1bd5daf4acbcb26a9c75"
-  integrity sha512-+8iZYwpbmsSntRsV9fmwF8m2UnAt7IWAsCXgJRinIbq1H3KENY7zUxmOIZXJ9adDI/H0gdo/7fP5JcDFJvFhjQ==
+"@janus-idp/backstage-plugin-tekton@3.12.7":
+  version "3.12.7"
+  resolved "https://registry.npmjs.org/@janus-idp/backstage-plugin-tekton/-/backstage-plugin-tekton-3.12.7.tgz#a22f1d7de306387dd78095f84bb30c74a795e925"
+  integrity sha512-71FbXbw+V9IDhRxYxJ96LSdK+pl5sZbDgOtO++w3S2CDAyyZ2L3nzJ51pIe7tDTPrmwRcCVzsiee050jkkNUPA==
   dependencies:
     "@aonic-ui/pipelines" "^1.1.1"
     "@backstage/catalog-model" "^1.5.0"
@@ -3012,7 +3012,7 @@
     "@backstage/plugin-permission-react" "^0.4.24"
     "@backstage/theme" "^0.5.6"
     "@janus-idp/backstage-plugin-tekton-common" "1.0.0"
-    "@janus-idp/shared-react" "2.10.0"
+    "@janus-idp/shared-react" "2.10.3"
     "@kubernetes/client-node" "^0.20.0"
     "@material-ui/core" "^4.9.13"
     "@material-ui/icons" "^4.11.3"

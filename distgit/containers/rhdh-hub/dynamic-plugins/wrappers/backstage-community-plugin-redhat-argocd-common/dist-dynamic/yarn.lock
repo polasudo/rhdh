@@ -16,10 +16,10 @@
   dependencies:
     regenerator-runtime "^0.14.0"
 
-"@backstage-community/plugin-redhat-argocd-common@1.0.3":
-  version "1.0.3"
-  resolved "https://registry.npmjs.org/@backstage-community/plugin-redhat-argocd-common/-/plugin-redhat-argocd-common-1.0.3.tgz#755ab8962c8728225a60fe814eef5bb68d1721c8"
-  integrity sha512-cu/u2kk01ueQX5Jy4J88rjDg+8UyXtl7CsaqNX+XbWNaoCLkuHT0O5oC8V75XXQ+v9K+1hFG5HdVXYX7evN/+g==
+"@backstage-community/plugin-redhat-argocd-common@1.0.5":
+  version "1.0.5"
+  resolved "https://registry.npmjs.org/@backstage-community/plugin-redhat-argocd-common/-/plugin-redhat-argocd-common-1.0.5.tgz#13f2f32236a6a4e810e67a14635aadb553948a3d"
+  integrity sha512-1NcTNojvW2rP7gcx+4lbaNla+7Cq3M/zq7wm5XcZcm2staecvtWjcbztV1eyHjp0/IcHmq8+AaETJzlV4+JNtw==
   dependencies:
     "@backstage/plugin-permission-common" "^0.8.1"
 
