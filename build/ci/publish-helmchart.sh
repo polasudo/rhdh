@@ -75,7 +75,7 @@ fi
 if [[ $DWNSTM_BRANCH == "rhdh-1-rhel-9" ]]; then 
   CHART_BRANCH="main"
 else
-  if [[ $next_tag == "1.2" ]] || [[ $next_tag == "1.1 "]]; then
+  if [[ $next_tag == "1.2" ]] || [[ $next_tag == "1.1" ]]; then
     CHART_BRANCH="${next_tag%-*}.x" # from 1.2-105 -> 1.2.x
   else
     CHART_BRANCH="release-${next_tag%-*}" # from 1.3-57 -> release-1.3
