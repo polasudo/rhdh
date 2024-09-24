@@ -50,7 +50,8 @@ CI_JOB_TOKEN = $CI_JOB_TOKEN
 CI_API_V4_URL = $CI_API_V4_URL"
 
 cd /tmp
-curl -sSLkO https://hdn.corp.redhat.com/rhel7-csb-stage/RPMS/noarch/redhat-internal-cert-install-0.1-31.el7.noarch.rpm
+# find latest at https://coprbe.devel.redhat.com/results/@endpoint-systems-sysadmins/unsupported-fedora-packages/epel-9-x86_64/00114802-redhat-internal-cert-install/
+curl -sSLkO https://coprbe.devel.redhat.com/results/@endpoint-systems-sysadmins/unsupported-fedora-packages/epel-9-x86_64/00114802-redhat-internal-cert-install/redhat-internal-cert-install-0.2-1.el9.noarch.rpm
 dnf -y -q update
 dnf -y -q install sudo docker podman skopeo openssl openssl-devel python3-pip git jq rsync redhat-internal-cert-install*.rpm && rm -f redhat-internal-cert-install*.rpm
 pip3 install -q yq
