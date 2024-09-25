@@ -28,14 +28,18 @@ workflow:
 
 stages:
   - sync-midstream
-  - sync-downstream
-  - build-downstream
-  - copy-to-quay
+  # disabled - Konflux is handling this now
+  # - sync-downstream
+  # - build-downstream
+  # - copy-to-quay
   - publish-helmchart
-  - review-stages
+  # disabled: this is a useless step
+  # - review-stages
 
 include:
   - local: "/build/ci/sync-midstream-sync-downstream-build-downstream.yml"
-  - local: "/build/ci/copy-to-quay.yml"
+  # disabled - Konflux is handling this now
+  # - local: "/build/ci/copy-to-quay.yml"
   - local: "/build/ci/publish-helmchart.yml"
-  - local: "/build/ci/review-stages.yml"
+  # disabled: this is a useless step
+  # - local: "/build/ci/review-stages.yml"
