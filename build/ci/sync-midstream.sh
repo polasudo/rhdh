@@ -71,7 +71,7 @@ Examples:
     $0 --nobuild --nopush -b ${DWNSTM_BRANCH} --force -f ${UPSTREAM_FILE##*/}
     $0 -y
 "
-  exit 0
+  exit 1
 }
 
 if [[ "$#" -lt 1 ]]; then usage; fi
