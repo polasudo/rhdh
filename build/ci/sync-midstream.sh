@@ -946,9 +946,9 @@ done
 if [[ $DO_BUILD -eq 0 ]]; then
   for d in \
     distgit/containers/rhdh-hub/dynamic-plugins/imports/import-plugins.js \
-    distgit/containers/rhdh-hub/dynamic-plugins \
-    distgit/containers/rhdh-hub/e2e-tests \
-    distgit/containers/rhdh-hub/packages \
+    distgit/containers/rhdh-hub/dynamic-plugins/ \
+    distgit/containers/rhdh-hub/e2e-tests/ \
+    distgit/containers/rhdh-hub/packages/ \
     distgit/containers/rhdh-hub/yarn.lock \
     ; do git restore --staged $d; git restore $d
   done

@@ -17,8 +17,8 @@ sync-midstream:
       # sync, build and commit changes
       echo "Running sync-midstream.sh for $GITLAB_USER_LOGIN in branch $CI_COMMIT_REF_NAME ..."
       # can add --force flag here to push with -f
-      # RHIDP-3698 local yarn build disabled as we are letting Konflux handle that now (--no-build)
-      ./build/ci/sync-midstream.sh -b "$CI_COMMIT_REF_NAME" --gitlab-pipeline-push --no-build || exit 15
+      # RHIDP-3698 local yarn build disabled as we are letting Konflux handle that now (--nobuild)
+      ./build/ci/sync-midstream.sh -b "$CI_COMMIT_REF_NAME" --gitlab-pipeline-push --nobuild || exit 15
       echo "Committed: $CI_COMMIT_REF_NAME"
       set -x
       echo "Currently in $(pwd)"
