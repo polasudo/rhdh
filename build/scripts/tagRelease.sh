@@ -564,8 +564,9 @@ pushTagGL ()
 	if [[ $CSV_VERSION ]] && [[ $(git ls-remote "https://gitlab.cee.redhat.com/rhidp/${d}.git/" "refs/tags/$CSV_VERSION") ]]; then
 		echo; echo "[WARN] https://gitlab.cee.redhat.com/rhidp/${d}/-/tree/${CSV_VERSION}?ref_type=tags already exists."
 	else
-		# convert release-1.3 to rhdh-1.3-rhel-9
-		DWNSTM_TARGET_BRANCH=rhdh-${TARGET_BRANCH/release-/}-rhel-9
+		# convert release-1.3 or 1.2.x to rhdh-1.3-rhel-9
+		DWNSTM_TARGET_BRANCH=${TARGET_BRANCH/.x/}
+		DWNSTM_TARGET_BRANCH=rhdh-${DWNSTM_TARGET_BRANCH/release-/}-rhel-9
 		echo;
 		if [[ $SOURCE_BRANCH ]]; then
 			echo "== $d :: branch from $MIDSTM_BRANCH to $DWNSTM_TARGET_BRANCH =="
@@ -624,7 +625,8 @@ pushTagPD ()
 		echo; echo "[WARN] https://pkgs.devel.redhat.com/cgit/containers/${d}/tag/?h=$CSV_VERSION already exists."
 	else
 		# convert release-1.3 to rhdh-1.3-rhel-9
-		DWNSTM_TARGET_BRANCH=rhdh-${TARGET_BRANCH/release-/}-rhel-9
+		DWNSTM_TARGET_BRANCH=${TARGET_BRANCH/.x/}
+		DWNSTM_TARGET_BRANCH=rhdh-${DWNSTM_TARGET_BRANCH/release-/}-rhel-9
 		echo; 
 		if [[ $SOURCE_BRANCH ]]; then
 			echo "== $d :: branch from $pkgs_devel_branch to $DWNSTM_TARGET_BRANCH =="
