@@ -599,7 +599,7 @@ LABEL summary="\$SUMMARY" \\
       vendor="Red Hat, Inc." \\
       io.openshift.expose-services="" \\
       usage="" \\
-      konflux.additional-tags="\${CI_X_VERSION}.\${CI_Y_VERSION}" \\
+      konflux.additional-tags="\${CI_X_VERSION}.\${CI_Y_VERSION}, \${CI_X_VERSION}.\${CI_Y_VERSION}-RELEASE_NUMBER" \\
       distribution-scope="public" \\
       url="https://red.ht/rhdh"
 EOT
@@ -643,7 +643,7 @@ LABEL summary="\$SUMMARY" \\
       vendor="Red Hat, Inc." \\
       io.openshift.expose-services="" \\
       usage="" \\
-      konflux.additional-tags="\${CI_X_VERSION}.\${CI_Y_VERSION}" \\
+      konflux.additional-tags="\${CI_X_VERSION}.\${CI_Y_VERSION}, \${CI_X_VERSION}.\${CI_Y_VERSION}-RELEASE_NUMBER" \\
       distribution-scope="public" \\
       url="https://red.ht/rhdh"
 EOT
@@ -683,7 +683,7 @@ LABEL operators.operatorframework.io.bundle.mediatype.v1=registry+v1 \\
       maintainer="RHDH Team <rhdh-bot@redhat.com>" \\
       io.openshift.expose-services="" \\
       usage="" \\
-      konflux.additional-tags="\${CI_X_VERSION}.\${CI_Y_VERSION}" \\
+      konflux.additional-tags="\${CI_X_VERSION}.\${CI_Y_VERSION}, \${CI_X_VERSION}.\${CI_Y_VERSION}-RELEASE_NUMBER" \\
       distribution-scope="public" \\
       url="https://red.ht/rhdh"
 EOT
@@ -998,7 +998,9 @@ for d in distgit/containers/rhdh-hub distgit/containers/rhdh-operator distgit/co
       nextReleaseNum=$("${ROOTPATH}"/build/scripts/getNextReleaseNum.sh -b "${DWNSTM_BRANCH}" --tag "${DH_VERSION}" -c "$image" -q)
     fi
     echo "Set image version and release: $image:$DH_VERSION-$nextReleaseNum"
-    sed -r -e "s/release=\"RELEASE_NUMBER\"/release=\"$nextReleaseNum\"/" -i Containerfile
+    sed -i Containerfile -r \
+      -e "s/release=\"RELEASE_NUMBER\"/release=\"$nextReleaseNum\"/" \
+      -e "s/-RELEASE_NUMBER\"/-$nextReleaseNum\"/"
     ##################################### set NVR values for Konflux #####################################
 
     ##################################### rhdh-operator-bundle #####################################
