@@ -14,7 +14,7 @@
 
 #@follow_tag(registry.redhat.io/rhel9/go-toolset:latest)
 # https://registry.access.redhat.com/ubi9/go-toolset
-FROM rhel9/go-toolset:1.21.13-2 AS builder
+FROM registry.access.redhat.com/ubi9/go-toolset:1.21.13-2@sha256:81d135dc125dbda42e2eee82b0ec1f4bd0e98a66d7ee8393fee9755bf756f5f0 AS builder
 # hadolint ignore=DL3002
 USER 0
 ENV GOPATH=/go/
@@ -56,7 +56,7 @@ RUN export ARCH="$(uname -m)" && if [[ ${ARCH} == "x86_64" ]]; then export ARCH=
 # Install openssl for FIPS support
 #@follow_tag(registry.redhat.io/ubi9/ubi-minimal:latest)
 # https://registry.access.redhat.com/ubi9/ubi-minimal
-FROM ubi9-minimal:9.4-1227.1726694542 AS runtime
+FROM registry.access.redhat.com/ubi9-minimal:9.4-1227.1726694542@sha256:c0e70387664f30cd9cf2795b547e4a9a51002c44a4a86aa9335ab030134bf392 AS runtime
 RUN microdnf update --setopt=install_weak_deps=0 -y && microdnf install -y openssl; microdnf clean -y all
 
 # Upstream sources
@@ -87,7 +87,7 @@ ENTRYPOINT ["/manager"]
 # append Brew metadata here
 ENV SUMMARY="Red Hat Developer Hub operator" \
     DESCRIPTION="Red Hat Developer Hub operator" \
-    UPSTREAM_REPO="https://github.com/redhat-developer/rhdh-operator/tree/main @ f40763e9" \
+    UPSTREAM_REPO="https://github.com/redhat-developer/rhdh-operator/tree/main @ e1a38ef0" \
     MIDSTREAM_REPO="https://gitlab.cee.redhat.com/rhidp/rhdh/-/commits/rhdh-1-rhel-9" \
     PRODNAME="rhdh" \
     COMPNAME="operator"
