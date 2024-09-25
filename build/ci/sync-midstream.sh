@@ -183,6 +183,44 @@ createPr() {
   fi
 }
 
+checkImage () {
+    USE_QUAY="true"
+    QUIET=1
+
+    checkImage_result=""
+    local imageAndSHA="$1"
+    imageAndSHA=${imageAndSHA%%@*}
+    imageOnly=${imageAndSHA%%:*}
+    if [[ $QUIET -eq 0 ]]; then echo "For $imageAndSHA"; fi
+    # echo "[DEBUG] Got image = $image"
+    # shellcheck disable=SC2086
+    if [[ $QUIET -eq 1 ]]; then 
+        URL=$(skopeo inspect docker://${imageAndSHA} 2>/dev/null | jq -r '.Labels.url')
+    else
+        URL=$(skopeo inspect docker://${imageAndSHA} | jq -r '.Labels.url')
+    fi
+    # echo "[DEBUG] Got URL = $URL"
+    if [[ $URL ]]; then
+        container=${URL}
+        container=${imageOnly}:${container##*/images/}
+        # replace quay.io/devspaces/devspaces-rhel8-operator:3.4:3.4-22 with quay.io/devspaces/devspaces-rhel8-operator:3.4-22
+        container=$(echo "$container" | sed -r -e "s@:[0-9.]+:@:@")
+        container="${container}@$(skopeo inspect "docker://${container}" | jq -r '.Digest')"
+        if [[ $QUIET -eq 0 ]]; then echo "Got $container"; else echo "$container"; fi
+        checkImage_result="$container"
+    else
+        if [[ ${imageAndSHA} == "quay.io/"* ]];then 
+            echo "Not found"
+        elif [[ $USE_QUAY != "true" ]]; then 
+            echo "Not found; try --quay or -y flag to check same image on quay.io registry"
+        fi
+        if [[ "$USE_QUAY" == "true" ]]; then
+            checkImage_result="NONE"
+        fi
+    fi
+    # skopeo inspect docker://${container} | jq -r .Digest # note, this might be different from the input SHA, but still equivalent 
+}
+
 # get all upstream branches to avoid merge conflicts
 if [[ $GITLAB_PIPELINE == "true" ]]; then
   # NOTE that if debugging PRIVATE_TOKEN with set -x, token will be revealed in plaintext, not obfuscated
@@ -364,12 +402,36 @@ for ((i = 0; i < NUM_REPOS; i++)); do # echo $i
 
           # replace default backstage deployment name backstage-sample with developer-hub
           for yml in manifests/rhdh-operator.clusterserviceversion.yaml config/samples/_v1alpha1_backstage.yaml; do
+          # echo "Transforming $yml ..."
             if [[ -f $yml ]]; then
               sed -i $yml -r -e "s/backstage-sample/developer-hub/g"
+              # transform tags to digests
+              for imageAndSHA in $(cat $yml | grep -E "registry|quay.io" | sed -r "s/.+(containerImage|image|value): //g" | sort -u); do
+                imageFloatingTag=${imageAndSHA%%@*}
+                # echo "Computing digest for ${imageFloatingTag} ..."
+                checkImage "${imageFloatingTag}"
+                if [[ "$checkImage_result" == "NONE" ]]; then
+                  if [[ "${imageFloatingTag}" != "quay.io/"* ]]; then # don't check quay again if we already did!
+                    quayImage="${imageFloatingTag#*/}"
+                    # transform brew rh-osbs/foo-foo-operator to quay foo/foo-operator
+                    quayImage="$(echo "$quayImage" | sed -r -e "s@rh-osbs/([^-]+)-(.+)@\1/\2@")"
+                    checkImage "quay.io/${quayImage}"
+                  fi
+                fi
+                # echo "Got $checkImage_result for $imageAndSHA"
+                if [[ "$checkImage_result" != "NONE" ]]; then
+                  sed -i $yml -r -e "s|$imageAndSHA|$checkImage_result|g" 
+                  # git diff $yml
+                else
+                  echo "[WARNING] Could not compute digest for $imageAndSHA or $imageFloatingTag !"
+                fi
+              done
               if [[ $(git diff --name-only $yml) ]]; then # also update createdAt timestamp
                 now=$(date -u +%FT%TZ) # "2023-12-18T16:11:34Z"
                 echo "[INFO] Set createdAt: $now in $yml"
-                sed -i $yml -r -e "s/createdAt: \"[0-9TZ:-]+\"/createdAt: \"${now}\"/g"
+                sed -i $yml -r \
+                    -e "s/createdAt: \"[0-9TZ:-]+\"/createdAt: \"${now}\"/g" \
+                    -e "s@registry-proxy.engineering.redhat.com/rh-osbs/([^-]+)-(.+)@registry.redhat.io/\1/\2@g"
               fi
             fi
           done
@@ -474,17 +536,17 @@ for ((i = 0; i < NUM_REPOS; i++)); do # echo $i
       fi
     done
 
-    # TODO can we just remove this and use the same reg.access.rh.com or reg.rh.io repos downstream?
-    # transform Dockerfile.in for use in Brew
-    sed -i Dockerfile.in -r \
-      `# Remove registry for Brew` \
-      -e "s#FROM (registry.access.redhat.com|registry.redhat.io)/#FROM #g" \
-      `# Use registry-proxy.engineering.redhat.com/rh-osbs/rhel9-go-toolset for Brew` \
-      -e "s#FROM(.+)ubi9/go-toolset#FROM\1rhel9/go-toolset#g" \
-      `# remove @SHA256:digest suffixes that were added by renovate` \
-      -e "s#FROM (.+):(.+)(\@sha256:[0-9a-f]+)([A-Za-z ]*)#FROM \1:\2\4#g" \
-      `# Remove unnecessary intermediate named stages (which Brew doesn't like); rename initial stage from skeleton to builder`
-    # -e "/FROM (skeleton|deps|cleanup) AS .+/d" -e "s/--from=build //" -e "s/--from=cleanup/--from=builder/" -e "s/AS skeleton/AS builder/"
+    # disabled as we don't use OSBS anymore for builds and don't need these transformations in Konflux
+    # # transform Dockerfile.in for use in Brew
+    # sed -i Dockerfile.in -r \
+    #   `# Remove registry for Brew` \
+    #   -e "s#FROM (registry.access.redhat.com|registry.redhat.io)/#FROM #g" \
+    #   `# Use registry-proxy.engineering.redhat.com/rh-osbs/rhel9-go-toolset for Brew` \
+    #   -e "s#FROM(.+)ubi9/go-toolset#FROM\1rhel9/go-toolset#g" \
+    #   `# remove @SHA256:digest suffixes that were added by renovate` \
+    #   -e "s#FROM (.+):(.+)(\@sha256:[0-9a-f]+)([A-Za-z ]*)#FROM \1:\2\4#g" \
+    #   `# Remove unnecessary intermediate named stages (which Brew doesn't like); rename initial stage from skeleton to builder`
+    # # -e "/FROM (skeleton|deps|cleanup) AS .+/d" -e "s/--from=build //" -e "s/--from=cleanup/--from=builder/" -e "s/AS skeleton/AS builder/"
 
   popd >/dev/null || exit 1 # distgit/containers/*
 done                        # foreach upstream repo
@@ -534,9 +596,12 @@ LABEL summary="\$SUMMARY" \\
       release="RELEASE_NUMBER" \\
       license="ASLv2" \\
       maintainer="RHDH Team <rhdh-bot@redhat.com>" \\
+      vendor="Red Hat, Inc." \\
       io.openshift.expose-services="" \\
       usage="" \\
-      konflux.additional-tags="\${CI_X_VERSION}.\${CI_Y_VERSION}"
+      konflux.additional-tags="\${CI_X_VERSION}.\${CI_Y_VERSION}" \\
+      distribution-scope="public" \\
+      url="https://red.ht/rhdh"
 EOT
 echo "[INFO] Added metadata to $TMPDIR/hub.Dockerfile.foot"
 
@@ -575,9 +640,12 @@ LABEL summary="\$SUMMARY" \\
       release="RELEASE_NUMBER" \\
       license="ASLv2" \\
       maintainer="RHDH Team <rhdh-bot@redhat.com>" \\
+      vendor="Red Hat, Inc." \\
       io.openshift.expose-services="" \\
       usage="" \\
-      konflux.additional-tags="\${CI_X_VERSION}.\${CI_Y_VERSION}"
+      konflux.additional-tags="\${CI_X_VERSION}.\${CI_Y_VERSION}" \\
+      distribution-scope="public" \\
+      url="https://red.ht/rhdh"
 EOT
 echo "[INFO] Added metadata to $TMPDIR/operator.Dockerfile.foot"
 
@@ -609,6 +677,7 @@ LABEL operators.operatorframework.io.bundle.mediatype.v1=registry+v1 \\
       com.redhat.component="\$PRODNAME-\$COMPNAME-container" \\
       name="\$PRODNAME/\$PRODNAME-\$COMPNAME" \\
       version="\${CI_X_VERSION}.\${CI_Y_VERSION}" \\
+      vendor="Red Hat, Inc." \\
       release="RELEASE_NUMBER" \\
       license="ASLv2" \\
       maintainer="RHDH Team <rhdh-bot@redhat.com>" \\
@@ -616,8 +685,7 @@ LABEL operators.operatorframework.io.bundle.mediatype.v1=registry+v1 \\
       usage="" \\
       konflux.additional-tags="\${CI_X_VERSION}.\${CI_Y_VERSION}" \\
       distribution-scope="public" \\
-      url="https://red.ht/rhdh" \\
-      vendor="Red Hat, Inc."
+      url="https://red.ht/rhdh"
 EOT
 echo "[INFO] Added metadata to $TMPDIR/operator-bundle.Dockerfile.foot"
 

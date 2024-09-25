@@ -21,7 +21,7 @@
 # Stage 1 - Build nodejs skeleton
 #@follow_tag(registry.access.redhat.com/ubi9/nodejs-20:1)
 # https://registry.access.redhat.com/ubi9/nodejs-20
-FROM ubi9/nodejs-20:1-59.1725906894 AS build
+FROM registry.access.redhat.com/ubi9/nodejs-20:1-59.1725906894 AS build
 # hadolint ignore=DL3002
 USER 0
 
@@ -182,7 +182,7 @@ RUN "$YARN" install --frozen-lockfile --production --network-timeout 600000
 # Stage 5 - Build the runner image
 #@follow_tag(registry.access.redhat.com/ubi9/nodejs-20-minimal:1)
 # https://registry.access.redhat.com/ubi9/nodejs-20-minimal
-FROM ubi9/nodejs-20-minimal:1-63.1725851021 AS runner
+FROM registry.access.redhat.com/ubi9/nodejs-20-minimal:1-63.1725851021 AS runner
 USER 0
 
 # Downstream sources
@@ -283,6 +283,9 @@ LABEL summary="$SUMMARY" \
       version="1.4" \
       license="ASLv2" \
       maintainer="RHDH Team <rhdh-bot@redhat.com>" \
+      vendor="Red Hat, Inc." \
       io.openshift.expose-services="" \
       usage="" \
-      konflux.additional-tags="1.4"
+      konflux.additional-tags="1.4" \
+      distribution-scope="public" \
+      url="https://red.ht/rhdh"

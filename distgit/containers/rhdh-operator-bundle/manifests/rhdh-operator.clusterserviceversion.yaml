@@ -19,8 +19,8 @@ metadata:
     capabilities: Seamless Upgrades
     categories: Developer Tools
     certified: 'true'
-    containerImage: registry-proxy.engineering.redhat.com/rh-osbs/rhdh-rhdh-rhel9-operator:1.4
-    createdAt: "2023-03-20T16:11:34Z"
+    containerImage: registry.redhat.io/rhdh/rhdh-rhel9-operator:1.4-36@sha256:3dac6649f1f6aa66909417530b2a868dbb1feb05b2cc8f2c8209d075de49c332
+    createdAt: "2024-09-25T14:05:30Z"
     description: Red Hat Developer Hub is a Red Hat supported version of Backstage.
       It comes with pre-built plug-ins and configuration settings, supports use of an external database, and can
       help streamline the process of setting up a self-managed internal
@@ -219,7 +219,7 @@ spec:
                 - --upstream=http://127.0.0.1:8080/
                 - --logtostderr=true
                 - --v=0
-                image: registry.redhat.io/openshift4/ose-kube-rbac-proxy:v4.12
+                image: registry.redhat.io/openshift4/ose-kube-rbac-proxy:v4.12.0-202408271831.p0.gb17014f.assembly.stream.el8@sha256:7e36b61f51a9381e143e1ef8d2644dd9958439c6a82c09ae9b661a0f613c8570
                 name: kube-rbac-proxy
                 ports:
                 - containerPort: 8443
@@ -251,10 +251,10 @@ spec:
                     fieldRef:
                      fieldPath: metadata.name
                 - name: RELATED_IMAGE_postgresql
-                  value: registry.redhat.io/rhel9/postgresql-15:latest
+                  value: registry.redhat.io/rhel9/postgresql-15:1-78.1726663412@sha256:10475924583aba63c50b00337b4097cdad48e7a8567fd77f400b278ad1782bfc
                 - name: RELATED_IMAGE_backstage
-                  value: registry-proxy.engineering.redhat.com/rh-osbs/rhdh-rhdh-hub-rhel9:1.4
-                image: registry-proxy.engineering.redhat.com/rh-osbs/rhdh-rhdh-rhel9-operator:1.4
+                  value: registry.redhat.io/rhdh/rhdh-hub-rhel9:1.4-38@sha256:837fad6b2aaf5100e56e65883c43a5615ff2bc28751a4a00ca7e28665711c268
+                image: registry.redhat.io/rhdh/rhdh-rhel9-operator:1.4-36@sha256:3dac6649f1f6aa66909417530b2a868dbb1feb05b2cc8f2c8209d075de49c332
                 livenessProbe:
                   httpGet:
                     path: /healthz
