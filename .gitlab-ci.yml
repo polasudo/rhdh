@@ -28,7 +28,7 @@ workflow:
 
 stages:
   - sync-midstream
-  # disabled - Konflux is handling this now
+  # RHIDP-3698 OSBS builds disabled as we are letting Konflux handle them - https://konflux.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/application-pipeline/workspaces/rhdh/applications/rhdh-1
   # - sync-downstream
   # - build-downstream
   # - copy-to-quay
@@ -38,7 +38,7 @@ stages:
 
 include:
   - local: "/build/ci/sync-midstream-sync-downstream-build-downstream.yml"
-  # disabled - Konflux is handling this now
+  # RHIDP-3698 OSBS builds disabled as we are letting Konflux handle them - https://konflux.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/application-pipeline/workspaces/rhdh/applications/rhdh-1
   # - local: "/build/ci/copy-to-quay.yml"
   - local: "/build/ci/publish-helmchart.yml"
   # disabled: this is a useless step

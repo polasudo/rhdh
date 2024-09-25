@@ -1,7 +1,8 @@
 publish-helmchart:
   extends: .shared_config
   stage: publish-helmchart
-  needs: ["copy-to-quay"]
+  # RHIDP-3698 OSBS builds disabled as we are letting Konflux handle them - https://konflux.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/application-pipeline/workspaces/rhdh/applications/rhdh-1
+  # needs: ["copy-to-quay"]
   rules:
     - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH =~ /rhdh-[0-9.]+-rhel-9/
     # for scheduled runs, check env var
