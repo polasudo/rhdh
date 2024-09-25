@@ -174,7 +174,7 @@ ENTRYPOINT ["node", "packages/backend", "--no-node-snapshot", "--config", "app-c
 # append Brew metadata here
 ENV SUMMARY="Red Hat Developer Hub container" \
     DESCRIPTION="Red Hat Developer Hub container" \
-    UPSTREAM_REPO="https://github.com/janus-idp/backstage-showcase/tree/main @ a6f58212" \
+    UPSTREAM_REPO="https://github.com/janus-idp/backstage-showcase/tree/main @ 8304f987" \
     MIDSTREAM_REPO="https://gitlab.cee.redhat.com/rhidp/rhdh/-/commits/rhdh-1-rhel-9" \
     PRODNAME="rhdh" \
     COMPNAME="hub"
@@ -187,12 +187,12 @@ LABEL summary="$SUMMARY" \
       com.redhat.component="$PRODNAME-$COMPNAME-container" \
       name="$PRODNAME/$PRODNAME-$COMPNAME-rhel9" \
       version="1.4" \
-      release="39" \
+      release="40" \
       license="ASLv2" \
       maintainer="RHDH Team <rhdh-bot@redhat.com>" \
       vendor="Red Hat, Inc." \
       io.openshift.expose-services="" \
       usage="" \
-      konflux.additional-tags="1.4, 1.4-39" \
+      konflux.additional-tags="1.4, 1.4-40" \
       distribution-scope="public" \
       url="https://red.ht/rhdh"
