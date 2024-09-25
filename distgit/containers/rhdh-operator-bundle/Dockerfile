@@ -48,6 +48,6 @@ LABEL operators.operatorframework.io.bundle.mediatype.v1=registry+v1 \
       maintainer="RHDH Team <rhdh-bot@redhat.com>" \
       io.openshift.expose-services="" \
       usage="" \
-      konflux.additional-tags="1.4" \
+      konflux.additional-tags="1.4, 1.4-RELEASE_NUMBER" \
       distribution-scope="public" \
       url="https://red.ht/rhdh"

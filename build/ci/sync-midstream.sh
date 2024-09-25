@@ -194,18 +194,28 @@ checkImage () {
     if [[ $QUIET -eq 0 ]]; then echo "For $imageAndSHA"; fi
     # echo "[DEBUG] Got image = $image"
     # shellcheck disable=SC2086
-    if [[ $QUIET -eq 1 ]]; then 
-        URL=$(skopeo inspect docker://${imageAndSHA} 2>/dev/null | jq -r '.Labels.url')
-    else
-        URL=$(skopeo inspect docker://${imageAndSHA} | jq -r '.Labels.url')
-    fi
-    # echo "[DEBUG] Got URL = $URL"
-    if [[ $URL ]]; then
-        container=${URL}
-        container=${imageOnly}:${container##*/images/}
-        # replace quay.io/devspaces/devspaces-rhel8-operator:3.4:3.4-22 with quay.io/devspaces/devspaces-rhel8-operator:3.4-22
-        container=$(echo "$container" | sed -r -e "s@:[0-9.]+:@:@")
-        container="${container}@$(skopeo inspect "docker://${container}" | jq -r '.Digest')"
+    image_version=$(skopeo inspect docker://${imageAndSHA} 2>/dev/null | jq -r '.Labels.version')
+    # shellcheck disable=SC2086
+    image_release=$(skopeo inspect docker://${imageAndSHA} 2>/dev/null | jq -r '.Labels.release')
+
+    # echo "[DEBUG] Got version_release = $version_release"
+    if [[ $image_version ]] && [[ $image_release ]]; then
+        container=${imageOnly}:${image_version}-${image_release}
+        digest="$(skopeo inspect "docker://${container}" 2>/dev/null | jq -r '.Digest' 2>/dev/null )"
+        if [[ $digest ]]; then
+          container="${container}@$digest"
+        else
+          # try previous image
+          (( image_release = image_release - 1 ))
+          container=${imageOnly}:${image_version}-${image_release}
+          digest="$(skopeo inspect "docker://${container}" 2>/dev/null | jq -r '.Digest' 2>/dev/null )"
+          if [[ $digest ]]; then
+            container="${container}@$digest"
+          else
+            # no digest, so just use :tag
+            container=${imageOnly}:${image_version}
+          fi
+        fi
         if [[ $QUIET -eq 0 ]]; then echo "Got $container"; else echo "$container"; fi
         checkImage_result="$container"
     else
@@ -406,6 +416,7 @@ for ((i = 0; i < NUM_REPOS; i++)); do # echo $i
             if [[ -f $yml ]]; then
               sed -i $yml -r -e "s/backstage-sample/developer-hub/g"
               # transform tags to digests
+              # shellcheck disable=SC2013
               for imageAndSHA in $(cat $yml | grep -E "registry|quay.io" | sed -r "s/.+(containerImage|image|value): //g" | sort -u); do
                 imageFloatingTag=${imageAndSHA%%@*}
                 # echo "Computing digest for ${imageFloatingTag} ..."
@@ -431,7 +442,8 @@ for ((i = 0; i < NUM_REPOS; i++)); do # echo $i
                 echo "[INFO] Set createdAt: $now in $yml"
                 sed -i $yml -r \
                     -e "s/createdAt: \"[0-9TZ:-]+\"/createdAt: \"${now}\"/g" \
-                    -e "s@registry-proxy.engineering.redhat.com/rh-osbs/([^-]+)-(.+)@registry.redhat.io/\1/\2@g"
+                    -e "s@registry-proxy.engineering.redhat.com/rh-osbs/([^-]+)-(.+)@registry.redhat.io/\1/\2@g" \
+                    -e "s@quay.io/rhdh/@registry.redhat.io/rhdh/@g"
               fi
             fi
           done
@@ -963,7 +975,7 @@ for d in distgit/containers/rhdh-hub distgit/containers/rhdh-operator distgit/co
     sed -i '/# append Brew metadata here/q' Dockerfile.in
     cat "$TMPDIR/${d##*rhdh-}.Dockerfile.foot" >> Dockerfile.in
 
-    sed -r -e 's|\$\{CI_X_VERSION\}\.\$\{CI_Y_VERSION\}|'"$DH_VERSION"'|' Dockerfile.in > Dockerfile
+    sed -r -e 's|\$\{CI_X_VERSION\}\.\$\{CI_Y_VERSION\}|'"$DH_VERSION"'|g' Dockerfile.in > Dockerfile
 
     ## generate Containerfile for Konflux
     # use upstream Dockerfiles for hub and operator
@@ -979,7 +991,7 @@ for d in distgit/containers/rhdh-hub distgit/containers/rhdh-operator distgit/co
       sed -i '/# append Brew metadata here/q' Containerfile
     
       cat "$TMPDIR/${d##*rhdh-}.Dockerfile.foot" >> Containerfile
-      sed -r -e 's|\$\{CI_X_VERSION\}\.\$\{CI_Y_VERSION\}|'"$DH_VERSION"'|' -i "Containerfile"
+      sed -r -e 's|\$\{CI_X_VERSION\}\.\$\{CI_Y_VERSION\}|'"$DH_VERSION"'|g' -i "Containerfile"
     fi
 
     ##################################### set NVR values for Konflux #####################################
