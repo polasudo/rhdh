@@ -155,18 +155,26 @@ If the changes you expect are not seen when installing via Operator, but are see
 
 ## Release Candidates
 
-Once the code freeze is achieved and all the last minute changes have stopped, youll want to:
+Once the code freeze is achieved and all the last minute changes have stopped, you need to :
 
 * disable the 1.y pipeline so you don't get any unexpected/unapproved changes in the release candidate
-* wait until the CVP tests are completed and the IIB is fully published and has passed its tests
-* run `copyIIBsToQuay.sh` to update the IIBs for the RC, using an additional RC flag to ensure your IIBs persist longer than 14 days
+** log in as the rhdh-bot, then go to the link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/pipeline_schedules[pipeline schedules] page
+** find the correct pipeline, efg., for 1.3 use https://gitlab.cee.redhat.com/rhidp/rhdh/-/pipeline_schedules/1804/edit?id=1804
+** uncheck the *Activated* box, and hit *Save changes*
+
+* copy the latest IIBs to quay.io/rhdh/iib
+** wait until the CVP tests are completed and the IIB is fully published and has passed its tests
+** run `copyIIBsToQuay.sh` to update the IIBs for the RC, using an additional RC flag to ensure your IIBs persist longer than 14 days
++
 ```
 TAG=1.3-95
 STREAM=1.3
 EXTRA_TAG="-e 1.3.0.RC-09-26"
 ./copyIIBsToQuay.sh -p -t ${TAG} --latest ${EXTRA_TAG}
 ```
-* verify the IIB is correct:
++
+** verify the IIB is correct:
++
 ```
 ./checkImagesInIIB.sh -y -q quay.io/rhdh/iib:${STREAM}-v4.14-x86_64 && \
 for q in $(./getLatestImageTags.sh -b rhdh-${STREAM}-rhel-9 --quay); do echo;echo $q; \
@@ -176,13 +184,21 @@ sudo rm -fr /tmp/opm-registry-* \
     /tmp/quay.io-rhdh-iib-* \
     /tmp/registry-proxy.engineering.redhat.com-rh-osbs-rhdh-rhdh-operator-bundle-*; \
 ```
-* copy the latest NVRs into the errata
++
+* update the errata with the latst RC builds
+** copy the latest NVRs into the errata
++
 ```
 ./getLatestImageTags.sh -b rhdh-1.3-rhel-9 --errata 123456errata-number-goes-here789
 ```
-* move the errata to `QE` and trigger a push to stage
-* collect the NVRs and quay images into an email and send it to QE with a subject like `RHDH 1.3.0 RC-09-26 is ready for QE`
-* copy the contents of that email into slack #forum-rhdh-releases channel
++
+** move the errata to `QE` and trigger a push to stage
+
+* smoke test the helm and operator installation on clusterbot (4.14 or newer, gcp)
+
+* send notification
+** collect the NVRs and quay images into an email and send it to QE with a subject like `RHDH 1.3.0 RC-09-26 is ready for QE`
+** copy the contents of that email into slack #forum-rhdh-releases channel
 
 If a second RC build is needed, re-enable the scheduled pipeline (or trigger a pipeline manually), and repeat the above steps. 
 
