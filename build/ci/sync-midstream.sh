@@ -496,9 +496,14 @@ for ((i = 0; i < NUM_REPOS; i++)); do # echo $i
       d="packages/app/public/index.html"
       sed -i -r -e "s#(<meta name=\"description\" content=\")(.+)(\" />)#\1$APPTITLE\3#" "$d"
 
+      midstream_repo_and_SHA="https://$(git remote -v | grep origin | grep -v push | sed -r -e "s|.+@(.+)\.git.+|\1|" | tr ":" "/")/-/commits/$(git rev-parse --abbrev-ref HEAD) @ $(git rev-parse --short=8 HEAD)"
+      # set MIDSTREAM_REPO env var in Konflux Containerfile
+      sed -i Containerfile -r -e "s|(MIDSTREAM_REPO=)\".+\"|\1\"${midstream_repo_and_SHA}\"|"
+      now="$(date -u +%FT%TZ)";
+
       # set build-metadata.json info, using upstream info: ${ROOTPATH}/sync/upstream_SHA_rhdh-hub ==> janus-idp/backstage-showcase main @ 2ff35695
       sed -i packages/app/src/build-metadata.json -r \
-        -e 's|("Last Commit:.+)|"Last Commit: '"$upstream_repo_hub"'"|'
+        -e 's|"(Last Commit: )(.+)"|"Upstream: '"$upstream_repo_hub"'", "Midstream: '"$midstream_repo_and_SHA"'", "Build Time: '"$now"'|'
     fi
     ##################################### rhdh-hub #####################################
 
@@ -1025,12 +1030,14 @@ for d in distgit/containers/rhdh-hub distgit/containers/rhdh-operator distgit/co
 done
 
 # revert any local changes to the hub so we don't accidentally push in changes from upstream without first running a yarn build
+# want to keep changes to distgit/containers/rhdh-hub/packages/app/src/build-metadata.json ! 
 if [[ $DO_BUILD -eq 0 ]]; then
   for d in \
     distgit/containers/rhdh-hub/dynamic-plugins/imports/import-plugins.js \
     distgit/containers/rhdh-hub/dynamic-plugins/ \
     distgit/containers/rhdh-hub/e2e-tests/ \
-    distgit/containers/rhdh-hub/packages/ \
+    distgit/containers/rhdh-hub/packages/app/public/ \
+    distgit/containers/rhdh-hub/packages/backend/ \
     distgit/containers/rhdh-hub/yarn.lock \
     ; do git restore --staged $d; git restore $d
   done

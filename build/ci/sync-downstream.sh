@@ -104,8 +104,10 @@ klist; git clone "ssh://rhdh-bot@pkgs.devel.redhat.com/containers/${CONTAINER_NA
     done
     if [[ $CONTAINER_NAME == "rhdh-hub" ]] && [[ -f "${CONTAINER_DIR}"/packages/app/src/build-metadata.json ]]; then
       # set build-metadata.json info, using janus-idp/backstage-showcase main @ 2ff35695
+      now="$(date -u +%FT%TZ)";
       sed -i "${CONTAINER_DIR}"/packages/app/src/build-metadata.json -r \
-        -e 's|"(Last Commit: )(.+)"|"Last Commit: \2", "Midstream: '"$midstream_repo_and_SHA"'"|'
+        -e 's|"(Last Commit: )(.+)"|"Last Commit: \2", "Midstream: '"$midstream_repo_and_SHA"'"|' \
+        -e "s/\"Last Commit: (.+)\"/\"Upstream: \1\", \"Build Time: $now\"/"
     fi
   popd >/dev/null || exit 1
 
