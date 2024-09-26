@@ -503,7 +503,7 @@ for ((i = 0; i < NUM_REPOS; i++)); do # echo $i
 
       # set build-metadata.json info, using upstream info: ${ROOTPATH}/sync/upstream_SHA_rhdh-hub ==> janus-idp/backstage-showcase main @ 2ff35695
       sed -i packages/app/src/build-metadata.json -r \
-        -e 's|"(Last Commit: )(.+)"|"Upstream: '"$upstream_repo_hub"'", "Midstream: '"$midstream_repo_and_SHA"'", "Build Time: '"$now"'|'
+        -e 's|"(Last Commit: )(.+)"|"Upstream: '"$upstream_repo_hub"'", "Midstream: '"$midstream_repo_and_SHA"'", "Build Time: '"$now"'"|'
     fi
     ##################################### rhdh-hub #####################################
 
