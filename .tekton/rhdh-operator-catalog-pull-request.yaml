@@ -8,7 +8,7 @@ metadata:
     build.appstudio.redhat.com/target_branch: '{{target_branch}}'
     pipelinesascode.tekton.dev/max-keep-runs: "3"
     pipelinesascode.tekton.dev/on-cel-expression: event == "pull_request" && target_branch
-      == "rhdh-1-rhel-9"
+      == "rhdh-1-rhel-9" && ( "catalog/***".pathChanged() || ".tekton/rhdh-operator-catalog-pull-request.yaml".pathChanged())
   creationTimestamp: null
   labels:
     appstudio.openshift.io/application: rhdh-1
@@ -23,11 +23,13 @@ spec:
   - name: revision
     value: '{{revision}}'
   - name: output-image
-    value: quay.io/redhat-user-workloads/rhdh-tenant/rhdh-1/rhdh-operator-catalog:on-pr-{{revision}}
+    value: quay.io/rhdh/rhdh-operator-catalog:on-pr-{{revision}}
   - name: image-expires-after
-    value: 5d
+    value: 2w
   - name: dockerfile
-    value: Dockerfile
+    value: Containerfile
+  - name: path-context
+    value: catalog
   pipelineSpec:
     description: |
       This pipeline is ideal for building and verifying [file-based catalogs](https://konflux-ci.dev/docs/advanced-how-tos/building-olm.adoc#building-the-file-based-catalog).
@@ -115,7 +117,7 @@ spec:
       description: Build a source image.
       name: build-source-image
       type: string
-    - default: "false"
+    - default: "true"
       description: Add built image into an OCI image index
       name: build-image-index
       type: string
