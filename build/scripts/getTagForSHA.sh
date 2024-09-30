@@ -46,9 +46,9 @@ checkImage () {
     # echo "[DEBUG] Got image = $image"
     # shellcheck disable=SC2086
     if [[ $QUIET -eq 1 ]]; then 
-        URL=$(skopeo inspect docker://${imageAndSHA} 2>/dev/null | jq -r '.Labels.url')
+        URL=$(skopeo inspect docker://${imageAndSHA} 2>/dev/null | jq -r '.Labels.version+"-"+.Labels.release')
     else
-        URL=$(skopeo inspect docker://${imageAndSHA} | jq -r '.Labels.url')
+        URL=$(skopeo inspect docker://${imageAndSHA} | jq -r '.Labels.version+"-"+.Labels.release')
     fi
     # echo "[DEBUG] Got URL = $URL"
     if [[ $URL ]]; then
