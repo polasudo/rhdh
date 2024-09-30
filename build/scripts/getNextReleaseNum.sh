@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (c) 2023 Red Hat, Inc.
+# Copyright (c) 2024 Red Hat, Inc.
 # This program and the accompanying materials are made
 # available under the terms of the Eclipse Public License 2.0
 # which is available at https://www.eclipse.org/legal/epl-2.0/
@@ -13,6 +13,7 @@
 # get release number for a given image and make sure it's the latest NVR and wquay tag too
 
 SCRIPT=$(readlink -f "$0"); SCRIPTPATH=$(dirname "$SCRIPT")
+CHECK_NVR="" # by default don't check for NVRs in Brew, only check quay tags
 QUIET=0
 
 DH_CONTAINERS="\
@@ -39,6 +40,7 @@ while [[ "$#" -gt 0 ]]; do
     '-b') MIDSTM_BRANCH="$2"; shift 1;;
     '--tag') TAG="$2"; shift 1;;
     '-c') CONTAINERS="${CONTAINERS} $2"; shift 1;;
+    '--check-nvr') CHECK_NVR="true";;
     '-q') QUIET=1;;
     '-h'|'--help') usage; exit 1;;
   esac
@@ -62,12 +64,14 @@ fi
 for c in $CONTAINERS; do 
     declare -i latest
     if [[ $QUIET -eq 0 ]]; then echo -n "$c: ${TAG}-"; fi
-    set -x 
+    # set -x
     latestQuay=$("${SCRIPTPATH}"/getLatestImageTags.sh -b "${MIDSTM_BRANCH}" -c "$c" --quay --tag "${TAG}-" 2>&1 | sed -r -e "s|.+:([0-9.]+)-([0-9]+)|\2|")
-    latestNVR=$("${SCRIPTPATH}"/getLatestImageTags.sh -b "${MIDSTM_BRANCH}" -c "$c" --nvr 2>&1                   | sed -r -e "s|.+container-([0-9.]+)-([0-9]+)|\2|")
-    set +x 
-        # echo "* $latestQuay"
-        # echo "* $latestNVR"
+    latestNVR=""
+    if [[ $CHECK_NVR ]]; then 
+        latestNVR=$("${SCRIPTPATH}"/getLatestImageTags.sh -b "${MIDSTM_BRANCH}" -c "$c" --nvr 2>&1                   | sed -r -e "s|.+container-([0-9.]+)-([0-9]+)|\2|")
+    fi
+    # set +x
+    # echo "* $latestQuay ?? $latestNVR"
     latest=$(echo -e "$latestQuay\n$latestNVR" | sort -rV | head -n1) # greater of the two
     # increment to the next available value
     (( latest = latest+1 ))

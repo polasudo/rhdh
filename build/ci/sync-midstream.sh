@@ -210,6 +210,7 @@ checkImage () {
           container="${container}@$digest"
         else
           # try previous image
+          # shellcheck disable=SC2086
           image_release=$(int $image_release)
           (( image_release = image_release-1 ))
           container=${imageOnly}:${image_version}-${image_release}
@@ -221,7 +222,7 @@ checkImage () {
             container=${imageOnly}:${image_version}
           fi
         fi
-        if [[ $QUIET -eq 0 ]]; then echo "Got $container"; else echo "$container"; fi
+        if [[ $QUIET -eq 0 ]]; then echo "Got $container"; else echo "       * $container"; fi
         checkImage_result="$container"
     else
         if [[ ${imageAndSHA} == "quay.io/"* ]];then 
@@ -393,7 +394,7 @@ for ((i = 0; i < NUM_REPOS; i++)); do # echo $i
     ##################################### rhdh-operator-bundle #####################################
     # if processing the upstream operator, also make some changes to the operator-bundle folder dowstream
     if [[ $destination_folder == *"rhdh-operator"* ]]; then
-      echo -n " and ${destination_folder%/}-bundle ... "
+      echo " and ${destination_folder%/}-bundle ... "
       BUNDLEDIR="${ROOTPATH}/${destination_folder%/}-bundle"
       # copy the contents of bundle/ into distgit/containers/rhdh-operator-bundle/
       # NOTE: if we add any .dotfiles in bundle/, add $TMPDIR/repo${i}/bundle/.??* to regexes copied 
@@ -417,7 +418,7 @@ for ((i = 0; i < NUM_REPOS; i++)); do # echo $i
 
           # replace default backstage deployment name backstage-sample with developer-hub
           for yml in manifests/rhdh-operator.clusterserviceversion.yaml config/samples/_v1alpha1_backstage.yaml; do
-          # echo "Transforming $yml ..."
+          echo "[INFO] Transforming $yml ..."
             if [[ -f $yml ]]; then
               sed -i $yml -r -e "s/backstage-sample/developer-hub/g"
               # transform tags to digests
@@ -464,7 +465,7 @@ for ((i = 0; i < NUM_REPOS; i++)); do # echo $i
 
     popd >/dev/null || exit 1
     # rm -fr "$TMPDIR/repo${i}"
-    echo "done."
+    echo "done."; echo
   fi
 
   echo "[INFO] Process files in ${destination_folder} ..."
@@ -1009,6 +1010,7 @@ for d in distgit/containers/rhdh-hub distgit/containers/rhdh-operator distgit/co
     sed -r -i '/release=".+"/d' Dockerfile
     # set release value in Containerfile (Konflux does not do this)
     nextReleaseNum=000
+    # NOTE: to also check for latest NVRs in Brew, use getNextReleaseNum.sh --check-nvr
     if [[ $d == "distgit/containers/rhdh-hub" ]]; then
       image=rhdh/rhdh-hub-rhel9
       nextReleaseNum=$("${ROOTPATH}"/build/scripts/getNextReleaseNum.sh -b "${DWNSTM_BRANCH}" --tag "${DH_VERSION}" -c "$image" -q)
