@@ -3,6 +3,6 @@
   "card": [
     "RHDH Version: 1.4.0",
     "Backstage Version: 1.29.2",
-    "Upstream: https://github.com/janus-idp/backstage-showcase/tree/main @ 12f34cd4", "Midstream: https://gitlab.cee.redhat.com/rhidp/rhdh/-/commits/rhdh-1-rhel-9 @ 755c5e50", "Build Time: 2024-09-30T02:04:25Z"
+    "Upstream: https://github.com/janus-idp/backstage-showcase/tree/main @ 12f34cd4", "Midstream: https://gitlab.cee.redhat.com/rhidp/rhdh/-/commits/rhdh-1-rhel-9 @ 0e07ad9e", "Build Time: 2024-09-30T02:08:14Z"
   ]
 }
