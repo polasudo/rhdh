@@ -183,6 +183,9 @@ createPr() {
   fi
 }
 
+# from https://stackoverflow.com/questions/11268437/how-to-convert-string-to-integer-in-unix-shelll/59781257#59781257
+int(){ printf '%d' "${1:-}" 2>/dev/null || :; }
+
 checkImage () {
     USE_QUAY="true"
     QUIET=1
@@ -192,6 +195,7 @@ checkImage () {
     imageAndSHA=${imageAndSHA%%@*}
     imageOnly=${imageAndSHA%%:*}
     if [[ $QUIET -eq 0 ]]; then echo "For $imageAndSHA"; fi
+
     # echo "[DEBUG] Got image = $image"
     # shellcheck disable=SC2086
     image_version=$(skopeo inspect docker://${imageAndSHA} 2>/dev/null | jq -r '.Labels.version')
@@ -206,7 +210,8 @@ checkImage () {
           container="${container}@$digest"
         else
           # try previous image
-          (( image_release = image_release - 1 ))
+          image_release=$(int $image_release)
+          (( image_release = image_release-1 ))
           container=${imageOnly}:${image_version}-${image_release}
           digest="$(skopeo inspect "docker://${container}" 2>/dev/null | jq -r '.Digest' 2>/dev/null )"
           if [[ $digest ]]; then

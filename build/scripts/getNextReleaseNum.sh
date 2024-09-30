@@ -60,13 +60,16 @@ if [[ ! -x ${SCRIPTPATH}/getLatestImageTags.sh ]]; then
 fi
 
 for c in $CONTAINERS; do 
+    declare -i latest
     if [[ $QUIET -eq 0 ]]; then echo -n "$c: ${TAG}-"; fi
+    set -x 
     latestQuay=$("${SCRIPTPATH}"/getLatestImageTags.sh -b "${MIDSTM_BRANCH}" -c "$c" --quay --tag "${TAG}-" 2>&1 | sed -r -e "s|.+:([0-9.]+)-([0-9]+)|\2|")
     latestNVR=$("${SCRIPTPATH}"/getLatestImageTags.sh -b "${MIDSTM_BRANCH}" -c "$c" --nvr 2>&1                   | sed -r -e "s|.+container-([0-9.]+)-([0-9]+)|\2|")
+    set +x 
         # echo "* $latestQuay"
         # echo "* $latestNVR"
     latest=$(echo -e "$latestQuay\n$latestNVR" | sort -rV | head -n1) # greater of the two
     # increment to the next available value
-    (( latest = latest +1 ))
+    (( latest = latest+1 ))
     echo "$latest"
 done
