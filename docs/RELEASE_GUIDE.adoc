@@ -223,7 +223,7 @@ If a second RC build is needed, re-enable the scheduled pipeline (or trigger a p
 
 ### [RELEASE] Once images are live
 
-. [ ] Remove the now-EOL image stream from Comet so we stop getting reminded about CVEs for EOL versions. For example with the release of 1.4, 1.2 will be EOL.
+. [ ] Remove the now-EOL image stream from Comet so we stop getting reminded about CVEs for EOL versions. For example with the release of 1.4, 1.2 will be EOL. See image metadata at https://comet.engineering.redhat.com/containers/repositories?view=myRepos&filter=repoPath:rhdh then click through on each image to edit them.
 +
 image::images/comet-config.png[]
 image::images/comet-config-detail.png[]
