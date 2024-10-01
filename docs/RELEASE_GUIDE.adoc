@@ -222,6 +222,14 @@ If a second RC build is needed, re-enable the scheduled pipeline (or trigger a p
 . [ ] Monitor container image release via errata.
 
 ### [RELEASE] Once images are live
+
+. [ ] Remove the now-EOL image stream from Comet so we stop getting reminded about CVEs for EOL versions. For example with the release of 1.4, 1.2 will be EOL.
++
+image::images/comet-config.png[]
+image::images/comet-config-detail.png[]
+image::images/comet-config2.png[]
+image::images/comet-config-detail2.png[]
++
 . [ ] link:../build/helm/prepare.sh[Push the helm chart].
 +
 ```
@@ -234,8 +242,9 @@ gh auth status
 # create pull request
 ./build/helm/prepare.sh --chart-version 1.4.2 --rhdh-version 1.4-132 --chart-branch release-1.4 --catalog git@github.com:rhdh-bot/openshift-helm-charts.git --publish
 ```
-
++
 You should see something like this:
++
 ```
 Create chart for 1.4-132 (1.4.2)
 Set image digests in charts/backstage/values.yaml: 
@@ -250,7 +259,7 @@ Branch:               https://github.com/rhdh-bot/openshift-helm-charts/tree/red
 ...
 https://github.com/openshift-helm-charts/charts/pull/1556
 ```
-
++
 . [ ] link:../build/scripts/copyIIBsToQuay.sh[Release the operator IIB to Quay] so it doesn't expire.
 +
 ```
@@ -295,4 +304,4 @@ Ongoing through the quarter, remember to:
 
 . Update the link:../build/dockerfiles/[gitlab pipeline runner images] at least once every quarter
 . Monitor GH-GL syncs and pipelines, as things can fail unexpectedly in OSBS or on gitlab runners
-. Monitor quay image updates to ensure everything is kept current and fresh relative to upstram branches
+. Monitor quay image updates to ensure everything is kept current and fresh relative to upstream branches
