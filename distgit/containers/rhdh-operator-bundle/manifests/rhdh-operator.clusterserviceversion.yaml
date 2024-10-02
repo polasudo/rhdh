@@ -19,8 +19,8 @@ metadata:
     capabilities: Seamless Upgrades
     categories: Developer Tools
     certified: 'true'
-    containerImage: registry.redhat.io/rhdh/rhdh-rhel9-operator:1.4-46@sha256:7a03bd41728b27cd30d3ffb17affe7a6e52a599a5187f80df5205769c5cb182a
-    createdAt: "2024-10-01T10:26:25Z"
+    containerImage: registry.redhat.io/rhdh/rhdh-rhel9-operator:1.4-47@sha256:cfe085438b5d149e51dab86b55db437594b27f658533ae468c52a648dcd3c147
+    createdAt: "2024-10-02T10:26:09Z"
     description: Red Hat Developer Hub is a Red Hat supported version of Backstage.
       It comes with pre-built plug-ins and configuration settings, supports use of an external database, and can
       help streamline the process of setting up a self-managed internal
@@ -219,7 +219,7 @@ spec:
                 - --upstream=http://127.0.0.1:8080/
                 - --logtostderr=true
                 - --v=0
-                image: registry.redhat.io/openshift4/ose-kube-rbac-proxy-rhel9:v4.16.0-202409051837.p0.g8ea2c99.assembly.stream.el9@sha256:59335acaca515fceed5f0350c46cfcfd6037475f0cf35ae8ab41d37333039e2e
+                image: registry.redhat.io/openshift4/ose-kube-rbac-proxy-rhel9:v4.16.0-202409202304.p0.g8ea2c99.assembly.stream.el9@sha256:24b468b09b43dd6cf77f5b08a68f2c6359d115722d28982fd8cdb1923e8122de
                 name: kube-rbac-proxy
                 ports:
                 - containerPort: 8443
@@ -254,7 +254,7 @@ spec:
                   value: registry.redhat.io/rhel9/postgresql-15:1-78.1726663412@sha256:10475924583aba63c50b00337b4097cdad48e7a8567fd77f400b278ad1782bfc
                 - name: RELATED_IMAGE_backstage
                   value: registry.redhat.io/rhdh/rhdh-hub-rhel9:1.4-47@sha256:79bc86e1a09e3565545ca1282bdb57b88b8624fd1bed553523e359713e68a67f
-                image: registry.redhat.io/rhdh/rhdh-rhel9-operator:1.4-46@sha256:7a03bd41728b27cd30d3ffb17affe7a6e52a599a5187f80df5205769c5cb182a
+                image: registry.redhat.io/rhdh/rhdh-rhel9-operator:1.4-47@sha256:cfe085438b5d149e51dab86b55db437594b27f658533ae468c52a648dcd3c147
                 livenessProbe:
                   httpGet:
                     path: /healthz
