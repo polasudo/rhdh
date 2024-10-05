@@ -1,0 +1,26 @@
+{
+  "extends": [
+      "github>konflux-ci/mintmaker//config/renovate/renovate.json"
+  ],
+  "ignorePaths": ["distgit/containers/","sync","upstream_*.yml"],
+  "ignoreDeps": [
+      "registry.redhat.io/openshift4/ose-operator-registry",
+      "registry.redhat.io/openshift4/ose-operator-registry-rhel9"
+  ],
+  "docker": {
+    "digest": {
+      "enabled": false
+    }
+  },
+  "packageRules": [
+    {
+      "matchDatasources": ["docker"],
+      "groupName": ["Containerfile base images"]
+    }
+  ],
+  "dockerfile": {
+    "enabled": true,
+    "fileMatch": ["distgit/containers/**/Containerfile"]
+  }
+}
+
