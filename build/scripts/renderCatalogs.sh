@@ -8,10 +8,10 @@
 # SPDX-License-Identifier: EPL-2.0
 #
 
-# render IIB catalog sources as FBCs
+# render IIB catalog sources as FBCs for use with Konflux Tekton pipelines
 
 CLEAN=0
-VERSIONS="4.12 4.14 4.15 4.16 4.17 4.18"
+VERSIONS="4.14 4.15 4.16 4.17 4.18"
 usage() {
   cat <<EOF
 Render IIB catalog sources as file-based catalogs (FBC)

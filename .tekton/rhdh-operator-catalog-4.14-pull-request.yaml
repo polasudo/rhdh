@@ -4,16 +4,17 @@ metadata:
   annotations:
     build.appstudio.openshift.io/repo: https://gitlab.cee.redhat.com/rhidp/rhdh/-/tree/{{revision}}
     build.appstudio.redhat.com/commit_sha: '{{revision}}'
+    build.appstudio.redhat.com/pull_request_number: '{{pull_request_number}}'
     build.appstudio.redhat.com/target_branch: '{{target_branch}}'
     pipelinesascode.tekton.dev/max-keep-runs: "3"
-    pipelinesascode.tekton.dev/on-cel-expression: event == "push" && target_branch
-      == "rhdh-1-rhel-9" && ( "catalog/***".pathChanged() || ".tekton/rhdh-operator-catalog-4.12-push.yaml".pathChanged())
+    pipelinesascode.tekton.dev/on-cel-expression: event == "pull_request" && target_branch
+      == "rhdh-1-rhel-9" && ( "catalog/***".pathChanged() || ".tekton/rhdh-operator-catalog-4.14-pull-request.yaml".pathChanged())
   creationTimestamp: null
   labels:
     appstudio.openshift.io/application: rhdh-1
     appstudio.openshift.io/component: rhdh-operator-catalog
     pipelines.appstudio.openshift.io/type: build
-  name: rhdh-operator-catalog-on-push
+  name: rhdh-operator-catalog-on-pull-request
   namespace: rhdh-tenant
 spec:
   params:
@@ -22,13 +23,13 @@ spec:
   - name: revision
     value: '{{revision}}'
   - name: output-image
-    value: quay.io/rhdh/rhdh-operator-catalog:{{revision}}
+    value: quay.io/rhdh/rhdh-operator-catalog:on-pr-{{revision}}
   - name: image-expires-after
-    value: 4w
+    value: 2w
   - name: dockerfile
     value: Containerfile
   - name: path-context
-    value: catalogs/v4.12
+    value: catalogs/v4.14
   pipelineSpec:
     description: |
       This pipeline is ideal for building and verifying [file-based catalogs](https://konflux-ci.dev/docs/advanced-how-tos/building-olm.adoc#building-the-file-based-catalog).
