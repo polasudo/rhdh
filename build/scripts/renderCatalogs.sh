@@ -77,7 +77,7 @@ FROM registry.redhat.io/openshift4/ose-operator-${registry}:v${v}
 ENTRYPOINT ["/bin/opm"]
 CMD ["serve", "/configs", "--cache-dir=/tmp/cache"]
 
-COPY catalogs/v${v}/configs /configs
+COPY configs /configs
 
 RUN ["/bin/opm", "serve", "/configs", "--cache-dir=/tmp/cache", "--cache-only"]
 
