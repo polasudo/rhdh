@@ -327,7 +327,6 @@ function updateOperatorVersions() {
 	the_branch="$1"
 	the_version="$2"
 	the_version_op="$3"
-	# TODO move to red-hat-developer-hub-operator
 	orgAndRepo="redhat-developer/rhdh-operator"
 	d="${orgAndRepo/\//__}"
 	rm -fr ""$TMPDIR"/projects_${d}_2" && git clone -q --depth 1 -b "${the_branch}" "https://github.com/${orgAndRepo}" ""$TMPDIR"/projects_${d}_2" || echo "Branch $clone_branch doesn't exist: skip!"
@@ -532,7 +531,7 @@ pushBranchAndOrTagGH () {
 					if [[ $d == "janus-idp__backstage-showcase" ]] || [[ $d == "redhat-developer__red-hat-developer-hub" ]]; then
 						echo "[INFO] Bump $d to $CSV_VERSION_Z" 
 						updateShowcaseVersions "$TARGET_BRANCH" "$CSV_VERSION_Z"
-					elif [[ $d == "janus-idp__operator" ]] || [[ $d == "redhat-developer__red-hat-developer-hub-operator" ]]; then
+					elif [[ $d == "redhat-developer__rhdh-operator" ]]; then
 						echo "[INFO] Bump $d to $CSV_VERSION_Z / $CSV_VERSION_Z_OPERATOR" 
 						updateOperatorVersions "$TARGET_BRANCH" "$CSV_VERSION_Z" "$CSV_VERSION_Z_OPERATOR"
 					elif [[ $d == "janus-idp__backstage-plugins" ]]; then
@@ -687,16 +686,15 @@ getXYplusOneFromBranch "$TARGET_BRANCH"
 	# RHIDP-1018 Sunset Janus IDP GH repos
 	# RHIDP-1019 Migrate Janus IDP plugins repo to backstage upstream
 	# RHIDP-1022 Migrate Janus IDP showcase repo to redhat-developers org
-	# RHIDP-1021 Migrate Janus IDP operator repo to redhat-developers org
 
 # branch and/or tag GH repos
 if [[ $SKIP_GH -eq 0 ]]; then
 	for repo in \
+		redhat-developer/rhdh-operator \
 		redhat-developer/rhdh-chart \
 		redhat-developer/red-hat-developers-documentation-rhdh \
 		redhat-developer/red-hat-developer-hub-software-templates \
 		redhat-developer/red-hat-developer-hub-theme \
-		redhat-developer/rhdh-operator \
 		janus-idp/backstage-showcase \
 		janus-idp/backstage-plugins \
 		; do
@@ -710,8 +708,7 @@ fi
 if [[ $SKIP_GH -eq 0 ]]; then
 	if [[ ${SOURCE_BRANCH} ]]; then
 		# check for changes and push a PR for each repo
-		# TODO VERIFY THIS WORKS with 1.3 branch creation
-		updatePluginVersions # requires manual commits to janus plugins repo / missing gpg key?
+		updatePluginVersions
 		updateOperatorVersions "$SOURCE_BRANCH" "$newver" "$newverOp"
 		## CCS has requested that we not bump the version in main branch, as they prefer manual steps to automation.
 		## updateDocVersions "$SOURCE_BRANCH" "$newver"
