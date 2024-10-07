@@ -14,7 +14,7 @@ SCRIPT_DIR=$(cd "$(dirname "$0")" || exit; pwd)
 # RH production key, to use only in release-1.yy stable branches; otherwise use the devel key for main
 SEGMENT_WRITE_KEY="mUr49Tkld5bj1lFFPxxqHrAzkQMRINvF"
 
-TMPDIR="/tmp/tmp-checkouts"
+TMPDIR="$HOME/tmp/tmp-checkouts"
 
 # defaults
 
@@ -62,7 +62,7 @@ To create tags (and push updates to release-1.yy branches):
 3. Run this
   $0 -v CSV_VERSION -t PROD_VERSION -gh GH_BRANCH -ghtoken GITHUB_TOKEN -pd GITLAB_AND_PKGS_DEVEL_BRANCH -pduser kerberos_user
 Example: 
-  $0 -v 1.3.0 -t 1.3 -gh release-1.3 -pd rhdh-1.3-rhel-9 --clean --force-update -ghtoken \$GITHUB_TOKEN -pduser $pduser
+  $0 -v 1.3.0 -t 1.3 -gh release-1.3 -pd rhdh-1.3-rhel-9 --clean --force-update -tmpdir $TMPDIR
 
 Options:
     --clean                   delete existing temp folders and do fresh checkouts
@@ -72,7 +72,7 @@ Options:
     --gitlab-pipeline-push    use this flag to push changes when running inside a gitlab pipeline
     -ghtoken                  run as a different GH user instead of the local environment's \$GITHUB_TOKEN
     -pduser                   run as a different bot user; default: $pduser 
-    -tmpdir                   temporry dir for checkouts; default $TMPDIR
+    -tmpdir                   temporary dir for checkouts; default $TMPDIR
     --skip-gh                 skip github updates
     --skip-gl                 skip gitlab updates
     --skip-pd                 skip pkgs.devel updates
