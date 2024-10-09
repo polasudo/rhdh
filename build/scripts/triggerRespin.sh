@@ -29,8 +29,10 @@ or
     $0 VERSION IMAGE1[,IMAGE2][,IMAGE3] 
 
 Examples: 
-    $0 1.1 hub
-    $0 1 hub,op,bun
+    $0 1.2 hub,op,bun
+    $0 1.3 bun
+    $0 1 all
+
 "; 
 }
 
@@ -47,6 +49,7 @@ else
     commitMsg="trigger ${MIDSTM_BRANCH} build: $targets"
 fi
 echo "$commitMsg ..."
+if [[ $targets == "all" ]]; then targets="hub,op,bun"; fi
 
 targets=${targets/hub/upstream_SHA_rhdh-hub}
 targets=${targets/operator/upstream_SHA_rhdh-operator}
