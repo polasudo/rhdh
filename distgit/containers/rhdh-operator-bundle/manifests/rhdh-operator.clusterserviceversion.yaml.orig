@@ -19,8 +19,13 @@ metadata:
     capabilities: Seamless Upgrades
     categories: Developer Tools
     certified: 'true'
+<<<<<<< HEAD
+    containerImage: registry.redhat.io/rhdh/rhdh-rhel9-operator:1.4-57@sha256:df0a0e10dbd5a74e0138b09eedb67b34745c5c807f5ee91e0d8bd1648d19419c
+    createdAt: "2024-10-09T01:53:37Z"
+=======
     containerImage: registry.redhat.io/rhdh/rhdh-rhel9-operator:1.4-58@sha256:6adddc03f50bb6ed45da52a3468d4aa9a7a3729003948096b062a046b69172ba
-    createdAt: "2024-10-09T02:33:23Z"
+    createdAt: "2024-10-09T02:06:52Z"
+>>>>>>> 2a2e2102 (chore: Update: rhdh-hub from: https://github.com/janus-idp/backstage-showcase/tree/main @ 24982b15; rhdh-operator from: https://github.com/redhat-developer/rhdh-operator/tree/main @ 4493e2c6; rhdh-operator-bundle from: https://github.com/redhat-developer/rhdh-operator/tree/main @ 4493e2c6; [skip ci])
     description: Red Hat Developer Hub is a Red Hat supported version of Backstage.
       It comes with pre-built plug-ins and configuration settings, supports use of an external database, and can
       help streamline the process of setting up a self-managed internal
@@ -254,7 +259,11 @@ spec:
                   value: registry.redhat.io/rhel9/postgresql-15:1-78.1726663412@sha256:10475924583aba63c50b00337b4097cdad48e7a8567fd77f400b278ad1782bfc
                 - name: RELATED_IMAGE_backstage
                   value: registry.redhat.io/rhdh/rhdh-hub-rhel9:1.4-47@sha256:79bc86e1a09e3565545ca1282bdb57b88b8624fd1bed553523e359713e68a67f
+<<<<<<< HEAD
+                image: registry.redhat.io/rhdh/rhdh-rhel9-operator:1.4-57@sha256:df0a0e10dbd5a74e0138b09eedb67b34745c5c807f5ee91e0d8bd1648d19419c
+=======
                 image: registry.redhat.io/rhdh/rhdh-rhel9-operator:1.4-58@sha256:6adddc03f50bb6ed45da52a3468d4aa9a7a3729003948096b062a046b69172ba
+>>>>>>> 2a2e2102 (chore: Update: rhdh-hub from: https://github.com/janus-idp/backstage-showcase/tree/main @ 24982b15; rhdh-operator from: https://github.com/redhat-developer/rhdh-operator/tree/main @ 4493e2c6; rhdh-operator-bundle from: https://github.com/redhat-developer/rhdh-operator/tree/main @ 4493e2c6; [skip ci])
                 livenessProbe:
                   httpGet:
                     path: /healthz

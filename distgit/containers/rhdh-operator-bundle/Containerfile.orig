@@ -30,11 +30,19 @@ LABEL operators.operatorframework.io.bundle.mediatype.v1=registry+v1 \
       name="$PRODNAME/$PRODNAME-$COMPNAME" \
       version="1.4" \
       vendor="Red Hat, Inc." \
+<<<<<<< HEAD
+      release="62" \
+=======
       release="63" \
+>>>>>>> 2a2e2102 (chore: Update: rhdh-hub from: https://github.com/janus-idp/backstage-showcase/tree/main @ 24982b15; rhdh-operator from: https://github.com/redhat-developer/rhdh-operator/tree/main @ 4493e2c6; rhdh-operator-bundle from: https://github.com/redhat-developer/rhdh-operator/tree/main @ 4493e2c6; [skip ci])
       license="ASLv2" \
       maintainer="RHDH Team <rhdh-bot@redhat.com>" \
       io.openshift.expose-services="" \
       usage="" \
+<<<<<<< HEAD
+      konflux.additional-tags="1.4, 1.4-62" \
+=======
       konflux.additional-tags="1.4, 1.4-63" \
+>>>>>>> 2a2e2102 (chore: Update: rhdh-hub from: https://github.com/janus-idp/backstage-showcase/tree/main @ 24982b15; rhdh-operator from: https://github.com/redhat-developer/rhdh-operator/tree/main @ 4493e2c6; rhdh-operator-bundle from: https://github.com/redhat-developer/rhdh-operator/tree/main @ 4493e2c6; [skip ci])
       distribution-scope="public" \
       url="https://red.ht/rhdh"
