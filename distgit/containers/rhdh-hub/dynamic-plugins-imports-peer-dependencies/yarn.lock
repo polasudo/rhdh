@@ -3137,22 +3137,6 @@
     "@backstage/config" "^1.2.0"
     "@backstage/plugin-catalog-node" "^1.12.4"
 
-"@janus-idp/backstage-plugin-acr@1.7.11":
-  version "1.7.11"
-  resolved "https://registry.npmjs.org/@janus-idp/backstage-plugin-acr/-/backstage-plugin-acr-1.7.11.tgz#313c4967e1a1445cbc965b16304e2dd0728346bd"
-  integrity sha512-sa4+IGCHqMdEKuFrmeWgRQ849mQXjYAtpA0sHyP7/MgLm6XI91zcuPXGOBgf1ANYbf/bO0tvv6m8FvLefRto/Q==
-  dependencies:
-    "@backstage/catalog-model" "^1.5.0"
-    "@backstage/core-components" "^0.14.9"
-    "@backstage/core-plugin-api" "^1.9.3"
-    "@backstage/plugin-catalog-react" "^1.12.2"
-    "@backstage/theme" "^0.5.6"
-    "@janus-idp/shared-react" "2.10.0"
-    "@material-ui/core" "^4.9.13"
-    "@material-ui/icons" "^4.11.3"
-    "@material-ui/lab" "^4.0.0-alpha.45"
-    react-use "^17.4.0"
-
 "@janus-idp/backstage-plugin-analytics-provider-segment@1.7.2":
   version "1.7.2"
   resolved "https://registry.npmjs.org/@janus-idp/backstage-plugin-analytics-provider-segment/-/backstage-plugin-analytics-provider-segment-1.7.2.tgz#e79cc11c6f93d57454cd7afaff502fe71cf06b64"
