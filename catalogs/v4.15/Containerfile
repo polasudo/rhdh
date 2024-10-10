@@ -19,3 +19,11 @@ LABEL operators.operatorframework.io.metrics.builder=operator-sdk-v1.33.1
 LABEL operators.operatorframework.io.metrics.mediatype.v1=metrics+v1
 LABEL operators.operatorframework.io.metrics.project_layout=go.kubebuilder.io/v3
 LABEL operators.operatorframework.io.index.configs.v1=/configs
+LABEL \
+      version="1.4" \
+      license="ASLv2" \
+      maintainer="RHDH Team <rhdh-bot@redhat.com>" \
+      vendor="Red Hat, Inc." \
+      konflux.additional-tags="1.4-v4.15-x86_64" \
+      distribution-scope="public" \
+      url="https://red.ht/rhdh"

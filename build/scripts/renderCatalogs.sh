@@ -55,6 +55,7 @@ vergte() {
 for v in $VERSIONS; do
   # extract content from the public registry
   if [[ ! -d ./v${v}-catalog-migrate ]] || [[ $CLEAN -eq 1 ]]; then 
+    rm -fr "./v${v}-catalog-migrate"
     time opm migrate registry.redhat.io/redhat/redhat-operator-index:v${v} ./v${v}-catalog-migrate
   fi
   # create folder for the rendered catalog.json
@@ -92,6 +93,14 @@ LABEL operators.operatorframework.io.metrics.builder=operator-sdk-v1.33.1
 LABEL operators.operatorframework.io.metrics.mediatype.v1=metrics+v1
 LABEL operators.operatorframework.io.metrics.project_layout=go.kubebuilder.io/v3
 LABEL operators.operatorframework.io.index.configs.v1=/configs
+LABEL \\
+      version="${RHDH_VERSION}" \\
+      license="ASLv2" \\
+      maintainer="RHDH Team <rhdh-bot@redhat.com>" \\
+      vendor="Red Hat, Inc." \\
+      konflux.additional-tags="${RHDH_VERSION}-v${v}-$(uname -m)" \\
+      distribution-scope="public" \\
+      url="https://red.ht/rhdh"
 EOF
 
   # cleanup rendered catalogs

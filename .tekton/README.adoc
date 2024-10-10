@@ -4,3 +4,6 @@ Konflux expects to see pipelines for each application (y-stream) in its own bran
 * rhdh-1.y-rhel-9 branches can be released as GA builds.
 
 For File-based catalogs (FBC), each FBC Component must be in its own Application, and one Application is needed per OpenShift version.
+
+See link:../build/scripts/renderCatalogs.sh[renderCatalogs.sh] to update the catalogs with new Containerfile metadata. 
+
