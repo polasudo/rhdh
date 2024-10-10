@@ -7,7 +7,8 @@ metadata:
     build.appstudio.redhat.com/target_branch: '{{target_branch}}'
     pipelinesascode.tekton.dev/max-keep-runs: "3"
     pipelinesascode.tekton.dev/on-cel-expression: event == "push" && target_branch
-      == "rhdh-1-rhel-9"
+      == "rhdh-1-rhel-9" && ( "catalogs/v4.14/***".pathChanged() || ".tekton/fbc-4-14-pu*.yaml".pathChanged()
+      )
   creationTimestamp: null
   labels:
     appstudio.openshift.io/application: fbc-4-14
@@ -23,6 +24,8 @@ spec:
     value: '{{revision}}'
   - name: output-image
     value: quay.io/redhat-user-workloads/rhdh-tenant/fbc-4-14:{{revision}}
+  - name: image-expires-after
+    value: 4w
   - name: dockerfile
     value: Containerfile
   - name: path-context
@@ -114,7 +117,7 @@ spec:
       description: Build a source image.
       name: build-source-image
       type: string
-    - default: "false"
+    - default: "true"
       description: Add built image into an OCI image index
       name: build-image-index
       type: string
