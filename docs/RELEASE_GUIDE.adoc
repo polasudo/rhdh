@@ -305,3 +305,17 @@ Ongoing through the quarter, remember to:
 . Update the link:../build/dockerfiles/[gitlab pipeline runner images] at least once every quarter
 . Monitor GH-GL syncs and pipelines, as things can fail unexpectedly in OSBS or on gitlab runners
 . Monitor quay image updates to ensure everything is kept current and fresh relative to upstream branches
+
+## Summary of Release tasks include (but are not limited to):
+
+- collect the fixes in janus plugins + community plugins, and verifying that they've been released to npmjs.com
+- collect the updated plugin versions into showcase, and verifying a downstream build has succeeded
+- add builds to the errata
+- validate CVP test results have all passed
+- push errata to stage
+- coordinate with QE and Doc via slack and email notifications of RC builds and progress of testing, doc readiness, etc.
+- remind QE to move the errata to {{REL_PREP; }}watch while the builds are pushed (1-2 hrs?); complain on slack in various rel-eng channels if things break while pushing or ask siege for help
+- generate the helm chart PR for the openshift helm charts repo; monitor until it's merged
+- smoke test the operator and helm installs
+- notify Docs that they can release the latest RN updates
+- tag the repos w/ the new 1.2.5 tag; bumping the repos to 1.2.6 in case we do another z update
