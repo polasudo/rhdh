@@ -98,7 +98,7 @@ LABEL \\
       license="ASLv2" \\
       maintainer="RHDH Team <rhdh-bot@redhat.com>" \\
       vendor="Red Hat, Inc." \\
-      konflux.additional-tags="${RHDH_VERSION}-v${v}-$(uname -m)" \\
+      konflux.additional-tags="${RHDH_VERSION}-v${v}" \\
       distribution-scope="public" \\
       url="https://red.ht/rhdh"
 EOF
