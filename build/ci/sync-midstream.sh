@@ -773,6 +773,8 @@ EOF
     # copy dynamic-plugins/imports/package.json#.peerDependencies to $d/package.json#.dependencies
     peerDepPairs="$(jq -M -c '.peerDependencies' dynamic-plugins/imports/package.json | tr -d "{}")"
     jq '.dependencies|={'"$peerDepPairs"'}' "$d"/package.json > "$d"/package.json_; mv "$d"/package.json{_,}
+    # TODO should we rm -f yarn.lock before this install so it's fresh every time?
+    # TODO with yarn 3 can we do better tree shaking / cleanup of old resolutions?
     $YARN install --silent --cwd "./$d" 2> >(grep -v warning 1>&2) || exit 51
 
     pushd dynamic-plugins/imports >/dev/null || exit
