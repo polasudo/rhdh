@@ -21,6 +21,7 @@ maintainers="RHDH Team <rhdh-bot@redhat.com>"
 VERSIONS="4.14 4.15 4.16 4.17 4.18"
 
 CLEAN=0
+latestNext=""
 
 usage() {
   cat <<EOF
@@ -33,6 +34,7 @@ Usage: $0 -v x.y.z [OPTIONS]
 
 Options:
   -v                     product version x.y.z,                                        eg., 1.4.0
+  --latest, --next       also publish a :latest-v4.yy or :next-v4.yy tag; default: publish only x.y-v4.yy tag
 
   --package-name         olm package name,                                             eg., rhdh
   --prod-path            path under configs/<prod-path>/,                              eg., rhdh
@@ -59,6 +61,7 @@ if [[ $# -lt 1 ]]; then usage; fi
 while [[ "$#" -gt 0 ]]; do
   case $1 in
     '-v') PROD_FULL_VERSION="$2"; shift 1;; # x.y.z
+    '--latest'|'--next') latestNext="${1/--/}";;
     '--package-name') package_name="$2"; shift 1;; 
     '--prod-path') prod_path="$2"; shift 1;; 
     '--prod-url') prod_url="$2"; shift 1;; 
@@ -141,6 +144,7 @@ for v in $VERSIONS; do
   fastYChannel=""; if [[ $PROD_VERSION ]]; then fastYChannel=",fast-${PROD_VERSION}"; fi
 
   echo "Render catalogs/v${v}/Containerfile for channels=fast${fastYChannel}"
+  latestNextTag=""; if [[ $latestNext ]]; then latestNextTag=",${latestNext}-v${v}"; fi # next=v4.18
   cat <<EOF > "catalogs/v${v}/Containerfile"
   # The base image is expected to contain /bin/opm (with a serve subcommand) and /bin/grpc_health_probe
 FROM registry.redhat.io/openshift4/ose-operator-${registry}:v${v}
@@ -168,7 +172,7 @@ LABEL \\
       license="ASLv2" \\
       maintainer="$maintainers" \\
       vendor="Red Hat, Inc." \\
-      konflux.additional-tags="${PROD_VERSION}-v${v}" \\
+      konflux.additional-tags="${PROD_VERSION}-v${v}${latestNextTag}" \\
       distribution-scope="public" \\
       url="$prod_url"
 EOF
