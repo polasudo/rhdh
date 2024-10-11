@@ -7,7 +7,7 @@ metadata:
     build.appstudio.redhat.com/target_branch: '{{target_branch}}'
     pipelinesascode.tekton.dev/max-keep-runs: "3"
     pipelinesascode.tekton.dev/on-cel-expression: event == "push" && target_branch
-      == "rhdh-1-rhel-9" && ( "catalogs/v4.18/***".pathChanged() || ".tekton/fbc-4-18-pu*.yaml".pathChanged()
+      == "rhdh-1-rhel-9" && ( "catalogs/v4.18/***".pathChanged() || ".tekton/fbc-4-18-push.yaml".pathChanged()
       )
   creationTimestamp: null
   labels:
