@@ -7,7 +7,8 @@ metadata:
     build.appstudio.redhat.com/target_branch: '{{target_branch}}'
     pipelinesascode.tekton.dev/max-keep-runs: "3"
     pipelinesascode.tekton.dev/on-cel-expression: event == "push" && target_branch
-      == "rhdh-1-rhel-9"
+      == "rhdh-1-rhel-9" && ( "catalogs/v4.18/***".pathChanged() || ".tekton/fbc-4-14-pu*.yaml".pathChanged()
+      )
   creationTimestamp: null
   labels:
     appstudio.openshift.io/application: fbc-4-18
@@ -22,7 +23,9 @@ spec:
   - name: revision
     value: '{{revision}}'
   - name: output-image
-    value: quay.io/redhat-user-workloads/rhdh-tenant/fbc-4-18:{{revision}}
+    value: quay.io/rhdh/iib:{{revision}}
+  - name: image-expires-after
+    value: 6w
   - name: dockerfile
     value: Containerfile
   - name: path-context
@@ -106,7 +109,7 @@ spec:
       description: Build dependencies to be prefetched by Cachi2
       name: prefetch-input
       type: string
-    - default: ""
+    - default: "6w"
       description: Image tag expiration time, time values could be something like
         1h, 2d, 3w for hours, days, and weeks, respectively.
       name: image-expires-after
@@ -114,7 +117,7 @@ spec:
       description: Build a source image.
       name: build-source-image
       type: string
-    - default: "false"
+    - default: "true"
       description: Add built image into an OCI image index
       name: build-image-index
       type: string
