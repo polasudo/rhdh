@@ -7,6 +7,9 @@
 # set -x
 set -e
 
+# blank for extended maintenance releases, latest for RCs and active maintenance, next for future releases
+latestNext="" 
+
 usage() {
   echo "
 Usage:
@@ -23,6 +26,7 @@ Example:
 
 while [[ "$#" -gt 0 ]]; do
   case $1 in
+  '--latest'|'--next') latestNext="${1/--/}"; shift 1;;
   '-v')
     DH_VERSION="$2"
     shift 2
@@ -154,7 +158,7 @@ echo "===== Copy OSBS images to Quay ===========>"
 set -x
 MIDSTM_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "rhdh-1-rhel-9")
 if [[ ${MIDSTM_BRANCH} != "rhdh-"*"-rhel-"* ]]; then MIDSTM_BRANCH="rhdh-1-rhel-9"; fi
-latestNext="latest"; if [[ $MIDSTM_BRANCH == "rhdh-1-rhel-9" ]]; then latestNext="next"; fi
+if [[ $MIDSTM_BRANCH == "rhdh-1-rhel-9" ]]; then latestNext="next"; fi
 
 if [[ ! $DH_VERSION ]] && [[ -f distgit/containers/rhdh-hub/package.json ]]; then
     DH_VERSION=$(yq -r '.version' distgit/containers/rhdh-hub/package.json); DH_VERSION=${DH_VERSION%.*} # 1.2
