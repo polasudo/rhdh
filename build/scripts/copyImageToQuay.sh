@@ -48,9 +48,8 @@ for image in $images; do
     IMG=$image
     if [[ $image =~ (.+)@sha256:(.+) ]]; then 
         IMG=${BASH_REMATCH[1]}
-        URL=$(skopeo inspect docker://${image} | jq -r '.Labels.url')
-        container=${URL}
-        container=${IMG}:${container##*/images/}
+        tag=$(skopeo inspect docker://${image} | jq -r '.Labels.version+"-"+.Labels.release')
+        container=${IMG}:${tag}
         image=${container}
         if [[ $VERBOSE -eq 1 ]]; then 
             SHA=${BASH_REMATCH[2]}
@@ -90,7 +89,7 @@ for image in $images; do
     for qtag in ${PUSHTOQUAYTAGS}; do
         if [[ $(skopeo --insecure-policy inspect docker://${QUAYDEST%:*}:${qtag} 2>&1) == *"Error"* ]] || [[ ${PUSHTOQUAYFORCE_LOCAL} -eq 1 ]]; then
             if [[ $VERBOSE -eq 1 ]]; then echo "Copy ${REGISTRYPRE}${URLfrag} to ${QUAYDEST%:*}:${qtag}"; fi
-            CMD="skopeo --insecure-policy copy --all docker://${REGISTRYPRE}${URLfrag} docker://${QUAYDEST%:*}:${qtag}"; echo $CMD; $CMD
+            CMD="skopeo --insecure-policy copy --all docker://${REGISTRYPRE}${URLfrag} docker://${QUAYDEST%:*}:${qtag}"; echo "$CMD"; $CMD
         else
             if [[ $VERBOSE -eq 1 ]]; then echo "Copy ${QUAYDEST%:*}:${qtag} - already exists, nothing to do"; fi
         fi

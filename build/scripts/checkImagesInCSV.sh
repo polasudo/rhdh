@@ -106,7 +106,7 @@ if [[ ${MIDSTM_BRANCH} != "rhdh-"*"-rhel-"* ]]; then MIDSTM_BRANCH="rhdh-1-rhel-
 # shellcheck disable=SC2086
 for imageAndTag in $IMAGES; do 
     SOURCE_CONTAINER=${imageAndTag%%:*}
-    containerTag=$(skopeo inspect docker://${imageAndTag} | jq -r '.Labels.url' | sed -r -e "s#.+/images/##")
+    containerTag=$(skopeo inspect docker://${imageAndTag} | jq -r '.Labels.version+"-"+.Labels.release')
     # echo "Found containerTag = ${containerTag}"
 
     if [[ ! -x ${SCRIPTPATH}/containerExtract.sh ]]; then
@@ -118,17 +118,26 @@ for imageAndTag in $IMAGES; do
     related_images=$(cat /tmp/${SOURCE_CONTAINER//\//-}-${containerTag}-*/manifests/*.{csv,clusterserviceversion}.yaml 2>/dev/null | grep sha256: | sed -r -e "s@.+(value|mage\"*): @@" -e "s@\"(.+)\".+@\1@" | sort -uV)
     for related_image in $related_images; do 
         if [[ $REGEX_FILTER ]]; then related_image=$(echo "$related_image" | grep -E "$REGEX_FILTER"); fi
+
+        # support the format repo/org/image:tag@sha256:SHA - just return repo/org/image@sha256:SHA
+        if [[ "${related_image}" ]] && [[ $related_image =~ (.+):(.+)(@sha256:.+) ]]; then 
+          IMG=${BASH_REMATCH[1]}
+          # TAG=${BASH_REMATCH[2]}
+          SHA=${BASH_REMATCH[3]}
+          related_image="${IMG}${SHA}"
+        fi
+
         if [[ "${related_image}" ]]; then
           # check each image digest to compute matching tag
           jqdump="$(skopeo inspect docker://${related_image} 2>&1)"
           if [[ $jqdump == *"Labels"* ]]; then 
-              tag=$(echo $jqdump | jq -r '.Labels.url' | sed -r -e "s#.+/images/##")
+              tag=$(echo $jqdump | jq -r '.Labels.version+"-"+.Labels.release')
           else
               if [[ $QUAY -eq 1 ]]; then # check quay
                 related_image=${related_image//registry.redhat.io/quay.io}
                 jqdump="$(skopeo inspect docker://${related_image} 2>&1)"
                 if [[ $jqdump == *"Labels"* ]]; then 
-                    tag=$(echo $jqdump | jq -r '.Labels.url' | sed -r -e "s#.+/images/##")
+                    tag=$(echo $jqdump | jq -r '.Labels.version+"-"+.Labels.release')
                 fi
               elif [[ $BREW -eq 1 ]]; then # check brew registry
                 # NOTE: could use registry-proxy.engineering.redhat.com/rh-osbs/ instead but that's internal facing, 
@@ -138,7 +147,7 @@ for imageAndTag in $IMAGES; do
                 related_image=$(echo $related_image | sed -r -e "s#registry.redhat.io/([^/]+)/#brew.registry.redhat.io/rh-osbs/\1-#")
                 jqdump="$(skopeo inspect docker://${related_image} 2>&1)"
                 if [[ $jqdump == *"Labels"* ]]; then 
-                    tag=$(echo $jqdump | jq -r '.Labels.url' | sed -r -e "s#.+/images/##")
+                    tag=$(echo $jqdump | jq -r '.Labels.version+"-"+.Labels.release')
                 fi
               else 
                   tag="NOT FOUND!"

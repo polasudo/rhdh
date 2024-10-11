@@ -42,18 +42,26 @@ checkImage () {
     checkImage_result=""
     local imageAndSHA="$1"
     if [[ $QUIET -eq 0 ]]; then echo "For $imageAndSHA"; fi
-    image=${imageAndSHA%%@*}
-    # echo "[DEBUG] Got image = $image"
+    imageNoSHA=${imageAndSHA%%@*}
+    image=${imageNoSHA%%:*}
+    echo "[DEBUG] Got image = $image"
+
+    # support the format repo/org/image:tag@sha256:SHA - just return repo/org/image:tag
+    if [[ $imageNoSHA = *":"* ]]; then 
+        # check just repo/org/image:tag
+        if [[ $QUIET -eq 0 ]]; then echo "Got $imageNoSHA"; else echo "$imageNoSHA"; fi
+        return
+    fi
+
     # shellcheck disable=SC2086
     if [[ $QUIET -eq 1 ]]; then 
-        URL=$(skopeo inspect docker://${imageAndSHA} 2>/dev/null | jq -r '.Labels.version+"-"+.Labels.release')
+        tag=$(skopeo inspect docker://${imageAndSHA} 2>/dev/null | jq -r '.Labels.version+"-"+.Labels.release')
     else
-        URL=$(skopeo inspect docker://${imageAndSHA} | jq -r '.Labels.version+"-"+.Labels.release')
+        tag=$(skopeo inspect docker://${imageAndSHA} | jq -r '.Labels.version+"-"+.Labels.release')
     fi
-    # echo "[DEBUG] Got URL = $URL"
-    if [[ $URL ]]; then
-        container=${URL}
-        container=${image}:${container##*/images/}
+    echo "[DEBUG] Got tag = $tag"
+    if [[ $tag ]]; then
+        container=${image}:${tag}
         # replace quay.io/rhdh/rhdh-rhel9-operator:1.0:1.0-13 with quay.io/rhdh/rhdh-rhel9-operator:1.0-13
         container=$(echo "$container" | sed -r -e "s@:[0-9.]+:@:@")
         if [[ $QUIET -eq 0 ]]; then echo "Got $container"; else echo "$container"; fi
