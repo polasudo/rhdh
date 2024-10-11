@@ -7,14 +7,14 @@ metadata:
     build.appstudio.redhat.com/target_branch: '{{target_branch}}'
     pipelinesascode.tekton.dev/max-keep-runs: "3"
     pipelinesascode.tekton.dev/on-cel-expression: event == "push" && target_branch
-      == "rhdh-1-rhel-9" && ( "catalogs/v4.18/***".pathChanged() || ".tekton/fbc-4-18-pu*.yaml".pathChanged()
+      == "rhdh-1-rhel-9" && ( "catalogs/v4.17/***".pathChanged() || ".tekton/fbc-4-17-pu*.yaml".pathChanged()
       )
   creationTimestamp: null
   labels:
-    appstudio.openshift.io/application: fbc-4-18
-    appstudio.openshift.io/component: fbc-4-18
+    appstudio.openshift.io/application: fbc-4-17
+    appstudio.openshift.io/component: fbc-4-17
     pipelines.appstudio.openshift.io/type: build
-  name: fbc-4-18-on-push
+  name: fbc-4-17-on-push
   namespace: rhdh-tenant
 spec:
   params:
@@ -29,7 +29,7 @@ spec:
   - name: dockerfile
     value: Containerfile
   - name: path-context
-    value: catalogs/v4.18
+    value: catalogs/v4.17
   pipelineSpec:
     description: |
       This pipeline is ideal for building and verifying [file-based catalogs](https://konflux-ci.dev/docs/advanced-how-tos/building-olm.adoc#building-the-file-based-catalog).
@@ -232,7 +232,7 @@ spec:
         - name: name
           value: build-image-index
         - name: bundle
-          value: quay.io/konflux-ci/tekton-catalog/task-build-image-index:0.1@sha256:e4871851566d8b496966b37bcb8c5ce9748a52487f116373d96c6cd28ef684c6
+          value: quay.io/konflux-ci/tekton-catalog/task-build-image-index:0.1@sha256:e4871751566d8b496966b37bcb8c5ce9748a52487f116373d96c6cd28ef684c6
         - name: kind
           value: task
         resolver: bundles
