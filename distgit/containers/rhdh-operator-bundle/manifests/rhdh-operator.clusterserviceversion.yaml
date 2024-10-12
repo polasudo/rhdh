@@ -20,7 +20,7 @@ metadata:
     categories: Developer Tools
     certified: 'true'
     containerImage: registry.redhat.io/rhdh/rhdh-rhel9-operator:1.4-62@sha256:f9300fe24682d3b1b7c341ed1a730d916404cf200feaf1accb82a8f66a59dbae
-    createdAt: "2024-10-12T15:17:03Z"
+    createdAt: "2024-10-12T16:25:50Z"
     description: Red Hat Developer Hub is a Red Hat supported version of Backstage.
       It comes with pre-built plug-ins and configuration settings, supports use of an external database, and can
       help streamline the process of setting up a self-managed internal
