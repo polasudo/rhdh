@@ -38,12 +38,13 @@ TODO: write this
 
 ### Operator
 
-TODO: write this
+TODO: RHIDP-4223 write this / script this / apply this to the https://github.com/redhat-developer/rhdh-operator/blob/main/.rhdh/scripts/install-rhdh-catalog-source.sh so it uses IDMS instead of ICSP
 
 * install an IDMS/ICSP to resolve container image references
 * install the latest FBC as a CatalogSource
 
 See also:
+* https://issues.redhat.com/browse/RHIDP-4223?focusedId=25765411&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-25765411
 * https://konflux.pages.redhat.com/docs/users/getting-started/building-olm-products.html#testing-a-fbc-graph
 * https://github.com/redhat-developer/rhdh-operator/blob/main/.rhdh/scripts/install-rhdh-catalog-source.sh (needs revision)
 
