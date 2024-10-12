@@ -898,7 +898,7 @@
     "schema": "olm.bundle",
     "name": "rhdh-operator.v1.4.0",
     "package": "rhdh",
-    "image": "quay.io/rhdh/rhdh-operator-bundle@sha256:1c4f70ff998ffb1ca7cb7437af61e7c6d6d71562dceec844943e825d0d68584e",
+    "image": "quay.io/rhdh/rhdh-operator-bundle@sha256:ba9e809804c906f74765ad2334bec704775fc4f32c42424871e94a06f9091b2a",
     "properties": [
         {
             "type": "olm.gvk",
@@ -975,7 +975,7 @@
     "relatedImages": [
         {
             "name": "",
-            "image": "quay.io/rhdh/rhdh-operator-bundle@sha256:1c4f70ff998ffb1ca7cb7437af61e7c6d6d71562dceec844943e825d0d68584e"
+            "image": "quay.io/rhdh/rhdh-operator-bundle@sha256:ba9e809804c906f74765ad2334bec704775fc4f32c42424871e94a06f9091b2a"
         },
         {
             "name": "",

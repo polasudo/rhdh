@@ -139,15 +139,23 @@ for v in $VERSIONS; do
   opm alpha render-template basic catalogs/v${v}/catalog-template.json > catalogs/v${v}/configs/${prod_path}/catalog.json
 
   # for 4.15+, use the rhel9 image
-  vergte "$v" "4.15" && registry="registry-rhel9" || registry="registry"
+  vergte "$v" "4.15" && registry="registry-rhel9:v${v}" || registry="registry:v${v}"
+  
+  # temporary hackaround for v4.18 because it doesn't exist yet; fall back to 4.17
+  registry=${registry/v4.18/v4.17}
 
   fastYChannel=""; if [[ $PROD_VERSION ]]; then fastYChannel=",fast-${PROD_VERSION}"; fi
 
+  # if using build-image-index=false in .tekton push pipeline, append the arch to the tags (like in OSBS)
+  # set to "" and re-render if switching back to build-image-index=true
+  arch="-$(uname -m)"
+
   echo "Render catalogs/v${v}/Containerfile for channels=fast${fastYChannel}"
-  latestNextTag=""; if [[ $latestNext ]]; then latestNextTag=",${latestNext}-v${v}"; fi # next=v4.18
+  latestNextTag=""; if [[ $latestNext ]]; then latestNextTag=",${latestNext}-v${v}${arch}"; fi # next=v4.18
+
   cat <<EOF > "catalogs/v${v}/Containerfile"
   # The base image is expected to contain /bin/opm (with a serve subcommand) and /bin/grpc_health_probe
-FROM registry.redhat.io/openshift4/ose-operator-${registry}:v${v}
+FROM registry.redhat.io/openshift4/ose-operator-${registry}
 
 ENTRYPOINT ["/bin/opm"]
 CMD ["serve", "/configs", "--cache-dir=/tmp/cache"]
@@ -172,7 +180,7 @@ LABEL \\
       license="ASLv2" \\
       maintainer="$maintainers" \\
       vendor="Red Hat, Inc." \\
-      konflux.additional-tags="${PROD_VERSION}-v${v}${latestNextTag}" \\
+      konflux.additional-tags="${PROD_VERSION}-v${v}${arch}${latestNextTag}" \\
       distribution-scope="public" \\
       url="$prod_url"
 EOF
