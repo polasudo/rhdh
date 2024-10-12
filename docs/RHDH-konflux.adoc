@@ -8,6 +8,18 @@
 4. Add that person here: https://konflux.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/application-pipeline/access
 5. Once added, you can change their access level to contributor, maintainer, or admin. 
 
+## Onboarding a new y-stream release
+
+Once a quarter, new branch are created in GitHub called `release-1.y` for the new release. 
+In the link:https://gitlab.cee.redhat.com/rhidp/rhdh[rhidp/rhdh Gitlab repo], an equivalent branch called `rhdh-1.y-rhel-9` is created.
+Once these exist, a new Application, with 3 (or more) components can then be added. 
+
+### Component Nudging
+
+To trigger a build of the FBCs when a new operator-bundle image has been published, link:https://konflux-ci.dev/docs/how-tos/configuring/component-nudges/#in-the-ui[component nudging] is required. This should be configured so that for any new build of the rhdh-hub or rhdh-operator containers, a new rhdh-operator-bundle is theen built; once that is built, the bundle should nudge the FBC applications to update those with fresher digests. 
+
+TODO: RHIDP-4223 - verify this works, and that we don't have to manually update the FBCs each time a new bundle is pushed (or generate a new bundle for every new hub or operator).
+
 ## Triggering builds
 
 1. Push a commit to the https://gitlab.cee.redhat.com/rhidp/rhdh repo
