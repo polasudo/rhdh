@@ -1,0 +1,1 @@
+See https://github.com/konflux-ci/mintmaker/blob/main/config/renovate/renovate.json for the base file from which this extends
