@@ -18,6 +18,10 @@ sync-midstream:
       echo "Running sync-midstream.sh for $GITLAB_USER_LOGIN in branch $CI_COMMIT_REF_NAME ..."
       # can add --force flag here to push with -f
       # RHIDP-3698 local yarn build still needed to get yarn locks updated so the downstream can run in offline mode
+        # distgit/containers/rhdh-hub/dynamic-plugins-imports-peer-dependencies/yarn.lock
+        # distgit/containers/rhdh-hub/e2e-tests/yarn.lock
+        # distgit/containers/rhdh-hub/yarn.lock
+        # etc.
       ./build/ci/sync-midstream.sh -b "$CI_COMMIT_REF_NAME" --gitlab-pipeline-push || exit 15
       echo "Committed: $CI_COMMIT_REF_NAME"
       set -x
