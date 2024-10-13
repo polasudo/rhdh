@@ -1090,11 +1090,13 @@ echo "$gitdiff" > "/tmp/sync-midstream.sh.diff.txt"
   fi
 
   ## include license files from hub and operator in /licenses folder to make Konflux happy
-  for d in rhdh-hub rhdh-operator; do
+  for d in rhdh-hub rhdh-operator rhdh-operator-bundle; do
     if [[ -f distgit/containers/${d}/LICENSE ]]; then
       cp -f distgit/containers/${d}/LICENSE licenses/${d}-LICENSE
       git add licenses/${d}-LICENSE 1>/dev/null 2>&1 || true
     fi
+    # RHIDP-4220 konflux preflight check 
+    rsync -Azq licenses/* distgit/containers/${d}/licenses/
   done
 
   #################################################################
