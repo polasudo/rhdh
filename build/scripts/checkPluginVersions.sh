@@ -21,6 +21,7 @@ DRYRUN=""
 GITLAB_PIPELINE="" # set "true" when running inside a gitlab pipeline to override default git push settings
 BRANCHUSED="main"
 PR_BRANCH="pr-update-sync-rhdh-hub-$(date +%s)"
+CHECK_NPM=0
 
 SOURCEDIR=""
 
@@ -44,6 +45,7 @@ Options:
   --nobuild                  : Skip 'yarn install' steps; no PR will be generated
   --gitlab-pipeline-push     : Use this flag to push changes when running inside a gitlab pipeline
   --dry-run                  : Do everything but create the PR; instead just display the PR contents
+  --check-npm                : Optional: report if the plugin versions in the ref-branch exist at npmjs.com
   -h, --help                 : Show this help
 
 Examples:
@@ -62,6 +64,7 @@ while [[ "$#" -gt 0 ]]; do
     '--push') DO_PUSH=1; DO_BUILD=1;;
     '--gitlab-pipeline-push') DO_PUSH=1; DO_BUILD=1; GITLAB_PIPELINE="true";;
     '--dry-run') DRYRUN="$1";;
+    '--check-npm') CHECK_NPM=1;;
     '-h'|'--help') usage;;
     *) echo "Unknown parameter used: $1."; usage; exit 1;;
   esac
@@ -78,8 +81,21 @@ verlt() {
     ! verlte "$2" "$1"
 }
 
+# method to check if a given plugin and version exists already in the wild, or needs to be manually released to the stated version
+checkIfPluginExists() {
+  pluginPath="$1"
+  pluginVersionXYZ="$2"
+  pluginName=$(yq -r '.name' "$pluginPath/package.json"  2>/dev/null)
+  # echo "   [DEBUG] Checking for existence of $pluginName @ $pluginVersionXYZ ... "
+  if [[ $(curl -sSLko- "https://www.npmjs.com/package/$pluginName/v/$pluginVersionXYZ" -I | grep HTTP/2) == *"404"* ]]; then
+    echo -e "       [$c/$num_plugins] ${red}NOT FOUND${norm}: https://www.npmjs.com/package/$pluginName/v/$pluginVersionXYZ"
+  else
+    echo -e "       [$c/$num_plugins] ${blue}EXISTS${norm}: https://www.npmjs.com/package/$pluginName/v/$pluginVersionXYZ"
+  fi
+}
+
 declare -A plugins
-export HUSKY=0
+declare -A pluginsXYZ
 
 cd "$SOURCEDIR" || { echo "[ERROR] $SOURCEDIR does not exist - must exit!"; exit 1; }
 
@@ -90,7 +106,10 @@ red="\033[1;31m"
 
 HUSKY=0 git checkout "$BRANCH" 2>/dev/null || true
 for d in plugins/* packages/* ./; do if [[ -f "$d/package.json" ]]; then 
-    ver=$(jq -r '.version' "$d/package.json"); ver=${ver%.*} # only want the x.y version here 
+    ver=$(jq -r '.version' "$d/package.json")
+    pluginsXYZ["$d"]="$ver"
+
+    ver=${ver%.*} # only want the x.y version here 
     plugins["$d"]="$ver"
     # echo "$d ${plugins["$d"]}"
 fi; done
@@ -156,7 +175,9 @@ for d in ./ packages/* plugins/*; do if [[ -f "$d/package.json" ]]; then
           echo
         fi
       else
-          echo -e "[INFO] [$c/$num_plugins] ${green}$d $ver ${norm}($BRANCHUSED) > ${green}${plugins["$d"]}${norm} (in $BRANCH)"; echo
+          echo -e "[INFO] [$c/$num_plugins] ${green}$d $ver ${norm}($BRANCHUSED) > ${green}${pluginsXYZ["$d"]}${norm} (in $BRANCH)"
+          if [[ $CHECK_NPM -eq 1 ]]; then checkIfPluginExists "$d" "${pluginsXYZ["$d"]}"; fi
+          echo
       fi
     fi
 fi; done
