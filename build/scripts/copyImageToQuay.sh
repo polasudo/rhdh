@@ -17,12 +17,19 @@
 # to   quay.io/rhdh/rhdh-hub-rhel9:1.0
 
 usage () {
-    echo "Usage: $0 registry/org/image:tag1 registry/org/image2@sha256:...  -v (verbose output)
+    echo "Usage: $0 registry/org/image:tag1 registry/org/image2@sha256:...
 
 Example: $0 -v \\
     registry-proxy.engineering.redhat.com/rh-osbs/rhdh-rhdh-hub-rhel9:1.1-47 \\
     registry-proxy.engineering.redhat.com/rh-osbs/rhdh-rhdh-rhel9-operator:1.1-27 \\
-    registry-proxy.engineering.redhat.com/rh-osbs/rhdh-rhdh-operator-bundle:1.1-47 "
+    registry-proxy.engineering.redhat.com/rh-osbs/rhdh-rhdh-operator-bundle:1.1-47 
+
+Options:
+    -v                     verbose output
+    --force                recreate existing tag even if already exists
+    --pushtoquay=latest    also create a latest tag
+    --pushtoquay=next      also crate a next tag
+    "
 }
 
 # TODO: optionally set other tags if we pass in PUSHTOQUAYTAGS, eg., "latest" or "next" 
@@ -37,7 +44,8 @@ while [[ "$#" -gt 0 ]]; do
     '-v') VERBOSE=1;;
     '-h') usage; exit 1;;
     '--force') PUSHTOQUAYFORCE=1;;
-    --pushtoquay=*) PUSHTOQUAYTAGS="$(echo "${1#*=}")";;
+    '--latest'|'--next') PUSHTOQUAYTAGS="${PUSHTOQUAYTAGS} ${1/--/}";;
+    --pushtoquay=*) PUSHTOQUAYTAGS="${1#*=})";;
     *) images="$images $1"
   esac
   shift 1
