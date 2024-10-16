@@ -177,7 +177,12 @@ COPY $EXTERNAL_SOURCE_NESTED/patches/ ./patches/
 
 # Install production dependencies
 # hadolint ignore=DL3059
-RUN "$YARN" install --frozen-lockfile --production --network-timeout 600000
+RUN "$YARN" install --frozen-lockfile --production --network-timeout 600000 && \
+    # delete all the nested .npmrc files and set default values
+    find . -type f -name .npmrc -exec rm -Rf {} \; && \
+    # reset npm config to the default registry and absolute path to .pem file
+    npm config set registry=https://registry.npmjs.org/ && \
+    npm config set cafile /opt/app-root/src/registry-ca.pem
 
 # Stage 5 - Build the runner image
 #@follow_tag(registry.access.redhat.com/ubi9/nodejs-20-minimal:1)
@@ -268,7 +273,7 @@ ENTRYPOINT ["node", "packages/backend", "--no-node-snapshot", "--config", "app-c
 # append Brew metadata here
 ENV SUMMARY="Red Hat Developer Hub container" \
     DESCRIPTION="Red Hat Developer Hub container" \
-    UPSTREAM_REPO="https://github.com/janus-idp/backstage-showcase/tree/main @ 26fe2cdd" \
+    UPSTREAM_REPO="https://github.com/janus-idp/backstage-showcase/tree/main @ 745d1a29" \
     MIDSTREAM_REPO="https://gitlab.cee.redhat.com/rhidp/rhdh/-/commits/rhdh-1-rhel-9" \
     PRODNAME="rhdh" \
     COMPNAME="hub"
