@@ -64,11 +64,12 @@ Options:
     --no                      alias for '--nobuild --nocommit --nopush'
     --gitlab-pipeline-push    use this flag to push changes when running inside a gitlab pipeline
     -b DWNSTM_BRANCH          downstream branch to update w/ latest SHA; default: '$DWNSTM_BRANCH'
+    --latest, --next          in addition to :1.y and :1.y-zz image tags, also create a :latest or :next tag 
     -y                        build and push to current branch, $(git branch --show-current), using all defaults
 
 Examples:
 
-    $0 --nobuild --nopush -b ${DWNSTM_BRANCH} --force -f ${UPSTREAM_FILE##*/}
+    $0 --nobuild --nopush --force --next -b ${DWNSTM_BRANCH} 
     $0 -y
 "
   exit 1
@@ -86,6 +87,7 @@ while [[ "$#" -gt 0 ]]; do
     DWNSTM_BRANCH="$2"
     shift 2
     ;;
+  '--latest'|'--next') latestNext="${1/--/}"; shift 1;;
   '-a' | '--apptitle')
     APPTITLE="$2"
     shift 2
@@ -596,6 +598,8 @@ Using midstream_repo:
 * ${midstream_repo}
 "
 
+latestNextTag=""; if [[ $latestNext ]]; then latestNextTag="${latestNext},"; fi 
+
 # append Brew metadata here
 sed -i '/# append Brew metadata here/q' distgit/containers/rhdh-hub/Dockerfile.in
 sed -i '/# append Brew metadata here/q' distgit/containers/rhdh-hub/Dockerfile
@@ -616,13 +620,13 @@ LABEL summary="\$SUMMARY" \\
       com.redhat.component="\$PRODNAME-\$COMPNAME-container" \\
       name="\$PRODNAME/\$PRODNAME-\$COMPNAME-rhel9" \\
       version="\${CI_X_VERSION}.\${CI_Y_VERSION}" \\
-      release="RELEASE_NUMBER" \\
+      release="\${RELEASE_NUMBER}" \\
       license="ASLv2" \\
       maintainer="RHDH Team <rhdh-bot@redhat.com>" \\
       vendor="Red Hat, Inc." \\
       io.openshift.expose-services="" \\
       usage="" \\
-      konflux.additional-tags="\${CI_X_VERSION}.\${CI_Y_VERSION}, \${CI_X_VERSION}.\${CI_Y_VERSION}-RELEASE_NUMBER" \\
+      konflux.additional-tags="${latestNextTag}\${CI_X_VERSION}.\${CI_Y_VERSION}, \${CI_X_VERSION}.\${CI_Y_VERSION}-\${RELEASE_NUMBER}" \\
       distribution-scope="public" \\
       url="https://red.ht/rhdh"
 EOT
@@ -660,13 +664,13 @@ LABEL summary="\$SUMMARY" \\
       com.redhat.component="\$PRODNAME-\$COMPNAME-container" \\
       name="\$PRODNAME/\$PRODNAME-rhel9-\$COMPNAME" \\
       version="\${CI_X_VERSION}.\${CI_Y_VERSION}" \\
-      release="RELEASE_NUMBER" \\
+      release="\${RELEASE_NUMBER}" \\
       license="ASLv2" \\
       maintainer="RHDH Team <rhdh-bot@redhat.com>" \\
       vendor="Red Hat, Inc." \\
       io.openshift.expose-services="" \\
       usage="" \\
-      konflux.additional-tags="\${CI_X_VERSION}.\${CI_Y_VERSION}, \${CI_X_VERSION}.\${CI_Y_VERSION}-RELEASE_NUMBER" \\
+      konflux.additional-tags="${latestNextTag}\${CI_X_VERSION}.\${CI_Y_VERSION}, \${CI_X_VERSION}.\${CI_Y_VERSION}-\${RELEASE_NUMBER}" \\
       distribution-scope="public" \\
       url="https://red.ht/rhdh"
 EOT
@@ -701,12 +705,12 @@ LABEL operators.operatorframework.io.bundle.mediatype.v1=registry+v1 \\
       name="\$PRODNAME/\$PRODNAME-\$COMPNAME" \\
       version="\${CI_X_VERSION}.\${CI_Y_VERSION}" \\
       vendor="Red Hat, Inc." \\
-      release="RELEASE_NUMBER" \\
+      release="\${RELEASE_NUMBER}" \\
       license="ASLv2" \\
       maintainer="RHDH Team <rhdh-bot@redhat.com>" \\
       io.openshift.expose-services="" \\
       usage="" \\
-      konflux.additional-tags="\${CI_X_VERSION}.\${CI_Y_VERSION}, \${CI_X_VERSION}.\${CI_Y_VERSION}-RELEASE_NUMBER" \\
+      konflux.additional-tags="${latestNextTag}\${CI_X_VERSION}.\${CI_Y_VERSION}, \${CI_X_VERSION}.\${CI_Y_VERSION}-\${RELEASE_NUMBER}" \\
       distribution-scope="public" \\
       url="https://red.ht/rhdh"
 EOT
@@ -1024,9 +1028,7 @@ for d in distgit/containers/rhdh-hub distgit/containers/rhdh-operator distgit/co
       nextReleaseNum=$("${ROOTPATH}"/build/scripts/getNextReleaseNum.sh -b "${DWNSTM_BRANCH}" --tag "${DH_VERSION}" -c "$image" -q)
     fi
     echo "Set image version and release: $image:$DH_VERSION-$nextReleaseNum"
-    sed -i Containerfile -r \
-      -e "s/release=\"RELEASE_NUMBER\"/release=\"$nextReleaseNum\"/" \
-      -e "s/-RELEASE_NUMBER\"/-$nextReleaseNum\"/"
+    sed -r -e 's|\$\{RELEASE_NUMBER\}|'"$nextReleaseNum"'|' -i Containerfile
     ##################################### set NVR values for Konflux #####################################
 
     ##################################### rhdh-operator-bundle #####################################
