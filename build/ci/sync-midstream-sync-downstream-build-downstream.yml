@@ -15,25 +15,22 @@ sync-midstream:
       echo; git log --graph --pretty=format:'%Cred%h%Creset%C(yellow)%d%Creset :: %s @ %cN <%cE> (%cD - %cr)' --name-only -4; echo
 
       # sync, build and commit changes
-      echo "Running sync-midstream.sh for $GITLAB_USER_LOGIN in branch $CI_COMMIT_REF_NAME ..."
+      latestNext=""
+      latestStableBranch="$(curl -sSLk --header "PRIVATE-TOKEN: $PRIVATE_TOKEN" --url "https://gitlab.cee.redhat.com/api/v4/projects/rhidp%2Frhdh/repository/branches" | \
+        jq -r '.[].name' | grep -v "rhdh-1-rhel-9" | sort -Vr | head -1)" # rhdh-1.4-rhel-9
+      echo "latestStableBranch = $latestStableBranch" 
+      if [[ "$CI_COMMIT_REF_NAME" == "rhdh-1-rhel-9" ]]; then # next CI branch
+        latestNext="--next"
+      elif [[ "$CI_COMMIT_REF_NAME" == "${latestStableBranch}" ]]; then # latest stable branch
+        latestNext="--latest"
+      fi
+      echo "Running sync-midstream.sh $latestNext for $GITLAB_USER_LOGIN in branch $CI_COMMIT_REF_NAME ..."
       # can add --force flag here to push with -f
       # RHIDP-3698 local yarn build still needed to get yarn locks updated so the downstream can run in offline mode
         # distgit/containers/rhdh-hub/dynamic-plugins-imports-peer-dependencies/yarn.lock
         # distgit/containers/rhdh-hub/e2e-tests/yarn.lock
         # distgit/containers/rhdh-hub/yarn.lock
         # etc.
-
-      curl --header "PRIVATE-TOKEN: oSqUFRvsk5uYkWdzE7Vn"   --url "https://gitlab.cee.redhat.com/api/v4/projects/rhidp%2Frhdh/repository/branches" | jq '.[].name'
-
-      git fetch git branch --list || true
-      
-      latestNext=""
-      latestStableBranch="$(git branch --list | grep -E "^( |\*)*rhdh-1.*-rhel-9$" | grep -v "rhdh-1-rhel-9" | tr "*" " " | sort -Vr | head -1)" # rhdh-1.4-rhel-9
-      if [[ "$CI_COMMIT_REF_NAME" == "rhdh-1-rhel-9" ]]; then # next CI branch
-        latestNext="--next"
-      elif [[ "$CI_COMMIT_REF_NAME" == "${latestStableBranch}" ]]; then # latest stable branch
-        latestNext="--latest"
-      fi
       ./build/ci/sync-midstream.sh $latestNext -b "$CI_COMMIT_REF_NAME" --gitlab-pipeline-push || exit 15
       echo "Committed: $CI_COMMIT_REF_NAME"
       set -x
