@@ -598,7 +598,7 @@ Using midstream_repo:
 * ${midstream_repo}
 "
 
-latestNextTag=""; if [[ $latestNext ]]; then latestNextTag="${latestNext},"; fi 
+latestNextTag=""; if [[ $latestNext ]]; then latestNextTag="${latestNext}, "; fi 
 
 # append Brew metadata here
 sed -i '/# append Brew metadata here/q' distgit/containers/rhdh-hub/Dockerfile.in

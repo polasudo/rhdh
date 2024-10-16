@@ -22,7 +22,15 @@ sync-midstream:
         # distgit/containers/rhdh-hub/e2e-tests/yarn.lock
         # distgit/containers/rhdh-hub/yarn.lock
         # etc.
-      ./build/ci/sync-midstream.sh -b "$CI_COMMIT_REF_NAME" --gitlab-pipeline-push || exit 15
+
+      latestNext=""
+      latestStableBranch="$(git branch --list | grep -E "^( |\*)*rhdh-1.*-rhel-9$" | grep -v "rhdh-1-rhel-9" | tr "*" " " | sort -Vr | head -1)" # rhdh-1.4-rhel-9
+      if [[ "$CI_COMMIT_REF_NAME" == "rhdh-1-rhel-9" ]]; then # next CI branch
+        latestNext="--next"
+      elif [[ "$CI_COMMIT_REF_NAME" == "${latestStableBranch}" ]]; then # latest stable branch
+        latestNext="--latest"
+      fi
+      ./build/ci/sync-midstream.sh $latestNext -b "$CI_COMMIT_REF_NAME" --gitlab-pipeline-push || exit 15
       echo "Committed: $CI_COMMIT_REF_NAME"
       set -x
       echo "Currently in $(pwd)"
