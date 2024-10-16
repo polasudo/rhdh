@@ -50,7 +50,7 @@ Options:
   -h, --help             show this help
 
 Examples:
-    $0 --clean --versions "$VERSIONS" -v 1.4.0
+    $0 -v 1.4.0 --next
 
 EOF
 exit
