@@ -23,7 +23,9 @@ sync-midstream:
         # distgit/containers/rhdh-hub/yarn.lock
         # etc.
 
-      git branch --list || true
+      curl --header "PRIVATE-TOKEN: oSqUFRvsk5uYkWdzE7Vn"   --url "https://gitlab.cee.redhat.com/api/v4/projects/rhidp%2Frhdh/repository/branches" | jq '.[].name'
+
+      git fetch git branch --list || true
       
       latestNext=""
       latestStableBranch="$(git branch --list | grep -E "^( |\*)*rhdh-1.*-rhel-9$" | grep -v "rhdh-1-rhel-9" | tr "*" " " | sort -Vr | head -1)" # rhdh-1.4-rhel-9

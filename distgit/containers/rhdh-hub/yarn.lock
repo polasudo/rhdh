@@ -28707,7 +28707,6 @@ rollup-plugin-dts@^4.0.1:
   resolved "https://registry.npmjs.org/rollup-plugin-dts/-/rollup-plugin-dts-4.2.3.tgz#04c3615df1ffab4228aa9d540697eaca61e01f47"
   integrity sha512-jlcpItqM2efqfIiKzDB/IKOS9E9fDvbkJSGw5GtK/PqPGS9eC3R3JKyw2VvpTktZA+TNgJRMu1NTv244aTUzzQ==
   dependencies:
-    "@babel/code-frame" "^7.18.6"
     magic-string "^0.26.6"
   optionalDependencies:
     "@babel/code-frame" "^7.18.6"

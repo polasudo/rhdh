@@ -98,6 +98,6 @@ LABEL summary="$SUMMARY" \
       vendor="Red Hat, Inc." \
       io.openshift.expose-services="" \
       usage="" \
-      konflux.additional-tags="next,${CI_X_VERSION}.${CI_Y_VERSION}, ${CI_X_VERSION}.${CI_Y_VERSION}-${RELEASE_NUMBER}" \
+      konflux.additional-tags="${CI_X_VERSION}.${CI_Y_VERSION}, ${CI_X_VERSION}.${CI_Y_VERSION}-${RELEASE_NUMBER}" \
       distribution-scope="public" \
       url="https://red.ht/rhdh"
