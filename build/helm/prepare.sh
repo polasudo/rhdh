@@ -61,10 +61,10 @@ Examples:
 
      # Or, log into the quay.io and registry.redhat.io to be able to pull container metadata, then compute the latest 1.2-zz or next 1.3-zzz tag
     $ export GITHUB_TOKEN=ghp_rhdh-bot-token-here
-    $ $0 --latest --chart-branch release-1.3 --publish
-    $ $0 --next --chart-branch main --publish
-    Chart version:        1.3-zzz-CI
-    Developer Hub image:  quay.io/rhdh/rhdh-hub-rhel9:1.3-zzz
+    $ $0 --latest --chart-branch release-1.3 --publish --extra-branch rhdh-1.3-rhel-9
+    $ $0 --next   --chart-branch main        --publish --extra-branch rhdh-1-rhel-9
+    Chart version:        1.4-zzz-CI
+    Developer Hub image:  quay.io/rhdh/rhdh-hub-rhel9:1.4-zzz
 
     # Run this manually on GA release day
     # 1. use gh to log in as the bot (not using exported github token) - can use incognito browser so you don't have to log out as yourself
