@@ -1,5 +1,7 @@
+# THIS IS USED BY OSBS BUILDS <=1.3
+# FOR KONFLUX >=1.4, see ../../docker/Dockerfile
 #
-# Copyright (c) 2023 Red Hat, Inc.
+# Copyright (c) 2023-2024 Red Hat, Inc.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -230,6 +232,9 @@ COPY --from=build "$REMOTE_SOURCES_DIR"/dynamic-plugins/dist/ ./dynamic-plugins/
 # include patch files in final container just for reference
 COPY $EXTERNAL_SOURCE_NESTED/patches/ ./patches/
 
+# RHIDP-4220 - make Konflux preflight and EC checks happy - [check-container] Create a directory named /licenses and include all relevant licensing
+COPY $EXTERNAL_SOURCE/LICENSE /licenses/
+
 # Copy script to gather dynamic plugins; copy embedded dynamic plugins to root folder; fix permissions
 COPY docker/install-dynamic-plugins.py docker/install-dynamic-plugins.sh ./
 RUN chmod -R a+r ./dynamic-plugins/ ./install-dynamic-plugins.py; \
@@ -273,7 +278,7 @@ ENTRYPOINT ["node", "packages/backend", "--no-node-snapshot", "--config", "app-c
 # append Brew metadata here
 ENV SUMMARY="Red Hat Developer Hub container" \
     DESCRIPTION="Red Hat Developer Hub container" \
-    UPSTREAM_REPO="https://github.com/janus-idp/backstage-showcase/tree/main @ 745d1a29" \
+    UPSTREAM_REPO="https://github.com/janus-idp/backstage-showcase/tree/main @ 30b15564" \
     MIDSTREAM_REPO="https://gitlab.cee.redhat.com/rhidp/rhdh/-/commits/rhdh-1-rhel-9" \
     PRODNAME="rhdh" \
     COMPNAME="hub"
