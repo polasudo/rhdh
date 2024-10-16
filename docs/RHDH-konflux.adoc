@@ -36,11 +36,11 @@ This should only be done once every 6mo or so, when a new OCP version is release
 
 1. Go to https://konflux.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/application-pipeline/workspaces/rhdh/applications
 
-2. Create a new Application and Component:
+2. Update defaults in link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1-rhel-9/build/scripts/renderCatalogs.sh[build/scripts/renderCatalogs.sh]
+
+3. Create a new Application and Component. Note that an MR will be generated to add new pipelines to https://gitlab.cee.redhat.com/rhidp/rhdh/-/tree/rhdh-1-rhel-9/.tekton -- you can probably merge those as is, then update them to match the customizations applied to the other fbc-related pipelines. 
 
 image::images/new-application-fbc-component.png[New Application and Component]
-
-3. Update defaults in link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1-rhel-9/build/scripts/renderCatalogs.sh[build/scripts/renderCatalogs.sh]
 
 ### Remove support for EOL OCP versions
 
