@@ -774,6 +774,14 @@ if [[ $DO_BUILD -eq 1 ]]; then
   "dependencies": {}
 }
 EOF
+    # TODO RHIDP-4492 RHIDP-4558 copy root yarn lock from showcase into this folder as 
+    # seed for the regeneration (and to get newer pinned versions 
+    # of express and other CVE'd transitive packages)
+    cp yarn.lock "$d/"
+
+    # TODO PLAN B: do we need to pin explicit versions of dependencies in this 
+    # package.json (or the showcase root one?)
+  
     # copy dynamic-plugins/imports/package.json#.peerDependencies to $d/package.json#.dependencies
     peerDepPairs="$(jq -M -c '.peerDependencies' dynamic-plugins/imports/package.json | tr -d "{}")"
     jq '.dependencies|={'"$peerDepPairs"'}' "$d"/package.json > "$d"/package.json_; mv "$d"/package.json{_,}
