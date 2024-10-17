@@ -20,7 +20,7 @@ metadata:
     categories: Developer Tools
     certified: 'true'
     containerImage: registry.redhat.io/rhdh/rhdh-rhel9-operator:1.4-70@sha256:ec2ca8f85f61395d28dcfa4118751842f29f1c3264c91571c00f563ad4214278
-    createdAt: "2024-10-16T21:14:56Z"
+    createdAt: "2024-10-17T16:46:29Z"
     description: Red Hat Developer Hub is a Red Hat supported version of Backstage.
       It comes with pre-built plug-ins and configuration settings, supports use of an external database, and can
       help streamline the process of setting up a self-managed internal
@@ -223,31 +223,9 @@ spec:
               automountServiceAccountToken: true
               containers:
               - args:
-                - --secure-listen-address=0.0.0.0:8443
-                - --upstream=http://127.0.0.1:8080/
-                - --logtostderr=true
-                - --v=0
-                image: registry.redhat.io/openshift4/ose-kube-rbac-proxy-rhel9:v4.16.0-202410011135.p0.g8ea2c99.assembly.stream.el9@sha256:f9f033bcfcd3e04c59c17e458ce26ca81c982568f86f7799cbf814b675ac6707
-                name: kube-rbac-proxy
-                ports:
-                - containerPort: 8443
-                  name: https
-                  protocol: TCP
-                resources:
-                  limits:
-                    cpu: 500m
-                    memory: 128Mi
-                  requests:
-                    cpu: 5m
-                    memory: 64Mi
-                securityContext:
-                  allowPrivilegeEscalation: false
-                  capabilities:
-                    drop:
-                    - ALL
-              - args:
                 - --health-probe-bind-address=:8081
-                - --metrics-bind-address=127.0.0.1:8080
+                - --metrics-bind-address=:8443
+                - --metrics-secure=true
                 - --leader-elect
                 command:
                 - /manager
@@ -263,17 +241,22 @@ spec:
                 - name: RELATED_IMAGE_backstage
                   value: registry.redhat.io/rhdh/rhdh-hub-rhel9:1.4-55@sha256:252ed3e6b1387caa73fddf6d11573f28285a1f1f15e22f8b4d81a4f7fee0c47b
                 image: registry.redhat.io/rhdh/rhdh-rhel9-operator:1.4-70@sha256:ec2ca8f85f61395d28dcfa4118751842f29f1c3264c91571c00f563ad4214278
+                ports:
+                  - name: health
+                    containerPort: 8081
+                  - name: metrics
+                    containerPort: 8443
                 livenessProbe:
                   httpGet:
                     path: /healthz
-                    port: 8081
+                    port: health
                   initialDelaySeconds: 15
                   periodSeconds: 20
                 name: manager
                 readinessProbe:
                   httpGet:
                     path: /readyz
-                    port: 8081
+                    port: health
                   initialDelaySeconds: 5
                   periodSeconds: 10
                 resources:
