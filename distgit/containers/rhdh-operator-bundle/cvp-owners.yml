@@ -2,7 +2,7 @@
 asoro@redhat.com:
     - UNSTABLE
     - FAILURE
-#qe
+#qe 
 joskim@redhat.com: 
     - SUCCESS
     - UNSTABLE
