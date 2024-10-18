@@ -126,6 +126,8 @@ for v in $VERSIONS; do
 
   # latest CI build
   bundle_digest=$(skopeo inspect "docker://${bundle_image}:$PROD_VERSION" | jq -r '.Digest')
+  echo "Got $bundle_image@$bundle_digest"
+  ./build/scripts/getTagForSHA.sh "$bundle_image@$bundle_digest" -y
 
   # inject new bundle
   jq --arg bundle_digest "${bundle_digest}" --arg bundle_image "${bundle_image}" \
@@ -135,8 +137,11 @@ for v in $VERSIONS; do
   # rename
   mv "catalogs/v${v}/catalog-template.json"{_,}
 
+  grep "quay.io/rhdh/rhdh-operator-bundle" "catalogs/v${v}/catalog-template.json" || true
+
   # render catalog content from the template
-  opm alpha render-template basic catalogs/v${v}/catalog-template.json > catalogs/v${v}/configs/${prod_path}/catalog.json
+  rm -f "catalogs/v${v}/configs/${prod_path}/catalog.json"
+  opm alpha render-template basic "catalogs/v${v}/catalog-template.json" > "catalogs/v${v}/configs/${prod_path}/catalog.json"
 
   # for 4.15+, use the rhel9 image
   vergte "$v" "4.15" && registry="registry-rhel9:v${v}" || registry="registry:v${v}"
