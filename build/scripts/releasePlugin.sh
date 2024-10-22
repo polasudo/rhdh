@@ -13,6 +13,7 @@
 
 # SCRIPT_DIR=$(cd "$(dirname "$0")" || exit; pwd)
 DRY_RUN=""
+PUSH_DYNAMIC=0
 PLUGIN_DIRS=""
 
 if [[ ! $NPM_TOKEN ]]; then echo "NPM_TOKEN not set! Get latest token from https://vault.bitwarden.com/"; exit 1; fi
@@ -53,12 +54,19 @@ Step 4: release the new plugin (non-private)
 
 --
 
-Usage: $0 [--dry-run] -d /path/to/plugins-project plugins/some-plugin-dir1 [plugins/some-plugin-dir2...]";
+Usage: 
+  $0 -d /path/to/plugins-project plugins/some-plugin-dir1 [plugins/some-plugin-dir2...]
+  
+Options:
+  --dry-run          do everything but actually pushing to npmjs.com
+  --dynamic          if a dist-dynamic folder exists, also push the plugin-foo-dynamic folder
+  ";
 }
 
 while [[ "$#" -gt 0 ]]; do
   case $1 in
     '--dry-run') DRY_RUN="$1";;
+    '--dynamic') PUSH_DYNAMIC=1;;
     '-d') BASE_DIR="$2"; shift 1;;
     *) PLUGIN_DIRS="$PLUGIN_DIRS $1";;
   esac
@@ -91,6 +99,15 @@ for PLUGIN_DIR in $PLUGIN_DIRS; do
         # to see what will happen, use --dry-run 
         # shellcheck disable=SC2086
         npm publish --cwd . --access public -w . $DRY_RUN
+
+        # also push the -dynamic content?
+        if [[ $PUSH_DYNAMIC -eq 1 ]] && [[ -d 'dist-dynamic' ]]; then 
+          echo 'Publish backend derived package ...'
+          pushd dist-dynamic >/dev/null || exit 
+            npm pkg delete scripts
+            npm publish --cwd . --access public -w . $DRY_RUN
+          popd >/dev/null || exit 
+        fi
 
         # create tag
         pluginName=$(jq -r .name "package.json")
