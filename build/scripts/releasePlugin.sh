@@ -98,15 +98,20 @@ for PLUGIN_DIR in $PLUGIN_DIRS; do
 
         # to see what will happen, use --dry-run 
         # shellcheck disable=SC2086
-        npm publish --cwd . --access public -w . $DRY_RUN
+        CMD="npm publish --cwd . --access public -w . $DRY_RUN"
+        echo "$CMD"
+        $CMD
 
         # also push the -dynamic content?
         if [[ $PUSH_DYNAMIC -eq 1 ]] && [[ -d 'dist-dynamic' ]]; then 
           echo 'Publish backend derived package ...'
-          pushd dist-dynamic >/dev/null || exit 
+          pushd dist-dynamic >/dev/null || exit 1
             npm pkg delete scripts
-            npm publish --cwd . --access public -w . $DRY_RUN
-          popd >/dev/null || exit 
+            # shellcheck disable=SC2086
+            CMD="npm publish --access public $DRY_RUN"
+            echo "$CMD"
+            $CMD
+          popd >/dev/null || exit 1
         fi
 
         # create tag
