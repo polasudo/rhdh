@@ -278,7 +278,7 @@ ENTRYPOINT ["node", "packages/backend", "--no-node-snapshot", "--config", "app-c
 # append Brew metadata here
 ENV SUMMARY="Red Hat Developer Hub container" \
     DESCRIPTION="Red Hat Developer Hub container" \
-    UPSTREAM_REPO="https://github.com/janus-idp/backstage-showcase/tree/main @ e5ffb5ae" \
+    UPSTREAM_REPO="https://github.com/janus-idp/backstage-showcase/tree/main @ 217cdc29" \
     MIDSTREAM_REPO="https://gitlab.cee.redhat.com/rhidp/rhdh/-/commits/rhdh-1-rhel-9" \
     PRODNAME="rhdh" \
     COMPNAME="hub"
