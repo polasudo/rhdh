@@ -123,7 +123,7 @@ Since the midstream transformation still requires a GL pipeline to trigger Konfl
 
 ### Trigger respins, 1.4 and earlier (OSBS)
 
-. **FOR 1.3 and earlier** Create new gitlab pipeline schedule for stable branch 1.4 (to run in parallel with CI builds from 1.next)
+. **FOR 1.4 and earlier** Create new gitlab pipeline schedule for stable branch 1.4 (to run in parallel with CI builds from 1.next)
 
 . Run pipelines from
 .. https://gitlab.cee.redhat.com/rhidp/rhdh/-/pipeline_schedules or 
@@ -137,11 +137,21 @@ Since the midstream transformation still requires a GL pipeline to trigger Konfl
 ====
 Once the above build is done, you will need to update the **Catalog Sources** (also known as index bundles or IIBs) published on Quay if you want to use the simple catalog source installation scripts.
 
-Run the copy to quay script:
+
+For 1.3 and earlier, run the copy to quay script:
 
 ```
-./copyIIBsToQuay.sh -p -t 1.4 --latest
-./copyIIBsToQuay.sh -p -t 1.5 --next
+./copyIIBsToQuay.sh -p -t 1.3 --latest # until we have a stable branch for 1.4, latest = 1.3
+# OR 
+./copyIIBsToQuay.sh -p -t 1.2
+```
+
+For 1.4+, run the link:../build/scripts/renderCatalogs.sh[renderCatalogs] script:
+
+```
+./build/scripts/renderCatalogs.sh -v 1.5.0 --next
+# OR
+./build/scripts/renderCatalogs.sh -v 1.4.0 --latest
 ```
 
 You should see new tags added here:
