@@ -98,17 +98,38 @@ NOTE: **_TODO_ https://issues.redhat.com/browse/RHIDP-931 verify branch creation
 
 Submit PR (or just merge change) to fix version reference in `upstream_repos.yml` for the new rhdh-1.yy-rhel-9 branch; trigger a build from the new branch.
 
-### Trigger respins 
+### Trigger respins, 1.4 and newer (RH Internal Konflux)
 
-. Create new gitlab pipeline schedule for stable branch 1.4 (to run in parallel with CI builds from 1.next)
+. This process is still evolving but the overview is that you need a set of tekton pipelines, a Release, Release Plan, and Release Plan Admission for each new 1.y version of RHDH that will be released to the RHEC as a GA build.
+
+Existing applications:
+
+* https://konflux.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/application-pipeline/workspaces/rhdh/applications/rhdh-1/activity (for CI builds only, cannot be released as GA)
+* https://konflux.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/application-pipeline/workspaces/rhdh/applications/rhdh-1-3/activity (not currently working)
+
+Existing tekton pipelines for builds and FBCs: 
+
+* link:../.tekton/README.adoc
+* link:../.tekton
+
+Existing FBC catalog content:
+
+* link:../catalogs
+* link:../build/scripts/renderCatalogs.sh[renderCatalogs] (replacement for link:../build/scripts/copyIIBsToQuay.sh[copyIIBsToQuay], used for OSBS IIB builds)
+
+See also link:RHDH-konflux.adoc[RHDH-konflux.adoc]
+
+### Trigger respins, 1.3 and earlier (OSBS)
+
+. **FOR 1.3 and earlier** Create new gitlab pipeline schedule for stable branch 1.4 (to run in parallel with CI builds from 1.next)
 
 . Run pipelines from
 .. https://gitlab.cee.redhat.com/rhidp/rhdh/-/pipeline_schedules or 
 .. https://gitlab.cee.redhat.com/rhidp/rhdh/-/pipeline (by committing to the branches)
 
-. You can also force a respin using this script: https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1-rhel-9/build/scripts/triggerRespin.sh[build/scripts/triggerRespin.sh]
+. You can also force a respin using this script: link:../build/scripts/triggerRespin.sh[build/scripts/triggerRespin.sh]
 
-. If you need to release a plugin manually from the stable branch (not main) see https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1-rhel-9/build/scripts/releasePlugin.sh[build/scripts/releasePlugin.sh]
+. If you need to release a plugin manually from the stable branch (not main) see link:../build/scripts/releasePlugin.sh[build/scripts/releasePlugin.sh]
 +
 [IMPORTANT]
 ====
