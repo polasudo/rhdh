@@ -109,17 +109,19 @@ Existing applications:
 
 Existing tekton pipelines for builds and FBCs: 
 
-* link:../.tekton/README.adoc
-* link:../.tekton
+* link:../.tekton/README.adoc[.tekton/README.adoc]
+* link:../.tekton[.tekton]
 
 Existing FBC catalog content:
 
-* link:../catalogs
+* link:../catalogs[catalogs]
 * link:../build/scripts/renderCatalogs.sh[renderCatalogs] (replacement for link:../build/scripts/copyIIBsToQuay.sh[copyIIBsToQuay], used for OSBS IIB builds)
 
 See also link:RHDH-konflux.adoc[RHDH-konflux.adoc]
 
-### Trigger respins, 1.3 and earlier (OSBS)
+Since the midstream transformation still requires a GL pipeline to trigger Konflux, you still need a new pipeline for 1.4. See next step.
+
+### Trigger respins, 1.4 and earlier (OSBS)
 
 . **FOR 1.3 and earlier** Create new gitlab pipeline schedule for stable branch 1.4 (to run in parallel with CI builds from 1.next)
 
