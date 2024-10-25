@@ -768,9 +768,9 @@ if [[ $DO_BUILD -eq 1 ]]; then
   "version": "0.0.0",
   "private": true,
   "engines": {
-    "node": "18 || 20"
+    "node": "20"
   },
-  "packageManager": "yarn@1.22.19",
+  "packageManager": "yarn@3.8.6",
   "dependencies": {}
 }
 EOF
