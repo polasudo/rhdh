@@ -398,9 +398,9 @@ for ((i = 0; i < NUM_REPOS; i++)); do # echo $i
     if [[ $destination_folder == *"rhdh-operator"* ]]; then
       echo " and ${destination_folder%/}-bundle ... "
       BUNDLEDIR="${ROOTPATH}/${destination_folder%/}-bundle"
-      # copy the contents of bundle/ into distgit/containers/rhdh-operator-bundle/
-      # NOTE: if we add any .dotfiles in bundle/, add $TMPDIR/repo${i}/bundle/.??* to regexes copied 
-      rsync -azq --delete $TMPDIR/repo${i}/bundle/* $TMPDIR/repo${i}/.gitignore "${BUNDLEDIR}/" --exclude=.git ${excludesFlags}
+      # copy the contents of bundle/rhdh/ into distgit/containers/rhdh-operator-bundle/
+      # NOTE: if we add any .dotfiles in bundle/rhdh/, add $TMPDIR/repo${i}/bundle/.??* to regexes copied 
+      rsync -azq --delete $TMPDIR/repo${i}/bundle/rhdh/* $TMPDIR/repo${i}/.gitignore "${BUNDLEDIR}/" --exclude=.git ${excludesFlags}
 
       # downstream CSV and annotations are stored in https://github.com/redhat-developer/rhdh-operator/tree/main/.rhdh/bundle/
       # append overrides from the .rhdh/ tree: CSV and annotations
@@ -1007,7 +1007,7 @@ for d in distgit/containers/rhdh-hub distgit/containers/rhdh-operator distgit/co
     if [[ $d == "distgit/containers/rhdh-hub" ]]; then
       cp -f "$TMPDIR/repo0/docker/Dockerfile" Containerfile
     elif [[ $d == "distgit/containers/rhdh-operator" ]]; then
-      cp -f "$TMPDIR/repo1/docker/Dockerfile" Containerfile
+      cp -f "$TMPDIR/repo1/Dockerfile" Containerfile
     elif [[ $d == "distgit/containers/rhdh-operator-bundle" ]]; then
       # for bundle use the downstream OSBS Dockerfile with the correct LABEL and ENV  values
       cp -f Dockerfile Containerfile
