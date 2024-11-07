@@ -8,7 +8,9 @@
   tags:
     - docker
     - shared
-  image: quay.io/rhdh/gitlab-runner:builder-latest
+  # for RHDH 1.3 use builder-latest; for 1.4+ (Yarn 3) use yarn3-latest
+  # image: quay.io/rhdh/gitlab-runner:builder-latest
+  image: quay.io/rhdh/gitlab-runner:yarn3-latest
   allow_failure: false
   # see https://gitlab.cee.redhat.com/help/ci/runners/configure_runners.md#configure-runner-behavior-with-variables for what can be set here
   variables:
