@@ -756,55 +756,12 @@ if [[ $DO_BUILD -eq 1 ]]; then
     echo "[INFO] <===================================== EXPORT + COPY DYNAMIC PLUGINS ====================================="
     echo
 
-    echo "[INFO] ===================================== Collect dynamic-plugins/imports/package.json#.peerDependencies =====================================>"
-    # generate new package.json for the peer deps in dynamic-plugins/imports, so that we can cache them in cacito registry
-    d=dynamic-plugins-imports-peer-dependencies
-    mkdir -p "$d"
-    cat << EOF > "$d"/package.json
-{
-  "name": "dynamic-plugins-imports-peer-dependencies",
-  "version": "0.0.0",
-  "private": true,
-  "engines": {
-    "node": "20"
-  },
-  "packageManager": "yarn@3.8.6",
-  "dependencies": {}
-}
-EOF
-    # TODO RHIDP-4492 RHIDP-4558 copy root yarn lock from showcase into this folder as 
-    # seed for the regeneration (and to get newer pinned versions 
-    # of express and other CVE'd transitive packages)
-    cp yarn.lock "$d/"
-
-    # TODO PLAN B: do we need to pin explicit versions of dependencies in this 
-    # package.json (or the showcase root one?)
-  
-    # copy dynamic-plugins/imports/package.json#.peerDependencies to $d/package.json#.dependencies
-    peerDepPairs="$(jq -M -c '.peerDependencies' dynamic-plugins/imports/package.json | tr -d "{}")"
-    jq '.dependencies|={'"$peerDepPairs"'}' "$d"/package.json > "$d"/package.json_; mv "$d"/package.json{_,}
-    # TODO should we rm -f yarn.lock before this install so it's fresh every time?
-    # TODO with yarn 3 can we do better tree shaking / cleanup of old resolutions?
-    $YARN install --silent --cwd "./$d" 2> >(grep -v warning 1>&2) || exit 51
-
-    pushd dynamic-plugins/imports >/dev/null || exit
-      cp -f --parents ./*/dist-dynamic/package.json ./*/dist-dynamic/yarn.lock ../../"$d"/
-    popd >/dev/null || exit
-    peerDepPairs=$(echo "$peerDepPairs" | tr "," "\n")
-
-    echo "[INFO] Got these peer dependencies:
------
-${peerDepPairs}
------
-"
-    echo "[INFO] <===================================== Collect dynamic-plugins/imports/package.json#.peerDependencies  ====================================="
-
     echo "[INFO] ===================================== Regen container.yaml.in =====================================>"
     # list paths to yarn.lock files to tell Cachito how to fetch all the dependencies into a local yarn registry.
     c=0
     # clear old paths
     yq -Yy '.remote_sources[0].remote_source.packages.yarn|=null' container.yaml.in > container.yaml.in_; mv container.yaml.in_ container.yaml.in
-    for yarnlock in $(find . -name "yarn.lock" | grep -E -v "node_modules/|dynamic-plugins/imports/" | sort -r); do
+    for yarnlock in $(find . -name "yarn.lock" | grep -E -v "node_modules/" | sort -r); do
       dir="${destination_folder}/${yarnlock#./}"; dir=${dir%/yarn.lock}
       if [[ $dir != *"/dynamic-plugins/dist/"* ]]; then
         echo "[INFO] Add path[$c] to container.yaml.in: $dir"
@@ -845,7 +802,6 @@ ${peerDepPairs}
     distgit/containers/rhdh-hub/dynamic-plugins-root/* \
     distgit/containers/rhdh-hub/dynamic-plugins/dist/ \
     distgit/containers/rhdh-hub/dynamic-plugins/wrappers/*/dist-dynamic/src \
-    distgit/containers/rhdh-hub/dynamic-plugins/imports/*/ \
     distgit/containers/rhdh-hub/dynamic-plugins/*/dist-dynamic/src
   touch distgit/containers/rhdh-hub/dynamic-plugins-root/.gitkeep
 
@@ -854,12 +810,6 @@ ${peerDepPairs}
   set -e
 
   echo "[INFO] ===================================== Patch embedded yarn commands =====================================>"
-  # fix dynamic-plugins/imports/import-plugins.js to use more flags; fix package.json to use specific $YARN
-
-  echo "[INFO] Patch yarn commmand in dynamic-plugins/imports/import-plugins.js ..."
-  sed -i distgit/containers/rhdh-hub/dynamic-plugins/imports/import-plugins.js \
-  -e "s#yarn install#\$YARN install --network-timeout 600000#g"
-
   # backstage-plugin-kubernetes-backend:export-dynamic: error Your lockfile needs to be updated, but yarn was run with `--frozen-lockfile`.
   # don't use --frozen-lockfile to see if that makes Cachito happy
   insertYarn=" --no-install \&\& \$YARN --cwd dist-dynamic install --production --network-timeout 600000"
@@ -925,23 +875,11 @@ ${peerDepPairs}
         # 2. remove resolutions (moved above)
         jq '.resolutions|={}' "$d"/package.json > "$d"/package.json_; mv "$d"/package.json{_,}
 
-        # 3. fix version 1.4.3 in dynamic-plugins-imports-peer-dependencies/janus-idp-backstage-plugin-aap-backend/dist-dynamic/package.json 
-        #    if matching peer dep exists @janus-idp/backstage-plugin-aap-backend:1.4.4
-        oldPeerDepVer="$(jq -r '.version' "$d"/package.json)"
-        # echo "[DEBUG] Checking $d/package.json for old version $oldPeerDepVer to update..."
-        for peerDep in $peerDepPairs; do
-          peerDep=$(echo $peerDep | tr -d "@\"" | tr "/" "-")
-          peerDepName=${peerDep%%:*}
-          peerDepVer=${peerDep##*:}
-          # echo "[INFO] Found $peerDepName @ $peerDepVer"
-          if [[ "${d}" == *"${peerDepName}/dist-dynamic"* ]] && [[ "$oldPeerDepVer" != "$peerDepVer" ]]; then
-            echo "[INFO] Bump to version $peerDepVer ..."
-            jq --arg peerDepVer $peerDepVer '.version|=$peerDepVer' "$d"/package.json > "$d"/package.json_; mv "$d"/package.json{_,}
-          fi
-        done
-
-        echo "[INFO] Regenerate ${d##*wrappers/}/yarn.lock ..."
+        echo "[INFO] Regenerate wrapper ${d##*wrappers/}/yarn.lock ..."
         $YARN install --silent --cwd "./$d" 2> >(grep -v warning 1>&2) || exit 61
+          echo "========= anything changed in the yarn lock? ====>"
+          git diff "./$d"
+          echo "<======== anything changed in the yarn lock? ====+"
         # force add package.json and yarn.lock (override .gitignore)
         git add -f "$d"/package.json "$d"/yarn.lock
       fi
@@ -1050,7 +988,6 @@ done
 # want to keep changes to distgit/containers/rhdh-hub/packages/app/src/build-metadata.json ! 
 if [[ $DO_BUILD -eq 0 ]]; then
   for d in \
-    distgit/containers/rhdh-hub/dynamic-plugins/imports/import-plugins.js \
     distgit/containers/rhdh-hub/dynamic-plugins/ \
     distgit/containers/rhdh-hub/e2e-tests/ \
     distgit/containers/rhdh-hub/packages/app/public/ \
