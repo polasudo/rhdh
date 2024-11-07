@@ -121,7 +121,9 @@ if [[ $DO_LATEST -eq 1 ]]; then
     # get all tags but find the ones starting with 1.yy-, then sort those and return the most recent one
     CHART_FILTER="${CHART_BRANCH/.x/-}" # for up to 1.2.x
     CHART_FILTER="${CHART_FILTER/release-}" # for 1.3+
-    next_tag=$(skopeo inspect docker://quay.io/rhdh/rhdh-hub-rhel9:next | jq -r '.RepoTags[]' | grep -v -E "next|latest" | grep -- "-" | grep "${CHART_FILTER}" | sort -uV  | tail -1 || true)
+    next_tag=$(skopeo inspect docker://quay.io/rhdh/rhdh-hub-rhel9:next | jq -r '.RepoTags[]' | \
+        grep -v -E "next|latest|candidate|guest|containers|-source|-pr-|-tmp-|-ci-|-gh-|sha256-" | \
+        grep -- "-" | grep "${CHART_FILTER}" | sort -uV  | tail -1 || true)
     RHDH_DIGEST=$(skopeo inspect docker://quay.io/rhdh/rhdh-hub-rhel9:"${next_tag}" | jq -r '.Digest')
     CHART_VERSION=${next_tag}-CI
     RHDH_VERSION=${next_tag}
