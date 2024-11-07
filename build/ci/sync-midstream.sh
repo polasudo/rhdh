@@ -878,7 +878,7 @@ if [[ $DO_BUILD -eq 1 ]]; then
         echo "[INFO] Regenerate wrapper ${d##*wrappers/}/yarn.lock ..."
         $YARN install --no-immutable --silent --cwd "./$d" 2> >(grep -v warning 1>&2) || exit 61
           echo "========= anything changed in the yarn lock? ====>"
-          git diff "./$d"
+          git diff --name-only "./$d"
           echo "<======== anything changed in the yarn lock? ====+"
         # force add package.json and yarn.lock (override .gitignore)
         git add -f "$d"/package.json "$d"/yarn.lock
