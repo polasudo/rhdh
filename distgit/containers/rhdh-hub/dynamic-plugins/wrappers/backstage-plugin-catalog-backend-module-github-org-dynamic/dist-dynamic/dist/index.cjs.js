@@ -2,22 +2,21 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var require$$0$1 = require('@backstage/backend-plugin-api');
-var require$$10 = require('@backstage/backend-tasks');
-var require$$0 = require('@backstage/catalog-client');
+var require$$0 = require('@backstage/backend-plugin-api');
+var require$$1$2 = require('@backstage/plugin-catalog-node/alpha');
+var require$$2$2 = require('@backstage/plugin-events-node');
 var require$$1 = require('@backstage/integration');
-var require$$2 = require('@octokit/rest');
+var require$$1$1 = require('@backstage/plugin-catalog-node');
+var require$$2 = require('@octokit/graphql');
+var require$$3$1 = require('uuid');
+var require$$0$1 = require('@backstage/catalog-model');
 var require$$3 = require('lodash');
+var require$$7 = require('minimatch');
+var require$$0$2 = require('@backstage/catalog-client');
+var require$$2$1 = require('@octokit/rest');
 var require$$4 = require('git-url-parse');
 var require$$5 = require('@backstage/backend-common');
 var require$$6 = require('path');
-var require$$7 = require('@backstage/plugin-catalog-node');
-var require$$8 = require('@octokit/graphql');
-var require$$9 = require('uuid');
-var require$$11 = require('@backstage/catalog-model');
-var require$$12 = require('minimatch');
-var require$$3$1 = require('@backstage/plugin-catalog-node/alpha');
-var require$$4$1 = require('@backstage/plugin-events-node');
 
 function getDefaultExportFromCjs (x) {
 	return x && x.__esModule && Object.prototype.hasOwnProperty.call(x, 'default') ? x['default'] : x;
@@ -25,122 +24,102 @@ function getDefaultExportFromCjs (x) {
 
 var index_cjs$2 = {};
 
+var module_cjs = {};
+
 var index_cjs$1 = {};
 
-var GithubEntityProviderCJpx_erw_cjs = {};
+var githubCatalogModule_cjs = {};
 
-var catalogClient = require$$0;
-var integration$1 = require$$1;
-var rest = require$$2;
-var lodash$1 = require$$3;
-var parseGitUrl = require$$4;
-var backendCommon = require$$5;
-var path = require$$6;
-var pluginCatalogNode$1 = require$$7;
-var graphql$1 = require$$8;
-var uuid$1 = require$$9;
-var backendTasks = require$$10;
-var catalogModel$1 = require$$11;
-var minimatch = require$$12;
+var GithubEntityProvider_cjs = {};
 
-function _interopDefaultCompat (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }
+var GithubEntityProviderConfig_cjs = {};
 
-function _interopNamespaceCompat$1(e) {
-  if (e && typeof e === 'object' && 'default' in e) return e;
-  var n = Object.create(null);
-  if (e) {
-    Object.keys(e).forEach(function (k) {
-      if (k !== 'default') {
-        var d = Object.getOwnPropertyDescriptor(e, k);
-        Object.defineProperty(n, k, d.get ? d : {
-          enumerable: true,
-          get: function () { return e[k]; }
-        });
-      }
-    });
+var backendPluginApi$2 = require$$0;
+
+const DEFAULT_CATALOG_PATH = "/catalog-info.yaml";
+const DEFAULT_PROVIDER_ID = "default";
+function readProviderConfigs(config) {
+  const providersConfig = config.getOptionalConfig("catalog.providers.github");
+  if (!providersConfig) {
+    return [];
   }
-  n.default = e;
-  return Object.freeze(n);
+  if (providersConfig.has("organization")) {
+    return [readProviderConfig(DEFAULT_PROVIDER_ID, providersConfig)];
+  }
+  return providersConfig.keys().map((id) => {
+    const providerConfig = providersConfig.getConfig(id);
+    return readProviderConfig(id, providerConfig);
+  });
+}
+function readProviderConfig(id, config) {
+  const organization = config.getString("organization");
+  const catalogPath = config.getOptionalString("catalogPath") ?? DEFAULT_CATALOG_PATH;
+  const host = config.getOptionalString("host") ?? "github.com";
+  const repositoryPattern = config.getOptionalString("filters.repository");
+  const branchPattern = config.getOptionalString("filters.branch");
+  const allowForks = config.getOptionalBoolean("filters.allowForks") ?? true;
+  const topicFilterInclude = config?.getOptionalStringArray(
+    "filters.topic.include"
+  );
+  const topicFilterExclude = config?.getOptionalStringArray(
+    "filters.topic.exclude"
+  );
+  const validateLocationsExist = config?.getOptionalBoolean("validateLocationsExist") ?? false;
+  const catalogPathContainsWildcard = catalogPath.includes("*");
+  const visibilityFilterInclude = config?.getOptionalStringArray("filters.visibility");
+  if (validateLocationsExist && catalogPathContainsWildcard) {
+    throw Error(
+      `Error while processing GitHub provider config. The catalog path ${catalogPath} contains a wildcard, which is incompatible with validation of locations existing before emitting them. Ensure that validateLocationsExist is set to false.`
+    );
+  }
+  const schedule = config.has("schedule") ? backendPluginApi$2.readSchedulerServiceTaskScheduleDefinitionFromConfig(
+    config.getConfig("schedule")
+  ) : void 0;
+  return {
+    id,
+    catalogPath,
+    organization,
+    host,
+    filters: {
+      repository: repositoryPattern ? compileRegExp(repositoryPattern) : void 0,
+      branch: branchPattern || void 0,
+      allowForks,
+      topic: {
+        include: topicFilterInclude,
+        exclude: topicFilterExclude
+      },
+      visibility: visibilityFilterInclude
+    },
+    schedule,
+    validateLocationsExist
+  };
+}
+function compileRegExp(pattern) {
+  let fullLinePattern = pattern;
+  if (!fullLinePattern.startsWith("^")) {
+    fullLinePattern = `^${fullLinePattern}`;
+  }
+  if (!fullLinePattern.endsWith("$")) {
+    fullLinePattern = `${fullLinePattern}$`;
+  }
+  return new RegExp(fullLinePattern);
 }
 
-var parseGitUrl__default = /*#__PURE__*/_interopDefaultCompat(parseGitUrl);
-var uuid__namespace$1 = /*#__PURE__*/_interopNamespaceCompat$1(uuid$1);
+GithubEntityProviderConfig_cjs.readProviderConfigs = readProviderConfigs;
 
-class GithubLocationAnalyzer {
-  catalogClient;
-  githubCredentialsProvider;
-  integrations;
-  auth;
-  constructor(options) {
-    this.catalogClient = new catalogClient.CatalogClient({ discoveryApi: options.discovery });
-    this.integrations = integration$1.ScmIntegrations.fromConfig(options.config);
-    this.githubCredentialsProvider = options.githubCredentialsProvider || integration$1.DefaultGithubCredentialsProvider.fromIntegrations(this.integrations);
-    this.auth = backendCommon.createLegacyAuthAdapters({
-      auth: options.auth,
-      discovery: options.discovery,
-      tokenManager: options.tokenManager
-    }).auth;
-  }
-  supports(url) {
-    const integration = this.integrations.byUrl(url);
-    return integration?.type === "github";
-  }
-  async analyze(options) {
-    const { url, catalogFilename } = options;
-    const { owner, name: repo } = parseGitUrl__default.default(url);
-    const catalogFile = catalogFilename || "catalog-info.yaml";
-    const extension = path.extname(catalogFile);
-    const extensionQuery = !lodash$1.isEmpty(extension) ? `extension:${extension.replace(".", "")}` : "";
-    const query = `filename:${catalogFile} ${extensionQuery} repo:${owner}/${repo}`;
-    const integration = this.integrations.github.byUrl(url);
-    if (!integration) {
-      throw new Error("Make sure you have a GitHub integration configured");
-    }
-    const { token: githubToken } = await this.githubCredentialsProvider.getCredentials({
-      url
-    });
-    const octokitClient = new rest.Octokit({
-      auth: githubToken,
-      baseUrl: integration.config.apiBaseUrl
-    });
-    const searchResult = await octokitClient.search.code({ q: query }).catch((e) => {
-      throw new Error(`Couldn't search repository for metadata file, ${e}`);
-    });
-    const exists = searchResult.data.total_count > 0;
-    if (exists) {
-      const repoInformation = await octokitClient.repos.get({ owner, repo }).catch((e) => {
-        throw new Error(`Couldn't fetch repo data, ${e}`);
-      });
-      const defaultBranch = repoInformation.data.default_branch;
-      const { token: serviceToken } = await this.auth.getPluginRequestToken({
-        onBehalfOf: await this.auth.getOwnServiceCredentials(),
-        targetPluginId: "catalog"
-      });
-      const result = await Promise.all(
-        searchResult.data.items.map((i) => `${lodash$1.trimEnd(url, "/")}/blob/${defaultBranch}/${i.path}`).map(async (target) => {
-          const addLocationResult = await this.catalogClient.addLocation(
-            {
-              type: "url",
-              target,
-              dryRun: true
-            },
-            { token: serviceToken }
-          );
-          return addLocationResult.entities.map((e) => ({
-            location: { type: "url", target },
-            isRegistered: !!addLocationResult.exists,
-            entity: e
-          }));
-        })
-      );
-      return { existing: result.flat() };
-    }
-    return { existing: [] };
-  }
-}
+var github_cjs = {};
+
+var defaultTransformers_cjs = {};
+
+var annotation_cjs = {};
 
 const ANNOTATION_GITHUB_USER_LOGIN = "github.com/user-login";
 const ANNOTATION_GITHUB_TEAM_SLUG = "github.com/team-slug";
+
+annotation_cjs.ANNOTATION_GITHUB_TEAM_SLUG = ANNOTATION_GITHUB_TEAM_SLUG;
+annotation_cjs.ANNOTATION_GITHUB_USER_LOGIN = ANNOTATION_GITHUB_USER_LOGIN;
+
+var annotation$2 = annotation_cjs;
 
 const defaultUserTransformer = async (item, _ctx) => {
   const entity = {
@@ -149,7 +128,7 @@ const defaultUserTransformer = async (item, _ctx) => {
     metadata: {
       name: item.login,
       annotations: {
-        [ANNOTATION_GITHUB_USER_LOGIN]: item.login
+        [annotation$2.ANNOTATION_GITHUB_USER_LOGIN]: item.login
       }
     },
     spec: {
@@ -165,7 +144,7 @@ const defaultUserTransformer = async (item, _ctx) => {
 };
 const defaultOrganizationTeamTransformer = async (team) => {
   const annotations = {
-    [ANNOTATION_GITHUB_TEAM_SLUG]: team.combinedSlug
+    [annotation$2.ANNOTATION_GITHUB_TEAM_SLUG]: team.combinedSlug
   };
   if (team.editTeamUrl) {
     annotations["backstage.io/edit-url"] = team.editTeamUrl;
@@ -198,6 +177,13 @@ const defaultOrganizationTeamTransformer = async (team) => {
   entity.spec.members = team.members.map((user) => user.login);
   return entity;
 };
+
+defaultTransformers_cjs.defaultOrganizationTeamTransformer = defaultOrganizationTeamTransformer;
+defaultTransformers_cjs.defaultUserTransformer = defaultUserTransformer;
+
+var withLocations_cjs = {};
+
+var util_cjs = {};
 
 function parseGithubOrgUrl(urlString) {
   const path = new URL(urlString).pathname.slice(1).split("/");
@@ -259,21 +245,32 @@ function satisfiesVisibilityFilter(visibilities, visibility) {
   return lowerCaseVisibilities.includes(lowerCaseVisibility);
 }
 
-function withLocations$1(baseUrl, org, entity) {
-  const login = entity.metadata.annotations?.[ANNOTATION_GITHUB_USER_LOGIN] || entity.metadata.name;
+util_cjs.parseGithubOrgUrl = parseGithubOrgUrl;
+util_cjs.satisfiesForkFilter = satisfiesForkFilter;
+util_cjs.satisfiesTopicFilter = satisfiesTopicFilter;
+util_cjs.satisfiesVisibilityFilter = satisfiesVisibilityFilter;
+util_cjs.splitTeamSlug = splitTeamSlug;
+
+var catalogModel$5 = require$$0$1;
+var lodash$2 = require$$3;
+var annotation$1 = annotation_cjs;
+var util$4 = util_cjs;
+
+function withLocations$3(baseUrl, org, entity) {
+  const login = entity.metadata.annotations?.[annotation$1.ANNOTATION_GITHUB_USER_LOGIN] || entity.metadata.name;
   let team = entity.metadata.name;
-  const slug = entity.metadata.annotations?.[ANNOTATION_GITHUB_TEAM_SLUG];
+  const slug = entity.metadata.annotations?.[annotation$1.ANNOTATION_GITHUB_TEAM_SLUG];
   if (slug) {
-    const [_, slugTeam] = splitTeamSlug(slug);
+    const [_, slugTeam] = util$4.splitTeamSlug(slug);
     team = slugTeam;
   }
   const location = entity.kind === "Group" ? `url:${baseUrl}/orgs/${org}/teams/${team}` : `url:${baseUrl}/${login}`;
-  return lodash$1.merge(
+  return lodash$2.merge(
     {
       metadata: {
         annotations: {
-          [catalogModel$1.ANNOTATION_LOCATION]: location,
-          [catalogModel$1.ANNOTATION_ORIGIN_LOCATION]: location
+          [catalogModel$5.ANNOTATION_LOCATION]: location,
+          [catalogModel$5.ANNOTATION_ORIGIN_LOCATION]: location
         }
       }
     },
@@ -281,7 +278,12 @@ function withLocations$1(baseUrl, org, entity) {
   );
 }
 
-async function getOrganizationUsers(client, org, tokenType, userTransformer = defaultUserTransformer) {
+withLocations_cjs.withLocations = withLocations$3;
+
+var defaultTransformers$4 = defaultTransformers_cjs;
+var withLocations$2 = withLocations_cjs;
+
+async function getOrganizationUsers(client, org, tokenType, userTransformer = defaultTransformers$4.defaultUserTransformer) {
   const query = `
     query users($org: String!, $email: Boolean!, $cursor: String) {
       organization(login: $org) {
@@ -311,7 +313,7 @@ async function getOrganizationUsers(client, org, tokenType, userTransformer = de
   );
   return { users };
 }
-async function getOrganizationTeams(client, org, teamTransformer = defaultOrganizationTeamTransformer) {
+async function getOrganizationTeams(client, org, teamTransformer = defaultTransformers$4.defaultOrganizationTeamTransformer) {
   const query = `
     query teams($org: String!, $cursor: String) {
       organization(login: $org) {
@@ -368,7 +370,7 @@ async function getOrganizationTeams(client, org, teamTransformer = defaultOrgani
   );
   return { teams };
 }
-async function getOrganizationTeamsFromUsers(client, org, userLogins, teamTransformer = defaultOrganizationTeamTransformer) {
+async function getOrganizationTeamsFromUsers(client, org, userLogins, teamTransformer = defaultTransformers$4.defaultOrganizationTeamTransformer) {
   const query = `
    query teams($org: String!, $cursor: String, $userLogins: [String!] = "") {
   organization(login: $org) {
@@ -452,7 +454,7 @@ async function getOrganizationsFromUser(client, user) {
   );
   return { orgs };
 }
-async function getOrganizationTeam(client, org, teamSlug, teamTransformer = defaultOrganizationTeamTransformer) {
+async function getOrganizationTeam(client, org, teamSlug, teamTransformer = defaultTransformers$4.defaultOrganizationTeamTransformer) {
   const query = `
   query teams($org: String!, $teamSlug: String!) {
       organization(login: $org) {
@@ -663,20 +665,20 @@ const createAddEntitiesOperation = (id, host) => (org, entities) => ({
   removed: [],
   added: entities.map((entity) => ({
     locationKey: `github-org-provider:${id}`,
-    entity: withLocations$1(`https://${host}`, org, entity)
+    entity: withLocations$2.withLocations(`https://${host}`, org, entity)
   }))
 });
 const createRemoveEntitiesOperation = (id, host) => (org, entities) => ({
   added: [],
   removed: entities.map((entity) => ({
     locationKey: `github-org-provider:${id}`,
-    entity: withLocations$1(`https://${host}`, org, entity)
+    entity: withLocations$2.withLocations(`https://${host}`, org, entity)
   }))
 });
 const createReplaceEntitiesOperation = (id, host) => (org, entities) => {
   const entitiesToReplace = entities.map((entity) => ({
     locationKey: `github-org-provider:${id}`,
-    entity: withLocations$1(`https://${host}`, org, entity)
+    entity: withLocations$2.withLocations(`https://${host}`, org, entity)
   }));
   return {
     removed: entitiesToReplace,
@@ -684,75 +686,50 @@ const createReplaceEntitiesOperation = (id, host) => (org, entities) => {
   };
 };
 
-const DEFAULT_CATALOG_PATH = "/catalog-info.yaml";
-const DEFAULT_PROVIDER_ID = "default";
-function readProviderConfigs(config) {
-  const providersConfig = config.getOptionalConfig("catalog.providers.github");
-  if (!providersConfig) {
-    return [];
+github_cjs.createAddEntitiesOperation = createAddEntitiesOperation;
+github_cjs.createRemoveEntitiesOperation = createRemoveEntitiesOperation;
+github_cjs.createReplaceEntitiesOperation = createReplaceEntitiesOperation;
+github_cjs.getOrganizationRepositories = getOrganizationRepositories;
+github_cjs.getOrganizationRepository = getOrganizationRepository;
+github_cjs.getOrganizationTeam = getOrganizationTeam;
+github_cjs.getOrganizationTeams = getOrganizationTeams;
+github_cjs.getOrganizationTeamsFromUsers = getOrganizationTeamsFromUsers;
+github_cjs.getOrganizationUsers = getOrganizationUsers;
+github_cjs.getOrganizationsFromUser = getOrganizationsFromUser;
+github_cjs.getTeamMembers = getTeamMembers;
+github_cjs.queryWithPaging = queryWithPaging;
+
+var integration$6 = require$$1;
+var pluginCatalogNode$3 = require$$1$1;
+var graphql$5 = require$$2;
+var uuid$2 = require$$3$1;
+var GithubEntityProviderConfig = GithubEntityProviderConfig_cjs;
+var github$5 = github_cjs;
+var util$3 = util_cjs;
+var minimatch = require$$7;
+
+function _interopNamespaceCompat$2(e) {
+  if (e && typeof e === 'object' && 'default' in e) return e;
+  var n = Object.create(null);
+  if (e) {
+    Object.keys(e).forEach(function (k) {
+      if (k !== 'default') {
+        var d = Object.getOwnPropertyDescriptor(e, k);
+        Object.defineProperty(n, k, d.get ? d : {
+          enumerable: true,
+          get: function () { return e[k]; }
+        });
+      }
+    });
   }
-  if (providersConfig.has("organization")) {
-    return [readProviderConfig(DEFAULT_PROVIDER_ID, providersConfig)];
-  }
-  return providersConfig.keys().map((id) => {
-    const providerConfig = providersConfig.getConfig(id);
-    return readProviderConfig(id, providerConfig);
-  });
-}
-function readProviderConfig(id, config) {
-  const organization = config.getString("organization");
-  const catalogPath = config.getOptionalString("catalogPath") ?? DEFAULT_CATALOG_PATH;
-  const host = config.getOptionalString("host") ?? "github.com";
-  const repositoryPattern = config.getOptionalString("filters.repository");
-  const branchPattern = config.getOptionalString("filters.branch");
-  const allowForks = config.getOptionalBoolean("filters.allowForks") ?? true;
-  const topicFilterInclude = config?.getOptionalStringArray(
-    "filters.topic.include"
-  );
-  const topicFilterExclude = config?.getOptionalStringArray(
-    "filters.topic.exclude"
-  );
-  const validateLocationsExist = config?.getOptionalBoolean("validateLocationsExist") ?? false;
-  const catalogPathContainsWildcard = catalogPath.includes("*");
-  const visibilityFilterInclude = config?.getOptionalStringArray("filters.visibility");
-  if (validateLocationsExist && catalogPathContainsWildcard) {
-    throw Error(
-      `Error while processing GitHub provider config. The catalog path ${catalogPath} contains a wildcard, which is incompatible with validation of locations existing before emitting them. Ensure that validateLocationsExist is set to false.`
-    );
-  }
-  const schedule = config.has("schedule") ? backendTasks.readTaskScheduleDefinitionFromConfig(config.getConfig("schedule")) : void 0;
-  return {
-    id,
-    catalogPath,
-    organization,
-    host,
-    filters: {
-      repository: repositoryPattern ? compileRegExp(repositoryPattern) : void 0,
-      branch: branchPattern || void 0,
-      allowForks,
-      topic: {
-        include: topicFilterInclude,
-        exclude: topicFilterExclude
-      },
-      visibility: visibilityFilterInclude
-    },
-    schedule,
-    validateLocationsExist
-  };
-}
-function compileRegExp(pattern) {
-  let fullLinePattern = pattern;
-  if (!fullLinePattern.startsWith("^")) {
-    fullLinePattern = `^${fullLinePattern}`;
-  }
-  if (!fullLinePattern.endsWith("$")) {
-    fullLinePattern = `${fullLinePattern}$`;
-  }
-  return new RegExp(fullLinePattern);
+  n.default = e;
+  return Object.freeze(n);
 }
 
+var uuid__namespace$2 = /*#__PURE__*/_interopNamespaceCompat$2(uuid$2);
+
 const EVENT_TOPICS$2 = ["github.push", "github.repository"];
-class GithubEntityProvider$1 {
+class GithubEntityProvider$3 {
   config;
   events;
   logger;
@@ -764,8 +741,8 @@ class GithubEntityProvider$1 {
     if (!options.schedule && !options.scheduler) {
       throw new Error("Either schedule or scheduler must be provided.");
     }
-    const integrations = integration$1.ScmIntegrations.fromConfig(config);
-    return readProviderConfigs(config).map((providerConfig) => {
+    const integrations = integration$6.ScmIntegrations.fromConfig(config);
+    return GithubEntityProviderConfig.readProviderConfigs(config).map((providerConfig) => {
       const integrationHost = providerConfig.host;
       const integration = integrations.github.byHost(integrationHost);
       if (!integration) {
@@ -779,7 +756,7 @@ class GithubEntityProvider$1 {
         );
       }
       const taskRunner = options.schedule ?? options.scheduler.createScheduledTaskRunner(providerConfig.schedule);
-      return new GithubEntityProvider$1(
+      return new GithubEntityProvider$3(
         providerConfig,
         integration,
         options.logger,
@@ -788,15 +765,15 @@ class GithubEntityProvider$1 {
       );
     });
   }
-  constructor(config, integration$1$1, logger, taskRunner, events) {
+  constructor(config, integration$1, logger, taskRunner, events) {
     this.config = config;
     this.events = events;
-    this.integration = integration$1$1.config;
+    this.integration = integration$1.config;
     this.logger = logger.child({
       target: this.getProviderName()
     });
     this.scheduleFn = this.createScheduleFn(taskRunner);
-    this.githubCredentialsProvider = integration$1.SingleInstanceGithubCredentialsProvider.create(integration$1$1.config);
+    this.githubCredentialsProvider = integration$6.SingleInstanceGithubCredentialsProvider.create(integration$1.config);
   }
   /** {@inheritdoc @backstage/plugin-catalog-backend#EntityProvider.getProviderName} */
   getProviderName() {
@@ -819,9 +796,9 @@ class GithubEntityProvider$1 {
         id: taskId,
         fn: async () => {
           const logger = this.logger.child({
-            class: GithubEntityProvider$1.prototype.constructor.name,
+            class: GithubEntityProvider$3.prototype.constructor.name,
             taskId,
-            taskInstanceId: uuid__namespace$1.v4()
+            taskInstanceId: uuid__namespace$2.v4()
           });
           try {
             await this.refresh(logger);
@@ -857,7 +834,7 @@ class GithubEntityProvider$1 {
     const { headers } = await this.githubCredentialsProvider.getCredentials({
       url: orgUrl
     });
-    return graphql$1.graphql.defaults({
+    return graphql$5.graphql.defaults({
       baseUrl: this.integration.apiBaseUrl,
       headers
     });
@@ -867,7 +844,7 @@ class GithubEntityProvider$1 {
     const organization = this.config.organization;
     const catalogPath = this.config.catalogPath;
     const client = await this.createGraphqlClient();
-    const { repositories: repositoriesFromGithub } = await getOrganizationRepositories(client, organization, catalogPath);
+    const { repositories: repositoriesFromGithub } = await github$5.getOrganizationRepositories(client, organization, catalogPath);
     const repositories = repositoriesFromGithub.map(
       this.createRepoFromGithubResponse
     );
@@ -885,7 +862,7 @@ class GithubEntityProvider$1 {
     const visibilities = this.config.filters?.visibility ?? [];
     return repositories.filter((r) => {
       const repoTopics = r.repositoryTopics;
-      return !r.isArchived && (!repositoryFilter || repositoryFilter.test(r.name)) && satisfiesTopicFilter(repoTopics, topicFilters) && satisfiesForkFilter(allowForks, r.isFork) && satisfiesVisibilityFilter(visibilities, r.visibility) && r.defaultBranchRef;
+      return !r.isArchived && (!repositoryFilter || repositoryFilter.test(r.name)) && util$3.satisfiesTopicFilter(repoTopics, topicFilters) && util$3.satisfiesForkFilter(allowForks, r.isFork) && util$3.satisfiesVisibilityFilter(visibilities, r.visibility) && r.defaultBranchRef;
     });
   }
   createLocationUrl(repository) {
@@ -902,7 +879,7 @@ class GithubEntityProvider$1 {
   }
   /** {@inheritdoc @backstage/plugin-events-node#EventSubscriber.onEvent} */
   async onEvent(params) {
-    this.logger.debug(`Received event from ${params.topic}`);
+    this.logger.debug(`Received event for topic ${params.topic}`);
     if (EVENT_TOPICS$2.some((topic) => topic === params.topic)) {
       if (!this.connection) {
         throw new Error("Not initialized");
@@ -926,14 +903,14 @@ class GithubEntityProvider$1 {
     return EVENT_TOPICS$2;
   }
   async onPush(event) {
-    if (this.config.organization !== event.repository.organization) {
+    if (this.config.organization !== event.organization?.login) {
       this.logger.debug(
-        `skipping push event from organization ${event.repository.organization}`
+        `skipping push event from organization ${event.organization?.login}`
       );
       return;
     }
     const repoName = event.repository.name;
-    const repoUrl = event.repository.url;
+    const repoUrl = event.repository.html_url;
     this.logger.debug(`handle github:push event for ${repoName} - ${repoUrl}`);
     const branch = this.config.filters?.branch || event.repository.default_branch;
     if (!event.ref.includes(branch)) {
@@ -949,13 +926,13 @@ class GithubEntityProvider$1 {
       return;
     }
     const added = this.collectDeferredEntitiesFromCommit(
-      event.repository.url,
+      repoUrl,
       branch,
       event.commits,
       (commit) => [...commit.added]
     );
     const removed = this.collectDeferredEntitiesFromCommit(
-      event.repository.url,
+      repoUrl,
       branch,
       event.commits,
       (commit) => [...commit.removed]
@@ -970,12 +947,12 @@ class GithubEntityProvider$1 {
         keys: [
           .../* @__PURE__ */ new Set([
             ...modified.map(
-              (filePath) => `url:${event.repository.url}/tree/${branch}/${filePath}`
+              (filePath) => `url:${repoUrl}/tree/${branch}/${filePath}`
             ),
             ...modified.map(
-              (filePath) => `url:${event.repository.url}/blob/${branch}/${filePath}`
+              (filePath) => `url:${repoUrl}/blob/${branch}/${filePath}`
             ),
-            `url:${event.repository.url}/tree/${branch}/${catalogPath}`
+            `url:${repoUrl}/tree/${branch}/${catalogPath}`
           ])
         ]
       });
@@ -992,9 +969,9 @@ class GithubEntityProvider$1 {
     );
   }
   async onRepoChange(event) {
-    if (this.config.organization !== event.repository.organization) {
+    if (this.config.organization !== event.organization?.login) {
       this.logger.debug(
-        `skipping repository event from organization ${event.repository.organization}`
+        `skipping repository event from organization ${event.organization?.login}`
       );
       return;
     }
@@ -1003,6 +980,7 @@ class GithubEntityProvider$1 {
       case "archived":
         await this.onRepoArchived(event);
         return;
+      // A repository was created.
       case "created":
         return;
       case "deleted":
@@ -1011,8 +989,10 @@ class GithubEntityProvider$1 {
       case "edited":
         await this.onRepoEdited(event);
         return;
+      // The visibility of a repository was changed to `private`.
       case "privatized":
         return;
+      // The visibility of a repository was changed to `public`.
       case "publicized":
         return;
       case "renamed":
@@ -1036,7 +1016,6 @@ class GithubEntityProvider$1 {
    * Removes all entities associated with the repository.
    *
    * @param event - The repository archived event.
-   * @private
    */
   async onRepoArchived(event) {
     const repository = this.createRepoFromEvent(event);
@@ -1051,7 +1030,6 @@ class GithubEntityProvider$1 {
    * Removes all entities associated with the repository.
    *
    * @param event - The repository deleted event.
-   * @private
    */
   async onRepoDeleted(event) {
     const repository = this.createRepoFromEvent(event);
@@ -1068,7 +1046,6 @@ class GithubEntityProvider$1 {
    * Removes all entities associated with the repository if the repository no longer matches the filters.
    *
    * @param event - The repository edited event.
-   * @private
    */
   async onRepoEdited(event) {
     const repository = this.createRepoFromEvent(event);
@@ -1084,12 +1061,11 @@ class GithubEntityProvider$1 {
    * Creates new entities for the repository's new name if it still matches the filters.
    *
    * @param event - The repository renamed event.
-   * @private
    */
   async onRepoRenamed(event) {
     const repository = this.createRepoFromEvent(event);
     const oldRepoName = event.changes.repository.name.from;
-    const urlParts = event.repository.url.split("/");
+    const urlParts = repository.url.split("/");
     urlParts[urlParts.length - 1] = oldRepoName;
     const oldRepoUrl = urlParts.join("/");
     const oldRepository = {
@@ -1101,7 +1077,7 @@ class GithubEntityProvider$1 {
     const matchingTargets = this.matchesFilters([repository]);
     if (matchingTargets.length === 0) {
       this.logger.debug(
-        `skipping repository transferred event for repository ${repository.name} because it didn't match provider filters`
+        `skipping repository renamed event for repository ${repository.name} because it didn't match provider filters`
       );
       return;
     }
@@ -1116,7 +1092,6 @@ class GithubEntityProvider$1 {
    * Creates new entities for the repository if it matches the filters.
    *
    * @param event - The repository unarchived event.
-   * @private
    */
   async onRepoTransferred(event) {
     const repository = this.createRepoFromEvent(event);
@@ -1135,14 +1110,13 @@ class GithubEntityProvider$1 {
    * Creates new entities for the repository if it matches the filters.
    *
    * @param event - The repository unarchived event.
-   * @private
    */
   async onRepoUnarchived(event) {
     const repository = this.createRepoFromEvent(event);
     const matchingTargets = this.matchesFilters([repository]);
     if (matchingTargets.length === 0) {
       this.logger.debug(
-        `skipping repository transferred event for repository ${repository.name} because it didn't match provider filters`
+        `skipping repository unarchived event for repository ${repository.name} because it didn't match provider filters`
       );
       return;
     }
@@ -1161,7 +1135,7 @@ class GithubEntityProvider$1 {
       const organization = this.config.organization;
       const catalogPath = this.config.catalogPath;
       const client = await this.createGraphqlClient();
-      const repositoryFromGithub = await getOrganizationRepository(
+      const repositoryFromGithub = await github$5.getOrganizationRepository(
         client,
         organization,
         repository.name,
@@ -1180,7 +1154,10 @@ class GithubEntityProvider$1 {
   }
   createRepoFromEvent(event) {
     return {
-      url: event.repository.url,
+      // $.repository.url can be a value like
+      // "https://api.github.com/repos/{org}/{repo}"
+      // or "https://github.com/{org}/{repo}"
+      url: event.repository.html_url,
       name: event.repository.name,
       defaultBranchRef: event.repository.default_branch,
       repositoryTopics: event.repository.topics,
@@ -1224,8 +1201,8 @@ class GithubEntityProvider$1 {
   }
   toDeferredEntities(targets) {
     return targets.map((target) => {
-      const location = GithubEntityProvider$1.toLocationSpec(target);
-      return pluginCatalogNode$1.locationSpecToLocationEntity({ location });
+      const location = GithubEntityProvider$3.toLocationSpec(target);
+      return pluginCatalogNode$3.locationSpecToLocationEntity({ location });
     }).map((entity) => {
       return {
         locationKey: this.getProviderName(),
@@ -1234,133 +1211,176 @@ class GithubEntityProvider$1 {
     });
   }
   toDeferredEntitiesFromRepos(repositories) {
-    return repositories.map((repository) => this.createLocationUrl(repository)).map(GithubEntityProvider$1.toLocationSpec).map((location) => {
+    return repositories.map((repository) => this.createLocationUrl(repository)).map(GithubEntityProvider$3.toLocationSpec).map((location) => {
       return {
         locationKey: this.getProviderName(),
-        entity: pluginCatalogNode$1.locationSpecToLocationEntity({ location })
+        entity: pluginCatalogNode$3.locationSpecToLocationEntity({ location })
       };
     });
   }
 }
 
-GithubEntityProviderCJpx_erw_cjs.ANNOTATION_GITHUB_TEAM_SLUG = ANNOTATION_GITHUB_TEAM_SLUG;
-GithubEntityProviderCJpx_erw_cjs.ANNOTATION_GITHUB_USER_LOGIN = ANNOTATION_GITHUB_USER_LOGIN;
-GithubEntityProviderCJpx_erw_cjs.GithubEntityProvider = GithubEntityProvider$1;
-GithubEntityProviderCJpx_erw_cjs.GithubLocationAnalyzer = GithubLocationAnalyzer;
-GithubEntityProviderCJpx_erw_cjs.createAddEntitiesOperation = createAddEntitiesOperation;
-GithubEntityProviderCJpx_erw_cjs.createRemoveEntitiesOperation = createRemoveEntitiesOperation;
-GithubEntityProviderCJpx_erw_cjs.createReplaceEntitiesOperation = createReplaceEntitiesOperation;
-GithubEntityProviderCJpx_erw_cjs.defaultOrganizationTeamTransformer = defaultOrganizationTeamTransformer;
-GithubEntityProviderCJpx_erw_cjs.defaultUserTransformer = defaultUserTransformer;
-GithubEntityProviderCJpx_erw_cjs.getOrganizationRepositories = getOrganizationRepositories;
-GithubEntityProviderCJpx_erw_cjs.getOrganizationTeam = getOrganizationTeam;
-GithubEntityProviderCJpx_erw_cjs.getOrganizationTeams = getOrganizationTeams;
-GithubEntityProviderCJpx_erw_cjs.getOrganizationTeamsFromUsers = getOrganizationTeamsFromUsers;
-GithubEntityProviderCJpx_erw_cjs.getOrganizationUsers = getOrganizationUsers;
-GithubEntityProviderCJpx_erw_cjs.getOrganizationsFromUser = getOrganizationsFromUser;
-GithubEntityProviderCJpx_erw_cjs.parseGithubOrgUrl = parseGithubOrgUrl;
-GithubEntityProviderCJpx_erw_cjs.splitTeamSlug = splitTeamSlug;
-GithubEntityProviderCJpx_erw_cjs.withLocations = withLocations$1;
+GithubEntityProvider_cjs.GithubEntityProvider = GithubEntityProvider$3;
 
-var GithubEntityProvider = GithubEntityProviderCJpx_erw_cjs;
-var integration = require$$1;
-var pluginCatalogNode = require$$7;
-var graphql = require$$8;
-var catalogModel = require$$11;
-var lodash = require$$3;
-var uuid = require$$9;
+var GithubLocationAnalyzer_cjs = {};
 
+var catalogClient = require$$0$2;
+var integration$5 = require$$1;
+var rest = require$$2$1;
+var lodash$1 = require$$3;
+var parseGitUrl = require$$4;
+var backendCommon = require$$5;
+var path = require$$6;
 
+function _interopDefaultCompat (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }
 
+var parseGitUrl__default = /*#__PURE__*/_interopDefaultCompat(parseGitUrl);
 
+class GithubLocationAnalyzer$2 {
+  catalogClient;
+  githubCredentialsProvider;
+  integrations;
+  auth;
+  constructor(options) {
+    this.catalogClient = options.catalog ?? new catalogClient.CatalogClient({ discoveryApi: options.discovery });
+    this.integrations = integration$5.ScmIntegrations.fromConfig(options.config);
+    this.githubCredentialsProvider = options.githubCredentialsProvider || integration$5.DefaultGithubCredentialsProvider.fromIntegrations(this.integrations);
+    this.auth = backendCommon.createLegacyAuthAdapters({
+      auth: options.auth,
+      discovery: options.discovery,
+      tokenManager: options.tokenManager
+    }).auth;
+  }
+  supports(url) {
+    const integration = this.integrations.byUrl(url);
+    return integration?.type === "github";
+  }
+  async analyze(options) {
+    const { url, catalogFilename } = options;
+    const { owner, name: repo } = parseGitUrl__default.default(url);
+    const catalogFile = catalogFilename || "catalog-info.yaml";
+    const extension = path.extname(catalogFile);
+    const extensionQuery = !lodash$1.isEmpty(extension) ? `extension:${extension.replace(".", "")}` : "";
+    const query = `filename:${catalogFile} ${extensionQuery} repo:${owner}/${repo}`;
+    const integration = this.integrations.github.byUrl(url);
+    if (!integration) {
+      throw new Error("Make sure you have a GitHub integration configured");
+    }
+    const { token: githubToken } = await this.githubCredentialsProvider.getCredentials({
+      url
+    });
+    const octokitClient = new rest.Octokit({
+      auth: githubToken,
+      baseUrl: integration.config.apiBaseUrl
+    });
+    const searchResult = await octokitClient.search.code({ q: query }).catch((e) => {
+      throw new Error(`Couldn't search repository for metadata file, ${e}`);
+    });
+    const exists = searchResult.data.total_count > 0;
+    if (exists) {
+      const repoInformation = await octokitClient.repos.get({ owner, repo }).catch((e) => {
+        throw new Error(`Couldn't fetch repo data, ${e}`);
+      });
+      const defaultBranch = repoInformation.data.default_branch;
+      const { token: serviceToken } = await this.auth.getPluginRequestToken({
+        onBehalfOf: await this.auth.getOwnServiceCredentials(),
+        targetPluginId: "catalog"
+      });
+      const result = await Promise.all(
+        searchResult.data.items.map((i) => `${lodash$1.trimEnd(url, "/")}/blob/${defaultBranch}/${i.path}`).map(async (target) => {
+          const addLocationResult = await this.catalogClient.addLocation(
+            {
+              type: "url",
+              target,
+              dryRun: true
+            },
+            { token: serviceToken }
+          );
+          return addLocationResult.entities.map((e) => ({
+            location: { type: "url", target },
+            isRegistered: !!addLocationResult.exists,
+            entity: e
+          }));
+        })
+      );
+      return { existing: result.flat() };
+    }
+    return { existing: [] };
+  }
+}
 
+GithubLocationAnalyzer_cjs.GithubLocationAnalyzer = GithubLocationAnalyzer$2;
 
+var backendPluginApi$1 = require$$0;
+var alpha$1 = require$$1$2;
+var pluginEventsNode$1 = require$$2$2;
+var GithubEntityProvider$2 = GithubEntityProvider_cjs;
+var GithubLocationAnalyzer$1 = GithubLocationAnalyzer_cjs;
 
-
-function _interopNamespaceCompat(e) {
-  if (e && typeof e === 'object' && 'default' in e) return e;
-  var n = Object.create(null);
-  if (e) {
-    Object.keys(e).forEach(function (k) {
-      if (k !== 'default') {
-        var d = Object.getOwnPropertyDescriptor(e, k);
-        Object.defineProperty(n, k, d.get ? d : {
-          enumerable: true,
-          get: function () { return e[k]; }
-        });
+const githubCatalogModule$1 = backendPluginApi$1.createBackendModule({
+  pluginId: "catalog",
+  moduleId: "github",
+  register(env) {
+    env.registerInit({
+      deps: {
+        catalogAnalyzers: alpha$1.catalogAnalysisExtensionPoint,
+        auth: backendPluginApi$1.coreServices.auth,
+        catalogProcessing: alpha$1.catalogProcessingExtensionPoint,
+        config: backendPluginApi$1.coreServices.rootConfig,
+        discovery: backendPluginApi$1.coreServices.discovery,
+        events: pluginEventsNode$1.eventsServiceRef,
+        logger: backendPluginApi$1.coreServices.logger,
+        scheduler: backendPluginApi$1.coreServices.scheduler,
+        catalog: alpha$1.catalogServiceRef
+      },
+      async init({
+        catalogProcessing,
+        config,
+        events,
+        logger,
+        scheduler,
+        catalogAnalyzers,
+        discovery,
+        auth,
+        catalog
+      }) {
+        catalogAnalyzers.addScmLocationAnalyzer(
+          new GithubLocationAnalyzer$1.GithubLocationAnalyzer({
+            discovery,
+            config,
+            auth,
+            catalog
+          })
+        );
+        catalogProcessing.addEntityProvider(
+          GithubEntityProvider$2.GithubEntityProvider.fromConfig(config, {
+            events,
+            logger,
+            scheduler
+          })
+        );
       }
     });
   }
-  n.default = e;
-  return Object.freeze(n);
-}
+});
 
-var uuid__namespace = /*#__PURE__*/_interopNamespaceCompat(uuid);
+githubCatalogModule_cjs.githubCatalogModule = githubCatalogModule$1;
 
-function readGithubMultiOrgConfig(config) {
-  const orgConfigs = config.getOptionalConfigArray("orgs") ?? [];
-  return orgConfigs.map((c) => ({
-    name: c.getString("name"),
-    groupNamespace: (c.getOptionalString("groupNamespace") ?? c.getString("name")).toLowerCase(),
-    userNamespace: c.getOptionalString("userNamespace") ?? void 0
-  }));
-}
+var GithubDiscoveryProcessor_cjs = {};
 
-function buildOrgHierarchy(groups) {
-  const groupsByName = new Map(groups.map((g) => [g.metadata.name, g]));
-  for (const group of groups) {
-    const selfName = group.metadata.name;
-    const parentName = group.spec.parent;
-    if (parentName) {
-      const parent = groupsByName.get(parentName);
-      if (parent && !parent.spec.children.includes(selfName)) {
-        parent.spec.children.push(selfName);
-      }
-    }
-  }
-  for (const group of groups) {
-    const selfName = group.metadata.name;
-    for (const childName of group.spec.children) {
-      const child = groupsByName.get(childName);
-      if (child && !child.spec.parent) {
-        child.spec.parent = selfName;
-      }
-    }
-  }
-}
-function assignGroupsToUsers(users, groups) {
-  const groupMemberUsers = new Map(
-    groups.map((group) => {
-      const groupKey = group.metadata.namespace && group.metadata.namespace !== catalogModel.DEFAULT_NAMESPACE ? `${group.metadata.namespace}/${group.metadata.name}` : group.metadata.name;
-      return [
-        groupKey,
-        group.spec.members?.map(
-          (m) => catalogModel.stringifyEntityRef(catalogModel.parseEntityRef(m, { defaultKind: "user" }))
-        ) || []
-      ];
-    })
-  );
-  const usersByRef = new Map(users.map((u) => [catalogModel.stringifyEntityRef(u), u]));
-  for (const [groupName, userRefs] of groupMemberUsers.entries()) {
-    for (const ref of userRefs) {
-      const user = usersByRef.get(ref);
-      if (user && !user.spec.memberOf?.includes(groupName)) {
-        if (!user.spec.memberOf) {
-          user.spec.memberOf = [];
-        }
-        user.spec.memberOf.push(groupName);
-      }
-    }
-  }
-}
+var integration$4 = require$$1;
+var pluginCatalogNode$2 = require$$1$1;
+var graphql$4 = require$$2;
+var github$4 = github_cjs;
 
-class GithubDiscoveryProcessor {
+
+class GithubDiscoveryProcessor$1 {
   integrations;
   logger;
   githubCredentialsProvider;
   static fromConfig(config, options) {
-    const integrations = integration.ScmIntegrations.fromConfig(config);
-    return new GithubDiscoveryProcessor({
+    const integrations = integration$4.ScmIntegrations.fromConfig(config);
+    return new GithubDiscoveryProcessor$1({
       ...options,
       integrations
     });
@@ -1368,7 +1388,7 @@ class GithubDiscoveryProcessor {
   constructor(options) {
     this.integrations = options.integrations;
     this.logger = options.logger;
-    this.githubCredentialsProvider = options.githubCredentialsProvider || integration.DefaultGithubCredentialsProvider.fromIntegrations(this.integrations);
+    this.githubCredentialsProvider = options.githubCredentialsProvider || integration$4.DefaultGithubCredentialsProvider.fromIntegrations(this.integrations);
   }
   getProcessorName() {
     return "GithubDiscoveryProcessor";
@@ -1392,13 +1412,13 @@ class GithubDiscoveryProcessor {
     const { headers } = await this.githubCredentialsProvider.getCredentials({
       url: orgUrl
     });
-    const client = graphql.graphql.defaults({
+    const client = graphql$4.graphql.defaults({
       baseUrl: gitHubConfig.apiBaseUrl,
       headers
     });
     const startTimestamp = Date.now();
     this.logger.info(`Reading GitHub repositories from ${location.target}`);
-    const { repositories } = await GithubEntityProvider.getOrganizationRepositories(
+    const { repositories } = await github$4.getOrganizationRepositories(
       client,
       org,
       catalogPath
@@ -1420,7 +1440,7 @@ class GithubDiscoveryProcessor {
       }
       const path = `/blob/${branchName}${catalogPath}`;
       emit(
-        pluginCatalogNode.processingResult.location({
+        pluginCatalogNode$2.processingResult.location({
           type: "url",
           target: `${repository.url}${path}`,
           // Not all locations may actually exist, since the user defined them as a wildcard pattern.
@@ -1459,32 +1479,123 @@ function escapeRegExp(str) {
   return new RegExp(`^${str.replace(/\*/g, ".*")}$`);
 }
 
-function areGroupEntities(entities) {
-  return entities.every((e) => catalogModel.isGroupEntity(e));
-}
-function areUserEntities(entities) {
-  return entities.every((e) => catalogModel.isUserEntity(e));
+GithubDiscoveryProcessor_cjs.GithubDiscoveryProcessor = GithubDiscoveryProcessor$1;
+GithubDiscoveryProcessor_cjs.escapeRegExp = escapeRegExp;
+GithubDiscoveryProcessor_cjs.parseUrl = parseUrl;
+
+var GithubMultiOrgReaderProcessor_cjs = {};
+
+var config_cjs = {};
+
+function readGithubMultiOrgConfig(config) {
+  const orgConfigs = config.getOptionalConfigArray("orgs") ?? [];
+  return orgConfigs.map((c) => ({
+    name: c.getString("name"),
+    groupNamespace: (c.getOptionalString("groupNamespace") ?? c.getString("name")).toLowerCase(),
+    userNamespace: c.getOptionalString("userNamespace") ?? void 0
+  }));
 }
 
-class GithubMultiOrgReaderProcessor {
+config_cjs.readGithubMultiOrgConfig = readGithubMultiOrgConfig;
+
+var org_cjs = {};
+
+var catalogModel$4 = require$$0$1;
+
+function buildOrgHierarchy(groups) {
+  const groupsByName = new Map(groups.map((g) => [g.metadata.name, g]));
+  for (const group of groups) {
+    const selfName = group.metadata.name;
+    const parentName = group.spec.parent;
+    if (parentName) {
+      const parent = groupsByName.get(parentName);
+      if (parent && !parent.spec.children.includes(selfName)) {
+        parent.spec.children.push(selfName);
+      }
+    }
+  }
+  for (const group of groups) {
+    const selfName = group.metadata.name;
+    for (const childName of group.spec.children) {
+      const child = groupsByName.get(childName);
+      if (child && !child.spec.parent) {
+        child.spec.parent = selfName;
+      }
+    }
+  }
+}
+function assignGroupsToUsers(users, groups) {
+  const groupMemberUsers = new Map(
+    groups.map((group) => {
+      const groupKey = group.metadata.namespace && group.metadata.namespace !== catalogModel$4.DEFAULT_NAMESPACE ? `${group.metadata.namespace}/${group.metadata.name}` : group.metadata.name;
+      return [
+        groupKey,
+        group.spec.members?.map(
+          (m) => catalogModel$4.stringifyEntityRef(catalogModel$4.parseEntityRef(m, { defaultKind: "user" }))
+        ) || []
+      ];
+    })
+  );
+  const usersByRef = new Map(users.map((u) => [catalogModel$4.stringifyEntityRef(u), u]));
+  for (const [groupName, userRefs] of groupMemberUsers.entries()) {
+    for (const ref of userRefs) {
+      const user = usersByRef.get(ref);
+      if (user && !user.spec.memberOf?.includes(groupName)) {
+        if (!user.spec.memberOf) {
+          user.spec.memberOf = [];
+        }
+        user.spec.memberOf.push(groupName);
+      }
+    }
+  }
+}
+
+org_cjs.assignGroupsToUsers = assignGroupsToUsers;
+org_cjs.buildOrgHierarchy = buildOrgHierarchy;
+
+var guards_cjs = {};
+
+var catalogModel$3 = require$$0$1;
+
+function areGroupEntities(entities) {
+  return entities.every((e) => catalogModel$3.isGroupEntity(e));
+}
+function areUserEntities(entities) {
+  return entities.every((e) => catalogModel$3.isUserEntity(e));
+}
+
+guards_cjs.areGroupEntities = areGroupEntities;
+guards_cjs.areUserEntities = areUserEntities;
+
+var catalogModel$2 = require$$0$1;
+var integration$3 = require$$1;
+var pluginCatalogNode$1 = require$$1$1;
+var graphql$3 = require$$2;
+var config = config_cjs;
+var github$3 = github_cjs;
+var defaultTransformers$3 = defaultTransformers_cjs;
+var org$3 = org_cjs;
+var guards$3 = guards_cjs;
+
+class GithubMultiOrgReaderProcessor$1 {
   constructor(options) {
     this.options = options;
     this.integrations = options.integrations;
     this.logger = options.logger;
     this.orgs = options.orgs;
-    this.githubCredentialsProvider = options.githubCredentialsProvider || integration.DefaultGithubCredentialsProvider.fromIntegrations(this.integrations);
+    this.githubCredentialsProvider = options.githubCredentialsProvider || integration$3.DefaultGithubCredentialsProvider.fromIntegrations(this.integrations);
   }
   integrations;
   orgs;
   logger;
   githubCredentialsProvider;
-  static fromConfig(config, options) {
-    const c = config.getOptionalConfig("catalog.processors.githubMultiOrg");
-    const integrations = integration.ScmIntegrations.fromConfig(config);
-    return new GithubMultiOrgReaderProcessor({
+  static fromConfig(config$1, options) {
+    const c = config$1.getOptionalConfig("catalog.processors.githubMultiOrg");
+    const integrations = integration$3.ScmIntegrations.fromConfig(config$1);
+    return new GithubMultiOrgReaderProcessor$1({
       ...options,
       integrations,
-      orgs: c ? readGithubMultiOrgConfig(c) : []
+      orgs: c ? config.readGithubMultiOrgConfig(c) : []
     });
   }
   getProcessorName() {
@@ -1510,7 +1621,7 @@ class GithubMultiOrgReaderProcessor {
         const { headers, type: tokenType } = await this.githubCredentialsProvider.getCredentials({
           url: `${baseUrl}/${orgConfig.name}`
         });
-        const client = graphql.graphql.defaults({
+        const client = graphql$3.graphql.defaults({
           baseUrl: gitHubConfig.apiBaseUrl,
           headers
         });
@@ -1518,27 +1629,27 @@ class GithubMultiOrgReaderProcessor {
         this.logger.info(
           `Reading GitHub users and teams for org: ${orgConfig.name}`
         );
-        const { users } = await GithubEntityProvider.getOrganizationUsers(
+        const { users } = await github$3.getOrganizationUsers(
           client,
           orgConfig.name,
           tokenType,
           async (githubUser, ctx) => {
-            const result = this.options.userTransformer ? await this.options.userTransformer(githubUser, ctx) : await GithubEntityProvider.defaultUserTransformer(githubUser, ctx);
+            const result = this.options.userTransformer ? await this.options.userTransformer(githubUser, ctx) : await defaultTransformers$3.defaultUserTransformer(githubUser, ctx);
             if (result) {
               result.metadata.namespace = orgConfig.userNamespace;
             }
             return result;
           }
         );
-        const { teams } = await GithubEntityProvider.getOrganizationTeams(
+        const { teams } = await github$3.getOrganizationTeams(
           client,
           orgConfig.name,
           async (team, ctx) => {
-            const result = this.options.teamTransformer ? await this.options.teamTransformer(team, ctx) : await GithubEntityProvider.defaultOrganizationTeamTransformer(team, ctx);
-            if (result && catalogModel.isGroupEntity(result)) {
+            const result = this.options.teamTransformer ? await this.options.teamTransformer(team, ctx) : await defaultTransformers$3.defaultOrganizationTeamTransformer(team, ctx);
+            if (result && catalogModel$2.isGroupEntity(result)) {
               result.metadata.namespace = orgConfig.groupNamespace;
               result.spec.members = team.members.map(
-                (user) => `${orgConfig.userNamespace ?? catalogModel.DEFAULT_NAMESPACE}/${user.login}`
+                (user) => `${orgConfig.userNamespace ?? catalogModel$2.DEFAULT_NAMESPACE}/${user.login}`
               );
             }
             return result;
@@ -1549,20 +1660,20 @@ class GithubMultiOrgReaderProcessor {
           `Read ${users.length} GitHub users and ${teams.length} GitHub teams from ${orgConfig.name} in ${duration} seconds`
         );
         const pendingUsers = users.map((u) => {
-          const userRef = catalogModel.stringifyEntityRef(u);
+          const userRef = catalogModel$2.stringifyEntityRef(u);
           if (!allUsersMap.has(userRef)) {
             allUsersMap.set(userRef, u);
           }
           return allUsersMap.get(userRef);
         });
-        if (areGroupEntities(teams)) {
-          buildOrgHierarchy(teams);
-          if (areUserEntities(pendingUsers)) {
-            assignGroupsToUsers(pendingUsers, teams);
+        if (guards$3.areGroupEntities(teams)) {
+          org$3.buildOrgHierarchy(teams);
+          if (guards$3.areUserEntities(pendingUsers)) {
+            org$3.assignGroupsToUsers(pendingUsers, teams);
           }
         }
         for (const team of teams) {
-          emit(pluginCatalogNode.processingResult.entity(location, team));
+          emit(pluginCatalogNode$1.processingResult.entity(location, team));
         }
       } catch (e) {
         this.logger.error(
@@ -1572,13 +1683,13 @@ class GithubMultiOrgReaderProcessor {
     }
     const allUsers = Array.from(allUsersMap.values());
     for (const user of allUsers) {
-      emit(pluginCatalogNode.processingResult.entity(location, user));
+      emit(pluginCatalogNode$1.processingResult.entity(location, user));
     }
     return true;
   }
   // Note: Does not support usage of PATs
   async getAllOrgs(gitHubConfig) {
-    const githubAppMux = new integration.GithubAppCredentialsMux(gitHubConfig);
+    const githubAppMux = new integration$3.GithubAppCredentialsMux(gitHubConfig);
     const installs = await githubAppMux.getAllInstallations();
     return installs.map(
       (install) => install.target_type === "Organization" && install.account && "login" in install.account && install.account.login ? {
@@ -1589,20 +1700,32 @@ class GithubMultiOrgReaderProcessor {
   }
 }
 
-class GithubOrgReaderProcessor {
+GithubMultiOrgReaderProcessor_cjs.GithubMultiOrgReaderProcessor = GithubMultiOrgReaderProcessor$1;
+
+var GithubOrgReaderProcessor_cjs = {};
+
+var integration$2 = require$$1;
+var pluginCatalogNode = require$$1$1;
+var graphql$2 = require$$2;
+var github$2 = github_cjs;
+var org$2 = org_cjs;
+var util$2 = util_cjs;
+var guards$2 = guards_cjs;
+
+class GithubOrgReaderProcessor$1 {
   integrations;
   logger;
   githubCredentialsProvider;
   static fromConfig(config, options) {
-    const integrations = integration.ScmIntegrations.fromConfig(config);
-    return new GithubOrgReaderProcessor({
+    const integrations = integration$2.ScmIntegrations.fromConfig(config);
+    return new GithubOrgReaderProcessor$1({
       ...options,
       integrations
     });
   }
   constructor(options) {
     this.integrations = options.integrations;
-    this.githubCredentialsProvider = options.githubCredentialsProvider || integration.DefaultGithubCredentialsProvider.fromIntegrations(this.integrations);
+    this.githubCredentialsProvider = options.githubCredentialsProvider || integration$2.DefaultGithubCredentialsProvider.fromIntegrations(this.integrations);
     this.logger = options.logger;
   }
   getProcessorName() {
@@ -1613,19 +1736,19 @@ class GithubOrgReaderProcessor {
       return false;
     }
     const { client, tokenType } = await this.createClient(location.target);
-    const { org } = GithubEntityProvider.parseGithubOrgUrl(location.target);
+    const { org: org$1 } = util$2.parseGithubOrgUrl(location.target);
     const startTimestamp = Date.now();
     this.logger.info("Reading GitHub users and groups");
-    const { users } = await GithubEntityProvider.getOrganizationUsers(client, org, tokenType);
-    const { teams } = await GithubEntityProvider.getOrganizationTeams(client, org);
+    const { users } = await github$2.getOrganizationUsers(client, org$1, tokenType);
+    const { teams } = await github$2.getOrganizationTeams(client, org$1);
     const duration = ((Date.now() - startTimestamp) / 1e3).toFixed(1);
     this.logger.debug(
       `Read ${users.length} GitHub users and ${teams.length} GitHub teams in ${duration} seconds`
     );
-    if (areGroupEntities(teams)) {
-      buildOrgHierarchy(teams);
-      if (areUserEntities(users)) {
-        assignGroupsToUsers(users, teams);
+    if (guards$2.areGroupEntities(teams)) {
+      org$2.buildOrgHierarchy(teams);
+      if (guards$2.areUserEntities(users)) {
+        org$2.assignGroupsToUsers(users, teams);
       }
     }
     for (const team of teams) {
@@ -1646,7 +1769,7 @@ class GithubOrgReaderProcessor {
     const { headers, type: tokenType } = await this.githubCredentialsProvider.getCredentials({
       url: orgUrl
     });
-    const client = graphql.graphql.defaults({
+    const client = graphql$2.graphql.defaults({
       baseUrl: gitHubConfig.apiBaseUrl,
       headers
     });
@@ -1654,20 +1777,56 @@ class GithubOrgReaderProcessor {
   }
 }
 
+GithubOrgReaderProcessor_cjs.GithubOrgReaderProcessor = GithubOrgReaderProcessor$1;
+
+var GithubMultiOrgEntityProvider_cjs = {};
+
+var catalogModel$1 = require$$0$1;
+var integration$1 = require$$1;
+var graphql$1 = require$$2;
+var lodash = require$$3;
+var uuid$1 = require$$3$1;
+var github$1 = github_cjs;
+var defaultTransformers$2 = defaultTransformers_cjs;
+var org$1 = org_cjs;
+var util$1 = util_cjs;
+var annotation = annotation_cjs;
+var guards$1 = guards_cjs;
+
+function _interopNamespaceCompat$1(e) {
+  if (e && typeof e === 'object' && 'default' in e) return e;
+  var n = Object.create(null);
+  if (e) {
+    Object.keys(e).forEach(function (k) {
+      if (k !== 'default') {
+        var d = Object.getOwnPropertyDescriptor(e, k);
+        Object.defineProperty(n, k, d.get ? d : {
+          enumerable: true,
+          get: function () { return e[k]; }
+        });
+      }
+    });
+  }
+  n.default = e;
+  return Object.freeze(n);
+}
+
+var uuid__namespace$1 = /*#__PURE__*/_interopNamespaceCompat$1(uuid$1);
+
 const EVENT_TOPICS$1 = [
   "github.installation",
   "github.membership",
   "github.organization",
   "github.team"
 ];
-class GithubMultiOrgEntityProvider {
+class GithubMultiOrgEntityProvider$1 {
   constructor(options) {
     this.options = options;
   }
   connection;
   scheduleFn;
   static fromConfig(config, options) {
-    const integrations = integration.ScmIntegrations.fromConfig(config);
+    const integrations = integration$1.ScmIntegrations.fromConfig(config);
     const gitHubConfig = integrations.github.byUrl(options.githubUrl)?.config;
     if (!gitHubConfig) {
       throw new Error(
@@ -1677,10 +1836,10 @@ class GithubMultiOrgEntityProvider {
     const logger = options.logger.child({
       target: options.githubUrl
     });
-    const provider = new GithubMultiOrgEntityProvider({
+    const provider = new GithubMultiOrgEntityProvider$1({
       id: options.id,
       gitHubConfig,
-      githubCredentialsProvider: options.githubCredentialsProvider || integration.DefaultGithubCredentialsProvider.fromIntegrations(integrations),
+      githubCredentialsProvider: options.githubCredentialsProvider || integration$1.DefaultGithubCredentialsProvider.fromIntegrations(integrations),
       githubUrl: new URL(options.githubUrl).origin,
       logger,
       orgs: options.orgs,
@@ -1719,37 +1878,37 @@ class GithubMultiOrgEntityProvider {
     const allUsersMap = /* @__PURE__ */ new Map();
     const allTeams = [];
     const orgsToProcess = this.options.orgs?.length ? this.options.orgs : await this.getAllOrgs(this.options.gitHubConfig);
-    for (const org of orgsToProcess) {
+    for (const org$1$1 of orgsToProcess) {
       const { headers, type: tokenType } = await this.options.githubCredentialsProvider.getCredentials({
-        url: `${this.options.githubUrl}/${org}`
+        url: `${this.options.githubUrl}/${org$1$1}`
       });
-      const client = graphql.graphql.defaults({
+      const client = graphql$1.graphql.defaults({
         baseUrl: this.options.gitHubConfig.apiBaseUrl,
         headers
       });
-      logger.info(`Reading GitHub users and teams for org: ${org}`);
-      const { users } = await GithubEntityProvider.getOrganizationUsers(
+      logger.info(`Reading GitHub users and teams for org: ${org$1$1}`);
+      const { users } = await github$1.getOrganizationUsers(
         client,
-        org,
+        org$1$1,
         tokenType,
         this.options.userTransformer
       );
-      const { teams } = await GithubEntityProvider.getOrganizationTeams(
+      const { teams } = await github$1.getOrganizationTeams(
         client,
-        org,
+        org$1$1,
         this.defaultMultiOrgTeamTransformer.bind(this)
       );
       const pendingUsers = users.map((u) => {
-        const userRef = catalogModel.stringifyEntityRef(u);
+        const userRef = catalogModel$1.stringifyEntityRef(u);
         if (!allUsersMap.has(userRef)) {
           allUsersMap.set(userRef, u);
         }
         return allUsersMap.get(userRef);
       });
-      if (areGroupEntities(teams)) {
-        buildOrgHierarchy(teams);
-        if (areUserEntities(pendingUsers)) {
-          assignGroupsToUsers(pendingUsers, teams);
+      if (guards$1.areGroupEntities(teams)) {
+        org$1.buildOrgHierarchy(teams);
+        if (guards$1.areUserEntities(pendingUsers)) {
+          org$1.assignGroupsToUsers(pendingUsers, teams);
         }
       }
       allTeams.push(...teams);
@@ -1760,7 +1919,7 @@ class GithubMultiOrgEntityProvider {
       type: "full",
       entities: [...allUsers, ...allTeams].map((entity) => ({
         locationKey: `github-multi-org-provider:${this.options.id}`,
-        entity: withLocations(
+        entity: withLocations$1(
           `https://${this.options.gitHubConfig.host}`,
           entity
         )
@@ -1813,23 +1972,23 @@ class GithubMultiOrgEntityProvider {
     if (!this.connection) {
       throw new Error("Not initialized");
     }
-    const org = event.installation.account.login;
+    const org$1$1 = event.installation.account.login;
     const { headers, type: tokenType } = await this.options.githubCredentialsProvider.getCredentials({
-      url: `${this.options.githubUrl}/${org}`
+      url: `${this.options.githubUrl}/${org$1$1}`
     });
-    const client = graphql.graphql.defaults({
+    const client = graphql$1.graphql.defaults({
       baseUrl: this.options.gitHubConfig.apiBaseUrl,
       headers
     });
-    const { users } = await GithubEntityProvider.getOrganizationUsers(
+    const { users } = await github$1.getOrganizationUsers(
       client,
-      org,
+      org$1$1,
       tokenType,
       this.options.userTransformer
     );
-    const { teams } = await GithubEntityProvider.getOrganizationTeams(
+    const { teams } = await github$1.getOrganizationTeams(
       client,
-      org,
+      org$1$1,
       this.defaultMultiOrgTeamTransformer.bind(this)
     );
     if (users.length) {
@@ -1837,20 +1996,20 @@ class GithubMultiOrgEntityProvider {
         const { headers: orgHeaders } = await this.options.githubCredentialsProvider.getCredentials({
           url: `${this.options.githubUrl}/${userOrg}`
         });
-        const orgClient = graphql.graphql.defaults({
+        const orgClient = graphql$1.graphql.defaults({
           baseUrl: this.options.gitHubConfig.apiBaseUrl,
           headers: orgHeaders
         });
-        const { teams: userTeams } = await GithubEntityProvider.getOrganizationTeamsFromUsers(
+        const { teams: userTeams } = await github$1.getOrganizationTeamsFromUsers(
           orgClient,
           userOrg,
           users.map(
-            (u) => u.metadata.annotations?.[GithubEntityProvider.ANNOTATION_GITHUB_USER_LOGIN] || u.metadata.name
+            (u) => u.metadata.annotations?.[annotation.ANNOTATION_GITHUB_USER_LOGIN] || u.metadata.name
           ),
           this.defaultMultiOrgTeamTransformer.bind(this)
         );
-        if (areGroupEntities(userTeams) && areUserEntities(users)) {
-          assignGroupsToUsers(users, userTeams);
+        if (guards$1.areGroupEntities(userTeams) && guards$1.areUserEntities(users)) {
+          org$1.assignGroupsToUsers(users, userTeams);
         }
       }
     }
@@ -1868,17 +2027,17 @@ class GithubMultiOrgEntityProvider {
     if (!this.connection) {
       throw new Error("Not initialized");
     }
-    const userTransformer = this.options.userTransformer || GithubEntityProvider.defaultUserTransformer;
+    const userTransformer = this.options.userTransformer || defaultTransformers$2.defaultUserTransformer;
     const { name, avatar_url: avatarUrl, email, login } = event.membership.user;
-    const org = event.organization.login;
+    const org$1$1 = event.organization.login;
     const { headers } = await this.options.githubCredentialsProvider.getCredentials({
-      url: `${this.options.githubUrl}/${org}`
+      url: `${this.options.githubUrl}/${org$1$1}`
     });
-    const client = graphql.graphql.defaults({
+    const client = graphql$1.graphql.defaults({
       baseUrl: this.options.gitHubConfig.apiBaseUrl,
       headers
     });
-    const { orgs } = await GithubEntityProvider.getOrganizationsFromUser(client, login);
+    const { orgs } = await github$1.getOrganizationsFromUser(client, login);
     const userApplicableOrgs = orgs.filter((o) => applicableOrgs.includes(o));
     let updateMemberships;
     let createDeltaOperation;
@@ -1902,7 +2061,7 @@ class GithubMultiOrgEntityProvider {
         email: email ?? void 0
       },
       {
-        org,
+        org: org$1$1,
         client,
         query: ""
       }
@@ -1915,18 +2074,18 @@ class GithubMultiOrgEntityProvider {
         const { headers: orgHeaders } = await this.options.githubCredentialsProvider.getCredentials({
           url: `${this.options.githubUrl}/${userOrg}`
         });
-        const orgClient = graphql.graphql.defaults({
+        const orgClient = graphql$1.graphql.defaults({
           baseUrl: this.options.gitHubConfig.apiBaseUrl,
           headers: orgHeaders
         });
-        const { teams } = await GithubEntityProvider.getOrganizationTeamsFromUsers(
+        const { teams } = await github$1.getOrganizationTeamsFromUsers(
           orgClient,
           userOrg,
           [login],
           this.defaultMultiOrgTeamTransformer.bind(this)
         );
-        if (catalogModel.isUserEntity(user) && areGroupEntities(teams)) {
-          assignGroupsToUsers([user], teams);
+        if (catalogModel$1.isUserEntity(user) && guards$1.areGroupEntities(teams)) {
+          org$1.assignGroupsToUsers([user], teams);
         }
       }
     }
@@ -1945,7 +2104,7 @@ class GithubMultiOrgEntityProvider {
     const { headers } = await this.options.githubCredentialsProvider.getCredentials({
       url: `${this.options.githubUrl}/${org}`
     });
-    const client = graphql.graphql.defaults({
+    const client = graphql$1.graphql.defaults({
       baseUrl: this.options.gitHubConfig.apiBaseUrl,
       headers
     });
@@ -1979,52 +2138,52 @@ class GithubMultiOrgEntityProvider {
     if (!this.connection) {
       throw new Error("Not initialized");
     }
-    const org = event.organization.login;
+    const org$1$1 = event.organization.login;
     const { headers, type: tokenType } = await this.options.githubCredentialsProvider.getCredentials({
-      url: `${this.options.githubUrl}/${org}`
+      url: `${this.options.githubUrl}/${org$1$1}`
     });
-    const client = graphql.graphql.defaults({
+    const client = graphql$1.graphql.defaults({
       baseUrl: this.options.gitHubConfig.apiBaseUrl,
       headers
     });
     const teamSlug = event.team.slug;
-    const { team } = await GithubEntityProvider.getOrganizationTeam(
+    const { team } = await github$1.getOrganizationTeam(
       client,
-      org,
+      org$1$1,
       teamSlug,
       this.defaultMultiOrgTeamTransformer.bind(this)
     );
-    const { users } = await GithubEntityProvider.getOrganizationUsers(
+    const { users } = await github$1.getOrganizationUsers(
       client,
-      org,
+      org$1$1,
       tokenType,
       this.options.userTransformer
     );
-    const usersFromChangedGroup = catalogModel.isGroupEntity(team) ? team.spec.members?.map(
-      (m) => catalogModel.stringifyEntityRef(catalogModel.parseEntityRef(m, { defaultKind: "user" }))
+    const usersFromChangedGroup = catalogModel$1.isGroupEntity(team) ? team.spec.members?.map(
+      (m) => catalogModel$1.stringifyEntityRef(catalogModel$1.parseEntityRef(m, { defaultKind: "user" }))
     ) || [] : [];
     const usersToRebuild = users.filter(
-      (u) => usersFromChangedGroup.includes(catalogModel.stringifyEntityRef(u))
+      (u) => usersFromChangedGroup.includes(catalogModel$1.stringifyEntityRef(u))
     );
     if (usersToRebuild.length) {
       for (const userOrg of applicableOrgs) {
         const { headers: orgHeaders } = await this.options.githubCredentialsProvider.getCredentials({
           url: `${this.options.githubUrl}/${userOrg}`
         });
-        const orgClient = graphql.graphql.defaults({
+        const orgClient = graphql$1.graphql.defaults({
           baseUrl: this.options.gitHubConfig.apiBaseUrl,
           headers: orgHeaders
         });
-        const { teams } = await GithubEntityProvider.getOrganizationTeamsFromUsers(
+        const { teams } = await github$1.getOrganizationTeamsFromUsers(
           orgClient,
           userOrg,
           usersToRebuild.map(
-            (u) => u.metadata.annotations?.[GithubEntityProvider.ANNOTATION_GITHUB_USER_LOGIN] || u.metadata.name
+            (u) => u.metadata.annotations?.[annotation.ANNOTATION_GITHUB_USER_LOGIN] || u.metadata.name
           ),
           this.defaultMultiOrgTeamTransformer.bind(this)
         );
-        if (areGroupEntities(teams) && areUserEntities(usersToRebuild)) {
-          assignGroupsToUsers(usersToRebuild, teams);
+        if (guards$1.areGroupEntities(teams) && guards$1.areUserEntities(usersToRebuild)) {
+          org$1.assignGroupsToUsers(usersToRebuild, teams);
         }
       }
     }
@@ -2034,14 +2193,14 @@ class GithubMultiOrgEntityProvider {
       {
         name: event.changes.name?.from,
         slug: oldSlug,
-        combinedSlug: `${org}/${oldSlug}`,
+        combinedSlug: `${org$1$1}/${oldSlug}`,
         description: event.changes.description?.from,
         parentTeam: { slug: event.team?.parent?.slug || "" },
         // entity will be removed
         members: []
       },
       {
-        org,
+        org: org$1$1,
         client,
         query: ""
       }
@@ -2064,22 +2223,22 @@ class GithubMultiOrgEntityProvider {
     if (!("slug" in event.team)) {
       return;
     }
-    const org = event.organization.login;
+    const org$1$1 = event.organization.login;
     const { headers } = await this.options.githubCredentialsProvider.getCredentials({
-      url: `${this.options.githubUrl}/${org}`
+      url: `${this.options.githubUrl}/${org$1$1}`
     });
-    const client = graphql.graphql.defaults({
+    const client = graphql$1.graphql.defaults({
       baseUrl: this.options.gitHubConfig.apiBaseUrl,
       headers
     });
     const teamSlug = event.team.slug;
-    const { team } = await GithubEntityProvider.getOrganizationTeam(
+    const { team } = await github$1.getOrganizationTeam(
       client,
-      org,
+      org$1$1,
       teamSlug,
       this.defaultMultiOrgTeamTransformer.bind(this)
     );
-    const userTransformer = this.options.userTransformer || GithubEntityProvider.defaultUserTransformer;
+    const userTransformer = this.options.userTransformer || defaultTransformers$2.defaultUserTransformer;
     const { name, avatar_url: avatarUrl, email, login } = event.member;
     const user = await userTransformer(
       {
@@ -2089,31 +2248,31 @@ class GithubMultiOrgEntityProvider {
         email: email ?? void 0
       },
       {
-        org,
+        org: org$1$1,
         client,
         query: ""
       }
     );
     const mutationEntities = [team];
-    if (user && catalogModel.isUserEntity(user)) {
-      const { orgs } = await GithubEntityProvider.getOrganizationsFromUser(client, login);
+    if (user && catalogModel$1.isUserEntity(user)) {
+      const { orgs } = await github$1.getOrganizationsFromUser(client, login);
       const userApplicableOrgs = orgs.filter((o) => applicableOrgs.includes(o));
       for (const userOrg of userApplicableOrgs) {
         const { headers: orgHeaders } = await this.options.githubCredentialsProvider.getCredentials({
           url: `${this.options.githubUrl}/${userOrg}`
         });
-        const orgClient = graphql.graphql.defaults({
+        const orgClient = graphql$1.graphql.defaults({
           baseUrl: this.options.gitHubConfig.apiBaseUrl,
           headers: orgHeaders
         });
-        const { teams } = await GithubEntityProvider.getOrganizationTeamsFromUsers(
+        const { teams } = await github$1.getOrganizationTeamsFromUsers(
           orgClient,
           userOrg,
           [login],
           this.defaultMultiOrgTeamTransformer.bind(this)
         );
-        if (areGroupEntities(teams)) {
-          assignGroupsToUsers([user], teams);
+        if (guards$1.areGroupEntities(teams)) {
+          org$1.assignGroupsToUsers([user], teams);
         }
       }
       mutationEntities.push(user);
@@ -2135,9 +2294,9 @@ class GithubMultiOrgEntityProvider {
         id,
         fn: async () => {
           const logger = this.options.logger.child({
-            class: GithubMultiOrgEntityProvider.prototype.constructor.name,
+            class: GithubMultiOrgEntityProvider$1.prototype.constructor.name,
             taskId: id,
-            taskInstanceId: uuid__namespace.v4()
+            taskInstanceId: uuid__namespace$1.v4()
           });
           try {
             await this.read({ logger });
@@ -2155,20 +2314,20 @@ class GithubMultiOrgEntityProvider {
     if (this.options.teamTransformer) {
       return await this.options.teamTransformer(team, ctx);
     }
-    const result = await GithubEntityProvider.defaultOrganizationTeamTransformer(team);
+    const result = await defaultTransformers$2.defaultOrganizationTeamTransformer(team);
     if (result && result.spec) {
       if (!this.options.alwaysUseDefaultNamespace) {
         result.metadata.namespace = ctx.org.toLocaleLowerCase("en-US");
       }
       result.spec.members = team.members.map(
-        (user) => `${catalogModel.DEFAULT_NAMESPACE}/${user.login}`
+        (user) => `${catalogModel$1.DEFAULT_NAMESPACE}/${user.login}`
       );
     }
     return result;
   }
   // Note: Does not support usage of PATs
   async getAllOrgs(gitHubConfig) {
-    const githubAppMux = new integration.GithubAppCredentialsMux(gitHubConfig);
+    const githubAppMux = new integration$1.GithubAppCredentialsMux(gitHubConfig);
     const installs = await githubAppMux.getAllInstallations();
     return installs.map(
       (install) => install.target_type === "Organization" && install.account && "login" in install.account && install.account.login ? install.account.login : void 0
@@ -2179,7 +2338,7 @@ class GithubMultiOrgEntityProvider {
       removed: [],
       added: entities.map((entity) => ({
         locationKey: `github-multi-org-provider:${this.options.id}`,
-        entity: withLocations(
+        entity: withLocations$1(
           `https://${this.options.gitHubConfig.host}`,
           entity
         )
@@ -2191,7 +2350,7 @@ class GithubMultiOrgEntityProvider {
       added: [],
       removed: entities.map((entity) => ({
         locationKey: `github-multi-org-provider:${this.options.id}`,
-        entity: withLocations(
+        entity: withLocations$1(
           `https://${this.options.gitHubConfig.host}`,
           entity
         )
@@ -2216,13 +2375,13 @@ function trackProgress$1(logger) {
   }
   return { markReadComplete };
 }
-function withLocations(baseUrl, entity) {
-  const login = entity.metadata.annotations?.[GithubEntityProvider.ANNOTATION_GITHUB_USER_LOGIN] || entity.metadata.name;
+function withLocations$1(baseUrl, entity) {
+  const login = entity.metadata.annotations?.[annotation.ANNOTATION_GITHUB_USER_LOGIN] || entity.metadata.name;
   let org = entity.metadata.namespace;
   let team = entity.metadata.name;
-  const slug = entity.metadata.annotations?.[GithubEntityProvider.ANNOTATION_GITHUB_TEAM_SLUG];
+  const slug = entity.metadata.annotations?.[annotation.ANNOTATION_GITHUB_TEAM_SLUG];
   if (slug) {
-    const [slugOrg, slugTeam] = GithubEntityProvider.splitTeamSlug(slug);
+    const [slugOrg, slugTeam] = util$1.splitTeamSlug(slug);
     org = slugOrg;
     team = slugTeam;
   }
@@ -2231,8 +2390,8 @@ function withLocations(baseUrl, entity) {
     {
       metadata: {
         annotations: {
-          [catalogModel.ANNOTATION_LOCATION]: location,
-          [catalogModel.ANNOTATION_ORIGIN_LOCATION]: location
+          [catalogModel$1.ANNOTATION_LOCATION]: location,
+          [catalogModel$1.ANNOTATION_ORIGIN_LOCATION]: location
         }
       }
     },
@@ -2240,12 +2399,48 @@ function withLocations(baseUrl, entity) {
   );
 }
 
+GithubMultiOrgEntityProvider_cjs.GithubMultiOrgEntityProvider = GithubMultiOrgEntityProvider$1;
+GithubMultiOrgEntityProvider_cjs.withLocations = withLocations$1;
+
+var GithubOrgEntityProvider_cjs = {};
+
+var catalogModel = require$$0$1;
+var integration = require$$1;
+var graphql = require$$2;
+var uuid = require$$3$1;
+var defaultTransformers$1 = defaultTransformers_cjs;
+var github = github_cjs;
+var org = org_cjs;
+var util = util_cjs;
+var withLocations = withLocations_cjs;
+var guards = guards_cjs;
+
+function _interopNamespaceCompat(e) {
+  if (e && typeof e === 'object' && 'default' in e) return e;
+  var n = Object.create(null);
+  if (e) {
+    Object.keys(e).forEach(function (k) {
+      if (k !== 'default') {
+        var d = Object.getOwnPropertyDescriptor(e, k);
+        Object.defineProperty(n, k, d.get ? d : {
+          enumerable: true,
+          get: function () { return e[k]; }
+        });
+      }
+    });
+  }
+  n.default = e;
+  return Object.freeze(n);
+}
+
+var uuid__namespace = /*#__PURE__*/_interopNamespaceCompat(uuid);
+
 const EVENT_TOPICS = [
   "github.membership",
   "github.organization",
   "github.team"
 ];
-class GithubOrgEntityProvider {
+class GithubOrgEntityProvider$2 {
   constructor(options) {
     this.options = options;
     this.credentialsProvider = options.githubCredentialsProvider || integration.SingleInstanceGithubCredentialsProvider.create(this.options.gitHubConfig);
@@ -2264,7 +2459,7 @@ class GithubOrgEntityProvider {
     const logger = options.logger.child({
       target: options.orgUrl
     });
-    const provider = new GithubOrgEntityProvider({
+    const provider = new GithubOrgEntityProvider$2({
       id: options.id,
       orgUrl: options.orgUrl,
       logger,
@@ -2308,22 +2503,22 @@ class GithubOrgEntityProvider {
       baseUrl: this.options.gitHubConfig.apiBaseUrl,
       headers
     });
-    const { org } = GithubEntityProvider.parseGithubOrgUrl(this.options.orgUrl);
-    const { users } = await GithubEntityProvider.getOrganizationUsers(
+    const { org: org$1 } = util.parseGithubOrgUrl(this.options.orgUrl);
+    const { users } = await github.getOrganizationUsers(
       client,
-      org,
+      org$1,
       tokenType,
       this.options.userTransformer
     );
-    const { teams } = await GithubEntityProvider.getOrganizationTeams(
+    const { teams } = await github.getOrganizationTeams(
       client,
-      org,
+      org$1,
       this.options.teamTransformer
     );
-    if (areGroupEntities(teams)) {
-      buildOrgHierarchy(teams);
-      if (areUserEntities(users)) {
-        assignGroupsToUsers(users, teams);
+    if (guards.areGroupEntities(teams)) {
+      org.buildOrgHierarchy(teams);
+      if (guards.areUserEntities(users)) {
+        org.assignGroupsToUsers(users, teams);
       }
     }
     const { markCommitComplete } = markReadComplete({ users, teams });
@@ -2331,9 +2526,9 @@ class GithubOrgEntityProvider {
       type: "full",
       entities: [...users, ...teams].map((entity) => ({
         locationKey: `github-org-provider:${this.options.id}`,
-        entity: GithubEntityProvider.withLocations(
+        entity: withLocations.withLocations(
           `https://${this.options.gitHubConfig.host}`,
-          org,
+          org$1,
           entity
         )
       }))
@@ -2343,15 +2538,15 @@ class GithubOrgEntityProvider {
   async onEvent(params) {
     const { logger } = this.options;
     logger.debug(`Received event from ${params.topic}`);
-    const addEntitiesOperation = GithubEntityProvider.createAddEntitiesOperation(
+    const addEntitiesOperation = github.createAddEntitiesOperation(
       this.options.id,
       this.options.gitHubConfig.host
     );
-    const removeEntitiesOperation = GithubEntityProvider.createRemoveEntitiesOperation(
+    const removeEntitiesOperation = github.createRemoveEntitiesOperation(
       this.options.id,
       this.options.gitHubConfig.host
     );
-    const replaceEntitiesOperation = GithubEntityProvider.createReplaceEntitiesOperation(
+    const replaceEntitiesOperation = github.createReplaceEntitiesOperation(
       this.options.id,
       this.options.gitHubConfig.host
     );
@@ -2395,16 +2590,16 @@ class GithubOrgEntityProvider {
       baseUrl: this.options.gitHubConfig.apiBaseUrl,
       headers
     });
-    const { org } = GithubEntityProvider.parseGithubOrgUrl(this.options.orgUrl);
-    const { team } = await GithubEntityProvider.getOrganizationTeam(
+    const { org: org$1 } = util.parseGithubOrgUrl(this.options.orgUrl);
+    const { team } = await github.getOrganizationTeam(
       client,
-      org,
+      org$1,
       teamSlug,
       this.options.teamTransformer
     );
-    const { users } = await GithubEntityProvider.getOrganizationUsers(
+    const { users } = await github.getOrganizationUsers(
       client,
-      org,
+      org$1,
       tokenType,
       this.options.userTransformer
     );
@@ -2415,23 +2610,23 @@ class GithubOrgEntityProvider {
     const usersToRebuild = users.filter(
       (u) => usersFromChangedGroup.includes(u.metadata.name)
     );
-    const { teams } = await GithubEntityProvider.getOrganizationTeamsFromUsers(
+    const { teams } = await github.getOrganizationTeamsFromUsers(
       client,
-      org,
+      org$1,
       usersToRebuild.map((u) => u.metadata.name),
       this.options.teamTransformer
     );
-    if (areGroupEntities(teams)) {
-      buildOrgHierarchy(teams);
-      if (areUserEntities(usersToRebuild)) {
-        assignGroupsToUsers(usersToRebuild, teams);
+    if (guards.areGroupEntities(teams)) {
+      org.buildOrgHierarchy(teams);
+      if (guards.areUserEntities(usersToRebuild)) {
+        org.assignGroupsToUsers(usersToRebuild, teams);
       }
     }
     const oldName = event.changes.name?.from || event.team.name;
     const oldSlug = oldName.toLowerCase().replaceAll(/\s/gi, "-");
     const oldDescription = event.changes.description?.from || event.team.description;
     const oldDescriptionSlug = oldDescription?.toLowerCase().replaceAll(/\s/gi, "-");
-    const { removed } = createDeltaOperation(org, [
+    const { removed } = createDeltaOperation(org$1, [
       {
         ...team,
         metadata: {
@@ -2440,7 +2635,7 @@ class GithubOrgEntityProvider {
         }
       }
     ]);
-    const { added } = createDeltaOperation(org, [...usersToRebuild, ...teams]);
+    const { added } = createDeltaOperation(org$1, [...usersToRebuild, ...teams]);
     await this.connection.applyMutation({
       type: "delta",
       removed,
@@ -2463,36 +2658,36 @@ class GithubOrgEntityProvider {
       baseUrl: this.options.gitHubConfig.apiBaseUrl,
       headers
     });
-    const { org } = GithubEntityProvider.parseGithubOrgUrl(this.options.orgUrl);
-    const { team } = await GithubEntityProvider.getOrganizationTeam(
+    const { org: org$1 } = util.parseGithubOrgUrl(this.options.orgUrl);
+    const { team } = await github.getOrganizationTeam(
       client,
-      org,
+      org$1,
       teamSlug,
       this.options.teamTransformer
     );
-    const { users } = await GithubEntityProvider.getOrganizationUsers(
+    const { users } = await github.getOrganizationUsers(
       client,
-      org,
+      org$1,
       tokenType,
       this.options.userTransformer
     );
     const usersToRebuild = users.filter((u) => u.metadata.name === userLogin);
-    const { teams } = await GithubEntityProvider.getOrganizationTeamsFromUsers(
+    const { teams } = await github.getOrganizationTeamsFromUsers(
       client,
-      org,
+      org$1,
       [userLogin],
       this.options.teamTransformer
     );
     if (!teams.some((t) => t.metadata.name === team.metadata.name)) {
       teams.push(team);
     }
-    if (areGroupEntities(teams)) {
-      buildOrgHierarchy(teams);
-      if (areUserEntities(usersToRebuild)) {
-        assignGroupsToUsers(usersToRebuild, teams);
+    if (guards.areGroupEntities(teams)) {
+      org.buildOrgHierarchy(teams);
+      if (guards.areUserEntities(usersToRebuild)) {
+        org.assignGroupsToUsers(usersToRebuild, teams);
       }
     }
-    const { added, removed } = createDeltaOperation(org, [
+    const { added, removed } = createDeltaOperation(org$1, [
       ...usersToRebuild,
       ...teams
     ]);
@@ -2506,7 +2701,7 @@ class GithubOrgEntityProvider {
     if (!this.connection) {
       throw new Error("Not initialized");
     }
-    const organizationTeamTransformer = this.options.teamTransformer || GithubEntityProvider.defaultOrganizationTeamTransformer;
+    const organizationTeamTransformer = this.options.teamTransformer || defaultTransformers$1.defaultOrganizationTeamTransformer;
     const { name, html_url: url, description, slug } = event.team;
     const org = event.organization.login;
     const { headers } = await this.credentialsProvider.getCredentials({
@@ -2544,7 +2739,7 @@ class GithubOrgEntityProvider {
     if (!this.connection) {
       throw new Error("Not initialized");
     }
-    const userTransformer = this.options.userTransformer || GithubEntityProvider.defaultUserTransformer;
+    const userTransformer = this.options.userTransformer || defaultTransformers$1.defaultUserTransformer;
     const { name, avatar_url: avatarUrl, email, login } = event.membership.user;
     const org = event.organization.login;
     const { headers } = await this.credentialsProvider.getCredentials({
@@ -2586,7 +2781,7 @@ class GithubOrgEntityProvider {
         id,
         fn: async () => {
           const logger = this.options.logger.child({
-            class: GithubOrgEntityProvider.prototype.constructor.name,
+            class: GithubOrgEntityProvider$2.prototype.constructor.name,
             taskId: id,
             taskInstanceId: uuid__namespace.v4()
           });
@@ -2621,12 +2816,19 @@ function trackProgress(logger) {
   return { markReadComplete };
 }
 
-class GitHubOrgEntityProvider extends GithubOrgEntityProvider {
+GithubOrgEntityProvider_cjs.GithubOrgEntityProvider = GithubOrgEntityProvider$2;
+
+var deprecated_cjs = {};
+
+var GithubEntityProvider$1 = GithubEntityProvider_cjs;
+var GithubOrgEntityProvider$1 = GithubOrgEntityProvider_cjs;
+
+class GitHubOrgEntityProvider extends GithubOrgEntityProvider$1.GithubOrgEntityProvider {
   static fromConfig(config, options) {
     options.logger.warn(
       "[Deprecated] Use GithubOrgEntityProvider instead of GitHubOrgEntityProvider."
     );
-    return GithubOrgEntityProvider.fromConfig(
+    return GithubOrgEntityProvider$1.GithubOrgEntityProvider.fromConfig(
       config,
       options
     );
@@ -2640,7 +2842,7 @@ class GitHubEntityProvider {
     options.logger.warn(
       "[Deprecated] Please use GithubEntityProvider instead of GitHubEntityProvider."
     );
-    return GithubEntityProvider.GithubEntityProvider.fromConfig(config, options).map(
+    return GithubEntityProvider$1.GithubEntityProvider.fromConfig(config, options).map(
       (delegate) => new GitHubEntityProvider(delegate)
     );
   }
@@ -2655,128 +2857,163 @@ class GitHubEntityProvider {
   }
 }
 
+deprecated_cjs.GitHubEntityProvider = GitHubEntityProvider;
+deprecated_cjs.GitHubOrgEntityProvider = GitHubOrgEntityProvider;
+
+Object.defineProperty(index_cjs$1, '__esModule', { value: true });
+
+var githubCatalogModule = githubCatalogModule_cjs;
+var GithubLocationAnalyzer = GithubLocationAnalyzer_cjs;
+var GithubDiscoveryProcessor = GithubDiscoveryProcessor_cjs;
+var GithubMultiOrgReaderProcessor = GithubMultiOrgReaderProcessor_cjs;
+var GithubOrgReaderProcessor = GithubOrgReaderProcessor_cjs;
+var GithubEntityProvider = GithubEntityProvider_cjs;
+var GithubMultiOrgEntityProvider = GithubMultiOrgEntityProvider_cjs;
+var GithubOrgEntityProvider = GithubOrgEntityProvider_cjs;
+var defaultTransformers = defaultTransformers_cjs;
+
+
+var deprecated = deprecated_cjs;
+
+
+
+index_cjs$1.default = githubCatalogModule.githubCatalogModule;
+index_cjs$1.GithubLocationAnalyzer = GithubLocationAnalyzer.GithubLocationAnalyzer;
+index_cjs$1.GithubDiscoveryProcessor = GithubDiscoveryProcessor.GithubDiscoveryProcessor;
+index_cjs$1.GithubMultiOrgReaderProcessor = GithubMultiOrgReaderProcessor.GithubMultiOrgReaderProcessor;
+index_cjs$1.GithubOrgReaderProcessor = GithubOrgReaderProcessor.GithubOrgReaderProcessor;
 index_cjs$1.GithubEntityProvider = GithubEntityProvider.GithubEntityProvider;
-index_cjs$1.GithubLocationAnalyzer = GithubEntityProvider.GithubLocationAnalyzer;
-index_cjs$1.defaultOrganizationTeamTransformer = GithubEntityProvider.defaultOrganizationTeamTransformer;
-index_cjs$1.defaultUserTransformer = GithubEntityProvider.defaultUserTransformer;
-index_cjs$1.GitHubEntityProvider = GitHubEntityProvider;
-index_cjs$1.GitHubOrgEntityProvider = GitHubOrgEntityProvider;
-index_cjs$1.GithubDiscoveryProcessor = GithubDiscoveryProcessor;
-index_cjs$1.GithubMultiOrgEntityProvider = GithubMultiOrgEntityProvider;
-index_cjs$1.GithubMultiOrgReaderProcessor = GithubMultiOrgReaderProcessor;
-index_cjs$1.GithubOrgEntityProvider = GithubOrgEntityProvider;
-index_cjs$1.GithubOrgReaderProcessor = GithubOrgReaderProcessor;
+index_cjs$1.GithubMultiOrgEntityProvider = GithubMultiOrgEntityProvider.GithubMultiOrgEntityProvider;
+index_cjs$1.GithubOrgEntityProvider = GithubOrgEntityProvider.GithubOrgEntityProvider;
+index_cjs$1.defaultOrganizationTeamTransformer = defaultTransformers.defaultOrganizationTeamTransformer;
+index_cjs$1.defaultUserTransformer = defaultTransformers.defaultUserTransformer;
+index_cjs$1.GitHubEntityProvider = deprecated.GitHubEntityProvider;
+index_cjs$1.GitHubOrgEntityProvider = deprecated.GitHubOrgEntityProvider;
+
+var GithubOrgEntityCleanerProvider_cjs = {};
+
+class GithubOrgEntityCleanerProvider$1 {
+  constructor(options) {
+    this.options = options;
+    this.logger = options.logger.child({ target: this.getProviderName() });
+  }
+  logger;
+  getProviderName() {
+    return `GithubOrgEntityProvider:${this.options.id}`;
+  }
+  async connect(connection) {
+    connection.applyMutation({
+      type: "full",
+      entities: []
+    }).catch((error) => {
+      this.logger.error("Failed to clean up entities", error);
+    });
+  }
+}
+
+GithubOrgEntityCleanerProvider_cjs.GithubOrgEntityCleanerProvider = GithubOrgEntityCleanerProvider$1;
+
+var backendPluginApi = require$$0;
+var pluginCatalogBackendModuleGithub = index_cjs$1;
+var alpha = require$$1$2;
+var pluginEventsNode = require$$2$2;
+var GithubOrgEntityCleanerProvider = GithubOrgEntityCleanerProvider_cjs;
+
+const githubOrgEntityProviderTransformsExtensionPoint = backendPluginApi.createExtensionPoint({
+  id: "catalog.githubOrgEntityProvider"
+});
+const catalogModuleGithubOrgEntityProvider = backendPluginApi.createBackendModule({
+  pluginId: "catalog",
+  moduleId: "github-org-entity-provider",
+  register(env) {
+    let userTransformer;
+    let teamTransformer;
+    env.registerExtensionPoint(
+      githubOrgEntityProviderTransformsExtensionPoint,
+      {
+        setUserTransformer(transformer) {
+          if (userTransformer) {
+            throw new Error("User transformer may only be set once");
+          }
+          userTransformer = transformer;
+        },
+        setTeamTransformer(transformer) {
+          if (teamTransformer) {
+            throw new Error("Team transformer may only be set once");
+          }
+          teamTransformer = transformer;
+        }
+      }
+    );
+    env.registerInit({
+      deps: {
+        catalog: alpha.catalogProcessingExtensionPoint,
+        config: backendPluginApi.coreServices.rootConfig,
+        events: pluginEventsNode.eventsServiceRef,
+        logger: backendPluginApi.coreServices.logger,
+        scheduler: backendPluginApi.coreServices.scheduler
+      },
+      async init({ catalog, config, events, logger, scheduler }) {
+        const definitions = readDefinitionsFromConfig(config);
+        for (const definition of definitions) {
+          catalog.addEntityProvider(
+            new GithubOrgEntityCleanerProvider.GithubOrgEntityCleanerProvider({ id: definition.id, logger })
+          );
+          catalog.addEntityProvider(
+            pluginCatalogBackendModuleGithub.GithubMultiOrgEntityProvider.fromConfig(config, {
+              id: definition.id,
+              githubUrl: definition.githubUrl,
+              orgs: definition.orgs,
+              events,
+              schedule: scheduler.createScheduledTaskRunner(
+                definition.schedule
+              ),
+              logger,
+              userTransformer,
+              teamTransformer,
+              alwaysUseDefaultNamespace: definitions.length === 1 && definition.orgs?.length === 1
+            })
+          );
+        }
+      }
+    });
+  }
+});
+function readDefinitionsFromConfig(rootConfig) {
+  const baseKey = "catalog.providers.githubOrg";
+  const baseConfig = rootConfig.getOptional(baseKey);
+  if (!baseConfig) {
+    return [];
+  }
+  const configs = Array.isArray(baseConfig) ? rootConfig.getConfigArray(baseKey) : [rootConfig.getConfig(baseKey)];
+  return configs.map((c) => ({
+    id: c.getString("id"),
+    githubUrl: c.getString("githubUrl"),
+    orgs: c.getOptionalStringArray("orgs"),
+    schedule: backendPluginApi.readSchedulerServiceTaskScheduleDefinitionFromConfig(
+      c.getConfig("schedule")
+    )
+  }));
+}
+
+module_cjs.catalogModuleGithubOrgEntityProvider = catalogModuleGithubOrgEntityProvider;
+module_cjs.githubOrgEntityProviderTransformsExtensionPoint = githubOrgEntityProviderTransformsExtensionPoint;
 
 (function (exports) {
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 
-	var backendPluginApi = require$$0$1;
-	var backendTasks = require$$10;
+	var module$1 = module_cjs;
 	var pluginCatalogBackendModuleGithub = index_cjs$1;
-	var alpha = require$$3$1;
-	var pluginEventsNode = require$$4$1;
 
-	class GithubOrgEntityCleanerProvider {
-	  constructor(options) {
-	    this.options = options;
-	    this.logger = options.logger.child({ target: this.getProviderName() });
-	  }
-	  logger;
-	  getProviderName() {
-	    return `GithubOrgEntityProvider:${this.options.id}`;
-	  }
-	  async connect(connection) {
-	    connection.applyMutation({
-	      type: "full",
-	      entities: []
-	    }).catch((error) => {
-	      this.logger.error("Failed to clean up entities", error);
-	    });
-	  }
-	}
 
-	const githubOrgEntityProviderTransformsExtensionPoint = backendPluginApi.createExtensionPoint({
-	  id: "catalog.githubOrgEntityProvider"
-	});
-	const catalogModuleGithubOrgEntityProvider = backendPluginApi.createBackendModule({
-	  pluginId: "catalog",
-	  moduleId: "github-org-entity-provider",
-	  register(env) {
-	    let userTransformer;
-	    let teamTransformer;
-	    env.registerExtensionPoint(
-	      githubOrgEntityProviderTransformsExtensionPoint,
-	      {
-	        setUserTransformer(transformer) {
-	          if (userTransformer) {
-	            throw new Error("User transformer may only be set once");
-	          }
-	          userTransformer = transformer;
-	        },
-	        setTeamTransformer(transformer) {
-	          if (teamTransformer) {
-	            throw new Error("Team transformer may only be set once");
-	          }
-	          teamTransformer = transformer;
-	        }
-	      }
-	    );
-	    env.registerInit({
-	      deps: {
-	        catalog: alpha.catalogProcessingExtensionPoint,
-	        config: backendPluginApi.coreServices.rootConfig,
-	        events: pluginEventsNode.eventsServiceRef,
-	        logger: backendPluginApi.coreServices.logger,
-	        scheduler: backendPluginApi.coreServices.scheduler
-	      },
-	      async init({ catalog, config, events, logger, scheduler }) {
-	        const definitions = readDefinitionsFromConfig(config);
-	        for (const definition of definitions) {
-	          catalog.addEntityProvider(
-	            new GithubOrgEntityCleanerProvider({ id: definition.id, logger })
-	          );
-	          catalog.addEntityProvider(
-	            pluginCatalogBackendModuleGithub.GithubMultiOrgEntityProvider.fromConfig(config, {
-	              id: definition.id,
-	              githubUrl: definition.githubUrl,
-	              orgs: definition.orgs,
-	              events,
-	              schedule: scheduler.createScheduledTaskRunner(
-	                definition.schedule
-	              ),
-	              logger,
-	              userTransformer,
-	              teamTransformer,
-	              alwaysUseDefaultNamespace: definitions.length === 1 && definition.orgs?.length === 1
-	            })
-	          );
-	        }
-	      }
-	    });
-	  }
-	});
-	function readDefinitionsFromConfig(rootConfig) {
-	  const baseKey = "catalog.providers.githubOrg";
-	  const baseConfig = rootConfig.getOptional(baseKey);
-	  if (!baseConfig) {
-	    return [];
-	  }
-	  const configs = Array.isArray(baseConfig) ? rootConfig.getConfigArray(baseKey) : [rootConfig.getConfig(baseKey)];
-	  return configs.map((c) => ({
-	    id: c.getString("id"),
-	    githubUrl: c.getString("githubUrl"),
-	    orgs: c.getOptionalStringArray("orgs"),
-	    schedule: backendTasks.readTaskScheduleDefinitionFromConfig(c.getConfig("schedule"))
-	  }));
-	}
 
+	exports.default = module$1.catalogModuleGithubOrgEntityProvider;
+	exports.githubOrgEntityProviderTransformsExtensionPoint = module$1.githubOrgEntityProviderTransformsExtensionPoint;
 	Object.defineProperty(exports, "GithubMultiOrgEntityProvider", {
 	  enumerable: true,
 	  get: function () { return pluginCatalogBackendModuleGithub.GithubMultiOrgEntityProvider; }
 	});
-	exports.default = catalogModuleGithubOrgEntityProvider;
-	exports.githubOrgEntityProviderTransformsExtensionPoint = githubOrgEntityProviderTransformsExtensionPoint;
 	
 } (index_cjs$2));
 

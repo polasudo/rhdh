@@ -2,52 +2,26 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var require$$0$1 = require('@backstage/backend-plugin-api');
-var require$$1$1 = require('@backstage/plugin-catalog-node/alpha');
+var require$$0 = require('@backstage/backend-plugin-api');
+var require$$1$2 = require('@backstage/plugin-catalog-node/alpha');
 var require$$2$1 = require('@backstage/plugin-events-node');
-var require$$0 = require('@backstage/integration');
-var require$$1 = require('@backstage/plugin-catalog-node');
+var require$$0$1 = require('@backstage/integration');
+var require$$1$1 = require('@backstage/plugin-catalog-node');
 var require$$2 = require('uuid');
-var require$$3 = require('@backstage/backend-tasks');
-var require$$4 = require('node-fetch');
+var require$$1 = require('node-fetch');
 var require$$5 = require('path');
 require('@backstage/catalog-model');
 require('lodash');
 
 var alpha_cjs = {};
 
-var GitlabDiscoveryEntityProviderCnNBta0h_cjs = {};
+var catalogModuleGitlabDiscoveryEntityProvider_cjs = {};
 
-var integration = require$$0;
-var pluginCatalogNode = require$$1;
-var uuid = require$$2;
-var backendTasks = require$$3;
-var fetch = require$$4;
-var path = require$$5;
+var GitlabDiscoveryEntityProvider_cjs = {};
 
-function _interopDefaultCompat (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }
+var config_cjs = {};
 
-function _interopNamespaceCompat(e) {
-  if (e && typeof e === 'object' && 'default' in e) return e;
-  var n = Object.create(null);
-  if (e) {
-    Object.keys(e).forEach(function (k) {
-      if (k !== 'default') {
-        var d = Object.getOwnPropertyDescriptor(e, k);
-        Object.defineProperty(n, k, d.get ? d : {
-          enumerable: true,
-          get: function () { return e[k]; }
-        });
-      }
-    });
-  }
-  n.default = e;
-  return Object.freeze(n);
-}
-
-var uuid__namespace = /*#__PURE__*/_interopNamespaceCompat(uuid);
-var fetch__default = /*#__PURE__*/_interopDefaultCompat(fetch);
-var path__namespace = /*#__PURE__*/_interopNamespaceCompat(path);
+var backendPluginApi$1 = require$$0;
 
 function readGitlabConfig(id, config) {
   const group = config.getOptionalString("group") ?? "";
@@ -66,9 +40,14 @@ function readGitlabConfig(id, config) {
   );
   const orgEnabled = config.getOptionalBoolean("orgEnabled") ?? false;
   const allowInherited = config.getOptionalBoolean("allowInherited") ?? false;
+  const relations = config.getOptionalStringArray("relations") ?? [];
   const skipForkedRepos = config.getOptionalBoolean("skipForkedRepos") ?? false;
-  const schedule = config.has("schedule") ? backendTasks.readTaskScheduleDefinitionFromConfig(config.getConfig("schedule")) : void 0;
+  const excludeRepos = config.getOptionalStringArray("excludeRepos") ?? [];
+  const schedule = config.has("schedule") ? backendPluginApi$1.readSchedulerServiceTaskScheduleDefinitionFromConfig(
+    config.getConfig("schedule")
+  ) : void 0;
   const restrictUsersToGroup = config.getOptionalBoolean("restrictUsersToGroup") ?? false;
+  const includeUsersWithoutSeat = config.getOptionalBoolean("includeUsersWithoutSeat") ?? false;
   return {
     id,
     group,
@@ -82,8 +61,11 @@ function readGitlabConfig(id, config) {
     schedule,
     orgEnabled,
     allowInherited,
+    relations,
     skipForkedRepos,
-    restrictUsersToGroup
+    excludeRepos,
+    restrictUsersToGroup,
+    includeUsersWithoutSeat
   };
 }
 function readGitlabConfigs(config) {
@@ -97,6 +79,17 @@ function readGitlabConfigs(config) {
   }
   return configs;
 }
+
+config_cjs.readGitlabConfigs = readGitlabConfigs;
+
+var client_cjs = {};
+
+var integration$1 = require$$0$1;
+var fetch = require$$1;
+
+function _interopDefaultCompat (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }
+
+var fetch__default = /*#__PURE__*/_interopDefaultCompat(fetch);
 
 class GitLabClient {
   config;
@@ -151,12 +144,21 @@ class GitLabClient {
       exclude_internal: true
     });
   }
-  async listSaaSUsers(groupPath, options) {
+  async listSaaSUsers(groupPath, options, includeUsersWithoutSeat) {
+    const botFilterRegex = /^(?:project|group)_(\w+)_bot_(\w+)$/;
     return this.listGroupMembers(groupPath, {
       ...options,
+      active: true,
+      // Users with seat are always active but for users without seat we need to filter
       show_seat_info: true
     }).then((resp) => {
-      resp.items = resp.items.filter((user) => user.is_using_seat);
+      if (includeUsersWithoutSeat) {
+        resp.items = resp.items.filter((user) => {
+          return !botFilterRegex.test(user.username);
+        });
+      } else {
+        resp.items = resp.items.filter((user) => user.is_using_seat);
+      }
       return resp;
     });
   }
@@ -173,7 +175,7 @@ class GitLabClient {
         {
           method: "POST",
           headers: {
-            ...integration.getGitLabRequestOptions(this.config).headers,
+            ...integration$1.getGitLabRequestOptions(this.config).headers,
             ["Content-Type"]: "application/json"
           },
           body: JSON.stringify({
@@ -244,7 +246,7 @@ class GitLabClient {
         {
           method: "POST",
           headers: {
-            ...integration.getGitLabRequestOptions(this.config).headers,
+            ...integration$1.getGitLabRequestOptions(this.config).headers,
             "Content-Type": "application/json"
           },
           body: JSON.stringify({
@@ -327,7 +329,7 @@ class GitLabClient {
     const request = new URL(`${this.config.apiBaseUrl}${endpoint}`);
     request.searchParams.append("ref", branch);
     const response = await fetch__default.default(request.toString(), {
-      headers: integration.getGitLabRequestOptions(this.config).headers,
+      headers: integration$1.getGitLabRequestOptions(this.config).headers,
       method: "HEAD"
     });
     if (!response.ok) {
@@ -365,7 +367,7 @@ class GitLabClient {
     this.logger.debug(`Fetching: ${request.toString()}`);
     const response = await fetch__default.default(
       request.toString(),
-      integration.getGitLabRequestOptions(this.config)
+      integration$1.getGitLabRequestOptions(this.config)
     );
     if (!response.ok) {
       throw new Error(
@@ -392,7 +394,7 @@ class GitLabClient {
     }
     const response = await fetch__default.default(
       request.toString(),
-      integration.getGitLabRequestOptions(this.config)
+      integration$1.getGitLabRequestOptions(this.config)
     );
     if (!response.ok) {
       throw new Error(
@@ -413,6 +415,37 @@ async function* paginated(request, options) {
   } while (res.nextPage);
 }
 
+client_cjs.GitLabClient = GitLabClient;
+client_cjs.paginated = paginated;
+
+var integration = require$$0$1;
+var pluginCatalogNode = require$$1$1;
+var uuid = require$$2;
+var config = config_cjs;
+var client = client_cjs;
+var path = require$$5;
+
+function _interopNamespaceCompat(e) {
+  if (e && typeof e === 'object' && 'default' in e) return e;
+  var n = Object.create(null);
+  if (e) {
+    Object.keys(e).forEach(function (k) {
+      if (k !== 'default') {
+        var d = Object.getOwnPropertyDescriptor(e, k);
+        Object.defineProperty(n, k, d.get ? d : {
+          enumerable: true,
+          get: function () { return e[k]; }
+        });
+      }
+    });
+  }
+  n.default = e;
+  return Object.freeze(n);
+}
+
+var uuid__namespace = /*#__PURE__*/_interopNamespaceCompat(uuid);
+var path__namespace = /*#__PURE__*/_interopNamespaceCompat(path);
+
 const TOPIC_REPO_PUSH = "gitlab.push";
 class GitlabDiscoveryEntityProvider$1 {
   config;
@@ -422,12 +455,12 @@ class GitlabDiscoveryEntityProvider$1 {
   connection;
   events;
   gitLabClient;
-  static fromConfig(config, options) {
+  static fromConfig(config$1, options) {
     if (!options.schedule && !options.scheduler) {
       throw new Error("Either schedule or scheduler must be provided.");
     }
-    const providerConfigs = readGitlabConfigs(config);
-    const integrations = integration.ScmIntegrations.fromConfig(config).gitlab;
+    const providerConfigs = config.readGitlabConfigs(config$1);
+    const integrations = integration.ScmIntegrations.fromConfig(config$1).gitlab;
     const providers = [];
     providerConfigs.forEach((providerConfig) => {
       const integration = integrations.byHost(providerConfig.host);
@@ -466,7 +499,7 @@ class GitlabDiscoveryEntityProvider$1 {
     });
     this.scheduleFn = this.createScheduleFn(options.taskRunner);
     this.events = options.events;
-    this.gitLabClient = new GitLabClient({
+    this.gitLabClient = new client.GitLabClient({
       config: this.integration.config,
       logger: this.logger
     });
@@ -530,7 +563,7 @@ class GitlabDiscoveryEntityProvider$1 {
         `Gitlab discovery connection not initialized for ${this.getProviderName()}`
       );
     }
-    const projects = paginated(
+    const projects = client.paginated(
       (options) => this.gitLabClient.listProjects(options),
       {
         archived: false,
@@ -691,8 +724,8 @@ class GitlabDiscoveryEntityProvider$1 {
   /**
    * Converts a target URL to a LocationSpec object.
    *
-   * @param {string} target - The target URL to be converted.
-   * @returns {LocationSpec} The LocationSpec object representing the URL.
+   * @param target - The target URL to be converted.
+   * @returns The LocationSpec object representing the URL.
    */
   toLocationSpec(target) {
     return {
@@ -731,6 +764,12 @@ class GitlabDiscoveryEntityProvider$1 {
       );
       return false;
     }
+    if (this.config.excludeRepos?.includes(project.path_with_namespace ?? "")) {
+      this.logger.debug(
+        `Skipping project ${project.path_with_namespace} as it is excluded.`
+      );
+      return false;
+    }
     const project_branch = this.config.branch ?? project.default_branch ?? this.config.fallbackBranch;
     const hasFile = await client.hasFile(
       project.path_with_namespace ?? "",
@@ -741,27 +780,19 @@ class GitlabDiscoveryEntityProvider$1 {
   }
 }
 
-GitlabDiscoveryEntityProviderCnNBta0h_cjs.GitLabClient = GitLabClient;
-GitlabDiscoveryEntityProviderCnNBta0h_cjs.GitlabDiscoveryEntityProvider = GitlabDiscoveryEntityProvider$1;
-GitlabDiscoveryEntityProviderCnNBta0h_cjs.paginated = paginated;
-GitlabDiscoveryEntityProviderCnNBta0h_cjs.readGitlabConfigs = readGitlabConfigs;
+GitlabDiscoveryEntityProvider_cjs.GitlabDiscoveryEntityProvider = GitlabDiscoveryEntityProvider$1;
 
-Object.defineProperty(alpha_cjs, '__esModule', { value: true });
-
-var backendPluginApi = require$$0$1;
-var alpha = require$$1$1;
+var backendPluginApi = require$$0;
+var alpha = require$$1$2;
 var pluginEventsNode = require$$2$1;
-var GitlabDiscoveryEntityProvider = GitlabDiscoveryEntityProviderCnNBta0h_cjs;
+var GitlabDiscoveryEntityProvider = GitlabDiscoveryEntityProvider_cjs;
 
 
 
 
 
 
-
-
-
-const catalogModuleGitlabDiscoveryEntityProvider = backendPluginApi.createBackendModule({
+const catalogModuleGitlabDiscoveryEntityProvider$1 = backendPluginApi.createBackendModule({
   pluginId: "catalog",
   moduleId: "gitlab-discovery-entity-provider",
   register(env) {
@@ -785,7 +816,15 @@ const catalogModuleGitlabDiscoveryEntityProvider = backendPluginApi.createBacken
   }
 });
 
-var _default = alpha_cjs.default = catalogModuleGitlabDiscoveryEntityProvider;
+catalogModuleGitlabDiscoveryEntityProvider_cjs.catalogModuleGitlabDiscoveryEntityProvider = catalogModuleGitlabDiscoveryEntityProvider$1;
+
+Object.defineProperty(alpha_cjs, '__esModule', { value: true });
+
+var catalogModuleGitlabDiscoveryEntityProvider = catalogModuleGitlabDiscoveryEntityProvider_cjs;
+
+const _feature = catalogModuleGitlabDiscoveryEntityProvider.catalogModuleGitlabDiscoveryEntityProvider;
+
+var _default = alpha_cjs.default = _feature;
 
 exports["default"] = _default;
 //# sourceMappingURL=index.cjs.js.map

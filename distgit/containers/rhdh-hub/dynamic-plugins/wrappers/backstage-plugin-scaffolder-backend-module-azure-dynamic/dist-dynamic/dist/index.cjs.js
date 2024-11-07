@@ -2,25 +2,21 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var require$$0 = require('@backstage/errors');
+var require$$0$1 = require('@backstage/errors');
 var require$$1 = require('@backstage/integration');
 var require$$2 = require('@backstage/plugin-scaffolder-node');
 var require$$3 = require('azure-devops-node-api');
-var require$$4 = require('yaml');
-var require$$5 = require('@backstage/backend-plugin-api');
-var require$$6 = require('@backstage/plugin-scaffolder-node/alpha');
+var require$$0 = require('yaml');
+var require$$0$2 = require('@backstage/backend-plugin-api');
+var require$$2$1 = require('@backstage/plugin-scaffolder-node/alpha');
 
 var index_cjs = {};
 
-Object.defineProperty(index_cjs, '__esModule', { value: true });
+var azure_cjs = {};
 
-var errors = require$$0;
-var integration = require$$1;
-var pluginScaffolderNode = require$$2;
-var azureDevopsNodeApi = require$$3;
-var yaml = require$$4;
-var backendPluginApi = require$$5;
-var alpha = require$$6;
+var azure_examples_cjs = {};
+
+var yaml = require$$0;
 
 function _interopDefaultCompat (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }
 
@@ -73,14 +69,102 @@ const examples = [
         }
       ]
     })
+  },
+  {
+    description: "Initializes an Azure DevOps repository with a custom commit message",
+    example: yaml__default.default.stringify({
+      steps: [
+        {
+          id: "publish",
+          action: "publish:azure",
+          name: "Publish to Azure",
+          input: {
+            repoUrl: "dev.azure.com?organization=organization&project=project&repo=repo",
+            gitCommitMessage: "Initial setup and configuration"
+          }
+        }
+      ]
+    })
+  },
+  {
+    description: "Initializes an Azure DevOps repository with a custom author name and email",
+    example: yaml__default.default.stringify({
+      steps: [
+        {
+          id: "publish",
+          action: "publish:azure",
+          name: "Publish to Azure",
+          input: {
+            repoUrl: "dev.azure.com?organization=organization&project=project&repo=repo",
+            gitAuthorName: "John Doe",
+            gitAuthorEmail: "john.doe@example.com"
+          }
+        }
+      ]
+    })
+  },
+  {
+    description: "Initializes an Azure DevOps repository using a specific source path",
+    example: yaml__default.default.stringify({
+      steps: [
+        {
+          id: "publish",
+          action: "publish:azure",
+          name: "Publish to Azure",
+          input: {
+            repoUrl: "dev.azure.com?organization=organization&project=project&repo=repo",
+            sourcePath: "path/to/source"
+          }
+        }
+      ]
+    })
+  },
+  {
+    description: "Initializes an Azure DevOps repository using an authentication token",
+    example: yaml__default.default.stringify({
+      steps: [
+        {
+          id: "publish",
+          action: "publish:azure",
+          name: "Publish to Azure",
+          input: {
+            repoUrl: "dev.azure.com?organization=organization&project=project&repo=repo",
+            token: "personal-access-token"
+          }
+        }
+      ]
+    })
+  },
+  {
+    description: "Initializes an Azure DevOps repository using an custom repo url",
+    example: yaml__default.default.stringify({
+      steps: [
+        {
+          id: "publish",
+          action: "publish:azure",
+          name: "Publish to Azure",
+          input: {
+            repoUrl: "test.azure.com?organization=organization&project=project&repo=repo"
+          }
+        }
+      ]
+    })
   }
 ];
+
+azure_examples_cjs.examples = examples;
+
+var errors = require$$0$1;
+var integration$1 = require$$1;
+var pluginScaffolderNode = require$$2;
+var azureDevopsNodeApi = require$$3;
+var azure_examples = azure_examples_cjs;
 
 function createPublishAzureAction(options) {
   const { integrations, config } = options;
   return pluginScaffolderNode.createTemplateAction({
     id: "publish:azure",
-    examples,
+    examples: azure_examples.examples,
     description: "Initializes a git repository of the content in the workspace, and publishes it to Azure.",
     schema: {
       input: {
@@ -167,7 +251,7 @@ function createPublishAzureAction(options) {
         );
       }
       const url = `https://${host}/${organization}`;
-      const credentialProvider = integration.DefaultAzureDevOpsCredentialsProvider.fromIntegrations(integrations);
+      const credentialProvider = integration$1.DefaultAzureDevOpsCredentialsProvider.fromIntegrations(integrations);
       const credentials = await credentialProvider.getCredentials({ url });
       if (credentials === void 0 && ctx.input.token === void 0) {
         throw new errors.InputError(
@@ -208,10 +292,10 @@ function createPublishAzureAction(options) {
         name: gitAuthorName ? gitAuthorName : config.getOptionalString("scaffolder.defaultAuthor.name"),
         email: gitAuthorEmail ? gitAuthorEmail : config.getOptionalString("scaffolder.defaultAuthor.email")
       };
-      const auth = ctx.input.token || credentials?.type === "pat" ? {
+      const auth = {
         username: "notempty",
         password: ctx.input.token ?? credentials.token
-      } : { token: credentials.token };
+      };
       const commitResult = await pluginScaffolderNode.initRepoAndPush({
         dir: pluginScaffolderNode.getRepoSourceDirectory(ctx.workspacePath, ctx.input.sourcePath),
         remoteUrl,
@@ -229,6 +313,15 @@ function createPublishAzureAction(options) {
   });
 }
 
+azure_cjs.createPublishAzureAction = createPublishAzureAction;
+
+var module_cjs = {};
+
+var backendPluginApi = require$$0$2;
+var integration = require$$1;
+var alpha = require$$2$1;
+var azure$1 = azure_cjs;
+
 const azureModule = backendPluginApi.createBackendModule({
   moduleId: "azure",
   pluginId: "scaffolder",
@@ -241,7 +334,7 @@ const azureModule = backendPluginApi.createBackendModule({
       async init({ scaffolderActions, config }) {
         const integrations = integration.ScmIntegrations.fromConfig(config);
         scaffolderActions.addActions(
-          createPublishAzureAction({
+          azure$1.createPublishAzureAction({
             integrations,
             config
           })
@@ -251,8 +344,17 @@ const azureModule = backendPluginApi.createBackendModule({
   }
 });
 
-index_cjs.createPublishAzureAction = createPublishAzureAction;
-var _default = index_cjs.default = azureModule;
+module_cjs.azureModule = azureModule;
+
+Object.defineProperty(index_cjs, '__esModule', { value: true });
+
+var azure = azure_cjs;
+var module$1 = module_cjs;
+
+
+
+index_cjs.createPublishAzureAction = azure.createPublishAzureAction;
+var _default = index_cjs.default = module$1.azureModule;
 
 exports["default"] = _default;
 //# sourceMappingURL=index.cjs.js.map

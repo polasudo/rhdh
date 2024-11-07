@@ -2,43 +2,35 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var require$$0 = require('@backstage/errors');
+var require$$0$1 = require('@backstage/errors');
 var require$$1 = require('@backstage/plugin-scaffolder-node');
 var require$$2 = require('@gitbeaker/node');
-var require$$3 = require('yaml');
+var require$$0 = require('yaml');
 var require$$4 = require('zod');
-var require$$5 = require('@gitbeaker/rest');
-var require$$6 = require('path');
-var require$$7 = require('@backstage/backend-plugin-api');
-var require$$8 = require('luxon');
-var require$$9 = require('@backstage/integration');
-var require$$10 = require('@backstage/plugin-scaffolder-node/alpha');
+var require$$1$1 = require('@gitbeaker/rest');
+var require$$1$2 = require('path');
+var require$$3 = require('@backstage/backend-plugin-api');
+var require$$6 = require('crypto');
+var require$$3$1 = require('luxon');
+var require$$1$3 = require('@backstage/integration');
+var require$$2$1 = require('@backstage/plugin-scaffolder-node/alpha');
 
 var index_cjs = {};
 
-Object.defineProperty(index_cjs, '__esModule', { value: true });
+var gitlab_cjs = {};
 
-var errors = require$$0;
-var pluginScaffolderNode = require$$1;
-var node = require$$2;
-var yaml = require$$3;
-var zod = require$$4;
-var rest = require$$5;
-var path = require$$6;
-var backendPluginApi = require$$7;
-var luxon = require$$8;
-var integration = require$$9;
-var alpha = require$$10;
+var gitlab_examples_cjs = {};
 
-function _interopDefaultCompat (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }
+var yaml$9 = require$$0;
 
-var yaml__default = /*#__PURE__*/_interopDefaultCompat(yaml);
-var path__default = /*#__PURE__*/_interopDefaultCompat(path);
+function _interopDefaultCompat$b (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }
+
+var yaml__default$9 = /*#__PURE__*/_interopDefaultCompat$b(yaml$9);
 
 const examples$9 = [
   {
     description: "Initializes a git repository with the content in the workspace, and publishes it to GitLab with the default configuration.",
-    example: yaml__default.default.stringify({
+    example: yaml__default$9.default.stringify({
       steps: [
         {
           id: "publish",
@@ -53,7 +45,7 @@ const examples$9 = [
   },
   {
     description: "Add a description.",
-    example: yaml__default.default.stringify({
+    example: yaml__default$9.default.stringify({
       steps: [
         {
           id: "publish",
@@ -69,7 +61,7 @@ const examples$9 = [
   },
   {
     description: "Initializes a GitLab repository with an initial commit message, if not set defaults to `initial commit`.",
-    example: yaml__default.default.stringify({
+    example: yaml__default$9.default.stringify({
       steps: [
         {
           id: "publish",
@@ -86,7 +78,7 @@ const examples$9 = [
   },
   {
     description: "Initializes a GitLab repository with aditional settings.",
-    example: yaml__default.default.stringify({
+    example: yaml__default$9.default.stringify({
       steps: [
         {
           id: "publish",
@@ -105,7 +97,7 @@ const examples$9 = [
   },
   {
     description: "Initializes a GitLab repository with fast forward merge and always squash settings.",
-    example: yaml__default.default.stringify({
+    example: yaml__default$9.default.stringify({
       steps: [
         {
           id: "publish",
@@ -124,7 +116,7 @@ const examples$9 = [
   },
   {
     description: "Initializes a GitLab repository with branch settings.",
-    example: yaml__default.default.stringify({
+    example: yaml__default$9.default.stringify({
       steps: [
         {
           id: "publish",
@@ -151,7 +143,7 @@ const examples$9 = [
   },
   {
     description: "Initializes a GitLab repository with environment variables.",
-    example: yaml__default.default.stringify({
+    example: yaml__default$9.default.stringify({
       steps: [
         {
           id: "publish",
@@ -180,12 +172,19 @@ const examples$9 = [
   }
 ];
 
+gitlab_examples_cjs.examples = examples$9;
+
+var errors$9 = require$$0$1;
+var pluginScaffolderNode$a = require$$1;
+var node$2 = require$$2;
+var gitlab_examples = gitlab_examples_cjs;
+
 function createPublishGitlabAction(options) {
   const { integrations, config } = options;
-  return pluginScaffolderNode.createTemplateAction({
+  return pluginScaffolderNode$a.createTemplateAction({
     id: "publish:gitlab",
     description: "Initializes a git repository of the content in the workspace, and publishes it to GitLab.",
-    examples: examples$9,
+    examples: gitlab_examples.examples,
     schema: {
       input: {
         type: "object",
@@ -389,7 +388,7 @@ function createPublishGitlabAction(options) {
           },
           projectId: {
             title: "The ID of the project",
-            type: "string"
+            type: "number"
           },
           commitHash: {
             title: "The git commit hash of the initial commit",
@@ -412,24 +411,24 @@ function createPublishGitlabAction(options) {
         branches = [],
         projectVariables = []
       } = ctx.input;
-      const { owner, repo, host } = pluginScaffolderNode.parseRepoUrl(repoUrl, integrations);
+      const { owner, repo, host } = pluginScaffolderNode$a.parseRepoUrl(repoUrl, integrations);
       if (!owner) {
-        throw new errors.InputError(
+        throw new errors$9.InputError(
           `No owner provided for host: ${host}, and repo ${repo}`
         );
       }
       const integrationConfig = integrations.gitlab.byHost(host);
       if (!integrationConfig) {
-        throw new errors.InputError(
+        throw new errors$9.InputError(
           `No matching integration configuration for host ${host}, please check your integrations config`
         );
       }
       if (!integrationConfig.config.token && !ctx.input.token) {
-        throw new errors.InputError(`No token available for host ${host}`);
+        throw new errors$9.InputError(`No token available for host ${host}`);
       }
       const token = ctx.input.token || integrationConfig.config.token;
       const tokenType = ctx.input.token ? "oauthToken" : "token";
-      const client = new node.Gitlab({
+      const client = new node$2.Gitlab({
         host: integrationConfig.config.baseUrl,
         [tokenType]: token
       });
@@ -439,7 +438,7 @@ function createPublishGitlabAction(options) {
         targetNamespaceId = namespaceResponse.id;
       } catch (e) {
         if (e.response && e.response.statusCode === 404) {
-          throw new errors.InputError(
+          throw new errors$9.InputError(
             `The namespace ${owner} is not found or the user doesn't have permissions to access it`
           );
         }
@@ -457,7 +456,7 @@ function createPublishGitlabAction(options) {
         ...Object.keys(settings).length ? { ...settings } : {}
       });
       if (setUserAsOwner && integrationConfig.config.token) {
-        const adminClient = new node.Gitlab({
+        const adminClient = new node$2.Gitlab({
           host: integrationConfig.config.baseUrl,
           token: integrationConfig.config.token
         });
@@ -469,8 +468,8 @@ function createPublishGitlabAction(options) {
         name: gitAuthorName ? gitAuthorName : config.getOptionalString("scaffolder.defaultAuthor.name"),
         email: gitAuthorEmail ? gitAuthorEmail : config.getOptionalString("scaffolder.defaultAuthor.email")
       };
-      const commitResult = await pluginScaffolderNode.initRepoAndPush({
-        dir: pluginScaffolderNode.getRepoSourceDirectory(ctx.workspacePath, ctx.input.sourcePath),
+      const commitResult = await pluginScaffolderNode$a.initRepoAndPush({
+        dir: pluginScaffolderNode$a.getRepoSourceDirectory(ctx.workspacePath, ctx.input.sourcePath),
         remoteUrl: http_url_to_repo,
         defaultBranch,
         auth: {
@@ -493,7 +492,7 @@ function createPublishGitlabAction(options) {
             try {
               await client.Branches.create(projectId, name, ref);
             } catch (e) {
-              throw new errors.InputError(
+              throw new errors$9.InputError(
                 `Branch creation failed for ${name}. ${printGitlabError(e)}`
               );
             }
@@ -505,7 +504,7 @@ function createPublishGitlabAction(options) {
             try {
               await client.ProtectedBranches.protect(projectId, name);
             } catch (e) {
-              throw new errors.InputError(
+              throw new errors$9.InputError(
                 `Branch protection failed for ${name}. ${printGitlabError(e)}`
               );
             }
@@ -528,7 +527,7 @@ function createPublishGitlabAction(options) {
               variableWithDefaults
             );
           } catch (e) {
-            throw new errors.InputError(
+            throw new errors$9.InputError(
               `Environment variable creation failed for ${variableWithDefaults.key}. ${printGitlabError(e)}`
             );
           }
@@ -545,9 +544,19 @@ function printGitlabError(error) {
   return JSON.stringify({ code: error.code, message: error.description });
 }
 
-const commonGitlabConfig = zod.z.object({
-  repoUrl: zod.z.string({ description: "Repository Location" }),
-  token: zod.z.string({ description: "The token to use for authorization to GitLab" }).optional()
+gitlab_cjs.createPublishGitlabAction = createPublishGitlabAction;
+
+var gitlabGroupEnsureExists_cjs = {};
+
+var commonGitlabConfig_cjs = {};
+
+Object.defineProperty(commonGitlabConfig_cjs, '__esModule', { value: true });
+
+var zod$7 = require$$4;
+
+const commonGitlabConfig$a = zod$7.z.object({
+  repoUrl: zod$7.z.string({ description: "Repository Location" }),
+  token: zod$7.z.string({ description: "The token to use for authorization to GitLab" }).optional()
 });
 const commonGitlabConfigExample = {
   repoUrl: "gitlab.com?owner=namespace-or-owner&repo=project-name",
@@ -566,12 +575,22 @@ var IssueStateEvent = /* @__PURE__ */ ((IssueStateEvent2) => {
   return IssueStateEvent2;
 })(IssueStateEvent || {});
 
+commonGitlabConfig_cjs.IssueStateEvent = IssueStateEvent;
+commonGitlabConfig_cjs.IssueType = IssueType;
+commonGitlabConfig_cjs.commonGitlabConfigExample = commonGitlabConfigExample;
+commonGitlabConfig_cjs.default = commonGitlabConfig$a;
+
+var util_cjs = {};
+
+var errors$8 = require$$0$1;
+var rest$1 = require$$1$1;
+
 const parseRepoHost = (repoUrl) => {
   let parsed;
   try {
     parsed = new URL(`https://${repoUrl}`);
   } catch (error) {
-    throw new errors.InputError(
+    throw new errors$8.InputError(
       `Invalid repo URL passed to publisher, got ${repoUrl}, ${error}`
     );
   }
@@ -581,7 +600,7 @@ const getToken = (config, integrations) => {
   const host = parseRepoHost(config.repoUrl);
   const integrationConfig = integrations.gitlab.byHost(host);
   if (!integrationConfig) {
-    throw new errors.InputError(
+    throw new errors$8.InputError(
       `No matching integration configuration for host ${host}, please check your integrations config`
     );
   }
@@ -593,7 +612,7 @@ const parseRepoUrl = (repoUrl, integrations) => {
   try {
     parsed = new URL(`https://${repoUrl}`);
   } catch (error) {
-    throw new errors.InputError(
+    throw new errors$8.InputError(
       `Invalid repo URL passed to publisher, got ${repoUrl}, ${error}`
     );
   }
@@ -602,7 +621,7 @@ const parseRepoUrl = (repoUrl, integrations) => {
   const repo = parsed.searchParams.get("repo");
   const type = integrations.byHost(host)?.type;
   if (!type) {
-    throw new errors.InputError(
+    throw new errors$8.InputError(
       `No matching integration configuration for host ${host}, please check your integrations config`
     );
   }
@@ -612,13 +631,13 @@ function getClient(props) {
   const { host, token, integrations } = props;
   const integrationConfig = integrations.gitlab.byHost(host);
   if (!integrationConfig) {
-    throw new errors.InputError(
+    throw new errors$8.InputError(
       `No matching integration configuration for host ${host}, please check your integrations config`
     );
   }
   const { config } = integrationConfig;
   if (!config.token && !token) {
-    throw new errors.InputError(`No token available for host ${host}`);
+    throw new errors$8.InputError(`No token available for host ${host}`);
   }
   const requestToken = token || config.token;
   const tokenType = token ? "oauthToken" : "token";
@@ -626,13 +645,13 @@ function getClient(props) {
     host: config.baseUrl
   };
   gitlabOptions[tokenType] = requestToken;
-  return new rest.Gitlab(gitlabOptions);
+  return new rest$1.Gitlab(gitlabOptions);
 }
 function convertDate(inputDate, defaultDate) {
   try {
     return inputDate ? new Date(inputDate).toISOString() : new Date(defaultDate).toISOString();
   } catch (error) {
-    throw new errors.InputError(`Error converting input date - ${error}`);
+    throw new errors$8.InputError(`Error converting input date - ${error}`);
   }
 }
 async function getTopLevelParentGroup(client, groupId) {
@@ -646,7 +665,7 @@ async function getTopLevelParentGroup(client, groupId) {
     }
     return topParentGroup;
   } catch (error) {
-    throw new errors.InputError(
+    throw new errors$8.InputError(
       `Error finding top-level parent group ID: ${error.message}`
     );
   }
@@ -655,7 +674,7 @@ async function checkEpicScope(client, projectId, epicId) {
   try {
     const project = await client.Projects.show(projectId);
     if (!project) {
-      throw new errors.InputError(
+      throw new errors$8.InputError(
         `Project with id ${projectId} not found. Check your GitLab instance.`
       );
     }
@@ -664,13 +683,13 @@ async function checkEpicScope(client, projectId, epicId) {
       project.namespace.id
     );
     if (!topParentGroup) {
-      throw new errors.InputError(`Couldn't find a suitable top-level parent group.`);
+      throw new errors$8.InputError(`Couldn't find a suitable top-level parent group.`);
     }
     const epic = (await client.Epics.all(topParentGroup.id)).find(
       (x) => x.id === epicId
     );
     if (!epic) {
-      throw new errors.InputError(
+      throw new errors$8.InputError(
         `Epic with id ${epicId} not found in the top-level parent group ${topParentGroup.name}.`
       );
     }
@@ -678,14 +697,30 @@ async function checkEpicScope(client, projectId, epicId) {
     const projectNamespace = project.path_with_namespace;
     return projectNamespace.startsWith(epicGroup.full_path);
   } catch (error) {
-    throw new errors.InputError(`Could not find epic scope: ${error.message}`);
+    throw new errors$8.InputError(`Could not find epic scope: ${error.message}`);
   }
 }
+
+util_cjs.checkEpicScope = checkEpicScope;
+util_cjs.convertDate = convertDate;
+util_cjs.getClient = getClient;
+util_cjs.getToken = getToken;
+util_cjs.getTopLevelParentGroup = getTopLevelParentGroup;
+util_cjs.parseRepoHost = parseRepoHost;
+util_cjs.parseRepoUrl = parseRepoUrl;
+
+var gitlabGroupEnsureExists_examples_cjs = {};
+
+var yaml$8 = require$$0;
+
+function _interopDefaultCompat$a (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }
+
+var yaml__default$8 = /*#__PURE__*/_interopDefaultCompat$a(yaml$8);
 
 const examples$8 = [
   {
     description: "Creating a group at the top level",
-    example: yaml__default.default.stringify({
+    example: yaml__default$8.default.stringify({
       steps: [
         {
           id: "gitlabGroup",
@@ -701,7 +736,7 @@ const examples$8 = [
   },
   {
     description: "Create a group nested within another group",
-    example: yaml__default.default.stringify({
+    example: yaml__default$8.default.stringify({
       steps: [
         {
           id: "gitlabGroup",
@@ -717,7 +752,7 @@ const examples$8 = [
   },
   {
     description: "Create a group nested within multiple other groups",
-    example: yaml__default.default.stringify({
+    example: yaml__default$8.default.stringify({
       steps: [
         {
           id: "gitlabGroup",
@@ -733,7 +768,7 @@ const examples$8 = [
   },
   {
     description: "Create a group in dry run mode",
-    example: yaml__default.default.stringify({
+    example: yaml__default$8.default.stringify({
       steps: [
         {
           id: "gitlabGroup",
@@ -750,23 +785,31 @@ const examples$8 = [
   }
 ];
 
+gitlabGroupEnsureExists_examples_cjs.examples = examples$8;
+
+var pluginScaffolderNode$9 = require$$1;
+var zod$6 = require$$4;
+var commonGitlabConfig$9 = commonGitlabConfig_cjs;
+var util$6 = util_cjs;
+var gitlabGroupEnsureExists_examples = gitlabGroupEnsureExists_examples_cjs;
+
 const createGitlabGroupEnsureExistsAction = (options) => {
   const { integrations } = options;
-  return pluginScaffolderNode.createTemplateAction({
+  return pluginScaffolderNode$9.createTemplateAction({
     id: "gitlab:group:ensureExists",
     description: "Ensures a Gitlab group exists",
     supportsDryRun: true,
-    examples: examples$8,
+    examples: gitlabGroupEnsureExists_examples.examples,
     schema: {
-      input: commonGitlabConfig.merge(
-        zod.z.object({
-          path: zod.z.array(zod.z.string(), {
+      input: commonGitlabConfig$9.default.merge(
+        zod$6.z.object({
+          path: zod$6.z.array(zod$6.z.string(), {
             description: "A path of group names that is ensured to exist"
           }).min(1)
         })
       ),
-      output: zod.z.object({
-        groupId: zod.z.number({ description: "The id of the innermost sub-group" }).optional()
+      output: zod$6.z.object({
+        groupId: zod$6.z.number({ description: "The id of the innermost sub-group" }).optional()
       })
     },
     async handler(ctx) {
@@ -774,14 +817,11 @@ const createGitlabGroupEnsureExistsAction = (options) => {
         ctx.output("groupId", 42);
         return;
       }
-      const { path } = ctx.input;
-      const { token, integrationConfig } = getToken(ctx.input, integrations);
-      const api = new node.Gitlab({
-        host: integrationConfig.config.baseUrl,
-        token
-      });
+      const { token, repoUrl, path } = ctx.input;
+      const { host } = util$6.parseRepoUrl(repoUrl, integrations);
+      const api = util$6.getClient({ host, integrations, token });
       let currentPath = null;
-      let parent = null;
+      let parentId = null;
       for (const pathElement of path) {
         const fullPath = currentPath ? `${currentPath}/${pathElement}` : pathElement;
         const result = await api.Groups.search(
@@ -792,36 +832,49 @@ const createGitlabGroupEnsureExistsAction = (options) => {
         );
         if (!subGroup) {
           ctx.logger.info(`creating missing group ${fullPath}`);
-          parent = await api.Groups.create(
+          parentId = (await api.Groups.create(
             pathElement,
             pathElement,
-            parent ? {
-              parent_id: parent.id
+            parentId ? {
+              parentId
             } : {}
-          );
+          ))?.id;
         } else {
-          parent = subGroup;
+          parentId = subGroup.id;
         }
         currentPath = fullPath;
       }
-      if (parent !== null) {
-        ctx.output("groupId", parent?.id);
+      if (parentId !== null) {
+        ctx.output("groupId", parentId);
       }
     }
   });
 };
 
+gitlabGroupEnsureExists_cjs.createGitlabGroupEnsureExistsAction = createGitlabGroupEnsureExistsAction;
+
+var gitlabIssueCreate_cjs = {};
+
+var gitlabIssueCreate_examples_cjs = {};
+
+var yaml$7 = require$$0;
+var commonGitlabConfig$8 = commonGitlabConfig_cjs;
+
+function _interopDefaultCompat$9 (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }
+
+var yaml__default$7 = /*#__PURE__*/_interopDefaultCompat$9(yaml$7);
+
 const examples$7 = [
   {
     description: "Create a GitLab issue with minimal options",
-    example: yaml__default.default.stringify({
+    example: yaml__default$7.default.stringify({
       steps: [
         {
           id: "gitlabIssue",
           name: "Issues",
           action: "gitlab:issues:create",
           input: {
-            ...commonGitlabConfigExample,
+            ...commonGitlabConfig$8.commonGitlabConfigExample,
             projectId: 12,
             title: "Test Issue",
             description: "This is the description of the issue"
@@ -832,20 +885,20 @@ const examples$7 = [
   },
   {
     description: "Create a GitLab issue with assignees and date options",
-    example: yaml__default.default.stringify({
+    example: yaml__default$7.default.stringify({
       steps: [
         {
           id: "gitlabIssue",
           name: "Issues",
           action: "gitlab:issues:create",
           input: {
-            ...commonGitlabConfigExample,
+            ...commonGitlabConfig$8.commonGitlabConfigExample,
             projectId: 12,
             title: "Test Issue",
             assignees: [18],
             description: "This is the description of the issue",
-            createdAt: "2022-09-27 18:00:00.000",
-            dueDate: "2022-09-28 12:00:00.000"
+            createdAt: "2022-09-27T18:00:00.000Z",
+            dueDate: "2022-09-28T12:00:00.000Z"
           }
         }
       ]
@@ -853,24 +906,181 @@ const examples$7 = [
   },
   {
     description: "Create a GitLab Issue with several options",
-    example: yaml__default.default.stringify({
+    example: yaml__default$7.default.stringify({
       steps: [
         {
           id: "gitlabIssue",
           name: "Issues",
           action: "gitlab:issues:create",
           input: {
-            ...commonGitlabConfigExample,
+            ...commonGitlabConfig$8.commonGitlabConfigExample,
             projectId: 12,
             title: "Test Issue",
             assignees: [18, 15],
             description: "This is the description of the issue",
             confidential: false,
-            createdAt: "2022-09-27 18:00:00.000",
-            dueDate: "2022-09-28 12:00:00.000",
-            discussionToResolve: 1,
+            createdAt: "2022-09-27T18:00:00.000Z",
+            dueDate: "2022-09-28T12:00:00.000Z",
+            discussionToResolve: "1",
             epicId: 1,
             labels: "phase1:label1,phase2:label2"
+          }
+        }
+      ]
+    })
+  },
+  {
+    description: "Create a GitLab issue with token",
+    example: yaml__default$7.default.stringify({
+      steps: [
+        {
+          id: "gitlabIssue",
+          name: "Issues",
+          action: "gitlab:issues:create",
+          input: {
+            ...commonGitlabConfig$8.commonGitlabConfigExample,
+            projectId: 12,
+            title: "Test Issue",
+            description: "This is the description of the issue",
+            token: "sample token"
+          }
+        }
+      ]
+    })
+  },
+  {
+    description: "Create a GitLab issue with a specific milestone and weight",
+    example: yaml__default$7.default.stringify({
+      steps: [
+        {
+          id: "gitlabIssue",
+          name: "Issues",
+          action: "gitlab:issues:create",
+          input: {
+            ...commonGitlabConfig$8.commonGitlabConfigExample,
+            projectId: 12,
+            title: "Test Issue with Milestone",
+            description: "This is the description of the issue",
+            milestoneId: 5,
+            weight: 3
+          }
+        }
+      ]
+    })
+  },
+  {
+    description: "Create a GitLab issue of type INCIDENT",
+    example: yaml__default$7.default.stringify({
+      steps: [
+        {
+          id: "gitlabIssue",
+          name: "Issues",
+          action: "gitlab:issues:create",
+          input: {
+            ...commonGitlabConfig$8.commonGitlabConfigExample,
+            projectId: 12,
+            title: "Confidential Test Issue",
+            description: "This is the description of the issue",
+            issueType: "incident"
+          }
+        }
+      ]
+    })
+  },
+  {
+    description: "Create a GitLab issue of type TEST",
+    example: yaml__default$7.default.stringify({
+      steps: [
+        {
+          id: "gitlabIssue",
+          name: "Issues",
+          action: "gitlab:issues:create",
+          input: {
+            ...commonGitlabConfig$8.commonGitlabConfigExample,
+            projectId: 12,
+            title: "Confidential Test Issue",
+            description: "This is the description of the issue",
+            issueType: "test_case"
+          }
+        }
+      ]
+    })
+  },
+  {
+    description: "Create a GitLab issue of type TASK with assignees",
+    example: yaml__default$7.default.stringify({
+      steps: [
+        {
+          id: "gitlabIssue",
+          name: "Issues",
+          action: "gitlab:issues:create",
+          input: {
+            ...commonGitlabConfig$8.commonGitlabConfigExample,
+            projectId: 12,
+            title: "Confidential Test Issue",
+            description: "This is the description of the issue",
+            issueType: "task",
+            assignees: [18, 22]
+          }
+        }
+      ]
+    })
+  },
+  {
+    description: "Create a GitLab issue of type ISSUE and close it",
+    example: yaml__default$7.default.stringify({
+      steps: [
+        {
+          id: "gitlabIssue",
+          name: "Issues",
+          action: "gitlab:issues:create",
+          input: {
+            ...commonGitlabConfig$8.commonGitlabConfigExample,
+            projectId: 12,
+            title: "Confidential Test Issue",
+            description: "This is the description of the issue",
+            issueType: "issue",
+            stateEvent: "close"
+          }
+        }
+      ]
+    })
+  },
+  {
+    description: "Create a GitLab issue of type INCIDENT and reopen it",
+    example: yaml__default$7.default.stringify({
+      steps: [
+        {
+          id: "gitlabIssue",
+          name: "Issues",
+          action: "gitlab:issues:create",
+          input: {
+            ...commonGitlabConfig$8.commonGitlabConfigExample,
+            projectId: 12,
+            title: "Confidential Test Issue",
+            description: "This is the description of the issue",
+            issueType: "incident",
+            stateEvent: "reopen"
+          }
+        }
+      ]
+    })
+  },
+  {
+    description: "Create a GitLab issue to resolve a discussion in a merge request",
+    example: yaml__default$7.default.stringify({
+      steps: [
+        {
+          id: "gitlabIssue",
+          name: "Issues",
+          action: "gitlab:issues:create",
+          input: {
+            ...commonGitlabConfig$8.commonGitlabConfigExample,
+            projectId: 12,
+            title: "Test Issue for MR Discussion",
+            description: "This is the description of the issue",
+            mergeRequestToResolveDiscussionsOf: 42,
+            discussionToResolve: "abc123"
           }
         }
       ]
@@ -878,35 +1088,44 @@ const examples$7 = [
   }
 ];
 
-const issueInputProperties = zod.z.object({
-  projectId: zod.z.number().describe("Project Id"),
-  title: zod.z.string({ description: "Title of the issue" }),
-  assignees: zod.z.array(zod.z.number(), {
+gitlabIssueCreate_examples_cjs.examples = examples$7;
+
+var errors$7 = require$$0$1;
+var pluginScaffolderNode$8 = require$$1;
+var commonGitlabConfig$7 = commonGitlabConfig_cjs;
+var gitlabIssueCreate_examples = gitlabIssueCreate_examples_cjs;
+var zod$5 = require$$4;
+var util$5 = util_cjs;
+
+const issueInputProperties = zod$5.z.object({
+  projectId: zod$5.z.number().describe("Project Id"),
+  title: zod$5.z.string({ description: "Title of the issue" }),
+  assignees: zod$5.z.array(zod$5.z.number(), {
     description: "IDs of the users to assign the issue to."
   }).optional(),
-  confidential: zod.z.boolean({ description: "Issue Confidentiality" }).optional(),
-  description: zod.z.string().describe("Issue description").max(1048576).optional(),
-  createdAt: zod.z.string().describe("Creation date/time").regex(
+  confidential: zod$5.z.boolean({ description: "Issue Confidentiality" }).optional(),
+  description: zod$5.z.string().describe("Issue description").max(1048576).optional(),
+  createdAt: zod$5.z.string().describe("Creation date/time").regex(
     /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{3})?Z$/,
     "Invalid date format. Use YYYY-MM-DDTHH:mm:ssZ or YYYY-MM-DDTHH:mm:ss.SSSZ"
   ).optional(),
-  dueDate: zod.z.string().describe("Due date/time").regex(
+  dueDate: zod$5.z.string().describe("Due date/time").regex(
     /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{3})?Z$/,
     "Invalid date format. Use YYYY-MM-DDTHH:mm:ssZ or YYYY-MM-DDTHH:mm:ss.SSSZ"
   ).optional(),
-  discussionToResolve: zod.z.string({
+  discussionToResolve: zod$5.z.string({
     description: 'Id of a discussion to resolve. Use in combination with "merge_request_to_resolve_discussions_of"'
   }).optional(),
-  epicId: zod.z.number({ description: "Id of the linked Epic" }).min(0, "Valid values should be equal or greater than zero").optional(),
-  labels: zod.z.string({ description: "Labels to apply" }).optional(),
-  issueType: zod.z.nativeEnum(IssueType, {
+  epicId: zod$5.z.number({ description: "Id of the linked Epic" }).min(0, "Valid values should be equal or greater than zero").optional(),
+  labels: zod$5.z.string({ description: "Labels to apply" }).optional(),
+  issueType: zod$5.z.nativeEnum(commonGitlabConfig$7.IssueType, {
     description: "Type of the issue"
   }).optional(),
-  mergeRequestToResolveDiscussionsOf: zod.z.number({
+  mergeRequestToResolveDiscussionsOf: zod$5.z.number({
     description: "IID of a merge request in which to resolve all issues"
   }).optional(),
-  milestoneId: zod.z.number({ description: "Global ID of a milestone to assign the issue" }).optional(),
-  weight: zod.z.number({ description: "The issue weight" }).min(0).refine((value) => {
+  milestoneId: zod$5.z.number({ description: "Global ID of a milestone to assign the issue" }).optional(),
+  weight: zod$5.z.number({ description: "The issue weight" }).min(0).refine((value) => {
     const isValid = value >= 0;
     if (!isValid) {
       return {
@@ -916,19 +1135,19 @@ const issueInputProperties = zod.z.object({
     return isValid;
   }).optional()
 });
-const issueOutputProperties = zod.z.object({
-  issueUrl: zod.z.string({ description: "Issue Url" }),
-  issueId: zod.z.number({ description: "Issue Id" }),
-  issueIid: zod.z.number({ description: "Issue Iid" })
+const issueOutputProperties = zod$5.z.object({
+  issueUrl: zod$5.z.string({ description: "Issue Url" }),
+  issueId: zod$5.z.number({ description: "Issue Id" }),
+  issueIid: zod$5.z.number({ description: "Issue Iid" })
 });
 const createGitlabIssueAction = (options) => {
   const { integrations } = options;
-  return pluginScaffolderNode.createTemplateAction({
+  return pluginScaffolderNode$8.createTemplateAction({
     id: "gitlab:issues:create",
     description: "Creates a Gitlab issue.",
-    examples: examples$7,
+    examples: gitlabIssueCreate_examples.examples,
     schema: {
-      input: commonGitlabConfig.merge(issueInputProperties),
+      input: commonGitlabConfig$7.default.merge(issueInputProperties),
       output: issueOutputProperties
     },
     async handler(ctx) {
@@ -950,12 +1169,12 @@ const createGitlabIssueAction = (options) => {
           milestoneId,
           weight,
           token
-        } = commonGitlabConfig.merge(issueInputProperties).parse(ctx.input);
-        const { host } = parseRepoUrl(repoUrl, integrations);
-        const api = getClient({ host, integrations, token });
+        } = commonGitlabConfig$7.default.merge(issueInputProperties).parse(ctx.input);
+        const { host } = util$5.parseRepoUrl(repoUrl, integrations);
+        const api = util$5.getClient({ host, integrations, token });
         let isEpicScoped = false;
         if (epicId) {
-          isEpicScoped = await checkEpicScope(api, projectId, epicId);
+          isEpicScoped = await util$5.checkEpicScope(api, projectId, epicId);
           if (isEpicScoped) {
             ctx.logger.info("Epic is within Project Scope");
           } else {
@@ -964,11 +1183,11 @@ const createGitlabIssueAction = (options) => {
             );
           }
         }
-        const mappedCreatedAt = convertDate(
+        const mappedCreatedAt = util$5.convertDate(
           String(createdAt),
           (/* @__PURE__ */ new Date()).toISOString()
         );
-        const mappedDueDate = dueDate ? convertDate(String(dueDate), (/* @__PURE__ */ new Date()).toISOString()) : void 0;
+        const mappedDueDate = dueDate ? util$5.convertDate(String(dueDate), (/* @__PURE__ */ new Date()).toISOString()) : void 0;
         const issueOptions = {
           description,
           assigneeIds: assignees,
@@ -992,28 +1211,41 @@ const createGitlabIssueAction = (options) => {
         ctx.output("issueUrl", response.web_url);
         ctx.output("issueIid", response.iid);
       } catch (error) {
-        if (error instanceof zod.z.ZodError) {
-          throw new errors.InputError(`Validation error: ${error.message}`, {
+        if (error instanceof zod$5.z.ZodError) {
+          throw new errors$7.InputError(`Validation error: ${error.message}`, {
             validationErrors: error.errors
           });
         }
-        throw new errors.InputError(`Failed to create GitLab issue: ${error.message}`);
+        throw new errors$7.InputError(`Failed to create GitLab issue: ${error.message}`);
       }
     }
   });
 };
 
+gitlabIssueCreate_cjs.createGitlabIssueAction = createGitlabIssueAction;
+
+var gitlabIssueEdit_cjs = {};
+
+var gitlabIssueEdit_examples_cjs = {};
+
+var yaml$6 = require$$0;
+var commonGitlabConfig$6 = commonGitlabConfig_cjs;
+
+function _interopDefaultCompat$8 (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }
+
+var yaml__default$6 = /*#__PURE__*/_interopDefaultCompat$8(yaml$6);
+
 const examples$6 = [
   {
     description: "Edit a GitLab issue with minimal options",
-    example: yaml__default.default.stringify({
+    example: yaml__default$6.default.stringify({
       steps: [
         {
           id: "gitlabIssue",
           name: "EditIssues",
           action: "gitlab:issue:edit",
           input: {
-            ...commonGitlabConfigExample,
+            ...commonGitlabConfig$6.commonGitlabConfigExample,
             projectId: 12,
             title: "Modified Test Issue",
             description: "This is a modified description of the issue"
@@ -1024,19 +1256,19 @@ const examples$6 = [
   },
   {
     description: "Edit a GitLab issue with assignees and date options",
-    example: yaml__default.default.stringify({
+    example: yaml__default$6.default.stringify({
       steps: [
         {
           id: "gitlabIssue",
           name: "EditIssues",
           action: "gitlab:issue:edit",
           input: {
-            ...commonGitlabConfigExample,
+            ...commonGitlabConfig$6.commonGitlabConfigExample,
             projectId: 12,
             title: "Test Issue",
             assignees: [18],
             description: "This is the edited description of the issue",
-            updatedAt: "2024-05-10 18:00:00.000",
+            updatedAt: "2024-05-10T18:00:00.000Z",
             dueDate: "2024-09-28"
           }
         }
@@ -1045,20 +1277,20 @@ const examples$6 = [
   },
   {
     description: "Create a GitLab Issue with several options",
-    example: yaml__default.default.stringify({
+    example: yaml__default$6.default.stringify({
       steps: [
         {
           id: "gitlabIssue",
           name: "EditIssues",
           action: "gitlab:issue:edit",
           input: {
-            ...commonGitlabConfigExample,
+            ...commonGitlabConfig$6.commonGitlabConfigExample,
             projectId: 12,
             title: "Test Edit Issue",
             assignees: [18, 15],
             description: "This is the description of the issue",
             confidential: false,
-            updatedAt: "2024-05-10 18:00:00.000",
+            updatedAt: "2024-05-10T18:00:00.000Z",
             dueDate: "2024-09-28",
             discussionLocked: true,
             epicId: 1,
@@ -1067,76 +1299,257 @@ const examples$6 = [
         }
       ]
     })
+  },
+  {
+    description: "Edit a gitlab issue to change  its state to close",
+    example: yaml__default$6.default.stringify({
+      steps: [
+        {
+          id: "gitlabIssue",
+          name: "EditIssues",
+          action: "gitlab:issue:edit",
+          input: {
+            ...commonGitlabConfig$6.commonGitlabConfigExample,
+            projectId: 12,
+            stateEvent: "close"
+          }
+        }
+      ]
+    })
+  },
+  {
+    description: "Edit a gitlab issue to change  its state to reopened",
+    example: yaml__default$6.default.stringify({
+      steps: [
+        {
+          id: "gitlabIssue",
+          name: "EditIssues",
+          action: "gitlab:issue:edit",
+          input: {
+            ...commonGitlabConfig$6.commonGitlabConfigExample,
+            projectId: 12,
+            stateEvent: "reopen"
+          }
+        }
+      ]
+    })
+  },
+  {
+    description: "Edit a gitlab issue to assign it to multiple users and set milestone",
+    example: yaml__default$6.default.stringify({
+      steps: [
+        {
+          id: "gitlabIssue",
+          name: "EditIssues",
+          action: "gitlab:issue:edit",
+          input: {
+            ...commonGitlabConfig$6.commonGitlabConfigExample,
+            projectId: 12,
+            title: "Test issue with milestone",
+            assignees: [18, 20],
+            description: "This issue has milestone set",
+            milestoneId: 5
+          }
+        }
+      ]
+    })
+  },
+  {
+    description: "Edit a gitlab issue to add weight and update labels",
+    example: yaml__default$6.default.stringify({
+      steps: [
+        {
+          id: "gitlabIssue",
+          name: "EditIssues",
+          action: "gitlab:issue:edit",
+          input: {
+            ...commonGitlabConfig$6.commonGitlabConfigExample,
+            projectId: 12,
+            title: "Issue with weight and labels",
+            description: "This issue has weight and new labels",
+            weight: 3,
+            labels: "bug,urgent"
+          }
+        }
+      ]
+    })
+  },
+  {
+    description: "Edit a gitlab issue to make it confidential",
+    example: yaml__default$6.default.stringify({
+      steps: [
+        {
+          id: "gitlabIssue",
+          name: "EditIssues",
+          action: "gitlab:issue:edit",
+          input: {
+            ...commonGitlabConfig$6.commonGitlabConfigExample,
+            projectId: 12,
+            title: "Confidential Issue",
+            description: "This issue is confidential",
+            confidential: true
+          }
+        }
+      ]
+    })
+  },
+  {
+    description: "Edit a gitlab issue to lock the discussion",
+    example: yaml__default$6.default.stringify({
+      steps: [
+        {
+          id: "gitlabIssue",
+          name: "EditIssues",
+          action: "gitlab:issue:edit",
+          input: {
+            ...commonGitlabConfig$6.commonGitlabConfigExample,
+            projectId: 12,
+            title: "Locked Discussion Issue",
+            description: "This discussion on this issue is locked",
+            discussionLocked: true
+          }
+        }
+      ]
+    })
+  },
+  {
+    description: "Edit a gitlab issue to remove labels and update milestone",
+    example: yaml__default$6.default.stringify({
+      steps: [
+        {
+          id: "gitlabIssue",
+          name: "EditIssues",
+          action: "gitlab:issue:edit",
+          input: {
+            ...commonGitlabConfig$6.commonGitlabConfigExample,
+            projectId: 12,
+            title: "Issue with labels removed and milestone updated",
+            description: "This issue has labels removed and milestone updated",
+            removeLabels: "phase1:label1",
+            milestoneId: 6
+          }
+        }
+      ]
+    })
+  },
+  {
+    description: "Edit a gitlab issue to remove some labels and new ones",
+    example: yaml__default$6.default.stringify({
+      steps: [
+        {
+          id: "gitlabIssue",
+          name: "EditIssues",
+          action: "gitlab:issue:edit",
+          input: {
+            ...commonGitlabConfig$6.commonGitlabConfigExample,
+            projectId: 12,
+            title: "Issue with labels updated",
+            description: "This issue has labels removed and new ones added",
+            removeLabels: "bug,urgent",
+            labels: "enhancement:documentation"
+          }
+        }
+      ]
+    })
+  },
+  {
+    description: "Edit a gitlab issue to change issue type and add labels",
+    example: yaml__default$6.default.stringify({
+      steps: [
+        {
+          id: "gitlabIssue",
+          name: "EditIssues",
+          action: "gitlab:issue:edit",
+          input: {
+            ...commonGitlabConfig$6.commonGitlabConfigExample,
+            projectId: 12,
+            title: "Issue with type and labels",
+            description: "This issue has been changes and new labels added",
+            labels: "task,high-priority",
+            issueType: "task"
+          }
+        }
+      ]
+    })
   }
 ];
 
-const editIssueInputProperties = zod.z.object({
-  projectId: zod.z.number().describe(
+gitlabIssueEdit_examples_cjs.examples = examples$6;
+
+var errors$6 = require$$0$1;
+var pluginScaffolderNode$7 = require$$1;
+var commonGitlabConfig$5 = commonGitlabConfig_cjs;
+var gitlabIssueEdit_examples = gitlabIssueEdit_examples_cjs;
+var zod$4 = require$$4;
+var util$4 = util_cjs;
+
+const editIssueInputProperties = zod$4.z.object({
+  projectId: zod$4.z.number().describe(
     "The global ID or URL-encoded path of the project owned by the authenticated user."
   ),
-  issueIid: zod.z.number().describe("The internal ID of a project's issue"),
-  addLabels: zod.z.string({
+  issueIid: zod$4.z.number().describe("The internal ID of a project's issue"),
+  addLabels: zod$4.z.string({
     description: "Comma-separated label names to add to an issue. If a label does not already exist, this creates a new project label and assigns it to the issue."
   }).optional(),
-  assignees: zod.z.array(zod.z.number(), {
+  assignees: zod$4.z.array(zod$4.z.number(), {
     description: "IDs of the users to assign the issue to."
   }).optional(),
-  confidential: zod.z.boolean({ description: "Updates an issue to be confidential." }).optional(),
-  description: zod.z.string().describe("The description of an issue. Limited to 1,048,576 characters.").max(1048576).optional(),
-  discussionLocked: zod.z.boolean({
+  confidential: zod$4.z.boolean({ description: "Updates an issue to be confidential." }).optional(),
+  description: zod$4.z.string().describe("The description of an issue. Limited to 1,048,576 characters.").max(1048576).optional(),
+  discussionLocked: zod$4.z.boolean({
     description: "Flag indicating if the issue\u2019s discussion is locked. If the discussion is locked only project members can add or edit comments."
   }).optional(),
-  dueDate: zod.z.string().describe(
+  dueDate: zod$4.z.string().describe(
     "The due date. Date time string in the format YYYY-MM-DD, for example 2016-03-11."
   ).regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format. Use YYYY-MM-DD").optional(),
-  epicId: zod.z.number({
+  epicId: zod$4.z.number({
     description: "ID of the epic to add the issue to. Valid values are greater than or equal to 0."
   }).min(0, "Valid values should be equal or greater than zero").optional(),
-  issueType: zod.z.nativeEnum(IssueType, {
+  issueType: zod$4.z.nativeEnum(commonGitlabConfig$5.IssueType, {
     description: "Updates the type of issue. One of issue, incident, test_case or task."
   }).optional(),
-  labels: zod.z.string({
+  labels: zod$4.z.string({
     description: "Comma-separated label names for an issue. Set to an empty string to unassign all labels. If a label does not already exist, this creates a new project label and assigns it to the issue."
   }).optional(),
-  milestoneId: zod.z.number({
+  milestoneId: zod$4.z.number({
     description: "The global ID of a milestone to assign the issue to. Set to 0 or provide an empty value to unassign a milestone"
   }).optional(),
-  removeLabels: zod.z.string({
+  removeLabels: zod$4.z.string({
     description: "Comma-separated label names to remove from an issue."
   }).optional(),
-  stateEvent: zod.z.nativeEnum(IssueStateEvent, {
+  stateEvent: zod$4.z.nativeEnum(commonGitlabConfig$5.IssueStateEvent, {
     description: "The state event of an issue. To close the issue, use close, and to reopen it, use reopen."
   }).optional(),
-  title: zod.z.string().describe("The title of an issue.").optional(),
-  updatedAt: zod.z.string().describe(
+  title: zod$4.z.string().describe("The title of an issue.").optional(),
+  updatedAt: zod$4.z.string().describe(
     "When the issue was updated. Date time string, ISO 8601 formatted"
   ).regex(
     /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{3})?Z$/,
     "Invalid date format. Use YYYY-MM-DDTHH:mm:ssZ or YYYY-MM-DDTHH:mm:ss.SSSZ"
   ).optional(),
-  weight: zod.z.number({ description: "The issue weight" }).min(0, "Valid values should be equal or greater than zero").max(10, "Valid values should be equal or less than 10").optional()
+  weight: zod$4.z.number({ description: "The issue weight" }).min(0, "Valid values should be equal or greater than zero").max(10, "Valid values should be equal or less than 10").optional()
 });
-const editIssueOutputProperties = zod.z.object({
-  issueUrl: zod.z.string({ description: "Issue WebUrl" }),
-  projectId: zod.z.number({
+const editIssueOutputProperties = zod$4.z.object({
+  issueUrl: zod$4.z.string({ description: "Issue WebUrl" }),
+  projectId: zod$4.z.number({
     description: "The project id the issue belongs to WebUrl"
   }),
-  issueId: zod.z.number({ description: "The issues Id" }),
-  issueIid: zod.z.number({
+  issueId: zod$4.z.number({ description: "The issues Id" }),
+  issueIid: zod$4.z.number({
     description: "The issues internal ID of a project's issue"
   }),
-  state: zod.z.string({ description: "The state event of an issue" }),
-  title: zod.z.string({ description: "The title of an issue." }),
-  updatedAt: zod.z.string({ description: "The last updated time of the issue." })
+  state: zod$4.z.string({ description: "The state event of an issue" }),
+  title: zod$4.z.string({ description: "The title of an issue." }),
+  updatedAt: zod$4.z.string({ description: "The last updated time of the issue." })
 });
 const editGitlabIssueAction = (options) => {
   const { integrations } = options;
-  return pluginScaffolderNode.createTemplateAction({
+  return pluginScaffolderNode$7.createTemplateAction({
     id: "gitlab:issue:edit",
     description: "Edit a Gitlab issue.",
-    examples: examples$6,
+    examples: gitlabIssueEdit_examples.examples,
     schema: {
-      input: commonGitlabConfig.merge(editIssueInputProperties),
+      input: commonGitlabConfig$5.default.merge(editIssueInputProperties),
       output: editIssueOutputProperties
     },
     async handler(ctx) {
@@ -1161,12 +1574,12 @@ const editGitlabIssueAction = (options) => {
           stateEvent,
           weight,
           token
-        } = commonGitlabConfig.merge(editIssueInputProperties).parse(ctx.input);
-        const { host } = parseRepoUrl(repoUrl, integrations);
-        const api = getClient({ host, integrations, token });
+        } = commonGitlabConfig$5.default.merge(editIssueInputProperties).parse(ctx.input);
+        const { host } = util$4.parseRepoUrl(repoUrl, integrations);
+        const api = util$4.getClient({ host, integrations, token });
         let isEpicScoped = false;
         if (epicId) {
-          isEpicScoped = await checkEpicScope(api, projectId, epicId);
+          isEpicScoped = await util$4.checkEpicScope(api, projectId, epicId);
           if (isEpicScoped) {
             ctx.logger.info("Epic is within Project Scope");
           } else {
@@ -1175,7 +1588,7 @@ const editGitlabIssueAction = (options) => {
             );
           }
         }
-        const mappedUpdatedAt = convertDate(
+        const mappedUpdatedAt = util$4.convertDate(
           String(updatedAt),
           (/* @__PURE__ */ new Date()).toISOString()
         );
@@ -1209,12 +1622,12 @@ const editGitlabIssueAction = (options) => {
         ctx.output("state", response.state);
         ctx.output("updatedAt", response.updated_at);
       } catch (error) {
-        if (error instanceof zod.z.ZodError) {
-          throw new errors.InputError(`Validation error: ${error.message}`, {
+        if (error instanceof zod$4.z.ZodError) {
+          throw new errors$6.InputError(`Validation error: ${error.message}`, {
             validationErrors: error.errors
           });
         }
-        throw new errors.InputError(
+        throw new errors$6.InputError(
           `Failed to edit/modify GitLab issue: ${error.message}`
         );
       }
@@ -1222,30 +1635,50 @@ const editGitlabIssueAction = (options) => {
   });
 };
 
+gitlabIssueEdit_cjs.editGitlabIssueAction = editGitlabIssueAction;
+
+var gitlabMergeRequest_cjs = {};
+
+var helpers_cjs = {};
+
+var pluginScaffolderNode$6 = require$$1;
+var errors$5 = require$$0$1;
+var node$1 = require$$2;
+
 function createGitlabApi(options) {
   const { integrations, token: providedToken, repoUrl } = options;
-  const { host } = pluginScaffolderNode.parseRepoUrl(repoUrl, integrations);
+  const { host } = pluginScaffolderNode$6.parseRepoUrl(repoUrl, integrations);
   const integrationConfig = integrations.gitlab.byHost(host);
   if (!integrationConfig) {
-    throw new errors.InputError(
+    throw new errors$5.InputError(
       `No matching integration configuration for host ${host}, please check your integrations config`
     );
   }
   if (!integrationConfig.config.token && !providedToken) {
-    throw new errors.InputError(`No token available for host ${host}`);
+    throw new errors$5.InputError(`No token available for host ${host}`);
   }
   const token = providedToken ?? integrationConfig.config.token;
   const tokenType = providedToken ? "oauthToken" : "token";
-  return new node.Gitlab({
+  return new node$1.Gitlab({
     host: integrationConfig.config.baseUrl,
     [tokenType]: token
   });
 }
 
+helpers_cjs.createGitlabApi = createGitlabApi;
+
+var gitlabMergeRequest_examples_cjs = {};
+
+var yaml$5 = require$$0;
+
+function _interopDefaultCompat$7 (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }
+
+var yaml__default$5 = /*#__PURE__*/_interopDefaultCompat$7(yaml$5);
+
 const examples$5 = [
   {
     description: "Create a merge request with a specific assignee",
-    example: yaml__default.default.stringify({
+    example: yaml__default$5.default.stringify({
       steps: [
         {
           id: "createMergeRequest",
@@ -1265,7 +1698,7 @@ const examples$5 = [
   },
   {
     description: "Create a merge request with removal of source branch after merge",
-    example: yaml__default.default.stringify({
+    example: yaml__default$5.default.stringify({
       steps: [
         {
           id: "createMergeRequest",
@@ -1285,7 +1718,7 @@ const examples$5 = [
   },
   {
     description: "Create a merge request with a target branch",
-    example: yaml__default.default.stringify({
+    example: yaml__default$5.default.stringify({
       steps: [
         {
           id: "createMergeRequest",
@@ -1306,7 +1739,7 @@ const examples$5 = [
   },
   {
     description: "Create a merge request with a commit action as create",
-    example: yaml__default.default.stringify({
+    example: yaml__default$5.default.stringify({
       steps: [
         {
           id: "createMergeRequest",
@@ -1326,7 +1759,7 @@ const examples$5 = [
   },
   {
     description: "Create a merge request with a commit action as delete",
-    example: yaml__default.default.stringify({
+    example: yaml__default$5.default.stringify({
       steps: [
         {
           id: "createMergeRequest",
@@ -1346,7 +1779,7 @@ const examples$5 = [
   },
   {
     description: "Create a merge request with a commit action as update",
-    example: yaml__default.default.stringify({
+    example: yaml__default$5.default.stringify({
       steps: [
         {
           id: "createMergeRequest",
@@ -1366,11 +1799,54 @@ const examples$5 = [
   }
 ];
 
+gitlabMergeRequest_examples_cjs.examples = examples$5;
+
+var pluginScaffolderNode$5 = require$$1;
+var path$1 = require$$1$2;
+var errors$4 = require$$0$1;
+var backendPluginApi$2 = require$$3;
+var helpers$1 = helpers_cjs;
+var gitlabMergeRequest_examples = gitlabMergeRequest_examples_cjs;
+var crypto = require$$6;
+
+function _interopDefaultCompat$6 (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }
+
+var path__default$1 = /*#__PURE__*/_interopDefaultCompat$6(path$1);
+
+function computeSha256(file) {
+  const hash = crypto.createHash("sha256");
+  hash.update(file.content);
+  return hash.digest("hex");
+}
+async function getFileAction(fileInfo, target, api, logger, remoteFiles, defaultCommitAction = "auto") {
+  if (defaultCommitAction === "auto") {
+    const filePath = path__default$1.default.join(fileInfo.targetPath ?? "", fileInfo.file.path);
+    if (remoteFiles?.some((remoteFile) => remoteFile.path === filePath)) {
+      try {
+        const targetFile = await api.RepositoryFiles.show(
+          target.repoID,
+          filePath,
+          target.branch
+        );
+        if (computeSha256(fileInfo.file) === targetFile.content_sha256) {
+          return "skip";
+        }
+      } catch (error) {
+        logger.warn(
+          `Unable to retrieve detailed information for remote file ${filePath}`
+        );
+      }
+      return "update";
+    }
+    return "create";
+  }
+  return defaultCommitAction;
+}
 const createPublishGitlabMergeRequestAction = (options) => {
   const { integrations } = options;
-  return pluginScaffolderNode.createTemplateAction({
+  return pluginScaffolderNode$5.createTemplateAction({
     id: "publish:gitlab:merge-request",
-    examples: examples$5,
+    examples: gitlabMergeRequest_examples.examples,
     schema: {
       input: {
         required: ["repoUrl", "branchName"],
@@ -1410,7 +1886,7 @@ const createPublishGitlabMergeRequestAction = (options) => {
           sourcePath: {
             type: "string",
             title: "Working Subdirectory",
-            description: "Subdirectory of working directory to copy changes from"
+            description: `Subdirectory of working directory to copy changes from. For reasons of backward compatibility, any specified 'targetPath' input will be applied in place of an absent/falsy value for this input. Circumvent this behavior using '.'`
           },
           targetPath: {
             type: "string",
@@ -1425,8 +1901,9 @@ const createPublishGitlabMergeRequestAction = (options) => {
           commitAction: {
             title: "Commit action",
             type: "string",
-            enum: ["create", "update", "delete"],
-            description: "The action to be used for git commit. Defaults to create."
+            enum: ["create", "update", "delete", "auto"],
+            description: `The action to be used for git commit. Defaults to the custom 'auto' action provided by backstage,
+which uses additional API calls in order to detect whether to 'create', 'update' or 'skip' each source file.`
           },
           removeSourceBranch: {
             title: "Delete source branch",
@@ -1476,9 +1953,9 @@ const createPublishGitlabMergeRequestAction = (options) => {
         title,
         token
       } = ctx.input;
-      const { owner, repo, project } = pluginScaffolderNode.parseRepoUrl(repoUrl, integrations);
+      const { owner, repo, project } = pluginScaffolderNode$5.parseRepoUrl(repoUrl, integrations);
       const repoID = project ? project : `${owner}/${repo}`;
-      const api = createGitlabApi({
+      const api = helpers$1.createGitlabApi({
         integrations,
         token,
         repoUrl
@@ -1496,41 +1973,85 @@ const createPublishGitlabMergeRequestAction = (options) => {
       }
       let fileRoot;
       if (sourcePath) {
-        fileRoot = backendPluginApi.resolveSafeChildPath(ctx.workspacePath, sourcePath);
+        fileRoot = backendPluginApi$2.resolveSafeChildPath(ctx.workspacePath, sourcePath);
       } else if (targetPath) {
-        fileRoot = backendPluginApi.resolveSafeChildPath(ctx.workspacePath, targetPath);
+        fileRoot = backendPluginApi$2.resolveSafeChildPath(ctx.workspacePath, targetPath);
       } else {
         fileRoot = ctx.workspacePath;
       }
-      const fileContents = await pluginScaffolderNode.serializeDirectoryContents(fileRoot, {
+      const fileContents = await pluginScaffolderNode$5.serializeDirectoryContents(fileRoot, {
         gitignore: true
       });
-      const actions = fileContents.map((file) => ({
-        action: ctx.input.commitAction ?? "create",
-        filePath: targetPath ? path__default.default.posix.join(targetPath, file.path) : file.path,
-        encoding: "base64",
-        content: file.content.toString("base64"),
-        execute_filemode: file.executable
-      }));
       let targetBranch = targetBranchName;
       if (!targetBranch) {
         const projects = await api.Projects.show(repoID);
         const { default_branch: defaultBranch } = projects;
         targetBranch = defaultBranch;
       }
-      try {
-        await api.Branches.create(repoID, branchName, String(targetBranch));
-      } catch (e) {
-        throw new errors.InputError(
-          `The branch creation failed. Please check that your repo does not already contain a branch named '${branchName}'. ${e}`
-        );
+      let remoteFiles = [];
+      if ((ctx.input.commitAction ?? "auto") === "auto") {
+        try {
+          remoteFiles = await api.Repositories.tree(repoID, {
+            ref: targetBranch,
+            recursive: true,
+            path: targetPath ?? void 0
+          });
+        } catch (e) {
+          ctx.logger.warn(
+            `Could not retrieve the list of files for ${repoID} (branch: ${targetBranch}) : ${e}`
+          );
+        }
       }
-      try {
-        await api.Commits.create(repoID, branchName, ctx.input.title, actions);
-      } catch (e) {
-        throw new errors.InputError(
-          `Committing the changes to ${branchName} failed. Please check that none of the files created by the template already exists. ${e}`
-        );
+      const actions = ctx.input.commitAction === "skip" ? [] : (await Promise.all(
+        fileContents.map(async (file) => {
+          const action = await getFileAction(
+            { file, targetPath },
+            { repoID, branch: targetBranch },
+            api,
+            ctx.logger,
+            remoteFiles,
+            ctx.input.commitAction
+          );
+          return { file, action };
+        })
+      )).filter((o) => o.action !== "skip").map(({ file, action }) => ({
+        action,
+        filePath: targetPath ? path__default$1.default.posix.join(targetPath, file.path) : file.path,
+        encoding: "base64",
+        content: file.content.toString("base64"),
+        execute_filemode: file.executable
+      }));
+      let createBranch;
+      if (actions.length) {
+        createBranch = true;
+      } else {
+        try {
+          await api.Branches.show(repoID, branchName);
+          createBranch = false;
+          ctx.logger.info(
+            `Using existing branch ${branchName} without modification.`
+          );
+        } catch (e) {
+          createBranch = true;
+        }
+      }
+      if (createBranch) {
+        try {
+          await api.Branches.create(repoID, branchName, String(targetBranch));
+        } catch (e) {
+          throw new errors$4.InputError(
+            `The branch creation failed. Please check that your repo does not already contain a branch named '${branchName}'. ${e}`
+          );
+        }
+      }
+      if (actions.length) {
+        try {
+          await api.Commits.create(repoID, branchName, title, actions);
+        } catch (e) {
+          throw new errors$4.InputError(
+            `Committing the changes to ${branchName} failed. Please check that none of the files created by the template already exists. ${e}`
+          );
+        }
       }
       try {
         const mergeRequestUrl = await api.MergeRequests.create(
@@ -1551,23 +2072,36 @@ const createPublishGitlabMergeRequestAction = (options) => {
         ctx.output("projectPath", repoID);
         ctx.output("mergeRequestUrl", mergeRequestUrl);
       } catch (e) {
-        throw new errors.InputError(`Merge request creation failed${e}`);
+        throw new errors$4.InputError(`Merge request creation failed${e}`);
       }
     }
   });
 };
 
+gitlabMergeRequest_cjs.createPublishGitlabMergeRequestAction = createPublishGitlabMergeRequestAction;
+
+var gitlabPipelineTrigger_cjs = {};
+
+var gitlabPipelineTrigger_examples_cjs = {};
+
+var yaml$4 = require$$0;
+var commonGitlabConfig$4 = commonGitlabConfig_cjs;
+
+function _interopDefaultCompat$5 (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }
+
+var yaml__default$4 = /*#__PURE__*/_interopDefaultCompat$5(yaml$4);
+
 const examples$4 = [
   {
     description: "Trigger a GitLab Project Pipeline",
-    example: yaml__default.default.stringify({
+    example: yaml__default$4.default.stringify({
       steps: [
         {
           id: "triggerPipeline",
           name: "Trigger Project Pipeline",
           action: "gitlab:pipeline:trigger",
           input: {
-            ...commonGitlabConfigExample,
+            ...commonGitlabConfig$4.commonGitlabConfigExample,
             projectId: 12,
             tokenDescription: "This is the text that will appear in the pipeline token",
             token: "glpt-xxxxxxxxxxxx",
@@ -1577,35 +2111,104 @@ const examples$4 = [
         }
       ]
     })
+  },
+  {
+    description: "Trigger a GitLab Project Pipeline with No Variables",
+    example: yaml__default$4.default.stringify({
+      steps: [
+        {
+          id: "triggerPipeline",
+          name: "Trigger Project Pipeline",
+          action: "gitlab:pipeline:trigger",
+          input: {
+            ...commonGitlabConfig$4.commonGitlabConfigExample,
+            projectId: 12,
+            tokenDescription: "This is the text that will appear in the pipeline token",
+            token: "glpt-xxxxxxxxxxxx",
+            branch: "main",
+            variables: {}
+          }
+        }
+      ]
+    })
+  },
+  {
+    description: "Trigger a GitLab Project Pipeline with Single Variables",
+    example: yaml__default$4.default.stringify({
+      steps: [
+        {
+          id: "triggerPipeline",
+          name: "Trigger Project Pipeline",
+          action: "gitlab:pipeline:trigger",
+          input: {
+            ...commonGitlabConfig$4.commonGitlabConfigExample,
+            projectId: 12,
+            tokenDescription: "This is the text that will appear in the pipeline token",
+            token: "glpt-xxxxxxxxxxxx",
+            branch: "main",
+            variables: { var_one: "one" }
+          }
+        }
+      ]
+    })
+  },
+  {
+    description: "Trigger a GitLab Project Pipeline with Multiple Variables",
+    example: yaml__default$4.default.stringify({
+      steps: [
+        {
+          id: "triggerPipeline",
+          name: "Trigger Project Pipeline",
+          action: "gitlab:pipeline:trigger",
+          input: {
+            ...commonGitlabConfig$4.commonGitlabConfigExample,
+            projectId: 12,
+            tokenDescription: "This is the text that will appear in the pipeline token",
+            token: "glpt-xxxxxxxxxxxx",
+            branch: "main",
+            variables: { var_one: "one", var_two: "two", var_three: "three" }
+          }
+        }
+      ]
+    })
   }
 ];
 
-const pipelineInputProperties = zod.z.object({
-  projectId: zod.z.number().describe("Project Id"),
-  tokenDescription: zod.z.string().describe("Pipeline token description"),
-  branch: zod.z.string().describe("Project branch"),
-  variables: zod.z.record(zod.z.string(), zod.z.string()).optional().describe(
+gitlabPipelineTrigger_examples_cjs.examples = examples$4;
+
+var errors$3 = require$$0$1;
+var pluginScaffolderNode$4 = require$$1;
+var zod$3 = require$$4;
+var commonGitlabConfig$3 = commonGitlabConfig_cjs;
+var util$3 = util_cjs;
+var gitlabPipelineTrigger_examples = gitlabPipelineTrigger_examples_cjs;
+
+const pipelineInputProperties = zod$3.z.object({
+  projectId: zod$3.z.number().describe("Project Id"),
+  tokenDescription: zod$3.z.string().describe("Pipeline token description"),
+  branch: zod$3.z.string().describe("Project branch"),
+  variables: zod$3.z.record(zod$3.z.string(), zod$3.z.string()).optional().describe(
     "A object/record of key-valued strings containing the pipeline variables."
   )
 });
-const pipelineOutputProperties = zod.z.object({
-  pipelineUrl: zod.z.string({ description: "Pipeline Url" })
+const pipelineOutputProperties = zod$3.z.object({
+  pipelineUrl: zod$3.z.string({ description: "Pipeline Url" })
 });
 const createTriggerGitlabPipelineAction = (options) => {
   const { integrations } = options;
-  return pluginScaffolderNode.createTemplateAction({
+  return pluginScaffolderNode$4.createTemplateAction({
     id: "gitlab:pipeline:trigger",
     description: "Triggers a GitLab Pipeline.",
-    examples: examples$4,
+    examples: gitlabPipelineTrigger_examples.examples,
     schema: {
-      input: commonGitlabConfig.merge(pipelineInputProperties),
+      input: commonGitlabConfig$3.default.merge(pipelineInputProperties),
       output: pipelineOutputProperties
     },
     async handler(ctx) {
       let pipelineTokenResponse = null;
-      const { repoUrl, projectId, tokenDescription, token, branch, variables } = commonGitlabConfig.merge(pipelineInputProperties).parse(ctx.input);
-      const { host } = parseRepoUrl(repoUrl, integrations);
-      const api = getClient({ host, integrations, token });
+      const { repoUrl, projectId, tokenDescription, token, branch, variables } = commonGitlabConfig$3.default.merge(pipelineInputProperties).parse(ctx.input);
+      const { host } = util$3.parseRepoUrl(repoUrl, integrations);
+      const api = util$3.getClient({ host, integrations, token });
       try {
         pipelineTokenResponse = await api.PipelineTriggerTokens.create(
           projectId,
@@ -1631,12 +2234,12 @@ const createTriggerGitlabPipelineAction = (options) => {
         ctx.logger.info(`Pipeline id ${pipelineTriggerResponse.id} triggered.`);
         ctx.output("pipelineUrl", pipelineTriggerResponse.web_url);
       } catch (error) {
-        if (error instanceof zod.z.ZodError) {
-          throw new errors.InputError(`Validation error: ${error.message}`, {
+        if (error instanceof zod$3.z.ZodError) {
+          throw new errors$3.InputError(`Validation error: ${error.message}`, {
             validationErrors: error.errors
           });
         }
-        throw new errors.InputError(`Failed to trigger Pipeline: ${error.message}`);
+        throw new errors$3.InputError(`Failed to trigger Pipeline: ${error.message}`);
       } finally {
         if (pipelineTokenResponse && pipelineTokenResponse.id) {
           try {
@@ -1658,10 +2261,22 @@ const createTriggerGitlabPipelineAction = (options) => {
   });
 };
 
+gitlabPipelineTrigger_cjs.createTriggerGitlabPipelineAction = createTriggerGitlabPipelineAction;
+
+var gitlabProjectAccessTokenCreate_cjs = {};
+
+var gitlabProjectAccessTokenCreate_examples_cjs = {};
+
+var yaml$3 = require$$0;
+
+function _interopDefaultCompat$4 (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }
+
+var yaml__default$3 = /*#__PURE__*/_interopDefaultCompat$4(yaml$3);
+
 const examples$3 = [
   {
     description: "Create a GitLab project access token with minimal options.",
-    example: yaml__default.default.stringify({
+    example: yaml__default$3.default.stringify({
       steps: [
         {
           id: "createAccessToken",
@@ -1677,7 +2292,7 @@ const examples$3 = [
   },
   {
     description: "Create a GitLab project access token with custom scopes.",
-    example: yaml__default.default.stringify({
+    example: yaml__default$3.default.stringify({
       steps: [
         {
           id: "createAccessToken",
@@ -1694,7 +2309,7 @@ const examples$3 = [
   },
   {
     description: "Create a GitLab project access token with a specified name.",
-    example: yaml__default.default.stringify({
+    example: yaml__default$3.default.stringify({
       steps: [
         {
           id: "createAccessToken",
@@ -1711,7 +2326,7 @@ const examples$3 = [
   },
   {
     description: "Create a GitLab project access token with a numeric project ID.",
-    example: yaml__default.default.stringify({
+    example: yaml__default$3.default.stringify({
       steps: [
         {
           id: "createAccessToken",
@@ -1727,7 +2342,7 @@ const examples$3 = [
   },
   {
     description: "Create a GitLab project access token with a specified expired Date.",
-    example: yaml__default.default.stringify({
+    example: yaml__default$3.default.stringify({
       steps: [
         {
           id: "createAccessToken",
@@ -1741,36 +2356,200 @@ const examples$3 = [
         }
       ]
     })
+  },
+  {
+    description: "Create a GitLab project access token with an access level",
+    example: yaml__default$3.default.stringify({
+      steps: [
+        {
+          id: "createAccessToken",
+          action: "gitlab:projectAccessToken:create",
+          name: "Create GitLab Project Access Token",
+          input: {
+            repoUrl: "gitlab.com?repo=repo&owner=owner",
+            projectId: "456",
+            accessLevel: 30
+          }
+        }
+      ]
+    })
+  },
+  {
+    description: "Create a GitLab project access token with multiple options",
+    example: yaml__default$3.default.stringify({
+      steps: [
+        {
+          id: "createAccessToken",
+          action: "gitlab:projectAccessToken:create",
+          name: "Create GitLab Project Access Token",
+          input: {
+            repoUrl: "gitlab.com?repo=repo&owner=owner",
+            projectId: "456",
+            accessLevel: 40,
+            name: "full-access-token",
+            expiresAt: "2024-12-31"
+          }
+        }
+      ]
+    })
+  },
+  {
+    description: "Create a GitLab project access token with a token for authorization",
+    example: yaml__default$3.default.stringify({
+      steps: [
+        {
+          id: "createAccessToken",
+          action: "gitlab:projectAccessToken:create",
+          name: "Create GitLab Project Access Token",
+          input: {
+            repoUrl: "gitlab.com?repo=repo&owner=owner",
+            projectId: "101112",
+            token: "personal-access-token"
+          }
+        }
+      ]
+    })
+  },
+  {
+    description: "Create a GitLab project access token with read-only scopes",
+    example: yaml__default$3.default.stringify({
+      steps: [
+        {
+          id: "createAccessToken",
+          action: "gitlab:projectAccessToken:create",
+          name: "Create GitLab Project Access Token",
+          input: {
+            repoUrl: "gitlab.com?repo=repo&owner=owner",
+            projectId: "101112",
+            scopes: ["read_repository", "read_api"]
+          }
+        }
+      ]
+    })
+  },
+  {
+    description: "Create a GitLab project access token with guest access level",
+    example: yaml__default$3.default.stringify({
+      steps: [
+        {
+          id: "createAccessToken",
+          action: "gitlab:projectAccessToken:create",
+          name: "Create GitLab Project Access Token",
+          input: {
+            repoUrl: "gitlab.com?repo=repo&owner=owner",
+            projectId: "101112",
+            accessLevel: 10
+          }
+        }
+      ]
+    })
+  },
+  {
+    description: "Create a GitLab project access token with maintainer access level",
+    example: yaml__default$3.default.stringify({
+      steps: [
+        {
+          id: "createAccessToken",
+          action: "gitlab:projectAccessToken:create",
+          name: "Create GitLab Project Access Token",
+          input: {
+            repoUrl: "gitlab.com?repo=repo&owner=owner",
+            projectId: "101112",
+            accessLevel: 40
+          }
+        }
+      ]
+    })
+  },
+  {
+    description: "Create a GitLab project access token with owner access level",
+    example: yaml__default$3.default.stringify({
+      steps: [
+        {
+          id: "createAccessToken",
+          action: "gitlab:projectAccessToken:create",
+          name: "Create GitLab Project Access Token",
+          input: {
+            repoUrl: "gitlab.com?repo=repo&owner=owner",
+            projectId: "101112",
+            accessLevel: 50
+          }
+        }
+      ]
+    })
+  },
+  {
+    description: "Create a GitLab project access token with a specified name and no expiration date",
+    example: yaml__default$3.default.stringify({
+      steps: [
+        {
+          id: "createAccessToken",
+          action: "gitlab:projectAccessToken:create",
+          name: "Create GitLab Project Access Token",
+          input: {
+            repoUrl: "gitlab.com?repo=repo&owner=owner",
+            projectId: "101112",
+            name: "no-expiry-token"
+          }
+        }
+      ]
+    })
+  },
+  {
+    description: "Create a GitLab project access token for a specific gitlab instance",
+    example: yaml__default$3.default.stringify({
+      steps: [
+        {
+          id: "createAccessToken",
+          action: "gitlab:projectAccessToken:create",
+          name: "Create GitLab Project Access Token",
+          input: {
+            repoUrl: "gitlab.example.com?repo=repo&owner=owner",
+            projectId: "101112"
+          }
+        }
+      ]
+    })
   }
 ];
 
+gitlabProjectAccessTokenCreate_examples_cjs.examples = examples$3;
+
+var errors$2 = require$$0$1;
+var pluginScaffolderNode$3 = require$$1;
+var rest = require$$1$1;
+var luxon = require$$3$1;
+var zod$2 = require$$4;
+var util$2 = util_cjs;
+var gitlabProjectAccessTokenCreate_examples = gitlabProjectAccessTokenCreate_examples_cjs;
+
 const createGitlabProjectAccessTokenAction = (options) => {
   const { integrations } = options;
-  return pluginScaffolderNode.createTemplateAction({
+  return pluginScaffolderNode$3.createTemplateAction({
     id: "gitlab:projectAccessToken:create",
-    examples: examples$3,
+    examples: gitlabProjectAccessTokenCreate_examples.examples,
     schema: {
-      input: zod.z.object({
-        projectId: zod.z.union([zod.z.number(), zod.z.string()], {
+      input: zod$2.z.object({
+        projectId: zod$2.z.union([zod$2.z.number(), zod$2.z.string()], {
           description: "Project ID/Name(slug) of the Gitlab Project"
         }),
-        token: zod.z.string({
+        token: zod$2.z.string({
           description: "The token to use for authorization to GitLab"
         }).optional(),
-        name: zod.z.string({ description: "Name of Access Key" }).optional(),
-        repoUrl: zod.z.string({ description: "URL to gitlab instance" }),
-        accessLevel: zod.z.number({
+        name: zod$2.z.string({ description: "Name of Access Key" }).optional(),
+        repoUrl: zod$2.z.string({ description: "URL to gitlab instance" }),
+        accessLevel: zod$2.z.number({
           description: "Access Level of the Token, 10 (Guest), 20 (Reporter), 30 (Developer), 40 (Maintainer), and 50 (Owner)"
         }).optional(),
-        scopes: zod.z.string({
+        scopes: zod$2.z.string({
           description: "Scopes for a project access token"
         }).array().optional(),
-        expiresAt: zod.z.string({
+        expiresAt: zod$2.z.string({
           description: "Expiration date of the access token in ISO format (YYYY-MM-DD). If Empty, it will set to the maximum of 365 days."
         }).optional()
       }),
-      output: zod.z.object({
-        access_token: zod.z.string({ description: "Access Token" })
+      output: zod$2.z.object({
+        access_token: zod$2.z.string({ description: "Access Token" })
       })
     },
     async handler(ctx) {
@@ -1782,9 +2561,9 @@ const createGitlabProjectAccessTokenAction = (options) => {
         scopes = ["read_repository"],
         expiresAt
       } = ctx.input;
-      const { token, integrationConfig } = getToken(ctx.input, integrations);
+      const { token, integrationConfig } = util$2.getToken(ctx.input, integrations);
       if (!integrationConfig.config.token && token) {
-        throw new errors.InputError(
+        throw new errors$2.InputError(
           `No token available for host ${integrationConfig.config.baseUrl}`
         );
       }
@@ -1817,10 +2596,22 @@ const createGitlabProjectAccessTokenAction = (options) => {
   });
 };
 
+gitlabProjectAccessTokenCreate_cjs.createGitlabProjectAccessTokenAction = createGitlabProjectAccessTokenAction;
+
+var gitlabProjectDeployTokenCreate_cjs = {};
+
+var gitlabProjectDeployTokenCreate_examples_cjs = {};
+
+var yaml$2 = require$$0;
+
+function _interopDefaultCompat$3 (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }
+
+var yaml__default$2 = /*#__PURE__*/_interopDefaultCompat$3(yaml$2);
+
 const examples$2 = [
   {
     description: "Create a GitLab project deploy token with minimal options.",
-    example: yaml__default.default.stringify({
+    example: yaml__default$2.default.stringify({
       steps: [
         {
           id: "createDeployToken",
@@ -1837,7 +2628,7 @@ const examples$2 = [
   },
   {
     description: "Create a GitLab project deploy token with custom scopes.",
-    example: yaml__default.default.stringify({
+    example: yaml__default$2.default.stringify({
       steps: [
         {
           id: "createDeployToken",
@@ -1855,7 +2646,7 @@ const examples$2 = [
   },
   {
     description: "Create a GitLab project deploy token with a specified name.",
-    example: yaml__default.default.stringify({
+    example: yaml__default$2.default.stringify({
       steps: [
         {
           id: "createDeployToken",
@@ -1872,7 +2663,7 @@ const examples$2 = [
   },
   {
     description: "Create a GitLab project deploy token with a numeric project ID.",
-    example: yaml__default.default.stringify({
+    example: yaml__default$2.default.stringify({
       steps: [
         {
           id: "createDeployToken",
@@ -1889,7 +2680,7 @@ const examples$2 = [
   },
   {
     description: "Create a GitLab project deploy token with a custom username",
-    example: yaml__default.default.stringify({
+    example: yaml__default$2.default.stringify({
       steps: [
         {
           id: "createDeployToken",
@@ -1907,31 +2698,41 @@ const examples$2 = [
   }
 ];
 
+gitlabProjectDeployTokenCreate_examples_cjs.examples = examples$2;
+
+var errors$1 = require$$0$1;
+var pluginScaffolderNode$2 = require$$1;
+var node = require$$2;
+var zod$1 = require$$4;
+var commonGitlabConfig$2 = commonGitlabConfig_cjs;
+var util$1 = util_cjs;
+var gitlabProjectDeployTokenCreate_examples = gitlabProjectDeployTokenCreate_examples_cjs;
+
 const createGitlabProjectDeployTokenAction = (options) => {
   const { integrations } = options;
-  return pluginScaffolderNode.createTemplateAction({
+  return pluginScaffolderNode$2.createTemplateAction({
     id: "gitlab:projectDeployToken:create",
-    examples: examples$2,
+    examples: gitlabProjectDeployTokenCreate_examples.examples,
     schema: {
-      input: commonGitlabConfig.merge(
-        zod.z.object({
-          projectId: zod.z.union([zod.z.number(), zod.z.string()], {
+      input: commonGitlabConfig$2.default.merge(
+        zod$1.z.object({
+          projectId: zod$1.z.union([zod$1.z.number(), zod$1.z.string()], {
             description: "Project ID"
           }),
-          name: zod.z.string({ description: "Deploy Token Name" }),
-          username: zod.z.string({ description: "Deploy Token Username" }).optional(),
-          scopes: zod.z.array(zod.z.string(), { description: "Scopes" }).optional()
+          name: zod$1.z.string({ description: "Deploy Token Name" }),
+          username: zod$1.z.string({ description: "Deploy Token Username" }).optional(),
+          scopes: zod$1.z.array(zod$1.z.string(), { description: "Scopes" }).optional()
         })
       ),
-      output: zod.z.object({
-        deploy_token: zod.z.string({ description: "Deploy Token" }),
-        user: zod.z.string({ description: "User" })
+      output: zod$1.z.object({
+        deploy_token: zod$1.z.string({ description: "Deploy Token" }),
+        user: zod$1.z.string({ description: "User" })
       })
     },
     async handler(ctx) {
       ctx.logger.info(`Creating Token for Project "${ctx.input.projectId}"`);
       const { projectId, name, username, scopes } = ctx.input;
-      const { token, integrationConfig } = getToken(ctx.input, integrations);
+      const { token, integrationConfig } = util$1.getToken(ctx.input, integrations);
       const api = new node.Gitlab({
         host: integrationConfig.config.baseUrl,
         token
@@ -1945,7 +2746,7 @@ const createGitlabProjectDeployTokenAction = (options) => {
         }
       );
       if (!deployToken.hasOwnProperty("token")) {
-        throw new errors.InputError(`No deploy_token given from gitlab instance`);
+        throw new errors$1.InputError(`No deploy_token given from gitlab instance`);
       }
       ctx.output("deploy_token", deployToken.token);
       ctx.output("user", deployToken.username);
@@ -1953,10 +2754,22 @@ const createGitlabProjectDeployTokenAction = (options) => {
   });
 };
 
+gitlabProjectDeployTokenCreate_cjs.createGitlabProjectDeployTokenAction = createGitlabProjectDeployTokenAction;
+
+var gitlabProjectVariableCreate_cjs = {};
+
+var gitlabProjectVariableCreate_examples_cjs = {};
+
+var yaml$1 = require$$0;
+
+function _interopDefaultCompat$2 (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }
+
+var yaml__default$1 = /*#__PURE__*/_interopDefaultCompat$2(yaml$1);
+
 const examples$1 = [
   {
     description: "Creating a GitLab project variable of type env_var",
-    example: yaml__default.default.stringify({
+    example: yaml__default$1.default.stringify({
       steps: [
         {
           id: "createVariable",
@@ -1975,7 +2788,7 @@ const examples$1 = [
   },
   {
     description: "Creating a GitLab project variable of type file",
-    example: yaml__default.default.stringify({
+    example: yaml__default$1.default.stringify({
       steps: [
         {
           id: "createVariable",
@@ -1994,7 +2807,7 @@ const examples$1 = [
   },
   {
     description: "Create a GitLab project variable that is protected.",
-    example: yaml__default.default.stringify({
+    example: yaml__default$1.default.stringify({
       steps: [
         {
           id: "createVariable",
@@ -2014,7 +2827,7 @@ const examples$1 = [
   },
   {
     description: "Create a GitLab project variable with masked flag as true",
-    example: yaml__default.default.stringify({
+    example: yaml__default$1.default.stringify({
       steps: [
         {
           id: "createVariable",
@@ -2034,7 +2847,7 @@ const examples$1 = [
   },
   {
     description: "Create a GitLab project variable that is expandable.",
-    example: yaml__default.default.stringify({
+    example: yaml__default$1.default.stringify({
       steps: [
         {
           id: "createVariable",
@@ -2054,7 +2867,7 @@ const examples$1 = [
   },
   {
     description: "Create a GitLab project variable with a specific environment scope.",
-    example: yaml__default.default.stringify({
+    example: yaml__default$1.default.stringify({
       steps: [
         {
           id: "createVariable",
@@ -2074,7 +2887,7 @@ const examples$1 = [
   },
   {
     description: "Create a GitLab project variable with a wildcard environment scope.",
-    example: yaml__default.default.stringify({
+    example: yaml__default$1.default.stringify({
       steps: [
         {
           id: "createVariable",
@@ -2094,13 +2907,21 @@ const examples$1 = [
   }
 ];
 
+gitlabProjectVariableCreate_examples_cjs.examples = examples$1;
+
+var pluginScaffolderNode$1 = require$$1;
+var zod = require$$4;
+var commonGitlabConfig$1 = commonGitlabConfig_cjs;
+var util = util_cjs;
+var gitlabProjectVariableCreate_examples = gitlabProjectVariableCreate_examples_cjs;
+
 const createGitlabProjectVariableAction = (options) => {
   const { integrations } = options;
-  return pluginScaffolderNode.createTemplateAction({
+  return pluginScaffolderNode$1.createTemplateAction({
     id: "gitlab:projectVariable:create",
-    examples: examples$1,
+    examples: gitlabProjectVariableCreate_examples.examples,
     schema: {
-      input: commonGitlabConfig.merge(
+      input: commonGitlabConfig$1.default.merge(
         zod.z.object({
           projectId: zod.z.union([zod.z.number(), zod.z.string()], {
             description: "Project ID"
@@ -2121,6 +2942,7 @@ const createGitlabProjectVariableAction = (options) => {
     },
     async handler(ctx) {
       const {
+        repoUrl,
         projectId,
         key,
         value,
@@ -2128,25 +2950,33 @@ const createGitlabProjectVariableAction = (options) => {
         variableProtected = false,
         masked = false,
         raw = false,
-        environmentScope = "*"
-      } = ctx.input;
-      const { token, integrationConfig } = getToken(ctx.input, integrations);
-      const api = new node.Gitlab({
-        host: integrationConfig.config.baseUrl,
+        environmentScope = "*",
         token
-      });
-      await api.ProjectVariables.create(projectId, {
-        key,
-        value,
-        variable_type: variableType,
+      } = ctx.input;
+      const { host } = util.parseRepoUrl(repoUrl, integrations);
+      const api = util.getClient({ host, integrations, token });
+      await api.ProjectVariables.create(projectId, key, value, {
+        variableType,
         protected: variableProtected,
         masked,
         raw,
-        environment_scope: environmentScope
+        environmentScope
       });
     }
   });
 };
+
+gitlabProjectVariableCreate_cjs.createGitlabProjectVariableAction = createGitlabProjectVariableAction;
+
+var gitlabRepoPush_cjs = {};
+
+var gitlabRepoPush_examples_cjs = {};
+
+var yaml = require$$0;
+
+function _interopDefaultCompat$1 (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }
+
+var yaml__default = /*#__PURE__*/_interopDefaultCompat$1(yaml);
 
 const examples = [
   {
@@ -2205,11 +3035,24 @@ const examples = [
   }
 ];
 
+gitlabRepoPush_examples_cjs.examples = examples;
+
+var pluginScaffolderNode = require$$1;
+var path = require$$1$2;
+var errors = require$$0$1;
+var backendPluginApi$1 = require$$3;
+var helpers = helpers_cjs;
+var gitlabRepoPush_examples = gitlabRepoPush_examples_cjs;
+
+function _interopDefaultCompat (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }
+
+var path__default = /*#__PURE__*/_interopDefaultCompat(path);
+
 const createGitlabRepoPushAction = (options) => {
   const { integrations } = options;
   return pluginScaffolderNode.createTemplateAction({
     id: "gitlab:repo:push",
-    examples,
+    examples: gitlabRepoPush_examples.examples,
     schema: {
       input: {
         required: ["repoUrl", "branchName", "commitMessage"],
@@ -2282,14 +3125,14 @@ const createGitlabRepoPushAction = (options) => {
       } = ctx.input;
       const { owner, repo, project } = pluginScaffolderNode.parseRepoUrl(repoUrl, integrations);
       const repoID = project ? project : `${owner}/${repo}`;
-      const api = createGitlabApi({
+      const api = helpers.createGitlabApi({
         integrations,
         token,
         repoUrl
       });
       let fileRoot;
       if (sourcePath) {
-        fileRoot = backendPluginApi.resolveSafeChildPath(ctx.workspacePath, sourcePath);
+        fileRoot = backendPluginApi$1.resolveSafeChildPath(ctx.workspacePath, sourcePath);
       } else {
         fileRoot = ctx.workspacePath;
       }
@@ -2344,6 +3187,25 @@ const createGitlabRepoPushAction = (options) => {
   });
 };
 
+gitlabRepoPush_cjs.createGitlabRepoPushAction = createGitlabRepoPushAction;
+
+var module_cjs = {};
+
+var backendPluginApi = require$$3;
+var integration = require$$1$3;
+var alpha = require$$2$1;
+var gitlab$1 = gitlab_cjs;
+var gitlabGroupEnsureExists$1 = gitlabGroupEnsureExists_cjs;
+var gitlabIssueCreate$1 = gitlabIssueCreate_cjs;
+var gitlabIssueEdit$1 = gitlabIssueEdit_cjs;
+var gitlabMergeRequest$1 = gitlabMergeRequest_cjs;
+var gitlabPipelineTrigger$1 = gitlabPipelineTrigger_cjs;
+var gitlabProjectAccessTokenCreate$1 = gitlabProjectAccessTokenCreate_cjs;
+var gitlabProjectDeployTokenCreate$1 = gitlabProjectDeployTokenCreate_cjs;
+var gitlabProjectVariableCreate$1 = gitlabProjectVariableCreate_cjs;
+var gitlabRepoPush$1 = gitlabRepoPush_cjs;
+
+
 const gitlabModule = backendPluginApi.createBackendModule({
   pluginId: "scaffolder",
   moduleId: "gitlab",
@@ -2356,35 +3218,54 @@ const gitlabModule = backendPluginApi.createBackendModule({
       async init({ scaffolder, config }) {
         const integrations = integration.ScmIntegrations.fromConfig(config);
         scaffolder.addActions(
-          createGitlabGroupEnsureExistsAction({ integrations }),
-          createGitlabIssueAction({ integrations }),
-          createGitlabProjectAccessTokenAction({ integrations }),
-          createGitlabProjectDeployTokenAction({ integrations }),
-          createGitlabProjectVariableAction({ integrations }),
-          createGitlabRepoPushAction({ integrations }),
-          editGitlabIssueAction({ integrations }),
-          createPublishGitlabAction({ config, integrations }),
-          createPublishGitlabMergeRequestAction({ integrations }),
-          createTriggerGitlabPipelineAction({ integrations })
+          gitlabGroupEnsureExists$1.createGitlabGroupEnsureExistsAction({ integrations }),
+          gitlabIssueCreate$1.createGitlabIssueAction({ integrations }),
+          gitlabProjectAccessTokenCreate$1.createGitlabProjectAccessTokenAction({ integrations }),
+          gitlabProjectDeployTokenCreate$1.createGitlabProjectDeployTokenAction({ integrations }),
+          gitlabProjectVariableCreate$1.createGitlabProjectVariableAction({ integrations }),
+          gitlabRepoPush$1.createGitlabRepoPushAction({ integrations }),
+          gitlabIssueEdit$1.editGitlabIssueAction({ integrations }),
+          gitlab$1.createPublishGitlabAction({ config, integrations }),
+          gitlabMergeRequest$1.createPublishGitlabMergeRequestAction({ integrations }),
+          gitlabPipelineTrigger$1.createTriggerGitlabPipelineAction({ integrations })
         );
       }
     });
   }
 });
 
-index_cjs.IssueStateEvent = IssueStateEvent;
-index_cjs.IssueType = IssueType;
-index_cjs.createGitlabGroupEnsureExistsAction = createGitlabGroupEnsureExistsAction;
-index_cjs.createGitlabIssueAction = createGitlabIssueAction;
-index_cjs.createGitlabProjectAccessTokenAction = createGitlabProjectAccessTokenAction;
-index_cjs.createGitlabProjectDeployTokenAction = createGitlabProjectDeployTokenAction;
-index_cjs.createGitlabProjectVariableAction = createGitlabProjectVariableAction;
-index_cjs.createGitlabRepoPushAction = createGitlabRepoPushAction;
-index_cjs.createPublishGitlabAction = createPublishGitlabAction;
-index_cjs.createPublishGitlabMergeRequestAction = createPublishGitlabMergeRequestAction;
-index_cjs.createTriggerGitlabPipelineAction = createTriggerGitlabPipelineAction;
-var _default = index_cjs.default = gitlabModule;
-index_cjs.editGitlabIssueAction = editGitlabIssueAction;
+module_cjs.gitlabModule = gitlabModule;
+
+Object.defineProperty(index_cjs, '__esModule', { value: true });
+
+var gitlab = gitlab_cjs;
+var gitlabGroupEnsureExists = gitlabGroupEnsureExists_cjs;
+var gitlabIssueCreate = gitlabIssueCreate_cjs;
+var gitlabIssueEdit = gitlabIssueEdit_cjs;
+var gitlabMergeRequest = gitlabMergeRequest_cjs;
+var gitlabPipelineTrigger = gitlabPipelineTrigger_cjs;
+var gitlabProjectAccessTokenCreate = gitlabProjectAccessTokenCreate_cjs;
+var gitlabProjectDeployTokenCreate = gitlabProjectDeployTokenCreate_cjs;
+var gitlabProjectVariableCreate = gitlabProjectVariableCreate_cjs;
+var gitlabRepoPush = gitlabRepoPush_cjs;
+var commonGitlabConfig = commonGitlabConfig_cjs;
+var module$1 = module_cjs;
+
+
+
+index_cjs.createPublishGitlabAction = gitlab.createPublishGitlabAction;
+index_cjs.createGitlabGroupEnsureExistsAction = gitlabGroupEnsureExists.createGitlabGroupEnsureExistsAction;
+index_cjs.createGitlabIssueAction = gitlabIssueCreate.createGitlabIssueAction;
+index_cjs.editGitlabIssueAction = gitlabIssueEdit.editGitlabIssueAction;
+index_cjs.createPublishGitlabMergeRequestAction = gitlabMergeRequest.createPublishGitlabMergeRequestAction;
+index_cjs.createTriggerGitlabPipelineAction = gitlabPipelineTrigger.createTriggerGitlabPipelineAction;
+index_cjs.createGitlabProjectAccessTokenAction = gitlabProjectAccessTokenCreate.createGitlabProjectAccessTokenAction;
+index_cjs.createGitlabProjectDeployTokenAction = gitlabProjectDeployTokenCreate.createGitlabProjectDeployTokenAction;
+index_cjs.createGitlabProjectVariableAction = gitlabProjectVariableCreate.createGitlabProjectVariableAction;
+index_cjs.createGitlabRepoPushAction = gitlabRepoPush.createGitlabRepoPushAction;
+index_cjs.IssueStateEvent = commonGitlabConfig.IssueStateEvent;
+index_cjs.IssueType = commonGitlabConfig.IssueType;
+var _default = index_cjs.default = module$1.gitlabModule;
 
 exports["default"] = _default;
 //# sourceMappingURL=index.cjs.js.map

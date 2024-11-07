@@ -2,64 +2,29 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var require$$0 = require('@backstage/catalog-model');
-var require$$1 = require('lodash');
-var require$$2 = require('uuid');
-var require$$3 = require('@backstage/errors');
-var require$$4 = require('fs/promises');
-var require$$5 = require('ldapjs');
-var require$$6 = require('tls');
-var require$$7 = require('@backstage/backend-plugin-api');
-var require$$8 = require('lodash/mergeWith');
-var require$$9 = require('lodash/set');
-var require$$10 = require('lodash/cloneDeep');
-var require$$11 = require('@backstage/plugin-catalog-node');
-var require$$12 = require('@backstage/plugin-catalog-node/alpha');
+var require$$0$3 = require('@backstage/catalog-model');
+var require$$0 = require('lodash');
+var require$$2$2 = require('uuid');
+var require$$0$1 = require('@backstage/errors');
+var require$$1 = require('fs/promises');
+var require$$2 = require('ldapjs');
+var require$$4 = require('tls');
+var require$$0$2 = require('@backstage/backend-plugin-api');
+var require$$1$1 = require('lodash/mergeWith');
+var require$$1$2 = require('lodash/set');
+var require$$2$1 = require('lodash/cloneDeep');
+var require$$4$1 = require('@backstage/plugin-catalog-node');
+var require$$1$3 = require('@backstage/plugin-catalog-node/alpha');
 
 var index_cjs = {};
 
-Object.defineProperty(index_cjs, '__esModule', { value: true });
+var LdapOrgEntityProvider_cjs = {};
 
-var catalogModel = require$$0;
-var lodash = require$$1;
-var uuid = require$$2;
-var errors = require$$3;
-var promises = require$$4;
-var ldap = require$$5;
-var tlsLib = require$$6;
-var backendPluginApi = require$$7;
-var mergeWith = require$$8;
-var lodashSet = require$$9;
-var cloneDeep = require$$10;
-var pluginCatalogNode = require$$11;
-var alpha = require$$12;
+var client_cjs = {};
 
-function _interopDefaultCompat (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }
+var util_cjs = {};
 
-function _interopNamespaceCompat(e) {
-  if (e && typeof e === 'object' && 'default' in e) return e;
-  var n = Object.create(null);
-  if (e) {
-    Object.keys(e).forEach(function (k) {
-      if (k !== 'default') {
-        var d = Object.getOwnPropertyDescriptor(e, k);
-        Object.defineProperty(n, k, d.get ? d : {
-          enumerable: true,
-          get: function () { return e[k]; }
-        });
-      }
-    });
-  }
-  n.default = e;
-  return Object.freeze(n);
-}
-
-var uuid__namespace = /*#__PURE__*/_interopNamespaceCompat(uuid);
-var ldap__default = /*#__PURE__*/_interopDefaultCompat(ldap);
-var tlsLib__default = /*#__PURE__*/_interopDefaultCompat(tlsLib);
-var mergeWith__default = /*#__PURE__*/_interopDefaultCompat(mergeWith);
-var lodashSet__default = /*#__PURE__*/_interopDefaultCompat(lodashSet);
-var cloneDeep__default = /*#__PURE__*/_interopDefaultCompat(cloneDeep);
+var lodash$3 = require$$0;
 
 function errorString(error) {
   return `${error.code} ${error.name}: ${error.message}`;
@@ -73,7 +38,7 @@ function mapStringAttr(entry, vendor, attributeName, setter) {
   }
 }
 function createOptions(inputOptions) {
-  const result = lodash.cloneDeep(inputOptions);
+  const result = lodash$3.cloneDeep(inputOptions);
   if (result.paged === true) {
     result.paged = { pagePause: true };
   } else if (typeof result.paged === "object") {
@@ -81,6 +46,12 @@ function createOptions(inputOptions) {
   }
   return result;
 }
+
+util_cjs.createOptions = createOptions;
+util_cjs.errorString = errorString;
+util_cjs.mapStringAttr = mapStringAttr;
+
+var vendors_cjs = {};
 
 const DefaultLdapVendor = {
   dnAttributeName: "entryDN",
@@ -149,6 +120,24 @@ function formatGUID(objectGUID) {
   return template;
 }
 
+vendors_cjs.AEDirVendor = AEDirVendor;
+vendors_cjs.ActiveDirectoryVendor = ActiveDirectoryVendor;
+vendors_cjs.DefaultLdapVendor = DefaultLdapVendor;
+vendors_cjs.FreeIpaVendor = FreeIpaVendor;
+
+var errors = require$$0$1;
+var promises = require$$1;
+var ldap = require$$2;
+var lodash$2 = require$$0;
+var tlsLib = require$$4;
+var util$2 = util_cjs;
+var vendors = vendors_cjs;
+
+function _interopDefaultCompat$2 (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }
+
+var ldap__default = /*#__PURE__*/_interopDefaultCompat$2(ldap);
+var tlsLib__default = /*#__PURE__*/_interopDefaultCompat$2(tlsLib);
+
 class LdapClient {
   constructor(client, logger) {
     this.client = client;
@@ -173,7 +162,7 @@ class LdapClient {
       }
     });
     client.on("error", (err) => {
-      logger.warn(`LDAP client threw an error, ${errorString(err)}`);
+      logger.warn(`LDAP client threw an error, ${util$2.errorString(err)}`);
     });
     if (!bind) {
       return new LdapClient(client, logger);
@@ -182,7 +171,7 @@ class LdapClient {
       const { dn, secret } = bind;
       client.bind(dn, secret, (err) => {
         if (err) {
-          reject(`LDAP bind failed for ${dn}, ${errorString(err)}`);
+          reject(`LDAP bind failed for ${dn}, ${util$2.errorString(err)}`);
         } else {
           resolve(new LdapClient(client, logger));
         }
@@ -202,9 +191,9 @@ class LdapClient {
         this.logger.debug(`Read ${output.length} LDAP entries so far...`);
       }, 5e3);
       const search = new Promise((resolve, reject) => {
-        this.client.search(dn, lodash.cloneDeep(options), (err, res) => {
+        this.client.search(dn, lodash$2.cloneDeep(options), (err, res) => {
           if (err) {
-            reject(new Error(errorString(err)));
+            reject(new Error(util$2.errorString(err)));
             return;
           }
           res.on("searchReference", () => {
@@ -214,7 +203,7 @@ class LdapClient {
             output.push(entry);
           });
           res.on("error", (e) => {
-            reject(new Error(errorString(e)));
+            reject(new Error(util$2.errorString(e)));
           });
           res.on("page", (_result, cb) => {
             if (cb) {
@@ -249,9 +238,9 @@ class LdapClient {
   async searchStreaming(dn, options, f) {
     try {
       return await new Promise((resolve, reject) => {
-        this.client.search(dn, createOptions(options), (err, res) => {
+        this.client.search(dn, util$2.createOptions(options), (err, res) => {
           if (err) {
-            reject(new Error(errorString(err)));
+            reject(new Error(util$2.errorString(err)));
           }
           let awaitList = [];
           let transformError = false;
@@ -276,7 +265,7 @@ class LdapClient {
             }).catch(transformReject);
           });
           res.on("error", (e) => {
-            reject(new Error(errorString(e)));
+            reject(new Error(util$2.errorString(e)));
           });
           res.on("end", (r) => {
             if (!r) {
@@ -305,13 +294,13 @@ class LdapClient {
     }
     this.vendor = this.getRootDSE().then((root) => {
       if (root && root.raw?.forestFunctionality) {
-        return ActiveDirectoryVendor;
+        return vendors.ActiveDirectoryVendor;
       } else if (root && root.raw?.ipaDomainLevel) {
-        return FreeIpaVendor;
+        return vendors.FreeIpaVendor;
       } else if (root && "aeRoot" in root.raw) {
-        return AEDirVendor;
+        return vendors.AEDirVendor;
       }
-      return DefaultLdapVendor;
+      return vendors.DefaultLdapVendor;
     }).catch((err) => {
       this.vendor = void 0;
       throw err;
@@ -334,6 +323,18 @@ class LdapClient {
     return void 0;
   }
 }
+
+client_cjs.LdapClient = LdapClient;
+
+var config_cjs = {};
+
+var backendPluginApi$1 = require$$0$2;
+var mergeWith = require$$1$1;
+var lodash$1 = require$$0;
+
+function _interopDefaultCompat$1 (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }
+
+var mergeWith__default = /*#__PURE__*/_interopDefaultCompat$1(mergeWith);
 
 const defaultUserConfig = {
   options: {
@@ -388,6 +389,15 @@ function readBindConfig(c) {
   return {
     dn: c.getString("dn"),
     secret: c.getString("secret")
+  };
+}
+function readVendorConfig(c) {
+  if (!c) {
+    return void 0;
+  }
+  return {
+    dnAttributeName: c.getOptionalString("dnAttributeName"),
+    uuidAttributeName: c.getOptionalString("uuidAttributeName")
   };
 }
 function readOptionsConfig(c) {
@@ -498,7 +508,7 @@ function readLdapLegacyConfig(config) {
   const providerConfigs = config.getOptionalConfigArray("providers") ?? [];
   return providerConfigs.map((c) => {
     const newConfig = {
-      target: lodash.trimEnd(c.getString("target"), "/"),
+      target: lodash$1.trimEnd(c.getString("target"), "/"),
       tls: readTlsConfig(c.getOptionalConfig("tls")),
       bind: readBindConfig(c.getOptionalConfig("bind")),
       users: readUserConfig(c.getConfig("users")).map((it) => {
@@ -506,7 +516,8 @@ function readLdapLegacyConfig(config) {
       }),
       groups: readGroupConfig(c.getConfig("groups")).map((it) => {
         return mergeWith__default.default({}, defaultGroupConfig, it, replaceArraysIfPresent);
-      })
+      }),
+      vendor: readVendorConfig(c.getOptionalConfig("vendor"))
     };
     return freeze(newConfig);
   });
@@ -518,14 +529,14 @@ function readProviderConfigs(config) {
   }
   return providersConfig.keys().map((id) => {
     const c = providersConfig.getConfig(id);
-    const schedule = c.has("schedule") ? backendPluginApi.readSchedulerServiceTaskScheduleDefinitionFromConfig(
+    const schedule = c.has("schedule") ? backendPluginApi$1.readSchedulerServiceTaskScheduleDefinitionFromConfig(
       c.getConfig("schedule")
     ) : void 0;
     const isUserList = Array.isArray(c.getOptional("users"));
     const isGroupList = Array.isArray(c.getOptional("groups"));
     const newConfig = {
       id,
-      target: lodash.trimEnd(c.getString("target"), "/"),
+      target: lodash$1.trimEnd(c.getString("target"), "/"),
       tls: readTlsConfig(c.getOptionalConfig("tls")),
       bind: readBindConfig(c.getOptionalConfig("bind")),
       users: readUserConfig(
@@ -538,7 +549,8 @@ function readProviderConfigs(config) {
       ).map((it) => {
         return mergeWith__default.default({}, defaultGroupConfig, it, replaceArraysIfPresent);
       }),
-      schedule
+      schedule,
+      vendor: readVendorConfig(c.getOptionalConfig("vendor"))
     };
     return freeze(newConfig);
   });
@@ -547,14 +559,29 @@ function replaceArraysIfPresent(_into, from) {
   return Array.isArray(from) ? from : void 0;
 }
 
+config_cjs.readLdapLegacyConfig = readLdapLegacyConfig;
+config_cjs.readProviderConfigs = readProviderConfigs;
+
+var constants_cjs = {};
+
 const LDAP_RDN_ANNOTATION = "backstage.io/ldap-rdn";
 const LDAP_DN_ANNOTATION = "backstage.io/ldap-dn";
 const LDAP_UUID_ANNOTATION = "backstage.io/ldap-uuid";
 
+constants_cjs.LDAP_DN_ANNOTATION = LDAP_DN_ANNOTATION;
+constants_cjs.LDAP_RDN_ANNOTATION = LDAP_RDN_ANNOTATION;
+constants_cjs.LDAP_UUID_ANNOTATION = LDAP_UUID_ANNOTATION;
+
+var read_cjs = {};
+
+var org_cjs = {};
+
+var catalogModel$2 = require$$0$3;
+
 function buildOrgHierarchy(groups) {
-  const groupsByRef = new Map(groups.map((g) => [catalogModel.stringifyEntityRef(g), g]));
+  const groupsByRef = new Map(groups.map((g) => [catalogModel$2.stringifyEntityRef(g), g]));
   for (const group of groups) {
-    const selfRef = catalogModel.stringifyEntityRef(group);
+    const selfRef = catalogModel$2.stringifyEntityRef(group);
     const parentRef = group.spec.parent;
     if (parentRef) {
       const parent = groupsByRef.get(parentRef);
@@ -564,7 +591,7 @@ function buildOrgHierarchy(groups) {
     }
   }
   for (const group of groups) {
-    const selfRef = catalogModel.stringifyEntityRef(group);
+    const selfRef = catalogModel$2.stringifyEntityRef(group);
     for (const childRef of group.spec.children) {
       const child = groupsByRef.get(childRef);
       if (child && !child.spec.parent) {
@@ -573,6 +600,20 @@ function buildOrgHierarchy(groups) {
     }
   }
 }
+
+org_cjs.buildOrgHierarchy = buildOrgHierarchy;
+
+var catalogModel$1 = require$$0$3;
+var lodashSet = require$$1$2;
+var cloneDeep = require$$2$1;
+var org = org_cjs;
+var constants$2 = constants_cjs;
+var util$1 = util_cjs;
+
+function _interopDefaultCompat (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }
+
+var lodashSet__default = /*#__PURE__*/_interopDefaultCompat(lodashSet);
+var cloneDeep__default = /*#__PURE__*/_interopDefaultCompat(cloneDeep);
 
 async function defaultUserTransformer(vendor, config, entry) {
   const { set, map } = config;
@@ -593,41 +634,46 @@ async function defaultUserTransformer(vendor, config, entry) {
       lodashSet__default.default(entity, path, cloneDeep__default.default(value));
     }
   }
-  mapStringAttr(entry, vendor, map.name, (v) => {
+  util$1.mapStringAttr(entry, vendor, map.name, (v) => {
     entity.metadata.name = v;
   });
-  mapStringAttr(entry, vendor, map.description, (v) => {
+  util$1.mapStringAttr(entry, vendor, map.description, (v) => {
     entity.metadata.description = v;
   });
-  mapStringAttr(entry, vendor, map.rdn, (v) => {
-    entity.metadata.annotations[LDAP_RDN_ANNOTATION] = v;
+  util$1.mapStringAttr(entry, vendor, map.rdn, (v) => {
+    entity.metadata.annotations[constants$2.LDAP_RDN_ANNOTATION] = v;
   });
-  mapStringAttr(entry, vendor, vendor.uuidAttributeName, (v) => {
-    entity.metadata.annotations[LDAP_UUID_ANNOTATION] = v;
+  util$1.mapStringAttr(entry, vendor, vendor.uuidAttributeName, (v) => {
+    entity.metadata.annotations[constants$2.LDAP_UUID_ANNOTATION] = v;
   });
-  mapStringAttr(entry, vendor, vendor.dnAttributeName, (v) => {
-    entity.metadata.annotations[LDAP_DN_ANNOTATION] = v;
+  util$1.mapStringAttr(entry, vendor, vendor.dnAttributeName, (v) => {
+    entity.metadata.annotations[constants$2.LDAP_DN_ANNOTATION] = v;
   });
-  mapStringAttr(entry, vendor, map.displayName, (v) => {
+  util$1.mapStringAttr(entry, vendor, map.displayName, (v) => {
     entity.spec.profile.displayName = v;
   });
-  mapStringAttr(entry, vendor, map.email, (v) => {
+  util$1.mapStringAttr(entry, vendor, map.email, (v) => {
     entity.spec.profile.email = v;
   });
-  mapStringAttr(entry, vendor, map.picture, (v) => {
+  util$1.mapStringAttr(entry, vendor, map.picture, (v) => {
     entity.spec.profile.picture = v;
   });
   return entity;
 }
-async function readLdapUsers(client, config, opts) {
-  if (config.length === 0) {
+async function readLdapUsers(client, userConfig, vendorConfig, opts) {
+  if (userConfig.length === 0) {
     return { users: [], userMemberOf: /* @__PURE__ */ new Map() };
   }
   const entities = [];
   const userMemberOf = /* @__PURE__ */ new Map();
-  const vendor = await client.getVendor();
+  const vendorDefaults = await client.getVendor();
+  const vendor = {
+    dnAttributeName: vendorConfig?.dnAttributeName ?? vendorDefaults.dnAttributeName,
+    uuidAttributeName: vendorConfig?.uuidAttributeName ?? vendorDefaults.uuidAttributeName,
+    decodeStringAttribute: vendorDefaults.decodeStringAttribute
+  };
   const transformer = opts?.transformer ?? defaultUserTransformer;
-  for (const cfg of config) {
+  for (const cfg of userConfig) {
     const { dn, options, map } = cfg;
     await client.searchStreaming(dn, options, async (user) => {
       const entity = await transformer(vendor, cfg, user);
@@ -662,45 +708,50 @@ async function defaultGroupTransformer(vendor, config, entry) {
       lodashSet__default.default(entity, path, cloneDeep__default.default(value));
     }
   }
-  mapStringAttr(entry, vendor, map.name, (v) => {
+  util$1.mapStringAttr(entry, vendor, map.name, (v) => {
     entity.metadata.name = v;
   });
-  mapStringAttr(entry, vendor, map.description, (v) => {
+  util$1.mapStringAttr(entry, vendor, map.description, (v) => {
     entity.metadata.description = v;
   });
-  mapStringAttr(entry, vendor, map.rdn, (v) => {
-    entity.metadata.annotations[LDAP_RDN_ANNOTATION] = v;
+  util$1.mapStringAttr(entry, vendor, map.rdn, (v) => {
+    entity.metadata.annotations[constants$2.LDAP_RDN_ANNOTATION] = v;
   });
-  mapStringAttr(entry, vendor, vendor.uuidAttributeName, (v) => {
-    entity.metadata.annotations[LDAP_UUID_ANNOTATION] = v;
+  util$1.mapStringAttr(entry, vendor, vendor.uuidAttributeName, (v) => {
+    entity.metadata.annotations[constants$2.LDAP_UUID_ANNOTATION] = v;
   });
-  mapStringAttr(entry, vendor, vendor.dnAttributeName, (v) => {
-    entity.metadata.annotations[LDAP_DN_ANNOTATION] = v;
+  util$1.mapStringAttr(entry, vendor, vendor.dnAttributeName, (v) => {
+    entity.metadata.annotations[constants$2.LDAP_DN_ANNOTATION] = v;
   });
-  mapStringAttr(entry, vendor, map.type, (v) => {
+  util$1.mapStringAttr(entry, vendor, map.type, (v) => {
     entity.spec.type = v;
   });
-  mapStringAttr(entry, vendor, map.displayName, (v) => {
+  util$1.mapStringAttr(entry, vendor, map.displayName, (v) => {
     entity.spec.profile.displayName = v;
   });
-  mapStringAttr(entry, vendor, map.email, (v) => {
+  util$1.mapStringAttr(entry, vendor, map.email, (v) => {
     entity.spec.profile.email = v;
   });
-  mapStringAttr(entry, vendor, map.picture, (v) => {
+  util$1.mapStringAttr(entry, vendor, map.picture, (v) => {
     entity.spec.profile.picture = v;
   });
   return entity;
 }
-async function readLdapGroups(client, config, opts) {
-  if (config.length === 0) {
+async function readLdapGroups(client, groupConfig, vendorConfig, opts) {
+  if (groupConfig.length === 0) {
     return { groups: [], groupMemberOf: /* @__PURE__ */ new Map(), groupMember: /* @__PURE__ */ new Map() };
   }
   const groups = [];
   const groupMemberOf = /* @__PURE__ */ new Map();
   const groupMember = /* @__PURE__ */ new Map();
-  const vendor = await client.getVendor();
+  const vendorDefaults = await client.getVendor();
+  const vendor = {
+    dnAttributeName: vendorConfig?.dnAttributeName ?? vendorDefaults.dnAttributeName,
+    uuidAttributeName: vendorConfig?.uuidAttributeName ?? vendorDefaults.uuidAttributeName,
+    decodeStringAttribute: vendorDefaults.decodeStringAttribute
+  };
   const transformer = opts?.transformer ?? defaultGroupTransformer;
-  for (const cfg of config) {
+  for (const cfg of groupConfig) {
     const { dn, map, options } = cfg;
     await client.searchStreaming(dn, options, async (entry) => {
       if (!entry) {
@@ -725,13 +776,19 @@ async function readLdapGroups(client, config, opts) {
     groupMember
   };
 }
-async function readLdapOrg(client, userConfig, groupConfig, options) {
-  const { users, userMemberOf } = await readLdapUsers(client, userConfig, {
-    transformer: options?.userTransformer
-  });
+async function readLdapOrg(client, userConfig, groupConfig, vendorConfig, options) {
+  const { users, userMemberOf } = await readLdapUsers(
+    client,
+    userConfig,
+    vendorConfig,
+    {
+      transformer: options?.userTransformer
+    }
+  );
   const { groups, groupMemberOf, groupMember } = await readLdapGroups(
     client,
     groupConfig,
+    vendorConfig,
     { transformer: options?.groupTransformer }
   );
   resolveRelations(groups, users, userMemberOf, groupMemberOf, groupMember);
@@ -766,16 +823,16 @@ function resolveRelations(groups, users, userMemberOf, groupMemberOf, groupMembe
   const userMap = /* @__PURE__ */ new Map();
   const groupMap = /* @__PURE__ */ new Map();
   for (const user of users) {
-    userMap.set(catalogModel.stringifyEntityRef(user), user);
-    userMap.set(user.metadata.annotations[LDAP_DN_ANNOTATION], user);
-    userMap.set(user.metadata.annotations[LDAP_RDN_ANNOTATION], user);
-    userMap.set(user.metadata.annotations[LDAP_UUID_ANNOTATION], user);
+    userMap.set(catalogModel$1.stringifyEntityRef(user), user);
+    userMap.set(user.metadata.annotations[constants$2.LDAP_DN_ANNOTATION], user);
+    userMap.set(user.metadata.annotations[constants$2.LDAP_RDN_ANNOTATION], user);
+    userMap.set(user.metadata.annotations[constants$2.LDAP_UUID_ANNOTATION], user);
   }
   for (const group of groups) {
-    groupMap.set(catalogModel.stringifyEntityRef(group), group);
-    groupMap.set(group.metadata.annotations[LDAP_DN_ANNOTATION], group);
-    groupMap.set(group.metadata.annotations[LDAP_RDN_ANNOTATION], group);
-    groupMap.set(group.metadata.annotations[LDAP_UUID_ANNOTATION], group);
+    groupMap.set(catalogModel$1.stringifyEntityRef(group), group);
+    groupMap.set(group.metadata.annotations[constants$2.LDAP_DN_ANNOTATION], group);
+    groupMap.set(group.metadata.annotations[constants$2.LDAP_RDN_ANNOTATION], group);
+    groupMap.set(group.metadata.annotations[constants$2.LDAP_UUID_ANNOTATION], group);
   }
   userMap.delete("");
   groupMap.delete("");
@@ -790,8 +847,8 @@ function resolveRelations(groups, users, userMemberOf, groupMemberOf, groupMembe
       for (const groupN of groupsN) {
         const group = groupMap.get(groupN);
         if (group) {
-          ensureItems(newUserMemberOf, catalogModel.stringifyEntityRef(user), [
-            catalogModel.stringifyEntityRef(group)
+          ensureItems(newUserMemberOf, catalogModel$1.stringifyEntityRef(user), [
+            catalogModel$1.stringifyEntityRef(group)
           ]);
         }
       }
@@ -803,11 +860,11 @@ function resolveRelations(groups, users, userMemberOf, groupMemberOf, groupMembe
       for (const parentN of parentsN) {
         const parentGroup = groupMap.get(parentN);
         if (parentGroup) {
-          ensureItems(newGroupParents, catalogModel.stringifyEntityRef(group), [
-            catalogModel.stringifyEntityRef(parentGroup)
+          ensureItems(newGroupParents, catalogModel$1.stringifyEntityRef(group), [
+            catalogModel$1.stringifyEntityRef(parentGroup)
           ]);
-          ensureItems(newGroupChildren, catalogModel.stringifyEntityRef(parentGroup), [
-            catalogModel.stringifyEntityRef(group)
+          ensureItems(newGroupChildren, catalogModel$1.stringifyEntityRef(parentGroup), [
+            catalogModel$1.stringifyEntityRef(group)
           ]);
         }
       }
@@ -819,17 +876,17 @@ function resolveRelations(groups, users, userMemberOf, groupMemberOf, groupMembe
       for (const memberN of membersN) {
         const memberUser = userMap.get(memberN);
         if (memberUser) {
-          ensureItems(newUserMemberOf, catalogModel.stringifyEntityRef(memberUser), [
-            catalogModel.stringifyEntityRef(group)
+          ensureItems(newUserMemberOf, catalogModel$1.stringifyEntityRef(memberUser), [
+            catalogModel$1.stringifyEntityRef(group)
           ]);
         } else {
           const memberGroup = groupMap.get(memberN);
           if (memberGroup) {
-            ensureItems(newGroupChildren, catalogModel.stringifyEntityRef(group), [
-              catalogModel.stringifyEntityRef(memberGroup)
+            ensureItems(newGroupChildren, catalogModel$1.stringifyEntityRef(group), [
+              catalogModel$1.stringifyEntityRef(memberGroup)
             ]);
-            ensureItems(newGroupParents, catalogModel.stringifyEntityRef(memberGroup), [
-              catalogModel.stringifyEntityRef(group)
+            ensureItems(newGroupParents, catalogModel$1.stringifyEntityRef(memberGroup), [
+              catalogModel$1.stringifyEntityRef(group)
             ]);
           }
         }
@@ -856,10 +913,45 @@ function resolveRelations(groups, users, userMemberOf, groupMemberOf, groupMembe
       group.spec.children = Array.from(childrenN).sort();
     }
   }
-  buildOrgHierarchy(groups);
+  org.buildOrgHierarchy(groups);
 }
 
-class LdapOrgEntityProvider {
+read_cjs.defaultGroupTransformer = defaultGroupTransformer;
+read_cjs.defaultUserTransformer = defaultUserTransformer;
+read_cjs.readLdapGroups = readLdapGroups;
+read_cjs.readLdapOrg = readLdapOrg;
+read_cjs.readLdapUsers = readLdapUsers;
+read_cjs.resolveRelations = resolveRelations;
+
+var catalogModel = require$$0$3;
+var lodash = require$$0;
+var uuid = require$$2$2;
+var client$2 = client_cjs;
+var config$2 = config_cjs;
+var constants$1 = constants_cjs;
+var read$2 = read_cjs;
+
+function _interopNamespaceCompat(e) {
+  if (e && typeof e === 'object' && 'default' in e) return e;
+  var n = Object.create(null);
+  if (e) {
+    Object.keys(e).forEach(function (k) {
+      if (k !== 'default') {
+        var d = Object.getOwnPropertyDescriptor(e, k);
+        Object.defineProperty(n, k, d.get ? d : {
+          enumerable: true,
+          get: function () { return e[k]; }
+        });
+      }
+    });
+  }
+  n.default = e;
+  return Object.freeze(n);
+}
+
+var uuid__namespace = /*#__PURE__*/_interopNamespaceCompat(uuid);
+
+class LdapOrgEntityProvider$2 {
   constructor(options) {
     this.options = options;
   }
@@ -867,7 +959,7 @@ class LdapOrgEntityProvider {
   scheduleFn;
   static fromConfig(configRoot, options) {
     if ("id" in options) {
-      return [LdapOrgEntityProvider.fromLegacyConfig(configRoot, options)];
+      return [LdapOrgEntityProvider$2.fromLegacyConfig(configRoot, options)];
     }
     if (!options.schedule && !options.scheduler) {
       throw new Error("Either schedule or scheduler must be provided.");
@@ -878,14 +970,14 @@ class LdapOrgEntityProvider {
       }
       return transformers[id];
     }
-    return readProviderConfigs(configRoot).map((providerConfig) => {
+    return config$2.readProviderConfigs(configRoot).map((providerConfig) => {
       if (!options.schedule && !providerConfig.schedule) {
         throw new Error(
           `No schedule provided neither via code nor config for LdapOrgEntityProvider:${providerConfig.id}.`
         );
       }
       const taskRunner = options.schedule ?? options.scheduler.createScheduledTaskRunner(providerConfig.schedule);
-      const provider = new LdapOrgEntityProvider({
+      const provider = new LdapOrgEntityProvider$2({
         id: providerConfig.id,
         provider: providerConfig,
         logger: options.logger,
@@ -905,8 +997,8 @@ class LdapOrgEntityProvider {
     });
   }
   static fromLegacyConfig(configRoot, options) {
-    const config = configRoot.getOptionalConfig("ldap") || configRoot.getOptionalConfig("catalog.processors.ldapOrg");
-    const providers = config ? readLdapLegacyConfig(config) : [];
+    const config$1 = configRoot.getOptionalConfig("ldap") || configRoot.getOptionalConfig("catalog.processors.ldapOrg");
+    const providers = config$1 ? config$2.readLdapLegacyConfig(config$1) : [];
     const provider = providers.find((p) => options.target === p.target);
     if (!provider) {
       throw new TypeError(
@@ -916,7 +1008,7 @@ class LdapOrgEntityProvider {
     const logger = options.logger.child({
       target: options.target
     });
-    const result = new LdapOrgEntityProvider({
+    const result = new LdapOrgEntityProvider$2({
       id: options.id,
       provider,
       userTransformer: options.userTransformer,
@@ -947,16 +1039,17 @@ class LdapOrgEntityProvider {
     }
     const logger = options?.logger ?? this.options.logger;
     const { markReadComplete } = trackProgress(logger);
-    const client = await LdapClient.create(
+    const client$1 = await client$2.LdapClient.create(
       this.options.logger,
       this.options.provider.target,
       this.options.provider.bind,
       this.options.provider.tls
     );
-    const { users, groups } = await readLdapOrg(
-      client,
+    const { users, groups } = await read$2.readLdapOrg(
+      client$1,
       this.options.provider.users,
       this.options.provider.groups,
+      this.options.provider.vendor,
       {
         groupTransformer: this.options.groupTransformer,
         userTransformer: this.options.userTransformer,
@@ -980,7 +1073,7 @@ class LdapOrgEntityProvider {
         id,
         fn: async () => {
           const logger = this.options.logger.child({
-            class: LdapOrgEntityProvider.prototype.constructor.name,
+            class: LdapOrgEntityProvider$2.prototype.constructor.name,
             taskId: id,
             taskInstanceId: uuid__namespace.v4()
           });
@@ -1015,7 +1108,7 @@ function trackProgress(logger) {
   return { markReadComplete };
 }
 function withLocations(providerId, entity) {
-  const dn = entity.metadata.annotations?.[LDAP_DN_ANNOTATION] || entity.metadata.name;
+  const dn = entity.metadata.annotations?.[constants$1.LDAP_DN_ANNOTATION] || entity.metadata.name;
   const location = `ldap://${providerId}/${encodeURIComponent(dn)}`;
   return lodash.merge(
     {
@@ -1030,16 +1123,26 @@ function withLocations(providerId, entity) {
   );
 }
 
-class LdapOrgReaderProcessor {
+LdapOrgEntityProvider_cjs.LdapOrgEntityProvider = LdapOrgEntityProvider$2;
+
+var LdapOrgReaderProcessor_cjs = {};
+
+var client$1 = client_cjs;
+
+var config$1 = config_cjs;
+var read$1 = read_cjs;
+var pluginCatalogNode = require$$4$1;
+
+class LdapOrgReaderProcessor$1 {
   providers;
   logger;
   groupTransformer;
   userTransformer;
   static fromConfig(configRoot, options) {
-    const config = configRoot.getOptionalConfig("ldap") || configRoot.getOptionalConfig("catalog.processors.ldapOrg");
-    return new LdapOrgReaderProcessor({
+    const config$1$1 = configRoot.getOptionalConfig("ldap") || configRoot.getOptionalConfig("catalog.processors.ldapOrg");
+    return new LdapOrgReaderProcessor$1({
       ...options,
-      providers: config ? readLdapLegacyConfig(config) : []
+      providers: config$1$1 ? config$1.readLdapLegacyConfig(config$1$1) : []
     });
   }
   constructor(options) {
@@ -1063,16 +1166,17 @@ class LdapOrgReaderProcessor {
     }
     const startTimestamp = Date.now();
     this.logger.info("Reading LDAP users and groups");
-    const client = await LdapClient.create(
+    const client$1$1 = await client$1.LdapClient.create(
       this.logger,
       provider.target,
       provider.bind,
       provider.tls
     );
-    const { users, groups } = await readLdapOrg(
-      client,
+    const { users, groups } = await read$1.readLdapOrg(
+      client$1$1,
       provider.users,
       provider.groups,
+      provider.vendor,
       {
         groupTransformer: this.groupTransformer,
         userTransformer: this.userTransformer,
@@ -1092,6 +1196,24 @@ class LdapOrgReaderProcessor {
     return true;
   }
 }
+
+LdapOrgReaderProcessor_cjs.LdapOrgReaderProcessor = LdapOrgReaderProcessor$1;
+
+var module_cjs = {};
+
+var backendPluginApi = require$$0$2;
+var alpha = require$$1$3;
+var LdapOrgEntityProvider$1 = LdapOrgEntityProvider_cjs;
+
+
+
+
+
+
+
+
+
+
 
 const ldapOrgEntityProviderTransformsExtensionPoint = backendPluginApi.createExtensionPoint({
   id: "catalog.ldapOrgEntityProvider.transforms"
@@ -1125,7 +1247,7 @@ const catalogModuleLdapOrgEntityProvider = backendPluginApi.createBackendModule(
       },
       async init({ catalog, config, logger, scheduler }) {
         catalog.addEntityProvider(
-          LdapOrgEntityProvider.fromConfig(config, {
+          LdapOrgEntityProvider$1.LdapOrgEntityProvider.fromConfig(config, {
             logger,
             scheduler,
             userTransformer,
@@ -1137,20 +1259,36 @@ const catalogModuleLdapOrgEntityProvider = backendPluginApi.createBackendModule(
   }
 });
 
-index_cjs.LDAP_DN_ANNOTATION = LDAP_DN_ANNOTATION;
-index_cjs.LDAP_RDN_ANNOTATION = LDAP_RDN_ANNOTATION;
-index_cjs.LDAP_UUID_ANNOTATION = LDAP_UUID_ANNOTATION;
-index_cjs.LdapClient = LdapClient;
-index_cjs.LdapOrgEntityProvider = LdapOrgEntityProvider;
-index_cjs.LdapOrgReaderProcessor = LdapOrgReaderProcessor;
-var _default = index_cjs.default = catalogModuleLdapOrgEntityProvider;
-index_cjs.defaultGroupTransformer = defaultGroupTransformer;
-index_cjs.defaultUserTransformer = defaultUserTransformer;
-index_cjs.ldapOrgEntityProviderTransformsExtensionPoint = ldapOrgEntityProviderTransformsExtensionPoint;
-index_cjs.mapStringAttr = mapStringAttr;
-index_cjs.readLdapLegacyConfig = readLdapLegacyConfig;
-index_cjs.readLdapOrg = readLdapOrg;
-index_cjs.readProviderConfigs = readProviderConfigs;
+module_cjs.catalogModuleLdapOrgEntityProvider = catalogModuleLdapOrgEntityProvider;
+module_cjs.ldapOrgEntityProviderTransformsExtensionPoint = ldapOrgEntityProviderTransformsExtensionPoint;
+
+Object.defineProperty(index_cjs, '__esModule', { value: true });
+
+var LdapOrgEntityProvider = LdapOrgEntityProvider_cjs;
+var LdapOrgReaderProcessor = LdapOrgReaderProcessor_cjs;
+var client = client_cjs;
+var util = util_cjs;
+var config = config_cjs;
+var constants = constants_cjs;
+var read = read_cjs;
+var module$1 = module_cjs;
+
+
+
+index_cjs.LdapOrgEntityProvider = LdapOrgEntityProvider.LdapOrgEntityProvider;
+index_cjs.LdapOrgReaderProcessor = LdapOrgReaderProcessor.LdapOrgReaderProcessor;
+index_cjs.LdapClient = client.LdapClient;
+index_cjs.mapStringAttr = util.mapStringAttr;
+index_cjs.readLdapLegacyConfig = config.readLdapLegacyConfig;
+index_cjs.readProviderConfigs = config.readProviderConfigs;
+index_cjs.LDAP_DN_ANNOTATION = constants.LDAP_DN_ANNOTATION;
+index_cjs.LDAP_RDN_ANNOTATION = constants.LDAP_RDN_ANNOTATION;
+index_cjs.LDAP_UUID_ANNOTATION = constants.LDAP_UUID_ANNOTATION;
+index_cjs.defaultGroupTransformer = read.defaultGroupTransformer;
+index_cjs.defaultUserTransformer = read.defaultUserTransformer;
+index_cjs.readLdapOrg = read.readLdapOrg;
+var _default = index_cjs.default = module$1.catalogModuleLdapOrgEntityProvider;
+index_cjs.ldapOrgEntityProviderTransformsExtensionPoint = module$1.ldapOrgEntityProviderTransformsExtensionPoint;
 
 exports["default"] = _default;
 //# sourceMappingURL=index.cjs.js.map

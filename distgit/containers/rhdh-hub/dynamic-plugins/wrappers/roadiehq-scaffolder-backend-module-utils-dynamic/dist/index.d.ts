@@ -1,5 +1,1 @@
-import * as _backstage_backend_plugin_api from '@backstage/backend-plugin-api';
-
-declare const scaffolderBackendModuleUtils: () => _backstage_backend_plugin_api.BackendFeature;
-
-export { scaffolderBackendModuleUtils as default };
+export { scaffolderBackendModuleUtils as default } from '@roadiehq/scaffolder-backend-module-utils/new-backend';

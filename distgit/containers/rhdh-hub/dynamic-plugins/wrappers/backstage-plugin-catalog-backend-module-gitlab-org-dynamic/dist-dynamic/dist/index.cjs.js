@@ -10,7 +10,7 @@ var require$$4 = require('@backstage/plugin-events-node');
 
 var index_cjs = {};
 
-Object.defineProperty(index_cjs, '__esModule', { value: true });
+var catalogModuleGitlabOrgDiscoveryEntityProvider_cjs = {};
 
 var backendCommon = require$$0;
 var backendPluginApi = require$$1;
@@ -18,7 +18,7 @@ var pluginCatalogBackendModuleGitlab = require$$2;
 var alpha = require$$3;
 var pluginEventsNode = require$$4;
 
-const catalogModuleGitlabOrgDiscoveryEntityProvider = backendPluginApi.createBackendModule({
+const catalogModuleGitlabOrgDiscoveryEntityProvider$1 = backendPluginApi.createBackendModule({
   pluginId: "catalog",
   moduleId: "gitlabOrgDiscoveryEntityProvider",
   register(env) {
@@ -42,7 +42,15 @@ const catalogModuleGitlabOrgDiscoveryEntityProvider = backendPluginApi.createBac
   }
 });
 
-var _default = index_cjs.default = catalogModuleGitlabOrgDiscoveryEntityProvider;
+catalogModuleGitlabOrgDiscoveryEntityProvider_cjs.catalogModuleGitlabOrgDiscoveryEntityProvider = catalogModuleGitlabOrgDiscoveryEntityProvider$1;
+
+Object.defineProperty(index_cjs, '__esModule', { value: true });
+
+var catalogModuleGitlabOrgDiscoveryEntityProvider = catalogModuleGitlabOrgDiscoveryEntityProvider_cjs;
+
+
+
+var _default = index_cjs.default = catalogModuleGitlabOrgDiscoveryEntityProvider.catalogModuleGitlabOrgDiscoveryEntityProvider;
 
 exports["default"] = _default;
 //# sourceMappingURL=index.cjs.js.map

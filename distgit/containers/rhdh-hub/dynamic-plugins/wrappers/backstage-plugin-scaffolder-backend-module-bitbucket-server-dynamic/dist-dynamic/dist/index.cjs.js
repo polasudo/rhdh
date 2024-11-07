@@ -2,38 +2,31 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var require$$0 = require('@backstage/errors');
+var require$$0$1 = require('@backstage/errors');
 var require$$1 = require('@backstage/integration');
 var require$$2 = require('@backstage/plugin-scaffolder-node');
 var require$$3 = require('node-fetch');
-var require$$4 = require('yaml');
-var require$$5 = require('fs-extra');
-var require$$6 = require('@backstage/backend-plugin-api');
-var require$$7 = require('@backstage/plugin-scaffolder-node/alpha');
+var require$$0 = require('yaml');
+var require$$4 = require('fs-extra');
+var require$$0$2 = require('@backstage/backend-plugin-api');
+var require$$1$1 = require('@backstage/plugin-scaffolder-node/alpha');
 
 var index_cjs = {};
 
-Object.defineProperty(index_cjs, '__esModule', { value: true });
+var bitbucketServer_cjs = {};
 
-var errors = require$$0;
-var integration = require$$1;
-var pluginScaffolderNode = require$$2;
-var fetch = require$$3;
-var yaml = require$$4;
-var fs = require$$5;
-var backendPluginApi = require$$6;
-var alpha = require$$7;
+var bitbucketServer_examples_cjs = {};
 
-function _interopDefaultCompat (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }
+var yaml$1 = require$$0;
 
-var fetch__default = /*#__PURE__*/_interopDefaultCompat(fetch);
-var yaml__default = /*#__PURE__*/_interopDefaultCompat(yaml);
-var fs__default = /*#__PURE__*/_interopDefaultCompat(fs);
+function _interopDefaultCompat$3 (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }
+
+var yaml__default$1 = /*#__PURE__*/_interopDefaultCompat$3(yaml$1);
 
 const examples$1 = [
   {
     description: "Initialize git repository with required properties",
-    example: yaml__default.default.stringify({
+    example: yaml__default$1.default.stringify({
       steps: [
         {
           action: "publish:bitbucketServer",
@@ -48,7 +41,7 @@ const examples$1 = [
   },
   {
     description: "Initialize git repository with all properties",
-    example: yaml__default.default.stringify({
+    example: yaml__default$1.default.stringify({
       steps: [
         {
           action: "publish:bitbucketServer",
@@ -72,7 +65,7 @@ const examples$1 = [
   },
   {
     description: "Initialize git repository with public visibility",
-    example: yaml__default.default.stringify({
+    example: yaml__default$1.default.stringify({
       steps: [
         {
           action: "publish:bitbucketServer",
@@ -96,7 +89,7 @@ const examples$1 = [
   },
   {
     description: "Initialize git repository with different default branch",
-    example: yaml__default.default.stringify({
+    example: yaml__default$1.default.stringify({
       steps: [
         {
           action: "publish:bitbucketServer",
@@ -120,7 +113,7 @@ const examples$1 = [
   },
   {
     description: "Initialize git repository with different source path",
-    example: yaml__default.default.stringify({
+    example: yaml__default$1.default.stringify({
       steps: [
         {
           action: "publish:bitbucketServer",
@@ -141,8 +134,213 @@ const examples$1 = [
         }
       ]
     })
+  },
+  {
+    description: "Initialize git repository with default settings and custom author information",
+    example: yaml__default$1.default.stringify({
+      steps: [
+        {
+          action: "publish:bitbucketServer",
+          id: "publish-bitbucket-server-custom-author",
+          name: "Publish To Bitbucket Server",
+          input: {
+            repoUrl: "hosted.bitbucket.com?project=project&repo=repo",
+            gitAuthorName: "Custom Author",
+            gitAuthorEmail: "custom.author@example.com"
+          }
+        }
+      ]
+    })
+  },
+  {
+    description: "Initialize git repository with LFS enabled and a specific commit message",
+    example: yaml__default$1.default.stringify({
+      steps: [
+        {
+          action: "publish:bitbucketServer",
+          id: "publish-bitbucket-server-lfs-commit",
+          name: "Publish To Bitbucket Server",
+          input: {
+            repoUrl: "hosted.bitbucket.com?project=project&repo=repo",
+            enableLFS: true,
+            gitCommitMessage: "Initial commit with LFS enabled"
+          }
+        }
+      ]
+    })
+  },
+  {
+    description: "Initialize git repository with a custom source path and token",
+    example: yaml__default$1.default.stringify({
+      steps: [
+        {
+          action: "publish:bitbucketServer",
+          id: "publish-bitbucket-server-custom-source",
+          name: "Publish To Bitbucket Server",
+          input: {
+            repoUrl: "hosted.bitbucket.com?project=project&repo=repo",
+            sourcePath: "custom/source/path",
+            token: "custom-token"
+          }
+        }
+      ]
+    })
+  },
+  {
+    description: "Initialize git repository with private visibility and custom author details",
+    example: yaml__default$1.default.stringify({
+      steps: [
+        {
+          action: "publish:bitbucketServer",
+          id: "publish-bitbucket-server-private-custom-author",
+          name: "Publish To Bitbucket Server",
+          input: {
+            repoUrl: "hosted.bitbucket.com?project=project&repo=repo",
+            repoVisibility: "private",
+            gitAuthorName: "Private Author",
+            gitAuthorEmail: "private.author@example.com"
+          }
+        }
+      ]
+    })
+  },
+  {
+    description: "Initialize git repository with public visibility and specific commit message",
+    example: yaml__default$1.default.stringify({
+      steps: [
+        {
+          action: "publish:bitbucketServer",
+          id: "publish-bitbucket-server-public-commit",
+          name: "Publish To Bitbucket Server",
+          input: {
+            repoUrl: "hosted.bitbucket.com?project=project&repo=repo",
+            repoVisibility: "public",
+            gitCommitMessage: "Public repository initial commit"
+          }
+        }
+      ]
+    })
+  },
+  {
+    description: "Initialize git repository with all settings customized",
+    example: yaml__default$1.default.stringify({
+      steps: [
+        {
+          action: "publish:bitbucketServer",
+          id: "publish-bitbucket-server-all-custom",
+          name: "Publish To Bitbucket Server",
+          input: {
+            repoUrl: "hosted.bitbucket.com?project=project&repo=repo",
+            description: "A fully customized repository",
+            repoVisibility: "private",
+            defaultBranch: "development",
+            sourcePath: "src/backend",
+            enableLFS: true,
+            token: "custom-token",
+            gitCommitMessage: "Fully customized initial commit",
+            gitAuthorName: "Custom Dev",
+            gitAuthorEmail: "custom.dev@example.com"
+          }
+        }
+      ]
+    })
+  },
+  {
+    description: "Initialize git repository with a specific default branch and no LFS",
+    example: yaml__default$1.default.stringify({
+      steps: [
+        {
+          action: "publish:bitbucketServer",
+          id: "publish-bitbucket-server-no-lfs",
+          name: "Publish To Bitbucket Server",
+          input: {
+            repoUrl: "hosted.bitbucket.com?project=project&repo=repo",
+            defaultBranch: "main",
+            enableLFS: false
+          }
+        }
+      ]
+    })
+  },
+  {
+    description: "Initialize git repository with a custom repository description and public visibility",
+    example: yaml__default$1.default.stringify({
+      steps: [
+        {
+          action: "publish:bitbucketServer",
+          id: "publish-bitbucket-server-custom-description",
+          name: "Publish To Bitbucket Server",
+          input: {
+            repoUrl: "hosted.bitbucket.com?project=project&repo=repo",
+            description: "A public repository with a custom description",
+            repoVisibility: "public"
+          }
+        }
+      ]
+    })
+  },
+  {
+    description: "Initialize git repository with a custom token for authentication",
+    example: yaml__default$1.default.stringify({
+      steps: [
+        {
+          action: "publish:bitbucketServer",
+          id: "publish-bitbucket-server-custom-token",
+          name: "Publish To Bitbucket Server",
+          input: {
+            repoUrl: "hosted.bitbucket.com?project=project&repo=repo",
+            token: "custom-auth-token"
+          }
+        }
+      ]
+    })
+  },
+  {
+    description: "Initialize git repository with a different repository root path",
+    example: yaml__default$1.default.stringify({
+      steps: [
+        {
+          action: "publish:bitbucketServer",
+          id: "publish-bitbucket-server-different-root",
+          name: "Publish To Bitbucket Server",
+          input: {
+            repoUrl: "hosted.bitbucket.com?project=project&repo=repo",
+            sourcePath: "different/root/path"
+          }
+        }
+      ]
+    })
+  },
+  {
+    description: "Initialize git repository with private visibility and LFS enabled",
+    example: yaml__default$1.default.stringify({
+      steps: [
+        {
+          action: "publish:bitbucketServer",
+          id: "publish-bitbucket-server-private-lfs",
+          name: "Publish To Bitbucket Server",
+          input: {
+            repoUrl: "hosted.bitbucket.com?project=project&repo=repo",
+            repoVisibility: "private",
+            enableLFS: true
+          }
+        }
+      ]
+    })
   }
 ];
+
+bitbucketServer_examples_cjs.examples = examples$1;
+
+var errors$1 = require$$0$1;
+var integration$2 = require$$1;
+var pluginScaffolderNode$1 = require$$2;
+var fetch$1 = require$$3;
+var bitbucketServer_examples = bitbucketServer_examples_cjs;
+
+function _interopDefaultCompat$2 (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }
+
+var fetch__default$1 = /*#__PURE__*/_interopDefaultCompat$2(fetch$1);
 
 const createRepository = async (opts) => {
   const {
@@ -169,7 +367,7 @@ const createRepository = async (opts) => {
     }
   };
   try {
-    response = await fetch__default.default(`${apiBaseUrl}/projects/${project}/repos`, options);
+    response = await fetch__default$1.default(`${apiBaseUrl}/projects/${project}/repos`, options);
   } catch (e) {
     throw new Error(`Unable to create repository, ${e}`);
   }
@@ -196,7 +394,7 @@ const performEnableLFS = async (opts) => {
       Authorization: authorization
     }
   };
-  const { ok, status, statusText } = await fetch__default.default(
+  const { ok, status, statusText } = await fetch__default$1.default(
     `https://${host}/rest/git-lfs/admin/projects/${project}/repos/${repo}/enabled`,
     options
   );
@@ -207,10 +405,10 @@ const performEnableLFS = async (opts) => {
 };
 function createPublishBitbucketServerAction(options) {
   const { integrations, config } = options;
-  return pluginScaffolderNode.createTemplateAction({
+  return pluginScaffolderNode$1.createTemplateAction({
     id: "publish:bitbucketServer",
     description: "Initializes a git repository of the content in the workspace, and publishes it to Bitbucket Server.",
-    examples: examples$1,
+    examples: bitbucketServer_examples.examples,
     schema: {
       input: {
         type: "object",
@@ -295,15 +493,15 @@ function createPublishBitbucketServerAction(options) {
         gitAuthorName,
         gitAuthorEmail
       } = ctx.input;
-      const { project, repo, host } = pluginScaffolderNode.parseRepoUrl(repoUrl, integrations);
+      const { project, repo, host } = pluginScaffolderNode$1.parseRepoUrl(repoUrl, integrations);
       if (!project) {
-        throw new errors.InputError(
+        throw new errors$1.InputError(
           `Invalid URL provider was included in the repo URL to create ${ctx.input.repoUrl}, missing project`
         );
       }
       const integrationConfig = integrations.bitbucketServer.byHost(host);
       if (!integrationConfig) {
-        throw new errors.InputError(
+        throw new errors$1.InputError(
           `No matching integration configuration for host ${host}, please check your integrations config`
         );
       }
@@ -312,7 +510,7 @@ function createPublishBitbucketServerAction(options) {
         ...integrationConfig.config,
         ...{ token }
       };
-      const reqOpts = integration.getBitbucketServerRequestOptions(authConfig);
+      const reqOpts = integration$2.getBitbucketServerRequestOptions(authConfig);
       const authorization = reqOpts.headers.Authorization;
       if (!authorization) {
         throw new Error(
@@ -339,8 +537,8 @@ function createPublishBitbucketServerAction(options) {
         username: authConfig.username,
         password: authConfig.password
       };
-      const commitResult = await pluginScaffolderNode.initRepoAndPush({
-        dir: pluginScaffolderNode.getRepoSourceDirectory(ctx.workspacePath, ctx.input.sourcePath),
+      const commitResult = await pluginScaffolderNode$1.initRepoAndPush({
+        dir: pluginScaffolderNode$1.getRepoSourceDirectory(ctx.workspacePath, ctx.input.sourcePath),
         remoteUrl,
         auth,
         defaultBranch,
@@ -357,6 +555,18 @@ function createPublishBitbucketServerAction(options) {
     }
   });
 }
+
+bitbucketServer_cjs.createPublishBitbucketServerAction = createPublishBitbucketServerAction;
+
+var bitbucketServerPullRequest_cjs = {};
+
+var bitbucketServerPullRequest_examples_cjs = {};
+
+var yaml = require$$0;
+
+function _interopDefaultCompat$1 (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }
+
+var yaml__default = /*#__PURE__*/_interopDefaultCompat$1(yaml);
 
 const examples = [
   {
@@ -444,6 +654,7 @@ const examples = [
             sourceBranch: "my-feature-branch",
             targetBranch: "development",
             description: "This is a detailed description of my pull request",
+            reviewers: ["reviewer1", "reviewer2"],
             token: "my-auth-token",
             gitAuthorName: "test-user",
             gitAuthorEmail: "test-user@sample.com"
@@ -454,6 +665,20 @@ const examples = [
   }
 ];
 
+bitbucketServerPullRequest_examples_cjs.examples = examples;
+
+var errors = require$$0$1;
+var integration$1 = require$$1;
+var pluginScaffolderNode = require$$2;
+var fetch = require$$3;
+var fs = require$$4;
+var bitbucketServerPullRequest_examples = bitbucketServerPullRequest_examples_cjs;
+
+function _interopDefaultCompat (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }
+
+var fetch__default = /*#__PURE__*/_interopDefaultCompat(fetch);
+var fs__default = /*#__PURE__*/_interopDefaultCompat(fs);
+
 const createPullRequest = async (opts) => {
   const {
     project,
@@ -462,6 +687,7 @@ const createPullRequest = async (opts) => {
     description,
     toRef,
     fromRef,
+    reviewers,
     authorization,
     apiBaseUrl
   } = opts;
@@ -476,7 +702,8 @@ const createPullRequest = async (opts) => {
       closed: false,
       locked: true,
       toRef,
-      fromRef
+      fromRef,
+      reviewers: reviewers?.map((reviewer) => ({ user: { name: reviewer } }))
     }),
     headers: {
       Authorization: authorization,
@@ -594,11 +821,15 @@ const getDefaultBranch = async (opts) => {
   }
   return defaultBranch;
 };
+const isApiBaseUrlHttps = (apiBaseUrl) => {
+  const url = new URL(apiBaseUrl);
+  return url.protocol === "https:";
+};
 function createPublishBitbucketServerPullRequestAction(options) {
   const { integrations, config } = options;
   return pluginScaffolderNode.createTemplateAction({
     id: "publish:bitbucketServer:pull-request",
-    examples,
+    examples: bitbucketServerPullRequest_examples.examples,
     schema: {
       input: {
         type: "object",
@@ -627,6 +858,14 @@ function createPublishBitbucketServerPullRequestAction(options) {
             title: "Source Branch",
             type: "string",
             description: "Branch of repository to copy changes from"
+          },
+          reviewers: {
+            title: "Pull Request Reviewers",
+            type: "array",
+            items: {
+              type: "string"
+            },
+            description: "The usernames of reviewers that will be added to the pull request"
           },
           token: {
             title: "Authorization Token",
@@ -662,6 +901,7 @@ function createPublishBitbucketServerPullRequestAction(options) {
         description,
         targetBranch,
         sourceBranch,
+        reviewers,
         gitAuthorName,
         gitAuthorEmail
       } = ctx.input;
@@ -682,7 +922,7 @@ function createPublishBitbucketServerPullRequestAction(options) {
         ...integrationConfig.config,
         ...{ token }
       };
-      const reqOpts = integration.getBitbucketServerRequestOptions(authConfig);
+      const reqOpts = integration$1.getBitbucketServerRequestOptions(authConfig);
       const authorization = reqOpts.headers.Authorization;
       if (!authorization) {
         throw new Error(
@@ -726,7 +966,8 @@ function createPublishBitbucketServerPullRequestAction(options) {
           apiBaseUrl,
           startPoint: latestCommit
         });
-        const remoteUrl = `https://${host}/scm/${project}/${repo}.git`;
+        const isHttps = isApiBaseUrlHttps(apiBaseUrl);
+        const remoteUrl = `${isHttps ? "https" : "http"}://${host}/scm/${project}/${repo}.git`;
         const auth = authConfig.token ? {
           token
         } : {
@@ -780,6 +1021,7 @@ function createPublishBitbucketServerPullRequestAction(options) {
         description,
         toRef,
         fromRef,
+        reviewers,
         authorization,
         apiBaseUrl
       });
@@ -787,6 +1029,16 @@ function createPublishBitbucketServerPullRequestAction(options) {
     }
   });
 }
+
+bitbucketServerPullRequest_cjs.createPublishBitbucketServerPullRequestAction = createPublishBitbucketServerPullRequestAction;
+
+var module_cjs = {};
+
+var backendPluginApi = require$$0$2;
+var alpha = require$$1$1;
+var bitbucketServer$1 = bitbucketServer_cjs;
+var bitbucketServerPullRequest$1 = bitbucketServerPullRequest_cjs;
+var integration = require$$1;
 
 const bitbucketServerModule = backendPluginApi.createBackendModule({
   moduleId: "bitbucketServer",
@@ -800,8 +1052,8 @@ const bitbucketServerModule = backendPluginApi.createBackendModule({
       async init({ scaffolder, config }) {
         const integrations = integration.ScmIntegrations.fromConfig(config);
         scaffolder.addActions(
-          createPublishBitbucketServerAction({ integrations, config }),
-          createPublishBitbucketServerPullRequestAction({
+          bitbucketServer$1.createPublishBitbucketServerAction({ integrations, config }),
+          bitbucketServerPullRequest$1.createPublishBitbucketServerPullRequestAction({
             integrations,
             config
           })
@@ -811,9 +1063,19 @@ const bitbucketServerModule = backendPluginApi.createBackendModule({
   }
 });
 
-index_cjs.createPublishBitbucketServerAction = createPublishBitbucketServerAction;
-index_cjs.createPublishBitbucketServerPullRequestAction = createPublishBitbucketServerPullRequestAction;
-var _default = index_cjs.default = bitbucketServerModule;
+module_cjs.bitbucketServerModule = bitbucketServerModule;
+
+Object.defineProperty(index_cjs, '__esModule', { value: true });
+
+var bitbucketServer = bitbucketServer_cjs;
+var bitbucketServerPullRequest = bitbucketServerPullRequest_cjs;
+var module$1 = module_cjs;
+
+
+
+index_cjs.createPublishBitbucketServerAction = bitbucketServer.createPublishBitbucketServerAction;
+index_cjs.createPublishBitbucketServerPullRequestAction = bitbucketServerPullRequest.createPublishBitbucketServerPullRequestAction;
+var _default = index_cjs.default = module$1.bitbucketServerModule;
 
 exports["default"] = _default;
 //# sourceMappingURL=index.cjs.js.map

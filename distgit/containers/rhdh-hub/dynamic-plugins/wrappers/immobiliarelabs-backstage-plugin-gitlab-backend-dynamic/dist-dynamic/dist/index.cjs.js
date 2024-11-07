@@ -2,13 +2,13 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var require$$6 = require('@backstage/backend-plugin-api');
 var require$$0 = require('@backstage/backend-common');
 var require$$1 = require('@backstage/integration');
 var require$$2 = require('express-promise-router');
 var require$$3 = require('http-proxy-middleware');
 var require$$4 = require('body-parser');
 require('path');
-var require$$6 = require('@backstage/backend-plugin-api');
 var require$$7 = require('@backstage/plugin-catalog-node/alpha');
 
 var backendCommon = require$$0;
@@ -148,10 +148,10 @@ class GitlabFillerProcessor {
       if (gitlabInstanceConfig) {
         if (!entity.metadata.annotations)
           entity.metadata.annotations = {};
-        if (!entity.metadata.annotations?.[GITLAB_INSTANCE]) {
+        if (!entity.metadata.annotations[GITLAB_INSTANCE] && entity.metadata.annotations[GITLAB_INSTANCE] !== "") {
           entity.metadata.annotations[GITLAB_INSTANCE] = gitlabInstanceConfig?.host;
         }
-        if (!entity.metadata.annotations?.[GITLAB_PROJECT_ID] && !entity.metadata.annotations?.[GITLAB_PROJECT_SLUG]) {
+        if (!entity.metadata.annotations[GITLAB_PROJECT_ID] && entity.metadata.annotations[GITLAB_PROJECT_ID] !== "" && !entity.metadata.annotations[GITLAB_PROJECT_SLUG] && entity.metadata.annotations[GITLAB_PROJECT_SLUG] !== "") {
           entity.metadata.annotations[GITLAB_PROJECT_SLUG] = getProjectPath(
             location.target,
             this.getGitlabSubPath(gitlabInstanceConfig)
@@ -222,10 +222,11 @@ const gitlabPlugin = backendPluginApi.createBackendPlugin({
 var catalogPluginGitlabFillerProcessorModule_1 = catalogPluginGitlabFillerProcessorModule;
 var gitlabPlugin_1 = gitlabPlugin;
 
-const dynamicPluginInstaller = {
-  kind: "new",
-  install: () => [catalogPluginGitlabFillerProcessorModule_1(), gitlabPlugin_1()]
-};
+const bundle = require$$6.createBackendFeatureLoader({
+  async loader() {
+    return [gitlabPlugin_1, catalogPluginGitlabFillerProcessorModule_1];
+  }
+});
 
-exports.dynamicPluginInstaller = dynamicPluginInstaller;
+exports["default"] = bundle;
 //# sourceMappingURL=index.cjs.js.map

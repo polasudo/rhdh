@@ -1,14 +1,11 @@
 {
   "$schema": "https://turbo.build/schema.json",
   "globalDependencies": [
-    ".prettierrc.js",
-    ".eslintrc.js",
-    "tsconfig.json",
-    "yarn.lock"
+    "app-config.dynamic-plugins.yaml",
+    "dynamic-plugins.default.yaml"
   ],
   "tasks": {
     "export-dynamic": {
-      "cache": false,
       "dependsOn": ["tsc"]
     },
     "export-dynamic:clean": {

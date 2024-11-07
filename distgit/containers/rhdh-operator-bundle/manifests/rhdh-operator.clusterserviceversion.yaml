@@ -11,7 +11,7 @@ metadata:
             "labels": {
               "app.kubernetes.io/name": "backstage"
             },
-            "name": "backstage-sample"
+            "name": "developer-hub"
           }
         },
         {
@@ -21,7 +21,7 @@ metadata:
             "labels": {
               "app.kubernetes.io/name": "backstage"
             },
-            "name": "backstage-sample"
+            "name": "developer-hub"
           }
         },
         {
@@ -38,7 +38,7 @@ metadata:
     categories: Developer Tools
     certified: 'true'
     containerImage: registry.redhat.io/rhdh/rhdh-rhel9-operator:1.4-76@sha256:c990307ed684a9089285a67be9d20ef7fb7767856543e227cbabdc644e12d511
-    createdAt: "2024-10-25T17:30:36Z"
+    createdAt: "2024-11-07T20:33:26Z"
     description: Red Hat Developer Hub is a Red Hat supported version of Backstage.
       It comes with pre-built plug-ins and configuration settings, supports use of
       an external database, and can help streamline the process of setting up a self-managed
@@ -257,7 +257,7 @@ spec:
                     fieldRef:
                      fieldPath: metadata.name
                 - name: RELATED_IMAGE_postgresql
-                  value: registry.redhat.io/rhel9/postgresql-15:1-78.1726696137@sha256:92808c81661c3289ff027a06f6acd40b3937c43c3ba8e69b6d808b48e2e083ba
+                  value: registry.redhat.io/rhel9/postgresql-15:1-78.1729775645@sha256:24fb4e7914a6e1464d015be9e5582cc4b9da224137408bd429e7ea4f391aa198
                 - name: RELATED_IMAGE_backstage
                   value: registry.redhat.io/rhdh/rhdh-hub-rhel9:1.4-59@sha256:a1a26c1ea03910691da2daaf13410a5b62fdef6de8cb6b4c18e33d1310bd40d8
                 image: registry.redhat.io/rhdh/rhdh-rhel9-operator:1.4-76@sha256:c990307ed684a9089285a67be9d20ef7fb7767856543e227cbabdc644e12d511

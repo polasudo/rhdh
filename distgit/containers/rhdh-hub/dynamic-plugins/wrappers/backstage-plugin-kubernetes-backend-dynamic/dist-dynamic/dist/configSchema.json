@@ -116,6 +116,28 @@
                         "caFile": {
                           "visibility": "secret",
                           "type": "string"
+                        },
+                        "customResources": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "required": [
+                              "apiVersion",
+                              "group",
+                              "plural"
+                            ],
+                            "properties": {
+                              "group": {
+                                "type": "string"
+                              },
+                              "apiVersion": {
+                                "type": "string"
+                              },
+                              "plural": {
+                                "type": "string"
+                              }
+                            }
+                          }
                         }
                       }
                     }

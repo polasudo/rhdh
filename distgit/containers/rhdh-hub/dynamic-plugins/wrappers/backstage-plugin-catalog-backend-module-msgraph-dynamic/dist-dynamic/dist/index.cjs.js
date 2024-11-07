@@ -3,54 +3,32 @@
 Object.defineProperty(exports, '__esModule', { value: true });
 
 var require$$0$1 = require('@backstage/backend-plugin-api');
-var require$$1$1 = require('@backstage/plugin-catalog-node/alpha');
-var require$$0 = require('@backstage/catalog-model');
-var require$$1 = require('lodash');
-var require$$2 = require('uuid');
-var require$$3 = require('@azure/identity');
-var require$$4 = require('node-fetch');
-var require$$5 = require('qs');
-var require$$6 = require('@backstage/backend-tasks');
-var require$$7 = require('p-limit');
+var require$$1$3 = require('@backstage/plugin-catalog-node/alpha');
+var require$$0$2 = require('@backstage/catalog-model');
+var require$$1$1 = require('lodash');
+var require$$2$1 = require('uuid');
+var require$$0 = require('@azure/identity');
+var require$$1 = require('node-fetch');
+var require$$2 = require('qs');
+var require$$1$2 = require('p-limit');
 require('@backstage/plugin-catalog-node');
 
 var alpha_cjs = {};
 
-var MicrosoftGraphOrgEntityProviderBkGFhBQB_cjs = {};
+var catalogModuleMicrosoftGraphOrgEntityProvider_cjs = {};
 
-var catalogModel = require$$0;
-var lodash = require$$1;
-var uuid = require$$2;
-var identity = require$$3;
-var fetch = require$$4;
-var qs = require$$5;
-var backendTasks = require$$6;
-var limiterFactory = require$$7;
+var MicrosoftGraphOrgEntityProvider_cjs = {};
 
-function _interopDefaultCompat (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }
+var client_cjs = {};
 
-function _interopNamespaceCompat(e) {
-  if (e && typeof e === 'object' && 'default' in e) return e;
-  var n = Object.create(null);
-  if (e) {
-    Object.keys(e).forEach(function (k) {
-      if (k !== 'default') {
-        var d = Object.getOwnPropertyDescriptor(e, k);
-        Object.defineProperty(n, k, d.get ? d : {
-          enumerable: true,
-          get: function () { return e[k]; }
-        });
-      }
-    });
-  }
-  n.default = e;
-  return Object.freeze(n);
-}
+var identity = require$$0;
+var fetch = require$$1;
+var qs = require$$2;
 
-var uuid__namespace = /*#__PURE__*/_interopNamespaceCompat(uuid);
-var fetch__default = /*#__PURE__*/_interopDefaultCompat(fetch);
-var qs__default = /*#__PURE__*/_interopDefaultCompat(qs);
-var limiterFactory__default = /*#__PURE__*/_interopDefaultCompat(limiterFactory);
+function _interopDefaultCompat$1 (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }
+
+var fetch__default = /*#__PURE__*/_interopDefaultCompat$1(fetch);
+var qs__default = /*#__PURE__*/_interopDefaultCompat$1(qs);
 
 class MicrosoftGraphClient {
   /**
@@ -284,7 +262,7 @@ class MicrosoftGraphClient {
    * from Graph API
    *
    * @param entityName - type of parent resource, either `User` or `Group`
-   * @param id - The unique identifier for the {@link entityName | entityName} resource
+   * @param id - The unique identifier for the `entityName` resource
    * @param maxSize - Maximum pixel height of the photo
    *
    */
@@ -329,13 +307,20 @@ class MicrosoftGraphClient {
   }
 }
 
+client_cjs.MicrosoftGraphClient = MicrosoftGraphClient;
+
+var config_cjs = {};
+
+var backendPluginApi$1 = require$$0$1;
+var lodash$1 = require$$1$1;
+
 const DEFAULT_PROVIDER_ID = "default";
 const DEFAULT_TARGET = "https://graph.microsoft.com/v1.0";
 function readMicrosoftGraphConfig(config) {
   const providers = [];
   const providerConfigs = config.getOptionalConfigArray("providers") ?? [];
   for (const providerConfig of providerConfigs) {
-    const target = lodash.trimEnd(
+    const target = lodash$1.trimEnd(
       providerConfig.getOptionalString("target") ?? DEFAULT_TARGET,
       "/"
     );
@@ -417,7 +402,7 @@ function readProviderConfigs(config) {
   });
 }
 function readProviderConfig(id, config) {
-  const target = lodash.trimEnd(
+  const target = lodash$1.trimEnd(
     config.getOptionalString("target") ?? DEFAULT_TARGET,
     "/"
   );
@@ -433,6 +418,9 @@ function readProviderConfig(id, config) {
   const groupFilter = config.getOptionalString("group.filter");
   const groupSearch = config.getOptionalString("group.search");
   const groupSelect = config.getOptionalStringArray("group.select");
+  const groupIncludeSubGroups = config.getOptionalBoolean(
+    "group.includeSubGroups"
+  );
   const queryMode = config.getOptionalString("queryMode");
   if (queryMode !== void 0 && queryMode !== "basic" && queryMode !== "advanced") {
     throw new Error(`queryMode must be one of: basic, advanced`);
@@ -459,7 +447,9 @@ function readProviderConfig(id, config) {
   if (clientSecret && !clientId) {
     throw new Error(`clientId must be provided when clientSecret is defined.`);
   }
-  const schedule = config.has("schedule") ? backendTasks.readTaskScheduleDefinitionFromConfig(config.getConfig("schedule")) : void 0;
+  const schedule = config.has("schedule") ? backendPluginApi$1.readSchedulerServiceTaskScheduleDefinitionFromConfig(
+    config.getConfig("schedule")
+  ) : void 0;
   return {
     id,
     target,
@@ -475,6 +465,7 @@ function readProviderConfig(id, config) {
     groupFilter,
     groupSearch,
     groupSelect,
+    groupIncludeSubGroups,
     queryMode,
     userGroupMemberFilter,
     userGroupMemberSearch,
@@ -482,120 +473,25 @@ function readProviderConfig(id, config) {
   };
 }
 
+config_cjs.readMicrosoftGraphConfig = readMicrosoftGraphConfig;
+config_cjs.readProviderConfig = readProviderConfig;
+config_cjs.readProviderConfigs = readProviderConfigs;
+
+var constants_cjs = {};
+
 const MICROSOFT_EMAIL_ANNOTATION = "microsoft.com/email";
 const MICROSOFT_GRAPH_TENANT_ID_ANNOTATION = "graph.microsoft.com/tenant-id";
 const MICROSOFT_GRAPH_GROUP_ID_ANNOTATION = "graph.microsoft.com/group-id";
 const MICROSOFT_GRAPH_USER_ID_ANNOTATION = "graph.microsoft.com/user-id";
 
-function normalizeEntityName(name) {
-  let cleaned = name.trim().toLocaleLowerCase().replace(/[^a-zA-Z0-9_\-\.]/g, "_");
-  while (cleaned.endsWith("_")) {
-    cleaned = cleaned.substring(0, cleaned.length - 1);
-  }
-  while (cleaned.includes("__")) {
-    cleaned = cleaned.replace("__", "_");
-  }
-  return cleaned;
-}
+constants_cjs.MICROSOFT_EMAIL_ANNOTATION = MICROSOFT_EMAIL_ANNOTATION;
+constants_cjs.MICROSOFT_GRAPH_GROUP_ID_ANNOTATION = MICROSOFT_GRAPH_GROUP_ID_ANNOTATION;
+constants_cjs.MICROSOFT_GRAPH_TENANT_ID_ANNOTATION = MICROSOFT_GRAPH_TENANT_ID_ANNOTATION;
+constants_cjs.MICROSOFT_GRAPH_USER_ID_ANNOTATION = MICROSOFT_GRAPH_USER_ID_ANNOTATION;
 
-async function defaultOrganizationTransformer(organization) {
-  if (!organization.id || !organization.displayName) {
-    return void 0;
-  }
-  const name = normalizeEntityName(organization.displayName);
-  return {
-    apiVersion: "backstage.io/v1alpha1",
-    kind: "Group",
-    metadata: {
-      name,
-      description: organization.displayName,
-      annotations: {
-        [MICROSOFT_GRAPH_TENANT_ID_ANNOTATION]: organization.id
-      }
-    },
-    spec: {
-      type: "root",
-      profile: {
-        displayName: organization.displayName
-      },
-      children: []
-    }
-  };
-}
-function extractGroupName(group) {
-  if (group.securityEnabled) {
-    return group.displayName;
-  }
-  return group.mailNickname || group.displayName;
-}
-async function defaultGroupTransformer(group, groupPhoto) {
-  if (!group.id || !group.displayName) {
-    return void 0;
-  }
-  const name = normalizeEntityName(extractGroupName(group));
-  const entity = {
-    apiVersion: "backstage.io/v1alpha1",
-    kind: "Group",
-    metadata: {
-      name,
-      annotations: {
-        [MICROSOFT_GRAPH_GROUP_ID_ANNOTATION]: group.id
-      }
-    },
-    spec: {
-      type: "team",
-      profile: {},
-      children: []
-    }
-  };
-  if (group.description) {
-    entity.metadata.description = group.description;
-  }
-  if (group.displayName) {
-    entity.spec.profile.displayName = group.displayName;
-  }
-  if (group.mail) {
-    entity.spec.profile.email = group.mail;
-  }
-  if (groupPhoto) {
-    entity.spec.profile.picture = groupPhoto;
-  }
-  return entity;
-}
-async function defaultUserTransformer(user, userPhoto) {
-  if (!user.id || !user.displayName) {
-    return void 0;
-  }
-  const name = user.mail ? normalizeEntityName(user.mail) : normalizeEntityName(user.userPrincipalName);
-  const entity = {
-    apiVersion: "backstage.io/v1alpha1",
-    kind: "User",
-    metadata: {
-      name,
-      annotations: {
-        [MICROSOFT_GRAPH_USER_ID_ANNOTATION]: user.id
-      }
-    },
-    spec: {
-      profile: {
-        displayName: user.displayName
-        // TODO: Additional fields?
-        // jobTitle: user.jobTitle || undefined,
-        // officeLocation: user.officeLocation || undefined,
-        // mobilePhone: user.mobilePhone || undefined,
-      },
-      memberOf: []
-    }
-  };
-  if (user.mail) {
-    entity.metadata.annotations[MICROSOFT_EMAIL_ANNOTATION] = user.mail;
-    entity.spec.profile.email = user.mail;
-  }
-  if (userPhoto) {
-    entity.spec.profile.picture = userPhoto;
-  }
-  return entity;
-}
+var read_cjs = {};
+
+var org_cjs = {};
 
 function buildOrgHierarchy(groups) {
   const groupsByName = new Map(groups.map((g) => [g.metadata.name, g]));
@@ -643,6 +539,142 @@ function buildMemberOf(groups, users) {
     user.spec.memberOf = [...transitiveMemberOf];
   });
 }
+
+org_cjs.buildMemberOf = buildMemberOf;
+org_cjs.buildOrgHierarchy = buildOrgHierarchy;
+
+var defaultTransformers_cjs = {};
+
+var helper_cjs = {};
+
+function normalizeEntityName(name) {
+  let cleaned = name.trim().toLocaleLowerCase().replace(/[^a-zA-Z0-9_\-\.]/g, "_");
+  while (cleaned.endsWith("_")) {
+    cleaned = cleaned.substring(0, cleaned.length - 1);
+  }
+  while (cleaned.includes("__")) {
+    cleaned = cleaned.replace("__", "_");
+  }
+  return cleaned;
+}
+
+helper_cjs.normalizeEntityName = normalizeEntityName;
+
+var constants$2 = constants_cjs;
+var helper = helper_cjs;
+
+async function defaultOrganizationTransformer(organization) {
+  if (!organization.id || !organization.displayName) {
+    return void 0;
+  }
+  const name = helper.normalizeEntityName(organization.displayName);
+  return {
+    apiVersion: "backstage.io/v1alpha1",
+    kind: "Group",
+    metadata: {
+      name,
+      description: organization.displayName,
+      annotations: {
+        [constants$2.MICROSOFT_GRAPH_TENANT_ID_ANNOTATION]: organization.id
+      }
+    },
+    spec: {
+      type: "root",
+      profile: {
+        displayName: organization.displayName
+      },
+      children: []
+    }
+  };
+}
+function extractGroupName(group) {
+  if (group.securityEnabled) {
+    return group.displayName;
+  }
+  return group.mailNickname || group.displayName;
+}
+async function defaultGroupTransformer(group, groupPhoto) {
+  if (!group.id || !group.displayName) {
+    return void 0;
+  }
+  const name = helper.normalizeEntityName(extractGroupName(group));
+  const entity = {
+    apiVersion: "backstage.io/v1alpha1",
+    kind: "Group",
+    metadata: {
+      name,
+      annotations: {
+        [constants$2.MICROSOFT_GRAPH_GROUP_ID_ANNOTATION]: group.id
+      }
+    },
+    spec: {
+      type: "team",
+      profile: {},
+      children: []
+    }
+  };
+  if (group.description) {
+    entity.metadata.description = group.description;
+  }
+  if (group.displayName) {
+    entity.spec.profile.displayName = group.displayName;
+  }
+  if (group.mail) {
+    entity.spec.profile.email = group.mail;
+  }
+  if (groupPhoto) {
+    entity.spec.profile.picture = groupPhoto;
+  }
+  return entity;
+}
+async function defaultUserTransformer(user, userPhoto) {
+  if (!user.id || !user.displayName) {
+    return void 0;
+  }
+  const name = user.mail ? helper.normalizeEntityName(user.mail) : helper.normalizeEntityName(user.userPrincipalName);
+  const entity = {
+    apiVersion: "backstage.io/v1alpha1",
+    kind: "User",
+    metadata: {
+      name,
+      annotations: {
+        [constants$2.MICROSOFT_GRAPH_USER_ID_ANNOTATION]: user.id
+      }
+    },
+    spec: {
+      profile: {
+        displayName: user.displayName
+        // TODO: Additional fields?
+        // jobTitle: user.jobTitle || undefined,
+        // officeLocation: user.officeLocation || undefined,
+        // mobilePhone: user.mobilePhone || undefined,
+      },
+      memberOf: []
+    }
+  };
+  if (user.mail) {
+    entity.metadata.annotations[constants$2.MICROSOFT_EMAIL_ANNOTATION] = user.mail;
+    entity.spec.profile.email = user.mail;
+  }
+  if (userPhoto) {
+    entity.spec.profile.picture = userPhoto;
+  }
+  return entity;
+}
+
+defaultTransformers_cjs.defaultGroupTransformer = defaultGroupTransformer;
+defaultTransformers_cjs.defaultOrganizationTransformer = defaultOrganizationTransformer;
+defaultTransformers_cjs.defaultUserTransformer = defaultUserTransformer;
+
+var catalogModel$1 = require$$0$2;
+var limiterFactory = require$$1$2;
+var constants$1 = constants_cjs;
+var org = org_cjs;
+var defaultTransformers = defaultTransformers_cjs;
+
+function _interopDefaultCompat (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }
+
+var limiterFactory__default = /*#__PURE__*/_interopDefaultCompat(limiterFactory);
 
 const PAGE_SIZE = 999;
 async function readMicrosoftGraphUsers(client, options) {
@@ -720,7 +752,7 @@ async function readMicrosoftGraphUsersInGroups(client, options) {
 }
 async function readMicrosoftGraphOrganization(client, tenantId, options) {
   const organization = await client.getOrganization(tenantId);
-  const transformer = options?.transformer ?? defaultOrganizationTransformer;
+  const transformer = options?.transformer ?? defaultTransformers.defaultOrganizationTransformer;
   const rootGroup = await transformer(organization);
   return { rootGroup };
 }
@@ -736,7 +768,7 @@ async function readMicrosoftGraphGroups(client, tenantId, options) {
     groupMember.set(rootGroup.metadata.name, /* @__PURE__ */ new Set());
     groups.push(rootGroup);
   }
-  const transformer = options?.groupTransformer ?? defaultGroupTransformer;
+  const transformer = options?.groupTransformer ?? defaultTransformers.defaultGroupTransformer;
   const promises = [];
   for await (const group of client.getGroups(
     {
@@ -768,6 +800,26 @@ async function readMicrosoftGraphGroups(client, tenantId, options) {
           }
           if (member["@odata.type"] === "#microsoft.graph.group") {
             ensureItem(groupMember, group.id, member.id);
+            if (options?.groupIncludeSubGroups) {
+              const groupMemberEntity = await transformer(member);
+              if (groupMemberEntity) {
+                groups.push(groupMemberEntity);
+                for await (const subMember of client.getGroupMembers(
+                  member.id,
+                  { top: PAGE_SIZE }
+                )) {
+                  if (!subMember.id) {
+                    continue;
+                  }
+                  if (subMember["@odata.type"] === "#microsoft.graph.user") {
+                    ensureItem(groupMemberOf, subMember.id, member.id);
+                  }
+                  if (subMember["@odata.type"] === "#microsoft.graph.group") {
+                    ensureItem(groupMember, member.id, subMember.id);
+                  }
+                }
+              }
+            }
           }
         }
         groups.push(entity);
@@ -785,15 +837,15 @@ async function readMicrosoftGraphGroups(client, tenantId, options) {
 function resolveRelations(rootGroup, groups, users, groupMember, groupMemberOf) {
   const groupMap = /* @__PURE__ */ new Map();
   for (const group of groups) {
-    if (group.metadata.annotations[MICROSOFT_GRAPH_GROUP_ID_ANNOTATION]) {
+    if (group.metadata.annotations[constants$1.MICROSOFT_GRAPH_GROUP_ID_ANNOTATION]) {
       groupMap.set(
-        group.metadata.annotations[MICROSOFT_GRAPH_GROUP_ID_ANNOTATION],
+        group.metadata.annotations[constants$1.MICROSOFT_GRAPH_GROUP_ID_ANNOTATION],
         group
       );
     }
-    if (group.metadata.annotations[MICROSOFT_GRAPH_TENANT_ID_ANNOTATION]) {
+    if (group.metadata.annotations[constants$1.MICROSOFT_GRAPH_TENANT_ID_ANNOTATION]) {
       groupMap.set(
-        group.metadata.annotations[MICROSOFT_GRAPH_TENANT_ID_ANNOTATION],
+        group.metadata.annotations[constants$1.MICROSOFT_GRAPH_TENANT_ID_ANNOTATION],
         group
       );
     }
@@ -803,9 +855,9 @@ function resolveRelations(rootGroup, groups, users, groupMember, groupMemberOf) 
     (members, groupId) => members.forEach((m) => ensureItem(parentGroups, m, groupId))
   );
   if (rootGroup) {
-    const tenantId = rootGroup.metadata.annotations[MICROSOFT_GRAPH_TENANT_ID_ANNOTATION];
+    const tenantId = rootGroup.metadata.annotations[constants$1.MICROSOFT_GRAPH_TENANT_ID_ANNOTATION];
     groups.forEach((group) => {
-      const groupId = group.metadata.annotations[MICROSOFT_GRAPH_GROUP_ID_ANNOTATION];
+      const groupId = group.metadata.annotations[constants$1.MICROSOFT_GRAPH_GROUP_ID_ANNOTATION];
       if (!groupId) {
         return;
       }
@@ -816,34 +868,34 @@ function resolveRelations(rootGroup, groups, users, groupMember, groupMemberOf) 
     });
   }
   groups.forEach((group) => {
-    const id = group.metadata.annotations[MICROSOFT_GRAPH_GROUP_ID_ANNOTATION] ?? group.metadata.annotations[MICROSOFT_GRAPH_TENANT_ID_ANNOTATION];
+    const id = group.metadata.annotations[constants$1.MICROSOFT_GRAPH_GROUP_ID_ANNOTATION] ?? group.metadata.annotations[constants$1.MICROSOFT_GRAPH_TENANT_ID_ANNOTATION];
     retrieveItems(groupMember, id).forEach((m) => {
       const childGroup = groupMap.get(m);
       if (childGroup) {
-        group.spec.children.push(catalogModel.stringifyEntityRef(childGroup));
+        group.spec.children.push(catalogModel$1.stringifyEntityRef(childGroup));
       }
     });
     retrieveItems(parentGroups, id).forEach((p) => {
       const parentGroup = groupMap.get(p);
       if (parentGroup) {
-        group.spec.parent = catalogModel.stringifyEntityRef(parentGroup);
+        group.spec.parent = catalogModel$1.stringifyEntityRef(parentGroup);
       }
     });
   });
-  buildOrgHierarchy(groups);
+  org.buildOrgHierarchy(groups);
   users.forEach((user) => {
-    const id = user.metadata.annotations[MICROSOFT_GRAPH_USER_ID_ANNOTATION];
+    const id = user.metadata.annotations[constants$1.MICROSOFT_GRAPH_USER_ID_ANNOTATION];
     retrieveItems(groupMemberOf, id).forEach((p) => {
       const parentGroup = groupMap.get(p);
       if (parentGroup) {
         if (!user.spec.memberOf) {
           user.spec.memberOf = [];
         }
-        user.spec.memberOf.push(catalogModel.stringifyEntityRef(parentGroup));
+        user.spec.memberOf.push(catalogModel$1.stringifyEntityRef(parentGroup));
       }
     });
   });
-  buildMemberOf(groups, users);
+  org.buildMemberOf(groups, users);
 }
 async function readMicrosoftGraphOrg(client, tenantId, options) {
   let users = [];
@@ -881,6 +933,7 @@ async function readMicrosoftGraphOrg(client, tenantId, options) {
     groupFilter: options.groupFilter,
     groupSearch: options.groupSearch,
     groupSelect: options.groupSelect,
+    groupIncludeSubGroups: options.groupIncludeSubGroups,
     groupTransformer: options.groupTransformer,
     organizationTransformer: options.organizationTransformer
   });
@@ -891,7 +944,7 @@ async function readMicrosoftGraphOrg(client, tenantId, options) {
 }
 async function transformUsers(client, users, logger, loadUserPhotos = true, transformer) {
   const limiter = limiterFactory__default.default(10);
-  const resolvedTransformer = transformer ?? defaultUserTransformer;
+  const resolvedTransformer = transformer ?? defaultTransformers.defaultUserTransformer;
   const promises = [];
   const entities = [];
   for await (const user of users) {
@@ -939,6 +992,41 @@ function retrieveItems(target, key) {
   return target.get(key) ?? /* @__PURE__ */ new Set();
 }
 
+read_cjs.readMicrosoftGraphGroups = readMicrosoftGraphGroups;
+read_cjs.readMicrosoftGraphOrg = readMicrosoftGraphOrg;
+read_cjs.readMicrosoftGraphOrganization = readMicrosoftGraphOrganization;
+read_cjs.readMicrosoftGraphUsers = readMicrosoftGraphUsers;
+read_cjs.readMicrosoftGraphUsersInGroups = readMicrosoftGraphUsersInGroups;
+read_cjs.resolveRelations = resolveRelations;
+
+var catalogModel = require$$0$2;
+var lodash = require$$1$1;
+var uuid = require$$2$1;
+var client = client_cjs;
+var config = config_cjs;
+var constants = constants_cjs;
+var read = read_cjs;
+
+function _interopNamespaceCompat(e) {
+  if (e && typeof e === 'object' && 'default' in e) return e;
+  var n = Object.create(null);
+  if (e) {
+    Object.keys(e).forEach(function (k) {
+      if (k !== 'default') {
+        var d = Object.getOwnPropertyDescriptor(e, k);
+        Object.defineProperty(n, k, d.get ? d : {
+          enumerable: true,
+          get: function () { return e[k]; }
+        });
+      }
+    });
+  }
+  n.default = e;
+  return Object.freeze(n);
+}
+
+var uuid__namespace = /*#__PURE__*/_interopNamespaceCompat(uuid);
+
 class MicrosoftGraphOrgEntityProvider$1 {
   constructor(options) {
     this.options = options;
@@ -960,7 +1048,7 @@ class MicrosoftGraphOrgEntityProvider$1 {
       }
       return transformers[id];
     }
-    return readProviderConfigs(configRoot).map((providerConfig) => {
+    return config.readProviderConfigs(configRoot).map((providerConfig) => {
       if (!options.schedule && !providerConfig.schedule) {
         throw new Error(
           `No schedule provided neither via code nor config for MicrosoftGraphOrgEntityProvider:${providerConfig.id}.`
@@ -1001,10 +1089,10 @@ class MicrosoftGraphOrgEntityProvider$1 {
     options.logger.warn(
       'Deprecated msgraph config "catalog.processors.microsoftGraphOrg" used. Use "catalog.providers.microsoftGraphOrg" instead. More info at https://github.com/backstage/backstage/blob/master/plugins/catalog-backend-module-msgraph/CHANGELOG.md#040-next1'
     );
-    const config = configRoot.getOptionalConfig(
+    const config$1 = configRoot.getOptionalConfig(
       "catalog.processors.microsoftGraphOrg"
     );
-    const providers = config ? readMicrosoftGraphConfig(config) : [];
+    const providers = config$1 ? config.readMicrosoftGraphConfig(config$1) : [];
     const provider = providers.find((p) => options.target.startsWith(p.target));
     if (!provider) {
       throw new Error(
@@ -1048,9 +1136,9 @@ class MicrosoftGraphOrgEntityProvider$1 {
     const logger = options?.logger ?? this.options.logger;
     const provider = this.options.providerConfigTransformer ? await this.options.providerConfigTransformer(this.options.provider) : this.options.provider;
     const { markReadComplete } = trackProgress(logger);
-    const client = MicrosoftGraphClient.create(this.options.provider);
-    const { users, groups } = await readMicrosoftGraphOrg(
-      client,
+    const client$1 = client.MicrosoftGraphClient.create(this.options.provider);
+    const { users, groups } = await read.readMicrosoftGraphOrg(
+      client$1,
       provider.tenantId,
       {
         userExpand: provider.userExpand,
@@ -1063,6 +1151,7 @@ class MicrosoftGraphOrgEntityProvider$1 {
         groupFilter: provider.groupFilter,
         groupSearch: provider.groupSearch,
         groupSelect: provider.groupSelect,
+        groupIncludeSubGroups: provider.groupIncludeSubGroups,
         queryMode: provider.queryMode,
         groupTransformer: this.options.groupTransformer,
         userTransformer: this.options.userTransformer,
@@ -1122,7 +1211,7 @@ function trackProgress(logger) {
   return { markReadComplete };
 }
 function withLocations(providerId, entity) {
-  const uid = entity.metadata.annotations?.[MICROSOFT_GRAPH_USER_ID_ANNOTATION] || entity.metadata.annotations?.[MICROSOFT_GRAPH_GROUP_ID_ANNOTATION] || entity.metadata.annotations?.[MICROSOFT_GRAPH_TENANT_ID_ANNOTATION] || entity.metadata.name;
+  const uid = entity.metadata.annotations?.[constants.MICROSOFT_GRAPH_USER_ID_ANNOTATION] || entity.metadata.annotations?.[constants.MICROSOFT_GRAPH_GROUP_ID_ANNOTATION] || entity.metadata.annotations?.[constants.MICROSOFT_GRAPH_TENANT_ID_ANNOTATION] || entity.metadata.name;
   const location = `msgraph:${providerId}/${encodeURIComponent(uid)}`;
   return lodash.merge(
     {
@@ -1137,28 +1226,12 @@ function withLocations(providerId, entity) {
   );
 }
 
-MicrosoftGraphOrgEntityProviderBkGFhBQB_cjs.MICROSOFT_EMAIL_ANNOTATION = MICROSOFT_EMAIL_ANNOTATION;
-MicrosoftGraphOrgEntityProviderBkGFhBQB_cjs.MICROSOFT_GRAPH_GROUP_ID_ANNOTATION = MICROSOFT_GRAPH_GROUP_ID_ANNOTATION;
-MicrosoftGraphOrgEntityProviderBkGFhBQB_cjs.MICROSOFT_GRAPH_TENANT_ID_ANNOTATION = MICROSOFT_GRAPH_TENANT_ID_ANNOTATION;
-MicrosoftGraphOrgEntityProviderBkGFhBQB_cjs.MICROSOFT_GRAPH_USER_ID_ANNOTATION = MICROSOFT_GRAPH_USER_ID_ANNOTATION;
-MicrosoftGraphOrgEntityProviderBkGFhBQB_cjs.MicrosoftGraphClient = MicrosoftGraphClient;
-MicrosoftGraphOrgEntityProviderBkGFhBQB_cjs.MicrosoftGraphOrgEntityProvider = MicrosoftGraphOrgEntityProvider$1;
-MicrosoftGraphOrgEntityProviderBkGFhBQB_cjs.defaultGroupTransformer = defaultGroupTransformer;
-MicrosoftGraphOrgEntityProviderBkGFhBQB_cjs.defaultOrganizationTransformer = defaultOrganizationTransformer;
-MicrosoftGraphOrgEntityProviderBkGFhBQB_cjs.defaultUserTransformer = defaultUserTransformer;
-MicrosoftGraphOrgEntityProviderBkGFhBQB_cjs.normalizeEntityName = normalizeEntityName;
-MicrosoftGraphOrgEntityProviderBkGFhBQB_cjs.readMicrosoftGraphConfig = readMicrosoftGraphConfig;
-MicrosoftGraphOrgEntityProviderBkGFhBQB_cjs.readMicrosoftGraphOrg = readMicrosoftGraphOrg;
-MicrosoftGraphOrgEntityProviderBkGFhBQB_cjs.readProviderConfig = readProviderConfig;
-MicrosoftGraphOrgEntityProviderBkGFhBQB_cjs.readProviderConfigs = readProviderConfigs;
-
-Object.defineProperty(alpha_cjs, '__esModule', { value: true });
+MicrosoftGraphOrgEntityProvider_cjs.MicrosoftGraphOrgEntityProvider = MicrosoftGraphOrgEntityProvider$1;
+MicrosoftGraphOrgEntityProvider_cjs.withLocations = withLocations;
 
 var backendPluginApi = require$$0$1;
-var alpha = require$$1$1;
-var MicrosoftGraphOrgEntityProvider = MicrosoftGraphOrgEntityProviderBkGFhBQB_cjs;
-
-
+var alpha = require$$1$3;
+var MicrosoftGraphOrgEntityProvider = MicrosoftGraphOrgEntityProvider_cjs;
 
 
 
@@ -1172,7 +1245,7 @@ const microsoftGraphOrgEntityProviderTransformExtensionPoint = backendPluginApi.
     id: "catalog.microsoftGraphOrgEntityProvider.transforms"
   }
 );
-const catalogModuleMicrosoftGraphOrgEntityProvider = backendPluginApi.createBackendModule(
+const catalogModuleMicrosoftGraphOrgEntityProvider$1 = backendPluginApi.createBackendModule(
   {
     pluginId: "catalog",
     moduleId: "microsoftGraphOrgEntityProvider",
@@ -1234,8 +1307,16 @@ const catalogModuleMicrosoftGraphOrgEntityProvider = backendPluginApi.createBack
   }
 );
 
-var _default = alpha_cjs.default = catalogModuleMicrosoftGraphOrgEntityProvider;
-alpha_cjs.microsoftGraphOrgEntityProviderTransformExtensionPoint = microsoftGraphOrgEntityProviderTransformExtensionPoint;
+catalogModuleMicrosoftGraphOrgEntityProvider_cjs.catalogModuleMicrosoftGraphOrgEntityProvider = catalogModuleMicrosoftGraphOrgEntityProvider$1;
+catalogModuleMicrosoftGraphOrgEntityProvider_cjs.microsoftGraphOrgEntityProviderTransformExtensionPoint = microsoftGraphOrgEntityProviderTransformExtensionPoint;
+
+Object.defineProperty(alpha_cjs, '__esModule', { value: true });
+
+var catalogModuleMicrosoftGraphOrgEntityProvider = catalogModuleMicrosoftGraphOrgEntityProvider_cjs;
+
+const _feature = catalogModuleMicrosoftGraphOrgEntityProvider.catalogModuleMicrosoftGraphOrgEntityProvider;
+
+var _default = alpha_cjs.default = _feature;
 
 exports["default"] = _default;
 //# sourceMappingURL=index.cjs.js.map

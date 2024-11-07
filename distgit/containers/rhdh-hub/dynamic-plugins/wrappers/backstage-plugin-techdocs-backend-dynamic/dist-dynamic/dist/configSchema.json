@@ -67,20 +67,15 @@
               "type": "object",
               "properties": {
                 "type": {
-                  "enum": [
-                    "awsS3",
-                    "azureBlobStorage",
-                    "googleGcs",
-                    "local",
-                    "openStackSwift"
-                  ],
-                  "type": "string"
+                  "type": "string",
+                  "const": "local"
                 },
                 "local": {
+                  "description": "Optional when 'type' is set to local",
                   "type": "object",
                   "properties": {
                     "publishDirectory": {
-                      "description": "Directory to store generated static files.",
+                      "description": "(Optional) Directory to store generated static files.",
                       "type": "string"
                     }
                   }
@@ -132,6 +127,10 @@
                     },
                     "bucketName": {
                       "description": "(Required) Cloud Storage Bucket Name",
+                      "type": "string"
+                    },
+                    "bucketRootPath": {
+                      "description": "(Optional) Location in storage bucket to save files\nIf not set, the default location will be the root of the storage bucket",
                       "type": "string"
                     },
                     "region": {

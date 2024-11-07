@@ -1,6 +1,6 @@
 dynamicPlugins:
   frontend:
-    backstage.plugin-azure-devops:
+    backstage-community.plugin-azure-devops:
       mountPoints:
         - mountPoint: entity.page.ci/cards
           importName: EntityAzurePipelinesContent
@@ -18,7 +18,7 @@ dynamicPlugins:
             if:
               allOf:
                 - isAzureDevOpsAvailable
-    backstage.plugin-dynatrace:
+    backstage-community.plugin-dynatrace:
       mountPoints:
         - mountPoint: entity.page.monitoring/cards
           importName: DynatraceTab
@@ -28,7 +28,7 @@ dynamicPlugins:
             if:
               allOf:
                 - isDynatraceAvailable
-    backstage.plugin-github-actions:
+    backstage-community.plugin-github-actions:
       mountPoints:
         - mountPoint: entity.page.ci/cards
           importName: EntityGithubActionsContent
@@ -38,7 +38,7 @@ dynamicPlugins:
             if:
               allOf:
                 - isGithubActionsAvailable
-    backstage.plugin-github-issues:
+    backstage-community.plugin-github-issues:
       mountPoints:
         - mountPoint: entity.page.issues/cards
           importName: GithubIssuesCard
@@ -48,7 +48,7 @@ dynamicPlugins:
             if:
               allOf:
                 - hasAnnotation: github.com/project-slug
-    backstage.plugin-jenkins:
+    backstage-community.plugin-jenkins:
       mountPoints:
         - mountPoint: entity.page.ci/cards
           importName: EntityJenkinsContent
@@ -69,7 +69,7 @@ dynamicPlugins:
               anyOf:
                 - hasAnnotation: backstage.io/kubernetes-id
                 - hasAnnotation: backstage.io/kubernetes-namespace
-    backstage.plugin-lighthouse:
+    backstage-community.plugin-lighthouse:
       appIcons:
         - name: lighthouse
           importName: LighthouseIcon
@@ -102,7 +102,7 @@ dynamicPlugins:
             if:
               allOf:
                 - isPluginApplicableToEntity
-    backstage.plugin-sonarqube:
+    backstage-community.plugin-sonarqube:
       mountPoints:
         - mountPoint: entity.page.overview/cards
           importName: EntitySonarQubeCard
@@ -162,7 +162,7 @@ dynamicPlugins:
             if:
               anyOf:
                 - isAcrAvailable
-    janus-idp.backstage-plugin-jfrog-artifactory:
+    backstage-community.plugin-jfrog-artifactory:
       mountPoints:
         - mountPoint: entity.page.image-registry/cards
           importName: JfrogArtifactoryPage
@@ -172,7 +172,7 @@ dynamicPlugins:
             if:
               anyOf:
                 - isJfrogArtifactoryAvailable
-    janus-idp.backstage-plugin-nexus-repository-manager:
+    backstage-community.plugin-nexus-repository-manager:
       mountPoints:
         - mountPoint: entity.page.image-registry/cards
           importName: NexusRepositoryManagerPage
@@ -182,7 +182,7 @@ dynamicPlugins:
             if:
               anyOf:
                 - isNexusRepositoryManagerAvailable
-    janus-idp.backstage-plugin-ocm:
+    backstage-community.plugin-ocm:
       appIcons:
         - name: ocmIcon
           importName: OcmIcon
@@ -232,12 +232,10 @@ dynamicPlugins:
     janus-idp.backstage-plugin-bulk-import:
       appIcons:
         - name: bulkImportIcon
-          module: BulkImportPlugin
           importName: BulkImportIcon
       dynamicRoutes:
         - path: /bulk-import/repositories
           importName: BulkImportPage
-          module: BulkImportPlugin
           menuItem:
             icon: bulkImportIcon
             text: Bulk import
@@ -408,7 +406,7 @@ dynamicPlugins:
             props:
               name: Documentation
               icon: docs
-    backstage.plugin-tech-radar:
+    backstage-community.plugin-tech-radar:
       apiFactories:
         - importName: TechRadarApi
       appIcons:
@@ -427,6 +425,20 @@ dynamicPlugins:
     janus-idp.backstage-plugin-analytics-provider-segment:
       apiFactories:
         - importName: SegmentAnalyticsApi
+    janus-idp.backstage-plugin-rbac:
+      appIcons:
+        - name: rbacIcon
+          importName: RbacIcon
+      dynamicRoutes:
+        - path: /rbac
+          importName: RbacPage
+          menuItem:
+            icon: rbacIcon
+            text: RBAC
+      menuItems:
+        rbac:
+          parent: admin
+          icon: rbacIcon
 app:
   title: Red Hat Developer Hub
   branding:

@@ -1,5 +1,5 @@
-import { BackendDynamicPluginInstaller } from '@backstage/backend-dynamic-feature-service';
+import * as _backstage_backend_plugin_api from '@backstage/backend-plugin-api';
 
-declare const dynamicPluginInstaller: BackendDynamicPluginInstaller;
+declare const bundle: _backstage_backend_plugin_api.BackendFeature;
 
-export { dynamicPluginInstaller };
+export { bundle as default };

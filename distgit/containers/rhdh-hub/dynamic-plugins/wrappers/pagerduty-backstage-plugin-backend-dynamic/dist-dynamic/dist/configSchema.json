@@ -25,6 +25,11 @@
         "oauth": {
           "description": "Optional PagerDuty Scoped OAuth Token used in API calls from the backend component.",
           "deepVisibility": "secret"
+        },
+        "accounts": {
+          "description": "Optional PagerDuty multi-account configuration",
+          "deepVisibility": "secret",
+          "type": "array"
         }
       }
     }
