@@ -821,7 +821,7 @@ if [[ $DO_BUILD -eq 1 ]]; then
   for d in $(find distgit/containers/rhdh-hub/dynamic-plugins -name package.json) ; do
     # determine if this a front or back end plugin; only work on BACK END plugins
     # see https://github.com/redhat-developer/rhdh-plugin-export-utils/blob/main/export-dynamic/export-dynamic.sh
-    if [[ "$(grep -e '"role" *: *"backend-plugin' package.json)" != "" ]] && [[ $(grep -E 'export-dynamic-plugin' "$d" | grep -v -- '--network-timeout') ]]; then
+    if [[ "$(grep -e '"role" *: *"backend-plugin' "$d")" != "" ]] && [[ $(grep -E 'export-dynamic-plugin' "$d" | grep -v -- '--network-timeout') ]]; then
       echo "[INFO] Patch yarn command in ${d#distgit/containers/rhdh-hub/} (back end plugins ONLY) ..."
       sed -i "$d" -r \
       -e 's#("janus-cli package export-dynamic-plugin.+)"#\1'"$insertYarn"'"#g'
