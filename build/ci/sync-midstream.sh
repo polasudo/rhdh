@@ -739,7 +739,7 @@ if [[ $DO_BUILD -eq 1 ]]; then
     echo
 
     echo "[INFO] ===================================== INSTALL =====================================>"
-    time $YARN install --silent 2> >(grep -v warning 1>&2) || exit 10
+    time $YARN install --no-immutable --silent 2> >(grep -v warning 1>&2) || exit 10
     # if we need node-gyp to be globally installed in gitlab runner, re can re-enable this
     # if [[ $(id -u) -eq 0 ]]; then
     #   time npm i -g node-gyp@^9.4.1 turbo prettier
@@ -876,7 +876,7 @@ if [[ $DO_BUILD -eq 1 ]]; then
         jq '.resolutions|={}' "$d"/package.json > "$d"/package.json_; mv "$d"/package.json{_,}
 
         echo "[INFO] Regenerate wrapper ${d##*wrappers/}/yarn.lock ..."
-        $YARN install --silent --cwd "./$d" 2> >(grep -v warning 1>&2) || exit 61
+        $YARN install --no-immutable --silent --cwd "./$d" 2> >(grep -v warning 1>&2) || exit 61
           echo "========= anything changed in the yarn lock? ====>"
           git diff "./$d"
           echo "<======== anything changed in the yarn lock? ====+"
