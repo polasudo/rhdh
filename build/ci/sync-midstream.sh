@@ -731,12 +731,11 @@ if [[ $DO_BUILD -eq 1 ]]; then
     #shellcheck disable=SC2044
     YARN=$(which yarn)
     export YARN
-    $YARN config set "strict-ssl" false
-    $YARN config set unsafe-perm true
-    $YARN config set network-timeout 600000
-    $YARN config list --verbose
-    echo -n "Yarn version ($YARN): "
-    $YARN --version
+    $YARN config set enableStrictSsl false
+    # $YARN config set unsafe-perm true # not sure what the Yarn 3 equivalent is here or if we still need this
+    $YARN config set httpTimeout 600000
+    $YARN config --verbose
+    echo -n "Yarn version ($YARN): "; $YARN --version
     echo
 
     echo "[INFO] ===================================== INSTALL =====================================>"
@@ -751,8 +750,7 @@ if [[ $DO_BUILD -eq 1 ]]; then
 
     echo "[INFO] ===================================== EXPORT + COPY DYNAMIC PLUGINS =====================================>"
     # see (brew.)Dockerfile for more details about these steps
-    echo -n "Yarn version ($YARN): "
-    $YARN --version
+    echo -n "Yarn version ($YARN): ";  $YARN --version
     time $YARN export-dynamic 2> >(grep -v warning 1>&2) || exit 41
     time $YARN copy-dynamic-plugins dist 2> >(grep -v warning 1>&2) || exit 42
     echo "[INFO] <===================================== EXPORT + COPY DYNAMIC PLUGINS ====================================="
