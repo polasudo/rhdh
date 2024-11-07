@@ -875,11 +875,15 @@ if [[ $DO_BUILD -eq 1 ]]; then
         # 2. remove resolutions (moved above)
         jq '.resolutions|={}' "$d"/package.json > "$d"/package.json_; mv "$d"/package.json{_,}
 
-        echo "[INFO] Regenerate wrapper ${d##*wrappers/}/yarn.lock ..."
+        echo "[INFO] Regen wrapper ${d##*wrappers/} yarn.lock ..."
         $YARN install --no-immutable --silent --cwd "./$d" 2> >(grep -v warning 1>&2) || exit 61
-          echo "========= anything changed in the yarn lock? ====>"
-          git diff --name-only "./$d"
-          echo "<======== anything changed in the yarn lock? ====+"
+        # debug changes in each folder
+        # changed_diff=$(git diff --name-only "./$d" || true)
+        # if [[ $changed_diff ]]; then
+        #   echo "== changed files =>"
+        #   echo $changed_diff
+        #   echo "<= changed files =="
+        # fi
         # force add package.json and yarn.lock (override .gitignore)
         git add -f "$d"/package.json "$d"/yarn.lock
       fi
