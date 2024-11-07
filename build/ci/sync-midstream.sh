@@ -731,7 +731,7 @@ if [[ $DO_BUILD -eq 1 ]]; then
     #shellcheck disable=SC2044
     YARN=$(which yarn)
     export YARN
-    $YARN config set "strict-ssl" false -s
+    $YARN config set "strict-ssl" false
     $YARN config set unsafe-perm true
     $YARN config set network-timeout 600000
     $YARN config list --verbose
