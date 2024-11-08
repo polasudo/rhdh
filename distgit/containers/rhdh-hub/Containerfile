@@ -46,8 +46,8 @@ WORKDIR $CONTAINER_SOURCE/
 COPY $EXTERNAL_SOURCE_NESTED/.yarn ./.yarn
 COPY $EXTERNAL_SOURCE_NESTED/.yarnrc.yml ./
 
-# Add execute permissions to yarn
-RUN chmod +x "$YARN"
+# Add execute permissions to yarn; add yarn to path via symlink
+RUN chmod +x "$YARN" && ln -s "$YARN" /usr/local/bin/yarn
 
 # Stage 2 - Install dependencies
 FROM skeleton AS deps
@@ -296,7 +296,7 @@ ENTRYPOINT ["node", "packages/backend", "--no-node-snapshot", "--config", "app-c
 # append Brew metadata here
 ENV SUMMARY="Red Hat Developer Hub container" \
     DESCRIPTION="Red Hat Developer Hub container" \
-    UPSTREAM_REPO="https://github.com/janus-idp/backstage-showcase/tree/main @ cbcde8da" \
+    UPSTREAM_REPO="https://github.com/janus-idp/backstage-showcase/tree/main @ 4e702656" \
     MIDSTREAM_REPO="https://gitlab.cee.redhat.com/rhidp/rhdh/-/commits/rhdh-1-rhel-9" \
     PRODNAME="rhdh" \
     COMPNAME="hub"
