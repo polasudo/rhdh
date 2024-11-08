@@ -10,7 +10,7 @@ remote_sources:
   - name: upstream1
     remote_source:
       repo: https://gitlab.cee.redhat.com/rhidp/rhdh.git
-      ref: 2ba6171579be3976d9a30db38e939ba86a8fff4d
+      ref: a2b197af7e2e8ca5b6d1e30e215c94a16caf6b93
       pkg_managers:
         - yarn
       packages:
@@ -20,11 +20,11 @@ remote_sources:
           - path: distgit/containers/rhdh-hub/dynamic-plugins/wrappers/roadiehq-scaffolder-backend-module-http-request-dynamic/dist-dynamic
           - path: distgit/containers/rhdh-hub/dynamic-plugins/wrappers/roadiehq-scaffolder-backend-argocd-dynamic/dist-dynamic
           - path: distgit/containers/rhdh-hub/dynamic-plugins/wrappers/roadiehq-backstage-plugin-argo-cd-backend-dynamic/dist-dynamic
+          - path: distgit/containers/rhdh-hub/dynamic-plugins/wrappers/red-hat-developer-hub-backstage-plugin-bulk-import-backend-dynamic/dist-dynamic
           - path: distgit/containers/rhdh-hub/dynamic-plugins/wrappers/parfuemerie-douglas-scaffolder-backend-module-azure-repositories-dynamic/dist-dynamic
           - path: distgit/containers/rhdh-hub/dynamic-plugins/wrappers/pagerduty-backstage-plugin-backend-dynamic/dist-dynamic
           - path: distgit/containers/rhdh-hub/dynamic-plugins/wrappers/janus-idp-backstage-scaffolder-backend-module-regex-dynamic/dist-dynamic
           - path: distgit/containers/rhdh-hub/dynamic-plugins/wrappers/janus-idp-backstage-scaffolder-backend-module-quay-dynamic/dist-dynamic
-          - path: distgit/containers/rhdh-hub/dynamic-plugins/wrappers/janus-idp-backstage-plugin-bulk-import-backend-dynamic/dist-dynamic
           - path: distgit/containers/rhdh-hub/dynamic-plugins/wrappers/janus-idp-backstage-plugin-aap-backend-dynamic/dist-dynamic
           - path: distgit/containers/rhdh-hub/dynamic-plugins/wrappers/immobiliarelabs-backstage-plugin-gitlab-backend-dynamic/dist-dynamic
           - path: distgit/containers/rhdh-hub/dynamic-plugins/wrappers/backstage-plugin-techdocs-backend-dynamic/dist-dynamic
@@ -68,7 +68,7 @@ remote_sources:
   - name: upstream2
     remote_source:
       repo: https://gitlab.cee.redhat.com/rhidp/rhdh.git
-      ref: 2ba6171579be3976d9a30db38e939ba86a8fff4d
+      ref: a2b197af7e2e8ca5b6d1e30e215c94a16caf6b93
       pkg_managers:
         - pip
       packages:
