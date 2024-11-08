@@ -229,7 +229,7 @@ dynamicPlugins:
             if:
               anyOf:
                 - isQuayAvailable
-    janus-idp.backstage-plugin-bulk-import:
+    red-hat-developer-hub.backstage-plugin-bulk-import:
       appIcons:
         - name: bulkImportIcon
           importName: BulkImportIcon

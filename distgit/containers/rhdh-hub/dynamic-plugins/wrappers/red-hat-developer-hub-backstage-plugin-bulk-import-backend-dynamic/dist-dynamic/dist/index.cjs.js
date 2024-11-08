@@ -6,10 +6,10 @@ var require$$0$6 = require('@backstage/backend-plugin-api');
 var require$$1$4 = require('@backstage/plugin-catalog-node/alpha');
 var require$$0$5 = require('@backstage/backend-defaults/rootHttpRouter');
 var require$$1$3 = require('@backstage/plugin-permission-node');
-var require$$2 = require('ajv-formats/dist/formats');
-var require$$3$1 = require('express');
-var require$$4 = require('openapi-backend');
-var require$$5 = require('@janus-idp/backstage-plugin-audit-log-node');
+var require$$2 = require('@janus-idp/backstage-plugin-audit-log-node');
+var require$$3$1 = require('ajv-formats/dist/formats');
+var require$$4 = require('express');
+var require$$5 = require('openapi-backend');
 var require$$1 = require('@backstage/plugin-permission-common');
 var require$$0$2 = require('node-fetch');
 var require$$0 = require('@backstage/errors');
@@ -163,7 +163,9 @@ async function auditLogAuthError(auditLogger, openApiOperationId, req, error) {
       }
     },
     errors: [error],
-    message: `${await auditLogger.getActorId(req)} not authorized to request the '${req.method} ${req.path}' endpoint`
+    message: `${await auditLogger.getActorId(
+      req
+    )} not authorized to request the '${req.method} ${req.path}' endpoint`
   });
 }
 function operationIdToEventName(openApiOperationId) {
@@ -295,7 +297,10 @@ class CatalogHttpClient {
       {
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${await auth$1.getTokenForPlugin(this.auth, "catalog")}`
+          Authorization: `Bearer ${await auth$1.getTokenForPlugin(
+            this.auth,
+            "catalog"
+          )}`
         },
         method: "POST",
         body: JSON.stringify({
@@ -341,7 +346,10 @@ class CatalogHttpClient {
     const response = await fetch__default.default(url, {
       headers: {
         Accept: "application/json",
-        Authorization: `Bearer ${await auth$1.getTokenForPlugin(this.auth, "catalog")}`
+        Authorization: `Bearer ${await auth$1.getTokenForPlugin(
+          this.auth,
+          "catalog"
+        )}`
       },
       method: "GET"
     });
@@ -460,11 +468,16 @@ class CatalogHttpClient {
   }
   async deleteCatalogLocationById(locationId) {
     try {
-      const url = `${await this.discovery.getBaseUrl("catalog")}/locations/${locationId}`;
+      const url = `${await this.discovery.getBaseUrl(
+        "catalog"
+      )}/locations/${locationId}`;
       await fetch__default.default(url, {
         headers: {
           Accept: "application/json",
-          Authorization: `Bearer ${await auth$1.getTokenForPlugin(this.auth, "catalog")}`
+          Authorization: `Bearer ${await auth$1.getTokenForPlugin(
+            this.auth,
+            "catalog"
+          )}`
         },
         method: "DELETE"
       });
@@ -3923,7 +3936,9 @@ async function handleAddedReposFromCreateImportJobs(deps, importRequests) {
       req.repository.url,
       req.repository.defaultBranch
     );
-    const hasLocation = await deps.catalogHttpClient.verifyLocationExistence(repoCatalogUrl);
+    const hasLocation = await deps.catalogHttpClient.verifyLocationExistence(
+      repoCatalogUrl
+    );
     if (!hasLocation) {
       continue;
     }
@@ -4092,7 +4107,9 @@ async function dryRunCreateImportJobs(deps, importRequests) {
 }
 async function performDryRunChecks(deps, req) {
   const checkCatalog = async (catalogEntityName) => {
-    const hasEntity = await deps.catalogHttpClient.hasEntityInCatalog(catalogEntityName);
+    const hasEntity = await deps.catalogHttpClient.hasEntityInCatalog(
+      catalogEntityName
+    );
     if (hasEntity) {
       return { dryRunStatuses: ["CATALOG_ENTITY_CONFLICT"] };
     }
@@ -4204,7 +4221,9 @@ async function findImportStatusByRepo(deps, repoUrl, defaultBranch, includeCatal
           defaultBranch
         );
       }
-      const ghRepo = await deps.githubApiService.getRepositoryFromIntegrations(repoUrl);
+      const ghRepo = await deps.githubApiService.getRepositoryFromIntegrations(
+        repoUrl
+      );
       result.lastUpdate = ghRepo.repository?.updated_at ?? void 0;
       return {
         statusCode: 200,
@@ -4525,10 +4544,10 @@ repositories_cjs.findRepositoriesByOrganization = findRepositoriesByOrganization
 
 var rootHttpRouter = require$$0$5;
 var pluginPermissionNode = require$$1$3;
-var formats = require$$2;
-var express = require$$3$1;
-var openapiBackend = require$$4;
-var backstagePluginAuditLogNode = require$$5;
+var backstagePluginAuditLogNode = require$$2;
+var formats = require$$3$1;
+var express = require$$4;
+var openapiBackend = require$$5;
 var backstagePluginBulkImportCommon = require$$6;
 var catalogHttpClient = catalogHttpClient_cjs;
 var catalogInfoGenerator = catalogInfoGenerator_cjs;
