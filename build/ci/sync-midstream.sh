@@ -812,7 +812,7 @@ if [[ $DO_BUILD -eq 1 ]]; then
   echo "[INFO] ===================================== Patch embedded yarn commands =====================================>"
   # backstage-plugin-kubernetes-backend:export-dynamic: error Your lockfile needs to be updated, but yarn was run with `--frozen-lockfile`.
   # don't use --frozen-lockfile to see if that makes Cachito happy
-  insertYarn=" --no-install \&\& \$YARN --cwd dist-dynamic install --production --network-timeout 600000"
+  insertYarn=" --no-install \&\& yarn --cwd dist-dynamic install --production --network-timeout 600000"
   #shellcheck disable=SC2044,SC2143
 
   # two options for janus-cli syntax (--in-place added June 2024):
