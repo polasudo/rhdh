@@ -149,7 +149,7 @@ spec:
       taskRef:
         params:
         - name: name
-          value: git-clone-oci-ta
+          value: git-clone
         - name: bundle
           value: quay.io/konflux-ci/tekton-catalog/task-git-clone:0.1@sha256:2cccdf8729ad4d5adf65e8b66464f8efa1e1c87ba16d343b4a6c621a2a40f7e1
         - name: kind
