@@ -32,8 +32,8 @@
     "test": "backstage-cli package test --passWithNoTests --coverage",
     "clean": "backstage-cli package clean",
     "clean-dynamic-sources": "yarn clean && rm -Rf node_modules",
-    "export-dynamic": "janus-cli package export-dynamic-plugin --embed-package @roadiehq/scaffolder-backend-module-utils --override-interop default --no-embed-as-dependencies --no-install && $YARN --cwd dist-dynamic install --production --network-timeout 600000",
-    "export-dynamic:clean": "janus-cli package export-dynamic-plugin --embed-package @roadiehq/scaffolder-backend-module-utils --override-interop default --no-embed-as-dependencies --clean --no-install && $YARN --cwd dist-dynamic install --production --network-timeout 600000"
+    "export-dynamic": "janus-cli package export-dynamic-plugin --embed-package @roadiehq/scaffolder-backend-module-utils --override-interop default --no-embed-as-dependencies --no-install && yarn --cwd dist-dynamic install --production --network-timeout 600000",
+    "export-dynamic:clean": "janus-cli package export-dynamic-plugin --embed-package @roadiehq/scaffolder-backend-module-utils --override-interop default --no-embed-as-dependencies --clean --no-install && yarn --cwd dist-dynamic install --production --network-timeout 600000"
   },
   "dependencies": {
     "@roadiehq/scaffolder-backend-module-utils": "2.0.2"
