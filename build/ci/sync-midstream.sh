@@ -810,11 +810,7 @@ if [[ $DO_BUILD -eq 1 ]]; then
   set -e
 
   echo "[INFO] ===================================== Patch embedded yarn commands =====================================>"
-  # backstage-plugin-kubernetes-backend:export-dynamic: error Your lockfile needs to be updated, but yarn was run with `--frozen-lockfile`.
-  # don't use --frozen-lockfile to see if that makes Cachito happy
-  insertYarn=" --no-install \&\& yarn --cwd dist-dynamic install --production --network-timeout 600000"
   #shellcheck disable=SC2044,SC2143
-
   # two options for janus-cli syntax (--in-place added June 2024):
   # janus-cli package export-dynamic-plugin --in-place # front end - do NOT convert
   # janus-cli package export-dynamic-plugin --embed-package @backstage/plugin-scaffolder-backend-module-bitbucket-cloud --override-interop default --no-embed-as-dependencies # back end - DO convert
@@ -823,6 +819,8 @@ if [[ $DO_BUILD -eq 1 ]]; then
     # see https://github.com/redhat-developer/rhdh-plugin-export-utils/blob/main/export-dynamic/export-dynamic.sh
     if [[ "$(grep -e '"role" *: *"backend-plugin' "$d")" != "" ]] && [[ $(grep -E 'export-dynamic-plugin' "$d" | grep -v -- '--network-timeout') ]]; then
       echo "[INFO] Patch yarn command in ${d#distgit/containers/rhdh-hub/} (back end plugins ONLY) ..."
+      dName=$(jq -r '.name' "$d/dist-dynamic/package.json")
+      insertYarn=" --no-install \&\& yarn workspace $dName install"
       sed -i "$d" -r \
       -e 's#("janus-cli package export-dynamic-plugin.+)"#\1'"$insertYarn"'"#g'
       # debug
@@ -875,8 +873,9 @@ if [[ $DO_BUILD -eq 1 ]]; then
         # 2. remove resolutions (moved above)
         jq '.resolutions|={}' "$d"/package.json > "$d"/package.json_; mv "$d"/package.json{_,}
 
+        dName=$(jq -r '.name' "$d/package.json")
         echo "[INFO] Regen wrapper ${d##*wrappers/} yarn.lock ..."
-        $YARN install --no-immutable --silent --cwd "./$d" 2> >(grep -v warning 1>&2) || exit 61
+        $YARN workspace "$dName" install --no-immutable --silent 2> >(grep -v warning 1>&2) || exit 61
         # debug changes in each folder
         # changed_diff=$(git diff --name-only "./$d" || true)
         # if [[ $changed_diff ]]; then
