@@ -22,10 +22,10 @@
     "./package.json": "./package.json"
   },
   "dependencies": {
-    "yaml": "^2.3.3",
-    "zod": "^3.22.4",
+    "@aws-sdk/util-utf8-browser": "^3",
     "@smithy/util-utf8": "~2",
-    "@aws-sdk/util-utf8-browser": "^3"
+    "yaml": "^2.3.3",
+    "zod": "^3.22.4"
   },
   "files": [
     "dist"
@@ -54,6 +54,5 @@
     "@aws-sdk/util-utf8-browser": {
       "@smithy/util-utf8": "^2.0.0"
     }
-  },
-  "resolutions": {}
+  }
 }

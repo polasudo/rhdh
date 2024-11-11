@@ -25,14 +25,14 @@
     "./package.json": "./package.json"
   },
   "dependencies": {
+    "@aws-sdk/util-utf8-browser": "^3",
+    "@smithy/util-utf8": "~2",
     "@types/express": "^4.17.6",
     "express": "^4.17.1",
     "express-promise-router": "^4.1.0",
     "jenkins": "^1.0.0",
     "node-fetch": "^2.6.7",
-    "yn": "^4.0.0",
-    "@smithy/util-utf8": "~2",
-    "@aws-sdk/util-utf8-browser": "^3"
+    "yn": "^4.0.0"
   },
   "files": [
     "dist"
@@ -69,6 +69,5 @@
     "@aws-sdk/util-utf8-browser": {
       "@smithy/util-utf8": "^2.0.0"
     }
-  },
-  "resolutions": {}
+  }
 }

@@ -22,10 +22,10 @@
     "./package.json": "./package.json"
   },
   "dependencies": {
-    "azure-devops-node-api": "^13.0.0",
-    "winston": "^3.2.1",
+    "@aws-sdk/util-utf8-browser": "^3",
     "@smithy/util-utf8": "~2",
-    "@aws-sdk/util-utf8-browser": "^3"
+    "azure-devops-node-api": "^13.0.0",
+    "winston": "^3.2.1"
   },
   "files": [
     "dist"
@@ -61,6 +61,5 @@
     "@aws-sdk/util-utf8-browser": {
       "@smithy/util-utf8": "^2.0.0"
     }
-  },
-  "resolutions": {}
+  }
 }

@@ -25,17 +25,15 @@
     },
     "./package.json": "./package.json"
   },
-  "scripts": {},
   "dependencies": {
+    "@aws-sdk/util-utf8-browser": "^3",
+    "@smithy/util-utf8": "~2",
     "abort-controller": "^3.0.0",
     "axios": "^1.7.4",
     "form-data": "^4.0.0",
     "yaml": "^2.3.3",
-    "zod": "^3.22.4",
-    "@smithy/util-utf8": "~2",
-    "@aws-sdk/util-utf8-browser": "^3"
+    "zod": "^3.22.4"
   },
-  "devDependencies": {},
   "files": [
     "dist",
     "config.d.ts",
@@ -69,6 +67,5 @@
     "@aws-sdk/util-utf8-browser": {
       "@smithy/util-utf8": "^2.0.0"
     }
-  },
-  "resolutions": {}
+  }
 }

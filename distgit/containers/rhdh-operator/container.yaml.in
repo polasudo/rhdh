@@ -1,0 +1,21 @@
+platforms:
+  only:
+    - x86_64
+compose:
+  inherit: false
+  pulp_repos: true
+  signing_intent: release
+image_build_method: imagebuilder
+remote_sources:
+  - name: upstream1
+    remote_source:
+      repo: ${CI_RHDH_UPSTREAM_URL}
+      ref: ${CI_RHDH_UPSTREAM_COMMIT}
+      pkg_managers:
+        - gomod
+      flags:
+        - gomod-vendor-check
+      packages:
+        gomod:
+          - path: distgit/containers/rhdh-operator
+

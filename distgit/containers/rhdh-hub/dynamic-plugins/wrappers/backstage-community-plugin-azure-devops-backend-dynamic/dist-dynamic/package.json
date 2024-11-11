@@ -26,6 +26,8 @@
     "./package.json": "./package.json"
   },
   "dependencies": {
+    "@aws-sdk/util-utf8-browser": "^3",
+    "@smithy/util-utf8": "~2",
     "@types/express": "^4.17.6",
     "azure-devops-node-api": "^13.0.0",
     "express": "^4.17.1",
@@ -33,9 +35,7 @@
     "lodash": "^4.17.21",
     "mime-types": "^2.1.27",
     "p-limit": "^3.1.0",
-    "yn": "^4.0.0",
-    "@smithy/util-utf8": "~2",
-    "@aws-sdk/util-utf8-browser": "^3"
+    "yn": "^4.0.0"
   },
   "files": [
     "dist"
@@ -74,6 +74,5 @@
     "@aws-sdk/util-utf8-browser": {
       "@smithy/util-utf8": "^2.0.0"
     }
-  },
-  "resolutions": {}
+  }
 }

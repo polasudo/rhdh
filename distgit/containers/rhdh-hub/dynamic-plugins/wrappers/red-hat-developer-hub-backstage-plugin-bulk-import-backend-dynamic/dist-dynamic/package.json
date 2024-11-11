@@ -24,17 +24,17 @@
     "./package.json": "./package.json"
   },
   "dependencies": {
+    "@aws-sdk/util-utf8-browser": "^3",
     "@octokit/auth-app": "^6.0.3",
     "@octokit/rest": "^20.0.2",
+    "@smithy/util-utf8": "~2",
     "ajv-formats": "^3.0.1",
     "express": "^4.17.1",
     "git-url-parse": "^14.0.0",
     "js-yaml": "^4.1.0",
     "luxon": "^3.4.4",
     "node-fetch": "^2.6.7",
-    "openapi-backend": "^5.10.6",
-    "@smithy/util-utf8": "~2",
-    "@aws-sdk/util-utf8-browser": "^3"
+    "openapi-backend": "^5.10.6"
   },
   "files": [
     "dist"
@@ -68,6 +68,5 @@
     "@aws-sdk/util-utf8-browser": {
       "@smithy/util-utf8": "^2.0.0"
     }
-  },
-  "resolutions": {}
+  }
 }

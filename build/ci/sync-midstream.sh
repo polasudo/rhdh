@@ -819,7 +819,7 @@ if [[ $DO_BUILD -eq 1 ]]; then
     # see https://github.com/redhat-developer/rhdh-plugin-export-utils/blob/main/export-dynamic/export-dynamic.sh
     if [[ "$(grep -e '"role" *: *"backend-plugin' "$d")" != "" ]] && [[ $(grep -E 'export-dynamic-plugin' "$d" | grep -v -- '--network-timeout') ]]; then
       echo "[INFO] Patch yarn command in ${d#distgit/containers/rhdh-hub/} (back end plugins ONLY) ..."
-      dName=$(jq -r '.name' "$d/dist-dynamic/package.json")
+      dName=$(jq -r '.name' "${d%/package.json}/dist-dynamic/package.json")
       insertYarn=" --no-install \&\& yarn workspace $dName install"
       sed -i "$d" -r \
       -e 's#("janus-cli package export-dynamic-plugin.+)"#\1'"$insertYarn"'"#g'
@@ -875,7 +875,9 @@ if [[ $DO_BUILD -eq 1 ]]; then
 
         dName=$(jq -r '.name' "$d/package.json")
         echo "[INFO] Regen wrapper ${d##*wrappers/} yarn.lock ..."
-        $YARN workspace "$dName" install --no-immutable --silent 2> >(grep -v warning 1>&2) || exit 61
+        pushd "${d}" >/dev/null || exit 1
+          $YARN workspace "$dName" install --no-immutable --silent 2> >(grep -v warning 1>&2) || exit 61
+        popd >/dev/null || exit 1
         # debug changes in each folder
         # changed_diff=$(git diff --name-only "./$d" || true)
         # if [[ $changed_diff ]]; then

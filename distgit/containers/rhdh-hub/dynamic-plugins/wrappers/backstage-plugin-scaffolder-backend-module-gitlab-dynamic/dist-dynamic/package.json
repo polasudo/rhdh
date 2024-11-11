@@ -22,15 +22,15 @@
     "./package.json": "./package.json"
   },
   "dependencies": {
+    "@aws-sdk/util-utf8-browser": "^3",
     "@gitbeaker/core": "^35.8.0",
     "@gitbeaker/node": "^35.8.0",
     "@gitbeaker/rest": "^39.25.0",
+    "@smithy/util-utf8": "~2",
     "luxon": "^3.0.0",
     "winston": "^3.2.1",
     "yaml": "^2.0.0",
-    "zod": "^3.22.4",
-    "@smithy/util-utf8": "~2",
-    "@aws-sdk/util-utf8-browser": "^3"
+    "zod": "^3.22.4"
   },
   "files": [
     "dist"
@@ -63,6 +63,5 @@
     "@aws-sdk/util-utf8-browser": {
       "@smithy/util-utf8": "^2.0.0"
     }
-  },
-  "resolutions": {}
+  }
 }

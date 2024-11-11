@@ -22,15 +22,15 @@
     "./package.json": "./package.json"
   },
   "dependencies": {
+    "@aws-sdk/util-utf8-browser": "^3",
     "@octokit/graphql": "^5.0.0",
     "@octokit/rest": "^19.0.3",
+    "@smithy/util-utf8": "~2",
     "git-url-parse": "^15.0.0",
     "lodash": "^4.17.21",
     "minimatch": "^9.0.0",
     "node-fetch": "^2.7.0",
-    "uuid": "^9.0.0",
-    "@smithy/util-utf8": "~2",
-    "@aws-sdk/util-utf8-browser": "^3"
+    "uuid": "^9.0.0"
   },
   "files": [
     "dist"
@@ -67,6 +67,5 @@
     "@aws-sdk/util-utf8-browser": {
       "@smithy/util-utf8": "^2.0.0"
     }
-  },
-  "resolutions": {}
+  }
 }
