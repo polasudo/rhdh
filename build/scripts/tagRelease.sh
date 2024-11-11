@@ -28,7 +28,7 @@ if [[ $TARGET_BRANCH != "rhdh-1."*"-rhel-9" ]]; then
 fi
 pkgs_devel_branch=${TARGET_BRANCH}
 
-DO_BUILD=1  # update yarn lock
+DO_BUILD=1  # update yarn locks
 DO_PUSH=1   # push the commit
 DO_UPDATE=0 # force update of release-1.yy branches, even if tag already exists
 SKIP_GH=0   # skip updates to GH repos
@@ -62,11 +62,12 @@ To create tags (and push updates to release-1.yy branches):
 3. Run this
   $0 -v CSV_VERSION -t PROD_VERSION -gh GH_BRANCH -ghtoken GITHUB_TOKEN -pd GITLAB_AND_PKGS_DEVEL_BRANCH -pduser kerberos_user
 Example: 
-  $0 -v 1.3.0 -t 1.3 -gh release-1.3 -pd rhdh-1.3-rhel-9 --clean --force-update -tmpdir $TMPDIR
+  $0 -v 1.4.0 -t 1.4 -gh release-1.4 -pd rhdh-1.4-rhel-9 --clean --force-update -tmpdir $TMPDIR --nobuild
 
 Options:
     --clean                   delete existing temp folders and do fresh checkouts
     --force-update            update the release-1.yy branch even if the tag already exists
+    --nobuild                 do not regen yarn lock(s)
     --nopush                  do not push local changes; default: push changes
     --dry-run                 do everything but create the PR; instead just display the PR contents
     --gitlab-pipeline-push    use this flag to push changes when running inside a gitlab pipeline
@@ -91,6 +92,7 @@ while [[ "$#" -gt 0 ]]; do
 	'-pd') pkgs_devel_branch="$2"; shift 1;;
 	'-pduser') pduser="$2"; shift 1;;
 	'--clean') CLEAN="true"; shift 0;; # if set true, delete existing folders and do fresh checkouts
+	'--nobuild') DO_BUILD=0;; 
 	'--nopush') DO_PUSH=0; shift 1;;
 	'--gitlab-pipeline-push') DO_PUSH=1; DO_BUILD=1; GITLAB_PIPELINE="true";;
 	'--dry-run') DRYRUN="$1";;
@@ -347,7 +349,7 @@ function updateOperatorVersions() {
 	# update config/manager/kustomization.yaml
 	sed -i config/manager/kustomization.yaml -r \
 		-e "s/(^  newTag:  )[0-9.]+/\1$the_version_op/" # 0.3.0
-	# update .rhdh/bundle/manifests/rhdh-operator.clusterserviceversion.yaml use both 1.3.0 and 1.3 (three times for image ref replacements: operator, operator, hub)
+	# update .rhdh/bundle/manifests/rhdh-operator.clusterserviceversion.yaml use both 1.4.0 and 1.4 (three times for image ref replacements: operator, operator, hub)
 	sed -i .rhdh/bundle/manifests/rhdh-operator.clusterserviceversion.yaml -r \
 		-e "s/(skipRange: '>=1.0.0 <)[0-9.]+'/\1$the_version'/" \
 		-e "s/(name: rhdh-operator.v)[0-9.]+/\1$the_version/" \
@@ -563,9 +565,8 @@ pushTagGL ()
 	if [[ $CSV_VERSION ]] && [[ $(git ls-remote "https://gitlab.cee.redhat.com/rhidp/${d}.git/" "refs/tags/$CSV_VERSION") ]]; then
 		echo; echo "[WARN] https://gitlab.cee.redhat.com/rhidp/${d}/-/tree/${CSV_VERSION}?ref_type=tags already exists."
 	else
-		# convert release-1.3 or 1.2.x to rhdh-1.3-rhel-9
-		DWNSTM_TARGET_BRANCH=${TARGET_BRANCH/.x/}
-		DWNSTM_TARGET_BRANCH=rhdh-${DWNSTM_TARGET_BRANCH/release-/}-rhel-9
+		# convert release-1.4 to rhdh-1.4-rhel-9
+		DWNSTM_TARGET_BRANCH=rhdh-${TARGET_BRANCH/release-/}-rhel-9
 		echo;
 		if [[ $SOURCE_BRANCH ]]; then
 			echo "== $d :: branch from $MIDSTM_BRANCH to $DWNSTM_TARGET_BRANCH =="
@@ -623,9 +624,8 @@ pushTagPD ()
 	if [[ $CSV_VERSION ]] && [[ $(git ls-remote "ssh://${pduser}@pkgs.devel.redhat.com/containers/${d}" "refs/tags/$CSV_VERSION") ]]; then
 		echo; echo "[WARN] https://pkgs.devel.redhat.com/cgit/containers/${d}/tag/?h=$CSV_VERSION already exists."
 	else
-		# convert release-1.3 to rhdh-1.3-rhel-9
-		DWNSTM_TARGET_BRANCH=${TARGET_BRANCH/.x/}
-		DWNSTM_TARGET_BRANCH=rhdh-${DWNSTM_TARGET_BRANCH/release-/}-rhel-9
+		# convert release-1.4 to rhdh-1.4-rhel-9
+		DWNSTM_TARGET_BRANCH=rhdh-${TARGET_BRANCH/release-/}-rhel-9
 		echo; 
 		if [[ $SOURCE_BRANCH ]]; then
 			echo "== $d :: branch from $pkgs_devel_branch to $DWNSTM_TARGET_BRANCH =="
@@ -708,7 +708,8 @@ fi
 if [[ $SKIP_GH -eq 0 ]]; then
 	if [[ ${SOURCE_BRANCH} ]]; then
 		# check for changes and push a PR for each repo
-		updatePluginVersions
+		# TODO do we need this for 1.4's janus plugins?
+		updatePluginVersions # requires manual commits to janus plugins repo / missing gpg key?
 		updateOperatorVersions "$SOURCE_BRANCH" "$newver" "$newverOp"
 		## CCS has requested that we not bump the version in main branch, as they prefer manual steps to automation.
 		## updateDocVersions "$SOURCE_BRANCH" "$newver"
@@ -741,13 +742,20 @@ fi
 # tag pkgs.devel repos 
 if [[ $SKIP_PD -eq 0 ]]; then
 	if [[ "${pkgs_devel_branch}" ]] && [[ $CSV_VERSION ]]; then
-		for repo in \
-			rhdh-hub \
-			rhdh-operator \
-			rhdh-operator-bundle \
-			; do
-		pushTagPD $repo
-		done
+		DWNSTM_TARGET_BRANCH="rhdh-${TARGET_BRANCH/release-/}-rhel-9"
+		echo "
+You must tag pkgs.devel repos manually - as these steps might fail due to long-running processes (and need to be repeated):
+
+for d in hub operator operator-bundle; do
+	pushd ~/5/5-pkgs.devel_\$d >/dev/null || exit
+	git restore --staged .; git restore .
+	git checkout \"$DWNSTM_TARGET_BRANCH\"
+	git pull origin \"$DWNSTM_TARGET_BRANCH\"
+	git tag -s -m \"$CSV_VERSION\" -a \"$CSV_VERSION\"
+	git push origin \"$CSV_VERSION\"
+	popd >/dev/null || exit
+done
+"
 	else
 		echo "
 You must branch pkgs.devel repos manually - as these steps might fail due to long-running processes (and need to be repeated):
