@@ -32,8 +32,8 @@
     "test": "backstage-cli package test --passWithNoTests --coverage",
     "clean": "backstage-cli package clean",
     "clean-dynamic-sources": "yarn clean && rm -Rf node_modules",
-    "export-dynamic": "janus-cli package export-dynamic-plugin --embed-package @parfuemerie-douglas/scaffolder-backend-module-azure-repositories --override-interop default --no-embed-as-dependencies --no-install && yarn workspace parfuemerie-douglas-scaffolder-backend-module-azure-repositories-dynamic install",
-    "export-dynamic:clean": "janus-cli package export-dynamic-plugin --embed-package @parfuemerie-douglas/scaffolder-backend-module-azure-repositories --override-interop default --no-embed-as-dependencies --clean --no-install && yarn workspace parfuemerie-douglas-scaffolder-backend-module-azure-repositories-dynamic install"
+    "export-dynamic": "janus-cli package export-dynamic-plugin --embed-package @parfuemerie-douglas/scaffolder-backend-module-azure-repositories --override-interop default --no-embed-as-dependencies --no-install && yarn workspace parfuemerie-douglas-scaffolder-backend-module-azure-repositories install",
+    "export-dynamic:clean": "janus-cli package export-dynamic-plugin --embed-package @parfuemerie-douglas/scaffolder-backend-module-azure-repositories --override-interop default --no-embed-as-dependencies --clean --no-install && yarn workspace parfuemerie-douglas-scaffolder-backend-module-azure-repositories install"
   },
   "dependencies": {
     "@parfuemerie-douglas/scaffolder-backend-module-azure-repositories": "0.3.0"

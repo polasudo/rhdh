@@ -32,8 +32,8 @@
     "test": "backstage-cli package test --passWithNoTests --coverage",
     "clean": "backstage-cli package clean",
     "clean-dynamic-sources": "yarn clean && rm -Rf node_modules",
-    "export-dynamic": "janus-cli package export-dynamic-plugin --embed-package @janus-idp/backstage-scaffolder-backend-module-quay --override-interop default --no-embed-as-dependencies --no-install && yarn workspace janus-idp-backstage-scaffolder-backend-module-quay-dynamic install",
-    "export-dynamic:clean": "janus-cli package export-dynamic-plugin --embed-package @janus-idp/backstage-scaffolder-backend-module-quay --override-interop default --no-embed-as-dependencies --clean --no-install && yarn workspace janus-idp-backstage-scaffolder-backend-module-quay-dynamic install"
+    "export-dynamic": "janus-cli package export-dynamic-plugin --embed-package @janus-idp/backstage-scaffolder-backend-module-quay --override-interop default --no-embed-as-dependencies --no-install && yarn workspace janus-idp-backstage-scaffolder-backend-module-quay install",
+    "export-dynamic:clean": "janus-cli package export-dynamic-plugin --embed-package @janus-idp/backstage-scaffolder-backend-module-quay --override-interop default --no-embed-as-dependencies --clean --no-install && yarn workspace janus-idp-backstage-scaffolder-backend-module-quay install"
   },
   "dependencies": {
     "@janus-idp/backstage-scaffolder-backend-module-quay": "2.2.0"
