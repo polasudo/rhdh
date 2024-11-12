@@ -31,22 +31,7 @@ export GITHUB_TOKEN=<your_GH_token>
 
 Script will create/update 1.y branches and update the main + rhdh-1-rhel-9 branches with minor version bumps for the GH and GL repos.
 
-NOTE that downstream branch creation can also be done  manually, if the tagRelease.sh script can't handle it due to timeouts.
-
-```
-for repo in hub operator operator-bundle; do
-  cd /tmp
-  # check out the pkgs.devel repo
-  git clone ssh://nboldt@pkgs.devel.redhat.com/containers/rhdh-$repo && cd rhdh-$repo
-  # get latest commits from 1.next branch
-  git checkout rhdh-1-rhel-9; git pull origin rhdh-1-rhel-9 
-  # create 1.4 branch
-  git branch rhdh-1.4-rhel-9; git checkout rhdh-1.4-rhel-9
-  # push new branch - NOTE: this might fail and need to be retried a few times
-  git push origin rhdh-1.4-rhel-9
-  cd /tmp
-done
-```
+NOTE: Repo branching for pkgs.devel is manual, but the script will tell you what to run!
 
 NOTE: **_TODO_ https://issues.redhat.com/browse/RHIDP-931 verify branch creation and update steps work**
 
@@ -316,7 +301,7 @@ cd /tmp; git clone git@gitlab.cee.redhat.com:rhidp/rhdh.git --depth 1 && cd rhdh
 ./build/scripts/copyIIBsToQuay.sh -t 1.4-121 --force --push --latest -e 1.4.2.GA
 ```
 
-. [ ] link:../build/scripts/tagRelease.sh[Tag the repos listed above]
+. [ ] link:../build/scripts/tagRelease.sh[Tag the repos listed above] - note that repo tagging for pkgs.devel is manual, but the script will tell you what to run!
 +
 ```
 cd /tmp; git clone git@gitlab.cee.redhat.com:rhidp/rhdh.git --depth 1 && cd rhdh
