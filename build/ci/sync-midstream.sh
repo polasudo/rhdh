@@ -933,6 +933,7 @@ for d in distgit/containers/rhdh-hub distgit/containers/rhdh-operator distgit/co
       cache \
       *.swp site *.local.yaml \
       .rhdh \
+      install-state.gz \
       *.session.sql .turbo; do
         find . -name "${ignored}" -exec rm -fr {} \; 2>/dev/null
     done
