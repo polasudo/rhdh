@@ -819,7 +819,7 @@ if [[ $DO_BUILD -eq 1 ]]; then
     # see https://github.com/redhat-developer/rhdh-plugin-export-utils/blob/main/export-dynamic/export-dynamic.sh
     if [[ "$(grep -e '"role" *: *"backend-plugin' "$d")" != "" ]] && [[ $(grep -E 'export-dynamic-plugin' "$d" | grep -v -- '--network-timeout') ]]; then
       echo "[INFO] Patch yarn command in ${d#distgit/containers/rhdh-hub/} (back end plugins ONLY) ..."
-      dName=$(jq -r '.name' "${d%/package.json}/dist-dynamic/package.json")
+      dName=$(jq -r '.name' "${d%/package.json}/dist-dynamic/package.json" | sed -r -e "s/-dynamic$//") # remove -dynamic suffix when invoking the workspace name
       insertYarn=" --no-install \&\& yarn workspace $dName install"
       sed -i "$d" -r \
       -e 's#("janus-cli package export-dynamic-plugin.+)"#\1'"$insertYarn"'"#g'
