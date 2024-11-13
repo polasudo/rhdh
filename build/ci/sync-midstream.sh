@@ -810,11 +810,6 @@ if [[ $DO_BUILD -eq 1 ]]; then
   set -e
 
   echo "[INFO] ===================================== Patch embedded yarn commands =====================================>"
-  # set concurrency for turbo commands so that builds don't run our of file handles / disk space / memory (instead of default 10)
-  # +    "export-dynamic": "turbo run export-dynamic --concurrency=z",
-  # +    "export-dynamic:clean": "turbo run export-dynamic:clean --concurrency=z",
-  sed -i distgit/containers/rhdh-hub/package.json -r -e 's|("export-dynamic.+)",|\1 --concurrency=4",|'
-  
   #shellcheck disable=SC2044,SC2143
   # two options for janus-cli syntax (--in-place added June 2024):
   # janus-cli package export-dynamic-plugin --in-place # front end - do NOT convert
@@ -1007,6 +1002,12 @@ if [[ $DO_BUILD -eq 0 ]]; then
     ; do git restore --staged $d; git restore $d
   done
 fi
+
+# Konflux performance workaround
+# set concurrency for turbo commands so that builds don't run our of file handles / disk space / memory (instead of default 10)
+# +    "export-dynamic": "turbo run export-dynamic --concurrency=z",
+# +    "export-dynamic:clean": "turbo run export-dynamic:clean --concurrency=z",
+sed -i distgit/containers/rhdh-hub/package.json -r -e 's|("export-dynamic.+)",|\1 --concurrency=4",|'
 
 echo
 if [[ $(git status -s || true) ]]; then
