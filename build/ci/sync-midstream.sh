@@ -755,24 +755,6 @@ if [[ $DO_BUILD -eq 1 ]]; then
     time $YARN copy-dynamic-plugins dist 2> >(grep -v warning 1>&2) || exit 42
     echo "[INFO] <===================================== EXPORT + COPY DYNAMIC PLUGINS ====================================="
     echo
-
-    echo "[INFO] ===================================== Regen container.yaml.in =====================================>"
-    # list paths to yarn.lock files to tell Cachito how to fetch all the dependencies into a local yarn registry.
-    c=0
-    # clear old paths
-    yq -Yy '.remote_sources[0].remote_source.packages.yarn|=null' container.yaml.in > container.yaml.in_; mv container.yaml.in_ container.yaml.in
-    for yarnlock in $(find . -name "yarn.lock" | grep -E -v "node_modules/" | sort -r); do
-      dir="${destination_folder}/${yarnlock#./}"; dir=${dir%/yarn.lock}
-      if [[ $dir != *"/dynamic-plugins/dist/"* ]]; then
-        echo "[INFO] Add path[$c] to container.yaml.in: $dir"
-        yq -Yy '.remote_sources[0].remote_source.packages.yarn['"$c"']|={"path":"'"$dir"'"}' container.yaml.in > container.yaml.in_; mv container.yaml.in_ container.yaml.in
-        (( c = c + 1 ))
-      # else
-      #   echo "[INFO] Skip $dir"
-      fi
-    done
-    echo "[INFO] <===================================== Regen container.yaml.in ====================================="
-    echo
   popd >/dev/null || exit 1
 
   echo "[INFO] ====================== Remove node_modules and other generated / gitignored content =====================>"
@@ -837,59 +819,59 @@ if [[ $DO_BUILD -eq 1 ]]; then
   echo "[INFO] ===================================== Configure cachito =====================================>"
   # verify folders exist and are configured correctly for cachito to use
   haderror=0
-  for d in $(yq -r -Y '.remote_sources[0].remote_source.packages.yarn' distgit/containers/rhdh-hub/container.yaml.in | sed -r "s#- path: ##"); do
-    if [[ ! -d $d ]] || [[ ! -f $d/package.json ]] || [[ ! -f $d/yarn.lock ]]; then
-      echo "[ERROR] Problem with folder $d -- check if package.json or yarn.lock are present!"
-      (( haderror = haderror + 1 ))
-    else
-      # shellcheck disable=SC2086,SC2013
-      if [[ $d == *"/dist-dynamic"* ]]; then
-        echo "[INFO] Replace resolutions with dependencies in ${d##*wrappers/}/package.json ..."
-        if [[ $(find "$d" -name package-lock.json) ]]; then
-          echo "[ERROR] Found package-lock.json in $d! Must abort!"; exit 20
-        fi
+  # for d in $(yq -r -Y '.remote_sources[0].remote_source.packages.yarn' distgit/containers/rhdh-hub/container.yaml.in | sed -r "s#- path: ##"); do
+  #   if [[ ! -d $d ]] || [[ ! -f $d/package.json ]] || [[ ! -f $d/yarn.lock ]]; then
+  #     echo "[ERROR] Problem with folder $d -- check if package.json or yarn.lock are present!"
+  #     (( haderror = haderror + 1 ))
+  #   else
+  #     # shellcheck disable=SC2086,SC2013
+  #     if [[ $d == *"/dist-dynamic"* ]]; then
+  #       echo "[INFO] Replace resolutions with dependencies in ${d##*wrappers/}/package.json ..."
+  #       if [[ $(find "$d" -name package-lock.json) ]]; then
+  #         echo "[ERROR] Found package-lock.json in $d! Must abort!"; exit 20
+  #       fi
 
-        # 0. collect existing .dependencies
-        pairs="$(jq -M -c '.dependencies' "$d"/package.json | tr -d "{}")"; if [[ "$pairs" ]]; then pairs=",$pairs"; fi
+  #       # 0. collect existing .dependencies
+  #       pairs="$(jq -M -c '.dependencies' "$d"/package.json | tr -d "{}")"; if [[ "$pairs" ]]; then pairs=",$pairs"; fi
 
-        # 1. add resolutions to dependencies
-        # "npm:@smithy/util-utf8@^2.0.0" --> "@smithy/util-utf8": "^2.0.0"
-        for key in $(jq '.resolutions|to_entries[].key' "$d"/package.json); do
-          val=$(jq '.resolutions['$key']' "$d"/package.json)
-          val_clean=${val/npm:/}; val_clean=${val_clean//\"/}; # echo $val_clean
-          # split on @
-          depName=${val_clean%@*};
-          depVer=${val_clean##*@};
-          # echo "   $depName: $depVer"
-          pairs="$pairs,\"$depName\": \"$depVer\""
-        done
-        # "@aws-sdk/util-utf8-browser" -> "@aws-sdk/util-utf8-browser": "^3"
-        pairs="$pairs,\"@aws-sdk/util-utf8-browser\": \"^3\""
-        pairs=${pairs:1} # trim prefix comma
+  #       # 1. add resolutions to dependencies
+  #       # "npm:@smithy/util-utf8@^2.0.0" --> "@smithy/util-utf8": "^2.0.0"
+  #       for key in $(jq '.resolutions|to_entries[].key' "$d"/package.json); do
+  #         val=$(jq '.resolutions['$key']' "$d"/package.json)
+  #         val_clean=${val/npm:/}; val_clean=${val_clean//\"/}; # echo $val_clean
+  #         # split on @
+  #         depName=${val_clean%@*};
+  #         depVer=${val_clean##*@};
+  #         # echo "   $depName: $depVer"
+  #         pairs="$pairs,\"$depName\": \"$depVer\""
+  #       done
+  #       # "@aws-sdk/util-utf8-browser" -> "@aws-sdk/util-utf8-browser": "^3"
+  #       pairs="$pairs,\"@aws-sdk/util-utf8-browser\": \"^3\""
+  #       pairs=${pairs:1} # trim prefix comma
 
-        # echo "[INFO] Insert dependencies = $pairs ..."
-        jq '.dependencies|={'"$pairs"'}' "$d"/package.json > "$d"/package.json_; mv "$d"/package.json{_,}
+  #       # echo "[INFO] Insert dependencies = $pairs ..."
+  #       jq '.dependencies|={'"$pairs"'}' "$d"/package.json > "$d"/package.json_; mv "$d"/package.json{_,}
 
-        # 2. remove resolutions (moved above)
-        jq '.resolutions|={}' "$d"/package.json > "$d"/package.json_; mv "$d"/package.json{_,}
+  #       # 2. remove resolutions (moved above)
+  #       jq '.resolutions|={}' "$d"/package.json > "$d"/package.json_; mv "$d"/package.json{_,}
 
-        dName=$(jq -r '.name' "$d/package.json")
-        echo "[INFO] Regen wrapper ${d##*wrappers/} yarn.lock ..."
-        pushd "${d}" >/dev/null || exit 1
-          $YARN workspace "$dName" install --no-immutable --silent 2> >(grep -v warning 1>&2) || exit 61
-        popd >/dev/null || exit 1
-        # debug changes in each folder
-        # changed_diff=$(git diff --name-only "./$d" || true)
-        # if [[ $changed_diff ]]; then
-        #   echo "== changed files =>"
-        #   echo $changed_diff
-        #   echo "<= changed files =="
-        # fi
-        # force add package.json and yarn.lock (override .gitignore)
-        git add -f "$d"/package.json "$d"/yarn.lock
-      fi
-    fi
-  done # hub container
+  #       dName=$(jq -r '.name' "$d/package.json")
+  #       echo "[INFO] Regen wrapper ${d##*wrappers/} yarn.lock ..."
+  #       pushd "${d}" >/dev/null || exit 1
+  #         $YARN workspace "$dName" install --no-immutable --silent 2> >(grep -v warning 1>&2) || exit 61
+  #       popd >/dev/null || exit 1
+  #       # debug changes in each folder
+  #       # changed_diff=$(git diff --name-only "./$d" || true)
+  #       # if [[ $changed_diff ]]; then
+  #       #   echo "== changed files =>"
+  #       #   echo $changed_diff
+  #       #   echo "<= changed files =="
+  #       # fi
+  #       # force add package.json and yarn.lock (override .gitignore)
+  #       git add -f "$d"/package.json "$d"/yarn.lock
+  #     fi
+  #   fi
+  # done # hub container
 
   # switch from yarn to npm registry, in case this makes Cachito happier?
   # Could not download types-jest-29.5.7.tgz from https://cachito-nexus.engineering.redhat.com/repository/cachito-yarn-1047885/@types/jest/-/jest-29.5.7.tgz
@@ -1060,56 +1042,7 @@ echo "$gitdiff" > "/tmp/sync-midstream.sh.diff.txt"
   # first commit: update any changed files, plus sync/upstream_SHA*
   #################################################################
 
-  git commit -s -m "chore: Update:${commitMsg} [skip ci]" . || true
-
-  # get the current commit SHA and put it into upstream_sources.yml + container.yaml
-  newSHA=$(git rev-parse HEAD)
-
-  # TODO if we remove CPaaS entirely, we can remove this file
-  # shellcheck disable=SC2016
-  yq -yY -i --arg newSHA "$newSHA" -r '.git[0].commit|=$newSHA' upstream_sources.yml
-  # remove spaces so this change looks like the ones CPaaS generates
-  sed -i upstream_sources.yml -r -e "s/^  //"
-
-  # update generated content for downstream, because you can't trust CPaaS
-  UPSTREAM_COMMIT=$newSHA
-  UPSTREAM_REPO="https://gitlab.cee.redhat.com/rhidp/rhdh.git"
-
-  ########################################################################################################
-  # second commit: update upstream_sources.yml
-  # second commit: update container.yamls ONLY if the associated sync/upstream_SHA* file was changed above
-  # TODO if we remove CPaaS entirely, we can write directly to container.yaml and remove container.yaml.in
-  ########################################################################################################
-
-  containerYamls=""
-  for d in rhdh-hub rhdh-operator; do
-    if [[ $(git diff --name-only HEAD~1 sync/upstream_SHA_${d} || true) ]]; then containerYamls="${containerYamls} distgit/containers/${d}"; fi
-  done
-  echo "[INFO] Regen container.yaml from container.yaml.in files for: [$containerYamls ]"
-  # shellcheck disable=SC2016
-  for d in $containerYamls; do
-    pushd "$d" >/dev/null || exit 1
-      echo "[INFO] Using UPSTREAM_COMMIT = $UPSTREAM_COMMIT"
-      sed -r -e "/ +yarn: null/d" -i container.yaml.in
-      sed -r \
-        -e 's|repo: \$\{CI_RHDH_UPSTREAM_URL\}|repo: '"$UPSTREAM_REPO"'|' \
-        -e 's|ref: \$\{CI_RHDH_UPSTREAM_COMMIT\}|ref: '"$UPSTREAM_COMMIT"'|' container.yaml.in > container.yaml && git add container.yaml*
-      echo "[INFO] Generated $d/container.yaml from .in file (CPaaS bypass)"
-
-      for df in Dockerfile.in Dockerfile; do
-        upstream_repo=""
-        if [[ $d == *"rhdh-hub"* ]]; then 
-          upstream_repo="${upstream_repo_hub}"
-        elif  [[ $d == *"rhdh-operator"* ]]; then 
-          upstream_repo="${upstream_repo_op}"
-        fi
-        echo "[INFO] In $d / $df, set UPSTREAM_REPO = $upstream_repo"
-        sed -i $df -r -e "s|(UPSTREAM_REPO=)\".+\"|\1\"${upstream_repo}\"|"
-      done
-    popd >/dev/null || exit 1
-  done
-
-  git commit -s -m "chore: Update:${commitMsg} upstream_sources.yml to $newSHA" . || true
+  git commit -s -m "chore: Update:${commitMsg}" . || true
 fi ## if DO_COMMIT
 
 ################################# PUSH CHANGES #################################
