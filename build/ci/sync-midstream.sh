@@ -810,6 +810,11 @@ if [[ $DO_BUILD -eq 1 ]]; then
   set -e
 
   echo "[INFO] ===================================== Patch embedded yarn commands =====================================>"
+  # set concurrency=1 for turbo commands so that builds don't run our of file handles / disk space / memory
+  # +    "export-dynamic": "turbo run export-dynamic --concurrency=1",
+  # +    "export-dynamic:clean": "turbo run export-dynamic:clean --concurrency=1",
+  sed -i distgit/containers/rhdh-hub/package.json -r -e 's|("export-dynamic.+)",|\1 --concurrency=1",|'
+  
   #shellcheck disable=SC2044,SC2143
   # two options for janus-cli syntax (--in-place added June 2024):
   # janus-cli package export-dynamic-plugin --in-place # front end - do NOT convert
