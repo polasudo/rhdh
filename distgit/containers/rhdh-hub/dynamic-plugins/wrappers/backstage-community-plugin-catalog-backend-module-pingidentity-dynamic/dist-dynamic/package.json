@@ -22,8 +22,6 @@
     "./package.json": "./package.json"
   },
   "dependencies": {
-    "@aws-sdk/util-utf8-browser": "^3",
-    "@smithy/util-utf8": "~2",
     "node-fetch": "^2.6.7",
     "uuid": "^10.0.0"
   },
@@ -57,5 +55,8 @@
     "@aws-sdk/util-utf8-browser": {
       "@smithy/util-utf8": "^2.0.0"
     }
+  },
+  "resolutions": {
+    "@aws-sdk/util-utf8-browser": "npm:@smithy/util-utf8@~2"
   }
 }

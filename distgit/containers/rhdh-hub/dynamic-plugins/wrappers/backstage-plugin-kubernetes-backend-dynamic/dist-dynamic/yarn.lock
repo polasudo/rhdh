@@ -664,12 +664,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@aws-sdk/util-utf8-browser@npm:^3, @aws-sdk/util-utf8-browser@npm:^3.0.0":
-  version: 3.259.0
-  resolution: "@aws-sdk/util-utf8-browser@npm:3.259.0"
+"@aws-sdk/util-utf8-browser@npm:@smithy/util-utf8@~2, @smithy/util-utf8@npm:^2.0.0":
+  version: 2.3.0
+  resolution: "@smithy/util-utf8@npm:2.3.0"
   dependencies:
-    tslib: ^2.3.1
-  checksum: b6a1e580da1c9b62c749814182a7649a748ca4253edb4063aa521df97d25b76eae3359eb1680b86f71aac668e05cc05c514379bca39ebf4ba998ae4348412da8
+    "@smithy/util-buffer-from": ^2.2.0
+    tslib: ^2.6.2
+  checksum: 00e55d4b4e37d48be0eef3599082402b933c52a1407fed7e8e8ad76d94d81a0b30b8bfaf2047c59d9c3af31e5f20e7a8c959cb7ae270f894255e05a2229964f0
   languageName: node
   linkType: hard
 
@@ -1496,16 +1497,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@smithy/util-utf8@npm:^2.0.0, @smithy/util-utf8@npm:~2":
-  version: 2.3.0
-  resolution: "@smithy/util-utf8@npm:2.3.0"
-  dependencies:
-    "@smithy/util-buffer-from": ^2.2.0
-    tslib: ^2.6.2
-  checksum: 00e55d4b4e37d48be0eef3599082402b933c52a1407fed7e8e8ad76d94d81a0b30b8bfaf2047c59d9c3af31e5f20e7a8c959cb7ae270f894255e05a2229964f0
-  languageName: node
-  linkType: hard
-
 "@smithy/util-utf8@npm:^3.0.0":
   version: 3.0.0
   resolution: "@smithy/util-utf8@npm:3.0.0"
@@ -1902,12 +1893,10 @@ __metadata:
     "@aws-crypto/sha256-js": ^5.0.0
     "@aws-sdk/credential-providers": ^3.350.0
     "@aws-sdk/signature-v4": ^3.347.0
-    "@aws-sdk/util-utf8-browser": ^3
     "@azure/identity": ^4.0.0
     "@google-cloud/container": ^5.0.0
     "@jest-mock/express": ^2.0.1
     "@kubernetes/client-node": 0.20.0
-    "@smithy/util-utf8": ~2
     "@types/express": ^4.17.6
     "@types/http-proxy-middleware": ^1.0.0
     "@types/luxon": ^3.0.0
@@ -4235,13 +4224,6 @@ __metadata:
   version: 2.8.0
   resolution: "tslib@npm:2.8.0"
   checksum: de852ecd81adfdb4870927e250763345f07dc13fe7f395ce261424966bb122a0992ad844c3ec875c9e63e72afe2220a150712984e44dfd1a8a7e538a064e3d46
-  languageName: node
-  linkType: hard
-
-"tslib@npm:^2.3.1":
-  version: 2.8.1
-  resolution: "tslib@npm:2.8.1"
-  checksum: e4aba30e632b8c8902b47587fd13345e2827fa639e7c3121074d5ee0880723282411a8838f830b55100cbe4517672f84a2472667d355b81e8af165a55dc6203a
   languageName: node
   linkType: hard
 

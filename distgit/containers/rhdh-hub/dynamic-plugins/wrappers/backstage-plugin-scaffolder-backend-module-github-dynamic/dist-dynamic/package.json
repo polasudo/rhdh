@@ -22,9 +22,7 @@
     "./package.json": "./package.json"
   },
   "dependencies": {
-    "@aws-sdk/util-utf8-browser": "^3",
     "@octokit/webhooks": "^10.9.2",
-    "@smithy/util-utf8": "~2",
     "libsodium-wrappers": "^0.7.11",
     "octokit": "^3.0.0",
     "octokit-plugin-create-pull-request": "^5.0.0",
@@ -63,5 +61,8 @@
     "@aws-sdk/util-utf8-browser": {
       "@smithy/util-utf8": "^2.0.0"
     }
+  },
+  "resolutions": {
+    "@aws-sdk/util-utf8-browser": "npm:@smithy/util-utf8@~2"
   }
 }
