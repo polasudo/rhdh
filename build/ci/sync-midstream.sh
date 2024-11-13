@@ -1075,3 +1075,4 @@ fi
 
 # cleanup
 for ((i = 0; i < NUM_REPOS; i++)); do rm -fr "$TMPDIR/repo${i}"; done
+rm -f $TMPDIR/hub.Dockerfile.foot $TMPDIR/operator.Dockerfile.foot $TMPDIR/operator-bundle.Dockerfile.foot
