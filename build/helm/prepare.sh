@@ -89,7 +89,7 @@ while [[ "$#" -gt 0 ]]; do
     '--latest') DO_LATEST=1;;
     '--next')
         next_tag=$(skopeo inspect docker://quay.io/rhdh/rhdh-hub-rhel9:next | jq -r '.RepoTags[]' | \
-            grep -v -E "next|latest|sha256|on-pr-" | grep -- "-" | sort -uV | tail -1 || true)
+            grep -v -E "next|latest|sha256|on-pr-|on-push|build-container" | grep -- "-" | sort -uV | tail -1 || true)
         RHDH_DIGEST=$(skopeo inspect docker://quay.io/rhdh/rhdh-hub-rhel9:"${next_tag}" | jq -r '.Digest')
         CHART_VERSION=${next_tag}-CI
         RHDH_VERSION=${next_tag}
