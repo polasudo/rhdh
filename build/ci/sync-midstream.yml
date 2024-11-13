@@ -1,0 +1,50 @@
+sync-midstream:
+  extends: .shared_config
+  stage: sync-midstream
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+      when: never
+    - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH =~ /rhdh-[0-9.]+-rhel-9/
+    # see https://gitlab.cee.redhat.com/rhidp/rhdh/-/pipeline_schedules/1043/edit
+    # for scheduled runs, check env var
+    - if: $CI_PIPELINE_SOURCE == "schedule" && $DO_SYNC_MIDSTREAM == "True"
+  script:
+    - |
+      echo "Pipeline triggered by $CI_PIPELINE_SOURCE event"; echo
+      dnf -y -q install git
+      echo; git log --graph --pretty=format:'%Cred%h%Creset%C(yellow)%d%Creset :: %s @ %cN <%cE> (%cD - %cr)' --name-only -4; echo
+
+      # sync, build and commit changes
+      latestNext=""
+      latestStableBranch="$(curl -sSLk --header "PRIVATE-TOKEN: $PRIVATE_TOKEN" --url "https://gitlab.cee.redhat.com/api/v4/projects/rhidp%2Frhdh/repository/branches" | \
+        jq -r '.[].name' | grep -v "rhdh-1-rhel-9" | sort -Vr | head -1)" # rhdh-1.4-rhel-9
+      echo "latestStableBranch = $latestStableBranch" 
+      if [[ "$CI_COMMIT_REF_NAME" == "rhdh-1-rhel-9" ]]; then # next CI branch
+        latestNext="--next"
+      elif [[ "$CI_COMMIT_REF_NAME" == "${latestStableBranch}" ]]; then # latest stable branch
+        latestNext="--latest"
+      fi
+      echo "Running sync-midstream.sh $latestNext for $GITLAB_USER_LOGIN in branch $CI_COMMIT_REF_NAME ..."
+      # can add --force flag here to push with -f
+      # RHIDP-3698 local yarn build still needed to get yarn locks updated so the downstream can run in offline mode
+        # distgit/containers/rhdh-hub/dynamic-plugins-imports-peer-dependencies/yarn.lock
+        # distgit/containers/rhdh-hub/e2e-tests/yarn.lock
+        # distgit/containers/rhdh-hub/yarn.lock
+        # etc.
+      ./build/ci/sync-midstream.sh $latestNext -b "$CI_COMMIT_REF_NAME" --gitlab-pipeline-push || exit 15
+      echo "Committed: $CI_COMMIT_REF_NAME"
+      set -x
+      echo "Currently in $(pwd)"
+      if [[ -f /tmp/sync-midstream.sh.diff.txt ]]; then
+        mkdir -p "${CI_PROJECT_DIR}/"outputs1; touch "${CI_PROJECT_DIR}/"outputs1/sync-midstream.sh.diff.txt
+        mv /tmp/sync-midstream.sh.diff.txt "${CI_PROJECT_DIR}/"outputs1/sync-midstream.sh.diff.txt
+      elif [[ -f /tmp/sync-midstream.sh.result.txt ]]; then
+        mkdir -p "${CI_PROJECT_DIR}/"outputs1; touch "${CI_PROJECT_DIR}/"outputs1/sync-midstream.sh.result.txt
+        mv /tmp/sync-midstream.sh.result.txt "${CI_PROJECT_DIR}/"outputs1/sync-midstream.sh.result.txt
+        # don't fail the build with a >0 exit code - it's OK if nothing happened
+        # exit 71
+      fi
+  # keep artifacts for 8 hrs so we can use them for multiple scheduled quay/helm chart updates
+  artifacts:
+    expire_in: 8 hours
+    paths: [outputs1/]
