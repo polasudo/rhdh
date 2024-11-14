@@ -20,7 +20,7 @@
           "replaces": "rhdh-operator.v1.1.0"
         },
         {
-          "name": "rhdh-operator.v1.3.0",
+          "name": "rhdh-operator.v1.3.1",
           "replaces": "rhdh-operator.v1.1.1"
         },
         {
@@ -89,7 +89,7 @@
           "replaces": "rhdh-operator.v1.1.0"
         },
         {
-          "name": "rhdh-operator.v1.3.0",
+          "name": "rhdh-operator.v1.3.1",
           "replaces": "rhdh-operator.v1.1.1"
         }
       ],
@@ -123,7 +123,7 @@
     },
     {
       "schema": "olm.bundle",
-      "image": "registry.redhat.io/rhdh/rhdh-operator-bundle@sha256:717ddb1edb2f3ba94fa68d5310dfe2c0b4aa0a3a75747011b1cd4d6956d982e3"
+      "image": "registry.redhat.io/rhdh/rhdh-operator-bundle@sha256:aa2551561078f59c2ac06905bbe51601a438bd8534c5240657964d6e3b685295"
     },
     {
       "entries": [
@@ -139,7 +139,7 @@
     },
     {
       "schema": "olm.bundle",
-      "image": "quay.io/rhdh/rhdh-operator-bundle@sha256:f02def49e00aba0345294b6997bbaa7a3729fb99242aec4785c4f77d535bed37"
+      "image": "quay.io/rhdh/rhdh-operator-bundle@sha256:9050c60c566c786ecd26e3b84ccbcd54583f670ad965be43f879ebd7727f1bb9"
     }
   ]
 }
