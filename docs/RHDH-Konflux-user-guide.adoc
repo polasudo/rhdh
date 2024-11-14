@@ -2,21 +2,33 @@
 
 ### Triggering hub and operator builds
 
-* Use the link:../build/scripts/triggerRespin.sh[triggerRespin.sh] script to pull the latest from upstream into the GL midstream repo.
+. Use the link:../build/scripts/triggerRespin.sh[triggerRespin.sh] script to pull the latest from upstream into the GL midstream repo.
 
-* If all goes well, you should also get a new bundle build that includes the latest hub and operator. 
+. If all goes well, you should also get a new bundle build that includes the latest hub and operator. 
 
 ### Triggering operator-bundle builds
 
-* To check that the CSV is up to date with the latest hub and operator images, run the link:../build/scripts/checkImagesInCSV.sh[checkImagesInCSV] script:
+. To check that the CSV is up to date with the latest hub and operator images, run the link:../build/scripts/checkImagesInCSV.sh[checkImagesInCSV] script:
++
+```
+./build/scripts/checkImagesInCSV.sh quay.io/rhdh/rhdh-operator-bundle:1.4-83 -qq -y
+```
 
- ./build/scripts/checkImagesInCSV.sh quay.io/rhdh/rhdh-operator-bundle:1.4-83 -qq -y
+. If not, you can trigger a new bundle build using link:../build/ci/sync-midstream.sh[sync-midstream.sh], which will skip rebuilding the hub and operator content (with `--nobuild`), but will refresh the CSV:
++
+```
+./build/ci/sync-midstream.sh --nobuild --nopush --nocommit --force --next -b rhdh-1-rhel-9
 
-* If not, you can trigger a new bundle build using link:../build/ci/sync-midstream.sh[sync-midstream.sh], which will skip rebuilding the hub and operator content (with `--nobuild`), but will refresh the CSV:
+# revert changes to the hub and operator imgages, keeping only the bundle updates
+git checkout git checkout distgit/containers/rhdh-hub/ distgit/containers/rhdh-operator
+```
 
- ./build/ci/sync-midstream.sh --nobuild --nopush --force --next -b rhdh-1-rhel-9
-
-* Once the changes a created locally, commit them to trigger a Konflux build.
+. Once the changes a created locally, commit them to trigger a Konflux build. Only files should have changed:
++
+```
+distgit/containers/rhdh-operator-bundle/Containerfile
+distgit/containers/rhdh-operator-bundle/manifests/rhdh-operator.clusterserviceversion.yaml
+```
 
 ### Triggering FBC builds (replaces IIBs)
 
@@ -45,6 +57,10 @@ export GITHUB_TOKEN=ghp_rhdh-bot-token-here # see BitWarden for this token
 ./build/helm/prepare.sh --next   --chart-branch main        --publish --extra-branch rhdh-1-rhel-9
 ```
 
+New charts will appear here:
+
+* https://github.com/rhdh-bot/openshift-helm-charts
+
 ## Watching builds
 
 * For the rhdh-1 branch (CI ONLY), watch builds here: https://konflux.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/application-pipeline/workspaces/rhdh/applications/rhdh-1
@@ -62,8 +78,10 @@ So, if you want to test an upstream change in Konflux, here are the steps:
 2. Edit the link:../upstream_repos.yml[upstream_repos.yml] file to point to your topic branch or fork
 3. Locally, run:
 +
- ./build/ci/sync-midstream.sh --nopush --force --next -b rhdh-1-rhel-9
-+
+```
+./build/ci/sync-midstream.sh --nopush --nocommit --force --next -b rhdh-1-rhel-9
+```
+
 4. Commit your changes to a topic branch, and create a gitlab Merge Request
 5. Watch it building in Konflux at https://konflux.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/application-pipeline/workspaces/rhdh/applications/rhdh-1/activity/pipelineruns?name=pull
 
