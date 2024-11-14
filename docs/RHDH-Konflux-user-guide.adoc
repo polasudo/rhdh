@@ -20,7 +20,7 @@
 ./build/ci/sync-midstream.sh --nobuild --nopush --nocommit --force --next -b rhdh-1-rhel-9
 
 # revert changes to the hub and operator imgages, keeping only the bundle updates
-git checkout git checkout distgit/containers/rhdh-hub/ distgit/containers/rhdh-operator
+git checkout distgit/containers/rhdh-hub/ distgit/containers/rhdh-operator sync/upstream_SHA_rhdh-hub sync/upstream_SHA_rhdh-operator
 ```
 
 . Once the changes a created locally, commit them to trigger a Konflux build. Only files should have changed:
