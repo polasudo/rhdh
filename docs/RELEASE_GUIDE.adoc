@@ -102,7 +102,7 @@ Existing FBC catalog content:
 * link:../catalogs[catalogs]
 * link:../build/scripts/renderCatalogs.sh[renderCatalogs] (replacement for link:../build/scripts/copyIIBsToQuay.sh[copyIIBsToQuay], used for OSBS IIB builds)
 
-See also link:RHDH-konflux.adoc[RHDH-konflux.adoc]
+See also link:RHDH-Konflux-overview-onboarding.adoc[RHDH-Konflux-overview-onboarding.adoc]
 
 Since the midstream transformation still requires a GL pipeline to trigger Konflux, you still need a new pipeline for 1.4. See next step.
 
@@ -337,8 +337,8 @@ Ongoing through the quarter, remember to:
 . Update the link:../build/dockerfiles/[gitlab pipeline runner images] at least once every quarter
 . Monitor GH-GL syncs and pipelines, as things can fail unexpectedly in OSBS or on gitlab runners
 . Monitor quay image updates to ensure everything is kept current and fresh relative to upstream branches
-. Monitor new OCP release dates - add a new Application and Component for the new FBC in Konflux - see link:RHDH-konflux.adoc[RHDH-konflux]
-. Monitor OCP EOL dates - delete old FBC Applications from Konflux to stop building for that OCP version - see link:RHDH-konflux.adoc[RHDH-konflux]
+. Monitor new OCP release dates - add a new Application and Component for the new FBC in Konflux - see link:RHDH-Konflux-overview-onboarding.adoc[RHDH-Konflux-overview-onboarding]
+. Monitor OCP EOL dates - delete old FBC Applications from Konflux to stop building for that OCP version - see link:RHDH-Konflux-overview-onboarding.adoc[RHDH-Konflux-overview-onboarding]
 
 ## Summary of Release tasks:
 

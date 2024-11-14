@@ -1,5 +1,9 @@
 # Building and Testing with RH Internal Konflux
 
+## Triggering and watching builds
+
+See link:RHDH-Konflux-user.adoc[RHDH-Konflux-user.adoc].
+
 ## Onboarding a new person
 
 1. Ask that person to go to https://konflux.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/application-pipeline/workspaces/rhdh/applications
@@ -18,13 +22,7 @@ Once these exist, a new Application, with 3 (or more) components can then be add
 
 To trigger a build of the FBCs when a new operator-bundle image has been published, link:https://konflux-ci.dev/docs/how-tos/configuring/component-nudges/#in-the-ui[component nudging] is required. This should be configured so that for any new build of the rhdh-hub or rhdh-operator containers, a new rhdh-operator-bundle is theen built; once that is built, the bundle should nudge the FBC applications to update those with fresher digests. 
 
-TODO: RHIDP-4223 - verify this works, and that we don't have to manually update the FBCs each time a new bundle is pushed (or generate a new bundle for every new hub or operator).
-
-## Triggering builds
-
-1. Push a commit to the https://gitlab.cee.redhat.com/rhidp/rhdh repo
-* For the rhdh-1 branch (CI ONLY), watch builds here: https://konflux.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/application-pipeline/workspaces/rhdh/applications/rhdh-1
-* For other branches, see the appropriate application: https://konflux.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/application-pipeline/workspaces/rhdh/applications
+TODO: RHIDP-4223 - this doesn't work!. Need to do manual nudging of the FBCs each time a new bundle is pushed (or generate a new bundle for every new hub or operator).
 
 ## File Based Catalogs (FBCs)
 
@@ -56,9 +54,11 @@ When support for an older version of OCP is to be dropped, FBC publishing for th
 
 ### Helm
 
-TODO: write this
+Helm charts are manually created 
 
 ### Operator
+
+See link:RHDH-Konflux-user.adoc[RHDH-Konflux-user-guide.adoc].
 
 TODO: RHIDP-4223 write this / script this / apply this to the https://github.com/redhat-developer/rhdh-operator/blob/main/.rhdh/scripts/install-rhdh-catalog-source.sh so it uses IDMS instead of ICSP
 

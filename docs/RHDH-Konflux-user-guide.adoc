@@ -1,0 +1,69 @@
+## Triggering builds
+
+### Triggering hub and operator builds
+
+* Use the link:../build/scripts/triggerRespin.sh[triggerRespin.sh] script to pull the latest from upstream into the GL midstream repo.
+
+* If all goes well, you should also get a new bundle build that includes the latest hub and operator. 
+
+### Triggering operator-bundle builds
+
+* To check that the CSV is up to date with the latest hub and operator images, run the link:../build/scripts/checkImagesInCSV.sh[checkImagesInCSV] script:
+
+ ./build/scripts/checkImagesInCSV.sh quay.io/rhdh/rhdh-operator-bundle:1.4-83 -qq -y
+
+* If not, you can trigger a new bundle build using link:../build/ci/sync-midstream.sh[sync-midstream.sh], which will skip rebuilding the hub and operator content (with `--nobuild`), but will refresh the CSV:
+
+ ./build/ci/sync-midstream.sh --nobuild --nopush --force --next -b rhdh-1-rhel-9
+
+* Once the changes a created locally, commit them to trigger a Konflux build.
+
+### Triggering FBC builds (replaces IIBs)
+
+* Run link:../build/scripts/renderCatalogs.sh[build/scripts/renderCatalogs.sh] to create new File Base Catalog (FBC) fragments, then commit the changes.
+
+* Or, push a change to the files in .tekton/fbc-* to trigger new FBC builds. 
+
+* New FBCs will be published to link:https://quay.io/rhdh/iib[quay.io/rhdh/iib] and can be installed the same way as IIBs. 
+
+For more on installation, see:
+
+* link:https://github.com/redhat-developer/rhdh-operator/blob/main/.rhdh/docs/installing-ci-builds.adoc[installing-ci-builds.adoc] and 
+* link:https://github.com/redhat-developer/rhdh-operator/blob/main/.rhdh/scripts/install-rhdh-catalog-source.sh[install-rhdh-catalog-source.sh]
+
+### Triggering helm chart updates
+
+Currently, the same gitlab pipeline that syncs content from upstream github to midstream gitlab will also fetch build a new helm chart for the latest rhdh-hub container.
+
+However this might not happen as fast as you'd like, so you can run link:../build/helm/prepare.sh[build/helm/prepare.sh]:
+
+```
+export GITHUB_TOKEN=ghp_rhdh-bot-token-here # see BitWarden for this token
+
+./build/helm/prepare.sh --latest --chart-branch release-1.4 --publish --extra-branch rhdh-1.4-rhel-9
+# or 
+./build/helm/prepare.sh --next   --chart-branch main        --publish --extra-branch rhdh-1-rhel-9
+```
+
+## Watching builds
+
+* For the rhdh-1 branch (CI ONLY), watch builds here: https://konflux.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/application-pipeline/workspaces/rhdh/applications/rhdh-1
+* For other branches, see the appropriate application: https://konflux.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/application-pipeline/workspaces/rhdh/applications
+
+* TODO - add info about the 1.y branch builds, RPAs, etc.
+
+## Triggering Konflux builds for Pull Requests
+
+Currently, changes in the upstream GH repos are not buildable immediately in Konflux, but must be transformed for use there.
+
+So, if you want to test an upstream change in Konflux, here are the steps:
+
+1. Draft your upstream PR, and push it to a fork or topic branch at Github
+2. Edit the link:../upstream_repos.yml[upstream_repos.yml] file to point to your topic branch or fork
+3. Locally, run:
++
+ ./build/ci/sync-midstream.sh --nopush --force --next -b rhdh-1-rhel-9
++
+4. Commit your changes to a topic branch, and create a gitlab Merge Request
+5. Watch it building in Konflux at https://konflux.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/application-pipeline/workspaces/rhdh/applications/rhdh-1/activity/pipelineruns?name=pull
+
