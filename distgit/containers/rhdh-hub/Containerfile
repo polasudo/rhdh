@@ -89,7 +89,6 @@ COPY $EXTERNAL_SOURCE_NESTED/dynamic-plugins/wrappers/janus-idp-backstage-scaffo
 COPY $EXTERNAL_SOURCE_NESTED/dynamic-plugins/wrappers/janus-idp-backstage-scaffolder-backend-module-regex-dynamic/dist-dynamic/package.json ./dynamic-plugins/wrappers/janus-idp-backstage-scaffolder-backend-module-regex-dynamic/dist-dynamic/package.json
 COPY $EXTERNAL_SOURCE_NESTED/dynamic-plugins/wrappers/janus-idp-backstage-scaffolder-backend-module-quay-dynamic/package.json ./dynamic-plugins/wrappers/janus-idp-backstage-scaffolder-backend-module-quay-dynamic/package.json
 COPY $EXTERNAL_SOURCE_NESTED/dynamic-plugins/wrappers/janus-idp-backstage-scaffolder-backend-module-quay-dynamic/dist-dynamic/package.json ./dynamic-plugins/wrappers/janus-idp-backstage-scaffolder-backend-module-quay-dynamic/dist-dynamic/package.json
-COPY $EXTERNAL_SOURCE_NESTED/dynamic-plugins/wrappers/janus-idp-backstage-plugin-tekton/package.json ./dynamic-plugins/wrappers/janus-idp-backstage-plugin-tekton/package.json
 COPY $EXTERNAL_SOURCE_NESTED/dynamic-plugins/wrappers/janus-idp-backstage-plugin-quay/package.json ./dynamic-plugins/wrappers/janus-idp-backstage-plugin-quay/package.json
 COPY $EXTERNAL_SOURCE_NESTED/dynamic-plugins/wrappers/janus-idp-backstage-plugin-analytics-provider-segment/package.json ./dynamic-plugins/wrappers/janus-idp-backstage-plugin-analytics-provider-segment/package.json
 COPY $EXTERNAL_SOURCE_NESTED/dynamic-plugins/wrappers/janus-idp-backstage-plugin-aap-backend-dynamic/package.json ./dynamic-plugins/wrappers/janus-idp-backstage-plugin-aap-backend-dynamic/package.json
@@ -134,6 +133,7 @@ COPY $EXTERNAL_SOURCE_NESTED/dynamic-plugins/wrappers/backstage-plugin-catalog-b
 COPY $EXTERNAL_SOURCE_NESTED/dynamic-plugins/wrappers/backstage-community-scaffolder-backend-module-sonarqube-dynamic/package.json ./dynamic-plugins/wrappers/backstage-community-scaffolder-backend-module-sonarqube-dynamic/package.json
 COPY $EXTERNAL_SOURCE_NESTED/dynamic-plugins/wrappers/backstage-community-scaffolder-backend-module-sonarqube-dynamic/dist-dynamic/package.json ./dynamic-plugins/wrappers/backstage-community-scaffolder-backend-module-sonarqube-dynamic/dist-dynamic/package.json
 COPY $EXTERNAL_SOURCE_NESTED/dynamic-plugins/wrappers/backstage-community-plugin-topology/package.json ./dynamic-plugins/wrappers/backstage-community-plugin-topology/package.json
+COPY $EXTERNAL_SOURCE_NESTED/dynamic-plugins/wrappers/backstage-community-plugin-tekton/package.json ./dynamic-plugins/wrappers/backstage-community-plugin-tekton/package.json
 COPY $EXTERNAL_SOURCE_NESTED/dynamic-plugins/wrappers/backstage-community-plugin-tech-radar/package.json ./dynamic-plugins/wrappers/backstage-community-plugin-tech-radar/package.json
 COPY $EXTERNAL_SOURCE_NESTED/dynamic-plugins/wrappers/backstage-community-plugin-tech-radar-backend-dynamic/package.json ./dynamic-plugins/wrappers/backstage-community-plugin-tech-radar-backend-dynamic/package.json
 COPY $EXTERNAL_SOURCE_NESTED/dynamic-plugins/wrappers/backstage-community-plugin-tech-radar-backend-dynamic/dist-dynamic/package.json ./dynamic-plugins/wrappers/backstage-community-plugin-tech-radar-backend-dynamic/dist-dynamic/package.json
@@ -301,7 +301,7 @@ ENTRYPOINT ["node", "packages/backend", "--no-node-snapshot", "--config", "app-c
 # append Brew metadata here
 ENV SUMMARY="Red Hat Developer Hub container" \
     DESCRIPTION="Red Hat Developer Hub container" \
-    UPSTREAM_REPO="https://github.com/janus-idp/backstage-showcase/tree/main @ cd52ae8e" \
+    UPSTREAM_REPO="https://github.com/janus-idp/backstage-showcase/tree/main @ 571dfd64" \
     MIDSTREAM_REPO="https://gitlab.cee.redhat.com/rhidp/rhdh/-/commits/rhdh-1-rhel-9" \
     PRODNAME="rhdh" \
     COMPNAME="hub"
