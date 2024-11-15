@@ -993,7 +993,7 @@ fi
 # set concurrency for turbo commands so that builds don't run our of file handles / disk space / memory (instead of default 10)
 # +    "export-dynamic": "turbo run export-dynamic --concurrency=z",
 # +    "export-dynamic:clean": "turbo run export-dynamic:clean --concurrency=z",
-sed -i distgit/containers/rhdh-hub/package.json -r -e 's|("export-dynamic.+)",|\1 --concurrency=4",|'
+sed -i distgit/containers/rhdh-hub/package.json -r -e 's| --concurrency=[0-9]+||g' -e 's|("export-dynamic.+)",|\1 --concurrency=6",|'
 
 echo
 if [[ $(git status -s || true) ]]; then
