@@ -204,7 +204,7 @@ checkImage () {
     # shellcheck disable=SC2086
     image_release=$(skopeo inspect docker://${imageAndSHA} 2>/dev/null | jq -r '.Labels.release')
 
-    # echo "[DEBUG] Got version_release = $version_release"
+    # echo "[DEBUG] For $imageOnly, got $image_version - $image_release"
     if [[ $image_version ]] && [[ $image_release ]]; then
         container=${imageOnly}:${image_version}-${image_release}
         digest="$(skopeo inspect "docker://${container}" 2>/dev/null | jq -r '.Digest' 2>/dev/null )"
@@ -222,6 +222,10 @@ checkImage () {
           else
             # no digest, so just use :tag
             container=${imageOnly}:${image_version}
+            digest="$(skopeo inspect "docker://${container}" 2>/dev/null | jq -r '.Digest' 2>/dev/null )"
+            if [[ $digest ]]; then
+              container="${container}@$digest"
+            fi
           fi
         fi
         if [[ $QUIET -eq 0 ]]; then echo "Got $container"; else echo "       * $container"; fi
