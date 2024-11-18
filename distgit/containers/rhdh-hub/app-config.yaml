@@ -1,3 +1,5 @@
+developerHub:
+  flavor: rhdh
 app:
   title: Red Hat Developer Hub
   baseUrl: http://localhost:3000
