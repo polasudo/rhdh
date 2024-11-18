@@ -1,0 +1,62 @@
+{
+  "name": "@backstage/plugin-notifications-node",
+  "version": "0.2.8+embedded",
+  "description": "Node.js library for the notifications plugin",
+  "backstage": {
+    "role": "node-library",
+    "pluginId": "notifications",
+    "pluginPackages": [
+      "@backstage/plugin-notifications",
+      "@backstage/plugin-notifications-backend",
+      "@backstage/plugin-notifications-common",
+      "@backstage/plugin-notifications-node"
+    ]
+  },
+  "publishConfig": {
+    "access": "public",
+    "main": "dist/index.cjs.js",
+    "types": "dist/index.d.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/backstage/backstage",
+    "directory": "plugins/notifications-node"
+  },
+  "license": "Apache-2.0",
+  "main": "dist/index.cjs.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "backstage-cli package build",
+    "clean": "backstage-cli package clean",
+    "lint": "backstage-cli package lint",
+    "prepack": "backstage-cli package prepack",
+    "postpack": "backstage-cli package postpack",
+    "test": "backstage-cli package test"
+  },
+  "dependencies": {
+    "@backstage/plugin-notifications-common": "^0.0.5",
+    "@backstage/plugin-signals-node": "^0.1.13",
+    "knex": "^3.0.0",
+    "node-fetch": "^2.7.0",
+    "uuid": "^9.0.0"
+  },
+  "devDependencies": {},
+  "private": true,
+  "peerDependencies": {
+    "@backstage/backend-common": "^0.25.0",
+    "@backstage/backend-plugin-api": "^1.0.1",
+    "@backstage/catalog-client": "^1.7.1",
+    "@backstage/catalog-model": "^1.7.0"
+  },
+  "overrides": {
+    "@aws-sdk/util-utf8-browser": {
+      "@smithy/util-utf8": "^2.0.0"
+    }
+  },
+  "resolutions": {
+    "@aws-sdk/util-utf8-browser": "npm:@smithy/util-utf8@~2"
+  }
+}
