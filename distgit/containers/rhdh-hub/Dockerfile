@@ -131,10 +131,6 @@ COPY $EXTERNAL_SOURCE_NESTED/dynamic-plugins/wrappers/backstage-plugin-catalog-b
 COPY $EXTERNAL_SOURCE_NESTED/dynamic-plugins/wrappers/backstage-plugin-catalog-backend-module-bitbucket-server-dynamic/dist-dynamic/package.json ./dynamic-plugins/wrappers/backstage-plugin-catalog-backend-module-bitbucket-server-dynamic/dist-dynamic/package.json
 COPY $EXTERNAL_SOURCE_NESTED/dynamic-plugins/wrappers/backstage-plugin-catalog-backend-module-bitbucket-cloud-dynamic/package.json ./dynamic-plugins/wrappers/backstage-plugin-catalog-backend-module-bitbucket-cloud-dynamic/package.json
 COPY $EXTERNAL_SOURCE_NESTED/dynamic-plugins/wrappers/backstage-plugin-catalog-backend-module-bitbucket-cloud-dynamic/dist-dynamic/package.json ./dynamic-plugins/wrappers/backstage-plugin-catalog-backend-module-bitbucket-cloud-dynamic/dist-dynamic/package.json
-COPY $EXTERNAL_SOURCE_NESTED/dynamic-plugins/wrappers/backstage-community-scaffolder-backend-module-sonarqube-dynamic/package.json ./dynamic-plugins/wrappers/backstage-community-scaffolder-backend-module-sonarqube-dynamic/package.json
-COPY $EXTERNAL_SOURCE_NESTED/dynamic-plugins/wrappers/backstage-community-scaffolder-backend-module-sonarqube-dynamic/dist-dynamic/package.json ./dynamic-plugins/wrappers/backstage-community-scaffolder-backend-module-sonarqube-dynamic/dist-dynamic/package.json
-COPY $EXTERNAL_SOURCE_NESTED/dynamic-plugins/wrappers/backstage-community-scaffolder-backend-module-regex-dynamic/package.json ./dynamic-plugins/wrappers/backstage-community-scaffolder-backend-module-regex-dynamic/package.json
-COPY $EXTERNAL_SOURCE_NESTED/dynamic-plugins/wrappers/backstage-community-scaffolder-backend-module-regex-dynamic/dist-dynamic/package.json ./dynamic-plugins/wrappers/backstage-community-scaffolder-backend-module-regex-dynamic/dist-dynamic/package.json
 COPY $EXTERNAL_SOURCE_NESTED/dynamic-plugins/wrappers/backstage-community-plugin-topology/package.json ./dynamic-plugins/wrappers/backstage-community-plugin-topology/package.json
 COPY $EXTERNAL_SOURCE_NESTED/dynamic-plugins/wrappers/backstage-community-plugin-tekton/package.json ./dynamic-plugins/wrappers/backstage-community-plugin-tekton/package.json
 COPY $EXTERNAL_SOURCE_NESTED/dynamic-plugins/wrappers/backstage-community-plugin-tech-radar/package.json ./dynamic-plugins/wrappers/backstage-community-plugin-tech-radar/package.json
@@ -143,8 +139,12 @@ COPY $EXTERNAL_SOURCE_NESTED/dynamic-plugins/wrappers/backstage-community-plugin
 COPY $EXTERNAL_SOURCE_NESTED/dynamic-plugins/wrappers/backstage-community-plugin-sonarqube/package.json ./dynamic-plugins/wrappers/backstage-community-plugin-sonarqube/package.json
 COPY $EXTERNAL_SOURCE_NESTED/dynamic-plugins/wrappers/backstage-community-plugin-sonarqube-backend-dynamic/package.json ./dynamic-plugins/wrappers/backstage-community-plugin-sonarqube-backend-dynamic/package.json
 COPY $EXTERNAL_SOURCE_NESTED/dynamic-plugins/wrappers/backstage-community-plugin-sonarqube-backend-dynamic/dist-dynamic/package.json ./dynamic-plugins/wrappers/backstage-community-plugin-sonarqube-backend-dynamic/dist-dynamic/package.json
+COPY $EXTERNAL_SOURCE_NESTED/dynamic-plugins/wrappers/backstage-community-plugin-scaffolder-backend-module-sonarqube-dynamic/package.json ./dynamic-plugins/wrappers/backstage-community-plugin-scaffolder-backend-module-sonarqube-dynamic/package.json
+COPY $EXTERNAL_SOURCE_NESTED/dynamic-plugins/wrappers/backstage-community-plugin-scaffolder-backend-module-sonarqube-dynamic/dist-dynamic/package.json ./dynamic-plugins/wrappers/backstage-community-plugin-scaffolder-backend-module-sonarqube-dynamic/dist-dynamic/package.json
 COPY $EXTERNAL_SOURCE_NESTED/dynamic-plugins/wrappers/backstage-community-plugin-scaffolder-backend-module-servicenow-dynamic/package.json ./dynamic-plugins/wrappers/backstage-community-plugin-scaffolder-backend-module-servicenow-dynamic/package.json
 COPY $EXTERNAL_SOURCE_NESTED/dynamic-plugins/wrappers/backstage-community-plugin-scaffolder-backend-module-servicenow-dynamic/dist-dynamic/package.json ./dynamic-plugins/wrappers/backstage-community-plugin-scaffolder-backend-module-servicenow-dynamic/dist-dynamic/package.json
+COPY $EXTERNAL_SOURCE_NESTED/dynamic-plugins/wrappers/backstage-community-plugin-scaffolder-backend-module-regex-dynamic/package.json ./dynamic-plugins/wrappers/backstage-community-plugin-scaffolder-backend-module-regex-dynamic/package.json
+COPY $EXTERNAL_SOURCE_NESTED/dynamic-plugins/wrappers/backstage-community-plugin-scaffolder-backend-module-regex-dynamic/dist-dynamic/package.json ./dynamic-plugins/wrappers/backstage-community-plugin-scaffolder-backend-module-regex-dynamic/dist-dynamic/package.json
 COPY $EXTERNAL_SOURCE_NESTED/dynamic-plugins/wrappers/backstage-community-plugin-scaffolder-backend-module-quay-dynamic/package.json ./dynamic-plugins/wrappers/backstage-community-plugin-scaffolder-backend-module-quay-dynamic/package.json
 COPY $EXTERNAL_SOURCE_NESTED/dynamic-plugins/wrappers/backstage-community-plugin-scaffolder-backend-module-quay-dynamic/dist-dynamic/package.json ./dynamic-plugins/wrappers/backstage-community-plugin-scaffolder-backend-module-quay-dynamic/dist-dynamic/package.json
 COPY $EXTERNAL_SOURCE_NESTED/dynamic-plugins/wrappers/backstage-community-plugin-redhat-argocd/package.json ./dynamic-plugins/wrappers/backstage-community-plugin-redhat-argocd/package.json
@@ -397,7 +397,7 @@ ENTRYPOINT ["node", "--require", "./instrumentation.js", "packages/backend", "--
 # append Brew metadata here
 ENV SUMMARY="Red Hat Developer Hub container" \
     DESCRIPTION="Red Hat Developer Hub container" \
-    UPSTREAM_REPO="https://github.com/janus-idp/backstage-showcase/tree/main @ f9250fad" \
+    UPSTREAM_REPO="https://github.com/janus-idp/backstage-showcase/tree/main @ 6b0d5f07" \
     MIDSTREAM_REPO="https://gitlab.cee.redhat.com/rhidp/rhdh/-/commits/rhdh-1-rhel-9" \
     PRODNAME="rhdh" \
     COMPNAME="hub"
