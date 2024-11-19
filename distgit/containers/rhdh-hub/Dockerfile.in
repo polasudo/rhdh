@@ -84,7 +84,6 @@ COPY $EXTERNAL_SOURCE_NESTED/dynamic-plugins/wrappers/parfuemerie-douglas-scaffo
 COPY $EXTERNAL_SOURCE_NESTED/dynamic-plugins/wrappers/pagerduty-backstage-plugin/package.json ./dynamic-plugins/wrappers/pagerduty-backstage-plugin/package.json
 COPY $EXTERNAL_SOURCE_NESTED/dynamic-plugins/wrappers/pagerduty-backstage-plugin-backend-dynamic/package.json ./dynamic-plugins/wrappers/pagerduty-backstage-plugin-backend-dynamic/package.json
 COPY $EXTERNAL_SOURCE_NESTED/dynamic-plugins/wrappers/pagerduty-backstage-plugin-backend-dynamic/dist-dynamic/package.json ./dynamic-plugins/wrappers/pagerduty-backstage-plugin-backend-dynamic/dist-dynamic/package.json
-COPY $EXTERNAL_SOURCE_NESTED/dynamic-plugins/wrappers/janus-idp-backstage-plugin-analytics-provider-segment/package.json ./dynamic-plugins/wrappers/janus-idp-backstage-plugin-analytics-provider-segment/package.json
 COPY $EXTERNAL_SOURCE_NESTED/dynamic-plugins/wrappers/janus-idp-backstage-plugin-aap-backend-dynamic/package.json ./dynamic-plugins/wrappers/janus-idp-backstage-plugin-aap-backend-dynamic/package.json
 COPY $EXTERNAL_SOURCE_NESTED/dynamic-plugins/wrappers/janus-idp-backstage-plugin-aap-backend-dynamic/dist-dynamic/package.json ./dynamic-plugins/wrappers/janus-idp-backstage-plugin-aap-backend-dynamic/dist-dynamic/package.json
 COPY $EXTERNAL_SOURCE_NESTED/dynamic-plugins/wrappers/immobiliarelabs-backstage-plugin-gitlab/package.json ./dynamic-plugins/wrappers/immobiliarelabs-backstage-plugin-gitlab/package.json
@@ -172,6 +171,7 @@ COPY $EXTERNAL_SOURCE_NESTED/dynamic-plugins/wrappers/backstage-community-plugin
 COPY $EXTERNAL_SOURCE_NESTED/dynamic-plugins/wrappers/backstage-community-plugin-azure-devops/package.json ./dynamic-plugins/wrappers/backstage-community-plugin-azure-devops/package.json
 COPY $EXTERNAL_SOURCE_NESTED/dynamic-plugins/wrappers/backstage-community-plugin-azure-devops-backend-dynamic/package.json ./dynamic-plugins/wrappers/backstage-community-plugin-azure-devops-backend-dynamic/package.json
 COPY $EXTERNAL_SOURCE_NESTED/dynamic-plugins/wrappers/backstage-community-plugin-azure-devops-backend-dynamic/dist-dynamic/package.json ./dynamic-plugins/wrappers/backstage-community-plugin-azure-devops-backend-dynamic/dist-dynamic/package.json
+COPY $EXTERNAL_SOURCE_NESTED/dynamic-plugins/wrappers/backstage-community-plugin-analytics-provider-segment/package.json ./dynamic-plugins/wrappers/backstage-community-plugin-analytics-provider-segment/package.json
 COPY $EXTERNAL_SOURCE_NESTED/dynamic-plugins/wrappers/backstage-community-plugin-acr/package.json ./dynamic-plugins/wrappers/backstage-community-plugin-acr/package.json
 COPY $EXTERNAL_SOURCE_NESTED/dynamic-plugins/wrappers/backstage-community-plugin-3scale-backend-dynamic/package.json ./dynamic-plugins/wrappers/backstage-community-plugin-3scale-backend-dynamic/package.json
 COPY $EXTERNAL_SOURCE_NESTED/dynamic-plugins/wrappers/backstage-community-plugin-3scale-backend-dynamic/dist-dynamic/package.json ./dynamic-plugins/wrappers/backstage-community-plugin-3scale-backend-dynamic/dist-dynamic/package.json
@@ -397,7 +397,7 @@ ENTRYPOINT ["node", "--require", "./instrumentation.js", "packages/backend", "--
 # append Brew metadata here
 ENV SUMMARY="Red Hat Developer Hub container" \
     DESCRIPTION="Red Hat Developer Hub container" \
-    UPSTREAM_REPO="https://github.com/janus-idp/backstage-showcase/tree/main @ 667ad944" \
+    UPSTREAM_REPO="https://github.com/janus-idp/backstage-showcase/tree/main @ 56f68455" \
     MIDSTREAM_REPO="https://gitlab.cee.redhat.com/rhidp/rhdh/-/commits/rhdh-1-rhel-9" \
     PRODNAME="rhdh" \
     COMPNAME="hub"
