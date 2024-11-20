@@ -2,21 +2,20 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var require$$0 = require('@backstage/backend-common');
-var require$$1 = require('express');
-var require$$2 = require('express-promise-router');
-var require$$3 = require('@backstage/errors');
+var require$$0 = require('express');
+var require$$1 = require('express-promise-router');
+var require$$2 = require('@backstage/errors');
 var require$$0$1 = require('node-fetch');
 var require$$0$2 = require('@backstage/backend-plugin-api');
+var require$$1$1 = require('@backstage/backend-defaults/rootHttpRouter');
 
 var index_cjs = {};
 
 var router_cjs = {};
 
-var backendCommon = require$$0;
-var express = require$$1;
-var Router = require$$2;
-var errors = require$$3;
+var express = require$$0;
+var Router = require$$1;
+var errors = require$$2;
 
 function _interopDefaultCompat$1 (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }
 
@@ -54,7 +53,6 @@ async function createRouter(options) {
       instanceUrl: externalBaseUrl || baseUrl
     });
   });
-  router.use(backendCommon.errorHandler());
   return router;
 }
 
@@ -149,15 +147,19 @@ class SonarqubeConfig {
   }
 }
 class DefaultSonarqubeInfoProvider {
-  constructor(config) {
+  constructor(config, logger) {
     this.config = config;
+    this.logger = logger;
   }
   /**
    * Generate an instance from a Config instance
    * @param config - Backend configuration
    */
-  static fromConfig(config) {
-    return new DefaultSonarqubeInfoProvider(SonarqubeConfig.fromConfig(config));
+  static fromConfig(config, logger) {
+    return new DefaultSonarqubeInfoProvider(
+      SonarqubeConfig.fromConfig(config),
+      logger
+    );
   }
   /**
    * Retrieve all supported metrics from a sonarqube instance.
@@ -167,11 +169,11 @@ class DefaultSonarqubeInfoProvider {
    * @returns The list of supported metrics, if no metrics are supported an empty list is provided in the promise
    */
   // TODO(awanlin) - Add @private back
-  static async getSupportedMetrics(instanceUrl, token) {
+  async getSupportedMetrics(instanceUrl, token) {
     const metrics = [];
     let nextPage = 1;
     for (; ; ) {
-      const result = await DefaultSonarqubeInfoProvider.callApi(instanceUrl, "api/metrics/search", token, { ps: 500, p: nextPage });
+      const result = await this.callApi(instanceUrl, "api/metrics/search", token, { ps: 500, p: nextPage });
       metrics.push(...result?.metrics?.map((m) => m.key) ?? []);
       if (result && metrics.length < result.total) {
         nextPage++;
@@ -189,17 +191,21 @@ class DefaultSonarqubeInfoProvider {
    * @returns A promise on the answer to the API call if the answer status code is 200, undefined otherwise.
    */
   // TODO(awanlin) - Add @private back
-  static async callApi(url, path, authToken, query) {
+  async callApi(url, path, authToken, query) {
     const encodedAuthToken = Buffer.from(`${authToken}:`).toString("base64");
-    const response = await fetch__default.default(
-      `${url}/${path}?${new URLSearchParams(query).toString()}`,
-      {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Basic ${encodedAuthToken}`
-        }
+    const fullUrl = `${url}/${path}?${new URLSearchParams(query).toString()}`;
+    const response = await fetch__default.default(fullUrl, {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Basic ${encodedAuthToken}`
       }
-    );
+    });
+    if (!response.ok) {
+      const text = await response.text();
+      const msg = !text ? "" : ` - Response: "${text}"`;
+      this.logger.error(`"GET ${fullUrl}" ${response.status}${msg}`);
+      return void 0;
+    }
     if (response.status === 200) {
       return await response.json();
     }
@@ -227,7 +233,7 @@ class DefaultSonarqubeInfoProvider {
     const { baseUrl, apiKey } = this.config.getInstanceConfig({
       sonarqubeName: instanceName
     });
-    const component = await DefaultSonarqubeInfoProvider.callApi(
+    const component = await this.callApi(
       baseUrl,
       "api/components/show",
       apiKey,
@@ -238,7 +244,7 @@ class DefaultSonarqubeInfoProvider {
     if (!component || !component.component) {
       return void 0;
     }
-    const supportedMetrics = await DefaultSonarqubeInfoProvider.getSupportedMetrics(baseUrl, apiKey);
+    const supportedMetrics = await this.getSupportedMetrics(baseUrl, apiKey);
     const wantedMetrics = [
       "alert_status",
       "bugs",
@@ -255,7 +261,7 @@ class DefaultSonarqubeInfoProvider {
     const metricsToQuery = wantedMetrics.filter(
       (el) => supportedMetrics.includes(el)
     );
-    const measures = await DefaultSonarqubeInfoProvider.callApi(
+    const measures = await this.callApi(
       baseUrl,
       "api/measures/component",
       apiKey,
@@ -280,6 +286,7 @@ sonarqubeInfoProvider_cjs.SonarqubeConfig = SonarqubeConfig;
 var plugin_cjs = {};
 
 var backendPluginApi = require$$0$2;
+var rootHttpRouter = require$$1$1;
 var sonarqubeInfoProvider$1 = sonarqubeInfoProvider_cjs;
 var router$1 = router_cjs;
 
@@ -293,18 +300,22 @@ const sonarqubePlugin = backendPluginApi.createBackendPlugin({
         httpRouter: backendPluginApi.coreServices.httpRouter
       },
       async init({ logger, config, httpRouter }) {
-        httpRouter.use(
-          await router$1.createRouter({
-            /**
-             * Logger for logging purposes
-             */
-            logger,
-            /**
-             * Info provider to be able to get all necessary information for the APIs
-             */
-            sonarqubeInfoProvider: sonarqubeInfoProvider$1.DefaultSonarqubeInfoProvider.fromConfig(config)
-          })
-        );
+        const router$1$1 = await router$1.createRouter({
+          /**
+           * Logger for logging purposes
+           */
+          logger,
+          /**
+           * Info provider to be able to get all necessary information for the APIs
+           */
+          sonarqubeInfoProvider: sonarqubeInfoProvider$1.DefaultSonarqubeInfoProvider.fromConfig(
+            config,
+            logger
+          )
+        });
+        const factory = rootHttpRouter.MiddlewareFactory.create({ logger, config });
+        router$1$1.use(factory.error());
+        httpRouter.use(router$1$1);
       }
     });
   }

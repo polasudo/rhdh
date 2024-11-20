@@ -1,6 +1,6 @@
 {
   "name": "@backstage-community/plugin-catalog-backend-module-keycloak",
-  "version": "3.2.1+embedded",
+  "version": "3.2.2+embedded",
   "description": "A Backend backend plugin for Keycloak",
   "main": "./dist/index.cjs.js",
   "types": "./dist/index.d.ts",
@@ -63,6 +63,8 @@
     "lifecycle:active",
     "backstage",
     "plugin",
+    "works-with:rhsso:^7.6",
+    "works-with:keycloak:~18",
     "works-with:rhbk:^24",
     "works-with:keycloak:~24"
   ],

@@ -2,19 +2,18 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var require$$7 = require('@backstage/plugin-permission-common');
+var require$$6 = require('@backstage/plugin-permission-common');
 var alpha = require('@backstage/plugin-catalog-common/alpha');
 var require$$1 = require('mime-types');
 var require$$1$1 = require('azure-devops-node-api');
 var require$$2 = require('@backstage/integration');
+var require$$0$2 = require('@backstage/backend-plugin-api');
 var require$$0$1 = require('p-limit');
 var require$$3 = require('express-promise-router');
-var require$$4 = require('@backstage/backend-common');
-var require$$5 = require('express');
-var require$$6 = require('@backstage/errors');
-var require$$8 = require('@backstage/plugin-permission-node');
-var require$$9 = require('@backstage/backend-defaults/rootHttpRouter');
-var require$$0$2 = require('@backstage/backend-plugin-api');
+var require$$4 = require('express');
+var require$$5 = require('@backstage/errors');
+var require$$7 = require('@backstage/plugin-permission-node');
+var require$$8 = require('@backstage/backend-defaults/rootHttpRouter');
 
 function getAugmentedNamespace(n) {
   if (n.__esModule) return n;
@@ -116,26 +115,26 @@ const AZURE_DEVOPS_README_ANNOTATION = "dev.azure.com/readme-path";
 const AZURE_DEVOPS_REPO_ANNOTATION = "dev.azure.com/project-repo";
 const AZURE_DEVOPS_DEFAULT_TOP = 10;
 
-const azureDevOpsPullRequestReadPermission = require$$7.createPermission({
+const azureDevOpsPullRequestReadPermission = require$$6.createPermission({
   name: "azure.devops.pullrequest.read",
   attributes: { action: "read" },
   resourceType: alpha.RESOURCE_TYPE_CATALOG_ENTITY
 });
-const azureDevOpsPullRequestDashboardReadPermission = require$$7.createPermission({
+const azureDevOpsPullRequestDashboardReadPermission = require$$6.createPermission({
   name: "azure.devops.pullrequest.dashboard.read",
   attributes: { action: "read" }
 });
-const azureDevOpsPipelineReadPermission = require$$7.createPermission({
+const azureDevOpsPipelineReadPermission = require$$6.createPermission({
   name: "azure.devops.pipeline.read",
   attributes: { action: "read" },
   resourceType: alpha.RESOURCE_TYPE_CATALOG_ENTITY
 });
-const azureDevOpsGitTagReadPermission = require$$7.createPermission({
+const azureDevOpsGitTagReadPermission = require$$6.createPermission({
   name: "azure.devops.gittag.read",
   attributes: { action: "read" },
   resourceType: alpha.RESOURCE_TYPE_CATALOG_ENTITY
 });
-const azureDevOpsReadmeReadPermission = require$$7.createPermission({
+const azureDevOpsReadmeReadPermission = require$$6.createPermission({
   name: "azure.devops.readme.read",
   attributes: { action: "read" },
   resourceType: alpha.RESOURCE_TYPE_CATALOG_ENTITY
@@ -835,6 +834,8 @@ class AzureDevOpsApi$2 {
 
 AzureDevOpsApi_cjs.AzureDevOpsApi = AzureDevOpsApi$2;
 
+var plugin_cjs = {};
+
 var router_cjs = {};
 
 var PullRequestsDashboardProvider_cjs = {};
@@ -938,12 +939,11 @@ var pluginAzureDevopsCommon = require$$0;
 var AzureDevOpsApi$1 = AzureDevOpsApi_cjs;
 var PullRequestsDashboardProvider = PullRequestsDashboardProvider_cjs;
 var Router = require$$3;
-var backendCommon = require$$4;
-var express = require$$5;
-var errors = require$$6;
-var pluginPermissionCommon = require$$7;
-var pluginPermissionNode = require$$8;
-var rootHttpRouter = require$$9;
+var express = require$$4;
+var errors = require$$5;
+var pluginPermissionCommon = require$$6;
+var pluginPermissionNode = require$$7;
+var rootHttpRouter = require$$8;
 
 function _interopDefaultCompat (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }
 
@@ -952,13 +952,7 @@ var express__default = /*#__PURE__*/_interopDefaultCompat(express);
 
 const DEFAULT_TOP = 10;
 async function createRouter(options) {
-  const { logger, reader, config, permissions } = options;
-  const { httpAuth } = backendCommon.createLegacyAuthAdapters(options);
-  if (config.getOptionalString("azureDevOps.token")) {
-    logger.warn(
-      "The 'azureDevOps.token' has been deprecated, use 'integrations.azure' instead, for more details see: https://backstage.io/docs/integrations/azure/locations"
-    );
-  }
+  const { logger, reader, config, permissions, httpAuth } = options;
   const permissionIntegrationRouter = pluginPermissionNode.createPermissionIntegrationRouter({
     permissions: pluginAzureDevopsCommon.azureDevOpsPermissions
   });
@@ -1206,10 +1200,8 @@ async function createRouter(options) {
 
 router_cjs.createRouter = createRouter;
 
-var plugin_cjs = {};
-
 var backendPluginApi = require$$0$2;
-var router$1 = router_cjs;
+var router = router_cjs;
 
 const azureDevOpsPlugin = backendPluginApi.createBackendPlugin({
   pluginId: "azure-devops",
@@ -1221,7 +1213,6 @@ const azureDevOpsPlugin = backendPluginApi.createBackendPlugin({
         reader: backendPluginApi.coreServices.urlReader,
         permissions: backendPluginApi.coreServices.permissions,
         httpRouter: backendPluginApi.coreServices.httpRouter,
-        discovery: backendPluginApi.coreServices.discovery,
         httpAuth: backendPluginApi.coreServices.httpAuth
       },
       async init({
@@ -1230,16 +1221,14 @@ const azureDevOpsPlugin = backendPluginApi.createBackendPlugin({
         reader,
         permissions,
         httpRouter,
-        discovery,
         httpAuth
       }) {
         httpRouter.use(
-          await router$1.createRouter({
+          await router.createRouter({
             config,
             logger,
             reader,
             permissions,
-            discovery,
             httpAuth
           })
         );
@@ -1257,13 +1246,11 @@ plugin_cjs.azureDevOpsPlugin = azureDevOpsPlugin;
 Object.defineProperty(index_cjs, '__esModule', { value: true });
 
 var AzureDevOpsApi = AzureDevOpsApi_cjs;
-var router = router_cjs;
 var plugin = plugin_cjs;
 
 
 
 index_cjs.AzureDevOpsApi = AzureDevOpsApi.AzureDevOpsApi;
-index_cjs.createRouter = router.createRouter;
 var _default = index_cjs.default = plugin.azureDevOpsPlugin;
 
 exports["default"] = _default;

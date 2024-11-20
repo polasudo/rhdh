@@ -14,12 +14,6 @@
           "description": "The hostname of the given Azure instance",
           "type": "string"
         },
-        "token": {
-          "description": "Token used to authenticate requests.",
-          "visibility": "secret",
-          "deprecated": "Use `integrations.azure` instead, see {@link https://backstage.io/docs/integrations/azure/locations}",
-          "type": "string"
-        },
         "organization": {
           "description": "The organization of the given Azure instance",
           "type": "string"
