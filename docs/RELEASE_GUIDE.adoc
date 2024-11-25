@@ -218,6 +218,10 @@ sudo rm -fr /tmp/opm-registry-* \
 ** collect the NVRs and quay images into an email and send it to QE with a subject like `RHDH 1.3.0 RC-09-26 is ready for QE`
 ** copy the contents of that email into slack #forum-rhdh-releases channel
 
+* if this RC build includes the same fixes as any link:https://errata.engineering.redhat.com/advisory/filters/4213[pending Freshmaker erratas], you should send an email to 
+secalert@redhat.com requesting they drop unneeded/outadated link:https://errata.engineering.redhat.com/advisory/filters/4213[erratas]. 
+This will prevent unexpected releases from landing in the link:https://catalog.redhat.com/search?gs&q=rhdh&searchType=containers[Red Hat Ecosystem Catalog].
+
 If a second RC build is needed, re-enable the scheduled pipeline (or trigger a pipeline manually), and repeat the above steps. 
 
 ## During GA week
@@ -346,12 +350,13 @@ Ongoing through the quarter, remember to:
 
 - collect the fixes in janus plugins + community plugins, and verifying that they've been released to npmjs.com
 - collect the updated plugin versions into showcase, and verifying a downstream build has succeeded
+- send an email to secalert@redhat.com requesting they drop any link:https://errata.engineering.redhat.com/advisory/filters/4213[stalled or outdated erratas created by Freshmaker].
 
 ### For all builds (y and z-stream)
 
 - add builds to the errata, verify CVP tests have passed, then push the errata to stage
 - coordinate with QE and Doc via slack and email notifications of RC builds and progress of testing, doc readiness, etc.
-- remind QE to move the errata to {{REL_PREP; }}watch while the builds are pushed (1-2 hrs?); complain on slack in various rel-eng channels if things break while pushing or ask siege for help
+- remind QE to move the errata to `REL_PREP`; watch while the builds are pushed (1-2 hrs?); complain on slack in various rel-eng channels if things break while pushing or ask siege for help
 
 ### Once the containers have shipped 
 
