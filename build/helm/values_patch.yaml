@@ -1,4 +1,12 @@
+# RHIDP-3115: nameOverride affects the resources created by the RHDH Chart,
+# like the Route host created on OCP.
+# It needs to match the value provided in 'upstream.nameOverride'
+# to have consistent behavior between the Route and the URLs
+# from the app-config ConfigMap managed by the Chart.
+nameOverride: developer-hub
 upstream:
+  # upstream.nameOverride affects the resources created by the upstream Backstage Chart,
+  # like the baseUrl fields set in the app-config ConfigMap created by that Chart.
   nameOverride: developer-hub
   backstage:
     image:
