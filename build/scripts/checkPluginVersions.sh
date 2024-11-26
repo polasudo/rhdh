@@ -129,6 +129,7 @@ rootVer=""
 for d in ./ packages/* plugins/*; do if [[ -f "$d/package.json" ]]; then 
     (( num_plugins=num_plugins+1 ))
 fi; done
+rootDir=$(pwd)
 for d in ./ packages/* plugins/*; do if [[ -f "$d/package.json" ]]; then 
     (( c=c+1 ))
     ver=$(jq -r '.version' "$d/package.json"); 
@@ -166,12 +167,21 @@ for d in ./ packages/* plugins/*; do if [[ -f "$d/package.json" ]]; then
           jq '.version|="'"$newver"'"' "$d/package.json" > "$d/package.json1"
           mv -f "$d/package.json1" "$d/package.json"
           echo -e "${green}$newver${norm}"; echo
+          git add "$d/" >/dev/null 2>&1 || exit 2
+          git commit -s -m "feat: checkPluginVersion.sh bump $d to $newver in $BRANCHUSED" "$d/" >/dev/null 2>&1 || exit 3
         else 
-          # comment in a md file to force a semantic release
           echo -e "${green}$newver${norm}"
-          echo "- Bumped to $newver in $BRANCHUSED branch for next release $rootVer" >> "$d/.versionhistory.md"
-          git add "$d/.versionhistory.md" >/dev/null 2>&1 || exit 2
-          git commit -s -m "feat: checkPluginVersion.sh bump $d to $newver in $BRANCHUSED" "$d/.versionhistory.md" >/dev/null 2>&1 || exit 3
+          pluginName=$(yq -r ".name" "$d/package.json")
+          echo "- Bumped to $newver in $BRANCHUSED branch, in prep for release of $rootVer" >> "$d/.versionhistory.md"
+          echo "---
+\"$pluginName\": minor
+---
+
+Bump $d to $newver in $BRANCHUSED branch, in prep for release of $rootVer
+" > "$rootDir/.changeset/${d/\//-}.md"
+
+          git add "$d/" "$rootDir/.changeset/${d/\//-}.md" >/dev/null 2>&1 || exit 2
+          git commit -s -m "feat: checkPluginVersion.sh bump $d to $newver in $BRANCHUSED" "$d/" "$rootDir/.changeset/" >/dev/null 2>&1 || exit 3
           echo
         fi
       else
@@ -187,6 +197,8 @@ fi; done
 createPr() {
   headBranch=$1
   baseBranch=$2
+  # in case we checked out from release-1.4 but need to base a PR against main
+  git config remote.origin.fetch '+refs/heads/*:refs/remotes/origin/*'; git fetch --depth=10
   git pull origin "${baseBranch}"
   git branch "${headBranch}" || true
   git checkout "${headBranch}"
@@ -197,6 +209,7 @@ createPr() {
   if [[ $(/usr/bin/gh version 2>/dev/null || true) ]] || [[ $(which gh 2>/dev/null || true) ]]; then
     gh repo set-default "$(git remote get-url origin)"
     # shellcheck disable=SC2086
+    # echo "### cPV.sh CREATING PR for baseBranch=$baseBranch .. headBranch=$headBranch ..."
     gh pr create --fill-verbose -t "feat: checkPluginVersion.sh bump plugins for $rootVer release" -B "${baseBranch}" -H "${headBranch}" ${DRYRUN} || true
     # if not running in a gitlab pipeline, open the PR in a browser 
     if [[ $GITLAB_PIPELINE != "true" ]]; then

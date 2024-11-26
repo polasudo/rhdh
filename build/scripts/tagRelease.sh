@@ -49,7 +49,7 @@ SOURCE_BRANCH=""
 
 CLEAN="false" #  if set true, delete existing folders and do fresh checkouts
 
-if [[ $# -lt 4 ]]; then
+usage() {
 	echo "
 To create or update existing branches:
   $0 -t PROD_VERSION --branchfrom SOURCE_GH_BRANCH -gh TARGET_GH_BRANCH -ghtoken GITHUB_TOKEN
@@ -78,6 +78,10 @@ Options:
     --skip-gl                 skip gitlab updates
     --skip-pd                 skip pkgs.devel updates
 "
+}
+
+if [[ $# -lt 4 ]]; then 
+	usage
 	exit 1
 fi
 
@@ -132,18 +136,21 @@ git config --global advice.detachedHead false
 createPr() {
   headBranch=$1
   baseBranch=$2
+  # in case we checked out from release-1.4 but need to base a PR against main
+  git config remote.origin.fetch '+refs/heads/*:refs/remotes/origin/*'; git fetch --depth=10
   git pull origin "${baseBranch}" 1>/dev/null 2>&1 || true
   git branch "${headBranch}" || true
   git checkout "${headBranch}" 1>/dev/null 2>&1
   git merge "${baseBranch}" 1>/dev/null 2>&1 || true
   # shellcheck disable=SC2086
   if [[ $(/usr/bin/gh version 2>/dev/null || true) ]] || [[ $(which gh 2>/dev/null || true) ]]; then
-    if [[ $(git diff HEAD~1 2>/dev/null || true) ]]; then
+    if [[ $(git diff --name-only HEAD~1 2>/dev/null || true) ]]; then
 		# if github
 		if [[ $(git remote -v | grep github || true) ]]; then
 			git push origin "${headBranch}" 1>/dev/null # ${FORCE_PUSH}
 			gh repo set-default "$(git remote get-url origin)"
 			# shellcheck disable=SC2086
+			# echo "### tR.sh CREATING PR for baseBranch=$baseBranch .. headBranch=$headBranch ..."
 			gh pr create --fill -B "${baseBranch}" -H "${headBranch}" ${DRYRUN} || true
 			# if not running in a gitlab pipeline, open the PR in a browser 
 			if [[ $GITLAB_PIPELINE != "true" ]]; then
@@ -202,8 +209,10 @@ getNextCSVZ() {
 newver="1.y.0"
 newverOp="0.y.0"
 getXYplusOneFromBranch() {
-	ver="$1"
-	if [[ $ver =~ ^([0-9]+)\.([0-9]+)\..* ]]; then # increase the y digit
+	ver="$1" # 1.y.x or release-1.y
+	ver=${ver/.x/}
+	ver=${ver/release-/}
+	if [[ $ver =~ ^([0-9]+)\.([0-9]+) ]]; then # increase the y digit
 		XX=${BASH_REMATCH[1]}
 		YY=${BASH_REMATCH[2]}
 		(( YY=YY+1 ))
@@ -238,9 +247,9 @@ function updatePluginVersions() {
 		popd >/dev/null || exit
 	fi
 
-	# TODO VERIFY THIS WORKS with 1.3 branch creation
+	# TODO VERIFY THIS WORKS with 1.4 branch creation
 	set -x
-	$CPV -s "$(pwd)" -b "${TARGET_BRANCH}" --pr-branch "tagRelease.sh_branch_${TARGET_BRANCH}" --push
+	$CPV -s "$(pwd)" -b "${TARGET_BRANCH}" --pr-branch "tagRelease.sh_create_branch_${TARGET_BRANCH}" --push
 	set +x
 
 	popd >/dev/null || exit 1
@@ -273,7 +282,7 @@ function updatePluginsRootVersion() {
 			COMMITMSG="${COMMITMSG} + regen yarn.lock"
 		fi
 		if [[ $(git diff || true ) ]]; then
-			git commit --no-gpg-sign -s -m "${COMMITMSG}" .
+			git commit --no-gpg-sign -s -m "${COMMITMSG}" package.json yarn.lock
 			git pull origin "${the_branch}" || true
 			# create pull request if target branch is restricted access
 			pr_branch="pr-bump-to-${the_version}-in-${the_branch}-$(date +%s)"
@@ -326,6 +335,7 @@ function updateShowcaseVersions() {
 
 # for operator, bump to specified version
 function updateOperatorVersions() {
+	# echo "[DEBUG] the_branch=$the_branch, the_version=$the_version, the_version_op=$the_version_op"
 	the_branch="$1"
 	the_version="$2"
 	the_version_op="$3"
@@ -340,15 +350,16 @@ function updateOperatorVersions() {
 
 	# update Makefile
 	sed -i Makefile -r -e "s/(VERSION \?= )[0-9.]+/\1$the_version_op/" # 0.3.0
-	# update bundle/manifests/backstage-operator.clusterserviceversion.yaml
-	sed -i bundle/manifests/backstage-operator.clusterserviceversion.yaml -r \
+	# update bundle/rhdh/manifests/backstage-operator.clusterserviceversion.yaml
+	sed -i bundle/rhdh/manifests/backstage-operator.clusterserviceversion.yaml -r \
 		-e "s/(skipRange: '>=0.0.1 <)[0-9.]+'/\1$the_version_op'/" \
 		-e "s/(name: backstage-operator.v)[0-9.]+/\1$the_version_op/" \
 		-e "s/(image: quay.io\/janus-idp\/operator:)[0-9.]+/\1$the_version_op/" \
 		-e "s/(^  version: )[0-9.]+/\1$the_version_op/" # 0.3.0
 	# update config/manager/kustomization.yaml
-	sed -i config/manager/kustomization.yaml -r \
+	for d in $(find . -name kustomization.yaml); do sed -i "$d" -r \
 		-e "s/(^  newTag:  )[0-9.]+/\1$the_version_op/" # 0.3.0
+	done
 	# update .rhdh/bundle/manifests/rhdh-operator.clusterserviceversion.yaml use both 1.4.0 and 1.4 (three times for image ref replacements: operator, operator, hub)
 	sed -i .rhdh/bundle/manifests/rhdh-operator.clusterserviceversion.yaml -r \
 		-e "s/(skipRange: '>=1.0.0 <)[0-9.]+'/\1$the_version'/" \
@@ -487,7 +498,7 @@ pushBranchAndOrTagGH () {
 				git remote set-url origin "https://${GITHUB_TOKEN}:x-oauth-basic@github.com/${orgAndRepo}"
 
 				git checkout --track "origin/${clone_branch}" -q 2>/dev/null || true
-				git pull -q 2>/dev/null
+				git pull -q 2>/dev/null || true 
 
 				#################################
 				## if doing a branching operation
@@ -509,7 +520,7 @@ pushBranchAndOrTagGH () {
 					if [[ $d == "janus-idp__backstage-showcase" ]] || [[ $d == "redhat-developer__red-hat-developer-hub" ]]; then
 						sed -i .rhdh/docker/Dockerfile -r -e "s|(.*SEGMENT_WRITE_KEY=).*|\1$SEGMENT_WRITE_KEY|g"
 						COMMITMSG="chore: switch SEGMENT_WRITE_KEY in $TARGET_BRANCH"
-						git commit --no-gpg-sign -s -m "${COMMITMSG}" .rhdh/docker/Dockerfile
+						git commit --no-gpg-sign -s -m "${COMMITMSG}" .rhdh/docker/Dockerfile || true # if no changes, continue
 					fi
 
 					if [[ $DO_PUSH -eq 1 ]]; then 
@@ -708,8 +719,8 @@ fi
 if [[ $SKIP_GH -eq 0 ]]; then
 	if [[ ${SOURCE_BRANCH} ]]; then
 		# check for changes and push a PR for each repo
-		# TODO do we need this for 1.4's janus plugins?
-		updatePluginVersions # requires manual commits to janus plugins repo / missing gpg key?
+		# still needed for 1.4's janus plugins
+		updatePluginVersions 
 		updateOperatorVersions "$SOURCE_BRANCH" "$newver" "$newverOp"
 		## CCS has requested that we not bump the version in main branch, as they prefer manual steps to automation.
 		## updateDocVersions "$SOURCE_BRANCH" "$newver"
@@ -722,6 +733,7 @@ fi
 # MIDSTREAM 
 # ############
 
+# echo "SKIPS: $SKIP_GL, $SKIP_PD; pkgs_devel_branch = $pkgs_devel_branch"
 # branch or tag GL repo(s)
 if [[ $SKIP_GL -eq 0 ]]; then
 	if [[ "${pkgs_devel_branch}" ]]; then
