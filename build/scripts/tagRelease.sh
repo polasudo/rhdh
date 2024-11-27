@@ -263,7 +263,7 @@ function updatePluginsRootVersion() {
 	# TODO move to backstage/community-plugins
 	orgAndRepo="janus-idp/backstage-plugins"
 	d="${orgAndRepo/\//__}"
-	rm -fr ""$TMPDIR"/projects_${d}_2" && git clone -q --depth 1 -b "${the_branch}" "https://github.com/${orgAndRepo}" ""$TMPDIR"/projects_${d}_2" || echo "Branch $clone_branch doesn't exist: skip!"
+	rm -fr ""$TMPDIR"/projects_${d}_2" && git clone -q --depth 1 -b "${the_branch}" "git@github.com:${orgAndRepo}" ""$TMPDIR"/projects_${d}_2" || echo "Branch $clone_branch doesn't exist: skip!"
 	pushd ""$TMPDIR"/projects_${d}_2" >/dev/null || exit 1
 
 	###############
@@ -300,7 +300,7 @@ function updateShowcaseVersions() {
 	# TODO move to red-hat-developer-hub
 	orgAndRepo="janus-idp/backstage-showcase"
 	d="${orgAndRepo/\//__}"
-	rm -fr ""$TMPDIR"/projects_${d}_2" && git clone -q --depth 1 -b "${the_branch}" "https://github.com/${orgAndRepo}" ""$TMPDIR"/projects_${d}_2" || echo "Branch $clone_branch doesn't exist: skip!"
+	rm -fr ""$TMPDIR"/projects_${d}_2" && git clone -q --depth 1 -b "${the_branch}" "git@github.com:${orgAndRepo}" ""$TMPDIR"/projects_${d}_2" || echo "Branch $clone_branch doesn't exist: skip!"
 	pushd ""$TMPDIR"/projects_${d}_2" >/dev/null || exit 1
 
 	################
@@ -341,7 +341,7 @@ function updateOperatorVersions() {
 	the_version_op="$3"
 	orgAndRepo="redhat-developer/rhdh-operator"
 	d="${orgAndRepo/\//__}"
-	rm -fr ""$TMPDIR"/projects_${d}_2" && git clone -q --depth 1 -b "${the_branch}" "https://github.com/${orgAndRepo}" ""$TMPDIR"/projects_${d}_2" || echo "Branch $clone_branch doesn't exist: skip!"
+	rm -fr ""$TMPDIR"/projects_${d}_2" && git clone -q --depth 1 -b "${the_branch}" "git@github.com:${orgAndRepo}" ""$TMPDIR"/projects_${d}_2" || echo "Branch $clone_branch doesn't exist: skip!"
 	pushd ""$TMPDIR"/projects_${d}_2" >/dev/null || exit 1
 
 	################
@@ -386,7 +386,7 @@ function updateDocVersions() {
 	the_version="$2"
 	orgAndRepo="redhat-developer/red-hat-developers-documentation-rhdh"
 	d="${orgAndRepo/\//__}"
-	rm -fr ""$TMPDIR"/projects_${d}_2" && git clone -q --depth 1 -b "${the_branch}" "https://github.com/${orgAndRepo}" ""$TMPDIR"/projects_${d}_2" || echo "Branch $clone_branch doesn't exist: skip!"
+	rm -fr ""$TMPDIR"/projects_${d}_2" && git clone -q --depth 1 -b "${the_branch}" "git@github.com:${orgAndRepo}" ""$TMPDIR"/projects_${d}_2" || echo "Branch $clone_branch doesn't exist: skip!"
 	pushd ""$TMPDIR"/projects_${d}_2" >/dev/null || exit 1
 
 	###############
@@ -421,7 +421,7 @@ function updateChartVersions(){
     # push path to repo onto the stack
     orgAndRepo="redhat-developer/rhdh-chart"
     d="${orgAndRepo/\//__}"
-	rm -fr ""$TMPDIR"/projects_${d}_2" && git clone -q --depth 1 -b "${the_branch}" "https://github.com/${orgAndRepo}" ""$TMPDIR"/projects_${d}_2" || echo "Branch $clone_branch doesn't exist: skip!"
+	rm -fr ""$TMPDIR"/projects_${d}_2" && git clone -q --depth 1 -b "${the_branch}" "git@github.com:${orgAndRepo}" ""$TMPDIR"/projects_${d}_2" || echo "Branch $clone_branch doesn't exist: skip!"
 	pushd ""$TMPDIR"/projects_${d}_2" >/dev/null || exit 1
 
 	files_to_bump="./charts/backstage/README.md ./charts/backstage/Chart.yaml"
@@ -469,7 +469,7 @@ pushBranchAndOrTagGH () {
 	orgAndRepo="$1"
 
 	# nothing to do if tag already exists
-	if [[ $CSV_VERSION ]] && [[ $(git ls-remote "https://github.com/$orgAndRepo" "refs/tags/$CSV_VERSION") ]] && [[ $DO_UPDATE -eq 0 ]]; then
+	if [[ $CSV_VERSION ]] && [[ $(git ls-remote "git@github.com:$orgAndRepo" "refs/tags/$CSV_VERSION") ]] && [[ $DO_UPDATE -eq 0 ]]; then
 		echo; echo "[WARN] https://github.com/$orgAndRepo/tree/$CSV_VERSION already exists."
 	else
 		d="${orgAndRepo/\//__}"
@@ -480,7 +480,7 @@ pushBranchAndOrTagGH () {
 			echo "== $orgAndRepo :: tag $CSV_VERSION from $TARGET_BRANCH =="
 		fi
 		# if source_branch defined and target branch doesn't exist yet, check out the source branch
-		if [[ ${SOURCE_BRANCH} ]] && [[ $(git ls-remote --heads "https://github.com/${orgAndRepo}" "${TARGET_BRANCH}") == "" ]]; then
+		if [[ ${SOURCE_BRANCH} ]] && [[ $(git ls-remote --heads "git@github.com:${orgAndRepo}" "${TARGET_BRANCH}") == "" ]]; then
 			clone_branch=${SOURCE_BRANCH}
 		else # if source branch not set (tagging operation) or target branch already exists
 			clone_branch=${TARGET_BRANCH}
@@ -488,7 +488,7 @@ pushBranchAndOrTagGH () {
 		# echo "[DEBUG] Using clone_branch=$clone_branch ..."
 		
 		if [[ ! -d ""$TMPDIR"/projects_${d}" ]]; then
-			git clone -q --depth 1 -b "${clone_branch}" "https://github.com/${orgAndRepo}" "projects_${d}" || echo "Branch $clone_branch doesn't exist: skip!"
+			git clone -q --depth 1 -b "${clone_branch}" "git@github.com:${orgAndRepo}" "projects_${d}" || echo "Branch $clone_branch doesn't exist: skip!"
 		fi
 		if [[ -d ""$TMPDIR"/projects_${d}" ]]; then
 			pushd ""$TMPDIR"/projects_${d}" >/dev/null || exit 1
