@@ -602,7 +602,7 @@ pushTagGL ()
 
 					# changes to apply to new midstream rhdh-1.yy-rhel-9 branch
 					if [[ $d == "rhdh" ]]; then # for rhidp/rhdh
-						sed -i upstream_repos.yml -r -e "s|- main|- ${DWNSTM_TARGET_BRANCH}|g"
+						sed -i upstream_repos.yml -r -e "s|- main|- ${TARGET_BRANCH}|g"
 						rm -f sync/*
 						COMMITMSG="chore: tagRelease.sh: use $DWNSTM_TARGET_BRANCH in upstream_repos.yml; trigger full build"
 						git commit --no-gpg-sign -s -m "${COMMITMSG}" sync/ upstream_repos.yml

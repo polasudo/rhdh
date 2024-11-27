@@ -3,6 +3,45 @@ Konflux expects to see pipelines for each application (y-stream) in its own bran
 * rhdh-1-rhel-9 is reserved for 1.y builds (CI only).
 * rhdh-1.y-rhel-9 branches can be released as GA builds.
 
+## Onboarding a new Application and components (once per quarter for each new 1.y release)
+
+. Update the Prodsec Definitions
+
+For example, see https://gitlab.cee.redhat.com/prodsec/product-definitions/-/merge_requests/3135/diffs
+
+Note that in future we can remove EOL values from the `active_ps_update_streams` list (eg., when adding 1.5 or after 1.4 is live, can drop 1.2)
+
+. Create a new RPA, Application and related Components here:
+
+https://gitlab.cee.redhat.com/releng/konflux-release-data/-/merge_requests/3265/diffs#05e38c9c2193b0d87f32f5800aecfd5f2cebe408
+
+Once merged your new application and components should appear here:
+
+* https://konflux.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/application-pipeline/workspaces/rhdh/applications/
+* https://konflux.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/application-pipeline/workspaces/rhdh/applications/rhdh-1-4
+
+TODO: add this into the tagRelease.sh script for 1.5
+
+To switch from a rhdh-1- build to a rhdh-1-y- build, apply the following transformations:
+
+```
+# rename from -1- to -1-y- (eg., -1-4-)
+y=4
+for d in *-1-p*; do git mv $d ${d/1-p/1-${y}-p}; done
+# replace strings
+for d in *1-${y}-p*; do echo $d; 
+    sed -i $d -r \
+        -e "s/-1-on/-1-${y}-on/g" \
+        -e "s/-1-p/-1-${y}-p/g" \
+        -e "s/rhdh-1$/rhdh-1-${y}/g" \
+        -e "s/rhdh-hub-1$/rhdh-hub-1-${y}/g" \
+        -e "s/rhdh-operator-1$/rhdh-operator-1-${y}/g" \
+        -e "s/rhdh-operator-bundle-1$/rhdh-operator-bundle-1-${y}/g"; \
+done
+```
+
+## FBCs
+
 For File-based catalogs (FBC), each FBC Component must be in its own Application, and one Application is needed per OpenShift version.
 
 See link:../build/scripts/renderCatalogs.sh[renderCatalogs.sh] to update the catalogs with new Containerfile metadata. 
