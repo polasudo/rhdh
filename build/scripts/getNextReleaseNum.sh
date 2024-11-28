@@ -73,7 +73,7 @@ for c in $CONTAINERS; do
     # set +x
     # echo "* [$latestQuay] ?? [$latestNVR]"
     # for first build on the new release stream
-    if [[ $latestQuay == "???" ]] || [[ $latestNVR == "" ]]; then 
+    if [[ $latestQuay == "???" ]]; then 
         latest=0
     else
         # if builds exist, increment
