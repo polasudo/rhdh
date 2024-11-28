@@ -897,10 +897,11 @@ if [[ $DO_BUILD -eq 1 ]]; then
   echo
 fi ## if DO_BUILD
 
-# compute x.y version from package.json
-DH_VERSION=$(yq -r '.version' distgit/containers/rhdh-hub/package.json) # 1.2.0
+# compute x.y version from package.json upstream
+# TODO RHIDP-1022 switch to rhdh repo instead of showcase
+DH_VERSION=$(curl -sSLko- https://raw.githubusercontent.com/janus-idp/backstage-showcase/refs/heads/main/package.json | yq -r '.version') # 1.5.0
 DH_VERSION=${DH_VERSION%.*} # 1.2
-echo "[INFO] Got DH_VERSION = $DH_VERSION from distgit/containers/rhdh-hub/package.json#.version"
+echo "[INFO] Got DH_VERSION = $DH_VERSION from https://raw.githubusercontent.com/janus-idp/backstage-showcase/refs/heads/main/package.json #.version"
 
 for d in distgit/containers/rhdh-hub distgit/containers/rhdh-operator distgit/containers/rhdh-operator-bundle; do
   echo "[INFO] Remove generated/ignored content; regen Dockerfiles from Dockerfile.in [$d] ..."
