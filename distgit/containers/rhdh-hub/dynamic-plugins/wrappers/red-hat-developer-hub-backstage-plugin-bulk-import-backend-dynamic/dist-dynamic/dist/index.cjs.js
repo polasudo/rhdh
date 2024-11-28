@@ -319,12 +319,14 @@ class CatalogHttpClient {
       pageNumber,
       pageSize
     );
-    const result = /* @__PURE__ */ new Set();
+    const result = /* @__PURE__ */ new Map();
     for (const l of byId.locations) {
-      result.add(l.target);
+      if (!result.has(l.target)) {
+        result.set(l.target, l);
+      }
     }
     return {
-      targetUrls: Array.from(result.values()),
+      uniqueCatalogUrlLocations: result,
       totalCount: byId.totalCount
     };
   }
@@ -362,7 +364,8 @@ class CatalogHttpClient {
     ).map((location) => {
       return {
         id: location.data?.id,
-        target: location.data.target
+        target: location.data.target,
+        source: "location"
       };
     });
     const filtered = catalogUtils$4.filterLocations(res, search);
@@ -376,7 +379,8 @@ class CatalogHttpClient {
       const target = location.getString("target");
       return {
         id: `app-config-location--${target}`,
-        target
+        target,
+        source: "config"
       };
     });
     const filtered = catalogUtils$4.filterLocations(res, search);
@@ -404,7 +408,8 @@ class CatalogHttpClient {
     ).map((location) => {
       return {
         id: location.metadata.uid,
-        target: location.spec.target
+        target: location.spec.target,
+        source: "integration"
       };
     });
     const filtered = catalogUtils$4.filterLocations(res, search);
@@ -914,7 +919,7 @@ const OPENAPI = `
                     {
                       "type": "array",
                       "items": {
-                        "$ref": "#/components/schemas/Import"
+                        "$ref": "#/components/schemas/SourceImport"
                       }
                     },
                     {
@@ -1345,7 +1350,7 @@ const OPENAPI = `
           "imports": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/Import"
+              "$ref": "#/components/schemas/SourceImport"
             }
           },
           "errors": {
@@ -1427,6 +1432,33 @@ const OPENAPI = `
             }
           }
         }
+      },
+      "SourceImport": {
+        "title": "Import Job with source it originates from",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Import"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "source": {
+                "$ref": "#/components/schemas/Source"
+              }
+            }
+          }
+        ]
+      },
+      "Source": {
+        "type": "string",
+        "nullable": true,
+        "description": "Import Source:\\n  * 'config' - Import from static catalog location configuration in 'app-config'\\n  * 'location' - Import of user registered entities using locations endpoint\\n  * 'integration' - Import using a GitHub integration\\n  * null - Import source is unknown\\n",
+        "enum": [
+          "config",
+          "location",
+          "integration",
+          null
+        ]
       },
       "ImportRequest": {
         "title": "Import Job request",
@@ -3796,27 +3828,29 @@ async function findAllImports(deps, requestHeaders, queryParams) {
     search,
     pageNumber,
     pageSize
-  )).targetUrls;
+  )).uniqueCatalogUrlLocations;
   const defaultBranchByRepoUrl = await resolveReposDefaultBranches(
     deps.logger,
     deps.githubApiService,
-    allLocations,
+    allLocations.keys(),
     catalogFilename
   );
   const importCandidates = findImportCandidates(
-    allLocations,
+    allLocations.keys(),
     defaultBranchByRepoUrl,
     catalogFilename
   );
   const importsReachableFromGHIntegrations = await deps.githubApiService.filterLocationsAccessibleFromIntegrations(
     importCandidates
   );
+  const repoUrlToLocation = /* @__PURE__ */ new Map();
   const importStatusPromises = [];
   for (const loc of importsReachableFromGHIntegrations) {
     const repoUrl = repoUrlFromLocation(loc);
     if (!repoUrl) {
       continue;
     }
+    repoUrlToLocation.set(repoUrl, loc);
     importStatusPromises.push(
       findImportStatusByRepo(
         deps,
@@ -3827,7 +3861,14 @@ async function findAllImports(deps, requestHeaders, queryParams) {
     );
   }
   const result = await Promise.all(importStatusPromises);
-  const imports = result.filter((res) => res.responseBody).map((res) => res.responseBody);
+  const imports = result.filter((res) => res.responseBody).map((res) => res.responseBody).map((res) => {
+    const key = res?.repository?.url;
+    const location = key ? repoUrlToLocation.get(key) : void 0;
+    return {
+      ...res,
+      source: location ? allLocations.get(location)?.source : void 0
+    };
+  });
   sortImports(imports);
   const paginated = pagination.paginateArray(imports, pageNumber, pageSize);
   if (apiVersion === "v1") {
@@ -4201,7 +4242,7 @@ async function findImportStatusByRepo(deps, repoUrl, defaultBranch, includeCatal
       }
     );
     if (!openImportPr.prUrl) {
-      const catalogLocations = (await deps.catalogHttpClient.listCatalogUrlLocations()).targetUrls;
+      const catalogLocations = (await deps.catalogHttpClient.listCatalogUrlLocations()).uniqueCatalogUrlLocations.keys();
       const catalogUrl = catalogUtils$1.getCatalogUrl(deps.config, repoUrl, defaultBranch);
       let exists = false;
       for (const loc of catalogLocations) {
@@ -4498,7 +4539,7 @@ async function formatResponse(deps, allReposAccessible, checkStatus) {
   }
   let catalogLocations = [];
   if (checkStatus) {
-    catalogLocations = (await deps.catalogHttpClient.listCatalogUrlLocations()).targetUrls;
+    catalogLocations = (await deps.catalogHttpClient.listCatalogUrlLocations()).uniqueCatalogUrlLocations.keys();
   }
   const repoList = [];
   for (const repo of allReposAccessible.repositories) {
