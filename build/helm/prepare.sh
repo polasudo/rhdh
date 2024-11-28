@@ -12,6 +12,8 @@ DO_LATEST=0 # if we want to generate a chart for the :latest, we need to set a -
 DEBUG=0
 QUIET="-q"
 
+EXCLUDES="next|latest|candidate|guest|containers|-source|-pr-|-tmp-|-ci-|-gh-|sha256-|on-push|build-container"
+
 # TODO switch to jq wrapper version of yq (not mikefarah)
 mikefarahyq_version="4.35.2"
 helmdocs_version="v1.11.3"
@@ -89,7 +91,7 @@ while [[ "$#" -gt 0 ]]; do
     '--latest') DO_LATEST=1;;
     '--next')
         next_tag=$(skopeo inspect docker://quay.io/rhdh/rhdh-hub-rhel9:next | jq -r '.RepoTags[]' | \
-            grep -v -E "next|latest|sha256|on-pr-|on-push|build-container" | grep -- "-" | sort -uV | tail -1 || true)
+            grep -v -E "$EXCLUDES" | grep -- "-" | sort -uV | tail -1 || true)
         RHDH_DIGEST=$(skopeo inspect docker://quay.io/rhdh/rhdh-hub-rhel9:"${next_tag}" | jq -r '.Digest')
         CHART_VERSION=${next_tag}-CI
         RHDH_VERSION=${next_tag}
@@ -122,7 +124,7 @@ if [[ $DO_LATEST -eq 1 ]]; then
     CHART_FILTER="${CHART_BRANCH/.x/-}" # for up to 1.2.x
     CHART_FILTER="${CHART_FILTER/release-}" # for 1.3+
     next_tag=$(skopeo inspect docker://quay.io/rhdh/rhdh-hub-rhel9:next | jq -r '.RepoTags[]' | \
-        grep -v -E "next|latest|candidate|guest|containers|-source|-pr-|-tmp-|-ci-|-gh-|sha256-" | \
+        grep -v -E "$EXCLUDES" | \
         grep -- "-" | grep "${CHART_FILTER}" | sort -uV  | tail -1 || true)
     RHDH_DIGEST=$(skopeo inspect docker://quay.io/rhdh/rhdh-hub-rhel9:"${next_tag}" | jq -r '.Digest')
     CHART_VERSION=${next_tag}-CI
