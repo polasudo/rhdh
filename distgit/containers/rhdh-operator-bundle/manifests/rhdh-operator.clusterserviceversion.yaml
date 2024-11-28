@@ -37,8 +37,8 @@ metadata:
     capabilities: Seamless Upgrades
     categories: Developer Tools
     certified: 'true'
-    containerImage: registry.redhat.io/rhdh/rhdh-rhel9-operator:1.4-110@sha256:3dd04165d3351f76ffb56764ad4e6550862361bb1b1008a9a4ff90e358d2ea70
-    createdAt: "2024-11-26T17:27:27Z"
+    containerImage: registry.redhat.io/rhdh/rhdh-rhel9-operator:1.4-113@sha256:7c24b2a59c16fc05669a15b14a3881df5f7f40f1753fbe590cb012c3635b14b4
+    createdAt: "2024-11-28T14:37:49Z"
     description: Red Hat Developer Hub is a Red Hat supported version of Backstage.
       It comes with pre-built plug-ins and configuration settings, supports use of
       an external database, and can help streamline the process of setting up a self-managed
@@ -59,11 +59,11 @@ metadata:
     operators.operatorframework.io/builder: operator-sdk-v1.37.0
     operators.operatorframework.io/project_layout: go.kubebuilder.io/v4
     repository: https://gitlab.cee.redhat.com/rhidp/rhdh/
-    skipRange: '>=1.0.0 <1.4.0'
+    skipRange: '>=1.0.0 <1.5.0'
     support: Red Hat
   labels:
     operatorframework.io/arch.amd64: supported
-  name: rhdh-operator.v1.4.0
+  name: rhdh-operator.v1.5.0
   namespace: placeholder
 spec:
   apiservicedefinitions: {}
@@ -100,7 +100,7 @@ spec:
 
     ## Telemetry data collection
 
-    The telemetry data collection feature is enabled by default. Red Hat Developer Hub sends telemetry data to Red Hat by using the `backstage-plugin-analytics-provider-segment` plugin. To disable this and to learn what data is being collected, see [Red Hat Developer Hub documentation on telemetry data collection](https://access.redhat.com/documentation/en-us/red_hat_developer_hub/1.4/html-single/administration_guide_for_red_hat_developer_hub/index#assembly-rhdh-telemetry_admin-rhdh).
+    The telemetry data collection feature is enabled by default. Red Hat Developer Hub sends telemetry data to Red Hat by using the `backstage-plugin-analytics-provider-segment` plugin. To disable this and to learn what data is being collected, see [Red Hat Developer Hub documentation on telemetry data collection](https://access.redhat.com/documentation/en-us/red_hat_developer_hub/1.5/html-single/administration_guide_for_red_hat_developer_hub/index#assembly-rhdh-telemetry_admin-rhdh).
 
     ## More Information
 
@@ -259,8 +259,8 @@ spec:
                 - name: RELATED_IMAGE_postgresql
                   value: registry.redhat.io/rhel9/postgresql-15:1-1732617819@sha256:3af76434fdc39c47fe2849ab6c1a1e1f54673f4bcd8c1e82568cb596bd3b4a2c
                 - name: RELATED_IMAGE_backstage
-                  value: registry.redhat.io/rhdh/rhdh-hub-rhel9:1.4-105@sha256:3d7462a76b1ce3e3e57414667b023d3439b6c2e1eebf3f1c49b7e4d9221410fb
-                image: registry.redhat.io/rhdh/rhdh-rhel9-operator:1.4-110@sha256:3dd04165d3351f76ffb56764ad4e6550862361bb1b1008a9a4ff90e358d2ea70
+                  value: registry.redhat.io/rhdh/rhdh-hub-rhel9:1.4-108@sha256:20ba8041426973ce04568dfdf219d9590ce317f37379f2a43f61e078562cea05
+                image: registry.redhat.io/rhdh/rhdh-rhel9-operator:1.4-113@sha256:7c24b2a59c16fc05669a15b14a3881df5f7f40f1753fbe590cb012c3635b14b4
                 livenessProbe:
                   httpGet:
                     path: /healthz
@@ -368,4 +368,4 @@ spec:
     name: Red Hat Inc.
     url: https://www.redhat.com/
   replaces: rhdh-operator.v1.3.1
-  version: 1.4.0
+  version: 1.5.0

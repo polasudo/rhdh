@@ -71,9 +71,15 @@ for c in $CONTAINERS; do
         latestNVR=$("${SCRIPTPATH}"/getLatestImageTags.sh -b "${MIDSTM_BRANCH}" -c "$c" --nvr 2>&1                   | sed -r -e "s|.+container-([0-9.]+)-([0-9]+)|\2|")
     fi
     # set +x
-    # echo "* $latestQuay ?? $latestNVR"
-    latest=$(echo -e "$latestQuay\n$latestNVR" | sort -rV | head -n1) # greater of the two
-    # increment to the next available value
-    (( latest = latest+1 ))
+    # echo "* [$latestQuay] ?? [$latestNVR]"
+    # for first build on the new release stream
+    if [[ $latestQuay == "???" ]] || [[ $latestNVR == "" ]]; then 
+        latest=0
+    else
+        # if builds exist, increment
+        latest=$(echo -e "$latestQuay\n$latestNVR" | sort -rV | head -n1) # greater of the two
+        # increment to the next available value
+        (( latest = latest+1 ))
+    fi
     echo "$latest"
 done

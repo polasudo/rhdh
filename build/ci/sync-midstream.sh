@@ -953,6 +953,7 @@ for d in distgit/containers/rhdh-hub distgit/containers/rhdh-operator distgit/co
     sed -r -i '/release=".+"/d' Dockerfile
     # set release value in Containerfile (Konflux does not do this)
     nextReleaseNum=000
+    set -x
     # NOTE: to also check for latest NVRs in Brew, use getNextReleaseNum.sh --check-nvr
     if [[ $d == "distgit/containers/rhdh-hub" ]]; then
       image=rhdh/rhdh-hub-rhel9
@@ -964,6 +965,8 @@ for d in distgit/containers/rhdh-hub distgit/containers/rhdh-operator distgit/co
       image="rhdh/rhdh-operator-bundle"
       nextReleaseNum=$("${ROOTPATH}"/build/scripts/getNextReleaseNum.sh -b "${DWNSTM_BRANCH}" --tag "${DH_VERSION}" -c "$image" -q)
     fi
+    # when bootstrapping the first builds for a new 1.yy stream, use just 1.yy-1
+    if [[ $nextReleaseNum -eq 0 ]]; then nextReleaseNum=1; fi
     echo "Set image version and release: $image:$DH_VERSION-$nextReleaseNum"
     sed -r -e 's|\$\{RELEASE_NUMBER\}|'"$nextReleaseNum"'|' -i Containerfile
     ##################################### set NVR values for Konflux #####################################
