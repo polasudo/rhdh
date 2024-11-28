@@ -362,6 +362,9 @@ function updateOperatorVersions() {
 	done
 	# update .rhdh/bundle/manifests/rhdh-operator.clusterserviceversion.yaml use both 1.4.0 and 1.4 (three times for image ref replacements: operator, operator, hub)
 	sed -i .rhdh/bundle/manifests/rhdh-operator.clusterserviceversion.yaml -r \
+		` # update the tags in the CSV to the latest 1.y version` \
+		-e "s|(/rhdh/rhdh-.+:)([0-9.]+)|\1${the_version%.*}|g" \
+		` # update refs to the latest x.y.z version` \
 		-e "s/(skipRange: '>=1.0.0 <)[0-9.]+'/\1$the_version'/" \
 		-e "s/(name: rhdh-operator.v)[0-9.]+/\1$the_version/" \
 		-e "s/(^  version: )[0-9.]+/\1$the_version/" \
