@@ -209,7 +209,8 @@ checkImage () {
         container=${imageOnly}:${image_version}-${image_release}
         digest="$(skopeo inspect "docker://${container}" 2>/dev/null | jq -r '.Digest' 2>/dev/null )"
         if [[ $digest ]]; then
-          container="${container}@$digest"
+          container="${container%:*}@$digest"
+          if [[ $QUIET -eq 0 ]]; then echo "Got $container for ${imageOnly}:${image_version}-${image_release}"; else echo "       * $container (${imageOnly}:${image_version}-${image_release})"; fi
         else
           # try previous image
           # shellcheck disable=SC2086
@@ -218,17 +219,18 @@ checkImage () {
           container=${imageOnly}:${image_version}-${image_release}
           digest="$(skopeo inspect "docker://${container}" 2>/dev/null | jq -r '.Digest' 2>/dev/null )"
           if [[ $digest ]]; then
-            container="${container}@$digest"
+            container="${container%:*}@$digest"
+            if [[ $QUIET -eq 0 ]]; then echo "Got $container for ${imageOnly}:${image_version}-${image_release}"; else echo "       * $container (${imageOnly}:${image_version}-${image_release})"; fi
           else
             # no digest, so just use :tag
             container=${imageOnly}:${image_version}
             digest="$(skopeo inspect "docker://${container}" 2>/dev/null | jq -r '.Digest' 2>/dev/null )"
             if [[ $digest ]]; then
-              container="${container}@$digest"
+              container="${container%:*}@$digest"
             fi
+            if [[ $QUIET -eq 0 ]]; then echo "Got $container for ${imageOnly}:${image_version}"; else echo "       * $container (${imageOnly}:${image_version})"; fi
           fi
         fi
-        if [[ $QUIET -eq 0 ]]; then echo "Got $container"; else echo "       * $container"; fi
         checkImage_result="$container"
     else
         if [[ ${imageAndSHA} == "quay.io/"* ]];then 
