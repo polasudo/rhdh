@@ -969,6 +969,7 @@ for d in distgit/containers/rhdh-hub distgit/containers/rhdh-operator distgit/co
     if [[ $nextReleaseNum -eq 0 ]]; then nextReleaseNum=1; fi
     echo "Set image version and release: $image:$DH_VERSION-$nextReleaseNum"
     sed -r -e 's|\$\{RELEASE_NUMBER\}|'"$nextReleaseNum"'|' -i Containerfile
+    set +x
     ##################################### set NVR values for Konflux #####################################
 
     ##################################### rhdh-operator-bundle #####################################
