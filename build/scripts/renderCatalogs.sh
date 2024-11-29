@@ -50,7 +50,7 @@ Options:
   -h, --help             show this help
 
 Examples:
-    $0 -v 1.4.0 --next
+    $0 -v 1.5.0 --next
 
 EOF
 exit
@@ -76,17 +76,12 @@ while [[ "$#" -gt 0 ]]; do
   shift 1
 done
 
-PROD_VERSION=${PROD_FULL_VERSION%.*} # x.y
-if [[ $PROD_FULL_VERSION =~ ^([0-9]+)\.([0-9]+)\.([0-9]+) ]]; then
-  XX=${BASH_REMATCH[1]}
-  YY=${BASH_REMATCH[2]}; (( YY = YY - 1 ))
-fi
-PROD_PREV_VERSION="${XX}.${YY}.0"
-
 # check if $1 is greater than or equal to $2
 vergte() {
     [  "$1" = "$(echo -e "$1\n$2" | sort -Vr | head -n1)" ]
 }
+
+PROD_VERSION=${PROD_FULL_VERSION%.*} # x.y
 
 for v in $VERSIONS; do
   # extract content from the public registry
@@ -99,10 +94,13 @@ for v in $VERSIONS; do
   # create template from the existing content
   opm alpha convert-template basic "./v${v}-catalog-migrate/${prod_path}/catalog.json" > "catalogs/v${v}/catalog-template.json"
 
+  # eg., for 1.4.0 want to replace 1.3.1 (last released item on the fast channel)
+  PROD_PREV_VERSION=$(jq -r '.entries[]|select(.name=="fast")|.entries|last|.name' "catalogs/v${v}/catalog-template.json")
+
   NEW_ENTRY='[
         {
             "name": "'"${operator_name}"'.v'"${PROD_FULL_VERSION}"'",
-            "replaces": "'"${operator_name}"'.v'"${PROD_PREV_VERSION}"'",
+            "replaces": "'"${PROD_PREV_VERSION}"'",
             "skipRange": "\u003c'"${PROD_FULL_VERSION}"'"
         }
     ]'
