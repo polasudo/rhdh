@@ -38,7 +38,11 @@ ICON_LOGO="data:image/svg+xml;base64,PHN2ZyBpZD0iTGF5ZXJfMSIgZGF0YS1uYW1lPSJMYXl
 # NAMESPACE="@redhat"
 # tag/version in downstream repo to update
 DWNSTM_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "rhdh-1-rhel-9")
-if [[ ${DWNSTM_BRANCH} != "rhdh-"*"-rhel-"* ]]; then DWNSTM_BRANCH="rhdh-1-rhel-9"; fi
+latestNextExample="--latest"
+if [[ ${DWNSTM_BRANCH} != "rhdh-"*"-rhel-"* ]]; then 
+  latestNextExample="--next"
+  DWNSTM_BRANCH="rhdh-1-rhel-9"
+fi
 
 # upstream repos to fetch
 UPSTREAM_FILE="${ROOTPATH}/upstream_repos.yml"
@@ -69,7 +73,7 @@ Options:
 
 Examples:
 
-    $0 --nobuild --nopush --force --next -b ${DWNSTM_BRANCH} 
+    $0 --nobuild --nopush --force ${latestNextExample} -b ${DWNSTM_BRANCH} 
     $0 -y
 "
   exit 1
