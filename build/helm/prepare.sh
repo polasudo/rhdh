@@ -5,7 +5,7 @@ CHART_VERSION="" # Developer Hub version (used as 'appVersion' in Chart.yaml and
 CATALOG_FORK="https://rhdh-bot:${GITHUB_TOKEN}@github.com/rhdh-bot/openshift-helm-charts.git" # Fork of "git@github.com:openshift-helm-charts/charts.git where you can push to
 PUBLISH=0 # Set to True to push to CATALOG_FORK
 CREATE_REPORT=0 # Set to True if you want to run https://github.com/redhat-certification/chart-verifier and create a report
-CHART_BRANCH="main" # can also be 1.2.x, release-1.3, etc.
+CHART_BRANCH="main" # can also be 1.2.x, release-1.4, etc.
 EXTRA_BRANCH="" # another branch to force push, eg., rhdh-1.2-rhel-9
 DELETE_OLD_BRANCHES=0 # set to 1 to purge old 1.2-zzz branches from the rhdh-bot repo when pushing a 1.2.z release to the openshift charts repo
 DO_LATEST=0 # if we want to generate a chart for the :latest, we need to set a --chart-branch 
@@ -22,7 +22,7 @@ set -e
 
 usage ()
 {
-    echo "Usage: $0 --chart-version x.y.z --rhdh-version x.y-zzz --chart-branch release-1.3 [--catalog <git-url>] [--debug] [--publish]
+    echo "Usage: $0 --chart-version x.y.z --rhdh-version x.y-zzz --chart-branch release-1.4 [--catalog <git-url>] [--debug] [--publish]
 
 NOTE: This must be run using the GITHUB_TOKEN of rhdh-bot@redhat.com in order to push to that user's fork.
 
@@ -38,7 +38,7 @@ Options:
                               git@github.com:openshift-helm-charts/charts.git with write access
     --chart-version           Chart release version (used as 'version' in Chart.yaml)
     --rhdh-version            Developer Hub version (used as 'appVersion' in Chart.yaml and as image tag)
-    --chart-branch            branch of rhdh-charts to use as input, for example 1.2.x or release-1.3; default: main
+    --chart-branch            branch of rhdh-charts to use as input, for example 1.2.x or release-1.4; default: main
     --delete-old-branches     Optionally, purge old 1.2-zzz branches from the rhdh-bot repo when pushing a 1.2.z release to the openshift charts repo
                               DO NOT USE if releasing .z chart updates for CVE fixes pushed by Freshmaker
     --debug                   Enable logging
@@ -63,7 +63,7 @@ Examples:
 
      # Or, log into the quay.io and registry.redhat.io to be able to pull container metadata, then compute the latest 1.2-zz or next 1.3-zzz tag
     $ export GITHUB_TOKEN=ghp_rhdh-bot-token-here
-    $ $0 --latest --chart-branch release-1.3 --publish --extra-branch rhdh-1.3-rhel-9
+    $ $0 --latest --chart-branch release-1.4 --publish --extra-branch rhdh-1.4-rhel-9
     $ $0 --next   --chart-branch main        --publish --extra-branch rhdh-1-rhel-9
     Chart version:        1.4-zzz-CI
     Developer Hub image:  quay.io/rhdh/rhdh-hub-rhel9:1.4-zzz
@@ -75,8 +75,8 @@ Examples:
     # 2. Run a manual release as the bot:
     $ export GITHUB_TOKEN=ghp_rhdh-bot-token-here
     $ $0 --chart-version 1.4.0 --rhdh-version 1.4-zzz      --chart-branch release-1.4 --catalog git@github.com:rhdh-bot/openshift-helm-charts.git --publish
-    $ $0 --chart-version 1.3.1 --rhdh-version 1.3-zzz      --chart-branch release-1.3 --catalog git@github.com:rhdh-bot/openshift-helm-charts.git --publish
-    $ $0 --chart-version 1.2.5 --rhdh-version 1.2-154      --chart-branch 1.2.x --catalog git@github.com:rhdh-bot/openshift-helm-charts.git --publish
+    $ $0 --chart-version 1.3.2 --rhdh-version 1.3-zzz      --chart-branch release-1.3 --catalog git@github.com:rhdh-bot/openshift-helm-charts.git --publish
+    $ $0 --chart-version 1.2.6 --rhdh-version 1.2-zzz      --chart-branch 1.2.x --catalog git@github.com:rhdh-bot/openshift-helm-charts.git --publish
     Chart version:       1.y.z
     Developer Hub image:  quay.io/rhdh/rhdh-hub-rhel9:1.y-zzz
 
