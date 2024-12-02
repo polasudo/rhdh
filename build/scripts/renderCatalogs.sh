@@ -20,6 +20,18 @@ maintainers="RHDH Team <rhdh-bot@redhat.com>"
 
 VERSIONS="4.14 4.15 4.16 4.17 4.18"
 
+DWNSTM_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "rhdh-1-rhel-9")
+latestNextExample=""
+if [[ ${DWNSTM_BRANCH} == "rhdh-"*"-rhel-"* ]]; then 
+  if [[ $DWNSTM_BRANCH == "rhdh-1-rhel-9" ]]; then
+    latestNextExample="--next"
+  else
+    latestNextExample="--latest"
+  fi
+fi
+
+DO_COMMIT=1 # by default, commit change
+DO_PUSH=1   # push the commit
 CLEAN=0
 latestNext=""
 
@@ -45,12 +57,14 @@ Options:
 
   --versions             space-separated list of OCP versions to render;               
                          default: $VERSIONS
-
+  
+  --nocommit             do not commit or push local changes
+  --nopush               do not push local changes
   --clean                if catalog render folder exists on disk, delete and create a new one; also delete when done
   -h, --help             show this help
 
 Examples:
-    $0 -v 1.5.0 --next
+    $0 $latestNextExample --clean -v 1.y.0
 
 EOF
 exit
@@ -70,6 +84,8 @@ while [[ "$#" -gt 0 ]]; do
     '--maintainers') maintainers="$2"; shift 1;; 
     '--versions') VERSIONS="$2"; shift 1;;
     '--clean') CLEAN=1;;
+    '--nocommit') DO_COMMIT=0; DO_PUSH=0;;
+    '--nopush')   DO_PUSH=0;;
     '-h'|'--help') usage;;
     *) echo "Unknown parameter used: $1."; usage;;
   esac
@@ -139,7 +155,6 @@ for v in $VERSIONS; do
 
   # render catalog content from the template
   rm -f "catalogs/v${v}/configs/${prod_path}/catalog.json"
-
   # for 4.17+, migrate bundles' "olm.bundle.object" to "olm.csv.metadata"
   vergte "$v" "4.17" && migrateLevel="--migrate-level=bundle-object-to-csv-metadata" || migrateLevel=""
   set -x
@@ -199,5 +214,16 @@ EOF
     rm -fr "./v${v}-catalog-migrate"
   fi
 
+  if [[ $DO_COMMIT -eq 1 ]]; then
+    echo "[INFO] Commit changes to catalogs/v${v}/"
+    git add -f "catalogs/v${v}/" || true
+    git commit -s -m "chore: renderCatalogs.sh: catalogs/v${v}/" "catalogs/v${v}/" || true
+  fi
+  if [[ ${DO_PUSH} -eq 1 ]]; then
+    git pull origin "${DWNSTM_BRANCH}"
+    set -x
+    git push origin "${DWNSTM_BRANCH}"
+    set +x
+  fi 
 done
 
