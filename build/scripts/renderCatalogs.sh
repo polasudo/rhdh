@@ -64,7 +64,7 @@ Options:
   -h, --help             show this help
 
 Examples:
-    $0 $latestNextExample --clean -v 1.y.0
+    for v in $VERSIONS; do $0 $latestNextExample --clean -v 1.y.0 --versions \$v; echo 'Sleep 1 min to avoid Konflux tag collisions'; sleep 60s; echo; done
 
 EOF
 exit
