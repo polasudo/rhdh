@@ -38,10 +38,13 @@ ICON_LOGO="data:image/svg+xml;base64,PHN2ZyBpZD0iTGF5ZXJfMSIgZGF0YS1uYW1lPSJMYXl
 # NAMESPACE="@redhat"
 # tag/version in downstream repo to update
 DWNSTM_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "rhdh-1-rhel-9")
-latestNextExample="--latest"
-if [[ ${DWNSTM_BRANCH} != "rhdh-"*"-rhel-"* ]]; then 
-  latestNextExample="--next"
-  DWNSTM_BRANCH="rhdh-1-rhel-9"
+latestNextExample=""
+if [[ ${DWNSTM_BRANCH} == "rhdh-"*"-rhel-"* ]]; then 
+  if [[ $DWNSTM_BRANCH == "rhdh-1-rhel-9" ]]; then
+    latestNextExample="--next"
+  else
+    latestNextExample="--latest"
+  fi
 fi
 
 # upstream repos to fetch
