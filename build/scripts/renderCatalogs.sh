@@ -139,7 +139,13 @@ for v in $VERSIONS; do
 
   # render catalog content from the template
   rm -f "catalogs/v${v}/configs/${prod_path}/catalog.json"
-  opm alpha render-template basic "catalogs/v${v}/catalog-template.json" > "catalogs/v${v}/configs/${prod_path}/catalog.json"
+
+  # for 4.17+, migrate bundles' "olm.bundle.object" to "olm.csv.metadata"
+  vergte "$v" "4.17" && migrateLevel="--migrate-level=bundle-object-to-csv-metadata" || migrateLevel=""
+  set -x
+  # shellcheck disable=SC2086
+  opm alpha render-template basic "catalogs/v${v}/catalog-template.json" $migrateLevel > "catalogs/v${v}/configs/${prod_path}/catalog.json"
+  set +x
 
   # for 4.15+, use the rhel9 image
   vergte "$v" "4.15" && registry="registry-rhel9:v${v}" || registry="registry:v${v}"
