@@ -1,6 +1,6 @@
 {
   "name": "@backstage/plugin-notifications-node",
-  "version": "0.2.8+embedded",
+  "version": "0.2.9+embedded",
   "description": "Node.js library for the notifications plugin",
   "backstage": {
     "role": "node-library",
@@ -37,19 +37,25 @@
     "test": "backstage-cli package test"
   },
   "dependencies": {
-    "@backstage/plugin-notifications-common": "^0.0.5",
-    "@backstage/plugin-signals-node": "^0.1.13",
+    "@backstage/plugin-notifications-common": "^0.0.6",
+    "@backstage/plugin-signals-node": "^0.1.14",
     "knex": "^3.0.0",
     "node-fetch": "^2.7.0",
-    "uuid": "^9.0.0"
+    "uuid": "^11.0.0"
   },
   "devDependencies": {},
+  "typesVersions": {
+    "*": {
+      "index": [
+        "dist/index.d.ts"
+      ]
+    }
+  },
   "private": true,
   "peerDependencies": {
-    "@backstage/backend-common": "^0.25.0",
-    "@backstage/backend-plugin-api": "^1.0.1",
-    "@backstage/catalog-client": "^1.7.1",
-    "@backstage/catalog-model": "^1.7.0"
+    "@backstage/backend-plugin-api": "^1.0.2",
+    "@backstage/catalog-client": "^1.8.0",
+    "@backstage/catalog-model": "^1.7.1"
   },
   "overrides": {
     "@aws-sdk/util-utf8-browser": {

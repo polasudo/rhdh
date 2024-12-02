@@ -102,6 +102,18 @@ type NotificationProcessorFilters = {
     maxSeverity?: NotificationSeverity;
     excludedTopics?: string[];
 };
+/**
+ * @public
+ */
+type NotificationSettings = {
+    channels: {
+        id: string;
+        origins: {
+            id: string;
+            enabled: boolean;
+        }[];
+    }[];
+};
 
 /** Ordered list of severities used by the Notifications.
  *
@@ -111,4 +123,7 @@ declare const notificationSeverities: NotificationSeverity[];
 /** @public */
 declare const getProcessorFiltersFromConfig: (config: Config) => NotificationProcessorFilters;
 
-export { type NewNotificationSignal, type Notification, type NotificationPayload, type NotificationProcessorFilters, type NotificationReadSignal, type NotificationSeverity, type NotificationSignal, type NotificationStatus, getProcessorFiltersFromConfig, notificationSeverities };
+/** @public */
+declare const isNotificationsEnabledFor: (settings: NotificationSettings, channelId: string, originId: string) => boolean;
+
+export { type NewNotificationSignal, type Notification, type NotificationPayload, type NotificationProcessorFilters, type NotificationReadSignal, type NotificationSettings, type NotificationSeverity, type NotificationSignal, type NotificationStatus, getProcessorFiltersFromConfig, isNotificationsEnabledFor, notificationSeverities };

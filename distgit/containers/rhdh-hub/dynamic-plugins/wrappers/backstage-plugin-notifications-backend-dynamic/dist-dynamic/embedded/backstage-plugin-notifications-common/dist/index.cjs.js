@@ -1,40 +1,12 @@
 'use strict';
 
-const notificationSeverities = [
-  "critical",
-  "high",
-  "normal",
-  "low"
-];
+var constants = require('./constants.cjs.js');
+var filters = require('./filters.cjs.js');
+var utils = require('./utils.cjs.js');
 
-const getProcessorFiltersFromConfig = (config) => {
-  const filter = {};
-  const minSeverity = config.getOptionalString(
-    "filter.minSeverity"
-  );
-  if (minSeverity) {
-    if (notificationSeverities.includes(minSeverity)) {
-      filter.minSeverity = minSeverity;
-    } else {
-      throw new Error(`Invalid minSeverity: ${minSeverity}`);
-    }
-  }
-  const maxSeverity = config.getOptionalString(
-    "filter.maxSeverity"
-  );
-  if (maxSeverity) {
-    if (notificationSeverities.includes(maxSeverity)) {
-      filter.maxSeverity = maxSeverity;
-    } else {
-      throw new Error(`Invalid maxSeverity: ${maxSeverity}`);
-    }
-  }
-  filter.excludedTopics = config.getOptionalStringArray(
-    "filter.excludedTopics"
-  );
-  return filter;
-};
 
-exports.getProcessorFiltersFromConfig = getProcessorFiltersFromConfig;
-exports.notificationSeverities = notificationSeverities;
+
+exports.notificationSeverities = constants.notificationSeverities;
+exports.getProcessorFiltersFromConfig = filters.getProcessorFiltersFromConfig;
+exports.isNotificationsEnabledFor = utils.isNotificationsEnabledFor;
 //# sourceMappingURL=index.cjs.js.map

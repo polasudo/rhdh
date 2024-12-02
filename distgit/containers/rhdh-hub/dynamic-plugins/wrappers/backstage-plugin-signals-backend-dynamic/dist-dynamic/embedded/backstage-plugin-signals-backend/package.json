@@ -1,6 +1,6 @@
 {
   "name": "@backstage/plugin-signals-backend",
-  "version": "0.2.1+embedded",
+  "version": "0.2.2+embedded",
   "backstage": {
     "role": "backend-plugin",
     "pluginId": "signals",
@@ -37,7 +37,7 @@
     "test": "backstage-cli package test"
   },
   "dependencies": {
-    "@backstage/plugin-signals-node": "^0.1.12",
+    "@backstage/plugin-signals-node": "^0.1.13",
     "@types/express": "*",
     "express": "^4.17.1",
     "express-promise-router": "^4.1.0",
@@ -55,7 +55,7 @@
     "@backstage/backend-plugin-api": "^1.0.1",
     "@backstage/config": "^1.2.0",
     "@backstage/plugin-auth-node": "^0.5.3",
-    "@backstage/plugin-events-node": "^0.4.1",
+    "@backstage/plugin-events-node": "^0.4.2",
     "@backstage/types": "^1.1.1"
   },
   "overrides": {
