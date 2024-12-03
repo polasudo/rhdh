@@ -19,6 +19,7 @@ ROOTPATH=$(dirname "$SCRIPT"); ROOTPATH=${ROOTPATH/\/build\/ci}
 # THIS_REPO="rhpib/rhdh"
 CLEAN=0     # clean up node_modules and anything from remote repo before creating local changes
 FORCE=""    # force push to the midstream repo in case of merge conflicts
+BUNDLEONLY=0 # normally build all three images
 DO_BUILD=1  # fetch, transform, then build by default; use this to disable building
 DO_COMMIT=1 # by default, commit change
 DO_PUSH=1   # push the commit
@@ -65,6 +66,7 @@ Options:
     --force                   remove contents of sync/ folder to force a build to happen, even if no changes in upstream
                               will also push changes to midstream repo with --force
     --clean                   cleanup midstream sources before fetching new files
+    --bundleonly              ONLY update the bundle folder w/ new CSV content and updated Containerfile version
     --nobuild                 after fetching and transforming, do not run 'yarn install' and 'yarn build'
     --nocommit                do not commit or push local changes
     --nopush                  do not push local changes
@@ -76,7 +78,8 @@ Options:
 
 Examples:
 
-    $0 --nobuild --nopush --force ${latestNextExample} -b ${DWNSTM_BRANCH} 
+    $0 --nobuild    --nopush --force ${latestNextExample} -b ${DWNSTM_BRANCH} 
+    $0 --bundleonly --nopush ${latestNextExample} -b ${DWNSTM_BRANCH} 
     $0 -y
 "
   exit 1
@@ -107,6 +110,10 @@ while [[ "$#" -gt 0 ]]; do
     ;;
   '--clean')
     CLEAN=1;
+    shift 1
+    ;;
+  '--bundleonly')
+    BUNDLEONLY=1; DO_BUILD=0
     shift 1
     ;;
   '--nobuild')
@@ -295,8 +302,11 @@ destination_folders=""
 mkdir -p sync/
 NUM_SKIPS=0
 BUNDLEDIR="" # absolute path distgit/containers/rhdh-operator-bundle/ folder
+
+# if we're only doing the bundle start on repo 1; else start on the showcase (repo 0)
+START_REPO=0; if [[ $BUNDLEONLY -eq 1 ]]; then START_REPO=1; fi
 # shellcheck disable=SC2086,SC2295
-for ((i = 0; i < NUM_REPOS; i++)); do # echo $i
+for ((i = START_REPO; i < NUM_REPOS; i++)); do # echo $i
   # plugins__=""
   # plugins_collapsed=""
   repo=$(yq --arg i "$i" -r '.repos['$i'].repo' "${UPSTREAM_FILE}")
@@ -915,7 +925,12 @@ DH_VERSION=$(curl -sSLko- "$showcasePackageJson" | yq -r '.version') # 1.5.0
 DH_VERSION=${DH_VERSION%.*} # 1.2
 echo "[INFO] Got DH_VERSION = $DH_VERSION from $showcasePackageJson #.version"
 
-for d in distgit/containers/rhdh-hub distgit/containers/rhdh-operator distgit/containers/rhdh-operator-bundle; do
+if [[ $BUNDLEONLY -eq 1 ]]; then
+  these_dirs="distgit/containers/rhdh-operator-bundle"
+else
+  these_dirs="distgit/containers/rhdh-hub distgit/containers/rhdh-operator distgit/containers/rhdh-operator-bundle"
+fi
+for d in $these_dirs; do
   echo "[INFO] Remove generated/ignored content; regen Dockerfiles from Dockerfile.in [$d] ..."
   pushd "$d" >/dev/null || exit 1
     set +e
@@ -995,7 +1010,15 @@ done
 
 # revert any local changes to the hub so we don't accidentally push in changes from upstream without first running a yarn build
 # want to keep changes to distgit/containers/rhdh-hub/packages/app/src/build-metadata.json ! 
-if [[ $DO_BUILD -eq 0 ]]; then
+if [[ $BUNDLEONLY -eq 1 ]]; then
+  for d in \
+    distgit/containers/rhdh-hub/ \
+    distgit/containers/rhdh-operator/ \
+    sync/upstream_SHA_rhdh-operator \
+    ; do git restore --staged $d; git restore $d
+  done
+  rm -fr distgit/containers/rhdh-operator/.rhdh/
+elif [[ $DO_BUILD -eq 0 ]]; then
   for d in \
     distgit/containers/rhdh-hub/dynamic-plugins/ \
     distgit/containers/rhdh-hub/e2e-tests/ \
@@ -1027,10 +1050,17 @@ echo
 ################################# COMMIT CHANGES #################################
 
 if [[ $DO_COMMIT -eq 1 ]]; then
-  echo "[INFO] Committing changes to $destination_folders dirs and sync/upstream_SHA* files ..."
-  gitdiff="$(git diff --name-only || true)"
-  # shellcheck disable=SC2086
-  git add -f ${destination_folders} sync/upstream_SHA* || true
+  if [[ $BUNDLEONLY ]]; then
+    echo "[INFO] Committing changes to ${destination_folders/operator/operator-bundle} dir and sync/upstream_SHA* files ..."
+    gitdiff="$(git diff --name-only || true)"
+    # shellcheck disable=SC2086
+    git add -f ${destination_folders/operator/operator-bundle} sync/upstream_SHA*bundle || true
+  else 
+    echo "[INFO] Committing changes to $destination_folders dirs and sync/upstream_SHA* files ..."
+    gitdiff="$(git diff --name-only || true)"
+    # shellcheck disable=SC2086
+    git add -f ${destination_folders} sync/upstream_SHA* || true
+  fi
   if [[ $gitdiff ]]; then
     echo "
 ==============================================================
