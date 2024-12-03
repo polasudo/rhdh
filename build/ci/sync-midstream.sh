@@ -804,26 +804,28 @@ if [[ $DO_BUILD -eq 1 ]]; then
   echo
   set -e
 
-  echo "[INFO] ===================================== Patch embedded yarn commands =====================================>"
-  #shellcheck disable=SC2044,SC2143
-  # two options for janus-cli syntax (--in-place added June 2024):
-  # janus-cli package export-dynamic-plugin --in-place # front end - do NOT convert
-  # janus-cli package export-dynamic-plugin --embed-package @backstage/plugin-scaffolder-backend-module-bitbucket-cloud --override-interop default --no-embed-as-dependencies # back end - DO convert
-  for d in $(find distgit/containers/rhdh-hub/dynamic-plugins -name package.json) ; do
-    # determine if this a front or back end plugin; only work on BACK END plugins
-    # see https://github.com/redhat-developer/rhdh-plugin-export-utils/blob/main/export-dynamic/export-dynamic.sh
-    if [[ "$(grep -e '"role" *: *"backend-plugin' "$d")" != "" ]] && [[ $(grep -E 'export-dynamic-plugin' "$d" | grep -v -- '--network-timeout') ]]; then
-      echo "[INFO] Patch yarn command in ${d#distgit/containers/rhdh-hub/} (back end plugins ONLY) ..."
-      dName=$(jq -r '.name' "${d%/package.json}/dist-dynamic/package.json" | sed -r -e "s/-dynamic$//") # remove -dynamic suffix when invoking the workspace name
-      insertYarn=" --no-install \&\& yarn workspace $dName install"
-      sed -i "$d" -r \
-      -e 's#("janus-cli package export-dynamic-plugin.+)"#\1'"$insertYarn"'"#g'
-      # debug
-      grep -E "network-timeout|export-dynamic-plugin" "$d" || true
-    fi
-  done
-  echo "[INFO] <===================================== Patch embedded yarn commands ====================================="
-  echo
+  ## COMMENT THIS OUT TO TEST FIX FOR RHIDP-4936 
+  # NOTE: if we have to bring it back, dfestal says use insertYarn=" --no-install \&\& cd path/to/dist-dynamic; yarn install" instead of workspace commands
+  # echo "[INFO] ===================================== Patch embedded yarn commands =====================================>"
+  # #shellcheck disable=SC2044,SC2143
+  # # two options for janus-cli syntax (--in-place added June 2024):
+  # # janus-cli package export-dynamic-plugin --in-place # front end - do NOT convert
+  # # janus-cli package export-dynamic-plugin --embed-package @backstage/plugin-scaffolder-backend-module-bitbucket-cloud --override-interop default --no-embed-as-dependencies # back end - DO convert
+  # for d in $(find distgit/containers/rhdh-hub/dynamic-plugins -name package.json) ; do
+  #   # determine if this a front or back end plugin; only work on BACK END plugins
+  #   # see https://github.com/redhat-developer/rhdh-plugin-export-utils/blob/main/export-dynamic/export-dynamic.sh
+  #   if [[ "$(grep -e '"role" *: *"backend-plugin' "$d")" != "" ]] && [[ $(grep -E 'export-dynamic-plugin' "$d" | grep -v -- '--network-timeout') ]]; then
+  #     echo "[INFO] Patch yarn command in ${d#distgit/containers/rhdh-hub/} (back end plugins ONLY) ..."
+  #     dName=$(jq -r '.name' "${d%/package.json}/dist-dynamic/package.json" | sed -r -e "s/-dynamic$//") # remove -dynamic suffix when invoking the workspace name
+  #     insertYarn=" --no-install \&\& yarn workspace $dName install"
+  #     sed -i "$d" -r \
+  #     -e 's#("janus-cli package export-dynamic-plugin.+)"#\1'"$insertYarn"'"#g'
+  #     # debug
+  #     grep -E "network-timeout|export-dynamic-plugin" "$d" || true
+  #   fi
+  # done
+  # echo "[INFO] <===================================== Patch embedded yarn commands ====================================="
+  # echo
 
   # debug
   # find distgit/containers/rhdh-*/ -name "dist" -exec tree -d {} \; 2>/dev/null
