@@ -5,6 +5,54 @@ __metadata:
   version: 6
   cacheKey: 8
 
+"@backstage/plugin-catalog-backend-module-ldap@file:./embedded/backstage-plugin-catalog-backend-module-ldap::locator=backstage-plugin-catalog-backend-module-ldap-dynamic%40workspace%3A.":
+  version: 0.9.1+embedded
+  resolution: "@backstage/plugin-catalog-backend-module-ldap@file:./embedded/backstage-plugin-catalog-backend-module-ldap#./embedded/backstage-plugin-catalog-backend-module-ldap::hash=73e9cd&locator=backstage-plugin-catalog-backend-module-ldap-dynamic%40workspace%3A."
+  dependencies:
+    "@backstage/plugin-catalog-common": ^1.1.0
+    "@backstage/plugin-catalog-node": ^1.13.1
+    "@types/ldapjs": ^2.2.5
+    ldapjs: ^2.3.3
+    lodash: ^4.17.21
+    uuid: ^9.0.0
+  peerDependencies:
+    "@backstage/backend-plugin-api": ^1.0.1
+    "@backstage/catalog-model": ^1.7.0
+    "@backstage/config": ^1.2.0
+    "@backstage/errors": ^1.2.4
+    "@backstage/types": ^1.1.1
+  checksum: c7e74a5169ff237c4609bd738966b8f71885adc9d5d916f89486280c1ef194f76802138e20af0a19609ff54596a1578fe4f1d96c0bb8bcd8c52f770a54d3d2b3
+  languageName: node
+  linkType: hard
+
+"@backstage/plugin-catalog-common@file:./embedded/backstage-plugin-catalog-common::locator=backstage-plugin-catalog-backend-module-ldap-dynamic%40workspace%3A.":
+  version: 1.1.1+embedded
+  resolution: "@backstage/plugin-catalog-common@file:./embedded/backstage-plugin-catalog-common#./embedded/backstage-plugin-catalog-common::hash=287b58&locator=backstage-plugin-catalog-backend-module-ldap-dynamic%40workspace%3A."
+  peerDependencies:
+    "@backstage/catalog-model": ^1.7.1
+    "@backstage/plugin-permission-common": ^0.8.2
+    "@backstage/plugin-search-common": ^1.2.15
+  checksum: 056705b62fa5cf625a5b25ae9f9e35e7518ec0aafec4b3509e90a936384e08277b0cbcebc0730975ffea94bf8502d8cddd0b15149ee28ead4ac0cfa7873c3181
+  languageName: node
+  linkType: hard
+
+"@backstage/plugin-catalog-node@file:./embedded/backstage-plugin-catalog-node::locator=backstage-plugin-catalog-backend-module-ldap-dynamic%40workspace%3A.":
+  version: 1.14.0+embedded
+  resolution: "@backstage/plugin-catalog-node@file:./embedded/backstage-plugin-catalog-node#./embedded/backstage-plugin-catalog-node::hash=748a80&locator=backstage-plugin-catalog-backend-module-ldap-dynamic%40workspace%3A."
+  dependencies:
+    "@backstage/plugin-catalog-common": ^1.1.1
+  peerDependencies:
+    "@backstage/backend-plugin-api": ^1.0.2
+    "@backstage/catalog-client": ^1.8.0
+    "@backstage/catalog-model": ^1.7.1
+    "@backstage/errors": ^1.2.5
+    "@backstage/plugin-permission-common": ^0.8.2
+    "@backstage/plugin-permission-node": ^0.8.5
+    "@backstage/types": ^1.2.0
+  checksum: 88c58a83012a9194862b12a61b0c6bd3832154a68f351c1c46c5824b28c76f90b3e6d2dd5d435ba028abb686ac9416b3ec6fe113971af16c79370ae441cfe5af
+  languageName: node
+  linkType: hard
+
 "@types/ldapjs@npm:^2.2.5":
   version: 2.2.5
   resolution: "@types/ldapjs@npm:2.2.5"
@@ -15,11 +63,11 @@ __metadata:
   linkType: hard
 
 "@types/node@npm:*":
-  version: 22.10.1
-  resolution: "@types/node@npm:22.10.1"
+  version: 22.7.9
+  resolution: "@types/node@npm:22.7.9"
   dependencies:
-    undici-types: ~6.20.0
-  checksum: 5a9b81500f288a8fb757b61bd939f99f72b6cb59347a5bae52dd1c2c87100ebbaa9da4256ef3cb9add2090e8704cda1d9a1ffc14ccd5db47a6466c8bae10ebcb
+    undici-types: ~6.19.2
+  checksum: 02671449e61f3f7c9898da44e18af272056fee0afbbc98b11dcff7cd7c4ed6c8a45353cfdde413208d9f597e247ee68d908c83a72cae4cbdd763b0e3a45ac0cd
   languageName: node
   linkType: hard
 
@@ -59,18 +107,17 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "backstage-plugin-catalog-backend-module-ldap-dynamic@workspace:."
   dependencies:
-    "@types/ldapjs": ^2.2.5
-    ldapjs: ^2.3.3
-    lodash: ^4.17.21
-    uuid: ^9.0.0
+    "@backstage/plugin-catalog-backend-module-ldap": 0.9.1
   peerDependencies:
-    "@backstage/backend-plugin-api": ^1.0.1
-    "@backstage/catalog-model": ^1.7.0
+    "@backstage/backend-plugin-api": ^1.0.2
+    "@backstage/catalog-client": ^1.8.0
+    "@backstage/catalog-model": ^1.7.1
     "@backstage/config": ^1.2.0
-    "@backstage/errors": ^1.2.4
-    "@backstage/plugin-catalog-common": ^1.1.0
-    "@backstage/plugin-catalog-node": ^1.13.1
-    "@backstage/types": ^1.1.1
+    "@backstage/errors": ^1.2.5
+    "@backstage/plugin-permission-common": ^0.8.2
+    "@backstage/plugin-permission-node": ^0.8.5
+    "@backstage/plugin-search-common": ^1.2.15
+    "@backstage/types": ^1.2.0
   languageName: unknown
   linkType: soft
 
@@ -143,10 +190,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"undici-types@npm:~6.20.0":
-  version: 6.20.0
-  resolution: "undici-types@npm:6.20.0"
-  checksum: b7bc50f012dc6afbcce56c9fd62d7e86b20a62ff21f12b7b5cbf1973b9578d90f22a9c7fe50e638e96905d33893bf2f9f16d98929c4673c2480de05c6c96ea8b
+"undici-types@npm:~6.19.2":
+  version: 6.19.8
+  resolution: "undici-types@npm:6.19.8"
+  checksum: de51f1b447d22571cf155dfe14ff6d12c5bdaec237c765085b439c38ca8518fc360e88c70f99469162bf2e14188a7b0bcb06e1ed2dc031042b984b0bb9544017
   languageName: node
   linkType: hard
 

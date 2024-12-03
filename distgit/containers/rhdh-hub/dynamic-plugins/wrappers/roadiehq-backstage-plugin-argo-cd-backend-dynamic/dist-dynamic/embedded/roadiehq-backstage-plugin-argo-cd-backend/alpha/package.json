@@ -1,0 +1,6 @@
+{
+  "name": "@roadiehq/backstage-plugin-argo-cd-backend__alpha",
+  "version": "3.2.3",
+  "main": "../dist/alpha.cjs.js",
+  "types": "../dist/alpha.d.ts"
+}

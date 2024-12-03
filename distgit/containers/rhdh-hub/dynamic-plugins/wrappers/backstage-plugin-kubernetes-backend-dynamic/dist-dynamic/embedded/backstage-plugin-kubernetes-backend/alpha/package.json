@@ -1,0 +1,6 @@
+{
+  "name": "@backstage/plugin-kubernetes-backend__alpha",
+  "version": "0.18.7",
+  "main": "../dist/alpha.cjs.js",
+  "types": "../dist/alpha.d.ts"
+}

@@ -1,0 +1,64 @@
+{
+  "name": "@backstage/plugin-scaffolder-backend-module-bitbucket-server",
+  "version": "0.2.1+embedded",
+  "description": "The Bitbucket Server module for @backstage/plugin-scaffolder-backend",
+  "backstage": {
+    "role": "backend-plugin-module",
+    "pluginId": "scaffolder",
+    "pluginPackage": "@backstage/plugin-scaffolder-backend"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/backstage/backstage",
+    "directory": "plugins/scaffolder-backend-module-bitbucket-server"
+  },
+  "license": "Apache-2.0",
+  "exports": {
+    ".": {
+      "backstage": "@backstage/BackendFeature",
+      "require": "./dist/index.cjs.js",
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.cjs.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "main": "./dist/index.cjs.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "backstage-cli package build",
+    "clean": "backstage-cli package clean",
+    "lint": "backstage-cli package lint",
+    "prepack": "backstage-cli package prepack",
+    "postpack": "backstage-cli package postpack",
+    "start": "backstage-cli package start",
+    "test": "backstage-cli package test"
+  },
+  "dependencies": {
+    "@backstage/plugin-scaffolder-node": "^0.5.0",
+    "fs-extra": "^11.2.0",
+    "node-fetch": "^2.7.0",
+    "yaml": "^2.0.0"
+  },
+  "devDependencies": {},
+  "private": true,
+  "peerDependencies": {
+    "@backstage/backend-plugin-api": "^1.0.1",
+    "@backstage/config": "^1.2.0",
+    "@backstage/errors": "^1.2.4",
+    "@backstage/integration": "^1.15.1"
+  },
+  "overrides": {
+    "@aws-sdk/util-utf8-browser": {
+      "@smithy/util-utf8": "^2.0.0"
+    }
+  },
+  "resolutions": {
+    "@aws-sdk/util-utf8-browser": "npm:@smithy/util-utf8@~2"
+  }
+}

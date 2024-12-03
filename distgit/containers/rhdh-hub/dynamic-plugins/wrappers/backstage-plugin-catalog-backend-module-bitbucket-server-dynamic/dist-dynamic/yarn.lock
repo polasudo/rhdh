@@ -5,22 +5,68 @@ __metadata:
   version: 6
   cacheKey: 8
 
+"@backstage/plugin-catalog-backend-module-bitbucket-server@file:./embedded/backstage-plugin-catalog-backend-module-bitbucket-server::locator=backstage-plugin-catalog-backend-module-bitbucket-server-dynamic%40workspace%3A.":
+  version: 0.2.3+embedded
+  resolution: "@backstage/plugin-catalog-backend-module-bitbucket-server@file:./embedded/backstage-plugin-catalog-backend-module-bitbucket-server#./embedded/backstage-plugin-catalog-backend-module-bitbucket-server::hash=c7f2b0&locator=backstage-plugin-catalog-backend-module-bitbucket-server-dynamic%40workspace%3A."
+  dependencies:
+    "@backstage/plugin-catalog-node": ^1.13.1
+    "@types/node-fetch": ^2.5.12
+    node-fetch: ^2.7.0
+    uuid: ^9.0.0
+  peerDependencies:
+    "@backstage/backend-plugin-api": ^1.0.1
+    "@backstage/catalog-model": ^1.7.0
+    "@backstage/config": ^1.2.0
+    "@backstage/errors": ^1.2.4
+    "@backstage/integration": ^1.15.1
+  checksum: 2a787c96515fd3207f75cd9aac675d3926cc15a51528753110f208f2efb69f098f5970ce3f92eec41b7b732d41172841c8a9d37a65002b35493cce668107902f
+  languageName: node
+  linkType: hard
+
+"@backstage/plugin-catalog-common@file:./embedded/backstage-plugin-catalog-common::locator=backstage-plugin-catalog-backend-module-bitbucket-server-dynamic%40workspace%3A.":
+  version: 1.1.1+embedded
+  resolution: "@backstage/plugin-catalog-common@file:./embedded/backstage-plugin-catalog-common#./embedded/backstage-plugin-catalog-common::hash=287b58&locator=backstage-plugin-catalog-backend-module-bitbucket-server-dynamic%40workspace%3A."
+  peerDependencies:
+    "@backstage/catalog-model": ^1.7.1
+    "@backstage/plugin-permission-common": ^0.8.2
+    "@backstage/plugin-search-common": ^1.2.15
+  checksum: 056705b62fa5cf625a5b25ae9f9e35e7518ec0aafec4b3509e90a936384e08277b0cbcebc0730975ffea94bf8502d8cddd0b15149ee28ead4ac0cfa7873c3181
+  languageName: node
+  linkType: hard
+
+"@backstage/plugin-catalog-node@file:./embedded/backstage-plugin-catalog-node::locator=backstage-plugin-catalog-backend-module-bitbucket-server-dynamic%40workspace%3A.":
+  version: 1.14.0+embedded
+  resolution: "@backstage/plugin-catalog-node@file:./embedded/backstage-plugin-catalog-node#./embedded/backstage-plugin-catalog-node::hash=748a80&locator=backstage-plugin-catalog-backend-module-bitbucket-server-dynamic%40workspace%3A."
+  dependencies:
+    "@backstage/plugin-catalog-common": ^1.1.1
+  peerDependencies:
+    "@backstage/backend-plugin-api": ^1.0.2
+    "@backstage/catalog-client": ^1.8.0
+    "@backstage/catalog-model": ^1.7.1
+    "@backstage/errors": ^1.2.5
+    "@backstage/plugin-permission-common": ^0.8.2
+    "@backstage/plugin-permission-node": ^0.8.5
+    "@backstage/types": ^1.2.0
+  checksum: 88c58a83012a9194862b12a61b0c6bd3832154a68f351c1c46c5824b28c76f90b3e6d2dd5d435ba028abb686ac9416b3ec6fe113971af16c79370ae441cfe5af
+  languageName: node
+  linkType: hard
+
 "@types/node-fetch@npm:^2.5.12":
-  version: 2.6.12
-  resolution: "@types/node-fetch@npm:2.6.12"
+  version: 2.6.11
+  resolution: "@types/node-fetch@npm:2.6.11"
   dependencies:
     "@types/node": "*"
     form-data: ^4.0.0
-  checksum: 9647e68f9a125a090220c38d77b3c8e669c488658ae7506f1b4f9568214beba087624b1705bba1dc76649a65281ce3fd5b400e15266cbef8088027fb88777557
+  checksum: 180e4d44c432839bdf8a25251ef8c47d51e37355ddd78c64695225de8bc5dc2b50b7bb855956d471c026bb84bd7295688a0960085e7158cbbba803053492568b
   languageName: node
   linkType: hard
 
 "@types/node@npm:*":
-  version: 22.10.1
-  resolution: "@types/node@npm:22.10.1"
+  version: 22.7.9
+  resolution: "@types/node@npm:22.7.9"
   dependencies:
-    undici-types: ~6.20.0
-  checksum: 5a9b81500f288a8fb757b61bd939f99f72b6cb59347a5bae52dd1c2c87100ebbaa9da4256ef3cb9add2090e8704cda1d9a1ffc14ccd5db47a6466c8bae10ebcb
+    undici-types: ~6.19.2
+  checksum: 02671449e61f3f7c9898da44e18af272056fee0afbbc98b11dcff7cd7c4ed6c8a45353cfdde413208d9f597e247ee68d908c83a72cae4cbdd763b0e3a45ac0cd
   languageName: node
   linkType: hard
 
@@ -35,16 +81,18 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "backstage-plugin-catalog-backend-module-bitbucket-server-dynamic@workspace:."
   dependencies:
-    "@types/node-fetch": ^2.5.12
-    node-fetch: ^2.7.0
-    uuid: ^9.0.0
+    "@backstage/plugin-catalog-backend-module-bitbucket-server": 0.2.3
   peerDependencies:
-    "@backstage/backend-plugin-api": ^1.0.1
-    "@backstage/catalog-model": ^1.7.0
+    "@backstage/backend-plugin-api": ^1.0.2
+    "@backstage/catalog-client": ^1.8.0
+    "@backstage/catalog-model": ^1.7.1
     "@backstage/config": ^1.2.0
-    "@backstage/errors": ^1.2.4
+    "@backstage/errors": ^1.2.5
     "@backstage/integration": ^1.15.1
-    "@backstage/plugin-catalog-node": ^1.13.1
+    "@backstage/plugin-permission-common": ^0.8.2
+    "@backstage/plugin-permission-node": ^0.8.5
+    "@backstage/plugin-search-common": ^1.2.15
+    "@backstage/types": ^1.2.0
   languageName: unknown
   linkType: soft
 
@@ -65,13 +113,13 @@ __metadata:
   linkType: hard
 
 "form-data@npm:^4.0.0":
-  version: 4.0.1
-  resolution: "form-data@npm:4.0.1"
+  version: 4.0.0
+  resolution: "form-data@npm:4.0.0"
   dependencies:
     asynckit: ^0.4.0
     combined-stream: ^1.0.8
     mime-types: ^2.1.12
-  checksum: ccee458cd5baf234d6b57f349fe9cc5f9a2ea8fd1af5ecda501a18fd1572a6dd3bf08a49f00568afd995b6a65af34cb8dec083cf9d582c4e621836499498dd84
+  checksum: 01135bf8675f9d5c61ff18e2e2932f719ca4de964e3be90ef4c36aacfc7b9cb2fceb5eca0b7e0190e3383fe51c5b37f4cb80b62ca06a99aaabfcfd6ac7c9328c
   languageName: node
   linkType: hard
 
@@ -112,10 +160,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"undici-types@npm:~6.20.0":
-  version: 6.20.0
-  resolution: "undici-types@npm:6.20.0"
-  checksum: b7bc50f012dc6afbcce56c9fd62d7e86b20a62ff21f12b7b5cbf1973b9578d90f22a9c7fe50e638e96905d33893bf2f9f16d98929c4673c2480de05c6c96ea8b
+"undici-types@npm:~6.19.2":
+  version: 6.19.8
+  resolution: "undici-types@npm:6.19.8"
+  checksum: de51f1b447d22571cf155dfe14ff6d12c5bdaec237c765085b439c38ca8518fc360e88c70f99469162bf2e14188a7b0bcb06e1ed2dc031042b984b0bb9544017
   languageName: node
   linkType: hard
 

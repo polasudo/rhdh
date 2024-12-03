@@ -2,14 +2,9 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var backendPluginApi = require('@backstage/backend-plugin-api');
-var backstagePluginGitlabBackend = require('@immobiliarelabs/backstage-plugin-gitlab-backend');
+var bundle = require('./bundle.cjs.js');
 
-const bundle = backendPluginApi.createBackendFeatureLoader({
-  async loader() {
-    return [backstagePluginGitlabBackend.gitlabPlugin, backstagePluginGitlabBackend.catalogPluginGitlabFillerProcessorModule];
-  }
-});
 
-exports["default"] = bundle;
+
+exports.default = bundle.bundle;
 //# sourceMappingURL=index.cjs.js.map

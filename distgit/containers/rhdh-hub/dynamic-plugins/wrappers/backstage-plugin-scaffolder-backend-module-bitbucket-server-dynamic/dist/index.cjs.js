@@ -4,14 +4,14 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 var pluginScaffolderBackendModuleBitbucketServer = require('@backstage/plugin-scaffolder-backend-module-bitbucket-server');
 
-function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
+function _interopDefaultCompat (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }
 
-var pluginScaffolderBackendModuleBitbucketServer__default = /*#__PURE__*/_interopDefaultLegacy(pluginScaffolderBackendModuleBitbucketServer);
+var pluginScaffolderBackendModuleBitbucketServer__default = /*#__PURE__*/_interopDefaultCompat(pluginScaffolderBackendModuleBitbucketServer);
 
 
 
-Object.defineProperty(exports, 'default', {
+Object.defineProperty(exports, "default", {
 	enumerable: true,
-	get: function () { return pluginScaffolderBackendModuleBitbucketServer__default["default"]; }
+	get: function () { return pluginScaffolderBackendModuleBitbucketServer__default.default; }
 });
 //# sourceMappingURL=index.cjs.js.map

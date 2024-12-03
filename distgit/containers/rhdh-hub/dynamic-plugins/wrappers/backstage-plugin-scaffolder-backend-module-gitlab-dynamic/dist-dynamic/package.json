@@ -2,7 +2,7 @@
   "name": "backstage-plugin-scaffolder-backend-module-gitlab-dynamic",
   "version": "0.6.0",
   "main": "./dist/index.cjs.js",
-  "types": "src/index.ts",
+  "types": "./dist/index.d.ts",
   "license": "Apache-2.0",
   "private": true,
   "publishConfig": {
@@ -17,18 +17,13 @@
   "exports": {
     ".": {
       "require": "./dist/index.cjs.js",
+      "types": "./dist/index.d.ts",
       "default": "./dist/index.cjs.js"
     },
     "./package.json": "./package.json"
   },
   "dependencies": {
-    "@gitbeaker/core": "^35.8.0",
-    "@gitbeaker/node": "^35.8.0",
-    "@gitbeaker/rest": "^39.25.0",
-    "luxon": "^3.0.0",
-    "winston": "^3.2.1",
-    "yaml": "^2.0.0",
-    "zod": "^3.22.4"
+    "@backstage/plugin-scaffolder-backend-module-gitlab": "0.6.0"
   },
   "files": [
     "dist"
@@ -49,20 +44,25 @@
     "lifecycle:active"
   ],
   "bundleDependencies": true,
-  "peerDependencies": {
-    "@backstage/backend-common": "^0.25.0",
-    "@backstage/backend-plugin-api": "^1.0.1",
-    "@backstage/config": "^1.2.0",
-    "@backstage/errors": "^1.2.4",
-    "@backstage/integration": "^1.15.1",
-    "@backstage/plugin-scaffolder-node": "^0.5.0"
-  },
   "overrides": {
     "@aws-sdk/util-utf8-browser": {
       "@smithy/util-utf8": "^2.0.0"
     }
   },
   "resolutions": {
-    "@aws-sdk/util-utf8-browser": "npm:@smithy/util-utf8@~2"
+    "@aws-sdk/util-utf8-browser": "npm:@smithy/util-utf8@~2",
+    "@backstage/plugin-scaffolder-backend-module-gitlab": "file:./embedded/backstage-plugin-scaffolder-backend-module-gitlab",
+    "@backstage/plugin-scaffolder-node": "file:./embedded/backstage-plugin-scaffolder-node",
+    "@backstage/plugin-scaffolder-common": "file:./embedded/backstage-plugin-scaffolder-common"
+  },
+  "peerDependencies": {
+    "@backstage/backend-common": "^0.25.0",
+    "@backstage/backend-plugin-api": "^1.0.1",
+    "@backstage/catalog-model": "^1.7.1",
+    "@backstage/config": "^1.2.0",
+    "@backstage/errors": "^1.2.4",
+    "@backstage/integration": "^1.15.1",
+    "@backstage/plugin-permission-common": "^0.8.2",
+    "@backstage/types": "^1.2.0"
   }
 }

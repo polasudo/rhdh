@@ -5,12 +5,27 @@ __metadata:
   version: 6
   cacheKey: 8
 
+"@backstage-community/plugin-catalog-backend-module-pingidentity@file:./embedded/backstage-community-plugin-catalog-backend-module-pingidentity::locator=backstage-community-plugin-catalog-backend-module-pingidentity-dynamic%40workspace%3A.":
+  version: 0.1.5+embedded
+  resolution: "@backstage-community/plugin-catalog-backend-module-pingidentity@file:./embedded/backstage-community-plugin-catalog-backend-module-pingidentity#./embedded/backstage-community-plugin-catalog-backend-module-pingidentity::hash=219d19&locator=backstage-community-plugin-catalog-backend-module-pingidentity-dynamic%40workspace%3A."
+  dependencies:
+    node-fetch: ^2.6.7
+    uuid: ^10.0.0
+  peerDependencies:
+    "@backstage/backend-common": ^0.25.0
+    "@backstage/backend-plugin-api": ^1.0.1
+    "@backstage/catalog-model": ^1.7.0
+    "@backstage/config": ^1.2.0
+    "@backstage/plugin-catalog-node": ^1.13.1
+  checksum: d3b8d2192e2a760c173619cc9b29ebeada485c134aa24c3086c235555684bd18c6fd1f472c07b84e5876adf4d9fce02fe8e4a7aa06642987653d8ec42f5eb86a
+  languageName: node
+  linkType: hard
+
 "backstage-community-plugin-catalog-backend-module-pingidentity-dynamic@workspace:.":
   version: 0.0.0-use.local
   resolution: "backstage-community-plugin-catalog-backend-module-pingidentity-dynamic@workspace:."
   dependencies:
-    node-fetch: ^2.6.7
-    uuid: ^10.0.0
+    "@backstage-community/plugin-catalog-backend-module-pingidentity": 0.1.5
   peerDependencies:
     "@backstage/backend-common": ^0.25.0
     "@backstage/backend-plugin-api": ^1.0.1

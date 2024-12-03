@@ -5,12 +5,24 @@ __metadata:
   version: 6
   cacheKey: 8
 
+"@backstage-community/plugin-scaffolder-backend-module-regex@file:./embedded/backstage-community-plugin-scaffolder-backend-module-regex::locator=backstage-community-plugin-scaffolder-backend-module-regex-dynamic%40workspace%3A.":
+  version: 2.2.3+embedded
+  resolution: "@backstage-community/plugin-scaffolder-backend-module-regex@file:./embedded/backstage-community-plugin-scaffolder-backend-module-regex#./embedded/backstage-community-plugin-scaffolder-backend-module-regex::hash=2a68be&locator=backstage-community-plugin-scaffolder-backend-module-regex-dynamic%40workspace%3A."
+  dependencies:
+    yaml: ^2.3.3
+    zod: ^3.22.4
+  peerDependencies:
+    "@backstage/backend-plugin-api": ^1.0.1
+    "@backstage/plugin-scaffolder-node": ^0.5.0
+  checksum: 1b784dd9c841950635fab2703fd2a680a8985f10d093a11435b562bd959b6341b028452ae151d0b12dab6b1588469269e328ad9bb2926ab9a2b4c7beb19df441
+  languageName: node
+  linkType: hard
+
 "backstage-community-plugin-scaffolder-backend-module-regex-dynamic@workspace:.":
   version: 0.0.0-use.local
   resolution: "backstage-community-plugin-scaffolder-backend-module-regex-dynamic@workspace:."
   dependencies:
-    yaml: ^2.3.3
-    zod: ^3.22.4
+    "@backstage-community/plugin-scaffolder-backend-module-regex": 2.2.3
   peerDependencies:
     "@backstage/backend-plugin-api": ^1.0.1
     "@backstage/plugin-scaffolder-node": ^0.5.0

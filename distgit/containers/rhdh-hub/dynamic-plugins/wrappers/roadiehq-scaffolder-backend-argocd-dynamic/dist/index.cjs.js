@@ -4,14 +4,14 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 var scaffolderBackendArgocd = require('@roadiehq/scaffolder-backend-argocd');
 
-function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
+function _interopDefaultCompat (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }
 
-var scaffolderBackendArgocd__default = /*#__PURE__*/_interopDefaultLegacy(scaffolderBackendArgocd);
+var scaffolderBackendArgocd__default = /*#__PURE__*/_interopDefaultCompat(scaffolderBackendArgocd);
 
 
 
-Object.defineProperty(exports, 'default', {
+Object.defineProperty(exports, "default", {
 	enumerable: true,
-	get: function () { return scaffolderBackendArgocd__default["default"]; }
+	get: function () { return scaffolderBackendArgocd__default.default; }
 });
 //# sourceMappingURL=index.cjs.js.map

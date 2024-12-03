@@ -2,55 +2,16 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var require$$0 = require('@backstage/backend-common');
-var require$$1 = require('@backstage/backend-plugin-api');
-var require$$2 = require('@backstage/plugin-catalog-backend-module-gitlab');
-var require$$3 = require('@backstage/plugin-catalog-node/alpha');
-var require$$4 = require('@backstage/plugin-events-node');
+var pluginCatalogBackendModuleGitlabOrg = require('@backstage/plugin-catalog-backend-module-gitlab-org');
 
-var index_cjs = {};
+function _interopDefaultCompat (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }
 
-var catalogModuleGitlabOrgDiscoveryEntityProvider_cjs = {};
+var pluginCatalogBackendModuleGitlabOrg__default = /*#__PURE__*/_interopDefaultCompat(pluginCatalogBackendModuleGitlabOrg);
 
-var backendCommon = require$$0;
-var backendPluginApi = require$$1;
-var pluginCatalogBackendModuleGitlab = require$$2;
-var alpha = require$$3;
-var pluginEventsNode = require$$4;
 
-const catalogModuleGitlabOrgDiscoveryEntityProvider$1 = backendPluginApi.createBackendModule({
-  pluginId: "catalog",
-  moduleId: "gitlabOrgDiscoveryEntityProvider",
-  register(env) {
-    env.registerInit({
-      deps: {
-        config: backendPluginApi.coreServices.rootConfig,
-        catalog: alpha.catalogProcessingExtensionPoint,
-        logger: backendPluginApi.coreServices.logger,
-        scheduler: backendPluginApi.coreServices.scheduler,
-        events: pluginEventsNode.eventsServiceRef
-      },
-      async init({ config, catalog, logger, scheduler, events }) {
-        const gitlabOrgDiscoveryEntityProvider = pluginCatalogBackendModuleGitlab.GitlabOrgDiscoveryEntityProvider.fromConfig(config, {
-          logger: backendCommon.loggerToWinstonLogger(logger),
-          events,
-          scheduler
-        });
-        catalog.addEntityProvider(gitlabOrgDiscoveryEntityProvider);
-      }
-    });
-  }
+
+Object.defineProperty(exports, "default", {
+	enumerable: true,
+	get: function () { return pluginCatalogBackendModuleGitlabOrg__default.default; }
 });
-
-catalogModuleGitlabOrgDiscoveryEntityProvider_cjs.catalogModuleGitlabOrgDiscoveryEntityProvider = catalogModuleGitlabOrgDiscoveryEntityProvider$1;
-
-Object.defineProperty(index_cjs, '__esModule', { value: true });
-
-var catalogModuleGitlabOrgDiscoveryEntityProvider = catalogModuleGitlabOrgDiscoveryEntityProvider_cjs;
-
-
-
-var _default = index_cjs.default = catalogModuleGitlabOrgDiscoveryEntityProvider.catalogModuleGitlabOrgDiscoveryEntityProvider;
-
-exports["default"] = _default;
 //# sourceMappingURL=index.cjs.js.map

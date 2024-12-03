@@ -1,0 +1,6 @@
+{
+  "name": "@backstage/plugin-scaffolder-node__alpha",
+  "version": "0.5.0",
+  "main": "../dist/alpha.cjs.js",
+  "types": "../dist/alpha.d.ts"
+}

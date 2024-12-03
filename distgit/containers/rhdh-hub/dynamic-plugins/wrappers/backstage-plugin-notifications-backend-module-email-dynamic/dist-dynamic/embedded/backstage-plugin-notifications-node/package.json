@@ -38,7 +38,6 @@
   },
   "dependencies": {
     "@backstage/plugin-notifications-common": "^0.0.6",
-    "@backstage/plugin-signals-node": "^0.1.14",
     "knex": "^3.0.0",
     "node-fetch": "^2.7.0",
     "uuid": "^11.0.0"
@@ -55,7 +54,8 @@
   "peerDependencies": {
     "@backstage/backend-plugin-api": "^1.0.2",
     "@backstage/catalog-client": "^1.8.0",
-    "@backstage/catalog-model": "^1.7.1"
+    "@backstage/catalog-model": "^1.7.1",
+    "@backstage/plugin-signals-node": "^0.1.14"
   },
   "overrides": {
     "@aws-sdk/util-utf8-browser": {

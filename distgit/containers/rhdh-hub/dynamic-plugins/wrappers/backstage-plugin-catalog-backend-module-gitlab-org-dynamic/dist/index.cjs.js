@@ -4,14 +4,14 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 var pluginCatalogBackendModuleGitlabOrg = require('@backstage/plugin-catalog-backend-module-gitlab-org');
 
-function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
+function _interopDefaultCompat (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }
 
-var pluginCatalogBackendModuleGitlabOrg__default = /*#__PURE__*/_interopDefaultLegacy(pluginCatalogBackendModuleGitlabOrg);
+var pluginCatalogBackendModuleGitlabOrg__default = /*#__PURE__*/_interopDefaultCompat(pluginCatalogBackendModuleGitlabOrg);
 
 
 
-Object.defineProperty(exports, 'default', {
+Object.defineProperty(exports, "default", {
 	enumerable: true,
-	get: function () { return pluginCatalogBackendModuleGitlabOrg__default["default"]; }
+	get: function () { return pluginCatalogBackendModuleGitlabOrg__default.default; }
 });
 //# sourceMappingURL=index.cjs.js.map

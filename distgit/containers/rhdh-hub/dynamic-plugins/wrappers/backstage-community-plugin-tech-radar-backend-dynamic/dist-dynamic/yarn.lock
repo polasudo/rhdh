@@ -5,6 +5,32 @@ __metadata:
   version: 6
   cacheKey: 8
 
+"@backstage-community/plugin-tech-radar-backend@file:./embedded/backstage-community-plugin-tech-radar-backend::locator=backstage-community-plugin-tech-radar-backend-dynamic%40workspace%3A.":
+  version: 1.0.0+embedded
+  resolution: "@backstage-community/plugin-tech-radar-backend@file:./embedded/backstage-community-plugin-tech-radar-backend#./embedded/backstage-community-plugin-tech-radar-backend::hash=de5624&locator=backstage-community-plugin-tech-radar-backend-dynamic%40workspace%3A."
+  dependencies:
+    "@backstage-community/plugin-tech-radar-common": ^1.0.0
+    express: ^4.17.1
+    express-promise-router: ^4.1.0
+    node-fetch: ^2.6.7
+    zod: ^3.20.0
+  peerDependencies:
+    "@backstage/backend-defaults": ^0.5.0
+    "@backstage/backend-plugin-api": ^1.0.0
+    "@backstage/config": ^1.2.0
+  checksum: bd57eb35fffaa650b3fc773cee465e4a6d93c061ee0fcd8c60b8415b7f26a6dbbff4651063e3bcab197eb66868e494aae1ce56e0650b9b437909bee79a30c98f
+  languageName: node
+  linkType: hard
+
+"@backstage-community/plugin-tech-radar-common@file:./embedded/backstage-community-plugin-tech-radar-common::locator=backstage-community-plugin-tech-radar-backend-dynamic%40workspace%3A.":
+  version: 1.0.0+embedded
+  resolution: "@backstage-community/plugin-tech-radar-common@file:./embedded/backstage-community-plugin-tech-radar-common#./embedded/backstage-community-plugin-tech-radar-common::hash=38d34b&locator=backstage-community-plugin-tech-radar-backend-dynamic%40workspace%3A."
+  dependencies:
+    zod: ^3.20.0
+  checksum: b3eeea0a57c1005359d94f704a887816ecfd992fe36e0dd9a7bbbec6268ecfd398fe4999b657695a5b0b38a31b46fe297abf7c53d04e00cdf196256b6a3f9d39
+  languageName: node
+  linkType: hard
+
 "accepts@npm:~1.3.8":
   version: 1.3.8
   resolution: "accepts@npm:1.3.8"
@@ -26,10 +52,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "backstage-community-plugin-tech-radar-backend-dynamic@workspace:."
   dependencies:
-    express: ^4.17.1
-    express-promise-router: ^4.1.0
-    node-fetch: ^2.6.7
-    zod: ^3.20.0
+    "@backstage-community/plugin-tech-radar-backend": 1.0.0
   peerDependencies:
     "@backstage/backend-defaults": ^0.5.0
     "@backstage/backend-plugin-api": ^1.0.0
@@ -116,7 +139,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"define-data-property@npm:^1.1.4":
+"define-data-property@npm:^1.1.2":
   version: 1.1.4
   resolution: "define-data-property@npm:1.1.4"
   dependencies:
@@ -284,7 +307,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"get-intrinsic@npm:^1.2.4":
+"get-intrinsic@npm:^1.1.3, get-intrinsic@npm:^1.2.3, get-intrinsic@npm:^1.2.4":
   version: 1.2.4
   resolution: "get-intrinsic@npm:1.2.4"
   dependencies:
@@ -298,15 +321,15 @@ __metadata:
   linkType: hard
 
 "gopd@npm:^1.0.1":
-  version: 1.1.0
-  resolution: "gopd@npm:1.1.0"
+  version: 1.0.1
+  resolution: "gopd@npm:1.0.1"
   dependencies:
-    get-intrinsic: ^1.2.4
-  checksum: ed09ffe54ef841e9de35a56f9d249495c1149dc611f05a242c476cc538f13b2228ac1ee3970f9bfca2cadd6f9785efe854419eeef6050e7de3f02fbee9292ad4
+    get-intrinsic: ^1.1.3
+  checksum: a5ccfb8806e0917a94e0b3de2af2ea4979c1da920bc381667c260e00e7cafdbe844e2cb9c5bcfef4e5412e8bf73bab837285bc35c7ba73aaaf0134d4583393a6
   languageName: node
   linkType: hard
 
-"has-property-descriptors@npm:^1.0.2":
+"has-property-descriptors@npm:^1.0.1":
   version: 1.0.2
   resolution: "has-property-descriptors@npm:1.0.2"
   dependencies:
@@ -316,27 +339,25 @@ __metadata:
   linkType: hard
 
 "has-proto@npm:^1.0.1":
-  version: 1.1.0
-  resolution: "has-proto@npm:1.1.0"
-  dependencies:
-    call-bind: ^1.0.7
-  checksum: 0335b8acd01a0de9bb6f7f89c4ef4f1512b48cec25f1c23e847a68d65afb8c579f168907e79969b01dc7025d707b48c71d481bca140579a40d735b071b2cc1bc
+  version: 1.0.3
+  resolution: "has-proto@npm:1.0.3"
+  checksum: fe7c3d50b33f50f3933a04413ed1f69441d21d2d2944f81036276d30635cad9279f6b43bc8f32036c31ebdfcf6e731150f46c1907ad90c669ffe9b066c3ba5c4
   languageName: node
   linkType: hard
 
 "has-symbols@npm:^1.0.3":
-  version: 1.1.0
-  resolution: "has-symbols@npm:1.1.0"
-  checksum: b2316c7302a0e8ba3aaba215f834e96c22c86f192e7310bdf689dd0e6999510c89b00fbc5742571507cebf25764d68c988b3a0da217369a73596191ac0ce694b
+  version: 1.0.3
+  resolution: "has-symbols@npm:1.0.3"
+  checksum: a054c40c631c0d5741a8285010a0777ea0c068f99ed43e5d6eb12972da223f8af553a455132fdb0801bdcfa0e0f443c0c03a68d8555aa529b3144b446c3f2410
   languageName: node
   linkType: hard
 
 "hasown@npm:^2.0.0":
-  version: 2.0.2
-  resolution: "hasown@npm:2.0.2"
+  version: 2.0.1
+  resolution: "hasown@npm:2.0.1"
   dependencies:
     function-bind: ^1.1.2
-  checksum: e8516f776a15149ca6c6ed2ae3110c417a00b62260e222590e54aa367cbcd6ed99122020b37b7fbdf05748df57b265e70095d7bf35a47660587619b15ffb93db
+  checksum: 9081c382a4fe8a62639a8da5c7d3322b203c319147e48783763dd741863d9f2dcaa743574fe2a1283871c445d8ba99ea45d5fff384e5ad27ca9dd7a367d79de0
   languageName: node
   linkType: hard
 
@@ -472,9 +493,9 @@ __metadata:
   linkType: hard
 
 "object-inspect@npm:^1.13.1":
-  version: 1.13.3
-  resolution: "object-inspect@npm:1.13.3"
-  checksum: 8c962102117241e18ea403b84d2521f78291b774b03a29ee80a9863621d88265ffd11d0d7e435c4c2cea0dc2a2fbf8bbc92255737a05536590f2df2e8756f297
+  version: 1.13.1
+  resolution: "object-inspect@npm:1.13.1"
+  checksum: 7d9fa9221de3311dcb5c7c307ee5dc011cdd31dc43624b7c184b3840514e118e05ef0002be5388304c416c0eb592feb46e983db12577fc47e47d5752fbbfb61f
   languageName: node
   linkType: hard
 
@@ -587,16 +608,16 @@ __metadata:
   linkType: hard
 
 "set-function-length@npm:^1.2.1":
-  version: 1.2.2
-  resolution: "set-function-length@npm:1.2.2"
+  version: 1.2.1
+  resolution: "set-function-length@npm:1.2.1"
   dependencies:
-    define-data-property: ^1.1.4
+    define-data-property: ^1.1.2
     es-errors: ^1.3.0
     function-bind: ^1.1.2
-    get-intrinsic: ^1.2.4
+    get-intrinsic: ^1.2.3
     gopd: ^1.0.1
-    has-property-descriptors: ^1.0.2
-  checksum: a8248bdacdf84cb0fab4637774d9fb3c7a8e6089866d04c817583ff48e14149c87044ce683d7f50759a8c50fb87c7a7e173535b06169c87ef76f5fb276dfff72
+    has-property-descriptors: ^1.0.1
+  checksum: 23742476d695f2eae86348c069bd164d4f25fa7c26546a46a2b5f370f1f84b98ec64366d2cd17785d5b41bbf16b95855da4b7eb188e7056fe3b0248d61f6afda
   languageName: node
   linkType: hard
 

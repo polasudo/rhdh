@@ -2,7 +2,7 @@
   "name": "roadiehq-scaffolder-backend-module-http-request-dynamic",
   "version": "5.0.0",
   "main": "./dist/index.cjs.js",
-  "types": "src/index.ts",
+  "types": "./dist/index.d.ts",
   "license": "Apache-2.0",
   "private": true,
   "publishConfig": {
@@ -17,13 +17,13 @@
   "exports": {
     ".": {
       "require": "./dist/index.cjs.js",
+      "types": "./dist/index.d.ts",
       "default": "./dist/index.cjs.js"
     },
     "./package.json": "./package.json"
   },
   "dependencies": {
-    "cross-fetch": "^4.0.0",
-    "winston": "^3.2.1"
+    "@roadiehq/scaffolder-backend-module-http-request": "5.0.0"
   },
   "files": [
     "dist"
@@ -44,6 +44,15 @@
     "lifecycle:active"
   ],
   "bundleDependencies": true,
+  "overrides": {
+    "@aws-sdk/util-utf8-browser": {
+      "@smithy/util-utf8": "^2.0.0"
+    }
+  },
+  "resolutions": {
+    "@aws-sdk/util-utf8-browser": "npm:@smithy/util-utf8@~2",
+    "@roadiehq/scaffolder-backend-module-http-request": "file:./embedded/roadiehq-scaffolder-backend-module-http-request"
+  },
   "peerDependencies": {
     "@backstage/backend-common": "^0.25.0",
     "@backstage/backend-plugin-api": "^1.0.1",
@@ -51,13 +60,5 @@
     "@backstage/core-plugin-api": "^1.10.0",
     "@backstage/plugin-scaffolder-backend": "^1.26.1",
     "@backstage/plugin-scaffolder-node": "^0.5.0"
-  },
-  "overrides": {
-    "@aws-sdk/util-utf8-browser": {
-      "@smithy/util-utf8": "^2.0.0"
-    }
-  },
-  "resolutions": {
-    "@aws-sdk/util-utf8-browser": "npm:@smithy/util-utf8@~2"
   }
 }

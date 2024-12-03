@@ -3,10 +3,24 @@
 
 __metadata:
   version: 6
+  cacheKey: 8
+
+"@backstage-community/plugin-catalog-backend-module-scaffolder-relation-processor@file:./embedded/backstage-community-plugin-catalog-backend-module-scaffolder-relation-processor::locator=backstage-community-plugin-catalog-backend-module-scaffolder-relation-processor-dynamic%40workspace%3A.":
+  version: 2.0.2+embedded
+  resolution: "@backstage-community/plugin-catalog-backend-module-scaffolder-relation-processor@file:./embedded/backstage-community-plugin-catalog-backend-module-scaffolder-relation-processor#./embedded/backstage-community-plugin-catalog-backend-module-scaffolder-relation-processor::hash=353721&locator=backstage-community-plugin-catalog-backend-module-scaffolder-relation-processor-dynamic%40workspace%3A."
+  peerDependencies:
+    "@backstage/backend-plugin-api": ^1.0.1
+    "@backstage/catalog-model": ^1.7.0
+    "@backstage/plugin-catalog-node": ^1.13.1
+  checksum: c8e4ba0cd1fdea4ab23a4870fb5bfe9756639214f20caf977c183b2bd4b0cbe8b3683591bb3fb9d165b58e31f4cf34e818169c10bf292c1c1650e2241692e94b
+  languageName: node
+  linkType: hard
 
 "backstage-community-plugin-catalog-backend-module-scaffolder-relation-processor-dynamic@workspace:.":
   version: 0.0.0-use.local
   resolution: "backstage-community-plugin-catalog-backend-module-scaffolder-relation-processor-dynamic@workspace:."
+  dependencies:
+    "@backstage-community/plugin-catalog-backend-module-scaffolder-relation-processor": 2.0.2
   peerDependencies:
     "@backstage/backend-plugin-api": ^1.0.1
     "@backstage/catalog-model": ^1.7.0

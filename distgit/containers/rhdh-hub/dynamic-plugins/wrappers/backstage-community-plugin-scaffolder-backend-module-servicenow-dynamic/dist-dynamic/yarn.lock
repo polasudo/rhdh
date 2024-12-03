@@ -5,6 +5,22 @@ __metadata:
   version: 6
   cacheKey: 8
 
+"@backstage-community/plugin-scaffolder-backend-module-servicenow@file:./embedded/backstage-community-plugin-scaffolder-backend-module-servicenow::locator=backstage-community-plugin-scaffolder-backend-module-servicenow-dynamic%40workspace%3A.":
+  version: 2.2.3+embedded
+  resolution: "@backstage-community/plugin-scaffolder-backend-module-servicenow@file:./embedded/backstage-community-plugin-scaffolder-backend-module-servicenow#./embedded/backstage-community-plugin-scaffolder-backend-module-servicenow::hash=14d4e5&locator=backstage-community-plugin-scaffolder-backend-module-servicenow-dynamic%40workspace%3A."
+  dependencies:
+    abort-controller: ^3.0.0
+    axios: ^1.7.4
+    form-data: ^4.0.0
+    yaml: ^2.3.3
+    zod: ^3.22.4
+  peerDependencies:
+    "@backstage/backend-plugin-api": ^1.0.1
+    "@backstage/plugin-scaffolder-node": ^0.5.0
+  checksum: fdda48a8543ce8477138d1a31e97bdc8529f3ceaa1c8b52f284d0e7efb2d88a6689ac02010307689035b0e10647e4386b2e9c6aa3440c544b2f3834f1a734830
+  languageName: node
+  linkType: hard
+
 "abort-controller@npm:^3.0.0":
   version: 3.0.0
   resolution: "abort-controller@npm:3.0.0"
@@ -22,13 +38,13 @@ __metadata:
   linkType: hard
 
 "axios@npm:^1.7.4":
-  version: 1.7.8
-  resolution: "axios@npm:1.7.8"
+  version: 1.7.7
+  resolution: "axios@npm:1.7.7"
   dependencies:
     follow-redirects: ^1.15.6
     form-data: ^4.0.0
     proxy-from-env: ^1.1.0
-  checksum: 3d21652faf8e29fb36c47517d2872bb5e2285127a24f5c53ce23082c4eac7f5a88de84dd49d4a1a83068e5301dcfd9067b41e5fbd00b0d20ab7b0a843559273d
+  checksum: 882d4fe0ec694a07c7f5c1f68205eb6dc5a62aecdb632cc7a4a3d0985188ce3030e0b277e1a8260ac3f194d314ae342117660a151fabffdc5081ca0b5a8b47fe
   languageName: node
   linkType: hard
 
@@ -36,11 +52,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "backstage-community-plugin-scaffolder-backend-module-servicenow-dynamic@workspace:."
   dependencies:
-    abort-controller: ^3.0.0
-    axios: ^1.7.4
-    form-data: ^4.0.0
-    yaml: ^2.3.3
-    zod: ^3.22.4
+    "@backstage-community/plugin-scaffolder-backend-module-servicenow": 2.2.3
   peerDependencies:
     "@backstage/backend-plugin-api": ^1.0.1
     "@backstage/plugin-scaffolder-node": ^0.5.0
@@ -81,13 +93,13 @@ __metadata:
   linkType: hard
 
 "form-data@npm:^4.0.0":
-  version: 4.0.1
-  resolution: "form-data@npm:4.0.1"
+  version: 4.0.0
+  resolution: "form-data@npm:4.0.0"
   dependencies:
     asynckit: ^0.4.0
     combined-stream: ^1.0.8
     mime-types: ^2.1.12
-  checksum: ccee458cd5baf234d6b57f349fe9cc5f9a2ea8fd1af5ecda501a18fd1572a6dd3bf08a49f00568afd995b6a65af34cb8dec083cf9d582c4e621836499498dd84
+  checksum: 01135bf8675f9d5c61ff18e2e2932f719ca4de964e3be90ef4c36aacfc7b9cb2fceb5eca0b7e0190e3383fe51c5b37f4cb80b62ca06a99aaabfcfd6ac7c9328c
   languageName: node
   linkType: hard
 

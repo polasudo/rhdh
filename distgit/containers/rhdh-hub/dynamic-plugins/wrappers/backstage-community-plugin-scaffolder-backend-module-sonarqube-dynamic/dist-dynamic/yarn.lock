@@ -5,11 +5,23 @@ __metadata:
   version: 6
   cacheKey: 8
 
+"@backstage-community/plugin-scaffolder-backend-module-sonarqube@file:./embedded/backstage-community-plugin-scaffolder-backend-module-sonarqube::locator=backstage-community-plugin-scaffolder-backend-module-sonarqube-dynamic%40workspace%3A.":
+  version: 2.2.2+embedded
+  resolution: "@backstage-community/plugin-scaffolder-backend-module-sonarqube@file:./embedded/backstage-community-plugin-scaffolder-backend-module-sonarqube#./embedded/backstage-community-plugin-scaffolder-backend-module-sonarqube::hash=5a33fb&locator=backstage-community-plugin-scaffolder-backend-module-sonarqube-dynamic%40workspace%3A."
+  dependencies:
+    yaml: ^2.3.3
+  peerDependencies:
+    "@backstage/backend-plugin-api": ^1.0.1
+    "@backstage/plugin-scaffolder-node": ^0.5.0
+  checksum: 3a9228ca66bb3b2ee3ecb8c7d62a9d10cb6d8c3143e90048449bb225f293e654faba59c5063cf0aab4a61c01d8982da0464e39df1052c8fb866300c6fbe71405
+  languageName: node
+  linkType: hard
+
 "backstage-community-plugin-scaffolder-backend-module-sonarqube-dynamic@workspace:.":
   version: 0.0.0-use.local
   resolution: "backstage-community-plugin-scaffolder-backend-module-sonarqube-dynamic@workspace:."
   dependencies:
-    yaml: ^2.3.3
+    "@backstage-community/plugin-scaffolder-backend-module-sonarqube": 2.2.2
   peerDependencies:
     "@backstage/backend-plugin-api": ^1.0.1
     "@backstage/plugin-scaffolder-node": ^0.5.0
