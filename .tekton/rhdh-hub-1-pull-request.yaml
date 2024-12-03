@@ -225,6 +225,7 @@ spec:
         - name: kind
           value: task
         resolver: bundles
+      timeout: 2h
       when:
       - input: $(tasks.init.results.build)
         operator: in
@@ -464,7 +465,21 @@ spec:
       optional: true
     - name: netrc
       optional: true
+  taskRunSpecs:
+    - pipelineTaskName: build-container
+      stepSpecs:
+        - name: build
+          computeResources:
+            requests:
+              cpu: '8'
+              memory: 10Gi
+            limits:
+              cpu: '8'
+              memory: 10Gi    
   taskRunTemplate: {}
+  timeouts:
+    # See https://tekton.dev/docs/pipelines/pipelineruns/#configuring-a-failure-timeout
+      pipeline: 3h
   workspaces:
   - name: git-auth
     secret:
