@@ -1014,6 +1014,7 @@ if [[ $BUNDLEONLY -eq 1 ]]; then
   for d in \
     distgit/containers/rhdh-hub/ \
     distgit/containers/rhdh-operator/ \
+    sync/upstream_SHA_rhdh-hub \
     sync/upstream_SHA_rhdh-operator \
     ; do git restore --staged $d; git restore $d
   done
