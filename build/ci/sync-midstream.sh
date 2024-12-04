@@ -624,9 +624,9 @@ Using midstream_repo:
 latestNextTag=""; if [[ $latestNext ]]; then latestNextTag="${latestNext}, "; fi 
 
 # append Brew metadata here
-sed -i '/# append Brew metadata here/q' distgit/containers/rhdh-hub/Dockerfile.in
-sed -i '/# append Brew metadata here/q' distgit/containers/rhdh-hub/Dockerfile
-sed -i '/# append Brew metadata here/q' distgit/containers/rhdh-hub/Containerfile
+for c in distgit/containers/rhdh-hub/Dockerfile.in distgit/containers/rhdh-hub/Dockerfile distgit/containers/rhdh-hub/Containerfile; do
+  if [[ -f $c ]]; then sed -i '/# append Brew metadata here/q' $c; fi
+done
 cat <<EOT >$TMPDIR/hub.Dockerfile.foot
 ENV SUMMARY="Red Hat Developer Hub container" \\
     DESCRIPTION="Red Hat Developer Hub container" \\
@@ -668,9 +668,9 @@ EOT
 echo "[INFO] Generated distgit/containers/rhdh-hub/.git/config for use with Husky"
 
 # append Brew metadata here
-sed -i '/# append Brew metadata here/q' distgit/containers/rhdh-operator/Dockerfile.in
-sed -i '/# append Brew metadata here/q' distgit/containers/rhdh-operator/Dockerfile
-sed -i '/# append Brew metadata here/q' distgit/containers/rhdh-operator/Containerfile
+for c in distgit/containers/rhdh-operator/Dockerfile.in distgit/containers/rhdh-operator/Dockerfile distgit/containers/rhdh-operator/Containerfile; do
+  if [[ -f $c ]]; then sed -i '/# append Brew metadata here/q' $c; fi
+done
 cat <<EOT >$TMPDIR/operator.Dockerfile.foot
 ENV SUMMARY="Red Hat Developer Hub operator" \\
     DESCRIPTION="Red Hat Developer Hub operator" \\
@@ -699,9 +699,9 @@ LABEL summary="\$SUMMARY" \\
 EOT
 echo "[INFO] Added metadata to $TMPDIR/operator.Dockerfile.foot"
 
-sed -i '/# append Brew metadata here/q' distgit/containers/rhdh-operator-bundle/Dockerfile.in
-sed -i '/# append Brew metadata here/q' distgit/containers/rhdh-operator-bundle/Dockerfile
-sed -i '/# append Brew metadata here/q' distgit/containers/rhdh-operator-bundle/Containerfile
+for c in distgit/containers/rhdh-operator-bundle/Dockerfile.in distgit/containers/rhdh-operator-bundle/Dockerfile distgit/containers/rhdh-operator-bundle/Containerfile; do
+  if [[ -f $c ]]; then sed -i '/# append Brew metadata here/q' $c; fi
+done
 cat <<EOT >$TMPDIR/operator-bundle.Dockerfile.foot
 ENV SUMMARY="Red Hat Developer Hub operator bundle" \\
     DESCRIPTION="Red Hat Developer Hub operator bundle" \\
@@ -1029,6 +1029,26 @@ elif [[ $DO_BUILD -eq 0 ]]; then
     ; do git restore --staged $d; git restore $d
   done
 fi
+
+# purge any files we definitely don't want downstream
+# shellcheck disable=SC2086
+for d in \
+  distgit/containers/rhdh-hub/Dockerfile \
+  distgit/containers/rhdh-hub/Dockerfile.in \
+  distgit/containers/rhdh-hub/docker/Dockerfile \
+  distgit/containers/rhdh-hub/docker/Dockerfile.in \
+  \
+  distgit/containers/rhdh-operator/Dockerfile \
+  distgit/containers/rhdh-operator/Dockerfile.in \
+  distgit/containers/rhdh-operator/docker/Dockerfile \
+  distgit/containers/rhdh-operator/docker/Dockerfile.in \
+  \
+  distgit/containers/rhdh-operator-bundle/Dockerfile \
+  distgit/containers/rhdh-operator-bundle/Dockerfile.in \
+  distgit/containers/rhdh-operator-bundle/docker/Dockerfile \
+  distgit/containers/rhdh-operator-bundle/docker/Dockerfile.in \
+  ; do git rm -fr $d || rm -fr $d
+done
 
 # Konflux performance workaround
 # set concurrency for turbo commands so that builds don't run our of file handles / disk space / memory (instead of default 10)
