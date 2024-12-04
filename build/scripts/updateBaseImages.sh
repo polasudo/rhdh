@@ -101,10 +101,8 @@ if [[ $# -lt 1 ]]; then usage; exit; fi
 # can set a different override with a comment line above the FROM like this, where the string after the # is the regex to use for BASETAG searches
 # # https://quay.io/eclipse/che-machine-exec#^7\.
 BASETAG="."
-# suppress latest and -source (RHEC); suppress next and nightly (quay)
-# Adding .att because new sha's have appeared in the skopeo output that broke devfilereg
-# ubi8/httpd-24 sha256-eb54516b61a323f653315cef3923a240ade15de871ca324ca6a13c40aa40492c.att
-EXCLUDES="latest|-source|next|nightly|.att|.git|.src|.sig|.sbom|-on-pull-|-on-pr-|sha256-"
+# see exclude list in getLatestImageTags.sh and updateBaseImages.sh
+EXCLUDES="latest|-source|next|nightly|-tmp-|-ci-|-gh-|.att|.git|.src|.sig|.sbom|.prefetch|-on-pull-|-on-push-|-on-pr-|sha256-|-container"
 while [[ "$#" -gt 0 ]]; do
   case $1 in
 	'-w') WORKDIR="$2"; shift 1;;
