@@ -483,6 +483,14 @@ spec:
             limits:
               cpu: '8'
               memory: 10Gi    
+    - pipelineTaskName: prefetch-dependencies
+      computeResources:
+        requests:
+          cpu: '8'
+          memory: 10Gi
+        limits:
+          cpu: '8'
+          memory: 10Gi    
   taskRunTemplate: {}
   timeouts:
     # See https://tekton.dev/docs/pipelines/pipelineruns/#configuring-a-failure-timeout
