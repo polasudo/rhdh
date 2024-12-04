@@ -24,9 +24,9 @@
           "replaces": "rhdh-operator.v1.1.1"
         },
         {
-          "name": "rhdh-operator.v1.5.0",
+          "name": "rhdh-operator.v1.4.0",
           "replaces": "rhdh-operator.v1.3.1",
-          "skipRange": "<1.5.0"
+          "skipRange": "<1.4.0"
         }
       ],
       "name": "fast",
@@ -136,18 +136,18 @@
     {
       "entries": [
         {
-          "name": "rhdh-operator.v1.5.0",
+          "name": "rhdh-operator.v1.4.0",
           "replaces": "rhdh-operator.v1.3.1",
-          "skipRange": "<1.5.0"
+          "skipRange": "<1.4.0"
         }
       ],
-      "name": "fast-1.5",
+      "name": "fast-1.4",
       "package": "rhdh",
       "schema": "olm.channel"
     },
     {
       "schema": "olm.bundle",
-      "image": "quay.io/rhdh/rhdh-operator-bundle@sha256:c52c18c0dc987ad8e7a94d1c37726ff859444c93a02e19eb811cefc0067892c6"
+      "image": "quay.io/rhdh/rhdh-operator-bundle@sha256:a326db88b5c3dd02f8ea4dc9a4195efd2e672d65dd68531c49b8c3b7c54f1490"
     }
   ]
 }
