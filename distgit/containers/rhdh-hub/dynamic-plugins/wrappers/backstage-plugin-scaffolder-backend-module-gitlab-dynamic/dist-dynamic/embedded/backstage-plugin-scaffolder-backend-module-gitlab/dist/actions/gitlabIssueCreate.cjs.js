@@ -6,6 +6,7 @@ var commonGitlabConfig = require('../commonGitlabConfig.cjs.js');
 var gitlabIssueCreate_examples = require('./gitlabIssueCreate.examples.cjs.js');
 var zod = require('zod');
 var util = require('../util.cjs.js');
+var helpers = require('./helpers.cjs.js');
 
 const issueInputProperties = zod.z.object({
   projectId: zod.z.number().describe("Project Id"),
@@ -126,7 +127,9 @@ const createGitlabIssueAction = (options) => {
             validationErrors: error.errors
           });
         }
-        throw new errors.InputError(`Failed to create GitLab issue: ${error.message}`);
+        throw new errors.InputError(
+          `Failed to create GitLab issue: ${helpers.getErrorMessage(error)}`
+        );
       }
     }
   });

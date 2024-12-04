@@ -6,6 +6,7 @@ var zod = require('zod');
 var commonGitlabConfig = require('../commonGitlabConfig.cjs.js');
 var util = require('../util.cjs.js');
 var gitlabPipelineTrigger_examples = require('./gitlabPipelineTrigger.examples.cjs.js');
+var helpers = require('./helpers.cjs.js');
 
 const pipelineInputProperties = zod.z.object({
   projectId: zod.z.number().describe("Project Id"),
@@ -63,7 +64,9 @@ const createTriggerGitlabPipelineAction = (options) => {
             validationErrors: error.errors
           });
         }
-        throw new errors.InputError(`Failed to trigger Pipeline: ${error.message}`);
+        throw new errors.InputError(
+          `Failed to trigger Pipeline: ${helpers.getErrorMessage(error)}`
+        );
       } finally {
         if (pipelineTokenResponse && pipelineTokenResponse.id) {
           try {

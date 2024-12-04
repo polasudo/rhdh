@@ -6,19 +6,19 @@ __metadata:
   cacheKey: 8
 
 "@backstage/plugin-scaffolder-backend-module-bitbucket-server@file:./embedded/backstage-plugin-scaffolder-backend-module-bitbucket-server::locator=backstage-plugin-scaffolder-backend-module-bitbucket-server-dynamic%40workspace%3A.":
-  version: 0.2.1+embedded
-  resolution: "@backstage/plugin-scaffolder-backend-module-bitbucket-server@file:./embedded/backstage-plugin-scaffolder-backend-module-bitbucket-server#./embedded/backstage-plugin-scaffolder-backend-module-bitbucket-server::hash=9e944b&locator=backstage-plugin-scaffolder-backend-module-bitbucket-server-dynamic%40workspace%3A."
+  version: 0.2.2+embedded
+  resolution: "@backstage/plugin-scaffolder-backend-module-bitbucket-server@file:./embedded/backstage-plugin-scaffolder-backend-module-bitbucket-server#./embedded/backstage-plugin-scaffolder-backend-module-bitbucket-server::hash=d11c37&locator=backstage-plugin-scaffolder-backend-module-bitbucket-server-dynamic%40workspace%3A."
   dependencies:
-    "@backstage/plugin-scaffolder-node": ^0.5.0
+    "@backstage/plugin-scaffolder-node": ^0.6.0
     fs-extra: ^11.2.0
     node-fetch: ^2.7.0
     yaml: ^2.0.0
   peerDependencies:
-    "@backstage/backend-plugin-api": ^1.0.1
-    "@backstage/config": ^1.2.0
-    "@backstage/errors": ^1.2.4
-    "@backstage/integration": ^1.15.1
-  checksum: 3c215a99d53bf898ea977d0a5312ca9591b4f2c9584a78c19e6faad9480f8d2dd75dfc78add099c082077ce9b35b8ae2532b97ba3263e5561d35954cb4ab0d9d
+    "@backstage/backend-plugin-api": ^1.0.2
+    "@backstage/config": ^1.3.0
+    "@backstage/errors": ^1.2.5
+    "@backstage/integration": ^1.15.2
+  checksum: 7ee18c58969c05160a09a93cfcbeac52ba365459f124fc3876784c7eef37c1fa9b3a5b4191d3b2d3ccb8b3af0f31b0c14d7917adc7fa07c97ca7666117cab15d
   languageName: node
   linkType: hard
 
@@ -34,10 +34,10 @@ __metadata:
   linkType: hard
 
 "@backstage/plugin-scaffolder-node@file:./embedded/backstage-plugin-scaffolder-node::locator=backstage-plugin-scaffolder-backend-module-bitbucket-server-dynamic%40workspace%3A.":
-  version: 0.5.0+embedded
-  resolution: "@backstage/plugin-scaffolder-node@file:./embedded/backstage-plugin-scaffolder-node#./embedded/backstage-plugin-scaffolder-node::hash=ec9c00&locator=backstage-plugin-scaffolder-backend-module-bitbucket-server-dynamic%40workspace%3A."
+  version: 0.6.0+embedded
+  resolution: "@backstage/plugin-scaffolder-node@file:./embedded/backstage-plugin-scaffolder-node#./embedded/backstage-plugin-scaffolder-node::hash=e6e74b&locator=backstage-plugin-scaffolder-backend-module-bitbucket-server-dynamic%40workspace%3A."
   dependencies:
-    "@backstage/plugin-scaffolder-common": ^1.5.6
+    "@backstage/plugin-scaffolder-common": ^1.5.7
     concat-stream: ^2.0.0
     fs-extra: ^11.2.0
     globby: ^11.0.0
@@ -50,12 +50,12 @@ __metadata:
     zod-to-json-schema: ^3.20.4
   peerDependencies:
     "@backstage/backend-common": ^0.25.0
-    "@backstage/backend-plugin-api": ^1.0.1
-    "@backstage/catalog-model": ^1.7.0
-    "@backstage/errors": ^1.2.4
-    "@backstage/integration": ^1.15.1
-    "@backstage/types": ^1.1.1
-  checksum: 8f95c6a441e46601b1597fdaceb199c1687a07fb6132107cacef8014f671e92351d952d9074454e7ea19942c0093f4cc31e23b6aab1567e2b9a9817cf1e9f818
+    "@backstage/backend-plugin-api": ^1.0.2
+    "@backstage/catalog-model": ^1.7.1
+    "@backstage/errors": ^1.2.5
+    "@backstage/integration": ^1.15.2
+    "@backstage/types": ^1.2.0
+  checksum: c6efedbdff8f2500f671b2497792a85a882ef092bab2f475ba4e6de00d04f8794a38ad143bd89b3fbf15ecde641878b7c499aad1ef964b36a08a9a2eac3f5391
   languageName: node
   linkType: hard
 
@@ -136,14 +136,14 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "backstage-plugin-scaffolder-backend-module-bitbucket-server-dynamic@workspace:."
   dependencies:
-    "@backstage/plugin-scaffolder-backend-module-bitbucket-server": 0.2.1
+    "@backstage/plugin-scaffolder-backend-module-bitbucket-server": 0.2.2
   peerDependencies:
     "@backstage/backend-common": ^0.25.0
-    "@backstage/backend-plugin-api": ^1.0.1
+    "@backstage/backend-plugin-api": ^1.0.2
     "@backstage/catalog-model": ^1.7.1
-    "@backstage/config": ^1.2.0
-    "@backstage/errors": ^1.2.4
-    "@backstage/integration": ^1.15.1
+    "@backstage/config": ^1.3.0
+    "@backstage/errors": ^1.2.5
+    "@backstage/integration": ^1.15.2
     "@backstage/plugin-permission-common": ^0.8.2
     "@backstage/types": ^1.2.0
   languageName: unknown

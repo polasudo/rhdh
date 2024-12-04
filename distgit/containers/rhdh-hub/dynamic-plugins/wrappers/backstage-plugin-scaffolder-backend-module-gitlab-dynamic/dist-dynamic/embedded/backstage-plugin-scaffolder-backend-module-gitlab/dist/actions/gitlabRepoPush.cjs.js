@@ -116,7 +116,9 @@ const createGitlabRepoPushAction = (options) => {
       } catch (e) {
         if (e.response?.statusCode !== 404) {
           throw new errors.InputError(
-            `Failed to check status of branch '${branchName}'. Please make sure that branch already exists or Backstage has permissions to create one. ${e}`
+            `Failed to check status of branch '${branchName}'. Please make sure that branch already exists or Backstage has permissions to create one. ${helpers.getErrorMessage(
+              e
+            )}`
           );
         }
       }
@@ -127,7 +129,9 @@ const createGitlabRepoPushAction = (options) => {
           await api.Branches.create(repoID, branchName, String(defaultBranch));
         } catch (e) {
           throw new errors.InputError(
-            `The branch '${branchName}' was not found and creation failed with error. Please make sure that branch already exists or Backstage has permissions to create one. ${e}`
+            `The branch '${branchName}' was not found and creation failed with error. Please make sure that branch already exists or Backstage has permissions to create one. ${helpers.getErrorMessage(
+              e
+            )}`
           );
         }
       }
@@ -143,7 +147,9 @@ const createGitlabRepoPushAction = (options) => {
         ctx.output("commitHash", commit.id);
       } catch (e) {
         throw new errors.InputError(
-          `Committing the changes to ${branchName} failed. Please check that none of the files created by the template already exists. ${e}`
+          `Committing the changes to ${branchName} failed. Please check that none of the files created by the template already exists. ${helpers.getErrorMessage(
+            e
+          )}`
         );
       }
     }

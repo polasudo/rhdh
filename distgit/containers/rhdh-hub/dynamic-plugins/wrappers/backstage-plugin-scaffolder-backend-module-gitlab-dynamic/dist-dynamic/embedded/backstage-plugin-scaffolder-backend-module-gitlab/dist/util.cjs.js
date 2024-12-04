@@ -76,10 +76,7 @@ async function getTopLevelParentGroup(client, groupId) {
   try {
     const topParentGroup = await client.Groups.show(groupId);
     if (topParentGroup.parent_id) {
-      return getTopLevelParentGroup(
-        client,
-        topParentGroup.parent_id
-      );
+      return getTopLevelParentGroup(client, topParentGroup.parent_id);
     }
     return topParentGroup;
   } catch (error) {

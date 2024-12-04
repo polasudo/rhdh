@@ -6,6 +6,7 @@ var commonGitlabConfig = require('../commonGitlabConfig.cjs.js');
 var gitlabIssueEdit_examples = require('./gitlabIssueEdit.examples.cjs.js');
 var zod = require('zod');
 var util = require('../util.cjs.js');
+var helpers = require('./helpers.cjs.js');
 
 const editIssueInputProperties = zod.z.object({
   projectId: zod.z.number().describe(
@@ -152,7 +153,7 @@ const editGitlabIssueAction = (options) => {
           });
         }
         throw new errors.InputError(
-          `Failed to edit/modify GitLab issue: ${error.message}`
+          `Failed to edit/modify GitLab issue: ${helpers.getErrorMessage(error)}`
         );
       }
     }

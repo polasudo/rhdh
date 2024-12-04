@@ -35,6 +35,9 @@ declare function createPublishGitlabAction(options: {
         squash_option?: "always" | "never" | "default_off" | "default_on" | undefined;
         topics?: string[] | undefined;
         visibility?: "internal" | "private" | "public" | undefined;
+        only_allow_merge_if_all_discussions_are_resolved?: boolean | undefined;
+        only_allow_merge_if_pipeline_succeeds?: boolean | undefined;
+        allow_merge_on_skipped_pipeline?: boolean | undefined;
     } | undefined;
     branches?: {
         name: string;

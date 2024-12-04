@@ -23,6 +23,14 @@ function createGitlabApi(options) {
     [tokenType]: token
   });
 }
+function isGitlabError(e) {
+  return errors.isError(e) && "description" in e && typeof e.description === "string";
+}
+function getErrorMessage(e) {
+  if (isGitlabError(e)) return `${e} - ${e.description}`;
+  return String(e);
+}
 
 exports.createGitlabApi = createGitlabApi;
+exports.getErrorMessage = getErrorMessage;
 //# sourceMappingURL=helpers.cjs.js.map

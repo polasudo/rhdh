@@ -301,12 +301,6 @@ function createPublishBitbucketCloudPullRequestAction(options) {
           logger: ctx.logger,
           ref: sourceBranch
         });
-        await pluginScaffolderNode.createBranch({
-          dir: tempDir,
-          auth,
-          logger: ctx.logger,
-          ref: sourceBranch
-        });
         fs__default.default.cpSync(sourceDir, tempDir, {
           recursive: true,
           filter: (path) => {
