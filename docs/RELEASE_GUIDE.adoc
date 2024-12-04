@@ -313,6 +313,8 @@ cd /tmp; git clone git@gitlab.cee.redhat.com:rhidp/rhdh.git --depth 1 && cd rhdh
 ./build/scripts/tagRelease.sh -v 1.4.2 -t 1.4 -gh release-1.4 -pd rhdh-1.4-rhel-9 -ghtoken $GITHUB_TOKEN
 
 ```
+Note: If tags already exist but version bump PRs were not created, you can rerun the script with the `--force-update` flag to resolve this. Use `--skip-pd` and `--skip-gl` if those steps were completed previously.
+
 
 ### [TEST] Once images, chart, and tags are available
 
