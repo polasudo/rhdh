@@ -758,11 +758,14 @@ fi
 if [[ $SKIP_PD -eq 0 ]]; then
 	if [[ "${pkgs_devel_branch}" ]] && [[ $CSV_VERSION ]]; then
 		DWNSTM_TARGET_BRANCH="rhdh-${TARGET_BRANCH/release-/}-rhel-9"
+		DWNSTM_TARGET_BRANCH="${DWNSTM_TARGET_BRANCH/.x}"
 		echo "
 You must tag pkgs.devel repos manually - as these steps might fail due to long-running processes (and need to be repeated):
 
+KERB_USER=your_kerberos_user
 for d in hub operator operator-bundle; do
-	pushd ~/5/5-pkgs.devel_\$d >/dev/null || exit
+	pushd /tmp >/dev/null || exit
+	git clone ssh://\$KERB_USER@pkgs.devel.redhat.com/containers/rhdh-\$d && cd rhdh-\$d
 	git restore --staged .; git restore .
 	git checkout \"$DWNSTM_TARGET_BRANCH\"
 	git pull origin \"$DWNSTM_TARGET_BRANCH\"
@@ -775,9 +778,11 @@ done
 		echo "
 You must branch pkgs.devel repos manually - as these steps might fail due to long-running processes (and need to be repeated):
 
+KERB_USER=your_kerberos_user
 DWNSTM_TARGET_BRANCH=\"rhdh-${TARGET_BRANCH/release-/}-rhel-9\"
 for d in hub operator operator-bundle; do
-	pushd ~/5/5-pkgs.devel_\$d >/dev/null || exit
+	pushd /tmp >/dev/null || exit
+	git clone ssh://\$KERB_USER@pkgs.devel.redhat.com/containers/rhdh-\$d && cd rhdh-\$d
 	git restore --staged .; git restore .
 	git checkout rhdh-1-rhel-9; git pull origin rhdh-1-rhel-9
 	git branch \$DWNSTM_TARGET_BRANCH
