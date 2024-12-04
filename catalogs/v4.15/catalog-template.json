@@ -75,7 +75,7 @@
           "replaces": "rhdh-operator.v1.1.0"
         },
         {
-          "name": "rhdh-operator.v1.2.5",
+          "name": "rhdh-operator.v1.2.6",
           "replaces": "rhdh-operator.v1.1.1"
         }
       ],
@@ -127,7 +127,7 @@
     },
     {
       "schema": "olm.bundle",
-      "image": "registry.redhat.io/rhdh/rhdh-operator-bundle@sha256:808b5e941f390c695cb713b86066ff833537ce7c3e387c2c260f0aecdeae30d6"
+      "image": "registry.redhat.io/rhdh/rhdh-operator-bundle@sha256:3170da029869d15a246ad31d0debd4b9c03ba13855fb877a754cfdffb2286b80"
     },
     {
       "schema": "olm.bundle",
@@ -147,7 +147,7 @@
     },
     {
       "schema": "olm.bundle",
-      "image": "quay.io/rhdh/rhdh-operator-bundle@sha256:ee9dcfc5aeef8bd926371503f683fccec5169abb7bdd3c3be5b75e929b408d91"
+      "image": "quay.io/rhdh/rhdh-operator-bundle@sha256:c52c18c0dc987ad8e7a94d1c37726ff859444c93a02e19eb811cefc0067892c6"
     }
   ]
 }
