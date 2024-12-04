@@ -165,6 +165,13 @@ spec:
         workspace: git-auth
     - name: prefetch-dependencies
       params:
+      - name: config-file-content
+        value: |
+          ---
+          requests_timeout: 600000
+          subprocess_timeout: 7200
+      - name: log-level
+        value: debug
       - name: input
         value: $(params.prefetch-input)
       - name: SOURCE_ARTIFACT
