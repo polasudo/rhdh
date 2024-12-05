@@ -66,7 +66,8 @@ Options:
     --force                   remove contents of sync/ folder to force a build to happen, even if no changes in upstream
                               will also push changes to midstream repo with --force
     --clean                   cleanup midstream sources before fetching new files
-    --bundleonly              ONLY update the bundle folder w/ new CSV content and updated Containerfile version
+    --bundleonly              ONLY update the bundle folder w/ updated Containerfile version
+    --bundleonly --force      ONLY update the bundle folder w/ updated Containerfile version, and newer related images
     --nobuild                 after fetching and transforming, do not run 'yarn install' and 'yarn build'
     --nocommit                do not commit or push local changes
     --nopush                  do not push local changes
@@ -78,8 +79,8 @@ Options:
 
 Examples:
 
-    $0 --nobuild    --nopush --force ${latestNextExample} -b ${DWNSTM_BRANCH} 
-    $0 --bundleonly --nopush ${latestNextExample} -b ${DWNSTM_BRANCH} 
+    $0 --nobuild    --force --nopush ${latestNextExample} -b ${DWNSTM_BRANCH} 
+    $0 --bundleonly --force --nopush ${latestNextExample} -b ${DWNSTM_BRANCH}
     $0 -y
 "
   exit 1
