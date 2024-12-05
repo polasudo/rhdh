@@ -18,6 +18,10 @@
 # https://registry.redhat.io is v2 and requires authentication to query, so login in first like this:
 # docker login registry.redhat.io -u=USERNAME -p=PASSWORD
 
+# see exclude list in getLatestImageTags.sh and updateBaseImages.sh
+EXCLUDES="latest|-source|next|nightly|-tmp-|-ci-|-gh-|.att|.git|.src|.sig|.sbom|.prefetch|on-pull-|on-push-|on-pr-|sha256-|-container"
+EXCLUDES_FRESHMAKER="[0-9]+\.[0-9]+-[0-9]*\.[0-9]{10}" # if set, exclude x.yy-zz.freshmakertimestamp tags; if 1; include them
+
 # TODO: compute default errata num to use with --errata flag
 DEFAULT_ERRATA_NUM="138575"
 DEFAULT_ERRATA_PV="RHDH-1.3-RHEL-9"
@@ -68,10 +72,6 @@ rhdh/rhdh-hub-rhel9 \
 rhdh/rhdh-rhel9-operator \
 rhdh/rhdh-operator-bundle \
 "
-
-# see exclude list in getLatestImageTags.sh and updateBaseImages.sh
-EXCLUDES="latest|-source|next|nightly|-tmp-|-ci-|-gh-|.att|.git|.src|.sig|.sbom|.prefetch|-on-pull-|-on-push-|-on-pr-|sha256-|-container"
-EXCLUDES_FRESHMAKER="[0-9]+\.[0-9]+-[0-9]*\.[0-9]{10}" # if set, exclude x.yy-zz.freshmakertimestamp tags; if 1; include them
 
 QUIET=1 	# less output - omit container tag URLs
 VERBOSE=0	# more output

@@ -16,6 +16,9 @@
 # https://registry.redhat.io is v2 and requires authentication to query, so login in first like this:
 # docker login registry.redhat.io -u=USERNAME -p=PASSWORD
 
+# see exclude list in getLatestImageTags.sh and updateBaseImages.sh
+EXCLUDES="latest|-source|next|nightly|-tmp-|-ci-|-gh-|.att|.git|.src|.sig|.sbom|.prefetch|on-pull-|on-push-|on-pr-|sha256-|-container"
+
 command -v jq >/dev/null 2>&1 || { echo "jq is not installed. Aborting."; exit 1; }
 command -v skopeo >/dev/null 2>&1 || { echo "skopeo is not installed. Aborting."; exit 1; }
 checkVersion() {
@@ -101,8 +104,6 @@ if [[ $# -lt 1 ]]; then usage; exit; fi
 # can set a different override with a comment line above the FROM like this, where the string after the # is the regex to use for BASETAG searches
 # # https://quay.io/eclipse/che-machine-exec#^7\.
 BASETAG="."
-# see exclude list in getLatestImageTags.sh and updateBaseImages.sh
-EXCLUDES="latest|-source|next|nightly|-tmp-|-ci-|-gh-|.att|.git|.src|.sig|.sbom|.prefetch|-on-pull-|-on-push-|-on-pr-|sha256-|-container"
 while [[ "$#" -gt 0 ]]; do
   case $1 in
 	'-w') WORKDIR="$2"; shift 1;;
