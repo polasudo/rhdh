@@ -563,33 +563,6 @@
                 }
               }
             },
-            "bitbucketServer": {
-              "visibility": "frontend",
-              "type": "object",
-              "additionalProperties": {
-                "type": "object",
-                "required": [
-                  "clientId",
-                  "clientSecret",
-                  "host"
-                ],
-                "properties": {
-                  "clientId": {
-                    "type": "string"
-                  },
-                  "clientSecret": {
-                    "visibility": "secret",
-                    "type": "string"
-                  },
-                  "host": {
-                    "type": "string"
-                  },
-                  "callbackUrl": {
-                    "type": "string"
-                  }
-                }
-              }
-            },
             "cfaccess": {
               "visibility": "frontend",
               "type": "object",
@@ -668,6 +641,33 @@
                         ]
                       }
                     }
+                  }
+                }
+              }
+            },
+            "bitbucketServer": {
+              "visibility": "frontend",
+              "type": "object",
+              "additionalProperties": {
+                "type": "object",
+                "required": [
+                  "clientId",
+                  "clientSecret",
+                  "host"
+                ],
+                "properties": {
+                  "clientId": {
+                    "type": "string"
+                  },
+                  "clientSecret": {
+                    "visibility": "secret",
+                    "type": "string"
+                  },
+                  "host": {
+                    "type": "string"
+                  },
+                  "callbackUrl": {
+                    "type": "string"
                   }
                 }
               }
@@ -758,7 +758,7 @@
                 }
               }
             },
-            "github": {
+            "gitlab": {
               "visibility": "frontend",
               "type": "object",
               "additionalProperties": {
@@ -775,10 +775,10 @@
                     "visibility": "secret",
                     "type": "string"
                   },
-                  "callbackUrl": {
+                  "audience": {
                     "type": "string"
                   },
-                  "enterpriseInstanceUrl": {
+                  "callbackUrl": {
                     "type": "string"
                   },
                   "additionalScopes": {
@@ -854,7 +854,7 @@
                 }
               }
             },
-            "gitlab": {
+            "github": {
               "visibility": "frontend",
               "type": "object",
               "additionalProperties": {
@@ -871,10 +871,10 @@
                     "visibility": "secret",
                     "type": "string"
                   },
-                  "audience": {
+                  "callbackUrl": {
                     "type": "string"
                   },
-                  "callbackUrl": {
+                  "enterpriseInstanceUrl": {
                     "type": "string"
                   },
                   "additionalScopes": {
