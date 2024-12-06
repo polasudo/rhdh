@@ -217,7 +217,7 @@ EOF
   if [[ $DO_COMMIT -eq 1 ]]; then
     echo "[INFO] Commit changes to catalogs/v${v}/"
     git add -f "catalogs/v${v}/" || true
-    git commit -s -m "chore: renderCatalogs.sh: catalogs/v${v}/" "catalogs/v${v}/" || true
+    git commit -s -m "chore: renderCatalogs.sh from catalogs/v${v}/, in channel(s) fast${fastYChannel}, for ${PROD_VERSION}-v${v}${arch}${latestNextTag}; add $PROD_FULL_VERSION" "catalogs/v${v}/" || true
   fi
   if [[ ${DO_PUSH} -eq 1 ]]; then
     git pull origin "${DWNSTM_BRANCH}"
