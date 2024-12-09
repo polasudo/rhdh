@@ -33,7 +33,8 @@ USER 0
 RUN dnf install -y -q --allowerasing --nobest nodejs-devel nodejs-libs \
   # already installed or installed as deps:
   openssl openssl-devel ca-certificates make cmake cpp gcc gcc-c++ zlib zlib-devel brotli brotli-devel python3 nodejs-packaging && \
-  dnf update -y && dnf clean all
+  # 'dnf update -y' not allowed in Konflux+Cachi2: instead use renovate to update the rpms.lock.yaml file
+  dnf clean all
 
 # Upstream sources
 ENV EXTERNAL_SOURCE_NESTED=.
@@ -211,8 +212,9 @@ WORKDIR $CONTAINER_SOURCE/
 # Upstream only - install techdocs dependencies (PyPI source tarballs not required)
 # When updating version of mkdocs-techdocs-core remember to update ../.rhdh/docker/requirement* files too
 # hadolint ignore=DL3041,DL3042
-RUN microdnf update --setopt=install_weak_deps=0 -y && \
-  microdnf install -y python3 python3-pip skopeo && \
+# 'microdnf update -y' not allowed in Konflux+Cachi2: instead use renovate to update the rpms.lock.yaml file
+
+RUN microdnf install -y python3 python3-pip skopeo && \
   pip3 install mkdocs-techdocs-core~=1.3.3 && \
   microdnf clean all
 

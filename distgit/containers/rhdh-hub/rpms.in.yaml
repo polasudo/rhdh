@@ -1,0 +1,43 @@
+allowerasing: true
+contentOrigin:
+  repos:
+    - repoid: ubi9-appstream
+      baseurl: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/$basearch/appstream/os/
+      # gpgcheck: 0
+    - repoid: ubi9-appstream-srpms
+      baseurl: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/$basearch/appstream/source/SRPMS
+      # gpgcheck: 0
+    - repoid: ubi9-baseos
+      baseurl: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/$basearch/baseos/os/
+      # gpgcheck: 0
+    - repoid: ubi9-baseos-srpms
+      baseurl: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/$basearch/baseos/source/SRPMS
+      # gpgcheck: 0
+    - repoid: ubi9-codeready-builder
+      baseurl: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/$basearch/codeready-builder/os/
+      # gpgcheck: 0
+    - repoid: ubi9-codeready-builder-srpms
+      baseurl: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/$basearch/codeready-builder/source/SRPMS
+
+moduleEnable: 
+  - nodejs:20
+packages:
+  - brotli
+  - brotli-devel
+  - ca-certificates
+  - cmake
+  - cpp
+  - gcc
+  - gcc-c++
+  - make
+  - nodejs
+  - nodejs-libs
+  - nodejs-packaging
+  - openssl
+  - openssl-devel
+  - python3
+  - python3-pip
+  - skopeo
+  - zlib
+  - zlib-devel
+
