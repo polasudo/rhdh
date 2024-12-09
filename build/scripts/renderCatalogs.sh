@@ -109,6 +109,7 @@ for v in $VERSIONS; do
   mkdir -p "catalogs/v${v}/configs/${prod_path}/"
   # create template from the existing content
   opm alpha convert-template basic "./v${v}-catalog-migrate/${prod_path}/catalog.json" > "catalogs/v${v}/catalog-template.json"
+  cp "catalogs/v${v}/catalog-template.json" "catalogs/v${v}/catalog-template.json.orig"
 
   # eg., for 1.4.0 want to replace 1.3.1 (last released item on the fast channel)
   PROD_PREV_VERSION=$(jq -r '.entries[]|select(.name=="fast")|.entries|last|.name' "catalogs/v${v}/catalog-template.json")
@@ -134,7 +135,17 @@ for v in $VERSIONS; do
     '.entries[1].entries += '"$NEW_ENTRY" \
     "catalogs/v${v}/catalog-template.json" > "catalogs/v${v}/catalog-template.json_"
 
-  # inject new fast-1.y channel
+  # if fast-1.y channel already exists
+  if [[ $(jq --arg PROD_VERSION "${PROD_VERSION}" '.entries[]|select(.name=="fast-'"$PROD_VERSION"'")' "catalogs/v${v}/catalog-template.json_") ]]; then
+    # add new entry to existing fast-1.y channel
+    JSON=$(jq --arg NEW_ENTRY "${NEW_ENTRY}" --arg PROD_VERSION "${PROD_VERSION}" \
+      '.entries[]|select(.name=="fast-'"$PROD_VERSION"'")|.entries += '"$NEW_ENTRY" \
+      "catalogs/v${v}/catalog-template.json_")
+    # remove old fast-1.y entry 
+    jq --arg NEW_JQ "${NEW_JQ}" 'del(.entries[]|select(.name=="fast-'"$PROD_VERSION"'"))' "catalogs/v${v}/catalog-template.json_" > "catalogs/v${v}/catalog-template.json__"
+    mv -f "catalogs/v${v}/catalog-template.json__" "catalogs/v${v}/catalog-template.json_"
+  fi
+  # inject new/updated fast-1.y channel
   jq --arg JSON "${JSON}" '.entries[.entries|length] |= . + '"$JSON" \
     "catalogs/v${v}/catalog-template.json_" > "catalogs/v${v}/catalog-template.json" 
 
