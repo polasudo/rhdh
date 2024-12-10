@@ -17,6 +17,7 @@ prod_url="https://red.ht/rhdh"
 operator_name="rhdh-operator"
 bundle_image="quay.io/rhdh/rhdh-operator-bundle"
 maintainers="RHDH Team <rhdh-bot@redhat.com>"
+templateFile=""
 
 VERSIONS="4.14 4.15 4.16 4.17 4.18"
 
@@ -58,6 +59,8 @@ Options:
   --versions             space-separated list of OCP versions to render;               
                          default: $VERSIONS
   
+  --template             instead of generating a template, use some other local file
+
   --nocommit             do not commit or push local changes
   --nopush               do not push local changes
   --clean                if catalog render folder exists on disk, delete and create a new one; also delete when done
@@ -82,6 +85,7 @@ while [[ "$#" -gt 0 ]]; do
     '--operator-name') operator_name="$2"; shift 1;; 
     '--bundle-image') bundle_image="$2"; shift 1;; 
     '--maintainers') maintainers="$2"; shift 1;; 
+    '--template') templateFile="$2"; shift 1;;
     '--versions') VERSIONS="$2"; shift 1;;
     '--clean') CLEAN=1;;
     '--nocommit') DO_COMMIT=0; DO_PUSH=0;;
@@ -100,69 +104,75 @@ vergte() {
 PROD_VERSION=${PROD_FULL_VERSION%.*} # x.y
 
 for v in $VERSIONS; do
-  # extract content from the public registry
-  if [[ ! -d ./v${v}-catalog-migrate ]] || [[ $CLEAN -eq 1 ]]; then 
-    rm -fr "./v${v}-catalog-migrate"
-    time opm migrate registry.redhat.io/redhat/redhat-operator-index:v${v} ./v${v}-catalog-migrate
-  fi
   # create folder for the rendered catalog.json
   mkdir -p "catalogs/v${v}/configs/${prod_path}/"
-  # create template from the existing content
-  opm alpha convert-template basic "./v${v}-catalog-migrate/${prod_path}/catalog.json" > "catalogs/v${v}/catalog-template.json"
-  # debug with # cp "catalogs/v${v}/catalog-template.json" "catalogs/v${v}/catalog-template.json.orig"
 
-  # eg., for 1.4.0 want to replace 1.3.1 (last released item on the fast channel)
-  PROD_PREV_VERSION=$(jq -r '.entries[]|select(.name=="fast")|.entries|last|.name' "catalogs/v${v}/catalog-template.json")
+  if [[ ! $templateFile ]] || [[ ! -f $templateFile ]]; then
+    # extract content from the public registry
+    if [[ ! -d ./v${v}-catalog-migrate ]] || [[ $CLEAN -eq 1 ]]; then 
+      rm -fr "./v${v}-catalog-migrate"
+      time opm migrate registry.redhat.io/redhat/redhat-operator-index:v${v} ./v${v}-catalog-migrate
+    fi
 
-  NEW_ENTRY='[
-        {
-            "name": "'"${operator_name}"'.v'"${PROD_FULL_VERSION}"'",
-            "replaces": "'"${PROD_PREV_VERSION}"'",
-            "skipRange": "\u003c'"${PROD_FULL_VERSION}"'"
-        }
-    ]'
+    templateFile="catalogs/v${v}/catalog-template.json"
 
-  JSON='
-  {
-    "entries": '"${NEW_ENTRY}"',
-    "name": "fast-'"${PROD_VERSION}"'",
-    "package": "'"${package_name}"'",
-    "schema": "olm.channel"
-  }'
+    # create template from the existing content
+    opm alpha convert-template basic "./v${v}-catalog-migrate/${prod_path}/catalog.json" > "${templateFile}"
+    # debug with # cp "${templateFile}" "${templateFile}.orig"
 
-  # inject new entry into default channel
-  jq --arg NEW_ENTRY "${NEW_ENTRY}" \
-    '.entries[1].entries += '"$NEW_ENTRY" \
-    "catalogs/v${v}/catalog-template.json" > "catalogs/v${v}/catalog-template.json_"
+    # eg., for 1.4.0 want to replace 1.3.1 (last released item on the fast channel)
+    PROD_PREV_VERSION=$(jq -r '.entries[]|select(.name=="fast")|.entries|last|.name' "${templateFile}")
 
-  # if fast-1.y channel already exists
-  if [[ $(jq --arg PROD_VERSION "${PROD_VERSION}" '.entries[]|select(.name=="fast-'"$PROD_VERSION"'")' "catalogs/v${v}/catalog-template.json_") ]]; then
-    # add new entry to existing fast-1.y channel
-    JSON=$(jq --arg NEW_ENTRY "${NEW_ENTRY}" --arg PROD_VERSION "${PROD_VERSION}" \
-      '.entries[]|select(.name=="fast-'"$PROD_VERSION"'")|.entries += '"$NEW_ENTRY" \
-      "catalogs/v${v}/catalog-template.json_")
-    # remove old fast-1.y entry 
-    jq --arg NEW_JQ "${NEW_JQ}" 'del(.entries[]|select(.name=="fast-'"$PROD_VERSION"'"))' "catalogs/v${v}/catalog-template.json_" > "catalogs/v${v}/catalog-template.json__"
-    mv -f "catalogs/v${v}/catalog-template.json__" "catalogs/v${v}/catalog-template.json_"
+    NEW_ENTRY='[
+          {
+              "name": "'"${operator_name}"'.v'"${PROD_FULL_VERSION}"'",
+              "replaces": "'"${PROD_PREV_VERSION}"'",
+              "skipRange": "\u003c'"${PROD_FULL_VERSION}"'"
+          }
+      ]'
+
+    JSON='
+    {
+      "entries": '"${NEW_ENTRY}"',
+      "name": "fast-'"${PROD_VERSION}"'",
+      "package": "'"${package_name}"'",
+      "schema": "olm.channel"
+    }'
+
+    # inject new entry into default channel
+    jq --arg NEW_ENTRY "${NEW_ENTRY}" \
+      '.entries[1].entries += '"$NEW_ENTRY" \
+      "${templateFile}" > "${templateFile}_"
+
+    # if fast-1.y channel already exists
+    if [[ $(jq --arg PROD_VERSION "${PROD_VERSION}" '.entries[]|select(.name=="fast-'"$PROD_VERSION"'")' "${templateFile}_") ]]; then
+      # add new entry to existing fast-1.y channel
+      JSON=$(jq --arg NEW_ENTRY "${NEW_ENTRY}" --arg PROD_VERSION "${PROD_VERSION}" \
+        '.entries[]|select(.name=="fast-'"$PROD_VERSION"'")|.entries += '"$NEW_ENTRY" \
+        "${templateFile}_")
+      # remove old fast-1.y entry 
+      jq --arg NEW_JQ "${NEW_JQ}" 'del(.entries[]|select(.name=="fast-'"$PROD_VERSION"'"))' "${templateFile}_" > "${templateFile}__"
+      mv -f "${templateFile}__" "${templateFile}_"
+    fi
+    # inject new/updated fast-1.y channel
+    jq --arg JSON "${JSON}" '.entries[.entries|length] |= . + '"$JSON" \
+      "${templateFile}_" > "${templateFile}" 
+
+    # latest CI build
+    bundle_digest=$(skopeo inspect "docker://${bundle_image}:$PROD_VERSION" | jq -r '.Digest')
+    echo "Got $bundle_image@$bundle_digest"
+    ./build/scripts/getTagForSHA.sh "$bundle_image@$bundle_digest" -y
+
+    # inject new bundle
+    jq --arg bundle_digest "${bundle_digest}" --arg bundle_image "${bundle_image}" \
+      '.entries[.entries|length] |= . +  {"schema":"olm.bundle", "image": "'"${bundle_image}"'@'"$bundle_digest"'"}' \
+      "${templateFile}" > "${templateFile}_"
+
+    # rename
+    mv "${templateFile}"{_,}
+
+    grep "quay.io/rhdh/rhdh-operator-bundle" "${templateFile}" || true
   fi
-  # inject new/updated fast-1.y channel
-  jq --arg JSON "${JSON}" '.entries[.entries|length] |= . + '"$JSON" \
-    "catalogs/v${v}/catalog-template.json_" > "catalogs/v${v}/catalog-template.json" 
-
-  # latest CI build
-  bundle_digest=$(skopeo inspect "docker://${bundle_image}:$PROD_VERSION" | jq -r '.Digest')
-  echo "Got $bundle_image@$bundle_digest"
-  ./build/scripts/getTagForSHA.sh "$bundle_image@$bundle_digest" -y
-
-  # inject new bundle
-  jq --arg bundle_digest "${bundle_digest}" --arg bundle_image "${bundle_image}" \
-    '.entries[.entries|length] |= . +  {"schema":"olm.bundle", "image": "'"${bundle_image}"'@'"$bundle_digest"'"}' \
-    "catalogs/v${v}/catalog-template.json" > "catalogs/v${v}/catalog-template.json_"
-
-  # rename
-  mv "catalogs/v${v}/catalog-template.json"{_,}
-
-  grep "quay.io/rhdh/rhdh-operator-bundle" "catalogs/v${v}/catalog-template.json" || true
 
   # render catalog content from the template
   rm -f "catalogs/v${v}/configs/${prod_path}/catalog.json"
@@ -170,7 +180,7 @@ for v in $VERSIONS; do
   vergte "$v" "4.17" && migrateLevel="--migrate-level=bundle-object-to-csv-metadata" || migrateLevel=""
   set -x
   # shellcheck disable=SC2086
-  opm alpha render-template basic "catalogs/v${v}/catalog-template.json" $migrateLevel > "catalogs/v${v}/configs/${prod_path}/catalog.json"
+  opm alpha render-template basic "${templateFile}" $migrateLevel > "catalogs/v${v}/configs/${prod_path}/catalog.json"
   set +x
 
   # for 4.15+, use the rhel9 image
