@@ -1150,3 +1150,14 @@ fi
 # cleanup
 for ((i = 0; i < NUM_REPOS; i++)); do rm -fr "$TMPDIR/repo${i}"; done
 rm -f $TMPDIR/hub.Dockerfile.foot $TMPDIR/operator.Dockerfile.foot $TMPDIR/operator-bundle.Dockerfile.foot
+
+if [[ ${DO_PUSH} -eq 1 ]]; then
+  app_name=${DWNSTM_BRANCH/-rhel-9}
+  app_name=${app_name/./-}
+  echo
+  if [[ $BUNDLEONLY ]]; then
+    echo "See bundle pipeline: https://konflux.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/application-pipeline/workspaces/rhdh/applications/${app_name}/activity/pipelineruns?name=rhdh-operator-bundle"
+  else
+    echo "See running pipelines: https://konflux.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/application-pipeline/workspaces/rhdh/applications/${app_name}/activity/pipelineruns?name=on-push"
+  fi
+fi
