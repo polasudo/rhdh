@@ -109,7 +109,7 @@ for v in $VERSIONS; do
   mkdir -p "catalogs/v${v}/configs/${prod_path}/"
   # create template from the existing content
   opm alpha convert-template basic "./v${v}-catalog-migrate/${prod_path}/catalog.json" > "catalogs/v${v}/catalog-template.json"
-  cp "catalogs/v${v}/catalog-template.json" "catalogs/v${v}/catalog-template.json.orig"
+  # debug with # cp "catalogs/v${v}/catalog-template.json" "catalogs/v${v}/catalog-template.json.orig"
 
   # eg., for 1.4.0 want to replace 1.3.1 (last released item on the fast channel)
   PROD_PREV_VERSION=$(jq -r '.entries[]|select(.name=="fast")|.entries|last|.name' "catalogs/v${v}/catalog-template.json")
