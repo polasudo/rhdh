@@ -134,10 +134,6 @@
       "image": "registry.redhat.io/rhdh/rhdh-operator-bundle@sha256:3170da029869d15a246ad31d0debd4b9c03ba13855fb877a754cfdffb2286b80"
     },
     {
-      "schema": "olm.bundle",
-      "image": "registry.redhat.io/rhdh/rhdh-operator-bundle@sha256:ae1bedb8b434f2e97456b81b64346189a89766365bcec798925caa45be3efce6"
-    },
-    {
       "entries": [
         {
           "name": "rhdh-operator.v1.5.0",
@@ -151,7 +147,7 @@
     },
     {
       "schema": "olm.bundle",
-      "image": "quay.io/rhdh/rhdh-operator-bundle@sha256:c52c18c0dc987ad8e7a94d1c37726ff859444c93a02e19eb811cefc0067892c6"
+      "image": "quay.io/rhdh/rhdh-operator-bundle@sha256:7a7e4456821473e4744448dc7c5902a8db01f4824b88050d4cbcae52412cfa35"
     }
   ]
 }
