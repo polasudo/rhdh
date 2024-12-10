@@ -73,5 +73,38 @@ See also:
 
 ## GA Releases
 
-TODO: write this
+Release Plan Admissions are here: https://konflux.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/application-pipeline/release/workspaces/rhtap-releng/release-plan-admission?name=rhdh
+Release Plans are here: https://konflux.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/application-pipeline/release/workspaces/rhdh/release-plan
 
+If you need to delete something here's the easiest views:
+* RPAs: https://console-openshift-console.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/search/ns/rhtap-releng-tenant?kind=appstudio.redhat.com%7Ev1alpha1%7EReleasePlan%2Cappstudio.redhat.com%7Ev1alpha1%7EReleasePlanAdmission%2Cappstudio.redhat.com%7Ev1alpha1%7ERelease&orderBy=asc&sortBy=Created&name=rhdh
+* RPs: https://console-openshift-console.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/search/ns/rhdh-tenant?kind=appstudio.redhat.com%7Ev1alpha1%7EReleasePlan&orderBy=asc&sortBy=Created&name=
+
+Releases can be seen here (with details on if they passed/failed): 
+
+https://console-openshift-console.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/search/ns/rhdh-tenant?kind=appstudio.redhat.com%7Ev1alpha1%7ERelease&orderBy=asc&sortBy=Created&name=
+
+Note that RPs must reference their associated RPAs or else we're not allowed to release. 
+
+### Performing a release
+
+Sadly, we have two options for releases in Konflux:
+* everything immediately released as long as the tests pass, or
+* link:https://konflux.pages.redhat.com/docs/users/releasing/releasing-products.html#_authoring_releases[manual releases via yaml chunks] or using the clunky UI
+
+```
+echo "apiVersion: appstudio.redhat.com/v1alpha1
+kind: Release
+metadata:
+  name: manual-release-rhdh-1-4-fbc-4-14-stage
+  namespace: rhdh-tenant
+  labels:
+    release.appstudio.openshift.io/author: 'nboldt'
+spec:
+  releasePlan: rhdh-1-4-fbc-4-14-stage-release-plan
+  snapshot: fbc-4-14-58cd5
+" |  oc apply -f -
+```
+
+NOTE: this doesn't work yet. 
+TODO: write more here
