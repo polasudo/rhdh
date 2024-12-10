@@ -119,7 +119,7 @@
     },
     {
       "schema": "olm.bundle",
-      "image": "registry.redhat.io/rhdh/rhdh-operator-bundle@sha256:3e140c1f22a1b1149f56528f9bee7c92ebe0f6c1a988a03d30239c66db647b79"
+      "image": "registry.redhat.io/rhdh/rhdh-operator-bundle@sha256:12100dff4f24534f3a46719631d0d8b7dceccaaa5cf13ef6632331dd2c049667"
     },
     {
       "schema": "olm.bundle",
