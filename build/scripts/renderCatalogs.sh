@@ -235,6 +235,8 @@ EOF
     set -x
     git push origin "${DWNSTM_BRANCH}"
     set +x
+    echo
+    echo "See running pipelines: https://konflux.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/application-pipeline/workspaces/rhdh/applications/fbc-${v/./-}/activity/pipelineruns"
   fi 
 done
 
