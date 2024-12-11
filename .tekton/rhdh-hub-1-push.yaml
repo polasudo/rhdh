@@ -23,6 +23,8 @@ spec:
     value: '{{source_url}}'
   - name: revision
     value: '{{revision}}'
+  - name: target_branch
+    value: '{{target_branch}}'
   - name: output-image
     value: quay.io/rhdh/rhdh-hub-rhel9:{{revision}}
   - name: image-expires-after
@@ -53,6 +55,10 @@ spec:
     - default: ""
       description: Revision of the Source Repository
       name: revision
+      type: string
+    - default: ""
+      description: The Target branch to be be published onto
+      name: target_branch
       type: string
     - description: Fully Qualified Output Image
       name: output-image
@@ -467,6 +473,30 @@ spec:
         - name: kind
           value: task
         resolver: bundles
+    - name: publish-helm
+      params:
+      - name: SOURCE_ARTIFACT
+        value: $(tasks.clone-repository.results.SOURCE_ARTIFACT)
+      - name: target_branch
+        value: $(params.target_branch)
+      - name: IMAGE
+        value: $(tasks.build-image-index.results.IMAGE_URL)
+      when:
+      - input: $(tasks.init.results.build)
+        operator: in
+        values:
+        - "true"
+      runAfter:
+      - build-image-index
+      taskRef:
+        resolver: git
+        params:
+          - name: url
+            value: https://gitlab.cee.redhat.com/rhidp/rhdh
+          - name: revision
+            value: rhdh-1-rhel-9 # Change to commit sha to pass EC once merged
+          - name: pathInRepo
+            value: build/helm/publish_task.yaml
     workspaces:
     - name: git-auth
       optional: true

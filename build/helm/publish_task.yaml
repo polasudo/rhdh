@@ -1,0 +1,71 @@
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: publish-helm
+spec:
+  description: |
+    The publish task uses the source artifact from the clone-repository task to run the prepare.sh script that publishes the helm chart
+  params:
+  - name: SOURCE_ARTIFACT
+    type: string
+    description: "The Trusted Artifact URI pointing to the artifact with the application source code."
+  - name: IMAGE
+    type: string
+    description: "Reference of image that was pushed to registry in the buildah task."
+  - name: target_branch
+    description: "The Target branch to be be published onto"
+    type: string
+    default: "false"
+  volumes:
+  - name: workdir
+    emptyDir: {}
+  - name: rhdh-bot-github-token
+    secret: 
+      secretName: rhdh-bot-github-token
+  stepTemplate:
+    volumeMounts:
+    - name: workdir
+      mountPath: /var/workdir
+  steps:
+    - name: use-trusted-artifact
+      image: quay.io/redhat-appstudio/build-trusted-artifacts:latest@sha256:81c4864dae6bb11595f657be887e205262e70086a05ed16ada827fd6391926ac
+      args:
+        - use
+        - $(params.SOURCE_ARTIFACT)=/var/workdir/source
+    - name: publish
+      image: 'registry.redhat.io/ubi9/ubi@sha256:b632d0cc6263372a90e9097dcac0a369e456b144a66026b9eac029a22f0f6e07'
+      workingDir: /var/workdir/
+      volumeMounts:
+        - mountPath: "/etc/secrets"
+          name: rhdh-bot-github-token
+          readOnly: true
+      env:
+        - name: GITHUB_TOKEN_KEY
+          value: rhdh-bot-github-token
+        - name: target_branch
+          value: $(params.target_branch)
+        - name: IMAGE
+          value: $(params.IMAGE)
+      script: |
+        #!/usr/bin/env bash
+
+        cd ./source
+
+        # Install required libraries
+        dnf install -y -q skopeo jq sudo gettext rsync
+
+        TAGS_FROM_IMAGE_LABEL=$(skopeo inspect --format '{{ index .Labels "konflux.additional-tags" }}' docker://$IMAGE)
+        TAG=$(echo -n ${TAGS_FROM_IMAGE_LABEL} | awk '{print $NF}')
+
+        # Fetch the Github token from secret added to Konflux
+        export GITHUB_TOKEN=$(cat /etc/secrets/${GITHUB_TOKEN_KEY})
+        
+        # Check the target branch to see if to use the main chart branch, otherwise, use the stable build branches
+        if [[ ${target_branch} == *-1-* ]]; then
+          chart_branch="main"
+        else
+          chart_branch="release-$(echo ${TAG} | cut -d '-' -f1)""
+        fi
+        
+        echo "[DEBUG] publishing chart version ${IMAGE}-CI from ${chart_branch} to ${target_branch}..."
+        ./build/helm/prepare.sh --chart-version ${TAG}-CI --rhdh-version ${TAG} --chart-branch ${chart_branch} --publish --extra-branch ${target_branch} --catalog "https://rhdh-bot:${GITHUB_TOKEN}@github.com/rhdh-bot/openshift-helm-charts.git"
