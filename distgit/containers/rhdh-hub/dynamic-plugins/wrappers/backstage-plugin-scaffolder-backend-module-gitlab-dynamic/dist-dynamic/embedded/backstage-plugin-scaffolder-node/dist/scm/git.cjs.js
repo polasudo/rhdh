@@ -140,7 +140,7 @@ class Git {
     });
   }
   async push(options) {
-    const { dir, remote, remoteRef, force } = options;
+    const { dir, remote, url, remoteRef, force } = options;
     this.config.logger?.info(
       `Pushing directory to remote {dir=${dir},remote=${remote}}`
     );
@@ -154,7 +154,9 @@ class Git {
         force,
         headers: this.headers,
         remote,
-        onAuth: this.onAuth
+        url,
+        onAuth: this.onAuth,
+        corsProxy: ""
       });
     } catch (ex) {
       this.config.logger?.error(

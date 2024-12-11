@@ -1,4 +1,3 @@
-/// <reference types="node" />
 import * as _backstage_backend_plugin_api from '@backstage/backend-plugin-api';
 import { TemplateAction, TaskBroker, TemplateFilter, TemplateGlobal } from '@backstage/plugin-scaffolder-node';
 

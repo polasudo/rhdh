@@ -89,6 +89,7 @@ type TaskBrokerDispatchOptions = {
  * @public
  */
 interface TaskContext {
+    taskId: string;
     cancelSignal: AbortSignal;
     spec: TaskSpec;
     secrets?: TaskSecrets;

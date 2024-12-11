@@ -34,8 +34,8 @@ __metadata:
   linkType: hard
 
 "@backstage/plugin-scaffolder-node@file:./embedded/backstage-plugin-scaffolder-node::locator=backstage-plugin-scaffolder-backend-module-bitbucket-server-dynamic%40workspace%3A.":
-  version: 0.6.0+embedded
-  resolution: "@backstage/plugin-scaffolder-node@file:./embedded/backstage-plugin-scaffolder-node#./embedded/backstage-plugin-scaffolder-node::hash=e6e74b&locator=backstage-plugin-scaffolder-backend-module-bitbucket-server-dynamic%40workspace%3A."
+  version: 0.6.1+embedded
+  resolution: "@backstage/plugin-scaffolder-node@file:./embedded/backstage-plugin-scaffolder-node#./embedded/backstage-plugin-scaffolder-node::hash=d95006&locator=backstage-plugin-scaffolder-backend-module-bitbucket-server-dynamic%40workspace%3A."
   dependencies:
     "@backstage/plugin-scaffolder-common": ^1.5.7
     concat-stream: ^2.0.0
@@ -55,7 +55,7 @@ __metadata:
     "@backstage/errors": ^1.2.5
     "@backstage/integration": ^1.15.2
     "@backstage/types": ^1.2.0
-  checksum: c6efedbdff8f2500f671b2497792a85a882ef092bab2f475ba4e6de00d04f8794a38ad143bd89b3fbf15ecde641878b7c499aad1ef964b36a08a9a2eac3f5391
+  checksum: 99e315e13c985f2fc50a878e24901d90ef8c3fe3b3b068d1a3af0394e6a34861a5f8d4f9fd9eac3e4be28b175a1b3d7c5ea2c981184dbfbe403982e27c37c896
   languageName: node
   linkType: hard
 

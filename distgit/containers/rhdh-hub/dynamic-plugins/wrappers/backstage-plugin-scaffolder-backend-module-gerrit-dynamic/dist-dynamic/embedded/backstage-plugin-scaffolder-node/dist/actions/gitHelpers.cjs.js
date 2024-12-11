@@ -31,14 +31,10 @@ async function initRepoAndPush(input) {
     author: authorInfo,
     committer: authorInfo
   });
-  await git$1.addRemote({
-    dir,
-    url: remoteUrl,
-    remote: "origin"
-  });
   await git$1.push({
     dir,
-    remote: "origin"
+    remote: "origin",
+    url: remoteUrl
   });
   return { commitHash };
 }
