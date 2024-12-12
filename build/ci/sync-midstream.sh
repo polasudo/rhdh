@@ -1118,7 +1118,12 @@ echo "$gitdiff" > "/tmp/sync-midstream.sh.diff.txt"
   # first commit: update any changed files, plus sync/upstream_SHA*
   #################################################################
 
-  git commit -s -m "chore: Update:${commitMsg}" . || true
+  if [[ $BUNDLEONLY ]]; then
+    # trigger only kfux, not GL pipeline
+    git commit -s -m "[ci skip] Bundle Update Only: ${commitMsg}" . || true
+  else
+    git commit -s -m "chore: Update:${commitMsg}" . || true
+  fi
 fi ## if DO_COMMIT
 
 ################################# PUSH CHANGES #################################
