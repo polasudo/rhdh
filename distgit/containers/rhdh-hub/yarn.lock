@@ -20451,12 +20451,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react-dom@npm:18.3.1":
-  version: 18.3.1
-  resolution: "@types/react-dom@npm:18.3.1"
-  dependencies:
-    "@types/react": "*"
-  checksum: ad28ecce3915d30dc76adc2a1373fda1745ba429cea290e16c6628df9a05fd80b6403c8e87d78b45e6c60e51df7a67add389ab62b90070fbfdc9bda8307d9953
+"@types/react-dom@npm:18.3.4":
+  version: 18.3.4
+  resolution: "@types/react-dom@npm:18.3.4"
+  peerDependencies:
+    "@types/react": ^18.0.0
+  checksum: 20a0862c210bea9c7d9b4f7f82214bc449be9650c061046b52d443ce95baf4266aed5bb63aef484ba086e86c16318166d8a58ceabd8d3984638f0a6b77c663cf
   languageName: node
   linkType: hard
 
@@ -20499,13 +20499,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react@npm:18.3.12":
-  version: 18.3.12
-  resolution: "@types/react@npm:18.3.12"
+"@types/react@npm:18.3.15":
+  version: 18.3.15
+  resolution: "@types/react@npm:18.3.15"
   dependencies:
     "@types/prop-types": "*"
     csstype: ^3.0.2
-  checksum: 4ab1577a8c2105a5e316536f724117c90eee5f4bd5c137fc82a2253d8c1fd299dedaa07e8dfc95d6e2f04a4be3cb8b0e1b06098c6233ebd55c508d88099395b7
+  checksum: c6454797c331e10208230e2f016d57dffccb118f23a2a2405510dc1386ec63da70d283be6a8c28cf0b921611806a9ca1cba4eb19ddbead309e948f7d65030520
   languageName: node
   linkType: hard
 
@@ -21803,8 +21803,8 @@ __metadata:
     "@testing-library/react-hooks": 8.0.1
     "@testing-library/user-event": 14.5.2
     "@types/node": 20.17.9
-    "@types/react": 18.3.12
-    "@types/react-dom": 18.3.1
+    "@types/react": 18.3.15
+    "@types/react-dom": 18.3.4
     lodash: 4.17.21
     prettier: 3.4.2
     react: 18.3.1
