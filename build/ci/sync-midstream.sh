@@ -954,9 +954,11 @@ for d in $these_dirs; do
     done
     set -e
     ## generate Dockerfile from Dockerfile.in for OSBS
-    sed -i '/# append Brew metadata here/q' Dockerfile.in
     cat "$TMPDIR/${d##*rhdh-}.Dockerfile.foot" >> Dockerfile.in
 
+    #TODO [tech debt] 
+    # instead of converting Dockerfile.in to Dockerfile then copying it to Containerfile, skip these steps and just go directly to Containerfile
+    
     sed -r -e 's|\$\{CI_X_VERSION\}\.\$\{CI_Y_VERSION\}|'"$DH_VERSION"'|g' Dockerfile.in > Dockerfile
 
     ## generate Containerfile for Konflux
