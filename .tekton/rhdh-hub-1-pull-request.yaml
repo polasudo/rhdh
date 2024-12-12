@@ -494,7 +494,7 @@ spec:
           - name: url
             value: https://gitlab.cee.redhat.com/rhidp/rhdh
           - name: revision
-            value: rhdh-1-rhel-9 # Change to commit sha to pass EC once merged
+            value: 6d7d8304eecba28cf4baf9967b9287c798bd10a5
           - name: pathInRepo
             value: build/helm/publish_task.yaml
     workspaces:
