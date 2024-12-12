@@ -64,7 +64,7 @@ spec:
         if [[ ${target_branch} == *-1-* ]]; then
           chart_branch="main"
         else
-          chart_branch="release-$(echo ${TAG} | cut -d '-' -f1)""
+          chart_branch="release-$(echo ${TAG} | cut -d '-' -f1)"
         fi
         
         echo "[DEBUG] publishing chart version ${IMAGE}-CI from ${chart_branch} to ${target_branch}..."
