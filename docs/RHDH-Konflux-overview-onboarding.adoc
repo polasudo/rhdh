@@ -183,3 +183,13 @@ Once you have pushed to prod, repeat using registry.redhat.io instead of stage.
 
 NOTE: this doesn't work yet. 
 TODO: write more here
+
+
+To find the Snapshot for a given commit:
+
+oc get Snapshots --sort-by=.metadata.creationTimestamp  --selector='pac.test.appstudio.openshift.io/original-prname=rhdh-hub-1-on-push,pac.test.appstudio.openshift.io/sha=fdf6a4d87a4e372d6b7f0528bd0d348a8d844cfa' 
+oc get Snapshots --sort-by=.metadata.creationTimestamp  --selector='pac.test.appstudio.openshift.io/original-prname=rhdh-operator-1-on-push,pac.test.appstudio.openshift.io/sha=fdf6a4d87a4e372d6b7f0528bd0d348a8d844cfa'
+
+TODO turn this into a script so we can
+* for a given image tag or sha, compute the commit SHA that went into it, and then return the Snapshot for that image.
+  getSnapshotForImage.sh?
