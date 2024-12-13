@@ -154,5 +154,15 @@ To watch the push in progress or review logs:
 * Click on the `managed-xxxx` link under `Pipeline Run` which will direct you to the `rhtap-releng-tenant` instead of your own `rhdh-tenant`.
 * Click on `Logs` to review the success or failure.
 
+Once successfully pushed to stage, you can pull containers to test installing them.
+
+If you need a pull secret, you can use the one in the BitWarden vault called `rhdh_bot_registry_stage_redhat_io.user+pwd`
+
+Note also this mapping: 
+
+* If image is pushed to: quay.io/redhat-pending/rhdh----rhdh-operator-bundle:1.4
+* refernce it as this:   registry.stage.redhat.io/rhdh/rhdh-operator-bundle:1.4
+
+
 NOTE: this doesn't work yet. 
 TODO: write more here
