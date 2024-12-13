@@ -108,13 +108,13 @@ oc login --token=sha256~YOUR_TOKEN_HERE --server=https://api.stone-prod-p02.hjvn
 echo "apiVersion: appstudio.redhat.com/v1alpha1
 kind: Release
 metadata:
-  name: manual-release-rhdh-1-4-fbc-4-14-stage
+  name: manual-release-rhdh-1-4-fbc-4-14-stage-2
   namespace: rhdh-tenant
   labels:
     release.appstudio.openshift.io/author: 'nboldt'
 spec:
   releasePlan: rhdh-1-4-fbc-4-14-stage-release-plan
-  snapshot: fbc-4-14-58cd5
+  snapshot: fbc-4-14-d766t
 " |  oc apply -f -
 ```
 
@@ -163,6 +163,23 @@ Note also this mapping:
 * If image is pushed to: quay.io/redhat-pending/rhdh----rhdh-operator-bundle:1.4
 * refernce it as this:   registry.stage.redhat.io/rhdh/rhdh-operator-bundle:1.4
 
+To check that your stage push is the latest / correct version:
+
+```
+for d in /rhdh/rhdh-hub-rhel9:1.4 /rhdh/rhdh-rhel9-operator:1.4 /rhdh/rhdh-operator-bundle:1.4; do \
+  for r in registry.stage.redhat.io quay.io; do
+    echo; echo ${r}${d}; \
+    skopeo inspect docker://${r}${d} > /tmp/inspect.txt && \
+    jq -r '.Labels.version+"-"+.Labels.release+" built on "+.Labels."build-date"' /tmp/inspect.txt && \
+    jq -r '.Env[]|select(.|contains("_REPO"))' /tmp/inspect.txt && \
+    jq -r '.Labels."vcs-ref"' /tmp/inspect.txt && \
+    rm -f /tmp/inspect.txt
+  done
+  echo "-----"
+done
+```
+
+Once you have pushed to prod, repeat using registry.redhat.io instead of stage.
 
 NOTE: this doesn't work yet. 
 TODO: write more here
