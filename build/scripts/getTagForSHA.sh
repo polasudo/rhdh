@@ -44,7 +44,7 @@ checkImage () {
     if [[ $QUIET -eq 0 ]]; then echo "For $imageAndSHA"; fi
     imageNoSHA=${imageAndSHA%%@*}
     image=${imageNoSHA%%:*}
-    echo "[DEBUG] Got image = $image"
+    if [[ $QUIET -eq 0 ]]; then echo "[DEBUG] Got image = $image"; fi
 
     # support the format repo/org/image:tag@sha256:SHA - just return repo/org/image:tag
     if [[ $imageNoSHA = *":"* ]]; then 
@@ -59,7 +59,7 @@ checkImage () {
     else
         tag=$(skopeo inspect docker://${imageAndSHA} | jq -r '.Labels.version+"-"+.Labels.release')
     fi
-    echo "[DEBUG] Got tag = $tag"
+    if [[ $QUIET -eq 0 ]]; then echo "[DEBUG] Got tag = $tag"; fi
     if [[ $tag ]]; then
         container=${image}:${tag}
         # replace quay.io/rhdh/rhdh-rhel9-operator:1.0:1.0-13 with quay.io/rhdh/rhdh-rhel9-operator:1.0-13
