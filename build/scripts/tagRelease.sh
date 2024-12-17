@@ -26,14 +26,12 @@ TARGET_BRANCH="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || true)"
 if [[ $TARGET_BRANCH != "rhdh-1."*"-rhel-9" ]]; then
 	TARGET_BRANCH="rhdh-1-rhel-9"
 fi
-pkgs_devel_branch=${TARGET_BRANCH}
 
 DO_BUILD=1  # update yarn locks
 DO_PUSH=1   # push the commit
 DO_UPDATE=0 # force update of release-1.yy branches, even if tag already exists
 SKIP_GH=0   # skip updates to GH repos
 SKIP_GL=0   # skip updates to GL repos
-SKIP_PD=0   # skip updates to plgs.devel repos
 
 # make builds faster
 export HUSKY=0
@@ -60,9 +58,9 @@ To create tags (and push updates to release-1.yy branches):
 1. You should have a valid GITHUB_TOKEN for your user (for upstream PRs).
 2. You should have a valid $pduser kerberos login (for mid- and downstreeam pushes).
 3. Run this
-  $0 -v CSV_VERSION -t PROD_VERSION -gh GH_BRANCH -ghtoken GITHUB_TOKEN -pd GITLAB_AND_PKGS_DEVEL_BRANCH -pduser kerberos_user
+  $0 -v CSV_VERSION -t PROD_VERSION -gh GH_BRANCH -ghtoken GITHUB_TOKEN
 Example: 
-  $0 -v 1.4.0 -t 1.4 -gh release-1.4 -pd rhdh-1.4-rhel-9 --clean --force-update -tmpdir $TMPDIR --nobuild
+  $0 -v 1.4.1 -t 1.4 -gh release-1.4 -pd rhdh-1.4-rhel-9 --clean --force-update -tmpdir $TMPDIR --nobuild
 
 Options:
     --clean                   delete existing temp folders and do fresh checkouts
@@ -76,7 +74,6 @@ Options:
     -tmpdir                   temporary dir for checkouts; default $TMPDIR
     --skip-gh                 skip github updates
     --skip-gl                 skip gitlab updates
-    --skip-pd                 skip pkgs.devel updates
 "
 }
 
@@ -93,7 +90,6 @@ while [[ "$#" -gt 0 ]]; do
 	'-t') PROD_VERSION="$2"; shift 1;; # 1.y # used to get released bundle container's CSV contents
 	'-gh') TARGET_BRANCH="$2"; shift 1;;
 	'-ghtoken') GITHUB_TOKEN="$2"; shift 1;;
-	'-pd') pkgs_devel_branch="$2"; shift 1;;
 	'-pduser') pduser="$2"; shift 1;;
 	'--clean') CLEAN="true"; shift 0;; # if set true, delete existing folders and do fresh checkouts
 	'--nobuild') DO_BUILD=0;; 
@@ -104,7 +100,6 @@ while [[ "$#" -gt 0 ]]; do
 	'-tmpdir') TMPDIR="$2"; shift 1;;
 	'--skip-gh') SKIP_GH=1;;
 	'--skip-gl') SKIP_GL=1;;
-	'--skip-pd') SKIP_PD=1;;
 	'-h'|'--help') usage;;
     *) echo "Unknown parameter used: $1."; usage; exit 1;;
   esac
@@ -627,61 +622,6 @@ pushTagGL ()
 	fi
 }
 
-# ############
-# DOWNSTREAM 
-# ############
-
-pushTagPD () 
-{
-	d="$1"
-	# nothing to do if tag already exists
-	if [[ $CSV_VERSION ]] && [[ $(git ls-remote "ssh://${pduser}@pkgs.devel.redhat.com/containers/${d}" "refs/tags/$CSV_VERSION") ]]; then
-		echo; echo "[WARN] https://pkgs.devel.redhat.com/cgit/containers/${d}/tag/?h=$CSV_VERSION already exists."
-	else
-		# convert release-1.4 to rhdh-1.4-rhel-9
-		DWNSTM_TARGET_BRANCH=rhdh-${TARGET_BRANCH/release-/}-rhel-9
-		echo; 
-		if [[ $SOURCE_BRANCH ]]; then
-			echo "== $d :: branch from $pkgs_devel_branch to $DWNSTM_TARGET_BRANCH =="
-		elif [[ $CSV_VERSION ]]; then
-			echo "== $d :: tag $CSV_VERSION from $DWNSTM_TARGET_BRANCH =="
-		fi
-		if [[ ! -d ""$TMPDIR"/containers_${d}" ]]; then
-			git clone -q --depth 1 -b "${pkgs_devel_branch}" "ssh://${pduser}@pkgs.devel.redhat.com/containers/${d}" "containers_${d}"
-			pushd ""$TMPDIR"/containers_${d}" >/dev/null || exit 1
-				git config user.email "${pduser}@redhat.com"
-				git config user.name "RHDH Build (${pduser})"
-				git checkout --track origin/"${pkgs_devel_branch}" -q 2>/dev/null || true
-				git pull -q 2>/dev/null
-			popd >/dev/null || exit 1
-		fi
-		pushd ""$TMPDIR"/containers_${d}" >/dev/null || exit 1
-			if [[ ${SOURCE_BRANCH} ]]; then 
-				# create a branch or use existing
-				set -x 
-				git branch --set-upstream-to="origin/${DWNSTM_TARGET_BRANCH}" "${DWNSTM_TARGET_BRANCH}" || git branch "${DWNSTM_TARGET_BRANCH}" || true
-				git checkout --track origin/"${DWNSTM_TARGET_BRANCH}" 1>/dev/null || true
-				git pull origin "${DWNSTM_TARGET_BRANCH}" 1>/dev/null || true
-				git push origin "${DWNSTM_TARGET_BRANCH}" 1>/dev/null || true
-				set +x 
-
-				# currently, no changes to apply to new midstream rhdh-1.yy-rhel-9 branch (as this content is synced from midstream)
-
-				if [[ $DO_PUSH -eq 1 ]]; then 
-					git push origin "${DWNSTM_TARGET_BRANCH}" 1>/dev/null || true
-					doPush "${DWNSTM_TARGET_BRANCH}"
-				fi
-			fi
-			if [[ $CSV_VERSION ]]; then # push a new tag (or no-op if exists)
-				git tag -a "${CSV_VERSION}" -m "${CSV_VERSION}" || true
-				if [[ $DO_PUSH -eq 1 ]]; then 
-					git push origin "${CSV_VERSION}" || true
-				fi
-			fi
-		popd >/dev/null || exit 1
-	fi
-}
-
 ####################################
 
 getXYplusOneFromBranch "$TARGET_BRANCH"
@@ -736,10 +676,10 @@ fi
 # MIDSTREAM 
 # ############
 
-# echo "SKIPS: $SKIP_GL, $SKIP_PD; pkgs_devel_branch = $pkgs_devel_branch"
+# echo "SKIPS: $SKIP_GL"
 # branch or tag GL repo(s)
 if [[ $SKIP_GL -eq 0 ]]; then
-	if [[ "${pkgs_devel_branch}" ]]; then
+	if [[ "${MIDSTM_BRANCH}" ]]; then
 		for repo in \
 			rhdh \
 			; do
@@ -747,53 +687,6 @@ if [[ $SKIP_GL -eq 0 ]]; then
 		done
 		# cleanup
 		rm -fr "$TMPDIR"/*
-	fi
-fi
-
-# ############
-# DOWNSTREAM 
-# ############
-
-# tag pkgs.devel repos 
-if [[ $SKIP_PD -eq 0 ]]; then
-	if [[ "${pkgs_devel_branch}" ]] && [[ $CSV_VERSION ]]; then
-		DWNSTM_TARGET_BRANCH="rhdh-${TARGET_BRANCH/release-/}-rhel-9"
-		DWNSTM_TARGET_BRANCH="${DWNSTM_TARGET_BRANCH/.x}"
-		echo "
-You must tag pkgs.devel repos manually - as these steps might fail due to long-running processes (and need to be repeated):
-
-KERB_USER=your_kerberos_user
-for d in hub operator operator-bundle; do
-	pushd /tmp >/dev/null || exit
-	git clone ssh://\$KERB_USER@pkgs.devel.redhat.com/containers/rhdh-\$d && cd rhdh-\$d
-	git restore --staged .; git restore .
-	git checkout \"$DWNSTM_TARGET_BRANCH\"
-	git pull origin \"$DWNSTM_TARGET_BRANCH\"
-	git tag -s -m \"$CSV_VERSION\" -a \"$CSV_VERSION\"
-	git push origin \"$CSV_VERSION\"
-	popd >/dev/null || exit
-done
-"
-	else
-		echo "
-You must branch pkgs.devel repos manually - as these steps might fail due to long-running processes (and need to be repeated):
-
-KERB_USER=your_kerberos_user
-DWNSTM_TARGET_BRANCH=\"rhdh-${TARGET_BRANCH/release-/}-rhel-9\"
-for d in hub operator operator-bundle; do
-	pushd /tmp >/dev/null || exit
-	git clone ssh://\$KERB_USER@pkgs.devel.redhat.com/containers/rhdh-\$d && cd rhdh-\$d
-	git restore --staged .; git restore .
-	git checkout rhdh-1-rhel-9; git pull origin rhdh-1-rhel-9
-	git branch \$DWNSTM_TARGET_BRANCH
-	git checkout \"\$DWNSTM_TARGET_BRANCH\"
-	git push origin \"\$DWNSTM_TARGET_BRANCH\"
-	popd >/dev/null || exit
-done
-
-Now submit a ticket like https://issues.redhat.com/browse/SPMM-17463 to get new Errata PV and Brew targets created.
-NOTE: this may no longer be needed once we switch to Konflux.
-"
 	fi
 fi
 
