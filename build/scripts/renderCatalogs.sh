@@ -33,6 +33,7 @@ fi
 
 DO_COMMIT=1 # by default, commit change
 DO_PUSH=1   # push the commit
+USE_RHEC=0  # by default, don't change quay.io -> rr.io 
 CLEAN=0
 latestNext=""
 
@@ -60,6 +61,7 @@ Options:
                          default: $VERSIONS
   
   --template             instead of generating a template, use some other local file
+  --rhec                 switch any quay.io/rhdh/ image refs to registry.redhat.io/rhdh/ (RH Ecosystem Catalog)
 
   --nocommit             do not commit or push local changes
   --nopush               do not push local changes
@@ -86,6 +88,7 @@ while [[ "$#" -gt 0 ]]; do
     '--bundle-image') bundle_image="$2"; shift 1;; 
     '--maintainers') maintainers="$2"; shift 1;; 
     '--template') templateFile="$2"; shift 1;;
+    '--rhec') USE_RHEC="1";;
     '--versions') VERSIONS="$2"; shift 1;;
     '--clean') CLEAN=1;;
     '--nocommit') DO_COMMIT=0; DO_PUSH=0;;
@@ -174,6 +177,11 @@ for v in $VERSIONS; do
     grep "quay.io/rhdh/rhdh-operator-bundle" "${templateFile}" || true
   fi
 
+  # switch quay.io/rhdh references that will fail in a push to production Release
+  if [[ $USE_RHEC -eq 1 ]]; then 
+    sed -i "catalogs/v${v}/catalog-template.json" -r -e "s|quay.io/rhdh|registry.redhat.io/rhdh|g"
+  fi
+
   # render catalog content from the template
   rm -f "catalogs/v${v}/configs/${prod_path}/catalog.json"
   # for 4.17+, migrate bundles' "olm.bundle.object" to "olm.csv.metadata"
@@ -239,7 +247,9 @@ EOF
     echo "[INFO] Commit changes to catalogs/v${v}/"
     git add -f "catalogs/v${v}/" || true
     # don't trigger gitlab pipelines [ci skip], only tekton ones
-    git commit -s -m "[ci skip] renderCatalogs.sh from catalogs/v${v}/, in channel(s) fast${fastYChannel}, for ${PROD_VERSION}-v${v}${arch}${latestNextTag}; add $PROD_FULL_VERSION" "catalogs/v${v}/" || true
+    commitMsg="renderCatalogs.sh from catalogs/v${v}/, in channel(s) fast${fastYChannel}, for ${PROD_VERSION}-v${v}${arch}${latestNextTag}; add $PROD_FULL_VERSION"
+    if [[ $USE_RHEC -eq 1 ]]; then commitMsg=":: GA PUSH :: ${commitMsg}"; fi
+    git commit -s -m "[ci skip] $commitMsg" "catalogs/v${v}/" || true
   fi
   if [[ ${DO_PUSH} -eq 1 ]]; then
     git pull origin "${DWNSTM_BRANCH}"
