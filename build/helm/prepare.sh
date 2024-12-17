@@ -5,9 +5,9 @@ CHART_VERSION="" # Developer Hub version (used as 'appVersion' in Chart.yaml and
 CATALOG_FORK="https://rhdh-bot:${GITHUB_TOKEN}@github.com/rhdh-bot/openshift-helm-charts.git" # Fork of "git@github.com:openshift-helm-charts/charts.git where you can push to
 PUBLISH=0 # Set to True to push to CATALOG_FORK
 CREATE_REPORT=0 # Set to True if you want to run https://github.com/redhat-certification/chart-verifier and create a report
-CHART_BRANCH="main" # can also be 1.2.x, release-1.4, etc.
-EXTRA_BRANCH="" # another branch to force push, eg., rhdh-1.2-rhel-9
-DELETE_OLD_BRANCHES=0 # set to 1 to purge old 1.2-zzz branches from the rhdh-bot repo when pushing a 1.2.z release to the openshift charts repo
+CHART_BRANCH="main" # can also be release-1.4, etc.
+EXTRA_BRANCH="" # another branch to force push, eg., rhdh-1.4-rhel-9
+DELETE_OLD_BRANCHES=0 # set to 1 to purge old 1.4-zzz branches from the rhdh-bot repo when pushing a 1.4.z release to the openshift charts repo
 DO_LATEST=0 # if we want to generate a chart for the :latest, we need to set a --chart-branch 
 DEBUG=0
 QUIET="-q"
@@ -31,15 +31,15 @@ Options:
     --next   --chart-branch main           Compute the most recent tag (by semver sort rules) from quay.io/rhdh/rhdh-hub-rhel9:next, and use that tag in chart
 
     --publish                 Push the changes to branch developer-hub-\${CHART_VERSION} of the repository specified by --catalog
-    --extra-branch            Push changes to an extra branch, such as rhdh-1.1-rhel-9
+    --extra-branch            Push changes to an extra branch, such as rhdh-1.4-rhel-9
     --create-report           Create a report via https://github.com/redhat-certification/chart-verifier.
                               [IMPORTANT!] Requires local user to be logged into an OCP cluster
     --catalog                 If publish is set, this needs to point to a fork of
                               git@github.com:openshift-helm-charts/charts.git with write access
     --chart-version           Chart release version (used as 'version' in Chart.yaml)
     --rhdh-version            Developer Hub version (used as 'appVersion' in Chart.yaml and as image tag)
-    --chart-branch            branch of rhdh-charts to use as input, for example 1.2.x or release-1.4; default: main
-    --delete-old-branches     Optionally, purge old 1.2-zzz branches from the rhdh-bot repo when pushing a 1.2.z release to the openshift charts repo
+    --chart-branch            branch of rhdh-charts to use as input, for example release-1.4; default: main
+    --delete-old-branches     Optionally, purge old 1.4-zzz branches from the rhdh-bot repo when pushing a 1.4.z release to the openshift charts repo
                               DO NOT USE if releasing .z chart updates for CVE fixes pushed by Freshmaker
     --debug                   Enable logging
     --help                    Prints this message
@@ -61,22 +61,22 @@ Examples:
     Chart version:        1.y-zzz-CI
     Developer Hub image:  quay.io/rhdh/rhdh-hub-rhel9:1.y-zzz
 
-     # Or, log into the quay.io and registry.redhat.io to be able to pull container metadata, then compute the latest 1.2-zz or next 1.3-zzz tag
+     # Or, log into the quay.io and registry.redhat.io to be able to pull container metadata, then compute the latest 1.4-zz or next 1.5-zzz tag
     $ export GITHUB_TOKEN=ghp_rhdh-bot-token-here
     $ $0 --latest --chart-branch release-1.4 --publish --extra-branch rhdh-1.4-rhel-9
     $ $0 --next   --chart-branch main        --publish --extra-branch rhdh-1-rhel-9
-    Chart version:        1.4-zzz-CI
-    Developer Hub image:  quay.io/rhdh/rhdh-hub-rhel9:1.4-zzz
+    Chart version:        1.next-zzz-CI
+    Developer Hub image:  quay.io/rhdh/rhdh-hub-rhel9:1.next-zzz
 
     # Run this manually on GA release day
     # 1. use gh to log in as the bot (not using exported github token) - can use incognito browser so you don't have to log out as yourself
     $ export GITHUB_TOKEN=
     $ gh auth login -h github.com
-    # 2. Run a manual release as the bot:
+    # 2. get the latest timestamp tag for the live GA container at https://catalog.redhat.com/software/containers/rhdh/rhdh-hub-rhel9/645bd4c15c00598369c31aba
+    # 3. Run a manual release as the bot:
     $ export GITHUB_TOKEN=ghp_rhdh-bot-token-here
-    $ $0 --chart-version 1.4.0 --rhdh-version 1.4-zzz      --chart-branch release-1.4 --catalog git@github.com:rhdh-bot/openshift-helm-charts.git --publish
-    $ $0 --chart-version 1.3.2 --rhdh-version 1.3-zzz      --chart-branch release-1.3 --catalog git@github.com:rhdh-bot/openshift-helm-charts.git --publish
-    $ $0 --chart-version 1.2.6 --rhdh-version 1.2-zzz      --chart-branch 1.2.x --catalog git@github.com:rhdh-bot/openshift-helm-charts.git --publish
+    $ $0 --chart-version 1.4.0 --rhdh-version 1.4-1734106454 --chart-branch release-1.4 --catalog git@github.com:rhdh-bot/openshift-helm-charts.git --publish
+    $ $0 --chart-version 1.3.3 --rhdh-version 1.3-131        --chart-branch release-1.3 --catalog git@github.com:rhdh-bot/openshift-helm-charts.git --publish
     Chart version:       1.y.z
     Developer Hub image:  quay.io/rhdh/rhdh-hub-rhel9:1.y-zzz
 
@@ -121,8 +121,7 @@ done
 if [[ $DO_LATEST -eq 1 ]]; then
     if [[ ! $CHART_BRANCH ]] || [[ $CHART_BRANCH == "main" ]]; then usage; fi
     # get all tags but find the ones starting with 1.yy-, then sort those and return the most recent one
-    CHART_FILTER="${CHART_BRANCH/.x/-}" # for up to 1.2.x
-    CHART_FILTER="${CHART_FILTER/release-}" # for 1.3+
+    CHART_FILTER="${CHART_BRANCH/release-}" # for 1.3+
     next_tag=$(skopeo inspect docker://quay.io/rhdh/rhdh-hub-rhel9:next | jq -r '.RepoTags[]' | \
         grep -v -E "$EXCLUDES" | \
         grep -- "-" | grep "${CHART_FILTER}" | sort -uV  | tail -1 || true)
