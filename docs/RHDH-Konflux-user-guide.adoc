@@ -45,21 +45,26 @@ For more on installation, see:
 
 ### Triggering helm chart updates
 
-Currently, the same gitlab pipeline that syncs content from upstream github to midstream gitlab will also fetch build a new helm chart for the latest rhdh-hub container.
+Starting with 1.5, helm charts are automatically pushed to GitHub as part of the Konflux pipeline. See link:https://issues.redhat.com/browse/RHIDP-4452[RHIDP-4452]
+
+Charts are here:
+
+* https://github.com/rhdh-bot/openshift-helm-charts
+
+---
+
+NOTE: In future we plan to publish as OCI artifacts instead. See link:https://issues.redhat.com/browse/RHIDP-5267[RHIDP-5267].
+
+---
+
+From 1.4 and earlier, the same gitlab pipeline that syncs content from upstream github to midstream gitlab will also fetch build a new helm chart for the latest rhdh-hub container.
 
 However this might not happen as fast as you'd like, so you can run link:../build/helm/prepare.sh[build/helm/prepare.sh]:
 
 ```
 export GITHUB_TOKEN=ghp_rhdh-bot-token-here # see BitWarden for this token
-
 ./build/helm/prepare.sh --latest --chart-branch release-1.4 --publish --extra-branch rhdh-1.4-rhel-9
-# or 
-./build/helm/prepare.sh --next   --chart-branch main        --publish --extra-branch rhdh-1-rhel-9
 ```
-
-New charts will appear here:
-
-* https://github.com/rhdh-bot/openshift-helm-charts
 
 ## Watching builds
 
