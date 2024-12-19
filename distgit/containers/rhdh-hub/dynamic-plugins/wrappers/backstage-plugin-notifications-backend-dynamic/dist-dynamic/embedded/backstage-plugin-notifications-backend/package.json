@@ -40,6 +40,7 @@
   "dependencies": {
     "@backstage/plugin-notifications-common": "^0.0.5",
     "@backstage/plugin-notifications-node": "^0.2.8",
+    "@backstage/plugin-signals-node": "^0.1.13",
     "express": "^4.17.1",
     "express-promise-router": "^4.1.0",
     "knex": "^3.0.0",
@@ -59,8 +60,7 @@
     "@backstage/errors": "^1.2.4",
     "@backstage/plugin-auth-node": "^0.5.3",
     "@backstage/plugin-catalog-node": "^1.13.1",
-    "@backstage/plugin-events-node": "^0.4.2",
-    "@backstage/plugin-signals-node": "^0.1.13"
+    "@backstage/plugin-events-node": "^0.4.2"
   },
   "overrides": {
     "@aws-sdk/util-utf8-browser": {

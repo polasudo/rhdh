@@ -16,10 +16,11 @@ __metadata:
 
 "@backstage/plugin-notifications-backend@file:./embedded/backstage-plugin-notifications-backend::locator=backstage-plugin-notifications-backend-dynamic%40workspace%3A.":
   version: 0.4.2+embedded
-  resolution: "@backstage/plugin-notifications-backend@file:./embedded/backstage-plugin-notifications-backend#./embedded/backstage-plugin-notifications-backend::hash=851043&locator=backstage-plugin-notifications-backend-dynamic%40workspace%3A."
+  resolution: "@backstage/plugin-notifications-backend@file:./embedded/backstage-plugin-notifications-backend#./embedded/backstage-plugin-notifications-backend::hash=a6fb0a&locator=backstage-plugin-notifications-backend-dynamic%40workspace%3A."
   dependencies:
     "@backstage/plugin-notifications-common": ^0.0.5
     "@backstage/plugin-notifications-node": ^0.2.8
+    "@backstage/plugin-signals-node": ^0.1.13
     express: ^4.17.1
     express-promise-router: ^4.1.0
     knex: ^3.0.0
@@ -37,8 +38,7 @@ __metadata:
     "@backstage/plugin-auth-node": ^0.5.3
     "@backstage/plugin-catalog-node": ^1.13.1
     "@backstage/plugin-events-node": ^0.4.2
-    "@backstage/plugin-signals-node": ^0.1.13
-  checksum: 55b7b7145701f925de57007cd4e217401906d2d2606555bd284f7cc9f58b5e765d066433b5c847408281f68296a1be25bf4fd4e0d63fd267298784ab169f05a5
+  checksum: 32655ff57c7c3e728826d3c2207d8e3e8b0558a6730257148bab9ef8c42ba1d9b8943de9fb26197b77a61486620bbd2c5ca70498b1eeba5084b524b36d298f5e
   languageName: node
   linkType: hard
 
@@ -55,9 +55,10 @@ __metadata:
 
 "@backstage/plugin-notifications-node@file:./embedded/backstage-plugin-notifications-node::locator=backstage-plugin-notifications-backend-dynamic%40workspace%3A.":
   version: 0.2.9+embedded
-  resolution: "@backstage/plugin-notifications-node@file:./embedded/backstage-plugin-notifications-node#./embedded/backstage-plugin-notifications-node::hash=7ce330&locator=backstage-plugin-notifications-backend-dynamic%40workspace%3A."
+  resolution: "@backstage/plugin-notifications-node@file:./embedded/backstage-plugin-notifications-node#./embedded/backstage-plugin-notifications-node::hash=f41a10&locator=backstage-plugin-notifications-backend-dynamic%40workspace%3A."
   dependencies:
     "@backstage/plugin-notifications-common": ^0.0.6
+    "@backstage/plugin-signals-node": ^0.1.14
     knex: ^3.0.0
     node-fetch: ^2.7.0
     uuid: ^11.0.0
@@ -65,8 +66,25 @@ __metadata:
     "@backstage/backend-plugin-api": ^1.0.2
     "@backstage/catalog-client": ^1.8.0
     "@backstage/catalog-model": ^1.7.1
-    "@backstage/plugin-signals-node": ^0.1.14
-  checksum: 28bc49a3752dbacc258128b7d472b52f8b599973e2b1052d8c2a6736a9e5932f7330558cdd089fa5a4745b71fa27b3e3e5900f474a8212131ab7a57ab9babeef
+  checksum: 39eedd4dcfda466d0281fb6d0ee459998390f53e9d20c3beee15b9d545c9f60011ad4b9e6e429104c5ad7821e2f85b2e7f24859eb07da0fc64a0d54d42051180
+  languageName: node
+  linkType: hard
+
+"@backstage/plugin-signals-node@file:./embedded/backstage-plugin-signals-node::locator=backstage-plugin-notifications-backend-dynamic%40workspace%3A.":
+  version: 0.1.13+embedded
+  resolution: "@backstage/plugin-signals-node@file:./embedded/backstage-plugin-signals-node#./embedded/backstage-plugin-signals-node::hash=e8011f&locator=backstage-plugin-notifications-backend-dynamic%40workspace%3A."
+  dependencies:
+    express: ^4.17.1
+    uuid: ^9.0.0
+    ws: ^8.18.0
+  peerDependencies:
+    "@backstage/backend-common": ^0.25.0
+    "@backstage/backend-plugin-api": ^1.0.1
+    "@backstage/config": ^1.2.0
+    "@backstage/plugin-auth-node": ^0.5.3
+    "@backstage/plugin-events-node": ^0.4.2
+    "@backstage/types": ^1.1.1
+  checksum: d89b5ccd53abf3e1cdc37591de402db22224a65ce20712047b257f2ffeaad7bea34009a28f7aa19c1758de2abc3a03b3e72cbbf426e7319f502f4484f93f935d
   languageName: node
   linkType: hard
 
@@ -141,6 +159,7 @@ __metadata:
   resolution: "backstage-plugin-notifications-backend-dynamic@workspace:."
   dependencies:
     "@backstage/plugin-notifications-backend": 0.4.2
+    "@backstage/plugin-signals-node": 0.1.13
   peerDependencies:
     "@backstage/backend-common": ^0.25.0
     "@backstage/backend-plugin-api": ^1.0.2
@@ -148,10 +167,10 @@ __metadata:
     "@backstage/catalog-model": ^1.7.1
     "@backstage/config": ^1.3.0
     "@backstage/errors": ^1.2.4
-    "@backstage/plugin-auth-node": ^0.5.3
+    "@backstage/plugin-auth-node": ^0.5.4
     "@backstage/plugin-catalog-node": ^1.13.1
-    "@backstage/plugin-events-node": ^0.4.2
-    "@backstage/plugin-signals-node": ^0.1.14
+    "@backstage/plugin-events-node": ^0.4.5
+    "@backstage/types": ^1.2.0
   languageName: unknown
   linkType: soft
 
@@ -1238,6 +1257,21 @@ __metadata:
     triple-beam: ^1.3.0
     winston-transport: ^4.7.0
   checksum: 2ae6f3a3359fadd90f69a4db20d78aba6901e18114648e48c8538e925511e4820f8d488f19b1c026096ece614732338aa138f4a0fa2c5e29e8fbc53029f55473
+  languageName: node
+  linkType: hard
+
+"ws@npm:^8.18.0":
+  version: 8.18.0
+  resolution: "ws@npm:8.18.0"
+  peerDependencies:
+    bufferutil: ^4.0.1
+    utf-8-validate: ">=5.0.2"
+  peerDependenciesMeta:
+    bufferutil:
+      optional: true
+    utf-8-validate:
+      optional: true
+  checksum: 91d4d35bc99ff6df483bdf029b9ea4bfd7af1f16fc91231a96777a63d263e1eabf486e13a2353970efc534f9faa43bdbf9ee76525af22f4752cbc5ebda333975
   languageName: node
   linkType: hard
 

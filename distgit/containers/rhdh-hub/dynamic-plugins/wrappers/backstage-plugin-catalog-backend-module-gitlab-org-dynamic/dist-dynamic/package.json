@@ -23,6 +23,7 @@
     "./package.json": "./package.json"
   },
   "dependencies": {
+    "@backstage/plugin-catalog-backend-module-gitlab": "0.4.4",
     "@backstage/plugin-catalog-backend-module-gitlab-org": "0.2.2"
   },
   "files": [
@@ -51,17 +52,20 @@
   },
   "resolutions": {
     "@aws-sdk/util-utf8-browser": "npm:@smithy/util-utf8@~2",
-    "@backstage/plugin-catalog-backend-module-gitlab-org": "file:./embedded/backstage-plugin-catalog-backend-module-gitlab-org",
+    "@backstage/plugin-catalog-backend-module-gitlab": "file:./embedded/backstage-plugin-catalog-backend-module-gitlab",
+    "@backstage/plugin-catalog-common": "file:./embedded/backstage-plugin-catalog-common",
     "@backstage/plugin-catalog-node": "file:./embedded/backstage-plugin-catalog-node",
-    "@backstage/plugin-catalog-common": "file:./embedded/backstage-plugin-catalog-common"
+    "@backstage/plugin-catalog-backend-module-gitlab-org": "file:./embedded/backstage-plugin-catalog-backend-module-gitlab-org"
   },
   "peerDependencies": {
     "@backstage/backend-common": "^0.25.0",
+    "@backstage/backend-defaults": "^0.5.2",
     "@backstage/backend-plugin-api": "^1.0.2",
     "@backstage/catalog-client": "^1.8.0",
     "@backstage/catalog-model": "^1.7.1",
+    "@backstage/config": "^1.2.0",
     "@backstage/errors": "^1.2.5",
-    "@backstage/plugin-catalog-backend-module-gitlab": "^0.4.4",
+    "@backstage/integration": "^1.15.1",
     "@backstage/plugin-events-node": "^0.4.2",
     "@backstage/plugin-permission-common": "^0.8.2",
     "@backstage/plugin-permission-node": "^0.8.5",
