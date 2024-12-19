@@ -30,8 +30,6 @@ workflow:
 
 stages:
   - sync-midstream
-  - publish-helmchart
 
 include:
   - local: "/build/ci/sync-midstream.yml"
-  - local: "/build/ci/publish-helmchart.yml"
