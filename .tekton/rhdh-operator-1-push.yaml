@@ -23,6 +23,8 @@ spec:
     value: '{{source_url}}'
   - name: revision
     value: '{{revision}}'
+  - name: prefetch-input
+    value: '{"packages": [{"type": "rpm", "path": "distgit/containers/rhdh-operator"},{"path": "distgit/containers/rhdh-operator", "type": "gomod"}], "flags": ["cgo-disable"]}'
   - name: output-image
     value: quay.io/rhdh/rhdh-rhel9-operator:{{revision}}
   - name: image-expires-after
@@ -75,7 +77,7 @@ spec:
       description: Skip checks against built image
       name: skip-checks
       type: string
-    - default: "false"
+    - default: "true"
       description: Execute the build with network isolation
       name: hermetic
       type: string
@@ -173,6 +175,8 @@ spec:
         value: $(params.output-image).prefetch
       - name: ociArtifactExpiresAfter
         value: $(params.image-expires-after)
+      - name: dev-package-managers 
+        value: "true"
       runAfter:
       - clone-repository
       taskRef:
