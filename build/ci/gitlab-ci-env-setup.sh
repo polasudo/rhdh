@@ -41,6 +41,7 @@ dnf -y install brewkoji koji-containerbuild
 rm -f redhat-internal-cert-install*.rpm
 
 # add ~/.ssh/known_hosts entry for gitlab.cee.redhat.com and pkgs.devel.redhat.com
+mkdir -p ~/.ssh && chmod 700 ~/.ssh
 cat << EOT >> ~/.ssh/known_hosts
 gitlab.cee.redhat.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICBgflBIyju1LV/29PmFDw0GLdB9h0JUXglNrvWjBQ2u 
 gitlab.cee.redhat.com ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDXAc+2x0Z5jMxGVk1J6rN5e1a1hA0L/xLrZMV8iAJmDU/QjlaCcFduF73TzUQnAQu55jpmx4WmBizkz5YqR5SIiJy9y4GXXpup6YKXketFVGJinphl66LMCKWH2nRmdJbe6nzNac8nS6ZKb2X9Oc3NbxgEQMtY5Q2bzPkEiOf4Etp3MInbi9AAJsdkRC9yKhrQcHAniBO5Ugkk6XtxuzW/TdismBto2JZoarsGAuBe4oVOXwfo6arbVE6P8HGH0XShwzFLkm1E92eckeE2/93PDYWm1vteJv5VT8Gr0acEkPX93TpqwL5MqKbbco7pFStuDe5SrJ4i36KV/aCl4Ixz
