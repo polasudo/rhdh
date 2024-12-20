@@ -1074,7 +1074,7 @@ echo
 ################################# COMMIT CHANGES #################################
 
 if [[ $DO_COMMIT -eq 1 ]]; then
-  if [[ $BUNDLEONLY ]]; then
+  if [[ $BUNDLEONLY -eq 1 ]]; then
     echo "[INFO] Committing changes to ${destination_folders/operator/operator-bundle} dir and sync/upstream_SHA* files ..."
     gitdiff="$(git diff --name-only || true)"
     # shellcheck disable=SC2086
@@ -1118,7 +1118,7 @@ echo "$gitdiff" > "/tmp/sync-midstream.sh.diff.txt"
   # first commit: update any changed files, plus sync/upstream_SHA*
   #################################################################
 
-  if [[ $BUNDLEONLY ]]; then
+  if [[ $BUNDLEONLY -eq 1 ]]; then
     # trigger only kfux, not GL pipeline
     git commit -s -m "[ci skip] Bundle Update Only: ${commitMsg}" . || true
   else
@@ -1162,7 +1162,7 @@ if [[ ${DO_PUSH} -eq 1 ]]; then
   app_name=${DWNSTM_BRANCH/-rhel-9}
   app_name=${app_name/./-}
   echo
-  if [[ $BUNDLEONLY ]]; then
+  if [[ $BUNDLEONLY -eq 1 ]]; then
     echo "See bundle pipeline: https://konflux.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/application-pipeline/workspaces/rhdh/applications/${app_name}/activity/pipelineruns?name=rhdh-operator-bundle"
   else
     echo "See running pipelines: https://konflux.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/application-pipeline/workspaces/rhdh/applications/${app_name}/activity/pipelineruns?name=on-push"
