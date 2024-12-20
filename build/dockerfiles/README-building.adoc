@@ -14,7 +14,7 @@ podman push quay.io/rhdh/gitlab-runner:yarn3-$TODAY
 podman push quay.io/rhdh/gitlab-runner:yarn3-latest
 ```
 
-For the deprecated runner using Yarn 1, for RHDH 1.3 and earlier:
+For the deprecated runner using Yarn 1, for the RHDH 1.3 hub container image:
 
 ```
 TODAY=$(date +%Y%m%d-%H%M)
@@ -24,25 +24,4 @@ podman build . --no-cache -f build/dockerfiles/builder-ubi9.Dockerfile --label q
     -t quay.io/rhdh/gitlab-runner:builder-latest 
 podman push quay.io/rhdh/gitlab-runner:builder-$TODAY
 podman push quay.io/rhdh/gitlab-runner:builder-latest
-```
-
-and for the Kaniko runner, using the latest release from https://github.com/GoogleContainerTools/kaniko/releases:
-
-```
-TODAY=$(date +%Y%m%d-%H%M)
-kaniko_version=1.23.2 # 2024-07-16
-
-# previous versions
-# kaniko_version=1.22.0 # 2024-04-18
-# kaniko_version=1.19.2 # 2024-01-11
-
-sed -i build/dockerfiles/kaniko-ubi9.Dockerfile -r -e "s#(FROM gcr.io/kaniko-project/executor:v)[0-9.]+(-debug AS kaniko)#\1${kaniko_version}\2#"
-podman rmi gcr.io/kaniko-project/executor:${kaniko_version}-debug -f
-podman rmi registry.redhat.io/ubi9:latest -f
-podman build . --no-cache -f build/dockerfiles/kaniko-ubi9.Dockerfile --label quay.expires-after=99d \
-    -t quay.io/rhdh/gitlab-runner:kaniko-${kaniko_version}-$TODAY \
-    -t quay.io/rhdh/gitlab-runner:kaniko-latest 
-podman push quay.io/rhdh/gitlab-runner:kaniko-${kaniko_version}-$TODAY
-podman push quay.io/rhdh/gitlab-runner:kaniko-latest
-
 ```
