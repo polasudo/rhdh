@@ -443,33 +443,6 @@
                 }
               }
             },
-            "bitbucketServer": {
-              "visibility": "frontend",
-              "type": "object",
-              "additionalProperties": {
-                "type": "object",
-                "required": [
-                  "clientId",
-                  "clientSecret",
-                  "host"
-                ],
-                "properties": {
-                  "clientId": {
-                    "type": "string"
-                  },
-                  "clientSecret": {
-                    "visibility": "secret",
-                    "type": "string"
-                  },
-                  "host": {
-                    "type": "string"
-                  },
-                  "callbackUrl": {
-                    "type": "string"
-                  }
-                }
-              }
-            },
             "bitbucket": {
               "visibility": "frontend",
               "type": "object",
@@ -554,6 +527,115 @@
                             }
                           ]
                         }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "bitbucketServer": {
+              "visibility": "frontend",
+              "type": "object",
+              "additionalProperties": {
+                "type": "object",
+                "required": [
+                  "clientId",
+                  "clientSecret",
+                  "host"
+                ],
+                "properties": {
+                  "clientId": {
+                    "type": "string"
+                  },
+                  "clientSecret": {
+                    "visibility": "secret",
+                    "type": "string"
+                  },
+                  "host": {
+                    "type": "string"
+                  },
+                  "callbackUrl": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "cfaccess": {
+              "visibility": "frontend",
+              "type": "object",
+              "required": [
+                "teamName"
+              ],
+              "properties": {
+                "teamName": {
+                  "type": "string"
+                },
+                "serviceTokens": {
+                  "deepVisibility": "secret",
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "subject",
+                      "token"
+                    ],
+                    "properties": {
+                      "token": {
+                        "type": "string"
+                      },
+                      "subject": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                },
+                "jwtHeaderName": {
+                  "type": "string"
+                },
+                "authorizationCookieName": {
+                  "type": "string"
+                },
+                "signIn": {
+                  "type": "object",
+                  "required": [
+                    "resolvers"
+                  ],
+                  "properties": {
+                    "resolvers": {
+                      "type": "array",
+                      "items": {
+                        "anyOf": [
+                          {
+                            "type": "object",
+                            "properties": {
+                              "resolver": {
+                                "type": "string",
+                                "const": "emailLocalPartMatchingUserEntityName"
+                              },
+                              "allowedDomains": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                }
+                              }
+                            },
+                            "required": [
+                              "resolver"
+                            ]
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "resolver": {
+                                "type": "string",
+                                "const": "emailMatchingUserEntityProfileEmail"
+                              }
+                            },
+                            "required": [
+                              "resolver"
+                            ]
+                          }
+                        ]
                       }
                     }
                   }
@@ -924,88 +1006,6 @@
                             }
                           ]
                         }
-                      }
-                    }
-                  }
-                }
-              }
-            },
-            "cfaccess": {
-              "visibility": "frontend",
-              "type": "object",
-              "required": [
-                "teamName"
-              ],
-              "properties": {
-                "teamName": {
-                  "type": "string"
-                },
-                "serviceTokens": {
-                  "deepVisibility": "secret",
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "required": [
-                      "subject",
-                      "token"
-                    ],
-                    "properties": {
-                      "token": {
-                        "type": "string"
-                      },
-                      "subject": {
-                        "type": "string"
-                      }
-                    }
-                  }
-                },
-                "jwtHeaderName": {
-                  "type": "string"
-                },
-                "authorizationCookieName": {
-                  "type": "string"
-                },
-                "signIn": {
-                  "type": "object",
-                  "required": [
-                    "resolvers"
-                  ],
-                  "properties": {
-                    "resolvers": {
-                      "type": "array",
-                      "items": {
-                        "anyOf": [
-                          {
-                            "type": "object",
-                            "properties": {
-                              "resolver": {
-                                "type": "string",
-                                "const": "emailLocalPartMatchingUserEntityName"
-                              },
-                              "allowedDomains": {
-                                "type": "array",
-                                "items": {
-                                  "type": "string"
-                                }
-                              }
-                            },
-                            "required": [
-                              "resolver"
-                            ]
-                          },
-                          {
-                            "type": "object",
-                            "properties": {
-                              "resolver": {
-                                "type": "string",
-                                "const": "emailMatchingUserEntityProfileEmail"
-                              }
-                            },
-                            "required": [
-                              "resolver"
-                            ]
-                          }
-                        ]
                       }
                     }
                   }
