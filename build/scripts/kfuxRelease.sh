@@ -56,8 +56,8 @@ LATEST_CSV=1.4.0
 for v in 4.14 4.15 4.16 4.17; do
   # while using quay.io/rhdh is fine for CI and stage builds, must switch to GA image
   # reference to avoid warning-failures from blocking the release with '--rhec' flag
-  ./build/scripts/renderCatalogs.sh --latest --clean -v ${LATEST_CSV} --versions $v \
-    --template catalogs/v${v}/catalog-template.json --rhec
+  ./build/scripts/renderCatalogs.sh --latest --clean -v \${LATEST_CSV} --versions \$v \\
+    --template catalogs/v\${v}/catalog-template.json --rhec
  echo 'Sleep 1 min to avoid Konflux tag collisions'; sleep 60s; echo; 
 done
 
