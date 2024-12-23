@@ -14,9 +14,11 @@ AUTORELEASE=0
 
 CONTAINERS=""
 DEST=stage
-ARCHES="x86_64"  # TODO add arch64/arm64
+# ARCHES="x86_64"  # TODO add arch64/arm64
 OCP_VERSIONS="4.14 4.15 4.16 4.17"
 BUNDLE_TAG_OR_SHA=""
+SNAPSHOT_OVERRIDE=""
+midstreamCommitSHA=""
 
 usage () {
     echo "\
@@ -77,11 +79,14 @@ $0 --prod   --fbc :1.4-1734113472 -v 1.4.0 --debug
 # or use SHA
 $0 --prod   --fbc @sha256:2981d2470951ea1e26eb968aefc39ab48ab7d9634a520cf2bbd8c5fef313db15 -v 1.4.0 
 
+
 Options:
   --stage, --prod    Push to the stage or prod version of the RH Ecosystem Catalog
   -v                 RHDH version x.y.z to release
 
   --fbc              Publish FBCs for the specified bundle tag, eg., 1.3-127 or 1.4-127
+  --snapshot         Rather than pick the latest snapshot, use a specific older one, eg., fbc-4-14-znfg9
+  --commit           Rather than pick the latest snapshot, use a specific older one matching a commit SHA, eg., 8ce7098e
   -o                 OCP versions for which to release FBC; default '$OCP_VERSIONS'
 
   --auto             Rather than showing you the yaml to apply, just execute it automatically. Be careful!
@@ -96,20 +101,31 @@ while [[ "$#" -gt 0 ]]; do
     '--stage'|'--prod') DEST=${1/--/};;
     '--auto') AUTORELEASE=1;;
     '--fbc') BUNDLE_TAG_OR_SHA=$2; shift 1;;
+    '--snapshot') SNAPSHOT_OVERRIDE=$2; shift 1;;
+    '--commit')   midstreamCommitSHA="$2"; shift 1;;
     *) CONTAINERS="$CONTAINERS $1";;
   esac
   shift 1
 done
 
+# compute numbder of OCP versions and fail if we're trying to run a specific snapshot from multiple OCP versions
+num_ocp_versions=0
+for OCP_VERSION in $OCP_VERSIONS; do
+  (( num_ocp_versions = num_ocp_versions + 1 ))
+done
+if [[ $SNAPSHOT_OVERRIDE ]] && [[ $num_ocp_versions -gt 1 ]]; then
+  usage; echo; echo "Error: can only specify a snapshot for a single OCP version! Use '-o 4.18' to set the OCP version for the specified snapshot $SNAPSHOT_OVERRIDE !"; exit
+fi
+
 if [[ ! $CONTAINERS ]] && [[ ! $BUNDLE_TAG_OR_SHA ]]; then 
-  echo "Must specify containers or a bundle image tag with --fbc 1.y-zzz to perfom a release!"
-  echo; usage; exit
+  usage; echo; echo "Must specify containers or a bundle image tag with --fbc 1.y-zzz to perfom a release!"; exit
 fi
 
 if [[ ! $RHDH_FULL_VERSION ]]; then 
-  echo "Must specify full RHDH version with -v x.y.z to perfom a release!"
-  echo; usage; exit
+  usage; echo; echo "Must specify full RHDH version with -v x.y.z to perfom a release!"; exit
 fi
+
+######################################################################################################################
 
 RHDH_VERSION=${RHDH_FULL_VERSION%.*}
 RHDH_FULL_VERSION=${RHDH_FULL_VERSION//./-}
@@ -219,18 +235,27 @@ if [[ $BUNDLE_TAG_OR_SHA ]]; then
     # pac.test.appstudio.openshift.io/sha: 7e6c56d5dccb86c37e26672e40ed3a0a9bcd28a2
 
     oc -n rhdh-tenant get Snapshots --sort-by=.metadata.creationTimestamp --selector='pac.test.appstudio.openshift.io/original-prname=fbc-'"${OCP_VERSION}"'-on-push' -o yaml > "/tmp/fbc-snapshots-${OCP_VERSION}.yaml"
+
+    extraSelect=""
+    if [[ $midstreamCommitSHA ]]; then 
+      extraSelect='|select(.metadata.labels."pac.test.appstudio.openshift.io/sha" | startswith("'"$midstreamCommitSHA"'"))'
+    fi
+    if [[ $SNAPSHOT_OVERRIDE ]]; then 
+      extraSelect='|select(.metadata.name == "'"$SNAPSHOT_OVERRIDE"'")'
+    fi
+
     if [[ $DEBUG -eq 1 ]]; then
       echo "Found these snapshots:"
       echo -e "timestamp\tsnapshot\tpipelinerun\t\tmidstreamCommitSHA"
-      yq -r '.items[]|select(.metadata.annotations."pac.test.appstudio.openshift.io/branch" == "'"${BRANCH}"'")|select(.metadata.labels."pac.test.appstudio.openshift.io/state" == "completed")|.metadata.labels."test.appstudio.openshift.io/pipelinerunfinishtime" + "\t" + .metadata.name + "\t" + .metadata.labels."appstudio.openshift.io/build-pipelinerun" + "\t" + .metadata.labels."pac.test.appstudio.openshift.io/sha"' "/tmp/fbc-snapshots-${OCP_VERSION}.yaml"
+      yq -r '.items[]|select(.metadata.annotations."pac.test.appstudio.openshift.io/branch" == "'"${BRANCH}"'")|select(.metadata.labels."pac.test.appstudio.openshift.io/state" == "completed")'"$extraSelect"'|.metadata.labels."test.appstudio.openshift.io/pipelinerunfinishtime" + "\t" + .metadata.name + "\t" + .metadata.labels."appstudio.openshift.io/build-pipelinerun" + "\t" + .metadata.labels."pac.test.appstudio.openshift.io/sha"' "/tmp/fbc-snapshots-${OCP_VERSION}.yaml"
       # 1734044836	fbc-4-14-mhchr	fbc-4-14-on-push-s687p	76ada30bafa4341c6032496c1aa64d8c8a441447
       # 1734114561	fbc-4-14-d766t	fbc-4-14-on-push-g9fpp	7e6c56d5dccb86c37e26672e40ed3a0a9bcd28a2
       echo
     fi
 
     # TODO -- for now just pick the last one; ideally we would reverse the sort and start processing them from most recent to oldest, find the iib image, and extract that to pull out the referenced operator-bundle image for this release; stop after the first good one
-    SNAPSHOT=$(yq -r '.items[]|select(.metadata.annotations."pac.test.appstudio.openshift.io/branch" == "'"${BRANCH}"'")|select(.metadata.labels."pac.test.appstudio.openshift.io/state" == "completed")|.metadata.name' "/tmp/fbc-snapshots-${OCP_VERSION}.yaml" | tail -1)
-    SNAPSHOT_TIME=$(yq -r '.items[]|select(.metadata.annotations."pac.test.appstudio.openshift.io/branch" == "'"${BRANCH}"'")|select(.metadata.labels."pac.test.appstudio.openshift.io/state" == "completed")|.metadata.labels."test.appstudio.openshift.io/pipelinerunfinishtime"' "/tmp/fbc-snapshots-${OCP_VERSION}.yaml" | tail -1); SNAPSHOT_TIME=$(date --date='@'"${SNAPSHOT_TIME}" +'%F %T')
+    SNAPSHOT=$(yq -r '.items[]|select(.metadata.annotations."pac.test.appstudio.openshift.io/branch" == "'"${BRANCH}"'")|select(.metadata.labels."pac.test.appstudio.openshift.io/state" == "completed")'"$extraSelect"'|.metadata.name' "/tmp/fbc-snapshots-${OCP_VERSION}.yaml" | tail -1)
+    SNAPSHOT_TIME=$(yq -r '.items[]|select(.metadata.annotations."pac.test.appstudio.openshift.io/branch" == "'"${BRANCH}"'")|select(.metadata.labels."pac.test.appstudio.openshift.io/state" == "completed")'"$extraSelect"'|.metadata.labels."test.appstudio.openshift.io/pipelinerunfinishtime"' "/tmp/fbc-snapshots-${OCP_VERSION}.yaml" | tail -1); SNAPSHOT_TIME=$(date --date='@'"${SNAPSHOT_TIME}" +'%F %T')
     
     # TODO collect multiple snapshots to process later?
     # SNAPSHOTS="${SNAPSHOTS} ${SNAPSHOT}"
@@ -293,7 +318,9 @@ EOT
       break
     done
     if [[ $PROCEED -eq 0 ]]; then 
-      echo "WARNING! Could not proceed with the release! Matching bundle image not found. If this is an FBC release for an OSBS build, pass in the image tag to release with '--fbc x.y-zzz'"
+      echo "[WARNING]  Could not proceed with the release! Matching bundle image not found!"
+      echo "[WARNING]  Make sure to pass in the correct image tag to release with '--fbc x.y-zzz'. Note that for prod and stage maye use different bundle tags (:1.4-1734113472 vs. :1.4-127)"
+      echo "[WARNING]  Use the --commit or --snapshot flags to choose an older snapshot with the correct bundle image."
       echo
     fi
   done
