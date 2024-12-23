@@ -64,10 +64,10 @@ while [[ "$#" -gt 0 ]]; do
 done
 
 for IIB_IMAGE in $IMAGES; do
-    IMAGE_PATH=${IIB_IMAGE//\//-}; IMAGE_PATH=${IMAGE_PATH//:/-}
-    rm -fr /tmp/"${IMAGE_PATH}"-*/ 2>/dev/null || sudo rm -fr /tmp/"${IMAGE_PATH}"-*/ 2>/dev/null  || true
+    IMAGE_PATH="$(echo "$IIB_IMAGE" | tr "/:@" "-")"
+    rm -fr /tmp/"${IMAGE_PATH}"*/ 2>/dev/null || sudo rm -fr /tmp/"${IMAGE_PATH}"*/ 2>/dev/null  || true
     "${SCRIPTPATH}"/containerExtract.sh --delete-before --delete-after "${QUIET}" "${IIB_IMAGE}"
-    cd /tmp/"${IMAGE_PATH}"-* || exit 1
+    cd /tmp/"${IMAGE_PATH}"* || exit 1
 
     # for newer file-based catalogs like OCP 4.12
     catalogJson="configs/rhdh/catalog.json"
