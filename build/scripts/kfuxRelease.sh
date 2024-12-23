@@ -114,15 +114,15 @@ for OCP_VERSION in $OCP_VERSIONS; do
   (( num_ocp_versions = num_ocp_versions + 1 ))
 done
 if [[ $SNAPSHOT_OVERRIDE ]] && [[ $num_ocp_versions -gt 1 ]]; then
-  usage; echo; echo "Error: can only specify a snapshot for a single OCP version! Use '-o 4.18' to set the OCP version for the specified snapshot $SNAPSHOT_OVERRIDE !"; exit
+  usage; echo; echo "[ERROR] Can only specify a snapshot for a single OCP version! Use '-o 4.18' to set the OCP version for the specified snapshot $SNAPSHOT_OVERRIDE !"; exit 1
 fi
 
 if [[ ! $CONTAINERS ]] && [[ ! $BUNDLE_TAG_OR_SHA ]]; then 
-  usage; echo; echo "Must specify containers or a bundle image tag with --fbc 1.y-zzz to perfom a release!"; exit
+  usage; echo; echo "[ERROR] Must specify containers or a bundle image tag with --fbc 1.y-zzz to perfom a release!"; exit 1
 fi
 
 if [[ ! $RHDH_FULL_VERSION ]]; then 
-  usage; echo; echo "Must specify full RHDH version with -v x.y.z to perfom a release!"; exit
+  usage; echo; echo "[ERROR] Must specify full RHDH version with -v x.y.z to perfom a release!"; exit 1
 fi
 
 ######################################################################################################################
@@ -213,7 +213,7 @@ if [[ $BUNDLE_TAG_OR_SHA ]]; then
   fi
   # shellcheck disable=SC2143
   if [[ $(skopeo inspect --raw "docker://${CONTAINER_PRE}/rhdh-operator-bundle${BUNDLE_TAG_OR_SHA}" 2>&1 | grep "Error parsing") ]]; then
-    echo "Error! Could not find operator bundle from specifed tag or SHA! Try this again to get a valid tag:"; 
+    echo "[ERROR] Could not find operator bundle from specifed tag or SHA! Try this again to get a valid tag:"; 
     echo "  skopeo inspect --raw docker://${CONTAINER_PRE}/rhdh-operator-bundle${BUNDLE_TAG_OR_SHA}";
     exit 1
   else 
@@ -244,25 +244,41 @@ if [[ $BUNDLE_TAG_OR_SHA ]]; then
       extraSelect='|select(.metadata.name == "'"$SNAPSHOT_OVERRIDE"'")'
     fi
 
+    pipelinerunfinishtime=""
     if [[ $DEBUG -eq 1 ]]; then
-      echo "Found these snapshots:"
-      echo -e "timestamp\tsnapshot\tpipelinerun\t\tmidstreamCommitSHA"
-      yq -r '.items[]|select(.metadata.annotations."pac.test.appstudio.openshift.io/branch" == "'"${BRANCH}"'")|select(.metadata.labels."pac.test.appstudio.openshift.io/state" == "completed")'"$extraSelect"'|.metadata.labels."test.appstudio.openshift.io/pipelinerunfinishtime" + "\t" + .metadata.name + "\t" + .metadata.labels."appstudio.openshift.io/build-pipelinerun" + "\t" + .metadata.labels."pac.test.appstudio.openshift.io/sha"' "/tmp/fbc-snapshots-${OCP_VERSION}.yaml"
-      # 1734044836	fbc-4-14-mhchr	fbc-4-14-on-push-s687p	76ada30bafa4341c6032496c1aa64d8c8a441447
-      # 1734114561	fbc-4-14-d766t	fbc-4-14-on-push-g9fpp	7e6c56d5dccb86c37e26672e40ed3a0a9bcd28a2
-      echo
+      echo "Found snapshot(s):"
+      echo -e "finish timestamp\tsnapshot\tpipelinerun\t\tmidstreamCommitSHA"
     fi
+    yq -r '.items[]|select(.metadata.annotations."pac.test.appstudio.openshift.io/branch" == "'"${BRANCH}"'")|select(.metadata.labels."pac.test.appstudio.openshift.io/state" == "completed")'"$extraSelect"'|.metadata.labels."test.appstudio.openshift.io/pipelinerunfinishtime" + "\t" + .metadata.name + "\t" + .metadata.labels."appstudio.openshift.io/build-pipelinerun" + "\t" + .metadata.labels."pac.test.appstudio.openshift.io/sha"' "/tmp/fbc-snapshots-${OCP_VERSION}.yaml" > "/tmp/fbc-snapshots-${OCP_VERSION}.csv"
+    # 1734044836	fbc-4-14-mhchr	fbc-4-14-on-push-s687p	76ada30bafa4341c6032496c1aa64d8c8a441447
+    # 1734114561	fbc-4-14-d766t	fbc-4-14-on-push-g9fpp	7e6c56d5dccb86c37e26672e40ed3a0a9bcd28a2
+    while IFS= read -r line; do
+      pipelinerunfinishtime=${line%%$'\t'*} # first column
+      pipelinerunfinishtime=$(date --date="@${pipelinerunfinishtime}" +'%Y-%m-%dT%H:%M:%SZ' -u) # 2024-12-23T21:43:32Z
 
-    # TODO -- for now just pick the last one; ideally we would reverse the sort and start processing them from most recent to oldest, find the iib image, and extract that to pull out the referenced operator-bundle image for this release; stop after the first good one
+      snapshotdata=${line#*$'\t'}
+      snapshotdata=${snapshotdata%$'\t'*} #middle columns
+
+      midstreamCommitSHA_URL="https://gitlab.cee.redhat.com/rhidp/rhdh/-/commit/${line##*$'\t'}" # last column
+
+      if [[ $DEBUG -eq 1 ]]; then
+        echo -e "$pipelinerunfinishtime\t$snapshotdata\t${midstreamCommitSHA_URL}"
+      fi
+    done < "/tmp/fbc-snapshots-${OCP_VERSION}.csv"
+    if [[ $DEBUG -eq 1 ]]; then echo; fi
+
+    # TODO should we reverse the sort and start processing them from most recent to oldest, find the iib image, and extract that to pull out the referenced operator-bundle image for this release; stop after the first good one
+
+    # pick the last (or only) snapshot
     SNAPSHOT=$(yq -r '.items[]|select(.metadata.annotations."pac.test.appstudio.openshift.io/branch" == "'"${BRANCH}"'")|select(.metadata.labels."pac.test.appstudio.openshift.io/state" == "completed")'"$extraSelect"'|.metadata.name' "/tmp/fbc-snapshots-${OCP_VERSION}.yaml" | tail -1)
-    SNAPSHOT_TIME=$(yq -r '.items[]|select(.metadata.annotations."pac.test.appstudio.openshift.io/branch" == "'"${BRANCH}"'")|select(.metadata.labels."pac.test.appstudio.openshift.io/state" == "completed")'"$extraSelect"'|.metadata.labels."test.appstudio.openshift.io/pipelinerunfinishtime"' "/tmp/fbc-snapshots-${OCP_VERSION}.yaml" | tail -1); SNAPSHOT_TIME=$(date --date='@'"${SNAPSHOT_TIME}" +'%F %T')
     
-    # TODO collect multiple snapshots to process later?
-    # SNAPSHOTS="${SNAPSHOTS} ${SNAPSHOT}"
+    if [[ ! $SNAPSHOT ]] || [[ ! $pipelinerunfinishtime ]]; then
+      echo "[ERROR] Could not find a snapshot! Try different values for the --fbc, --snapshot, and/or --commit flags."; exit 1
+    fi
 
     # pipelinerun: https://konflux.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/application-pipeline/workspaces/rhdh/applications/fbc-4-14/pipelineruns/fbc-4-14-on-push-g9fpp
     # snapshot:    https://konflux.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/application-pipeline/workspaces/rhdh/applications/fbc-4-14/snapshots/fbc-4-14-d766t
-    echo -e "For $OCP_VERSION, found this final snapshot (built $SNAPSHOT_TIME):\nhttps://konflux.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/application-pipeline/workspaces/rhdh/applications/fbc-${OCP_VERSION}/snapshots/$SNAPSHOT"
+    echo -e "For $OCP_VERSION, found snapshot (completed $pipelinerunfinishtime):\nhttps://konflux.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/application-pipeline/workspaces/rhdh/applications/fbc-${OCP_VERSION}/snapshots/$SNAPSHOT"
 
     # for each SNAPSHOT, find the iib bundle, extract its contents, and pick the last bundle reference; check if that matches the value above
     oc -n rhdh-tenant get Snapshot "${SNAPSHOT}" -o yaml > "/tmp/${SNAPSHOT}.yaml"
@@ -300,7 +316,7 @@ spec:
   releasePlan: rhdh-${RHDH_VERSION/./-}-fbc-${OCP_VERSION}-${DEST}-release-plan
   snapshot: ${SNAPSHOT}
 EOT
-        if [[ $DEBUG -eq 1 ]]; then cat "/tmp/release-rhdh-${RHDH_FULL_VERSION}-fbc-${OCP_VERSION}-${DEST}-${TS}.yaml"; fi
+        # if [[ $DEBUG -eq 1 ]]; then cat "/tmp/release-rhdh-${RHDH_FULL_VERSION}-fbc-${OCP_VERSION}-${DEST}-${TS}.yaml"; fi
         if [[ $AUTORELEASE -eq 1 ]]; then
           oc apply -f "/tmp/release-rhdh-${RHDH_FULL_VERSION}-fbc-${OCP_VERSION}-${DEST}-${TS}.yaml"
           echo
@@ -318,10 +334,10 @@ EOT
       break
     done
     if [[ $PROCEED -eq 0 ]]; then 
-      echo "[WARNING]  Could not proceed with the release! Matching bundle image not found!"
-      echo "[WARNING]  Make sure to pass in the correct image tag to release with '--fbc x.y-zzz'. Note that for prod and stage maye use different bundle tags (:1.4-1734113472 vs. :1.4-127)"
-      echo "[WARNING]  Use the --commit or --snapshot flags to choose an older snapshot with the correct bundle image."
-      echo
+      echo "[ERROR] Can not proceed with the release: matching operator-bundle image not found!"
+      echo "[ERROR] Make sure to pass in the correct image tag to release with '--fbc x.y-zzz'. Note that for prod and stage maye use different bundle tags (:1.4-1734113472 vs. :1.4-127)"
+      echo "[ERROR] Use the --commit or --snapshot flag to specify an older snapshot with the desired bundle image."
+      exit 1
     fi
   done
   
@@ -336,8 +352,7 @@ EOT
     echo
   fi
 
-  echo "Run this to find managed pipelines in progress and watch status:"
-  echo "oc -n rhdh-tenant get Releases --sort-by=.metadata.creationTimestamp -o yaml > /tmp/releases.yaml"
+  echo -e "Run this to find managed pipelines in progress and watch status (or run this script again in --debug mode, not --auto mode):\n  oc -n rhdh-tenant get Releases --sort-by=.metadata.creationTimestamp -o yaml > /tmp/releases.yaml"
   echo 
 
   # now search for existing running pipelines 
@@ -351,13 +366,14 @@ EOT
     RN="release-rhdh-${RHDH_FULL_VERSION}-fbc-${OCP_VERSION}-${DEST}-"
     managedPipelines=$(yq -r '.items[]|select(.spec.releasePlan == "'"${RP}"'")|select(.metadata.name|startswith("'"${RN}"'"))|.status.managedProcessing.pipelineRun|split("/")[1]' "/tmp/releases-${OCP_VERSION}.yaml")
     if [[ $managedPipelines ]]; then 
-      # echo "Got: $managedPipeline"
+      # echo "Got: [$managedPipelines]"
       managedPipeline_mapping["${OCP_VERSION}"]+="${managedPipelines}"
       for managedPipeline in ${managedPipelines}; do 
-        yq -r '.items[]|select(.spec.releasePlan == "'"${RP}"'")|select(.metadata.name|startswith("'"${RN}"'"))|.metadata.name + "\t" + .spec.releasePlan + "\t'"${managedPipeline}"'\t\t" + .status.managedProcessing.startTime + "\t" + .status.managedProcessing.completionTime' "/tmp/releases-${OCP_VERSION}.yaml"
+        # echo "Query: $managedPipeline"
+        yq -r '.items[]|select(.spec.releasePlan == "'"${RP}"'")|select(.metadata.name|startswith("'"${RN}"'"))|select(.status.managedProcessing.pipelineRun|split("/")[1] == "'"$managedPipeline"'")|.metadata.name + "\t" + .spec.releasePlan + "\t'"${managedPipeline}"'\t\t" + .status.managedProcessing.startTime + "\t" + .status.managedProcessing.completionTime' "/tmp/releases-${OCP_VERSION}.yaml"
       done
     else 
-      echo "Error: could not find a Release for ReleasePlan $RP !"
+      echo "[ERROR] Could not find a Release for ReleasePlan $RP !"; exit 1
     fi
   done
   rm -f /tmp/releases-*
