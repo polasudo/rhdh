@@ -545,7 +545,7 @@ for ((i = START_REPO; i < NUM_REPOS; i++)); do # echo $i
     DOCKERFILE_OPTIONS=".rhdh/docker/Dockerfile Dockerfile"
     for d in $DOCKERFILE_OPTIONS; do
       if [[ -f $d ]]; then
-        echo "[INFO] Convert $d to Dockerfile.in ..."
+        echo "[INFO] Convert $d to ${destination_folder}Dockerfile.in ..."
         DOCKERFILE="$d"
         awk '
 /# Downstream comment/{
@@ -580,6 +580,12 @@ for ((i = START_REPO; i < NUM_REPOS; i++)); do # echo $i
   }
 }
 ' $DOCKERFILE > Dockerfile.in
+        # if [[ -f Dockerfile.in ]]; then 
+        #   echo "######################## ${destination_folder}Dockerfile.in ########################"
+        #   cat Dockerfile.in
+        #   echo "######################## ${destination_folder}Dockerfile.in ########################"
+        # fi
+
         rm -f $DOCKERFILE
         break
       fi
@@ -669,9 +675,11 @@ EOT
 echo "[INFO] Generated distgit/containers/rhdh-hub/.git/config for use with Husky"
 
 # append Brew metadata here
+set -x
 for c in distgit/containers/rhdh-operator/Dockerfile.in distgit/containers/rhdh-operator/Dockerfile distgit/containers/rhdh-operator/Containerfile; do
   if [[ -f $c ]]; then sed -i '/# append Brew metadata here/q' $c; fi
 done
+set +x
 cat <<EOT >$TMPDIR/operator.Dockerfile.foot
 ENV SUMMARY="Red Hat Developer Hub operator" \\
     DESCRIPTION="Red Hat Developer Hub operator" \\
@@ -741,7 +749,17 @@ EOT
 echo "[INFO] Added metadata to $TMPDIR/operator-bundle.Dockerfile.foot"
 
 # build the plugins
-if [[ $DO_BUILD -eq 1 ]]; then
+if [[ $DO_BUILD -eq 0 ]]; then
+  destination_folder="distgit/containers/rhdh-hub"
+  pushd $destination_folder >/dev/null || exit 1
+    #shellcheck disable=SC2044
+    YARN=$(which yarn)
+    export YARN
+    $YARN config set enableStrictSsl false
+    # $YARN config set unsafe-perm true # not sure what the Yarn 3 equivalent is here or if we still need this
+    $YARN config set httpTimeout 600000
+  popd >/dev/null || exit 1
+else
   destination_folder="distgit/containers/rhdh-hub"
   pushd $destination_folder >/dev/null || exit 1
     echo "
@@ -962,11 +980,13 @@ for d in $these_dirs; do
     sed -r -e 's|\$\{CI_X_VERSION\}\.\$\{CI_Y_VERSION\}|'"$DH_VERSION"'|g' Dockerfile.in > Dockerfile
 
     ## generate Containerfile for Konflux
-    # use upstream Dockerfiles for hub and operator
+    
     if [[ $d == "distgit/containers/rhdh-hub" ]]; then
+      # TODO: RHIDP-4041 switch to Cachi2'd version (Dockerfile) instead of pure upstream Dockerfile for hub
       cp -f "$TMPDIR/repo0/docker/Dockerfile" Containerfile
     elif [[ $d == "distgit/containers/rhdh-operator" ]]; then
-      cp -f "$TMPDIR/repo1/Dockerfile" Containerfile
+      # for operator use the transformed Dockerfile with the correct LABEL and ENV  values
+      cp -f Dockerfile Containerfile
     elif [[ $d == "distgit/containers/rhdh-operator-bundle" ]]; then
       # for bundle use the downstream OSBS Dockerfile with the correct LABEL and ENV  values
       cp -f Dockerfile Containerfile
