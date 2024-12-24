@@ -11,7 +11,7 @@ ENV GOPATH=/go/
 
 # '(micro)dnf update -y' not allowed in Konflux+Cachi2: instead use renovate or https://github.com/konflux-ci/rpm-lockfile-prototype to update the rpms.lock.yaml file
 # Downstream comment
-RUN dnf -q -y update
+# RUN dnf -q -y update
 #/ Downstream comment
 
 ENV EXTERNAL_SOURCE=.
@@ -45,12 +45,12 @@ RUN CGO_ENABLED=0 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH} go build -a -o ma
 FROM registry.access.redhat.com/ubi9-minimal:9.5-1734497536@sha256:daa61d6103e98bccf40d7a69a0d4f8786ec390e2204fd94f7cc49053e9949360 AS runtime
 
 # Downstream uncomment
-# RUN cat /cachi2/cachi2.env
+RUN cat /cachi2/cachi2.env
 #/ Downstream uncomment
 
 # '(micro)dnf update -y' not allowed in Konflux+Cachi2: instead use renovate or https://github.com/konflux-ci/rpm-lockfile-prototype to update the rpms.lock.yaml file
 # Downstream comment
-RUN microdnf update --setopt=install_weak_deps=0 -y 
+# RUN microdnf update --setopt=install_weak_deps=0 -y 
 #/ Downstream comment
 
 RUN microdnf install -y openssl; microdnf clean -y all
