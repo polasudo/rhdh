@@ -1,25 +1,25 @@
 # after editing, run:
 #   rpm-lockfile-prototype -f Containerfile rpms.in.yaml 
 # to regen rpms.lock.yaml
+
+# Note that the repoid values are special, and must be from here: 
+# https://github.com/release-engineering/rhtap-ec-policy/blob/main/data/known_rpm_repositories.yml
+
 allowerasing: true
 contentOrigin:
   repos:
-    - repoid: ubi9-appstream
+    - repoid: ubi-9-appstream-rpms
       baseurl: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/$basearch/appstream/os/
-      # gpgcheck: 0
-    # - repoid: ubi9-appstream-srpms
-    #   baseurl: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/$basearch/appstream/source/SRPMS
-    #   # gpgcheck: 0
-    - repoid: ubi9-baseos
+    - repoid: ubi-9-appstream-source-rpms
+      baseurl: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/$basearch/appstream/source/SRPMS
+    - repoid: ubi-9-baseos-rpms
       baseurl: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/$basearch/baseos/os/
-      # gpgcheck: 0
-    # - repoid: ubi9-baseos-srpms
-    #   baseurl: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/$basearch/baseos/source/SRPMS
-    #   # gpgcheck: 0
-    # - repoid: ubi9-codeready-builder
+    - repoid: ubi-9-baseos-source-rpms
+      baseurl: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/$basearch/baseos/source/SRPMS
+    # - repoid: ubi-9-codeready-builder
     #   baseurl: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/$basearch/codeready-builder/os/
     #   # gpgcheck: 0
-    # - repoid: ubi9-codeready-builder-srpms
+    # - repoid: ubi-9-codeready-builder-source-rpms
     #   baseurl: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/$basearch/codeready-builder/source/SRPMS
     #   # gpgcheck: 0
 
