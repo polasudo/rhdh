@@ -335,7 +335,7 @@ EOT
     done
     if [[ $PROCEED -eq 0 ]]; then 
       echo "[ERROR] Can not proceed with the release: matching operator-bundle image not found!"
-      echo "[ERROR] Make sure to pass in the correct image tag to release with '--fbc x.y-zzz'. Note that for prod and stage maye use different bundle tags (:1.4-1734113472 vs. :1.4-127)"
+      echo "[ERROR] Make sure to pass in the correct image tag to release with '--fbc x.y-zzz'. Note that prod and stage may use different bundle tags (:1.4-1734113472 vs. :1.4-127)"
       echo "[ERROR] Use the --commit or --snapshot flag to specify an older snapshot with the desired bundle image."
       exit 1
     fi
