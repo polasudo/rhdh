@@ -1,14 +1,24 @@
- # Release Guide for RHDH 1.4+
+ # Release Guide for RHDH 1.3 and earlier (DEPRECATED)
 
 This document seeks to explain the whole end-to-end process for releasing RHDH, from branch creation to GA push.
 
+_TODO_: Think about how best to create a release guide (gantt chart, smartsheet, etc.)
+
 ## Code Freeze / Blockers Only / New Stream Day
 
-Run the branch creation script whenever dev is done (or nearly done) and it's time for feature (or code) freeze.
+Creation of brew targets and errata PV can be done any time before starting the feature/code frozen builds from the new 1.y branch, but it's better to do it in advance so your builds don't fail due to the missing brew target / PV.
+
+Once set up, you can then run the branch creation script whenever dev is done (or nearly done) it's time for feature.
 
 Once the branches are created, expect a flurry of last minute cherrypicks and requests for "can I include this non-blocker item too?" :this-is-fine: :this-is-the-way:
 
 **Reject those requests** and send them to PM/QE/Doc for approval as these should have already landed in the LOCKED test/doc plan weeks ago.
+
+### Brew Targets, Product Variants, and CPEs
+
+. Request new Brew Targets & product variant (PV) be created via link:https://issues.redhat.com/browse/SPMM-17463[SPMM ticket like SPMM-17463] and by pinging @ahills / @siege on slack
+
+. Once the associated Errata PV is created, ProdSec gets notified and adds the appropriate CPE within a day or two. For questions, ping Martin Prpič or link:https://docs.engineering.redhat.com/pages/viewpage.action?spaceKey=PRODSEC&title=CPE[send an email] to prodsec-request@redhat.com.
 
 ### Create branches (eg., release-1.4, release-1.5)
 
@@ -21,12 +31,14 @@ export GITHUB_TOKEN=<your_GH_token>
 
 Script will create/update 1.y branches and update the main + rhdh-1-rhel-9 branches with minor version bumps for the GH and GL repos.
 
-NOTE: **_TODO_ link:https://issues.redhat.com/browse/RHIDP-5432[RHIDP-5432	generate pipelines + RPA when branching for new release-1.y]**
+NOTE: Repo branching for pkgs.devel is manual, but the script will tell you what to run!
+
+NOTE: **_TODO_ https://issues.redhat.com/browse/RHIDP-931 verify branch creation and update steps work**
 
 . Create 6 Github branches - run link:../build/scripts/tagRelease.sh[tagRelease.sh] 
 
 .. [ ] https://github.com/janus-idp/backstage-plugins/branches/all?query=1.&lastTab=overview
-.. [ ] https://github.com/janus-idp/backstage-showcase/branches/all?query=1.&lastTab=overview (**_TODO_: migrate to link:https://issues.redhat.com/browse/RHIDP-1022[rhdh]**)
+.. [ ] https://github.com/janus-idp/backstage-showcase/branches/all?query=1.&lastTab=overview
 .. [ ] https://github.com/redhat-developer/rhdh-operator/branches/all?query=1.&lastTab=overview
 
 .. [ ] https://github.com/redhat-developer/red-hat-developers-documentation-rhdh/branches/all?query=1.&lastTab=overview
@@ -44,6 +56,8 @@ NOTE: **_TODO_ link:https://issues.redhat.com/browse/RHIDP-5432[RHIDP-5432	gener
 .. [ ] https://pkgs.devel.redhat.com/cgit/containers/rhdh-operator-bundle/tree/?h=rhdh-1.4-rhel-9
 
 ### Update main branch versions
+
+NOTE: **_TODO_ https://issues.redhat.com/browse/RHIDP-931 verify branch creation and update steps work**
 
 Bump versions in upstream main branches - run link:../build/scripts/tagRelease.sh[tagRelease.sh] 
 
@@ -65,7 +79,7 @@ NOTE: Dockerfile version metadata downstream is derived from the backstage-showc
 
 ### Update rhdh-1.yy-rhel-9 branch versions
 
-NOTE: **_TODO_ https://issues.redhat.com/browse/RHIDP-5432 verify branch creation and update steps work**
+NOTE: **_TODO_ https://issues.redhat.com/browse/RHIDP-931 verify branch creation and update steps work**
 
 Submit PR (or just merge change) to fix version reference in `upstream_repos.yml` for the new rhdh-1.yy-rhel-9 branch; trigger a build from the new branch.
 
@@ -92,27 +106,27 @@ See also link:RHDH-Konflux-overview-onboarding.adoc[RHDH-Konflux-overview-onboar
 
 Since the midstream transformation still requires a GL pipeline to trigger Konflux, you still need a new pipeline for 1.4. See next step.
 
+### Trigger respins, 1.3 and earlier (OSBS)
+
+. **FOR 1.3 and earlier** Create new gitlab pipeline schedule for stable branch 1.3 (to run in parallel with CI builds from 1.next)
+
+. Run pipelines from
+.. https://gitlab.cee.redhat.com/rhidp/rhdh/-/pipeline_schedules or 
+.. https://gitlab.cee.redhat.com/rhidp/rhdh/-/pipeline (by committing to the branches)
+
+. You can also force a respin using this script: link:../build/scripts/triggerRespin.sh[build/scripts/triggerRespin.sh]
+
+. If you need to release a plugin manually from the stable branch (not main) see link:../build/scripts/releasePlugin.sh[build/scripts/releasePlugin.sh]
++
 [IMPORTANT]
 ====
 Once the above build is done, you will need to update the **Catalog Sources** (also known as index bundles or IIBs) published on Quay if you want to use the simple catalog source installation scripts.
 
 
-Run the link:../build/scripts/renderCatalogs.sh[renderCatalogs] script:
+For 1.3+, run the link:../build/scripts/renderCatalogs.sh[renderCatalogs] script:
 
 ```
-RHDH_VERSION="1.5.0"; \
-for OCP_VERSION in 4.14 4.15 4.16 4.17 4.18; do \
-  /home/nboldt/pp/renderCatalogs.sh --next --clean --versions "${OCP_VERSION}" -v "${RHDH_VERSION}"; \
-  echo 'Sleep 1 min to avoid tag collisions (KONFLUX-5865)'; sleep 60s; echo; \
-done
-
-# OR
-
-RHDH_VERSION="1.4.1"; \
-for OCP_VERSION in 4.14 4.15 4.16 4.17 4.18; do \
-  /home/nboldt/pp/renderCatalogs.sh --latest --clean --versions "${OCP_VERSION}" -v "${RHDH_VERSION}"; \
-  echo 'Sleep 1 min to avoid tag collisions (KONFLUX-5865)'; sleep 60s; echo; \
-done
+./build/scripts/renderCatalogs.sh # see usage instructions 
 ```
 
 You should see new tags added here:
@@ -142,6 +156,10 @@ If the script fails with an error like this, try again in an hour or two:
 ====
 If the changes you expect are not seen when installing via Operator, but are seen via Helm, re-run the `copyIIBsToQuay.sh` script again (see **IMPORTANT** note above) and check if there's a newer catalog source (index bundle) available. It can take several hours for a completed operator-bundle build to produce a matching IIB build for all the supported OCP versions, so you may have to try again a few times.
 ====
++
+. Push the latest images into the errata in progress
+
+. Verify CHI grades from the Container page; if needed, update to a newer base image or explicitly install patched RPMs, and respin 
 
 ## Release Candidates
 
@@ -152,8 +170,16 @@ Once the code freeze is achieved and all the last minute changes have stopped, y
 ** find the correct pipeline, efg., for 1.3 use https://gitlab.cee.redhat.com/rhidp/rhdh/-/pipeline_schedules/1804/edit?id=1804
 ** uncheck the *Activated* box, and hit *Save changes*
 
-* copy the latest IIBs to quay.io/rhdh/iib using link:../build/scripts/renderCatalogs.sh[renderCatalogs] script
-
+* copy the latest IIBs to quay.io/rhdh/iib
+** wait until the CVP tests are completed and the IIB is fully published and has passed its tests
+** run `copyIIBsToQuay.sh` to update the IIBs for the RC, using an additional RC flag to ensure your IIBs persist longer than 14 days
++
+```
+TAG=1.3-95
+STREAM=1.3
+EXTRA_TAG="-e 1.3.0.RC-09-26"
+./copyIIBsToQuay.sh -p -t ${TAG} --latest ${EXTRA_TAG}
+```
 +
 ** verify the IIB is correct:
 +
@@ -167,16 +193,32 @@ sudo rm -fr /tmp/opm-registry-* \
     /tmp/registry-proxy.engineering.redhat.com-rh-osbs-rhdh-rhdh-operator-bundle-*; \
 ```
 +
+* update the errata with the latst RC builds
+** copy the latest NVRs into the errata
++
+```
+./getLatestImageTags.sh -b rhdh-1.3-rhel-9 --errata 123456errata-number-goes-here789
+```
++
+** move the errata to `QE` and trigger a push to stage
 
-You can push a Release to Stage if you want for any/all RC snapshots.
+* smoke test the helm and operator installation on clusterbot (4.14 or newer, gcp)
 
-See link:../build/scripts/kfuxRelease.sh[kfuxRelease.sh].
+* send notification
+** collect the NVRs and quay images into an email and send it to QE with a subject like `RHDH 1.3.0 RC-09-26 is ready for QE`
+** copy the contents of that email into slack #forum-rhdh-releases channel
+
+* if this RC build includes the same fixes as any link:https://errata.engineering.redhat.com/advisory/filters/4213[pending Freshmaker erratas], you should send an email to 
+secalert@redhat.com requesting they drop unneeded/outadated link:https://errata.engineering.redhat.com/advisory/filters/4213[erratas]. 
+This will prevent unexpected releases from landing in the link:https://catalog.redhat.com/search?gs&q=rhdh&searchType=containers[Red Hat Ecosystem Catalog].
 
 If a second RC build is needed, re-enable the scheduled pipeline (or trigger a pipeline manually), and repeat the above steps. 
 
 ## During GA week
 
-. **Remind engineering and docs teams** that they must provide updated RN content. Help them with version bumps and release notes content.
+. Push errata to stage for QE review
+
+. **Remind docs team** that they must review/approve the errata, and help them with version bumps and release notes content.
 .. Check for existing Release Notes and Dynamic Plugins table PRs against the link:https://github.com/redhat-developer/red-hat-developers-documentation-rhdh/[RHDH Docs repo].
 .. Run the following scripts to update existing pending RN/plugins table PRs, or to inform creation of new one(s).
 ... https://github.com/redhat-developer/red-hat-developers-documentation-rhdh/blob/main/modules/dynamic-plugins/rhdh-supported-plugins.sh
@@ -191,19 +233,19 @@ If a second RC build is needed, re-enable the scheduled pipeline (or trigger a p
 ..  _TODO_: Collect list of owners from various stakeholders (Linda's Go/No-Go list)
 .. For .z updates, this is generally not needed. 
 
-. **Remind QE** to announce when they're done testing and have approved the release for production.
-.. GA push will then be pushed manually using link:../build/scripts/kfuxRelease.sh[kfuxRelease.sh].
+. **Remind QE** to move the errata to REL_PREP **ONLY WHEN ALL TESTS ARE DONE**
+.. GA push will go out automatically via Release Driver
 
-. **Remind PM** to update https://developers.redhat.com/rhdh/plugins with latest plugin lists and link to the docs (https://docs.redhat.com/en/documentation/red_hat_developer_hub/1.4)
+. **Remind PM** to update https://developers.redhat.com/rhdh/plugins with latest plugin lists and link to the docs (https://docs.redhat.com/en/documentation/red_hat_developer_hub/1.3)
 
 ## On GA Day
 
 ### [WAIT] Initial setup 
-. [ ] QE will announce the release has passed and is ready for release in slack.
+. [ ] QE will announce the errata has been moved to `REL_PREP` in slack.
 
 . [ ] Launch a clusterbot instance for smoke testing. This will take about 45 mins to create.
 
-. [ ] Monitor container image release using links provided by link:../build/scripts/kfuxRelease.sh[kfuxRelease.sh].
+. [ ] Monitor container image release via errata.
 
 ### [RELEASE] Once images are live
 
@@ -244,6 +286,15 @@ Branch:               https://github.com/rhdh-bot/openshift-helm-charts/tree/red
 https://github.com/openshift-helm-charts/charts/pull/1556
 ```
 +
+. [ ] link:../build/scripts/copyIIBsToQuay.sh[Release the operator IIB to Quay] so it doesn't expire.
++
+```
+cd /tmp; git clone git@gitlab.cee.redhat.com:rhidp/rhdh.git --depth 1 && cd rhdh
+
+# use tag from https://quay.io/repository/rhdh/rhdh-operator-bundle?tab=tags
+./build/scripts/copyIIBsToQuay.sh -t 1.4-121 --force --push --latest -e 1.4.2.GA
+```
+
 . [ ] link:../build/scripts/tagRelease.sh[Tag the repos listed above] - note that repo tagging for pkgs.devel is manual, but the script will tell you what to run!
 +
 ```
@@ -252,8 +303,6 @@ cd /tmp; git clone git@gitlab.cee.redhat.com:rhidp/rhdh.git --depth 1 && cd rhdh
 ./build/scripts/tagRelease.sh -v 1.4.2 -t 1.4 -gh release-1.4 -pd rhdh-1.4-rhel-9 -ghtoken $GITHUB_TOKEN
 
 ```
-Note: If tags already exist but version bump PRs were not created, you can rerun the script with the `--force-update` flag to resolve this. Use `--skip-pd` and `--skip-gl` if those steps were completed previously.
-
 
 ### [TEST] Once images, chart, and tags are available
 
@@ -265,6 +314,7 @@ Note: If tags already exist but version bump PRs were not created, you can rerun
 .. [ ] Helm Chart: smoke test the ability
 ... [ ] install latest chart
 ... [ ] upgrade to a newer chart - see link:https://github.com/rhdh-bot/openshift-helm-charts/tree/rhdh-1-rhel-9/installation[installation]
+
 
 . Review websites
 .. Developers.redhat.com
@@ -290,12 +340,13 @@ Ongoing through the quarter, remember to:
 
 - collect the fixes in janus plugins + community plugins, and verifying that they've been released to npmjs.com
 - collect the updated plugin versions into showcase, and verifying a downstream build has succeeded
+- send an email to secalert@redhat.com requesting they drop any link:https://errata.engineering.redhat.com/advisory/filters/4213[stalled or outdated erratas created by Freshmaker].
 
 ### For all builds (y and z-stream)
 
-- Using link:../build/scripts/kfuxRelease.sh[kfuxRelease.sh] push the latest snapshot to stage 
+- add builds to the errata, verify CVP tests have passed, then push the errata to stage
 - coordinate with QE and Doc via slack and email notifications of RC builds and progress of testing, doc readiness, etc.
-- remind QE to announce test completion; watch while the builds are pushed (1-2 hrs?); complain on slack in various rel-eng channels if things break while pushing or ask siege for help
+- remind QE to move the errata to `REL_PREP`; watch while the builds are pushed (1-2 hrs?); complain on slack in various rel-eng channels if things break while pushing or ask siege for help
 
 ### Once the containers have shipped 
 

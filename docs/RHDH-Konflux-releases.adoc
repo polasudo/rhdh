@@ -1,0 +1,153 @@
+# Performing a release in RH Internal Konflux 
+
+Simply put, to release containers and FBCs, use this script:
+
+* link:../build/scripts/kfuxRelease.sh[kfuxRelease.sh]
+
+NOTE: The information below may be outdated as manual steps are replaced by scripted ones in the above script.
+
+Sadly, we have two options for releases in Konflux:
+* everything immediately released as long as the tests pass, or
+* link:https://konflux.pages.redhat.com/docs/users/releasing/releasing-products.html#_authoring_releases[manual releases via yaml chunks] or using the clunky UI
+
+1. find the set of snapshots you want to release. For 1.4 this is 3 containers and 5 FBCs.
+
+2. Log into the cluster at https://console-openshift-console.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/k8s/ns/rhtap-releng-tenant/core~v1~Pod using the link under your name to Copy login command. 
+
+3. Run that command in a console, eg., 
++
+```
+oc login --token=sha256~YOUR_TOKEN_HERE --server=https://api.stone-prod-p02.hjvn.p1.openshiftapps.com:6443
+```
++
+4. Next, sequentially, appy Release yamls like this:
+
+```
+echo "apiVersion: appstudio.redhat.com/v1alpha1
+kind: Release
+metadata:
+  name: manual-release-rhdh-1-4-fbc-4-14-stage-2
+  namespace: rhdh-tenant
+  labels:
+    release.appstudio.openshift.io/author: 'nboldt'
+spec:
+  releasePlan: rhdh-1-4-fbc-4-14-stage-release-plan
+  snapshot: fbc-4-14-d766t
+" |  oc apply -f -
+```
+
+Repeat for the other FBCs and container images, using these release plans and the relevant snapshots:
+
+```
+* rhdh-1-3-fbc-4-14-prod-release-plan
+* rhdh-1-3-fbc-4-15-prod-release-plan
+* rhdh-1-3-fbc-4-16-prod-release-plan
+* rhdh-1-3-fbc-4-17-prod-release-plan
+* rhdh-1-3-fbc-4-18-prod-release-plan
+
+* rhdh-1-3-fbc-4-14-stage-release-plan
+* rhdh-1-3-fbc-4-15-stage-release-plan
+* rhdh-1-3-fbc-4-16-stage-release-plan
+* rhdh-1-3-fbc-4-17-stage-release-plan
+* rhdh-1-3-fbc-4-18-stage-release-plan
+
+* rhdh-1-4-fbc-4-14-prod-release-plan
+* rhdh-1-4-fbc-4-15-prod-release-plan
+* rhdh-1-4-fbc-4-16-prod-release-plan
+* rhdh-1-4-fbc-4-17-prod-release-plan
+* rhdh-1-4-fbc-4-18-prod-release-plan
+
+* rhdh-1-4-fbc-4-14-stage-release-plan
+* rhdh-1-4-fbc-4-15-stage-release-plan
+* rhdh-1-4-fbc-4-16-stage-release-plan
+* rhdh-1-4-fbc-4-17-stage-release-plan
+* rhdh-1-4-fbc-4-18-stage-release-plan
+
+* rhdh-1-4-prod
+* rhdh-1-4-stage
+```
+
+To watch the push in progress or review logs:
+
+* Go to https://konflux.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/application-pipeline/workspaces/rhdh/applications/fbc-4-16/releases
+* Click on a release
+* Click on the `managed-xxxx` link under `Pipeline Run` which will direct you to the `rhtap-releng-tenant` instead of your own `rhdh-tenant`.
+* Click on `Logs` to review the success or failure.
+
+Once successfully pushed to stage, you can pull containers to test installing them.
+
+If you need a pull secret, you can use the one in the BitWarden vault called `rhdh_bot_registry_stage_redhat_io.user+pwd`
+
+Note also this mapping: 
+
+* If image is pushed to: quay.io/redhat-pending/rhdh----rhdh-operator-bundle:1.4
+* refernce it as this:   registry.stage.redhat.io/rhdh/rhdh-operator-bundle:1.4
+
+For IIBs/FBCs use these locations:
+* brew.registry.redhat.io/rh-osbs/iib-pub-pending:v4.17
+* registry.stage.redhat.io/redhat/redhat-operator-index:v4.17
+
+And in production:
+* brew.registry.redhat.io/rh-osbs/iib-pub:v4.17
+* registry.redhat.io/redhat/redhat-operator-index:v4.17
+
+To check that your stage push is the latest / correct version:
+
+```
+for d in /rhdh/rhdh-hub-rhel9:1.4 /rhdh/rhdh-rhel9-operator:1.4 /rhdh/rhdh-operator-bundle:1.4; do \
+  for r in registry.stage.redhat.io quay.io; do
+    echo; echo ${r}${d}; \
+    skopeo inspect docker://${r}${d} > /tmp/inspect.txt && \
+    jq -r '.Labels.version+"-"+.Labels.release+" built on "+.Labels."build-date"' /tmp/inspect.txt && \
+    jq -r '.Env[]|select(.|contains("_REPO"))' /tmp/inspect.txt && \
+    jq -r '.Labels."vcs-ref"' /tmp/inspect.txt && \
+    rm -f /tmp/inspect.txt
+  done
+  echo "-----"
+done
+```
+
+Repeat for prod releases:
+
+```
+for d in /rhdh/rhdh-hub-rhel9:1.4 /rhdh/rhdh-rhel9-operator:1.4 /rhdh/rhdh-operator-bundle:1.4; do \
+  for r in registry.redhat.io quay.io; do
+    echo; echo ${r}${d}; \
+    skopeo inspect docker://${r}${d} > /tmp/inspect.txt && \
+    jq -r '.Labels.version+"-"+.Labels.release+" built on "+.Labels."build-date"' /tmp/inspect.txt && \
+    jq -r '.Env[]|select(.|contains("_REPO"))' /tmp/inspect.txt && \
+    jq -r '.Labels."vcs-ref"' /tmp/inspect.txt && \
+    rm -f /tmp/inspect.txt
+  done
+  echo "-----"
+done
+```
+
+For a list of your prod release tasks:
+
+```
+$➔ oc get releases | grep -E "prod|PLAN"
+NAME                                       SNAPSHOT         RELEASEPLAN                            RELEASE STATUS   AGE
+release-rhdh-1-4-fbc-4-14-prod             fbc-4-14-d766t   rhdh-1-4-fbc-4-14-prod-release-plan    Failed           136m
+release-rhdh-1-4-prod-20241216-1740        rhdh-1-4-rpcsx   rhdh-1-4-prod                          Failed           22h
+release-rhdh-1-4-prod-20241217-1100        rhdh-1-4-rpcsx   rhdh-1-4-prod                          Succeeded        5h28m
+release-rhdh-1-4.0-fbc-4-14-prod           fbc-4-14-f4pjb   rhdh-1-4-fbc-4-14-prod-release-plan    Succeeded        50m
+release-rhdh-1-4.0-fbc-4-15-prod           fbc-4-15-8f7x8   rhdh-1-4-fbc-4-15-prod-release-plan    Succeeded        49m
+release-rhdh-1-4.0-fbc-4-16-prod           fbc-4-16-k4pxb   rhdh-1-4-fbc-4-16-prod-release-plan    Succeeded        49m
+release-rhdh-1-4.0-fbc-4-17-prod           fbc-4-17-75rrd   rhdh-1-4-fbc-4-17-prod-release-plan    Succeeded        49m
+```
+
+NOTE: this doesn't work yet. 
+TODO: write more here
+
+
+To find the Snapshot for a given commit:
+
+oc get Snapshots --sort-by=.metadata.creationTimestamp  --selector='pac.test.appstudio.openshift.io/original-prname=rhdh-hub-1-on-push,pac.test.appstudio.openshift.io/sha=fdf6a4d87a4e372d6b7f0528bd0d348a8d844cfa' 
+oc get Snapshots --sort-by=.metadata.creationTimestamp  --selector='pac.test.appstudio.openshift.io/original-prname=rhdh-operator-1-on-push,pac.test.appstudio.openshift.io/sha=fdf6a4d87a4e372d6b7f0528bd0d348a8d844cfa'
+
+TODO turn this into a script so we can
+* for a given image tag or sha, compute the commit SHA that went into it, and then return the Snapshot for that image.
+  getSnapshotForImage.sh?
+
+  
