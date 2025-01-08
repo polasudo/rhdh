@@ -17,9 +17,10 @@ prod_url="https://red.ht/rhdh"
 operator_name="rhdh-operator"
 bundle_image="quay.io/rhdh/rhdh-operator-bundle"
 maintainers="RHDH Team <rhdh-bot@redhat.com>"
-templateFile=""
+templateFileInput=""
 
-VERSIONS="4.14 4.15 4.16 4.17 4.18"
+RHDH_VERSION="1.5.0"
+OCP_VERSIONS="4.14 4.15 4.16 4.17 4.18"
 
 DWNSTM_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "rhdh-1-rhel-9")
 latestNextExample=""
@@ -47,7 +48,7 @@ Requires:
 Usage: $0 -v x.y.z [OPTIONS]
 
 Options:
-  -v                     product version x.y.z,                                        eg., 1.4.0
+  -v                     product version x.y.z,                                        eg., $RHDH_VERSION
   --latest, --next       also publish a :latest-v4.yy or :next-v4.yy tag; default: publish only x.y-v4.yy tag
 
   --package-name         olm package name,                                             eg., rhdh
@@ -58,7 +59,7 @@ Options:
   --maintainers          one or more comma-separated email addresses,                  eg., RHDH Team <rhdh-bot@redhat.com>
 
   --versions             space-separated list of OCP versions to render;               
-                         default: $VERSIONS
+                         default: $OCP_VERSIONS
   
   --template             instead of generating a template, use some other local file
   --rhec                 switch any quay.io/rhdh/ image refs to registry.redhat.io/rhdh/ (RH Ecosystem Catalog)
@@ -69,7 +70,11 @@ Options:
   -h, --help             show this help
 
 Examples:
-    for v in $VERSIONS; do $0 $latestNextExample --clean -v 1.y.0 --versions \$v; echo 'Sleep 1 min to avoid Konflux tag collisions'; sleep 60s; echo; done
+    RHDH_VERSION="$RHDH_VERSION"; \\
+    for OCP_VERSION in $OCP_VERSIONS; do \\
+      $0 $latestNextExample --clean --versions "\${OCP_VERSION}" -v "\${RHDH_VERSION}"; \\
+      echo 'Sleep 1 min to avoid tag collisions (KONFLUX-5865)'; sleep 60s; echo; \\
+    done
 
 EOF
 exit
@@ -87,9 +92,9 @@ while [[ "$#" -gt 0 ]]; do
     '--operator-name') operator_name="$2"; shift 1;; 
     '--bundle-image') bundle_image="$2"; shift 1;; 
     '--maintainers') maintainers="$2"; shift 1;; 
-    '--template') templateFile="$2"; shift 1;;
+    '--template') templateFileInput="$2"; shift 1;;
     '--rhec') USE_RHEC="1";;
-    '--versions') VERSIONS="$2"; shift 1;;
+    '--versions') OCP_VERSIONS="$2"; shift 1;;
     '--clean') CLEAN=1;;
     '--nocommit') DO_COMMIT=0; DO_PUSH=0;;
     '--nopush')   DO_PUSH=0;;
@@ -106,36 +111,33 @@ vergte() {
 
 PROD_VERSION=${PROD_FULL_VERSION%.*} # x.y
 
-for v in $VERSIONS; do
+for OCP_VERSION in ${OCP_VERSIONS}; do
   # create folder for the rendered catalog.json
-  mkdir -p "catalogs/v${v}/configs/${prod_path}/"
+  mkdir -p "catalogs/v${OCP_VERSION}/configs/${prod_path}/"
 
-  if [[ ! $templateFile ]] || [[ ! -f $templateFile ]]; then
+  if [[ ! $templateFileInput ]] || [[ ! -f $templateFileInput ]]; then
     # extract content from the public registry
-    if [[ ! -d ./v${v}-catalog-migrate ]] || [[ $CLEAN -eq 1 ]]; then 
-      rm -fr "./v${v}-catalog-migrate"
-      time opm migrate registry.redhat.io/redhat/redhat-operator-index:v${v} ./v${v}-catalog-migrate
+    if [[ ! -d ./v${OCP_VERSION}-catalog-migrate ]] || [[ $CLEAN -eq 1 ]]; then 
+      rm -fr "./v${OCP_VERSION}-catalog-migrate"
+      time opm migrate registry.redhat.io/redhat/redhat-operator-index:v${OCP_VERSION} ./v${OCP_VERSION}-catalog-migrate
     fi
 
-    templateFile="catalogs/v${v}/catalog-template.json"
+    templateFile="catalogs/v${OCP_VERSION}/catalog-template.json"
 
     # create template from the existing content
-    opm alpha convert-template basic "./v${v}-catalog-migrate/${prod_path}/catalog.json" > "${templateFile}"
+    opm alpha convert-template basic "./v${OCP_VERSION}-catalog-migrate/${prod_path}/catalog.json" > "${templateFile}"
     # debug with # cp "${templateFile}" "${templateFile}.orig"
 
     # eg., for 1.4.0 want to replace 1.3.1 (last released item on the fast channel)
     PROD_PREV_VERSION=$(jq -r '.entries[]|select(.name=="fast")|.entries|last|.name' "${templateFile}")
 
-    NEW_ENTRY='[
-          {
-              "name": "'"${operator_name}"'.v'"${PROD_FULL_VERSION}"'",
-              "replaces": "'"${PROD_PREV_VERSION}"'",
-              "skipRange": "\u003c'"${PROD_FULL_VERSION}"'"
-          }
-      ]'
+    NEW_ENTRY='[{
+          "name": "'"${operator_name}"'.v'"${PROD_FULL_VERSION}"'",
+          "replaces": "'"${PROD_PREV_VERSION}"'",
+          "skipRange": "\u003c'"${PROD_FULL_VERSION}"'"
+    }]'
 
-    JSON='
-    {
+    JSON='{
       "entries": '"${NEW_ENTRY}"',
       "name": "fast-'"${PROD_VERSION}"'",
       "package": "'"${package_name}"'",
@@ -164,7 +166,7 @@ for v in $VERSIONS; do
     # latest CI build
     bundle_digest=$(skopeo inspect "docker://${bundle_image}:$PROD_VERSION" | jq -r '.Digest')
     echo "Got $bundle_image@$bundle_digest"
-    ./build/scripts/getTagForSHA.sh "$bundle_image@$bundle_digest" -y
+    ./build/scripts/getTagForSHA.sh "$bundle_image@$bundle_digest" -y -q
 
     # inject new bundle
     jq --arg bundle_digest "${bundle_digest}" --arg bundle_image "${bundle_image}" \
@@ -175,24 +177,26 @@ for v in $VERSIONS; do
     mv "${templateFile}"{_,}
 
     grep "quay.io/rhdh/rhdh-operator-bundle" "${templateFile}" || true
+  else
+    templateFile="${templateFileInput}"
   fi
 
   # switch quay.io/rhdh references that will fail in a push to production Release
   if [[ $USE_RHEC -eq 1 ]]; then 
-    sed -i "catalogs/v${v}/catalog-template.json" -r -e "s|quay.io/rhdh|registry.redhat.io/rhdh|g"
+    sed -i "catalogs/v${OCP_VERSION}/catalog-template.json" -r -e "s|quay.io/rhdh|registry.redhat.io/rhdh|g"
   fi
 
   # render catalog content from the template
-  rm -f "catalogs/v${v}/configs/${prod_path}/catalog.json"
+  rm -f "catalogs/v${OCP_VERSION}/configs/${prod_path}/catalog.json"
   # for 4.17+, migrate bundles' "olm.bundle.object" to "olm.csv.metadata"
-  vergte "$v" "4.17" && migrateLevel="--migrate-level=bundle-object-to-csv-metadata" || migrateLevel=""
+  vergte "${OCP_VERSION}" "4.17" && migrateLevel="--migrate-level=bundle-object-to-csv-metadata" || migrateLevel=""
   set -x
   # shellcheck disable=SC2086
-  opm alpha render-template basic "${templateFile}" $migrateLevel > "catalogs/v${v}/configs/${prod_path}/catalog.json"
+  opm alpha render-template basic "${templateFile}" $migrateLevel > "catalogs/v${OCP_VERSION}/configs/${prod_path}/catalog.json"
   set +x
 
   # for 4.15+, use the rhel9 image
-  vergte "$v" "4.15" && registry="registry-rhel9:v${v}" || registry="registry:v${v}"
+  vergte "${OCP_VERSION}" "4.15" && registry="registry-rhel9:v${OCP_VERSION}" || registry="registry:v${OCP_VERSION}"
   
   # temporary hackaround for v4.18 because it doesn't exist yet; fall back to 4.17
   registry=${registry/v4.18/v4.17}
@@ -203,10 +207,10 @@ for v in $VERSIONS; do
   # set to "" and re-render if switching back to build-image-index=true
   arch="-$(uname -m)"
 
-  echo "Render catalogs/v${v}/Containerfile for channels=fast${fastYChannel}"
-  latestNextTag=""; if [[ $latestNext ]]; then latestNextTag=",${latestNext}-v${v}${arch}"; fi # next=v4.18
+  # echo "[INFO] Render catalogs/v${OCP_VERSION}/Containerfile for channels=fast${fastYChannel}"
+  latestNextTag=""; if [[ $latestNext ]]; then latestNextTag=",${latestNext}-v${OCP_VERSION}${arch}"; fi
 
-  cat <<EOF > "catalogs/v${v}/Containerfile"
+  cat <<EOF > "catalogs/v${OCP_VERSION}/Containerfile"
   # The base image is expected to contain /bin/opm (with a serve subcommand) and /bin/grpc_health_probe
 FROM registry.redhat.io/openshift4/ose-operator-${registry}
 
@@ -233,31 +237,55 @@ LABEL \\
       license="ASLv2" \\
       maintainer="$maintainers" \\
       vendor="Red Hat, Inc." \\
-      konflux.additional-tags="${PROD_VERSION}-v${v}${arch}${latestNextTag}" \\
+      konflux.additional-tags="${PROD_VERSION}-v${OCP_VERSION}${arch}${latestNextTag}" \\
       distribution-scope="public" \\
       url="$prod_url"
 EOF
 
   # cleanup rendered catalogs
-  if [[ -d ./v${v}-catalog-migrate ]] && [[ $CLEAN -eq 1 ]]; then 
-    rm -fr "./v${v}-catalog-migrate"
+  if [[ -d ./v${OCP_VERSION}-catalog-migrate ]] && [[ $CLEAN -eq 1 ]]; then 
+    rm -fr "./v${OCP_VERSION}-catalog-migrate"
   fi
 
   if [[ $DO_COMMIT -eq 1 ]]; then
-    echo "[INFO] Commit changes to catalogs/v${v}/"
-    git add -f "catalogs/v${v}/" || true
+    # echo "[INFO] Commit changes to catalogs/v${OCP_VERSION}/"
+    git add -f "catalogs/v${OCP_VERSION}/" || true
     # don't trigger gitlab pipelines [ci skip], only tekton ones
-    commitMsg="renderCatalogs.sh from catalogs/v${v}/, in channel(s) fast${fastYChannel}, for ${PROD_VERSION}-v${v}${arch}${latestNextTag}; add $PROD_FULL_VERSION"
+    commitMsg="renderCatalogs.sh from catalogs/v${OCP_VERSION}/, in channel(s) fast${fastYChannel}, for ${PROD_VERSION}-v${OCP_VERSION}${arch}${latestNextTag}; add $PROD_FULL_VERSION"
     if [[ $USE_RHEC -eq 1 ]]; then commitMsg=":: GA PUSH :: ${commitMsg}"; fi
-    git commit -s -m "[ci skip] $commitMsg" "catalogs/v${v}/" || true
+    git commit -s -m "[ci skip] $commitMsg" "catalogs/v${OCP_VERSION}/" || true
+    now=$(date +'%Y-%m-%dT%H-%M-%SZ')
+    yq -Y '.metadata.creationTimestamp = "'"$now"'"' ".tekton/fbc-${OCP_VERSION/./-}-push.yaml" > ".tekton/fbc-${OCP_VERSION/./-}-push.yaml"_
+    mv -f ".tekton/fbc-${OCP_VERSION/./-}-push.yaml"_ ".tekton/fbc-${OCP_VERSION/./-}-push.yaml"
+    git commit -s -m "build fbc-${OCP_VERSION/./-} for $PROD_VERSION" ".tekton/fbc-${OCP_VERSION/./-}-push.yaml" || true
   fi
   if [[ ${DO_PUSH} -eq 1 ]]; then
-    git pull origin "${DWNSTM_BRANCH}"
-    set -x
-    git push origin "${DWNSTM_BRANCH}"
-    set +x
+    git pull origin "${DWNSTM_BRANCH}" >/dev/null 2>&1
+    git push origin "${DWNSTM_BRANCH}" >/dev/null 2>&1
     echo
-    echo "See running pipelines: https://konflux.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/application-pipeline/workspaces/rhdh/applications/fbc-${v/./-}/activity/pipelineruns"
+    oc -n rhdh-tenant get Snapshots --sort-by=.metadata.creationTimestamp --selector='pac.test.appstudio.openshift.io/original-prname=fbc-'"${OCP_VERSION/./-}"'-on-push' -o yaml > "/tmp/fbc-snapshots-${OCP_VERSION}.yaml"
+    # debugging
+    echo "Found these snapshots:"
+    echo -e "timestamp\tsnapshot\tpipelinerun\t\tmidstreamCommitSHA"
+    yq -r '.items[]|select(.metadata.annotations."pac.test.appstudio.openshift.io/branch" == "'"${DWNSTM_BRANCH}"'")|.metadata.labels."test.appstudio.openshift.io/pipelinerunfinishtime" + "\t" + .metadata.labels."appstudio.openshift.io/build-pipelinerun" + "\t" + .metadata.labels."pac.test.appstudio.openshift.io/sha" + "\t" + .metadata.labels."pac.test.appstudio.openshift.io/state"' "/tmp/fbc-snapshots-${OCP_VERSION}.yaml" | tail -3
+    # 1734476600	fbc-4-14-on-push-f2svf	88f44169d0eafe2af2e9ea23e7897299b2cd392f	completed
+    # 1734722108	fbc-4-14-on-push-tb9m9	3370ba7ca6f0f9dfb5acff899066a29443467a65	completed
+
+    # choose the latest run
+    # TODO select only if in progress, not complete
+    pipelinerun=$(yq -r '.items[]|select(.metadata.annotations."pac.test.appstudio.openshift.io/branch" == "'"${DWNSTM_BRANCH}"'")|.metadata.labels."appstudio.openshift.io/build-pipelinerun"' "/tmp/fbc-snapshots-${OCP_VERSION}.yaml" | tail -1)
+    if [[ $pipelinerun ]]; then
+      PIPELINE_URL="https://konflux.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/application-pipeline/workspaces/rhdh/applications/fbc-${OCP_VERSION/./-}/pipelineruns/${pipelinerun}/taskruns"
+      echo "Running in $PIPELINE_URL"
+    else
+      PIPELINE_URL="https://konflux.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/application-pipeline/workspaces/rhdh/applications/fbc-${OCP_VERSION/./-}/activity/pipelineruns"
+      echo "Pipelinerun not found for branch = $DWNSTM_BRANCH - see running pipelineruns at $PIPELINE_URL"
+    fi
+    # open a browser to watch the release
+    if [[ $(command -v google-chrome) == *"google-chrome"* ]] || [[ $(which google-chrome) != *"which: no google-chrome"* ]]; then google-chrome "$PIPELINE_URL"; fi
+    echo "-----------------------------------------------------------------------"
+    echo
+    rm -f "/tmp/fbc-snapshots-${OCP_VERSION}.yaml"
   fi 
 done
 
