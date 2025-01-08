@@ -508,11 +508,11 @@ spec:
         - name: build
           computeResources:
             requests:
-              cpu: '12'
-              memory: 16Gi
+              cpu: '8'
+              memory: 12Gi
             limits:
-              cpu: '12'
-              memory: 16Gi    
+              cpu: '8'
+              memory: 12Gi    
     - pipelineTaskName: prefetch-dependencies
       computeResources:
         requests:
