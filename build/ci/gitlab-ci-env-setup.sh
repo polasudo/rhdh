@@ -17,8 +17,8 @@ CI_PROJECT_NAMESPACE = $CI_PROJECT_NAMESPACE
 CI_PROJECT_NAME = $CI_PROJECT_NAME"
 
 cd /tmp
-# find latest at https://coprbe.devel.redhat.com/results/@endpoint-systems-sysadmins/unsupported-fedora-packages/epel-9-x86_64/00114802-redhat-internal-cert-install/
-curl -sSLkO https://coprbe.devel.redhat.com/results/@endpoint-systems-sysadmins/unsupported-fedora-packages/epel-9-x86_64/00114802-redhat-internal-cert-install/redhat-internal-cert-install-0.2-1.el9.noarch.rpm
+# find latest at https://coprbe.devel.redhat.com/results/@endpoint-systems-sysadmins/unsupported-fedora-packages/epel-9-x86_64/
+curl -sSLkO https://coprbe.devel.redhat.com/results/@endpoint-systems-sysadmins/unsupported-fedora-packages/epel-9-x86_64/00118133-redhat-internal-cert-install/redhat-internal-cert-install-0.2-2.el9.noarch.rpm
 # add repo to resolve helm
 dnf config-manager --add-repo https://rhsm-pulp.corp.redhat.com/content/dist/layered/rhel8/x86_64/ocp-tools/4.12/os/ -q
 # add repo to resolve brewkoji, and ignore gpg check
