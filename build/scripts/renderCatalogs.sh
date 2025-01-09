@@ -265,7 +265,7 @@ EOF
     # debugging
     echo "Found these snapshots:"
     echo -e "timestamp\tsnapshot\tpipelinerun\t\tmidstreamCommitSHA"
-    yq -r '.items[]|select(.metadata.annotations."pac.test.appstudio.openshift.io/branch" == "'"${DWNSTM_BRANCH}"'")|.metadata.labels."test.appstudio.openshift.io/pipelinerunfinishtime" + "\t" + .metadata.labels."appstudio.openshift.io/build-pipelinerun" + "\t" + .metadata.labels."pac.test.appstudio.openshift.io/sha" + "\t" + .metadata.labels."pac.test.appstudio.openshift.io/state"' "/tmp/fbc-snapshots-${OCP_VERSION}.yaml" | tail -3
+    yq -r '.items[]|select(.metadata.annotations."pac.test.appstudio.openshift.io/branch" == "'"${DWNSTM_BRANCH}"'")|select(.metadata.labels."pac.test.appstudio.openshift.io/state" != "completed")|.metadata.labels."test.appstudio.openshift.io/pipelinerunfinishtime" + "\t" + .metadata.labels."appstudio.openshift.io/build-pipelinerun" + "\t" + .metadata.labels."pac.test.appstudio.openshift.io/sha" + "\t" + .metadata.labels."pac.test.appstudio.openshift.io/state"' "/tmp/fbc-snapshots-${OCP_VERSION}.yaml" | tail -3
     # 1734476600	fbc-4-14-on-push-f2svf	88f44169d0eafe2af2e9ea23e7897299b2cd392f	completed
     # 1734722108	fbc-4-14-on-push-tb9m9	3370ba7ca6f0f9dfb5acff899066a29443467a65	completed
 
