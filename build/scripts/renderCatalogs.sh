@@ -195,7 +195,7 @@ for OCP_VERSION in ${OCP_VERSIONS}; do
   set -x
   # shellcheck disable=SC2086
   opm alpha render-template basic "${templateFile}" $migrateLevel > "catalogs/v${OCP_VERSION}/configs/${prod_path}/catalog.json"
-  # set +x
+  set +x
 
   # for 4.15+, use the rhel9 image
   vergte "${OCP_VERSION}" "4.15" && registry="registry-rhel9:v${OCP_VERSION}" || registry="registry:v${OCP_VERSION}"
