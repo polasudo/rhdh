@@ -1,5 +1,5 @@
 repos:
-  - repo: https://github.com/janus-idp/backstage-showcase
+  - repo: https://github.com/redhat-developer/rhdh
     branch:
       # list branch to fetch; if first not found, try second as fallback
       - main
