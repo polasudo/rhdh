@@ -9,7 +9,7 @@ metadata:
     pipelinesascode.tekton.dev/on-cel-expression: event == "push" && target_branch
       == "rhdh-1-rhel-9" && ( "catalogs/v4.17/***".pathChanged() || ".tekton/fbc-4-17-push.yaml".pathChanged()
       )
-  creationTimestamp: 2025-01-08T16-37-41Z
+  creationTimestamp: null
   labels:
     appstudio.openshift.io/application: fbc-4-17
     appstudio.openshift.io/component: fbc-4-17

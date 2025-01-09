@@ -20,7 +20,7 @@ maintainers="RHDH Team <rhdh-bot@redhat.com>"
 templateFileInput=""
 
 RHDH_VERSION="1.5.0"
-OCP_VERSIONS="4.14 4.15 4.16 4.17 4.18"
+OCP_VERSIONS="4.14 4.15 4.16 4.17"
 
 DWNSTM_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "rhdh-1-rhel-9")
 latestNextExample=""
@@ -75,7 +75,9 @@ Examples:
       $0 $latestNextExample --clean --versions "\${OCP_VERSION}" -v "\${RHDH_VERSION}"; \\
       echo 'Sleep 1 min to avoid tag collisions (KONFLUX-5865)'; sleep 60s; echo; \\
     done
-
+    # until 4.18 is live, copy the catalog from 4.17
+    cp -f catalogs/v4.{17,18}/catalog-template.json
+    $0 $latestNextExample --clean --versions "\${OCP_VERSION}" -v "\${RHDH_VERSION}" --template catalogs/v4.18/catalog-template.json
 EOF
 exit
 }
@@ -254,10 +256,6 @@ EOF
     commitMsg="renderCatalogs.sh from catalogs/v${OCP_VERSION}/, in channel(s) fast${fastYChannel}, for ${PROD_VERSION}-v${OCP_VERSION}${arch}${latestNextTag}; add $PROD_FULL_VERSION"
     if [[ $USE_RHEC -eq 1 ]]; then commitMsg=":: GA PUSH :: ${commitMsg}"; fi
     git commit -s -m "[ci skip] $commitMsg" "catalogs/v${OCP_VERSION}/" || true
-    now=$(date +'%Y-%m-%dT%H-%M-%SZ')
-    yq -Y '.metadata.creationTimestamp = "'"$now"'"' ".tekton/fbc-${OCP_VERSION/./-}-push.yaml" > ".tekton/fbc-${OCP_VERSION/./-}-push.yaml"_
-    mv -f ".tekton/fbc-${OCP_VERSION/./-}-push.yaml"_ ".tekton/fbc-${OCP_VERSION/./-}-push.yaml"
-    git commit -s -m "build fbc-${OCP_VERSION/./-} for $PROD_VERSION" ".tekton/fbc-${OCP_VERSION/./-}-push.yaml" || true
   fi
   if [[ ${DO_PUSH} -eq 1 ]]; then
     git pull origin "${DWNSTM_BRANCH}" >/dev/null 2>&1
