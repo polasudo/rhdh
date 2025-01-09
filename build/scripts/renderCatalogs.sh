@@ -77,7 +77,8 @@ Examples:
     done
     # until 4.18 is live, copy the catalog from 4.17
     cp -f catalogs/v4.{17,18}/catalog-template.json
-    $0 $latestNextExample --clean --versions "\${OCP_VERSION}" -v "\${RHDH_VERSION}" --template catalogs/v4.18/catalog-template.json
+    OCP_VERSION=4.18
+    $0 $latestNextExample --clean --versions "\${OCP_VERSION}" -v "\${RHDH_VERSION}" --template "catalogs/v${OCP_VERSION}/catalog-template.json"
 EOF
 exit
 }
