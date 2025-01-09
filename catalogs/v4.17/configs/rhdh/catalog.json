@@ -1594,7 +1594,7 @@
     "schema": "olm.bundle",
     "name": "rhdh-operator.v1.5.0",
     "package": "rhdh",
-    "image": "quay.io/rhdh/rhdh-operator-bundle@sha256:80bdaff6f0ef0880608db2ec7ed00de38488812c1177fb054bed1031cfb9ee78",
+    "image": "quay.io/rhdh/rhdh-operator-bundle@sha256:5a8b85acb4033f6433d77fbaad17a8f541b602ae872326ff66e6e16fd0e68e9f",
     "properties": [
         {
             "type": "olm.gvk",
@@ -1635,8 +1635,8 @@
                     "capabilities": "Seamless Upgrades",
                     "categories": "Developer Tools",
                     "certified": "true",
-                    "containerImage": "registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:d4fd7ca31ed53b86bb9b4b949a80d4b9b093dd5a7ecc95eee4139a2c0c84b42e",
-                    "createdAt": "2025-01-08T20:26:19Z",
+                    "containerImage": "registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:aaad5f67570703f4a32d6a13ee78f45f0fbab9d8e89ca57c34fa0b824401c0b0",
+                    "createdAt": "2025-01-09T17:27:20Z",
                     "description": "Red Hat Developer Hub is a Red Hat supported version of Backstage. It comes with pre-built plug-ins and configuration settings, supports use of an external database, and can help streamline the process of setting up a self-managed internal developer portal for adopters who are just starting out.",
                     "features.operators.openshift.io/cnf": "false",
                     "features.operators.openshift.io/cni": "false",
@@ -1745,11 +1745,11 @@
     "relatedImages": [
         {
             "name": "",
-            "image": "quay.io/rhdh/rhdh-operator-bundle@sha256:80bdaff6f0ef0880608db2ec7ed00de38488812c1177fb054bed1031cfb9ee78"
+            "image": "quay.io/rhdh/rhdh-operator-bundle@sha256:5a8b85acb4033f6433d77fbaad17a8f541b602ae872326ff66e6e16fd0e68e9f"
         },
         {
             "name": "",
-            "image": "registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:d4fd7ca31ed53b86bb9b4b949a80d4b9b093dd5a7ecc95eee4139a2c0c84b42e"
+            "image": "registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:aaad5f67570703f4a32d6a13ee78f45f0fbab9d8e89ca57c34fa0b824401c0b0"
         }
     ]
 }
