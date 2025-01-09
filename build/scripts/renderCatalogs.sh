@@ -195,7 +195,7 @@ for OCP_VERSION in ${OCP_VERSIONS}; do
   set -x
   # shellcheck disable=SC2086
   opm alpha render-template basic "${templateFile}" $migrateLevel > "catalogs/v${OCP_VERSION}/configs/${prod_path}/catalog.json"
-  set +x
+  # set +x
 
   # for 4.15+, use the rhel9 image
   vergte "${OCP_VERSION}" "4.15" && registry="registry-rhel9:v${OCP_VERSION}" || registry="registry:v${OCP_VERSION}"
@@ -251,14 +251,14 @@ EOF
 
   if [[ $DO_COMMIT -eq 1 ]]; then
     # echo "[INFO] Commit changes to catalogs/v${OCP_VERSION}/"
-    git add -f "catalogs/v${OCP_VERSION}/" || true
+    git add -f "catalogs/v${OCP_VERSION}/" build/scripts/renderCatalogs.sh || true
     # don't trigger gitlab pipelines [ci skip], only tekton ones
     commitMsg="renderCatalogs.sh from catalogs/v${OCP_VERSION}/, in channel(s) fast${fastYChannel}, for ${PROD_VERSION}-v${OCP_VERSION}${arch}${latestNextTag}; add $PROD_FULL_VERSION"
     if [[ $USE_RHEC -eq 1 ]]; then commitMsg=":: GA PUSH :: ${commitMsg}"; fi
-    git commit -s -m "[ci skip] $commitMsg" "catalogs/v${OCP_VERSION}/" || true
+    git commit -s -m "[ci skip] $commitMsg" "catalogs/v${OCP_VERSION}/" build/scripts/renderCatalogs.sh || true
   fi
   if [[ ${DO_PUSH} -eq 1 ]]; then
-    git pull origin "${DWNSTM_BRANCH}" >/dev/null 2>&1
+    git pull origin "${DWNSTM_BRANCH}" >/dev/null 2>&1 || true
     git push origin "${DWNSTM_BRANCH}" >/dev/null 2>&1
     echo
     oc -n rhdh-tenant get Snapshots --sort-by=.metadata.creationTimestamp --selector='pac.test.appstudio.openshift.io/original-prname=fbc-'"${OCP_VERSION/./-}"'-on-push' -o yaml > "/tmp/fbc-snapshots-${OCP_VERSION}.yaml"
