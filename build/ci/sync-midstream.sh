@@ -709,7 +709,10 @@ EOT
 echo "[INFO] Added metadata to $TMPDIR/operator.Dockerfile.foot"
 
 for c in distgit/containers/rhdh-operator-bundle/Dockerfile.in distgit/containers/rhdh-operator-bundle/Dockerfile distgit/containers/rhdh-operator-bundle/Containerfile; do
-  if [[ -f $c ]]; then sed -i '/# append Brew metadata here/q' $c; fi
+  if [[ -f $c ]]; then 
+    echo "Adjust $c to add downstream metadata"
+    sed -i '/# append Brew metadata here/q' $c
+  fi
 done
 cat <<EOT >$TMPDIR/operator-bundle.Dockerfile.foot
 ENV SUMMARY="Red Hat Developer Hub operator bundle" \\
