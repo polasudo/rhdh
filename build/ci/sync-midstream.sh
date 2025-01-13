@@ -533,7 +533,7 @@ for ((i = START_REPO; i < NUM_REPOS; i++)); do # echo $i
       sed -i Containerfile -r -e "s|(MIDSTREAM_REPO=)\".+\"|\1\"${midstream_repo_and_SHA}\"|"
       now="$(date -u +%FT%TZ)";
 
-      # set build-metadata.json info, using upstream info: ${ROOTPATH}/sync/upstream_SHA_rhdh-hub ==> janus-idp/backstage-showcase main @ 2ff35695
+      # set build-metadata.json info, using upstream info: ${ROOTPATH}/sync/upstream_SHA_rhdh-hub ==> redhat-developer/rhdh main @ 2ff35695
       sed -i packages/app/src/build-metadata.json -r \
         -e 's|"(Last Commit: )(.+)"|"Upstream: '"$upstream_repo_hub"'", "Midstream: '"$midstream_repo_and_SHA"'", "Build Time: '"$now"'"|'
     fi
@@ -939,7 +939,7 @@ fi ## if DO_BUILD
 
 # compute x.y version from package.json upstream
 # TODO RHIDP-1022 switch to rhdh repo instead of showcase
-showcasePackageJson="https://raw.githubusercontent.com/janus-idp/backstage-showcase/refs/heads/$branch/package.json"
+showcasePackageJson="https://raw.githubusercontent.com/redhat-developer/rhdh/refs/heads/$branch/package.json"
 DH_VERSION=$(curl -sSLko- "$showcasePackageJson" | yq -r '.version') # 1.5.0
 DH_VERSION=${DH_VERSION%.*} # 1.2
 echo "[INFO] Got DH_VERSION = $DH_VERSION from $showcasePackageJson #.version"

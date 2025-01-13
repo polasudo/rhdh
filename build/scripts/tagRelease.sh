@@ -288,12 +288,12 @@ function updatePluginsRootVersion() {
 	popd >/dev/null || exit 1
 }
 
-# for backstage-showcase, bump to specified version
+# for redhat-developer/rhdh, bump to specified version
 function updateShowcaseVersions() {
 	the_branch="$1"
 	the_version="$2"
 	# TODO move to red-hat-developer-hub
-	orgAndRepo="janus-idp/backstage-showcase"
+	orgAndRepo="redhat-developer/rhdh"
 	d="${orgAndRepo/\//__}"
 	rm -fr ""$TMPDIR"/projects_${d}_2" && git clone -q --depth 1 -b "${the_branch}" "git@github.com:${orgAndRepo}" ""$TMPDIR"/projects_${d}_2" || echo "Branch $clone_branch doesn't exist: skip!"
 	pushd ""$TMPDIR"/projects_${d}_2" >/dev/null || exit 1
@@ -515,7 +515,7 @@ pushBranchAndOrTagGH () {
 
 					# changes to apply to new midstream release-1.yy branch
 					# https://issues.redhat.com/browse/RHIDP-1311 apply the production key to the release-1.yy stable branches, so we can use the devel key for main/CI builds
-					if [[ $d == "janus-idp__backstage-showcase" ]] || [[ $d == "redhat-developer__red-hat-developer-hub" ]]; then
+					if [[ $d == "redhat-developer__rhdh" ]]; then
 						sed -i .rhdh/docker/Dockerfile -r -e "s|(.*SEGMENT_WRITE_KEY=).*|\1$SEGMENT_WRITE_KEY|g"
 						COMMITMSG="chore: switch SEGMENT_WRITE_KEY in $TARGET_BRANCH"
 						git commit --no-gpg-sign -s -m "${COMMITMSG}" .rhdh/docker/Dockerfile || true # if no changes, continue
@@ -539,7 +539,7 @@ pushBranchAndOrTagGH () {
 					# now bump TARGET_BRANCH = release-1.yy branch to x.yy.(z+1)
 					getNextCSVZ "$CSV_VERSION" 
 					# echo "[INFO] Next CSV version is $CSV_VERSION_Z / $CSV_VERSION_Z_OPERATOR"
-					if [[ $d == "janus-idp__backstage-showcase" ]] || [[ $d == "redhat-developer__red-hat-developer-hub" ]]; then
+					if [[ $d == "redhat-developer__rhdh" ]]; then
 						echo "[INFO] Bump $d to $CSV_VERSION_Z" 
 						updateShowcaseVersions "$TARGET_BRANCH" "$CSV_VERSION_Z"
 					elif [[ $d == "redhat-developer__rhdh-operator" ]]; then
@@ -649,7 +649,7 @@ if [[ $SKIP_GH -eq 0 ]]; then
 		redhat-developer/red-hat-developers-documentation-rhdh \
 		redhat-developer/red-hat-developer-hub-software-templates \
 		redhat-developer/red-hat-developer-hub-theme \
-		janus-idp/backstage-showcase \
+		redhat-developer/rhdh \
 		janus-idp/backstage-plugins \
 		; do
 		pushBranchAndOrTagGH $repo 

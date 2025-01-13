@@ -7,7 +7,7 @@
 #
 # SPDX-License-Identifier: EPL-2.0
 #
-# Utility script to collect a list of plugins from a RHDH or backstage-showcase folder
+# Utility script to collect a list of plugins from a RHDH folder
 
 SCRIPT_DIR=$(cd "$(dirname "$0")" || exit; pwd)
 
@@ -37,7 +37,7 @@ Examples:
   $0 -c quay.io/rhdh/rhdh-hub-rhel9:1.0-200
   $0 -c quay.io/rhdh/rhdh-hub-rhel9:1.1-87
   $0 -s /path/to/rhdh-hub
-  $0 -s /path/to/backstage-showcase 
+  $0 -s /path/to/redhat-developer/rhdh
 
 EOF
 }
