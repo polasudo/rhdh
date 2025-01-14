@@ -44,6 +44,7 @@ Render an index / IIB catalog sources as file-based catalogs (FBC), and insert t
 
 Requires:
 * opm 1.47 (see https://github.com/operator-framework/operator-registry/releases/tag/v1.47.0 )
+* a logged in oc session with your Konflux cluster, eg., from https://console-openshift-console.apps.<your-cluster-here>.openshiftapps.com/k8s/cluster/projects/rhdh-tenant
 
 Usage: $0 -v x.y.z [OPTIONS]
 
@@ -70,6 +71,8 @@ Options:
   -h, --help             show this help
 
 Examples:
+    oc login --token=<your-token-here> --server=https://api.<your-cluster-here>.openshiftapps.com:6443
+
     RHDH_VERSION="$RHDH_VERSION"; \\
     for OCP_VERSION in $OCP_VERSIONS; do \\
       $0 $latestNextExample --clean --versions "\${OCP_VERSION}" -v "\${RHDH_VERSION}"; \\
@@ -82,6 +85,14 @@ Examples:
 EOF
 exit
 }
+
+# break if not logged in
+if [[ $(oc whoami 2>&1 || true) == *"You must be logged in"* ]]; then 
+  echo; echo "You must be logged into the konflux console!"; echo
+  usage
+else
+  oc project rhdh-tenant || true
+fi
 
 if [[ $# -lt 1 ]]; then usage; fi
 
