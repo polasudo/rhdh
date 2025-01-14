@@ -295,6 +295,7 @@ NUM_REPOS=$(grep -v -E " +#" "${UPSTREAM_FILE}" | grep -c "repo:") # 2
 
 # upstream build metadata to add as ENV vars in the containers
 upstream_repo_hub=""
+upstream_repo_hub_branch=""
 upstream_repo_op=""
 
 commitMsg=""
@@ -337,6 +338,7 @@ for ((i = START_REPO; i < NUM_REPOS; i++)); do # echo $i
     SHA="$(git rev-parse --short=8 HEAD)"
     if [[ $CONTAINER_NAME == "rhdh-hub" ]]; then
       upstream_repo_hub="$repo/tree/$branch @ $SHA"
+      upstream_repo_hub_branch="$branch"
     elif [[ $CONTAINER_NAME == "rhdh-operator" ]] || [[ $CONTAINER_NAME == "rhdh-operator-bundle" ]]; then
       upstream_repo_op="$repo/tree/$branch @ $SHA"
     fi
@@ -425,28 +427,41 @@ for ((i = START_REPO; i < NUM_REPOS; i++)); do # echo $i
       # copy the contents of bundle/rhdh/ into distgit/containers/rhdh-operator-bundle/
       # NOTE: if we add any .dotfiles in bundle/rhdh/, add $TMPDIR/repo${i}/bundle/.??* to regexes copied 
       rsync -azq --delete $TMPDIR/repo${i}/bundle/rhdh/* $TMPDIR/repo${i}/.gitignore "${BUNDLEDIR}/" --exclude=.git ${excludesFlags}
-
-      # downstream CSV and annotations are stored in https://github.com/redhat-developer/rhdh-operator/tree/main/.rhdh/bundle/
+      # downstream CSV and annotations are stored in https://github.com/redhat-developer/rhdh-operator/tree/main/bundle/rhdh/manifests
       # append overrides from the .rhdh/ tree: CSV and annotations
       rsync -azq $TMPDIR/repo${i}/.rhdh/bundle/* "${BUNDLEDIR}/" --exclude=.git ${excludesFlags}
       # and copy .rhdh/docker/bundle.Dockerfile to Dockerfile.in
       rsync -azq $TMPDIR/repo${i}/.rhdh/docker/bundle.Dockerfile "${BUNDLEDIR}/Dockerfile.in"
 
-      # remove files we don't need downstream in operator-bundle/ or operator/bundle/
-      for bundle_dir in "${BUNDLEDIR}" "${ROOTPATH}/${destination_folder%/}/bundle"; do 
+      # remove files we don't need downstream in operator-bundle/ or operator/bundle/rhdh
+      for bundle_dir in "${BUNDLEDIR}" "${ROOTPATH}/${destination_folder%/}/bundle/rhdh"; do 
         pushd "${bundle_dir}" >/dev/null || exit 1
           # shellcheck disable=SC2043
           for df in \
-              manifests/backstage-operator.clusterserviceversion.yaml \
+              backstage.io \
+              rhdh \
             ; do 
             git rm -fr $df 2>/dev/null || rm -f $df 2>/dev/null || true
           done
+        popd >/dev/null || exit 1
+      done
 
-          # replace default backstage deployment name backstage-sample with developer-hub
-          for yml in manifests/rhdh-operator.clusterserviceversion.yaml config/samples/_v1alpha1_backstage.yaml; do
-          echo "[INFO] Transforming $yml ..."
+      for bundle_dir in "${ROOTPATH}/${destination_folder%/}/bundle/rhdh"; do
+        pushd "${bundle_dir}" >/dev/null || exit 1
+          for yml in manifests/backstage-operator.clusterserviceversion.yaml; do
+          echo "[INFO] Transforming $bundle_dir/$yml ..."
             if [[ -f $yml ]]; then
-              sed -i $yml -r -e "s/backstage-sample/developer-hub/g"
+              # upstream CSV uses references to quay.io => replace with registry.redhat.io
+              # This is especially needed for example because quay.io/fedora/postgresql-15
+              # for example is not the same as registry.redhat.io/rhel9/postgresql-15
+              operatorImage=$(yq -r '.spec.install.spec.deployments[] | select (.name=="rhdh-operator") | .spec.template.spec.containers[] | select (.name == "manager") | .image' "$yml") # quay.io/rhdh/rhdh-rhel9-operator:1.5
+              dhImageTag=${operatorImage##*:} # 1.5
+
+              sed -i $yml -r \
+                -e "s@quay.io/fedora/postgresql-15:@registry.redhat.io/rhel9/postgresql-15:@g" \
+                -e "s@quay.io/rhdh/rhdh-hub-rhel9:.*@registry.redhat.io/rhdh/rhdh-hub-rhel9:$dhImageTag@g" \
+                -e "s@quay.io/rhdh/@registry.redhat.io/rhdh/@g"
+
               # transform tags to digests
               # shellcheck disable=SC2013
               for imageAndSHA in $(cat $yml | grep -E "registry|quay.io" | sed -r "s/.+(containerImage|image|value): //g" | sort -u); do
@@ -482,8 +497,9 @@ for ((i = START_REPO; i < NUM_REPOS; i++)); do # echo $i
         popd >/dev/null || exit 1
       done
 
-      # use rhdh-operator.clusterserviceversion.yaml instead of backstage csv
+      # use backstage-operator.clusterserviceversion.yaml instead of backstage csv
       pushd "${BUNDLEDIR}" >/dev/null || exit 1
+        cp -f "${ROOTPATH}/${destination_folder%/}/bundle/rhdh/manifests/backstage-operator.clusterserviceversion.yaml" "./manifests/backstage-operator.clusterserviceversion.yaml"
         git add . || true
       popd >/dev/null || exit 1
     fi
@@ -942,7 +958,7 @@ fi ## if DO_BUILD
 
 # compute x.y version from package.json upstream
 # TODO RHIDP-1022 switch to rhdh repo instead of showcase
-showcasePackageJson="https://raw.githubusercontent.com/redhat-developer/rhdh/refs/heads/$branch/package.json"
+showcasePackageJson="https://raw.githubusercontent.com/redhat-developer/rhdh/refs/heads/$upstream_repo_hub_branch/package.json"
 DH_VERSION=$(curl -sSLko- "$showcasePackageJson" | yq -r '.version') # 1.5.0
 DH_VERSION=${DH_VERSION%.*} # 1.2
 echo "[INFO] Got DH_VERSION = $DH_VERSION from $showcasePackageJson #.version"
