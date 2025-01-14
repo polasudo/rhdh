@@ -209,6 +209,7 @@ checkImage () {
 
     checkImage_result=""
     local imageAndSHA="$1"
+    imageAndSHA=${imageAndSHA/registry.redhat.io\/rhdh/quay.io\/rhdh}
     imageAndSHA=${imageAndSHA%%@*}
     imageOnly=${imageAndSHA%%:*}
     if [[ $QUIET -eq 0 ]]; then echo "For $imageAndSHA"; fi
@@ -341,6 +342,7 @@ for ((i = START_REPO; i < NUM_REPOS; i++)); do # echo $i
       upstream_repo_hub_branch="$branch"
     elif [[ $CONTAINER_NAME == "rhdh-operator" ]] || [[ $CONTAINER_NAME == "rhdh-operator-bundle" ]]; then
       upstream_repo_op="$repo/tree/$branch @ $SHA"
+      if [[ $upstream_repo_hub_branch == "" ]]; then upstream_repo_hub_branch="$branch"; fi
     fi
 
     # cat "${ROOTPATH}/sync/upstream_SHA_${CONTAINER_NAME}"; echo "$SHA = $branch @ $repo"
@@ -466,7 +468,7 @@ for ((i = START_REPO; i < NUM_REPOS; i++)); do # echo $i
               # shellcheck disable=SC2013
               for imageAndSHA in $(cat $yml | grep -E "registry|quay.io" | sed -r "s/.+(containerImage|image|value): //g" | sort -u); do
                 imageFloatingTag=${imageAndSHA%%@*}
-                # echo "Computing digest for ${imageFloatingTag} ..."
+                echo "         Computing digest for ${imageFloatingTag} ..."
                 checkImage "${imageFloatingTag}"
                 if [[ "$checkImage_result" == "NONE" ]]; then
                   if [[ "${imageFloatingTag}" != "quay.io/"* ]]; then # don't check quay again if we already did!
