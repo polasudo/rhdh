@@ -12,8 +12,10 @@ SCRIPT_DIR=$(cd "$(dirname "$0")" || exit; pwd)
 DEBUG=0 # quieter
 AUTORELEASE=0
 
+RHDH_FULL_VERSION_INPUT="1.4.1"
+
 CONTAINERS=""
-DEST=stage
+DEST=""
 # ARCHES="x86_64"  # TODO add arch64/arm64
 OCP_VERSIONS="4.14 4.15 4.16 4.17"
 BUNDLE_TAG_OR_SHA=""
@@ -30,16 +32,29 @@ Requires that you are already logged into the Konflux cluster via commandline, f
    oc login --token=sha256~YOUR_TOKEN_HERE --server=https://api.stone-prod-p02.hjvn.p1.openshiftapps.com:6443
 
 To generate a token go to https://console-openshift-console.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/k8s/cluster/projects/rhdh-tenant 
-Then click on your username and select 'Copy login command' then 'Display token'
+Then click on your username and select 'Copy login command' then 'Display token'"
+}
+
+usageContainers () {
+  echo "\
 
 =======================
-Usage - for containers:
+Usage - for container snapshots:
 =======================
 
 oc login ...
 
-$0 --stage rhdh-hub-rhel9 rhdh-rhel9-operator rhdh-operator-bundle -v 1.4.0 --debug
-$0 --prod  rhdh-hub-rhel9 rhdh-rhel9-operator rhdh-operator-bundle -v 1.4.0 
+$0 --stage -c rhdh-operator-bundle -v $RHDH_FULL_VERSION_INPUT --debug
+$0 --prod  -c rhdh-operator-bundle -v $RHDH_FULL_VERSION_INPUT
+
+Options:
+  --stage, --prod    Push to the stage or prod version of the RH Ecosystem Catalog
+  -c                 Space-separated list of containers to release, such as \"rhdh-hub-rhel9 rhdh-rhel9-operator rhdh-operator-bundle\"
+  -v                 RHDH version x.y.z to release"
+}
+
+usageFBCs () {
+  echo "\
 
 ==============================
 Usage - for IIB / FBC updates:
@@ -54,8 +69,8 @@ Usage - for IIB / FBC updates:
 oc login ...
 
 # 1. render new catalogs
-LATEST_CSV=1.4.0
-for v in 4.14 4.15 4.16 4.17; do
+LATEST_CSV=$RHDH_FULL_VERSION_INPUT
+for v in 4.14 4.15 4.16 4.17 4.18; do
   # while using quay.io/rhdh is fine for CI and stage builds, must switch to GA image
   # reference to avoid warning-failures from blocking the release with '--rhec' flag
   ./build/scripts/renderCatalogs.sh --latest --clean -v \${LATEST_CSV} --versions \$v \\
@@ -74,10 +89,10 @@ done
 $0 --stage  --fbc :1.3-127 -v 1.3.3 -o \"4.14 4.15 ...\" --auto --debug
 $0 --prod   --fbc :1.3-127 -v 1.3.3 -o \"4.14 4.15 ...\"
 
-$0 --stage  --fbc :1.4-127        -v 1.4.0 --debug
-$0 --prod   --fbc :1.4-1734113472 -v 1.4.0 --debug
+$0 --stage  --fbc :1.4-127        -v 1.4.1 --debug
+$0 --prod   --fbc :1.4-1734113472 -v 1.4.1 --debug
 # or use SHA
-$0 --prod   --fbc @sha256:2981d2470951ea1e26eb968aefc39ab48ab7d9634a520cf2bbd8c5fef313db15 -v 1.4.0 
+$0 --prod   --fbc @sha256:2981d2470951ea1e26eb968aefc39ab48ab7d9634a520cf2bbd8c5fef313db15 -v $RHDH_FULL_VERSION_INPUT
 
 
 Options:
@@ -90,7 +105,7 @@ Options:
   -o                 OCP versions for which to release FBC; default '$OCP_VERSIONS'
 
   --auto             Rather than showing you the yaml to apply, just execute it automatically. Be careful!
-  ";
+  "
 }
 
 while [[ "$#" -gt 0 ]]; do
@@ -103,7 +118,8 @@ while [[ "$#" -gt 0 ]]; do
     '--fbc') BUNDLE_TAG_OR_SHA=$2; shift 1;;
     '--snapshot') SNAPSHOT_OVERRIDE=$2; shift 1;;
     '--commit')   midstreamCommitSHA="$2"; shift 1;;
-    *) CONTAINERS="$CONTAINERS $1";;
+    '-c') CONTAINERS="$CONTAINERS $2"; shift 1;;
+    *) usage; usageContainers; usageFBCs; echo; echo "[ERROR] Unknown flag $1"; exit 1;;
   esac
   shift 1
 done
@@ -113,16 +129,27 @@ num_ocp_versions=0
 for OCP_VERSION in $OCP_VERSIONS; do
   (( num_ocp_versions = num_ocp_versions + 1 ))
 done
+
 if [[ $SNAPSHOT_OVERRIDE ]] && [[ $num_ocp_versions -gt 1 ]]; then
-  usage; echo; echo "[ERROR] Can only specify a snapshot for a single OCP version! Use '-o 4.18' to set the OCP version for the specified snapshot $SNAPSHOT_OVERRIDE !"; exit 1
+  usage; usageFBCs; echo; echo "[ERROR] Can only specify a snapshot for a single OCP version! Use '-o 4.18' to set the OCP version for the specified snapshot $SNAPSHOT_OVERRIDE !"; exit 1
 fi
 
 if [[ ! $CONTAINERS ]] && [[ ! $BUNDLE_TAG_OR_SHA ]]; then 
-  usage; echo; echo "[ERROR] Must specify containers or a bundle image tag with --fbc 1.y-zzz to perfom a release!"; exit 1
+  usage; usageContainers; usageFBCs; echo; echo "[ERROR] Must specify '-c rhdh-operator-bundle', or for FBCs, use a bundle image tag with --fbc 1.y-zzz to perfom a release!"; exit 1
 fi
 
 if [[ ! $RHDH_FULL_VERSION ]]; then 
-  usage; echo; echo "[ERROR] Must specify full RHDH version with -v x.y.z to perfom a release!"; exit 1
+  usage; 
+  if [[ $CONTAINERS ]]; then usageContainers; fi
+  if [[ $BUNDLE_TAG_OR_SHA ]]; then usageFBCs; fi;
+  echo; echo "[ERROR] Must specify full RHDH version with -v x.y.z to perfom a release!"; exit 1
+fi
+
+if [[ ! $DEST ]]; then 
+  usage; 
+  if [[ $CONTAINERS ]]; then usageContainers; fi
+  if [[ $BUNDLE_TAG_OR_SHA ]]; then usageFBCs; fi;
+  echo; echo "[ERROR] Must specify --stage or --prod to perfom a release!"; exit 1
 fi
 
 ######################################################################################################################
@@ -132,17 +159,30 @@ RHDH_FULL_VERSION=${RHDH_FULL_VERSION//./-}
 
 TS=$(date +'%Y%m%d-%H%M%S' -u) # unique timestamp 
 
+echo
+echo -n "[INFO] Collect bundle and related images from quay.io/rhdh/rhdh-operator-bundle:$RHDH_VERSION " 
+
+rm -f "/tmp/imagelist_latest_$RHDH_VERSION.txt"
+latest_bundle=$("${SCRIPT_DIR}/getLatestImageTags.sh" -b "rhdh-${RHDH_VERSION}-rhel-9" --quay -c rhdh/rhdh-operator-bundle)
+echo -n "."
+echo "$latest_bundle" >> "/tmp/imagelist_latest_$RHDH_VERSION.txt"
+"${SCRIPT_DIR}/checkImagesInCSV.sh" -q -y "$latest_bundle" -i 'hub|operator' >> "/tmp/imagelist_latest_$RHDH_VERSION.txt"
+echo -n "."
+sort -uV "/tmp/imagelist_latest_$RHDH_VERSION.txt" > "/tmp/imagelist_latest_$RHDH_VERSION.txt_"; mv "/tmp/imagelist_latest_$RHDH_VERSION.txt"{_,}
+echo ". done."
+echo
+
 # collect array of processed images so we don't process duplicate snapshots
-# declare -A processed_images
+declare -A processed_images
 
 for CONTAINER in $CONTAINERS; do
   # compute the container image SHA/tag - skopeo inspect
   skopeo inspect "docker://quay.io/rhdh/${CONTAINER}:${RHDH_VERSION}" > /tmp/inspect.txt
   tagXYZ=$(jq -r '.Labels.version+"-"+.Labels.release' /tmp/inspect.txt)
   digest=$(jq -r '.Digest' /tmp/inspect.txt)
-  echo "$CONTAINER:${tagXYZ}@${digest} built on $(jq -r '.Labels."build-date"' /tmp/inspect.txt) from $(jq -r '.Env[]|select(.|contains("UPSTREAM_REPO"))' /tmp/inspect.txt)"
+  echo " * $CONTAINER:${tagXYZ}@${digest} built on $(jq -r '.Labels."build-date"' /tmp/inspect.txt) from $(jq -r '.Env[]|select(.|contains("UPSTREAM_REPO"))' /tmp/inspect.txt)"
 
-  # processed_images["${CONTAINER}:${tagXYZ}"]+="${CONTAINER}@${digest}"
+  processed_images["${CONTAINER}:${tagXYZ}"]+="${CONTAINER}@${digest}"
 
   # compute the midstream commit SHA
   MID_SHA=$(jq -r '.Labels."vcs-ref"' /tmp/inspect.txt)
@@ -154,29 +194,84 @@ for CONTAINER in $CONTAINERS; do
     --selector='pac.test.appstudio.openshift.io/original-prname='"${CONTAINER/-rhel9/}"'-'"${RHDH_VERSION/./-}"'-on-push,pac.test.appstudio.openshift.io/sha='"${MID_SHA}"| \
     sed -r -e '/NAME +AGE/d' -e "s/([a-z0-9-]+)\ +([0-9smhdy]+)/\1/g")
   if [[ $DEBUG -eq 1 ]]; then set +x; fi
-  echo -e "For midstream SHA = $MID_SHA, found these snapshot(s):\n$SNAPSHOT"
+  echo; echo -e "[INFO] For midstream SHA = $MID_SHA, found these snapshot(s):\n$SNAPSHOT"
   # TODO fail if we find more than one snapshot for this image; exit 1
-  # SNAPSHOTS="${SNAPSHOTS} ${SNAPSHOT}"
+  SNAPSHOTS="${SNAPSHOTS} ${SNAPSHOT}"
+  rm -f /tmp/inspect.txt
 done
 echo 
 
-# TODO now compute the images in the snapshot to make sure we have a snapshot that contains all three images; if not all are present, skip that snapshot until we find one good one
+# TODO now compute the images in the bundle snapshot to make sure we have one that contains all the latest/correct images; if not all are present, fail!
+for SNAPSHOT in $SNAPSHOTS; do
+  if [[ ! -v processed_images["$SNAPSHOT"] ]]; then # process this new one
+    rm -f "/tmp/imagelist_$SNAPSHOT.txt"
+    echo "[INFO] Inspecting $SNAPSHOT:"
+    
+    oc -n rhdh-tenant get Snapshot "$SNAPSHOT" -o yaml > /tmp/"$SNAPSHOT".yaml
+    # collect 3 images
+    for i in $(yq -r '.spec.components[].containerImage' /tmp/"$SNAPSHOT".yaml | sort -uV); do 
+      imageAndTag="$(~/pp/getTagForSHA.sh "$i" -q -y)" 
+      echo -e " * $imageAndTag = $i"
+      echo "$imageAndTag" >> "/tmp/imagelist_$SNAPSHOT.txt"
+    done
+    echo
 
-# foreach snapshot in $SNAPSHOTS; do
-    #   if [[ ! -v processed_images["$snapshot"] ]]; then # process this new one
-    #     # create a new Release with a unique name for each valid snapshot
+    # compare with the contents of the latest bundle's operands
+    if [[ "$(cat "/tmp/imagelist_latest_$RHDH_VERSION.txt")" != "$(cat "/tmp/imagelist_$SNAPSHOT.txt")" ]]; then
+      echo "[WARNING] Latest images != images in snapshot:"
+      echo "===================latest==================="
+      cat "/tmp/imagelist_latest_$RHDH_VERSION.txt"
+      echo "===================latest==================="
+      echo
+      echo "===================snapshot==================="
+      cat "/tmp/imagelist_$SNAPSHOT.txt"
+      echo "===================snapshot==================="
+    else
+      echo "[INFO] Snapshot images match latest images:"
+      cat "/tmp/imagelist_$SNAPSHOT.txt"
+    fi
+    rm -f "/tmp/imagelist_$SNAPSHOT.txt" "/tmp/imagelist_latest_$RHDH_VERSION.txt"
 
-# echo "apiVersion: appstudio.redhat.com/v1alpha1
-# kind: Release
-# metadata:
-#   name: release-rhdh-1-4-prod-20241217-1100
-#   namespace: rhdh-tenant
-#   labels:
-#     release.appstudio.openshift.io/author: 'nboldt'
-# spec:
-#   releasePlan: rhdh-1-4-prod
-#   snapshot: rhdh-1-4-rpcsx
-# " |  oc apply -f -
+    echo
+    cat << EOT > "/tmp/release-${SNAPSHOT}-${DEST}-${TS}.yaml"
+apiVersion: appstudio.redhat.com/v1alpha1
+kind: Release
+metadata:
+  name: release-${RHDH_FULL_VERSION}-${SNAPSHOT}-${DEST}-${TS}
+  namespace: rhdh-tenant
+  labels:
+    release.appstudio.openshift.io/author: nboldt
+spec:
+  releasePlan: rhdh-${RHDH_VERSION/./-}-${DEST}
+  snapshot: ${SNAPSHOT}
+EOT
+    # if [[ $DEBUG -eq 1 ]]; then cat "/tmp/release-${SNAPSHOT}-${DEST}-${TS}.yaml"; fi
+    if [[ $AUTORELEASE -eq 1 ]]; then
+      echo -n "[INFO] "
+      oc apply -f "/tmp/release-${SNAPSHOT}-${DEST}-${TS}.yaml"
+      echo
+
+      # now check for maanged pipeline runs
+      # for release-rhdh-1-4-4p59p-stage-20250115-210603, get rhtap-releng-tenant/managed-cc5zr
+      managedPipeline=$(oc -n rhdh-tenant get Releases --sort-by=.metadata.creationTimestamp -o yaml | yq -r '.items[]|select(.metadata.name|startswith("'"release-${RHDH_FULL_VERSION}-${SNAPSHOT}-${DEST}-${TS}"'"))' | grep pipelineRun | sed -r -e "s|.+rhtap-releng-tenant/(.+)\",|\1|")
+      managedPipelineURL="https://konflux.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/application-pipeline/workspaces/rhtap-releng/applications/rhdh-${RHDH_VERSION/./-}/pipelineruns/${managedPipeline}/taskruns"
+      echo "[INFO] Run in $managedPipelineURL"
+
+      RELEASE_URL="https://konflux.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/application-pipeline/workspaces/rhdh/applications/rhdh-${RHDH_VERSION/./-}/releases/release-${RHDH_FULL_VERSION}-${SNAPSHOT}-${DEST}-${TS}"
+      echo "       and $RELEASE_URL"
+
+      # open a browser to watch the release
+      if [[ $(command -v google-chrome) == *"google-chrome"* ]] || [[ $(which google-chrome) != *"which: no google-chrome"* ]]; then 
+        google-chrome "$managedPipelineURL" >/dev/null 2>&1; 
+      fi
+      echo "-----------------------------------------------------------------------"
+      echo
+    else
+      collected_commands="${collected_commands}\n  oc apply -f /tmp/release-${SNAPSHOT}-${DEST}-${TS}.yaml"
+      echo -e "Run this:\n  oc apply -f /tmp/release-${SNAPSHOT}-${DEST}-${TS}.yaml"; echo 
+    fi
+  fi
+done
 
 # TODO see how this was done for FBCs below. Can we refactor into a reusable method here? 
 # see releases in progress here https://konflux.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/application-pipeline/workspaces/rhdh/applications/rhdh-1-4/releases
@@ -321,7 +416,7 @@ EOT
           oc apply -f "/tmp/release-rhdh-${RHDH_FULL_VERSION}-fbc-${OCP_VERSION}-${DEST}-${TS}.yaml"
           echo
           RELEASE_URL="https://konflux.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/application-pipeline/workspaces/rhdh/applications/fbc-${OCP_VERSION}/releases/release-rhdh-${RHDH_FULL_VERSION}-fbc-${OCP_VERSION}-${DEST}-${TS}"
-          echo "Running in $RELEASE_URL"
+          echo "Run in $RELEASE_URL"
           # open a browser to watch the release
           if [[ $(command -v google-chrome) == *"google-chrome"* ]] || [[ $(which google-chrome) != *"which: no google-chrome"* ]]; then google-chrome "$RELEASE_URL"; fi
           echo "-----------------------------------------------------------------------"
