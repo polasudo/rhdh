@@ -81,7 +81,7 @@ Examples:
     # until 4.18 is live, copy the catalog from 4.17
     cp -f catalogs/v4.{17,18}/catalog-template.json
     OCP_VERSION=4.18
-    $0 $latestNextExample --clean --versions "\${OCP_VERSION}" -v "\${RHDH_VERSION}" --template "catalogs/v${OCP_VERSION}/catalog-template.json"
+    $0 $latestNextExample --clean --versions "\${OCP_VERSION}" -v "\${RHDH_VERSION}" --template "catalogs/v\${OCP_VERSION}/catalog-template.json"
 EOF
 exit
 }
@@ -91,7 +91,7 @@ if [[ $(oc whoami 2>&1 || true) == *"You must be logged in"* ]]; then
   echo; echo "You must be logged into the konflux console!"; echo
   usage
 else
-  oc project rhdh-tenant || true
+  oc project rhdh-tenant >/dev/null 2>&1 || true
 fi
 
 if [[ $# -lt 1 ]]; then usage; fi
@@ -117,6 +117,10 @@ while [[ "$#" -gt 0 ]]; do
   esac
   shift 1
 done
+
+if [[ $templateFileInput ]] && [[ ! -f $templateFileInput ]]; then
+  echo "[ERROR] Could not find template file $templateFileInput !"; echo; usage 
+fi
 
 # check if $1 is greater than or equal to $2
 vergte() {
@@ -206,7 +210,7 @@ for OCP_VERSION in ${OCP_VERSIONS}; do
   vergte "${OCP_VERSION}" "4.17" && migrateLevel="--migrate-level=bundle-object-to-csv-metadata" || migrateLevel=""
   set -x
   # shellcheck disable=SC2086
-  opm alpha render-template basic "${templateFile}" $migrateLevel > "catalogs/v${OCP_VERSION}/configs/${prod_path}/catalog.json"
+  time opm alpha render-template basic "${templateFile}" $migrateLevel > "catalogs/v${OCP_VERSION}/configs/${prod_path}/catalog.json"
   set +x
 
   # for 4.15+, use the rhel9 image
@@ -273,29 +277,29 @@ EOF
     git pull origin "${DWNSTM_BRANCH}" >/dev/null 2>&1 || true
     git push origin "${DWNSTM_BRANCH}" >/dev/null 2>&1
     echo
-    oc -n rhdh-tenant get Snapshots --sort-by=.metadata.creationTimestamp --selector='pac.test.appstudio.openshift.io/original-prname=fbc-'"${OCP_VERSION/./-}"'-on-push' -o yaml > "/tmp/fbc-snapshots-${OCP_VERSION}.yaml"
+    waitTime="20"
+    echo -n "Waiting ${waitTime}s for new pipeline to trigger from the above commit and push"
+    for ((i = 0; i < waitTime; ++i)); do sleep 1s; echo -n "."; done; echo
+    oc -n rhdh-tenant get PipelineRuns --sort-by=.metadata.creationTimestamp --selector='pipelinesascode.tekton.dev/original-prname=fbc-'"${OCP_VERSION/./-}"'-on-push' -o yaml > "/tmp/fbc-pipelineruns-${OCP_VERSION}.yaml"
     # debugging
-    echo "Found these snapshots:"
-    echo -e "timestamp\tsnapshot\tpipelinerun\t\tmidstreamCommitSHA"
-    yq -r '.items[]|select(.metadata.annotations."pac.test.appstudio.openshift.io/branch" == "'"${DWNSTM_BRANCH}"'")|select(.metadata.labels."pac.test.appstudio.openshift.io/state" != "completed")|.metadata.labels."test.appstudio.openshift.io/pipelinerunfinishtime" + "\t" + .metadata.labels."appstudio.openshift.io/build-pipelinerun" + "\t" + .metadata.labels."pac.test.appstudio.openshift.io/sha" + "\t" + .metadata.labels."pac.test.appstudio.openshift.io/state"' "/tmp/fbc-snapshots-${OCP_VERSION}.yaml" | tail -3
-    # 1734476600	fbc-4-14-on-push-f2svf	88f44169d0eafe2af2e9ea23e7897299b2cd392f	completed
-    # 1734722108	fbc-4-14-on-push-tb9m9	3370ba7ca6f0f9dfb5acff899066a29443467a65	completed
+    echo "Found these pipeline runs:"
+    echo -e "timestamp\t\tmidstreamCommitSHA\t\t\t\tpipelinerunURL"
+    yq -r '.items[]|select(.metadata.annotations."pipelinesascode.tekton.dev/branch" == "'"${DWNSTM_BRANCH}"'")|select(.metadata.annotations."pipelinesascode.tekton.dev/state" != "completed")|.status.conditions[0].lastTransitionTime + "\t" + .metadata.annotations."pipelinesascode.tekton.dev/sha" + "\t" + .metadata.annotations."pipelinesascode.tekton.dev/log-url"' "/tmp/fbc-pipelineruns-${OCP_VERSION}.yaml"  | tail -3
 
     # choose the latest run
-    # TODO select only if in progress, not complete
-    pipelinerun=$(yq -r '.items[]|select(.metadata.annotations."pac.test.appstudio.openshift.io/branch" == "'"${DWNSTM_BRANCH}"'")|.metadata.labels."appstudio.openshift.io/build-pipelinerun"' "/tmp/fbc-snapshots-${OCP_VERSION}.yaml" | tail -1)
+    pipelinerun=$(yq -r '.items[]|select(.metadata.annotations."pipelinesascode.tekton.dev/branch" == "'"${DWNSTM_BRANCH}"'")|select(.metadata.annotations."pipelinesascode.tekton.dev/state" != "completed")|.metadata.annotations."pipelinesascode.tekton.dev/log-url"' "/tmp/fbc-pipelineruns-${OCP_VERSION}.yaml" | tail -1)
     if [[ $pipelinerun ]]; then
-      PIPELINE_URL="https://konflux.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/application-pipeline/workspaces/rhdh/applications/fbc-${OCP_VERSION/./-}/pipelineruns/${pipelinerun}/taskruns"
-      echo "Running in $PIPELINE_URL"
+      PIPELINE_URL="$pipelinerun"
+      echo -e "\nRunning in $PIPELINE_URL"
     else
       PIPELINE_URL="https://konflux.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/application-pipeline/workspaces/rhdh/applications/fbc-${OCP_VERSION/./-}/activity/pipelineruns"
-      echo "Pipelinerun not found for branch = $DWNSTM_BRANCH - see running pipelineruns at $PIPELINE_URL"
+      echo -e "\nPipelinerun not found for branch = $DWNSTM_BRANCH - see running pipelineruns at $PIPELINE_URL"
     fi
     # open a browser to watch the release
     if [[ $(command -v google-chrome) == *"google-chrome"* ]] || [[ $(which google-chrome) != *"which: no google-chrome"* ]]; then google-chrome "$PIPELINE_URL"; fi
     echo "-----------------------------------------------------------------------"
     echo
-    rm -f "/tmp/fbc-snapshots-${OCP_VERSION}.yaml"
+    rm -f "/tmp/fbc-pipelineruns-${OCP_VERSION}.yaml"
   fi 
 done
 
