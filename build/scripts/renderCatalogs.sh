@@ -288,7 +288,7 @@ EOF
 
     # choose the latest run
     pipelinerun=$(yq -r '.items[]|select(.metadata.annotations."pipelinesascode.tekton.dev/branch" == "'"${DWNSTM_BRANCH}"'")|select(.metadata.annotations."pipelinesascode.tekton.dev/state" != "completed")|.metadata.annotations."pipelinesascode.tekton.dev/log-url"' "/tmp/fbc-pipelineruns-${OCP_VERSION}.yaml" | tail -1)
-    if [[ $pipelinerun ]]; then
+    if [[ $pipelinerun ]] && [[ $pipelinerun != "null" ]]; then
       PIPELINE_URL="$pipelinerun"
       echo -e "\nRunning in $PIPELINE_URL"
     else
