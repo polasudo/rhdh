@@ -82,6 +82,16 @@ Examples:
     cp -f catalogs/v4.{17,18}/catalog-template.json
     OCP_VERSION=4.18
     $0 $latestNextExample --clean --versions "\${OCP_VERSION}" -v "\${RHDH_VERSION}" --template "catalogs/v\${OCP_VERSION}/catalog-template.json"
+
+    # OR, if all your templates are the same: render one template, and then copy it for the other 4 versions
+
+    RHDH_VERSION="$RHDH_VERSION"
+    OCP_VERSION=4.14
+    $0 $latestNextExample --clean --versions "\${OCP_VERSION}" -v "\${RHDH_VERSION}"; sleep 30s; echo
+    alias cp=cp
+    for OCP_VERSION in 4.15 4.16 4.17 4.18; do \\
+      cp -f catalogs/v{4.14,\${OCP_VERSION}}/catalog-template.json; ./build/scripts/renderCatalogs.sh $latestNextExample --clean --versions "\${OCP_VERSION}" -v "\${RHDH_VERSION}" --template "catalogs/v\${OCP_VERSION}/catalog-template.json"; sleep 30s; \\
+    done
 EOF
 exit
 }
@@ -282,7 +292,7 @@ EOF
     for ((i = 0; i < waitTime; ++i)); do sleep 1s; echo -n "."; done; echo
     oc -n rhdh-tenant get PipelineRuns --sort-by=.metadata.creationTimestamp --selector='pipelinesascode.tekton.dev/original-prname=fbc-'"${OCP_VERSION/./-}"'-on-push' -o yaml > "/tmp/fbc-pipelineruns-${OCP_VERSION}.yaml"
     # debugging
-    echo "Found these pipeline runs:"
+    echo "Found pipeline run(s):"
     echo -e "timestamp\t\tmidstreamCommitSHA\t\t\t\tpipelinerunURL"
     yq -r '.items[]|select(.metadata.annotations."pipelinesascode.tekton.dev/branch" == "'"${DWNSTM_BRANCH}"'")|select(.metadata.annotations."pipelinesascode.tekton.dev/state" != "completed")|.status.conditions[0].lastTransitionTime + "\t" + .metadata.annotations."pipelinesascode.tekton.dev/sha" + "\t" + .metadata.annotations."pipelinesascode.tekton.dev/log-url"' "/tmp/fbc-pipelineruns-${OCP_VERSION}.yaml"  | tail -3
 
