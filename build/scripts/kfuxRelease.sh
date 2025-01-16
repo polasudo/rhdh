@@ -159,18 +159,20 @@ RHDH_FULL_VERSION=${RHDH_FULL_VERSION//./-}
 
 TS=$(date +'%Y%m%d-%H%M%S' -u) # unique timestamp 
 
-echo
-echo -n "[INFO] Collect bundle and related images from quay.io/rhdh/rhdh-operator-bundle:$RHDH_VERSION " 
+if [[ $CONTAINERS ]]; then
+  echo
+  echo -n "[INFO] Collect bundle and related images from quay.io/rhdh/rhdh-operator-bundle:$RHDH_VERSION " 
 
-rm -f "/tmp/imagelist_latest_$RHDH_VERSION.txt"
-latest_bundle=$("${SCRIPT_DIR}/getLatestImageTags.sh" -b "rhdh-${RHDH_VERSION}-rhel-9" --quay -c rhdh/rhdh-operator-bundle)
-echo -n "."
-echo "$latest_bundle" >> "/tmp/imagelist_latest_$RHDH_VERSION.txt"
-"${SCRIPT_DIR}/checkImagesInCSV.sh" -q -y "$latest_bundle" -i 'hub|operator' >> "/tmp/imagelist_latest_$RHDH_VERSION.txt"
-echo -n "."
-sort -uV "/tmp/imagelist_latest_$RHDH_VERSION.txt" > "/tmp/imagelist_latest_$RHDH_VERSION.txt_"; mv "/tmp/imagelist_latest_$RHDH_VERSION.txt"{_,}
-echo ". done."
-echo
+  rm -f "/tmp/imagelist_latest_$RHDH_VERSION.txt"
+  latest_bundle=$("${SCRIPT_DIR}/getLatestImageTags.sh" -b "rhdh-${RHDH_VERSION}-rhel-9" --quay -c rhdh/rhdh-operator-bundle)
+  echo -n "."
+  echo "$latest_bundle" >> "/tmp/imagelist_latest_$RHDH_VERSION.txt"
+  "${SCRIPT_DIR}/checkImagesInCSV.sh" -q -y "$latest_bundle" -i 'hub|operator' >> "/tmp/imagelist_latest_$RHDH_VERSION.txt"
+  echo -n "."
+  sort -uV "/tmp/imagelist_latest_$RHDH_VERSION.txt" > "/tmp/imagelist_latest_$RHDH_VERSION.txt_"; mv "/tmp/imagelist_latest_$RHDH_VERSION.txt"{_,}
+  echo ". done."
+  echo
+fi
 
 # collect array of processed images so we don't process duplicate snapshots
 declare -A processed_images
