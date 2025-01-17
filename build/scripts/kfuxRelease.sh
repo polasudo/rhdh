@@ -179,15 +179,15 @@ declare -A processed_images
 
 for CONTAINER in $CONTAINERS; do
   # compute the container image SHA/tag - skopeo inspect
-  skopeo inspect "docker://quay.io/rhdh/${CONTAINER}:${RHDH_VERSION}" > /tmp/inspect.txt
-  tagXYZ=$(jq -r '.Labels.version+"-"+.Labels.release' /tmp/inspect.txt)
-  digest=$(jq -r '.Digest' /tmp/inspect.txt)
-  echo " * $CONTAINER:${tagXYZ}@${digest} built on $(jq -r '.Labels."build-date"' /tmp/inspect.txt) from $(jq -r '.Env[]|select(.|contains("UPSTREAM_REPO"))' /tmp/inspect.txt)"
+  skopeo inspect "docker://quay.io/rhdh/${CONTAINER}:${RHDH_VERSION}" > /tmp/container_inspect.txt
+  tagXYZ=$(jq -r '.Labels.version+"-"+.Labels.release' /tmp/container_inspect.txt)
+  digest=$(jq -r '.Digest' /tmp/container_inspect.txt)
+  echo " * $CONTAINER:${tagXYZ}@${digest} built on $(jq -r '.Labels."build-date"' /tmp/container_inspect.txt) from $(jq -r '.Env[]|select(.|contains("UPSTREAM_REPO"))' /tmp/container_inspect.txt)"
 
   processed_images["${CONTAINER}:${tagXYZ}"]+="${CONTAINER}@${digest}"
 
   # compute the midstream commit SHA
-  MID_SHA=$(jq -r '.Labels."vcs-ref"' /tmp/inspect.txt)
+  MID_SHA=$(jq -r '.Labels."vcs-ref"' /tmp/container_inspect.txt)
   MID_SHA=${MID_SHA/sha256:/}
 
   # using midstream commit SHA and the container image, find Snapshot(s_)
@@ -199,7 +199,7 @@ for CONTAINER in $CONTAINERS; do
   echo; echo -e "[INFO] For midstream SHA = $MID_SHA, found these snapshot(s):\n$SNAPSHOT"
   # TODO fail if we find more than one snapshot for this image; exit 1
   SNAPSHOTS="${SNAPSHOTS} ${SNAPSHOT}"
-  rm -f /tmp/inspect.txt
+  rm -f /tmp/container_inspect.txt
 done
 echo 
 
@@ -271,6 +271,12 @@ EOT
     else
       collected_commands="${collected_commands}\n  oc apply -f /tmp/release-${SNAPSHOT}-${DEST}-${TS}.yaml"
       echo -e "Run this:\n  oc apply -f /tmp/release-${SNAPSHOT}-${DEST}-${TS}.yaml"; echo 
+      releasesURL="https://konflux.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/application-pipeline/workspaces/rhdh/applications/rhdh-${RHDH_VERSION/./-}/releases/"
+      echo "Then watch release at $releasesURL"
+      if [[ $(command -v google-chrome) == *"google-chrome"* ]] || [[ $(which google-chrome) != *"which: no google-chrome"* ]]; then 
+        google-chrome "$releasesURL" >/dev/null 2>&1; 
+      fi
+      echo -e "\nOr run: oc -n rhdh-tenant get Releases --sort-by=.metadata.creationTimestamp -o yaml > /tmp/releases.yaml"
     fi
   fi
 done
@@ -293,7 +299,7 @@ done
 # TODO display link to https://konflux.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/application-pipeline/workspaces/rhdh/applications/rhdh-1-4/releases/release-rhdh-1-4-prod-20241217-1100
 # TODO display link to https://konflux.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/application-pipeline/workspaces/rhtap-releng/applications/rhdh-1-4/pipelineruns/managed-x7kvl
 
-rm -fr /tmp/inspect.txt
+rm -fr /tmp/container_inspect.txt
 
 ###############################################################################################################
 
@@ -315,11 +321,11 @@ if [[ $BUNDLE_TAG_OR_SHA ]]; then
     exit 1
   else 
     echo "Inspecting ${CONTAINER_PRE}/rhdh-operator-bundle${BUNDLE_TAG_OR_SHA} ..."
-    time skopeo inspect "docker://${CONTAINER_PRE}/rhdh-operator-bundle${BUNDLE_TAG_OR_SHA}" > /tmp/inspect.txt
+    time skopeo inspect "docker://${CONTAINER_PRE}/rhdh-operator-bundle${BUNDLE_TAG_OR_SHA}" > /tmp/fbc_inspect.txt
     echo
   fi
-  tagXYZ=$(jq -r '.Labels.version+"-"+.Labels.release' /tmp/inspect.txt)
-  digest=$(jq -r '.Digest' /tmp/inspect.txt)
+  tagXYZ=$(jq -r '.Labels.version+"-"+.Labels.release' /tmp/fbc_inspect.txt)
+  digest=$(jq -r '.Digest' /tmp/fbc_inspect.txt)
   operator_bundle_mapping["rhdh-operator-bundle:${tagXYZ}"]+="rhdh-operator-bundle@${digest}"
 
   BRANCH="rhdh-${RHDH_VERSION}-rhel-9"
@@ -486,6 +492,6 @@ EOT
   fi
 
   # cleanup tmp files
-  rm -f /tmp/inspect.txt
+  rm -f /tmp/fbc_inspect.txt
   if [[ $AUTORELEASE -eq 1 ]]; then rm -f /tmp/release-rhdh-*.yaml; fi
 fi
