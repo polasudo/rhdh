@@ -17,7 +17,7 @@ RHDH_FULL_VERSION_INPUT="1.4.1"
 CONTAINERS=""
 DEST=""
 # ARCHES="x86_64"  # TODO add arch64/arm64
-OCP_VERSIONS="4.14 4.15 4.16 4.17"
+OCP_VERSIONS="4.14 4.15 4.16 4.17 4.18"
 BUNDLE_TAG_OR_SHA=""
 SNAPSHOT_OVERRIDE=""
 midstreamCommitSHA=""
@@ -89,7 +89,7 @@ done
 $0 --stage  --fbc :1.3-127 -v 1.3.3 -o \"4.14 4.15 ...\" --auto --debug
 $0 --prod   --fbc :1.3-127 -v 1.3.3 -o \"4.14 4.15 ...\"
 
-$0 --stage  --fbc :1.4-127        -v 1.4.1 --debug
+$0 --stage  --fbc :1.4-150        -v 1.4.1 --debug
 $0 --prod   --fbc :1.4-1734113472 -v 1.4.1 --debug
 # or use SHA
 $0 --prod   --fbc @sha256:2981d2470951ea1e26eb968aefc39ab48ab7d9634a520cf2bbd8c5fef313db15 -v $RHDH_FULL_VERSION_INPUT
@@ -280,25 +280,6 @@ EOT
     fi
   fi
 done
-
-# TODO see how this was done for FBCs below. Can we refactor into a reusable method here? 
-# see releases in progress here https://konflux.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/application-pipeline/workspaces/rhdh/applications/rhdh-1-4/releases
-# foreach ...
-    #     # collect array of processed images so we don't process duplicate snapshots
-    #     processed_images["$snapshot"]+="1"
-    #   fi
-# done
-
-# can compute the managed pipeline with these filters
-#     appstudio.openshift.io/application: rhdh-1-4
-#     appstudio.openshift.io/snapshot: rhdh-1-4-rpcsx
-#     pipelines.appstudio.openshift.io/type: managed
-#     release.appstudio.openshift.io/name: release-rhdh-1-4-prod-20241217-1100
-#     release.appstudio.openshift.io/namespace: rhdh-tenant
-
-# TODO display link to https://konflux.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/application-pipeline/workspaces/rhdh/applications/rhdh-1-4/releases/release-rhdh-1-4-prod-20241217-1100
-# TODO display link to https://konflux.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/application-pipeline/workspaces/rhtap-releng/applications/rhdh-1-4/pipelineruns/managed-x7kvl
-
 rm -fr /tmp/container_inspect.txt
 
 ###############################################################################################################
@@ -355,6 +336,9 @@ if [[ $BUNDLE_TAG_OR_SHA ]]; then
     yq -r '.items[]|select(.metadata.annotations."pac.test.appstudio.openshift.io/branch" == "'"${BRANCH}"'")|select(.metadata.labels."pac.test.appstudio.openshift.io/state" == "completed")'"$extraSelect"'|.metadata.labels."test.appstudio.openshift.io/pipelinerunfinishtime" + "\t" + .metadata.name + "\t" + .metadata.labels."appstudio.openshift.io/build-pipelinerun" + "\t" + .metadata.labels."pac.test.appstudio.openshift.io/sha"' "/tmp/fbc-snapshots-${OCP_VERSION}.yaml" > "/tmp/fbc-snapshots-${OCP_VERSION}.csv"
     # 1734044836	fbc-4-14-mhchr	fbc-4-14-on-push-s687p	76ada30bafa4341c6032496c1aa64d8c8a441447
     # 1734114561	fbc-4-14-d766t	fbc-4-14-on-push-g9fpp	7e6c56d5dccb86c37e26672e40ed3a0a9bcd28a2
+    # get the 5 most recent ones 
+    tail -5 "/tmp/fbc-snapshots-${OCP_VERSION}.csv" > "/tmp/fbc-snapshots-${OCP_VERSION}.csv_"
+    mv -f "/tmp/fbc-snapshots-${OCP_VERSION}.csv"{_,}
     while IFS= read -r line; do
       pipelinerunfinishtime=${line%%$'\t'*} # first column
       pipelinerunfinishtime=$(date --date="@${pipelinerunfinishtime}" +'%Y-%m-%dT%H:%M:%SZ' -u) # 2024-12-23T21:43:32Z
@@ -381,7 +365,9 @@ if [[ $BUNDLE_TAG_OR_SHA ]]; then
 
     # pipelinerun: https://konflux.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/application-pipeline/workspaces/rhdh/applications/fbc-4-14/pipelineruns/fbc-4-14-on-push-g9fpp
     # snapshot:    https://konflux.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/application-pipeline/workspaces/rhdh/applications/fbc-4-14/snapshots/fbc-4-14-d766t
-    echo -e "For $OCP_VERSION, found snapshot (completed $pipelinerunfinishtime):\nhttps://konflux.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/application-pipeline/workspaces/rhdh/applications/fbc-${OCP_VERSION}/snapshots/$SNAPSHOT"
+    echo -e "For $OCP_VERSION, found snapshot (completed $pipelinerunfinishtime):"
+    echo -e " * Commit:   https://gitlab.cee.redhat.com/rhidp/rhdh/-/commit/$(tail -1 "/tmp/fbc-snapshots-${OCP_VERSION}.csv" | sed -r -e "s@.+\t([^\t]+)@\1@")"
+    echo -e " * Snapshot: https://konflux.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/application-pipeline/workspaces/rhdh/applications/fbc-${OCP_VERSION}/snapshots/$SNAPSHOT\n"
 
     # for each SNAPSHOT, find the iib bundle, extract its contents, and pick the last bundle reference; check if that matches the value above
     oc -n rhdh-tenant get Snapshot "${SNAPSHOT}" -o yaml > "/tmp/${SNAPSHOT}.yaml"

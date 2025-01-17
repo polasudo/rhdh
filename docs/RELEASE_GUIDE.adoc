@@ -217,7 +217,9 @@ UPSTREAM_REPO=https://github.com/redhat-developer/rhdh-operator/tree/release-1.4
 MIDSTREAM_REPO=https://gitlab.cee.redhat.com/rhidp/rhdh/-/commits/rhdh-1.4-rhel-9
 ```
 
-* Release containers and FBCs to Stage for any RCs using link:../build/scripts/kfuxRelease.sh[kfuxRelease.sh]
+* Release containers to Stage for any RCs using link:../build/scripts/kfuxRelease.sh[kfuxRelease.sh]
+
+* NOTE: FBCs are not supported on the RHEC Stage instance link:https://gitlab.cee.redhat.com/releng/konflux-release-data/-/merge_requests/3947[if the production policy is in effect]. See link:https://redhat-internal.slack.com/archives/C06RBUP0M2Q/p1737051256060019[this thread].
 
 If a second RC build is needed, re-enable the scheduled GL pipeline (or you can just trigger a one-time pipeline manually), and repeat the above steps. If only rebuilding a bundle, you don't have to re-enable the GL pipelines as the bundle can be triggered from the above script with `sync-midstream.sh --bundleonly`.
 
