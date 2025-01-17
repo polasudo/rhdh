@@ -157,7 +157,13 @@ for OCP_VERSION in ${OCP_VERSIONS}; do
     # debug with # cp "${templateFile}" "${templateFile}.orig"
 
     # eg., for 1.4.0 want to replace 1.3.1 (last released item on the fast channel)
-    PROD_PREV_VERSION=$(jq -r '.entries[]|select(.name=="fast")|.entries|last|.name' "${templateFile}")
+    # but for 1.3.4, want to replace 1.3.3 (not 1.4.0) so filter by PROD_VERSION
+    PROD_PREV_VERSION=$(jq -r '.entries[]|select(.name=="fast")|.entries[]|select(.name|contains("'"$PROD_VERSION"'"))|.name' "${templateFile}" | tail -1)
+    echo "[DEBUG] Got last PROD_PREV_VERSION of $PROD_VERSION in fast channel = $PROD_PREV_VERSION"
+    if [[ ! $PROD_PREV_VERSION ]] || [[ $PROD_PREV_VERSION == "null" ]]; then 
+      PROD_PREV_VERSION=$(jq -r '.entries[]|select(.name=="fast")|.entries|last|.name' "${templateFile}")
+      echo "[DEBUG] Got last PROD_PREV_VERSION in fast channel = $PROD_PREV_VERSION"
+    fi
 
     NEW_ENTRY='[{
           "name": "'"${operator_name}"'.v'"${PROD_FULL_VERSION}"'",
@@ -209,12 +215,15 @@ for OCP_VERSION in ${OCP_VERSIONS}; do
     templateFile="${templateFileInput}"
   fi
 
+  ############################################## template created from production index, or passed in ##############################################
+
   # switch quay.io/rhdh references that will fail in a push to production Release
   if [[ $USE_RHEC -eq 1 ]]; then 
     sed -i "catalogs/v${OCP_VERSION}/catalog-template.json" -r -e "s|quay.io/rhdh|registry.redhat.io/rhdh|g"
   fi
 
-  # render catalog content from the template
+  ############################################## render catalog content from the template ##############################################
+
   rm -f "catalogs/v${OCP_VERSION}/configs/${prod_path}/catalog.json"
   # for 4.17+, migrate bundles' "olm.bundle.object" to "olm.csv.metadata"
   vergte "${OCP_VERSION}" "4.17" && migrateLevel="--migrate-level=bundle-object-to-csv-metadata" || migrateLevel=""
