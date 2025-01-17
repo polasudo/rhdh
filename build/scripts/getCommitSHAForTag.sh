@@ -1,12 +1,14 @@
 #!/bin/bash
 #
-# Copyright (c) 2023 Red Hat, Inc.
+# Copyright (c) 2023-2025 Red Hat, Inc.
 # This program and the accompanying materials are made
 # available under the terms of the Eclipse Public License 2.0
 # which is available at https://www.eclipse.org/legal/epl-2.0/
 #
 # SPDX-License-Identifier: EPL-2.0
 #
+
+## DEPRECATED, as we don't use Brew as of 1.4
 
 # For a given tag, produce a link to the commit that was used for that tag.
 # 
@@ -20,6 +22,11 @@ fi
 
 usage () {
 	echo "
+
+NOTE: This script is deprecated and requires Brew.
+
+If you want to get a list of source repos, branches, and commit SHAs for container build(s), use new script getCommitsForImage.sh
+
 Usage: for 1 or more containers in quay or Pulp, compute the NVR, Build URL, and Source commit for that build. eg.,
   $0  quay.io/rhdh/hub-rhel9:1.y-1 quay.io/rhdh/hub-rhel9:1.y-1 ...
   $0  registry-proxy.engineering.redhat.com/rh-osbs/rhdh-hub-rhel9 -j 1.y -n 2      | show last 2 tags
