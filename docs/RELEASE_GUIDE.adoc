@@ -180,19 +180,15 @@ RHDH_VERSION="1.4.1"
 ```
 
 +
-** verify the FBC content is correct:
+** verify the FBC content is correct - check that the IIB/FBC image contains the SAME images as the latest ones; also use the list of branches/commits to verify that all expected commits have been built:
 +
 ```
 STREAM=1.4
-./checkImagesInIIB.sh -y -q quay.io/rhdh/iib:${STREAM}-v4.14-x86_64 && \
-for q in $(./getLatestImageTags.sh -b rhdh-${STREAM}-rhel-9 --quay); do echo;echo $q; \
-  skopeo inspect docker://$q | jq -r '.Env[] | select(.|test("_REPO=")?)'; \
-done
+./build/scripts/checkImagesInIIB.sh -y -q quay.io/rhdh/iib:${STREAM}-v4.14-x86_64; \
+./build/scripts/getCommitsForImage.sh -v ${STREAM}
 
 # cleanup
-sudo rm -fr /tmp/opm-registry-* \
-    /tmp/quay.io-rhdh-iib-* \
-    /tmp/registry-proxy.engineering.redhat.com-rh-osbs-rhdh-rhdh-operator-bundle-*; \
+sudo rm -fr /tmp/quay.io-rhdh-iib-*
 ```
 +
 ```
