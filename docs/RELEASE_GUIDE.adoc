@@ -147,10 +147,40 @@ Once the code freeze is achieved and all the last minute changes have stopped, y
 ** find the correct pipeline, eg., for 1.3 use https://gitlab.cee.redhat.com/rhidp/rhdh/-/pipeline_schedules/1804/edit?id=1804
 ** uncheck the *Activated* box, and hit *Save changes*
 
-* copy the latest IIBs to quay.io/rhdh/iib using link:../build/scripts/renderCatalogs.sh[renderCatalogs] script
+* if you need to create a new operator-bundle quickly, use this:
++
+```
+./build/ci/sync-midstream.sh --bundleonly --force --latest -b rhdh-1.4-rhel-9
+```
++ 
+```
+[INFO] Transforming manifests/rhdh-operator.clusterserviceversion.yaml ...
+       Computing digest for registry.redhat.io/rhdh/rhdh-hub-rhel9:1.4 ...
+       * quay.io/rhdh/rhdh-hub-rhel9@sha256:d8268197ba0466643efb818fcad8f0fc29e32463f75b0f7f51d9ce75ec717572 (quay.io/rhdh/rhdh-hub-rhel9:1.4-138)
+       Computing digest for registry.redhat.io/rhdh/rhdh-rhel9-operator:1.4 ...
+       * quay.io/rhdh/rhdh-rhel9-operator@sha256:9e1e2fac9519bd480c9629f5a9cf69be0169715483b7e662eaac61a48b37eb60 (quay.io/rhdh/rhdh-rhel9-operator:1.4-148)
+       Computing digest for registry.redhat.io/rhel9/postgresql-15:latest ...
+       * registry.redhat.io/rhel9/postgresql-15@sha256:44a08b83a6c50714b52f4cf1c3476bc16b66faec21dd9a9bc07d1be5f97b8150 (registry.redhat.io/rhel9/postgresql-15:1-1736455354)
+...
+[rhdh-1.4-rhel-9 e50ed622] [ci skip] Bundle Update Only:  rhdh-operator from: https://github.com/redhat-developer/rhdh-operator/tree/release-1.4 @ 91e32198; rhdh-operator-bundle from: https://github.com/redhat-developer/rhdh-operator/tree/release-1.4 @ 91e32198;
+ 2 files changed, 6 insertions(+), 6 deletions(-)
+https://quay.io/repository/rhdh/rhdh-operator-bundle?tab=tags&tag=1.4-150
+```
+
+* Publish new FBCs to quay.io/rhdh/iib using link:../build/scripts/renderCatalogs.sh[renderCatalogs] script
++
+```
+RHDH_VERSION="1.4.1"
+    OCP_VERSION=4.14
+    ./build/scripts/renderCatalogs.sh --latest --clean --versions "${OCP_VERSION}" -v "${RHDH_VERSION}"; sleep 30s; echo
+    alias cp=cp
+    for OCP_VERSION in 4.15 4.16 4.17 4.18; do \
+      cp -f catalogs/v{4.14,${OCP_VERSION}}/catalog-template.json; ./build/scripts/renderCatalogs.sh --latest --clean --versions "${OCP_VERSION}" -v "${RHDH_VERSION}" --template "catalogs/v${OCP_VERSION}/catalog-template.json"; sleep 30s; \
+    done
+```
 
 +
-** verify the IIB is correct:
+** verify the FBC content is correct:
 +
 ```
 STREAM=1.4
@@ -165,12 +195,32 @@ sudo rm -fr /tmp/opm-registry-* \
     /tmp/registry-proxy.engineering.redhat.com-rh-osbs-rhdh-rhdh-operator-bundle-*; \
 ```
 +
+```
+[INFO] Bundle Version: rhdh-operator.v1.4.1
+[INFO] Bundle Image SHA: quay.io/rhdh/rhdh-operator-bundle@sha256:a91c4931ef5111c555ec5cc8128c3148c94fe2983d2e4fa7babe843e9292b303
+[INFO] Bundle Image Tag: quay.io/rhdh/rhdh-operator-bundle:1.4-150
+[INFO] CSV contains:
+quay.io/rhdh/rhdh-hub-rhel9:1.4-138
+quay.io/rhdh/rhdh-rhel9-operator:1.4-148
+registry.redhat.io/rhel9/postgresql-15:1-1736455354
 
-You can push a Release to Stage if you want for any/all RC snapshots.
+quay.io/rhdh/rhdh-hub-rhel9:1.4-138
+UPSTREAM_REPO=https://github.com/redhat-developer/rhdh/tree/release-1.4 @ 011f17d3
+MIDSTREAM_REPO=https://gitlab.cee.redhat.com/rhidp/rhdh/-/commits/rhdh-1.4-rhel-9
 
-See link:../build/scripts/kfuxRelease.sh[kfuxRelease.sh].
+quay.io/rhdh/rhdh-rhel9-operator:1.4-148
+UPSTREAM_REPO=https://github.com/redhat-developer/rhdh-operator/tree/release-1.4 @ 91e32198
+MIDSTREAM_REPO=https://gitlab.cee.redhat.com/rhidp/rhdh/-/commits/rhdh-1.4-rhel-9
 
-If a second RC build is needed, re-enable the scheduled pipeline (or trigger a pipeline manually), and repeat the above steps. 
+quay.io/rhdh/rhdh-operator-bundle:1.4-150
+UPSTREAM_REPO=https://github.com/redhat-developer/rhdh-operator/tree/release-1.4 @ 91e32198
+MIDSTREAM_REPO=https://gitlab.cee.redhat.com/rhidp/rhdh/-/commits/rhdh-1.4-rhel-9
+```
+
+* Release containers and FBCs to Stage for any RCs using link:../build/scripts/kfuxRelease.sh[kfuxRelease.sh]
+
+If a second RC build is needed, re-enable the scheduled GL pipeline (or you can just trigger a one-time pipeline manually), and repeat the above steps. If only rebuilding a bundle, you don't have to re-enable the GL pipelines as the bundle can be triggered from the above script with `sync-midstream.sh --bundleonly`.
+
 
 ## During GA week
 
