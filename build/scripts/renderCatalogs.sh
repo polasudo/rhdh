@@ -159,10 +159,14 @@ for OCP_VERSION in ${OCP_VERSIONS}; do
     # eg., for 1.4.0 want to replace 1.3.1 (last released item on the fast channel)
     # but for 1.3.4, want to replace 1.3.3 (not 1.4.0) so filter by PROD_VERSION
     PROD_PREV_VERSION=$(jq -r '.entries[]|select(.name=="fast")|.entries[]|select(.name|contains("'"$PROD_VERSION"'"))|.name' "${templateFile}" | tail -1)
-    echo "[DEBUG] Got last PROD_PREV_VERSION of $PROD_VERSION in fast channel = $PROD_PREV_VERSION"
-    if [[ ! $PROD_PREV_VERSION ]] || [[ $PROD_PREV_VERSION == "null" ]]; then 
-      PROD_PREV_VERSION=$(jq -r '.entries[]|select(.name=="fast")|.entries|last|.name' "${templateFile}")
-      echo "[DEBUG] Got last PROD_PREV_VERSION in fast channel = $PROD_PREV_VERSION"
+    echo "[DEBUG] Got last PROD_PREV_VERSION of $PROD_VERSION in fast channel = $PROD_PREV_VERSION" # last released 1.3.z version in fast channel = 1.3.3
+    if [[ $PROD_PREV_VERSION ]] && [[ $PROD_PREV_VERSION != "null" ]]; then 
+      # update "replaces": "rhdh-operator.v1.3.3" ==> "replaces": "rhdh-operator.v1.3.4"
+      sed -r -e 's@"replaces": "'"$PROD_PREV_VERSION"'"@"replaces": "'"${operator_name}"'.v'"${PROD_FULL_VERSION}"'"@' -i "${templateFile}"
+    else 
+      PROD_LAST_VERSION=$(jq -r '.entries[]|select(.name=="fast")|.entries|last|.name' "${templateFile}")
+      echo "[DEBUG] Got last PROD_LAST_VERSION in fast channel = $PROD_LAST_VERSION" # last released version in fast channel = 1.4.0
+      PROD_PREV_VERSION="${PROD_LAST_VERSION}"
     fi
 
     NEW_ENTRY='[{
@@ -177,6 +181,7 @@ for OCP_VERSION in ${OCP_VERSIONS}; do
       "package": "'"${package_name}"'",
       "schema": "olm.channel"
     }'
+
 
     # inject new entry into default channel
     jq --arg NEW_ENTRY "${NEW_ENTRY}" \
