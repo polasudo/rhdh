@@ -21,6 +21,10 @@ QUIET=""
 QUIETER=""
 # by default show all images; optionally filter for one or more, eg 'hub|postgresql'
 REGEX_FILTER=""
+
+# in case the latest bundle in the FBC is not the one you want, filter by some regex, eg., 'v1.3.'
+BUNDLE_FILTER=""
+
 # by default show tags; use this to show digests only (eg., for use with a script that copies images inside an airgap)
 SHOW_DIGESTS_ONLY=""
 
@@ -38,13 +42,14 @@ Options:
   -y, --quay           If image not resolved from RH Ecosystem Catalog, check equivalent image on quay.io
   --brew               If image not resolved from RH Ecosystem Catalog, check equivalent image on brew.registry.redhat.io
   -i, --filter         Rather than return ALL images in the build, include a subset using grep -E
+  -b, --bundlefilter   Rather than return the last operator in the FBC / IIB, filter for a specific one using grep -E
   -q, --quiet          Quiet output: show fewer steps
   -qq, --quieter       Quieter output: omit everything but related images
   --digests            Instead of showing tags, just show image digests as seen in the IIB/CSV
 
 Examples:
-  $0 brew.registry.redhat.io/rh-osbs/iib-pub-pending:v4.12 --brew --quay --filter 'dashboard|operator|registry-rhel|udi' --quiet
-  $0 quay.io/rhdh/iib:1.2-v4.14-x86_64  --quay --filter 'dashboard|operator|registry-rhel' -qq
+  $0 brew.registry.redhat.io/rh-osbs/iib-pub-pending:v4.14 --brew --quay --filter 'dashboard|operator|registry-rhel|udi' --quiet
+  $0 quay.io/rhdh/iib:1.3-v4.16-x86_64 --bundlefilter 'v1.3' --filter 'operator|hub' --quay -q
 "
 }
 
@@ -55,6 +60,7 @@ while [[ "$#" -gt 0 ]]; do
     '-y'|'--quay') QUAY="--quay";;
     '--brew') BREW="--brew";;
     '-i'|'--filter') REGEX_FILTER="$2"; shift 1;;
+    '-b'|'--bundlefilter') BUNDLE_FILTER="$2"; shift 1;;
     '-q'|'--quiet') QUIET="--quiet";;
     '-qq'|'--quieter') QUIET="--quiet"; QUIETER="true";;
     '--digests') SHOW_DIGESTS_ONLY="$1";;
@@ -92,10 +98,18 @@ for IIB_IMAGE in $IMAGES; do
     # latest CSV bundle
     #    "schema": "olm.bundle",
     #    "name": "rhdhoperator.v3.4.0",
-    bundle=$(grep '"schema": "olm.bundle"' -A1 $catalogJson | tail -1 | sed -r -e 's@.+name": "(.+)".*@\1@')
+    if [[ $BUNDLE_FILTER ]]; then
+      bundle=$(grep '"schema": "olm.bundle"' -A1 $catalogJson | grep -E "$BUNDLE_FILTER" | tail -1 | sed -r -e 's@.+name": "(.+)".*@\1@')
+    else
+      bundle=$(grep '"schema": "olm.bundle"' -A1 $catalogJson | tail -1 | sed -r -e 's@.+name": "(.+)".*@\1@')
+    fi
     # alternative query for quay.io/rhdh/iib containers
     if [[ ! $bundle ]]; then
+      if [[ $BUNDLE_FILTER ]]; then
+        bundle=$(grep '"name":' $catalogJson | grep -E "$BUNDLE_FILTER" | tail -1 | sed -r -e 's@.+name": "(.+)".*@\1@')
+      else
         bundle=$(grep '"name":' $catalogJson | tail -1 | sed -r -e 's@.+name": "(.+)".*@\1@')
+      fi
     fi
 
     if [[ $QUIETER != "true" ]]; then echo "[INFO] Bundle Version: $bundle"; fi

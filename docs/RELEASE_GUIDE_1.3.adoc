@@ -184,8 +184,8 @@ EXTRA_TAG="-e 1.3.0.RC-09-26"
 ** verify the IIB is correct:
 +
 ```
-./checkImagesInIIB.sh -y -q quay.io/rhdh/iib:${STREAM}-v4.14-x86_64 && \
-for q in $(./getLatestImageTags.sh -b rhdh-${STREAM}-rhel-9 --quay); do echo;echo $q; \
+./checkImagesInIIB.sh -y -q "quay.io/rhdh/iib:${STREAM}-v4.14-x86_64" --bundlefilter "v${STREAM}" && \
+for q in $(./getLatestImageTags.sh -b "rhdh-${STREAM}-rhel-9" --quay); do echo;echo $q; \
   skopeo inspect docker://$q | jq -r '.Env[] | select(.|test("_REPO=")?)'; \
 done; \
 sudo rm -fr /tmp/opm-registry-* \
