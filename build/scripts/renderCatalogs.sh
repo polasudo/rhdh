@@ -19,9 +19,6 @@ bundle_image="quay.io/rhdh/rhdh-operator-bundle"
 maintainers="RHDH Team <rhdh-bot@redhat.com>"
 templateFileInput=""
 
-RHDH_VERSION="1.5.0"
-OCP_VERSIONS="4.14 4.15 4.16 4.17"
-
 DWNSTM_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "rhdh-1-rhel-9")
 latestNextExample=""
 if [[ ${DWNSTM_BRANCH} == "rhdh-"*"-rhel-"* ]]; then 
@@ -31,6 +28,9 @@ if [[ ${DWNSTM_BRANCH} == "rhdh-"*"-rhel-"* ]]; then
     latestNextExample="--latest"
   fi
 fi
+
+RHDH_VERSION="1.5.0"; # latestNextExample=""
+OCP_VERSIONS="4.14 4.15 4.16 4.17 4.18"
 
 DO_COMMIT=1 # by default, commit change
 DO_PUSH=1   # push the commit
