@@ -627,24 +627,30 @@ pushTagGL ()
 # update the RPA to provide a semver tag
 updateRPATagVersion ()
 {
+	repo=konflux-release-data
+	getNextCSVZ "$CSV_VERSION"
+	echo; echo "== $repo :: bump $KFUX_VERSION RPAs to $CSV_VERSION_Z  =="
+
 	pushd "$TMPDIR" >/dev/null || exit 1
 	# fetch repo
-	git clone -q --depth 1 -b main "git@gitlab.cee.redhat.com:releng/konflux-release-data.git" "konflux-release-data"
-	if [[ -d "$TMPDIR/konflux-release-data" ]]; then
-		pushd "$TMPDIR/konflux-release-data/config/stone-prod-p02.hjvn.p1/product/ReleasePlanAdmission/rhdh"
+	git clone -q --depth 1 -b main "git@gitlab.cee.redhat.com:releng/${repo}.git" "${repo}"
+	if [[ -d "$TMPDIR/${repo}" ]]; then
+		pushd "$TMPDIR/${repo}/config/stone-prod-p02.hjvn.p1/product/ReleasePlanAdmission/rhdh" >/dev/null || exit 1
 		# adjust the rhdh-1-4-prod.yaml and rhdh-1-4-stage.yaml files to use a semver tag instead of 1.y-timestamp
 
 		#### NOTE THIS REQUIRES mikefarah's yq (which we have in the helm folder)
 		#### The python yq wrapper for jq does not preserve comments (because json has no comments)
 		for f in "rhdh-${KFUX_VERSION}-prod.yaml" "rhdh-${KFUX_VERSION}-stage.yaml"; do
-			"${SCRIPT_DIR}/../helm/yq_mf" '.spec.data.mapping.defaults.tags[1]|="'"$CSV_VERSION"'"' "$f" > "$f"_; mv "$f"{_,}
+			"${SCRIPT_DIR}/../helm/yq_mf" '.spec.data.mapping.defaults.tags[1]|="'"$CSV_VERSION_Z"'"' "$f" > "$f"_; mv "$f"{_,}
 		done
-		# submit a MR
-		COMMITMSG="chore: update rhdh-$KFUX_VERSION-*.yaml RPAs for upcoming release $CSV_VERSION"
-		git commit --no-gpg-sign -s -m "${COMMITMSG}" "rhdh-${KFUX_VERSION}-prod.yaml" "rhdh-${KFUX_VERSION}-stage.yaml"
-
-		if [[ $DO_PUSH -eq 1 ]]; then 
+		COMMITMSG="chore: update rhdh-$KFUX_VERSION-*.yaml RPAs for upcoming release $CSV_VERSION_Z"
+		if [[ ${DO_PUSH} -eq 1 ]]; then
+			# submit a MR
+			git commit --no-gpg-sign -s -m "${COMMITMSG}" "rhdh-${KFUX_VERSION}-prod.yaml" "rhdh-${KFUX_VERSION}-stage.yaml"
 			doPush "main"
+		else
+			echo "$COMMITMSG"
+			git diff || true
 		fi
 		popd  >/dev/null || exit 1
 	fi
@@ -657,8 +663,8 @@ getXYplusOneFromBranch "$TARGET_BRANCH"
 # eg., for 1.2.2 get 1.2.3 (showcase repo, RHDH CSV), 0.2.3 (operator repo, upstream CSV)
 # echo "newver = $newver; newverOp = $newverOp"
 
-# getNextCSVZ
-# # eg., for 1.2.2 get 1.2.3 (showcase repo, RHDH CSV), 0.2.3 (operator repo, upstream CSV), and 3.2.3 (plugins repo root package.json)
+# getNextCSVZ "$CSV_VERSION"
+# # # eg., for 1.2.2 get 1.2.3 (showcase repo, RHDH CSV), 0.2.3 (operator repo, upstream CSV), and 3.2.3 (plugins repo root package.json)
 # echo "CSV_VERSION_Z = $CSV_VERSION_Z; CSV_VERSION_Z_OPERATOR = $CSV_VERSION_Z_OPERATOR; CSV_VERSION_Z_PLUGINS = $CSV_VERSION_Z_PLUGINS"
 
 ############
@@ -708,6 +714,11 @@ fi
 # echo "SKIPS: $SKIP_GL"
 # branch or tag GL repo(s)
 if [[ $SKIP_GL -eq 0 ]]; then
+	# for branch creation, create new RPAs, RPs, etc. 
+	# if [[ ${SOURCE_BRANCH} ]]; then
+	# 	# TODO: RHIDP-5432
+	# fi
+	
 	if [[ "${MIDSTM_BRANCH}" ]]; then
 		# midstream build sources
 		for repo in \
