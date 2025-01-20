@@ -36,6 +36,8 @@ Then click on your username and select 'Copy login command' then 'Display token'
 }
 
 usageContainers () {
+  RHDH_VERSION_INPUT=${RHDH_FULL_VERSION_INPUT%.*}
+  RHDH_VERSION_INPUT=${RHDH_VERSION_INPUT/./-}
   echo "\
 
 =======================
@@ -50,7 +52,10 @@ $0 --prod  -c rhdh-operator-bundle -v $RHDH_FULL_VERSION_INPUT
 Options:
   --stage, --prod    Push to the stage or prod version of the RH Ecosystem Catalog
   -c                 Space-separated list of containers to release, such as \"rhdh-hub-rhel9 rhdh-rhel9-operator rhdh-operator-bundle\"
-  -v                 RHDH version x.y.z to release"
+  -v                 RHDH version x.y.z to release
+  
+Releases can be found at:
+https://konflux.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/application-pipeline/workspaces/rhdh/applications/rhdh-${RHDH_VERSION_INPUT}/releases/"
 }
 
 usageFBCs () {
@@ -220,7 +225,7 @@ for SNAPSHOT in $SNAPSHOTS; do
 
     # compare with the contents of the latest bundle's operands
     if [[ "$(cat "/tmp/imagelist_latest_$RHDH_VERSION.txt")" != "$(cat "/tmp/imagelist_$SNAPSHOT.txt")" ]]; then
-      echo "[WARNING] Latest images != images in snapshot:"
+      echo "[ERROR] Latest images != images in snapshot:"
       echo "===================latest==================="
       cat "/tmp/imagelist_latest_$RHDH_VERSION.txt"
       echo "===================latest==================="
@@ -228,8 +233,9 @@ for SNAPSHOT in $SNAPSHOTS; do
       echo "===================snapshot==================="
       cat "/tmp/imagelist_$SNAPSHOT.txt"
       echo "===================snapshot==================="
+      exit 
     else
-      echo "[INFO] Snapshot images match latest images:"
+      echo "[INFO] Snapshot images match latest images - release can proceed!"
       cat "/tmp/imagelist_$SNAPSHOT.txt"
     fi
     rm -f "/tmp/imagelist_$SNAPSHOT.txt" "/tmp/imagelist_latest_$RHDH_VERSION.txt"
@@ -256,11 +262,14 @@ EOT
       # now check for maanged pipeline runs
       # for release-rhdh-1-4-4p59p-stage-20250115-210603, get rhtap-releng-tenant/managed-cc5zr
       managedPipeline=$(oc -n rhdh-tenant get Releases --sort-by=.metadata.creationTimestamp -o yaml | yq -r '.items[]|select(.metadata.name|startswith("'"release-${RHDH_FULL_VERSION}-${SNAPSHOT}-${DEST}-${TS}"'"))' | grep pipelineRun | sed -r -e "s|.+rhtap-releng-tenant/(.+)\",|\1|")
-      managedPipelineURL="https://konflux.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/application-pipeline/workspaces/rhtap-releng/applications/rhdh-${RHDH_VERSION/./-}/pipelineruns/${managedPipeline}/taskruns"
-      echo "[INFO] Run in $managedPipelineURL"
-
+      if [[ $managedPipeline ]]; then
+        managedPipelineURL="https://konflux.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/application-pipeline/workspaces/rhtap-releng/applications/rhdh-${RHDH_VERSION/./-}/pipelineruns/${managedPipeline}/taskruns"
+        echo -e -n "[INFO] Run in $managedPipelineURL\n       and "
+      else 
+        echo -e -n "[INFO] Run in "
+      fi
       RELEASE_URL="https://konflux.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/application-pipeline/workspaces/rhdh/applications/rhdh-${RHDH_VERSION/./-}/releases/release-${RHDH_FULL_VERSION}-${SNAPSHOT}-${DEST}-${TS}"
-      echo "       and $RELEASE_URL"
+      echo "$RELEASE_URL"
 
       # open a browser to watch the release
       if [[ $(command -v google-chrome) == *"google-chrome"* ]] || [[ $(which google-chrome) != *"which: no google-chrome"* ]]; then 

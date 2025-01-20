@@ -38,6 +38,8 @@ Options:
                               git@github.com:openshift-helm-charts/charts.git with write access
     --chart-version           Chart release version (used as 'version' in Chart.yaml)
     --rhdh-version            Developer Hub version (used as 'appVersion' in Chart.yaml and as image tag)
+                              for CI builds, use 1.y-zzz; for GA use x.y-timestamp
+                              TODO: RHIDP-5431 for GA switch to semver x.y.z
     --chart-branch            branch of rhdh-charts to use as input, for example release-1.4; default: main
     --delete-old-branches     Optionally, purge old 1.4-zzz branches from the rhdh-bot repo when pushing a 1.4.z release to the openshift charts repo
                               DO NOT USE if releasing .z chart updates for CVE fixes pushed by Freshmaker
@@ -75,7 +77,7 @@ Examples:
     # 2. get the latest timestamp tag for the live GA container at https://catalog.redhat.com/software/containers/rhdh/rhdh-hub-rhel9/645bd4c15c00598369c31aba
     # 3. Run a manual release as the bot:
     $ export GITHUB_TOKEN=ghp_rhdh-bot-token-here
-    $ $0 --chart-version 1.4.0 --rhdh-version 1.4-1734106454 --chart-branch release-1.4 --catalog git@github.com:rhdh-bot/openshift-helm-charts.git --publish
+    $ $0 --chart-version 1.4.1 --rhdh-version 1.4-1737055846 --chart-branch release-1.4 --catalog git@github.com:rhdh-bot/openshift-helm-charts.git --publish
     $ $0 --chart-version 1.3.3 --rhdh-version 1.3-131        --chart-branch release-1.3 --catalog git@github.com:rhdh-bot/openshift-helm-charts.git --publish
     Chart version:       1.y.z
     Developer Hub image:  quay.io/rhdh/rhdh-hub-rhel9:1.y-zzz
@@ -105,8 +107,16 @@ while [[ "$#" -gt 0 ]]; do
         if [[ ! $CHART_VERSION ]]; then usage; fi
         if [[ $CHART_VERSION == *"CI"* ]]; then 
             RHDH_DIGEST=$(skopeo inspect docker://quay.io/rhdh/rhdh-hub-rhel9:"${RHDH_VERSION}" | jq -r '.Digest')
+            if [[ ! $RHDH_DIGEST ]]; then 
+                echo -e "\n[ERROR] Image quay.io/rhdh/rhdh-hub-rhel9:${RHDH_VERSION} not found - Could not compute digest! Make sure the value of --rhdh-version is correct!\n\n"
+                usage
+            fi
         else
             RHDH_DIGEST=$(skopeo inspect docker://registry.redhat.io/rhdh/rhdh-hub-rhel9:"${RHDH_VERSION}" | jq -r '.Digest')
+            if [[ ! $RHDH_DIGEST ]]; then 
+                echo -e "\n[ERROR] Image registry.redhat.io/rhdh/rhdh-hub-rhel9:${RHDH_VERSION} not found - Could not compute digest! Make sure the value of --rhdh-version is correct!\n\n"
+                usage
+            fi
         fi
         echo "Create chart for $RHDH_VERSION ($CHART_VERSION)";
         shift 1;;

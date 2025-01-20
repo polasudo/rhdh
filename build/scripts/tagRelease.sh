@@ -18,6 +18,7 @@ TMPDIR="$HOME/tmp/tmp-checkouts"
 
 # defaults
 
+MIDSTM_USER=rhdh-bot
 MIDSTM_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "rhdh-1-rhel-9")
 if [[ ${MIDSTM_BRANCH} != "rhdh-"*"-rhel-"* ]]; then MIDSTM_BRANCH="rhdh-1-rhel-9"; fi
 
@@ -39,8 +40,6 @@ export HUSKY=0
 # NOT USED
 # FORCE_PUSH=""    # force push to the midstream repo in case of merge conflicts (use "-f")
 
-pduser=rhdh-bot
-
 # normally, use this script to create tags, not branches
 # this also defines the branch to update after creating a new branch (eg., for a TARGET_BRANCH=release-1.3 branch creation, bump SOURCE_BRANCH=main to 1.4.0)
 SOURCE_BRANCH="" 
@@ -50,17 +49,17 @@ CLEAN="false" #  if set true, delete existing folders and do fresh checkouts
 usage() {
 	echo "
 To create or update existing branches:
-  $0 -t PROD_VERSION --branchfrom SOURCE_GH_BRANCH -gh TARGET_GH_BRANCH -ghtoken GITHUB_TOKEN
+  $0 --branchfrom SOURCE_GH_BRANCH -gh TARGET_GH_BRANCH -ghtoken GITHUB_TOKEN
 Example: 
-  $0 -t 1.3 --branchfrom main -gh release-1.3 -ghtoken \$GITHUB_TOKEN
+  $0 --branchfrom main -gh release-1.3 -ghtoken \$GITHUB_TOKEN
 
 To create tags (and push updates to release-1.yy branches):
 1. You should have a valid GITHUB_TOKEN for your user (for upstream PRs).
-2. You should have a valid $pduser kerberos login (for mid- and downstreeam pushes).
+2. You should have a valid $MIDSTM_USER kerberos login (for mid- and downstreeam pushes).
 3. Run this
   $0 -v CSV_VERSION -t PROD_VERSION -gh GH_BRANCH -ghtoken GITHUB_TOKEN
 Example: 
-  $0 -v 1.4.1 -t 1.4 -gh release-1.4 -pd rhdh-1.4-rhel-9 --clean --force-update -tmpdir $TMPDIR --nobuild
+  $0 -v 1.4.1 -t 1.4 -gh release-1.4 --midstream-branch rhdh-1.4-rhel-9 --clean --force-update -tmpdir $TMPDIR --nobuild
 
 Options:
     --clean                   delete existing temp folders and do fresh checkouts
@@ -70,7 +69,8 @@ Options:
     --dry-run                 do everything but create the PR; instead just display the PR contents
     --gitlab-pipeline-push    use this flag to push changes when running inside a gitlab pipeline
     -ghtoken                  run as a different GH user instead of the local environment's \$GITHUB_TOKEN
-    -pduser                   run as a different bot user; default: $pduser 
+    --midstream-user          run as a different bot user; default: $MIDSTM_USER 
+    --midstream-branch        run against a different midstream branch; default: $MIDSTM_BRANCH
     -tmpdir                   temporary dir for checkouts; default $TMPDIR
     --skip-gh                 skip github updates
     --skip-gl                 skip gitlab updates
@@ -90,7 +90,8 @@ while [[ "$#" -gt 0 ]]; do
 	'-t') PROD_VERSION="$2"; shift 1;; # 1.y # used to get released bundle container's CSV contents
 	'-gh') TARGET_BRANCH="$2"; shift 1;;
 	'-ghtoken') GITHUB_TOKEN="$2"; shift 1;;
-	'-pduser') pduser="$2"; shift 1;;
+	'--midstream-user') MIDSTM_USER="$2"; shift 1;;
+	'--midstream-branch') MIDSTM_BRANCH="$2"; shift 1;;
 	'--clean') CLEAN="true"; shift 0;; # if set true, delete existing folders and do fresh checkouts
 	'--nobuild') DO_BUILD=0;; 
 	'--nopush') DO_PUSH=0; shift 1;;
@@ -109,6 +110,7 @@ done
 if [[ ! ${PROD_VERSION} ]]; then
   PROD_VERSION=${CSV_VERSION%.*} # given 1.y.0, want 1.y
 fi
+KFUX_VERSION=${PROD_VERSION/./-} # want 1-4, not 1.4
 
 if [[ ${CLEAN} == "true" ]]; then
 	rm -fr "$TMPDIR" || true
@@ -491,8 +493,8 @@ pushBranchAndOrTagGH () {
 		if [[ -d ""$TMPDIR"/projects_${d}" ]]; then
 			pushd ""$TMPDIR"/projects_${d}" >/dev/null || exit 1
 				export GITHUB_TOKEN="${GITHUB_TOKEN}"
-				git config user.email "${pduser}@redhat.com"
-				git config user.name "RHDH Build (${pduser})"
+				git config user.email "${MIDSTM_USER}@redhat.com"
+				git config user.name "RHDH Build (${MIDSTM_USER})"
 				git remote set-url origin "https://${GITHUB_TOKEN}:x-oauth-basic@github.com/${orgAndRepo}"
 
 				git checkout --track "origin/${clone_branch}" -q 2>/dev/null || true
@@ -587,8 +589,8 @@ pushTagGL ()
 		fi
 		if [[ -d ""$TMPDIR"/gitlab_${d}" ]]; then
 			pushd ""$TMPDIR"/gitlab_${d}" >/dev/null || exit 1
-				git config user.email "${pduser}@redhat.com"
-				git config user.name "RHDH Build (${pduser})"
+				git config user.email "${MIDSTM_USER}@redhat.com"
+				git config user.name "RHDH Build (${MIDSTM_USER})"
 				git checkout --track origin/"${MIDSTM_BRANCH}" -q 2>/dev/null || true
 				git pull -q 2>/dev/null
 				if [[ ${SOURCE_BRANCH} ]]; then 
@@ -620,6 +622,33 @@ pushTagGL ()
 			popd >/dev/null || exit 1
 		fi
 	fi
+}
+
+# update the RPA to provide a semver tag
+updateRPATagVersion ()
+{
+	pushd "$TMPDIR" >/dev/null || exit 1
+	# fetch repo
+	git clone -q --depth 1 -b main "git@gitlab.cee.redhat.com:releng/konflux-release-data.git" "konflux-release-data"
+	if [[ -d "$TMPDIR/konflux-release-data" ]]; then
+		pushd "$TMPDIR/konflux-release-data/config/stone-prod-p02.hjvn.p1/product/ReleasePlanAdmission/rhdh"
+		# adjust the rhdh-1-4-prod.yaml and rhdh-1-4-stage.yaml files to use a semver tag instead of 1.y-timestamp
+
+		#### NOTE THIS REQUIRES mikefarah's yq (which we have in the helm folder)
+		#### The python yq wrapper for jq does not preserve comments (because json has no comments)
+		for f in "rhdh-${KFUX_VERSION}-prod.yaml" "rhdh-${KFUX_VERSION}-stage.yaml"; do
+			"${SCRIPT_DIR}/../helm/yq_mf" '.spec.data.mapping.defaults.tags[1]|="'"$CSV_VERSION"'"' "$f" > "$f"_; mv "$f"{_,}
+		done
+		# submit a MR
+		COMMITMSG="chore: update rhdh-$KFUX_VERSION-*.yaml RPAs for upcoming release $CSV_VERSION"
+		git commit --no-gpg-sign -s -m "${COMMITMSG}" "rhdh-${KFUX_VERSION}-prod.yaml" "rhdh-${KFUX_VERSION}-stage.yaml"
+
+		if [[ $DO_PUSH -eq 1 ]]; then 
+			doPush "main"
+		fi
+		popd  >/dev/null || exit 1
+	fi
+	popd  >/dev/null || exit 1
 }
 
 ####################################
@@ -680,11 +709,16 @@ fi
 # branch or tag GL repo(s)
 if [[ $SKIP_GL -eq 0 ]]; then
 	if [[ "${MIDSTM_BRANCH}" ]]; then
+		# midstream build sources
 		for repo in \
 			rhdh \
 			; do
 		pushTagGL $repo
 		done
+
+		# midstream konflux-release-data sources
+		updateRPATagVersion
+
 		# cleanup
 		rm -fr "$TMPDIR"/*
 	fi

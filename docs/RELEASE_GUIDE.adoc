@@ -231,8 +231,6 @@ If a second RC build is needed, re-enable the scheduled GL pipeline (or you can 
 ... https://github.com/redhat-developer/red-hat-developers-documentation-rhdh/pull/592 (1.2.5 RN + plugin version updates)
 ... https://github.com/redhat-developer/red-hat-developers-documentation-rhdh/pull/643 (1.3.1 RN + plugin version updates)
 
-. **NOTE**: To push an FBC to Production RHEC, you have to re-render the catalog first with link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1-rhel-9/build/scripts/renderCatalogs.sh#L66[`renderCatalogs.sh --rhec`], to switch to registry.redhat.io/rhdh instead of quay.io/rhdh image references. 
-
 . For a .0 GA release, collect GO/NO-GO votes from stakeholders
 ..  _TODO_: Collect list of owners from various stakeholders (Linda's Go/No-Go list)
 .. For .z updates, this is generally not needed. 
@@ -247,18 +245,47 @@ If a second RC build is needed, re-enable the scheduled GL pipeline (or you can 
 ### [WAIT] Initial setup 
 . [ ] QE will announce the release has passed and is ready for release in slack.
 
-. [ ] Launch a clusterbot instance for smoke testing. This will take about 45 mins to create.
+. [ ] Launch a link:https://app.slack.com/client/E030G10V24F/D03GXSUT32A[clusterbot] instance for smoke testing. This will take about 45 mins to create.
 
-. [ ] Monitor container image release using links provided by link:../build/scripts/kfuxRelease.sh[kfuxRelease.sh].
+### [BEGIN] Start the _container image_ release (15-20 mins)
 
-### [RELEASE] Once images are live
-
-. [ ] Remove the now-EOL image stream from Comet so we stop getting reminded about CVEs for EOL versions. For example with the release of 1.4, 1.2 will be EOL. See image metadata at https://comet.engineering.redhat.com/containers/repositories?view=myRepos&filter=repoPath:rhdh then click through on each image to edit them.
+. [ ] Trigger the Konflux release for the container images to RHEC
 +
-image::images/comet-config.png[]
-image::images/comet-config-detail.png[]
-image::images/comet-config2.png[]
-image::images/comet-config-detail2.png[]
+```
+./build/scripts/kfuxRelease.sh -c help
+
+./build/scripts/kfuxRelease.sh --prod  -c rhdh-operator-bundle -v 1.4.1 [--debug] [--auto]
+```
+. [ ] Monitor container image release using links provided by link:../build/scripts/kfuxRelease.sh[kfuxRelease.sh]. Release can be seen from link:https://konflux.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/application-pipeline/workspaces/rhdh/applications/rhdh-1-4/releases/[rhdh-1-4/releases] and should be done in 15-20 mins, depending on network traffic. 
+
+### [RELEASE] Once the _container images_ are live
+
+#### FBC re-render (15 mins)
+
+. [ ] Re-render the FBC catalogs with link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1-rhel-9/build/scripts/renderCatalogs.sh#L66[`renderCatalogs.sh --rhec`], to switch to registry.redhat.io/rhdh instead of quay.io/rhdh image references. This should take about 2 mins per OCP version, and the builds in Konflux should take 5-10 mins total. Whole step should be under 15 mins. 
++
+```
+oc login --token=... # log into the https://console-openshift-console.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/k8s/cluster/projects/rhdh-tenant cluster
+
+git checkout rhdh-1.4-rhel-9
+RHDH_VERSION="1.4.1"
+alias cp=cp
+for OCP_VERSION in 4.14 4.15 4.16 4.17 4.18; do \
+  time ./build/scripts/renderCatalogs.sh --latest --rhec --versions "${OCP_VERSION}" -v "${RHDH_VERSION}" \
+    --template "catalogs/v${OCP_VERSION}/catalog-template.json"; sleep 30s; \
+done
+
+```
+
+### Chart release (15 mins)
+
+. [ ] Find the latest rhdh-hub tag from https://catalog.redhat.com/software/containers/rhdh/rhdh-hub-rhel9/645bd4c15c00598369c31aba
++
+```
+1.4-1737055846
+```
++
+.. NOTE: Starting with 1.4.2, the tag will be 1.4.2 instead of 1.4-timestamp. _TODO: RHIDP-5431 update this doc and usage in prepare.sh_
 +
 . [ ] link:../build/helm/prepare.sh[Push the helm chart].
 +
@@ -270,26 +297,48 @@ export GITHUB_TOKEN=ghp_*****
 gh auth status
 
 # create pull request
-./build/helm/prepare.sh --chart-version 1.4.2 --rhdh-version 1.4-132 --chart-branch release-1.4 --catalog git@github.com:rhdh-bot/openshift-helm-charts.git --publish
+# TODO RHIDP-5431 when we have semver tags in RHEC, use --rhdh-version 1.4.z instead of 1.4-timestamp from https://catalog.redhat.com/software/containers/rhdh/rhdh-hub-rhel9/645bd4c15c00598369c31aba
+./build/helm/prepare.sh --chart-version 1.4.1 --rhdh-version 1.4-1737055846 --chart-branch release-1.4 --catalog git@github.com:rhdh-bot/openshift-helm-charts.git --publish
 ```
 +
 You should see something like this:
 +
 ```
-Create chart for 1.4-132 (1.4.2)
+Create chart for 1.4-1737055846 (1.4.1)
 Set image digests in charts/backstage/values.yaml: 
-* RHDH_DIGEST = 9709e056f194a24c809dd82b4ab10aa05a9c31574e68ae8d1a5e91de19237045, 
-* POSTGRESQL_DIGEST = f1f581d8974799f17d4707f9161b2d0568a07255e535ca3be3b36ce254b091a4
+* RHDH_DIGEST = d8268197ba0466643efb818fcad8f0fc29e32463f75b0f7f51d9ce75ec717572, 
+* POSTGRESQL_DIGEST = 44a08b83a6c50714b52f4cf1c3476bc16b66faec21dd9a9bc07d1be5f97b8150
 ...
-Chart version:        1.4.2
-Developer Hub image:  registry.redhat.io/rhdh/rhdh-hub-rhel9:1.4-132
-Branch:               https://github.com/rhdh-bot/openshift-helm-charts/tree/redhat-developer-hub-1.4.2
+Chart version:        1.4.1
+Developer Hub image:  registry.redhat.io/rhdh/rhdh-hub-rhel9:1.4-1737055846
+Branch:               https://github.com/rhdh-bot/openshift-helm-charts/tree/redhat-developer-hub-1.4.1
 ...
-[release-1.4.2 daf0844] chore: chart: add Red Hat Developer 1.4.2 for registry.redhat.io/rhdh/rhdh-hub-rhel9:1.4-132
+[release-1.4.1 4e21879] chore: chart: add Red Hat Developer 1.4.1 for registry.redhat.io/rhdh/rhdh-hub-rhel9:1.4-1737055846
 ...
 https://github.com/openshift-helm-charts/charts/pull/1556
 ```
+
+
+#### FBC release (30 mins)
+
+. [ ] Find the latest operator bundle tag from https://catalog.redhat.com/software/containers/rhdh/rhdh-operator-bundle/64bfdcd740aa90644e579cc6
 +
+```
+1.4-1737079124
+```
++
+.. NOTE: Starting with 1.4.2, the tag will be 1.4.2 instead of 1.4-timestamp. _TODO: RHIDP-5431 update this doc and usage in kfuxRelease.sh_
+. [ ] Release the FBCs (once re-rendering is complete above)
++
+```
+./build/scripts/kfuxRelease.sh --fbc help # get help
+
+# same timestamp as the previous step
+./build/scripts/kfuxRelease.sh --prod   --fbc :1.4-1737079124 -v 1.4.1 --debug [--auto]
+```
+
+#### Tag the repos
+
 . [ ] link:../build/scripts/tagRelease.sh[Tag the repos listed above] - note that repo tagging for pkgs.devel is manual, but the script will tell you what to run!
 +
 ```
@@ -300,7 +349,6 @@ cd /tmp; git clone git@gitlab.cee.redhat.com:rhidp/rhdh.git --depth 1 && cd rhdh
 ```
 Note: If tags already exist but version bump PRs were not created, you can rerun the script with the `--force-update` flag to resolve this. Use `--skip-pd` and `--skip-gl` if those steps were completed previously.
 
-
 ### [TEST] Once images, chart, and tags are available
 
 . Smoke tests using clusterbot
@@ -308,7 +356,7 @@ Note: If tags already exist but version bump PRs were not created, you can rerun
 ... [ ] install from `fast` - see link:https://github.com/redhat-developer/rhdh-operator/blob/main/.rhdh/docs/installing-ci-builds.adoc[installation]
 ... [ ] switch to `fast-1.4` or `fast-1.5` subscription channel
 ... [ ] verify update from of 1.4.0 -> 1.4.1 (or 1.5.0)
-.. [ ] Helm Chart: smoke test the ability
+.. [ ] Helm Chart: smoke test the ability to:
 ... [ ] install latest chart
 ... [ ] upgrade to a newer chart - see link:https://github.com/rhdh-bot/openshift-helm-charts/tree/rhdh-1-rhel-9/installation[installation]
 
@@ -319,6 +367,19 @@ Note: If tags already exist but version bump PRs were not created, you can rerun
 
 . Check in with marketing re:
 .. Internal announcement? External announcement? Other marketing / blogs / videos? Summit alignment / presentations?
+
+### [DOCUMENTATION] Notify docs team
+
+. In the link:https://app.slack.com/client/E030G10V24F/C07EVRDD7KN[forum-rhdh-releases], update any existing threads about this release, and at-mention the `@rhdh-docs-gate-keeper` group so that Docs is aware they can release the doc updates. This may include the dynamic plugin lists, release notes, and any other queued fixes. 
+
+### [SUPPORT] Comet updates
+
+. [ ] If this is a .0 release, remove the now-EOL image stream from Comet so we stop getting reminded about CVEs for EOL versions. For example with the release of 1.4, 1.2 will be EOL. See image metadata at https://comet.engineering.redhat.com/containers/repositories?view=myRepos&filter=repoPath:rhdh then click through on each image to edit them.
++
+image::images/comet-config.png[]
+image::images/comet-config-detail.png[]
+image::images/comet-config2.png[]
+image::images/comet-config-detail2.png[]
 
 ## Other considerations
 
@@ -334,20 +395,21 @@ Ongoing through the quarter, remember to:
 
 ### For a z-stream update, first do this
 
-- collect the fixes in janus plugins + community plugins, and verifying that they've been released to npmjs.com
-- collect the updated plugin versions into showcase, and verifying a downstream build has succeeded
+- collect the fixes in janus plugins + community plugins, and verify that they've been released to npmjs.com
+- collect the updated plugin versions into showcase, and verify a downstream build has succeeded
 
 ### For all builds (y and z-stream)
 
-- Using link:../build/scripts/kfuxRelease.sh[kfuxRelease.sh] push the latest snapshot to stage 
+- Use link:../build/scripts/kfuxRelease.sh[kfuxRelease.sh] to push the latest snapshot to stage 
 - coordinate with QE and Doc via slack and email notifications of RC builds and progress of testing, doc readiness, etc.
-- remind QE to announce test completion; watch while the builds are pushed (1-2 hrs?); complain on slack in various rel-eng channels if things break while pushing or ask siege for help
+- remind QE to announce test completion; watch while the builds are pushed (1-2 hrs?); complain on slack in various rel-eng channels if things break while pushing
 
 ### Once the containers have shipped 
 
+- re-render FBCs to refer to registry.redhat.io instead of quay.io
 - generate the helm chart PR for the openshift helm charts repo; monitor until it's merged
+- release the FBCs to production
 - smoke test the operator and helm installs
 - notify Docs that they can release the latest RN updates
-- tag the repos w/ the new 1.2.5 tag; bumping the repos to 1.2.6 in case we do another z update
-- remove EOL versions of RHD from Comet - see details above
-- notify Prod Sec of EOL version - see https://issues.redhat.com/browse/PSSECDEV-7737
+- tag the repos w/ new 1.y.z tag; bump the repos 1.y.(z+1) to prepare for subsequent releases
+- for a .0 release, remove EOL versions of RHD from Comet
