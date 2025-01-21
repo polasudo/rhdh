@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (c) 2023 Red Hat, Inc.
+# Copyright (c) Red Hat, Inc.
 # This program and the accompanying materials are made
 # available under the terms of the Eclipse Public License 2.0
 # which is available at https://www.eclipse.org/legal/epl-2.0/
@@ -29,6 +29,9 @@ Options:
     --force                recreate existing tag even if already exists
     --pushtoquay=latest    also create a latest tag
     --pushtoquay=next      also crate a next tag
+
+To copy any arbitrary image, use:
+    skopeo --insecure-policy copy --all docker://repo/org/image:tag docker://repo2/org2/image2:tag2
     "
 }
 
