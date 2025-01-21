@@ -376,7 +376,7 @@ spec:
       - name: CACHI2_ARTIFACT
         value: $(tasks.prefetch-dependencies.results.CACHI2_ARTIFACT)
       # - name: ARGS
-      #   value: "--project-name=7a84a736-c957-4c65-b329-4449984ae1b6 --report --org=3640be2c-1549-4d4c-bc0b-46b24799e4b6"
+      #   value: "--project-name=Internal-Konflux-RHDH-Snyk-Reports --report --org=3640be2c-1549-4d4c-bc0b-46b24799e4b6"
       runAfter:
       - build-image-index
       taskRef:
