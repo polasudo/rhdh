@@ -91,11 +91,11 @@ done
 
 # 5. Now you're ready to run this script!
 
-$0 --stage  --fbc :1.3-127 -v 1.3.3 -o \"4.14 4.15 ...\" --auto --debug
-$0 --prod   --fbc :1.3-127 -v 1.3.3 -o \"4.14 4.15 ...\"
+$0 --stage  --fbc :1.3-133 -v 1.3.4 -o \"4.14 4.15 ...\" --auto --debug
+$0 --prod   --fbc :1.3-133 -v 1.3.4 -o \"4.14 4.15 ...\"
 
-$0 --stage  --fbc :1.4-150        -v 1.4.1 --debug
-$0 --prod   --fbc :1.4-1734113472 -v 1.4.1 --debug
+$0 --stage  --fbc :1.4-zzz -v 1.4.2 --debug
+$0 --prod   --fbc :1.4.2   -v 1.4.2 --debug
 # or use SHA
 $0 --prod   --fbc @sha256:2981d2470951ea1e26eb968aefc39ab48ab7d9634a520cf2bbd8c5fef313db15 -v $RHDH_FULL_VERSION_INPUT
 
@@ -104,7 +104,7 @@ Options:
   --stage, --prod    Push to the stage or prod version of the RH Ecosystem Catalog
   -v                 RHDH version x.y.z to release
 
-  --fbc              Publish FBCs for the specified bundle tag, eg., 1.3-127 or 1.4-127
+  --fbc              Publish FBCs for the specified bundle tag, eg., 1.3-133 or 1.4.2
   --snapshot         Rather than pick the latest snapshot, use a specific older one, eg., fbc-4-14-znfg9
   --commit           Rather than pick the latest snapshot, use a specific older one matching a commit SHA, eg., 8ce7098e
   -o                 OCP versions for which to release FBC; default '$OCP_VERSIONS'
