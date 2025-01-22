@@ -499,9 +499,9 @@ for ((i = START_REPO; i < NUM_REPOS; i++)); do # echo $i
         popd >/dev/null || exit 1
       done
 
-      # use backstage-operator.clusterserviceversion.yaml instead of backstage csv
+      # use rhdh-operator.clusterserviceversion.yaml instead of backstage-operator as we need the product name in konflux configs
       pushd "${BUNDLEDIR}" >/dev/null || exit 1
-        cp -f "${ROOTPATH}/${destination_folder%/}/bundle/rhdh/manifests/backstage-operator.clusterserviceversion.yaml" "./manifests/backstage-operator.clusterserviceversion.yaml"
+        cp -f "${ROOTPATH}/${destination_folder%/}/bundle/rhdh/manifests/backstage-operator.clusterserviceversion.yaml" "./manifests/rhdh-operator.clusterserviceversion.yaml"
         git add . || true
       popd >/dev/null || exit 1
     fi
