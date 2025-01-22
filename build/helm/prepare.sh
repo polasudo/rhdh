@@ -412,7 +412,7 @@ if [[ $PUBLISH -eq 1 ]]; then
         git checkout origin/main -b "release-${CHART_VERSION}" || true
         git checkout "release-${CHART_VERSION}" || true
         git add "${CHART_VERSION}"
-        COMMIT_MSG="chore: chart: add Red Hat Developer ${CHART_VERSION} for registry.redhat.io/rhdh/rhdh-hub-rhel9:${RHDH_VERSION}"
+        COMMIT_MSG="chore: chart: add Red Hat Developer Hub ${CHART_VERSION} for registry.redhat.io/rhdh/rhdh-hub-rhel9:${RHDH_VERSION}"
         git commit --no-gpg-sign -s -m "${COMMIT_MSG}" "${CHART_VERSION}" .
         # delete branch (if exists)
         if [[ $(git ls-remote --heads git@github.com:rhdh-bot/openshift-helm-charts.git "refs/heads/release-${CHART_VERSION}") ]]; then 
