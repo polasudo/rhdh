@@ -382,9 +382,10 @@ if [[ $BUNDLE_TAG_OR_SHA ]]; then
     oc -n rhdh-tenant get Snapshot "${SNAPSHOT}" -o yaml > "/tmp/${SNAPSHOT}.yaml"
     IIB=$(yq -r '.spec.components[0].containerImage' "/tmp/${SNAPSHOT}.yaml") # quay.io/rhdh/iib@sha256:23eb6996df56471120723b8741ac4f19dc2d23441bdbaea62003de6fd1a507a0
     sudo rm -fr /tmp/quay.io-rhdh-iib-sha256-*
-    if [[ $DEBUG -eq 1 ]]; then echo; echo "Extracting $IIB to get catalog.json ..."; fi
+    if [[ $DEBUG -eq 1 ]]; then echo "Extracting $IIB to get catalog.json ..."; fi
     "$SCRIPT_DIR/containerExtract.sh" "${IIB}" -q
-    bundle=$(cat /tmp/quay.io-rhdh-iib-sha256-*/configs/rhdh/catalog.json | grep rhdh-operator-bundle@ | sed -r -e 's|.+"image": ".+/rhdh/(.+)",*|\1|' | tail -1)
+    # get all the bundles sorted by newest to oldest
+    bundles=$(cat /tmp/quay.io-rhdh-iib-sha256-*/configs/rhdh/catalog.json | grep rhdh-operator-bundle@ | sed -r -e 's|.+"image": ".+/rhdh/(.+)",*|\1|' | uniq | tac)
 
     # TODO do we need to do this at all? and should we validate stage pushed images too?
     # if [[ $DEST == "prod" ]]; then # use prod URL
@@ -395,14 +396,20 @@ if [[ $BUNDLE_TAG_OR_SHA ]]; then
     sudo rm -fr /tmp/quay.io-rhdh-iib-sha256-*
 
     # grab the only quay.io entry (last one)
-    echo "Found $bundle"
     PROCEED=0
     for k in "${!operator_bundle_mapping[@]}"; do 
-      echo "Check ${operator_bundle_mapping[$k]} ($k)"
-      if [[ ${operator_bundle_mapping[$k]} == "$bundle" ]]; then
-        PROCEED=1
-        echo; echo "Release can proceed - should take about 30 mins per OCP version!"; echo
-        cat << EOT > "/tmp/release-rhdh-${RHDH_FULL_VERSION}-fbc-${OCP_VERSION}-${DEST}-${TS}.yaml"
+      echo "Searching for ${operator_bundle_mapping[$k]} ($k) ..."
+      for bundle in $bundles; do
+        if [[ $DEBUG -eq 1 ]]; then echo -n "          ... $bundle"; fi
+        if [[ ${operator_bundle_mapping[$k]} == "$bundle" ]]; then
+          PROCEED=1
+          if [[ $DEBUG -eq 1 ]]; 
+            then echo ": matched!"; 
+          else
+            echo -n "   Matched on $bundle: "
+          fi
+          echo "Release can proceed - should take about 30 mins per OCP version"; echo
+          cat << EOT > "/tmp/release-rhdh-${RHDH_FULL_VERSION}-fbc-${OCP_VERSION}-${DEST}-${TS}.yaml"
 apiVersion: appstudio.redhat.com/v1alpha1
 kind: Release
 metadata:
@@ -414,22 +421,26 @@ spec:
   releasePlan: rhdh-${RHDH_VERSION/./-}-fbc-${OCP_VERSION}-${DEST}-release-plan
   snapshot: ${SNAPSHOT}
 EOT
-        # if [[ $DEBUG -eq 1 ]]; then cat "/tmp/release-rhdh-${RHDH_FULL_VERSION}-fbc-${OCP_VERSION}-${DEST}-${TS}.yaml"; fi
-        if [[ $AUTORELEASE -eq 1 ]]; then
-          oc apply -f "/tmp/release-rhdh-${RHDH_FULL_VERSION}-fbc-${OCP_VERSION}-${DEST}-${TS}.yaml"
-          echo
-          RELEASE_URL="https://konflux.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/application-pipeline/workspaces/rhdh/applications/fbc-${OCP_VERSION}/releases/release-rhdh-${RHDH_FULL_VERSION}-fbc-${OCP_VERSION}-${DEST}-${TS}"
-          echo "Run in $RELEASE_URL"
-          # open a browser to watch the release
-          if [[ $(command -v google-chrome) == *"google-chrome"* ]] || [[ $(which google-chrome) != *"which: no google-chrome"* ]]; then google-chrome "$RELEASE_URL"; fi
-          echo "-----------------------------------------------------------------------"
-          echo
-        else
-          collected_commands="${collected_commands}\n  oc apply -f /tmp/release-rhdh-${RHDH_FULL_VERSION}-fbc-${OCP_VERSION}-${DEST}-${TS}.yaml"
-          echo -e "Run this:\n  oc apply -f /tmp/release-rhdh-${RHDH_FULL_VERSION}-fbc-${OCP_VERSION}-${DEST}-${TS}.yaml"; echo 
+          # if [[ $DEBUG -eq 1 ]]; then cat "/tmp/release-rhdh-${RHDH_FULL_VERSION}-fbc-${OCP_VERSION}-${DEST}-${TS}.yaml"; fi
+          if [[ $AUTORELEASE -eq 1 ]]; then
+            oc apply -f "/tmp/release-rhdh-${RHDH_FULL_VERSION}-fbc-${OCP_VERSION}-${DEST}-${TS}.yaml"
+            echo
+            RELEASE_URL="https://konflux.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/application-pipeline/workspaces/rhdh/applications/fbc-${OCP_VERSION}/releases/release-rhdh-${RHDH_FULL_VERSION}-fbc-${OCP_VERSION}-${DEST}-${TS}"
+            echo "Run in $RELEASE_URL"
+            # open a browser to watch the release
+            if [[ $(command -v google-chrome) == *"google-chrome"* ]] || [[ $(which google-chrome) != *"which: no google-chrome"* ]]; then google-chrome "$RELEASE_URL"; fi
+            echo "-----------------------------------------------------------------------"
+            echo
+          else
+            collected_commands="${collected_commands}\n  oc apply -f /tmp/release-rhdh-${RHDH_FULL_VERSION}-fbc-${OCP_VERSION}-${DEST}-${TS}.yaml"
+            echo -e "Run this:\n  oc apply -f /tmp/release-rhdh-${RHDH_FULL_VERSION}-fbc-${OCP_VERSION}-${DEST}-${TS}.yaml"; echo 
+          fi
+        else 
+          if [[ $DEBUG -eq 1 ]]; then echo; fi
         fi
-      fi
-      break
+        if [[ $PROCEED -eq 1 ]]; then break; fi
+      done
+      if [[ $PROCEED -eq 1 ]]; then break; fi
     done
     if [[ $PROCEED -eq 0 ]]; then 
       echo "[ERROR] Can not proceed with the release: matching operator-bundle image not found!"
@@ -471,7 +482,7 @@ EOT
         yq -r '.items[]|select(.spec.releasePlan == "'"${RP}"'")|select(.metadata.name|startswith("'"${RN}"'"))|select(.status.managedProcessing.pipelineRun|split("/")[1] == "'"$managedPipeline"'")|.metadata.name + "\t" + .spec.releasePlan + "\t'"${managedPipeline}"'\t\t" + .status.managedProcessing.startTime + "\t" + .status.managedProcessing.completionTime' "/tmp/releases-${OCP_VERSION}.yaml"
       done
     else 
-      echo "[ERROR] Could not find a Release for ReleasePlan $RP !"; exit 1
+      echo " >> No Releases found for ReleasePlan $RP - submit one using the steps above."
     fi
   done
   rm -f /tmp/releases-*
