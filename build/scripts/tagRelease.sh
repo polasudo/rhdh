@@ -51,7 +51,7 @@ usage() {
 To create or update existing branches:
   $0 --branchfrom SOURCE_GH_BRANCH -gh TARGET_GH_BRANCH -ghtoken GITHUB_TOKEN
 Example: 
-  $0 --branchfrom main -gh release-1.3 -ghtoken \$GITHUB_TOKEN
+  $0 --branchfrom main -gh release-1.5 -ghtoken \$GITHUB_TOKEN
 
 To create tags (and push updates to release-1.yy branches):
 1. You should have a valid GITHUB_TOKEN for your user (for upstream PRs).
@@ -345,28 +345,31 @@ function updateOperatorVersions() {
 	# update 4 files
 	################
 
+	set -x 
+	pwd
+
 	# update Makefile
-	sed -i Makefile -r -e "s/(VERSION \?= )[0-9.]+/\1$the_version_op/" # 0.3.0
+	sed -i Makefile -r -e "s/(VERSION \?= )[0-9.]+/\1$the_version_op/" # 0.y.0
+
 	# update bundle/rhdh/manifests/backstage-operator.clusterserviceversion.yaml
 	sed -i bundle/rhdh/manifests/backstage-operator.clusterserviceversion.yaml -r \
-		-e "s/(skipRange: '>=0.0.1 <)[0-9.]+'/\1$the_version_op'/" \
-		-e "s/(name: backstage-operator.v)[0-9.]+/\1$the_version_op/" \
-		-e "s/(image: quay.io\/janus-idp\/operator:)[0-9.]+/\1$the_version_op/" \
-		-e "s/(^  version: )[0-9.]+/\1$the_version_op/" # 0.3.0
-	# update config/manager/kustomization.yaml
-	for d in $(find . -name kustomization.yaml); do sed -i "$d" -r \
-		-e "s/(^  newTag:  )[0-9.]+/\1$the_version_op/" # 0.3.0
-	done
-	# update .rhdh/bundle/manifests/rhdh-operator.clusterserviceversion.yaml use both 1.4.0 and 1.4 (three times for image ref replacements: operator, operator, hub)
-	sed -i .rhdh/bundle/manifests/rhdh-operator.clusterserviceversion.yaml -r \
 		` # update the tags in the CSV to the latest 1.y version` \
 		-e "s|(/rhdh/rhdh-.+:)([0-9.]+)|\1${the_version%.*}|g" \
-		` # update refs to the latest x.y.z version` \
+		` # update refs to the latest x.y.0 or x.y.z version` \
 		-e "s/(skipRange: '>=1.0.0 <)[0-9.]+'/\1$the_version'/" \
 		-e "s/(name: rhdh-operator.v)[0-9.]+/\1$the_version/" \
 		-e "s/(^  version: )[0-9.]+/\1$the_version/" \
 		-e "s/(rhdh-rhdh-hub-rhel9:|rhdh-rhdh-rhel9-operator:)[0-9.]+/\1${the_version%.*}/" \
-		-e "s|(.*https://access.redhat.com/documentation/en-us/red_hat_developer_hub/)([0-9.]+)(/html-single/administration_guide_for_red_hat_developer_hub/index#assembly-rhdh-telemetry_admin-rhdh.*)|\1${the_version%.*}\3|g" # replace with 1.3 
+		-e "s|(.*https://access.redhat.com/documentation/en-us/red_hat_developer_hub/)([0-9.]+)(/html-single/administration_guide_for_red_hat_developer_hub/index#assembly-rhdh-telemetry_admin-rhdh.*)|\1${the_version%.*}\3|g" \
+		` # replace upstream refs to quay images with RHEC ones` \
+		-e "s|quay.io/fedora/postgresql-15:latest|registry.redhat.io/rhel9/postgresql-15:latest|" \
+		-e "s|quay.io/rhdh/rhdh-hub-rhel9:next|registry.redhat.io/rhdh/rhdh-hub-rhel9:${the_version%.*}|"
+	# NOTE: downstream we need to rename this file from backstage-operator.clusterserviceversion.yaml to rhdh-operator.clusterserviceversion.yaml
+
+	# update config/manager/kustomization.yaml
+	for d in $(find . -name kustomization.yaml); do sed -i "$d" -r \
+		-e "s/(^  newTag:  )[0-9.]+/\1$the_version_op/" # 0.y.0
+	done
 
 	echo -n "updateOperatorVersions: "; pwd; git diff || true
 	if [[ $(git diff || true ) ]] && [[ ${DO_PUSH} -eq 1 ]]; then
@@ -674,7 +677,6 @@ getXYplusOneFromBranch "$TARGET_BRANCH"
 # TODO move janus-idp to redhat-developer
 	# RHIDP-1018 Sunset Janus IDP GH repos
 	# RHIDP-1019 Migrate Janus IDP plugins repo to backstage upstream
-	# RHIDP-1022 Migrate Janus IDP showcase repo to redhat-developers org
 
 # branch and/or tag GH repos
 if [[ $SKIP_GH -eq 0 ]]; then
