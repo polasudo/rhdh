@@ -73,8 +73,11 @@ See also:
 
 ## GA Releases
 
-Release Plan Admissions are here: https://konflux.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/application-pipeline/release/workspaces/rhtap-releng/release-plan-admission?name=rhdh
 Release Plans are here: https://konflux.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/application-pipeline/release/workspaces/rhdh/release-plan
+
+Release Plan Admissions are here: https://konflux.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/application-pipeline/release/workspaces/rhtap-releng/release-plan-admission?name=rhdh
+
+NOTE: To get access to the rhtap-releng namespace, see https://konflux.pages.redhat.com/docs/users/releasing/preparing-for-release.html#_get_access_to_the_rhtap_releng_managed_workspace
 
 If you need to delete something here's the easiest views:
 * RPAs: https://console-openshift-console.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/search/ns/rhtap-releng-tenant?kind=appstudio.redhat.com%7Ev1alpha1%7EReleasePlan%2Cappstudio.redhat.com%7Ev1alpha1%7EReleasePlanAdmission%2Cappstudio.redhat.com%7Ev1alpha1%7ERelease&orderBy=asc&sortBy=Created&name=rhdh
@@ -88,4 +91,10 @@ Note that RPs must reference their associated RPAs or else we're not allowed to 
 
 ### How do I release?
 
-See link:RHDH-Konflux-releases.adoc[RHDH-Konflux-releases.adoc]
+Simply put, to release containers and FBCs, use this script:
+
+* link:../build/scripts/kfuxRelease.sh[kfuxRelease.sh]
+
+Make sure you have access to the rhtap-releng namespace! 
+
+NOTE: To get access to the rhtap-releng namespace, see https://konflux.pages.redhat.com/docs/users/releasing/preparing-for-release.html#_get_access_to_the_rhtap_releng_managed_workspace

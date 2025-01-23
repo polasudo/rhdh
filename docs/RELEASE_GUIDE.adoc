@@ -258,6 +258,8 @@ If a second RC build is needed, re-enable the scheduled GL pipeline (or you can 
 ```
 . [ ] Monitor container image release using links provided by link:../build/scripts/kfuxRelease.sh[kfuxRelease.sh]. Release can be seen from link:https://konflux.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/application-pipeline/workspaces/rhdh/applications/rhdh-1-4/releases/[rhdh-1-4/releases] and should be done in 15-20 mins, depending on network traffic. 
 
+NOTE: To get access to the rhtap-releng namespace to watch managed pipelines, see https://konflux.pages.redhat.com/docs/users/releasing/preparing-for-release.html#_get_access_to_the_rhtap_releng_managed_workspace
+
 ### [RELEASE] Once the _container images_ are live
 
 #### FBC re-render (15 mins)
