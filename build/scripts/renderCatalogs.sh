@@ -238,10 +238,11 @@ for OCP_VERSION in ${OCP_VERSIONS}; do
   set +x
 
   # for 4.15+, use the rhel9 image
-  vergte "${OCP_VERSION}" "4.15" && registry="registry-rhel9:v${OCP_VERSION}" || registry="registry:v${OCP_VERSION}"
+  vergte "${OCP_VERSION}" "4.15" && registry="registry.redhat.io/openshift4/ose-operator-registry-rhel9:v${OCP_VERSION}" || registry="registry.redhat.io/openshift4/ose-operator-registry:v${OCP_VERSION}"
   
-  # temporary hackaround for v4.18 because it doesn't exist yet; fall back to 4.17
-  registry=${registry/v4.18/v4.17}
+  # temporary hackaround for v4.18 because it isn't live yet; fall back to brew.reg (CI build)
+  # TODO change this in March when 4.18 is live
+  vergte "${OCP_VERSION}" "4.18" && registry="brew.registry.redhat.io/rh-osbs/openshift-ose-operator-registry-rhel9:v4.18"
 
   fastYChannel=""; if [[ $PROD_VERSION ]]; then fastYChannel=",fast-${PROD_VERSION}"; fi
 
@@ -254,7 +255,7 @@ for OCP_VERSION in ${OCP_VERSIONS}; do
 
   cat <<EOF > "catalogs/v${OCP_VERSION}/Containerfile"
   # The base image is expected to contain /bin/opm (with a serve subcommand) and /bin/grpc_health_probe
-FROM registry.redhat.io/openshift4/ose-operator-${registry}
+FROM ${registry}
 
 ENTRYPOINT ["/bin/opm"]
 CMD ["serve", "/configs", "--cache-dir=/tmp/cache"]
