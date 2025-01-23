@@ -66,6 +66,7 @@ TODO: RHIDP-4223 write this / script this / apply this to the https://github.com
 * install the latest FBC as a CatalogSource
 
 See also:
+
 * https://issues.redhat.com/browse/RHIDP-4223?focusedId=25765411&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-25765411
 * https://konflux.pages.redhat.com/docs/users/getting-started/building-olm-products.html#testing-a-fbc-graph
 * https://github.com/redhat-developer/rhdh-operator/blob/main/.rhdh/scripts/install-rhdh-catalog-source.sh (needs revision)
@@ -80,6 +81,7 @@ Release Plan Admissions are here: https://konflux.apps.stone-prod-p02.hjvn.p1.op
 NOTE: To get access to the rhtap-releng namespace, see https://konflux.pages.redhat.com/docs/users/releasing/preparing-for-release.html#_get_access_to_the_rhtap_releng_managed_workspace
 
 If you need to delete something here's the easiest views:
+
 * RPAs: https://console-openshift-console.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/search/ns/rhtap-releng-tenant?kind=appstudio.redhat.com%7Ev1alpha1%7EReleasePlan%2Cappstudio.redhat.com%7Ev1alpha1%7EReleasePlanAdmission%2Cappstudio.redhat.com%7Ev1alpha1%7ERelease&orderBy=asc&sortBy=Created&name=rhdh
 * RPs: https://console-openshift-console.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/search/ns/rhdh-tenant?kind=appstudio.redhat.com%7Ev1alpha1%7EReleasePlan&orderBy=asc&sortBy=Created&name=
 
