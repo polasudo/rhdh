@@ -1060,21 +1060,28 @@ if [[ $BUNDLEONLY -eq 1 ]]; then
     ; do git restore --staged $d; git restore $d
   done
   rm -fr distgit/containers/rhdh-operator/.rhdh/
-elif [[ $DO_BUILD -eq 0 ]]; then
-  for d in \
-    distgit/containers/rhdh-hub/dynamic-plugins/ \
-    distgit/containers/rhdh-hub/e2e-tests/ \
-    distgit/containers/rhdh-hub/packages/app/public/ \
-    distgit/containers/rhdh-hub/packages/backend/ \
-    distgit/containers/rhdh-hub/yarn.lock \
-    ; do git restore --staged $d; git restore $d
-  done
-else # if build or not, but not building bundle
+else
+  if [[ $DO_BUILD -eq 0 ]]; then
+    for d in \
+      distgit/containers/rhdh-hub/dynamic-plugins/ \
+      distgit/containers/rhdh-hub/e2e-tests/ \
+      distgit/containers/rhdh-hub/packages/app/public/ \
+      distgit/containers/rhdh-hub/packages/backend/ \
+      distgit/containers/rhdh-hub/yarn.lock \
+      ; do git restore --staged $d; git restore $d
+    done
+  fi
   for d in \
     distgit/containers/rhdh-operator-bundle/ \
     sync/upstream_SHA_rhdh-operator-bundle \
     ; do git restore --staged $d; git restore $d
   done
+  if [[ $(git diff --name-only distgit/containers/rhdh-hub) == "distgit/containers/rhdh-hub/Containerfile" ]]; then # revert the single change to bump the version
+    d="distgit/containers/rhdh-hub/Containerfile"; git restore --staged $d; git restore $d
+  fi
+  if [[ $(git diff --name-only distgit/containers/rhdh-operator) == "distgit/containers/rhdh-operator/Containerfile" ]]; then # revert the single change to bump the version
+    d="distgit/containers/rhdh-operator/Containerfile"; git restore --staged $d; git restore $d
+  fi
 fi
 
 # purge any files we definitely don't want downstream
