@@ -32,6 +32,10 @@ sync-midstream:
         # distgit/containers/rhdh-hub/yarn.lock
         # etc.
       ./build/ci/sync-midstream.sh $latestNext -b "$CI_COMMIT_REF_NAME" --gitlab-pipeline-push || exit 15
+
+      # TODO replace this with nudges
+      ./build/ci/sync-midstream.sh $latestNext -b "$CI_COMMIT_REF_NAME" --gitlab-pipeline-push --bundleonly --force || exit 16
+
       echo "Committed: $CI_COMMIT_REF_NAME"
       set -x
       echo "Currently in $(pwd)"
