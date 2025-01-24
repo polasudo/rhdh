@@ -448,7 +448,7 @@ for ((i = START_REPO; i < NUM_REPOS; i++)); do # echo $i
         popd >/dev/null || exit 1
       done
 
-      for bundle_dir in "${ROOTPATH}/${destination_folder%/}/bundle/rhdh"; do
+      for bundle_dir in "${BUNDLEDIR}"; do
         pushd "${bundle_dir}" >/dev/null || exit 1
           for yml in manifests/backstage-operator.clusterserviceversion.yaml; do
           echo "[INFO] Transforming $bundle_dir/$yml ..."
@@ -499,11 +499,14 @@ for ((i = START_REPO; i < NUM_REPOS; i++)); do # echo $i
         popd >/dev/null || exit 1
       done
 
-      # use rhdh-operator.clusterserviceversion.yaml instead of backstage-operator as we need the product name in konflux configs
+      echo "In BUNDLEDIR=$BUNDLEDIR, add files"
       pushd "${BUNDLEDIR}" >/dev/null || exit 1
-        mv -f "${ROOTPATH}/${destination_folder%/}/bundle/rhdh/manifests/backstage-operator.clusterserviceversion.yaml" "./manifests/rhdh-operator.clusterserviceversion.yaml"
+        # use rhdh-operator.clusterserviceversion.yaml instead of backstage-operator as we need the product name in konflux configs
+        git mv -f manifests/{backstage,rhdh}-operator.clusterserviceversion.yaml || \
+            mv -f manifests/{backstage,rhdh}-operator.clusterserviceversion.yaml
         git add . || true
       popd >/dev/null || exit 1
+
     fi
     ##################################### rhdh-operator-bundle #####################################
 
@@ -648,11 +651,13 @@ Using midstream_repo:
 
 latestNextTag=""; if [[ $latestNext ]]; then latestNextTag="${latestNext}, "; fi 
 
-# append Brew metadata here
-for c in distgit/containers/rhdh-hub/Dockerfile.in distgit/containers/rhdh-hub/Dockerfile distgit/containers/rhdh-hub/Containerfile; do
-  if [[ -f $c ]]; then sed -i '/# append Brew metadata here/q' $c; fi
-done
-cat <<EOT >$TMPDIR/hub.Dockerfile.foot
+if [[ $BUNDLEONLY -eq 0 ]]; then
+
+  # append Brew metadata here
+  for c in distgit/containers/rhdh-hub/Dockerfile.in distgit/containers/rhdh-hub/Dockerfile distgit/containers/rhdh-hub/Containerfile; do
+    if [[ -f $c ]]; then sed -i '/# append Brew metadata here/q' $c; fi
+  done
+  cat <<EOT >$TMPDIR/hub.Dockerfile.foot
 ENV SUMMARY="Red Hat Developer Hub container" \\
     DESCRIPTION="Red Hat Developer Hub container" \\
     UPSTREAM_REPO="${upstream_repo_hub}" \\
@@ -678,10 +683,10 @@ LABEL summary="\$SUMMARY" \\
       distribution-scope="public" \\
       url="https://red.ht/rhdh"
 EOT
-echo "[INFO] Added metadata to $TMPDIR/hub.Dockerfile.foot"
+  echo "[INFO] Added metadata to $TMPDIR/hub.Dockerfile.foot"
 
-mkdir -p distgit/containers/rhdh-hub/.git/
-cat <<EOT >distgit/containers/rhdh-hub/.git/config
+  mkdir -p distgit/containers/rhdh-hub/.git/
+  cat <<EOT >distgit/containers/rhdh-hub/.git/config
 [core]
   repositoryformatversion = 0
   filemode = true
@@ -690,15 +695,15 @@ cat <<EOT >distgit/containers/rhdh-hub/.git/config
   hooksPath = .husky
   autocrlf = input
 EOT
-echo "[INFO] Generated distgit/containers/rhdh-hub/.git/config for use with Husky"
+  echo "[INFO] Generated distgit/containers/rhdh-hub/.git/config for use with Husky"
 
-# append Brew metadata here
-# set -x
-for c in distgit/containers/rhdh-operator/Dockerfile.in distgit/containers/rhdh-operator/Dockerfile distgit/containers/rhdh-operator/Containerfile; do
-  if [[ -f $c ]]; then sed -i '/# append Brew metadata here/q' $c; fi
-done
-# set +x
-cat <<EOT >$TMPDIR/operator.Dockerfile.foot
+  # append Brew metadata here
+  # set -x
+  for c in distgit/containers/rhdh-operator/Dockerfile.in distgit/containers/rhdh-operator/Dockerfile distgit/containers/rhdh-operator/Containerfile; do
+    if [[ -f $c ]]; then sed -i '/# append Brew metadata here/q' $c; fi
+  done
+  # set +x
+  cat <<EOT >$TMPDIR/operator.Dockerfile.foot
 ENV SUMMARY="Red Hat Developer Hub operator" \\
     DESCRIPTION="Red Hat Developer Hub operator" \\
     UPSTREAM_REPO="${upstream_repo_op}" \\
@@ -724,7 +729,8 @@ LABEL summary="\$SUMMARY" \\
       distribution-scope="public" \\
       url="https://red.ht/rhdh"
 EOT
-echo "[INFO] Added metadata to $TMPDIR/operator.Dockerfile.foot"
+  echo "[INFO] Added metadata to $TMPDIR/operator.Dockerfile.foot"
+fi
 
 if [[ $BUNDLEONLY -eq 1 ]]; then
   for c in distgit/containers/rhdh-operator-bundle/Dockerfile.in distgit/containers/rhdh-operator-bundle/Dockerfile distgit/containers/rhdh-operator-bundle/Containerfile; do
@@ -1009,7 +1015,7 @@ for d in $these_dirs; do
       # for bundle use the downstream OSBS Dockerfile with the correct LABEL and ENV  values
       cp -f Dockerfile Containerfile
     fi
-    if [[ $d != "distgit/containers/rhdh-operator-bundle" ]] && [[ -f "$TMPDIR/${d##*rhdh-}.Dockerfile.foot" ]]; then
+    if [[ -f "$TMPDIR/${d##*rhdh-}.Dockerfile.foot" ]]; then
       sed -i '/# append Brew metadata here/q' Containerfile
     
       cat "$TMPDIR/${d##*rhdh-}.Dockerfile.foot" >> Containerfile
@@ -1057,7 +1063,6 @@ if [[ $BUNDLEONLY -eq 1 ]]; then
     distgit/containers/rhdh-operator/ \
     sync/upstream_SHA_rhdh-hub \
     sync/upstream_SHA_rhdh-operator \
-    distgit/containers/rhdh-operator-bundle/manifests/backstage-operator.clusterserviceversion.yaml \
     ; do git restore --staged $d; git restore $d
   done
   rm -fr distgit/containers/rhdh-operator/.rhdh/
@@ -1102,7 +1107,7 @@ for d in \
   distgit/containers/rhdh-operator-bundle/Dockerfile.in \
   distgit/containers/rhdh-operator-bundle/docker/Dockerfile \
   distgit/containers/rhdh-operator-bundle/docker/Dockerfile.in \
-  ; do git rm -fr $d || rm -fr $d
+  ; do git rm -fr $d >/dev/null 2>&1 || rm -fr $d >/dev/null 2>&1 
 done
 
 # Konflux performance workaround
