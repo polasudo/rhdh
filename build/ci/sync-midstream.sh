@@ -693,11 +693,11 @@ EOT
 echo "[INFO] Generated distgit/containers/rhdh-hub/.git/config for use with Husky"
 
 # append Brew metadata here
-set -x
+# set -x
 for c in distgit/containers/rhdh-operator/Dockerfile.in distgit/containers/rhdh-operator/Dockerfile distgit/containers/rhdh-operator/Containerfile; do
   if [[ -f $c ]]; then sed -i '/# append Brew metadata here/q' $c; fi
 done
-set +x
+# set +x
 cat <<EOT >$TMPDIR/operator.Dockerfile.foot
 ENV SUMMARY="Red Hat Developer Hub operator" \\
     DESCRIPTION="Red Hat Developer Hub operator" \\
@@ -778,9 +778,9 @@ if [[ $DO_BUILD -eq 0 ]]; then
     #shellcheck disable=SC2044
     YARN=$(which yarn)
     export YARN
-    $YARN config set enableStrictSsl false
-    # $YARN config set unsafe-perm true # not sure what the Yarn 3 equivalent is here or if we still need this
-    $YARN config set httpTimeout 600000
+    # TODO do we still need these yarn 1 leftovers?
+    # $YARN config set enableStrictSsl false
+    # $YARN config set httpTimeout 600000
   popd >/dev/null || exit 1
 else
   destination_folder="distgit/containers/rhdh-hub"
@@ -994,11 +994,6 @@ for d in $these_dirs; do
         find . -name "${ignored}" -exec rm -fr {} \; 2>/dev/null
     done
     set -e
-    ## generate Dockerfile from Dockerfile.in for OSBS
-    cat "$TMPDIR/${d##*rhdh-}.Dockerfile.foot" >> Dockerfile.in
-
-    #TODO [tech debt] 
-    # instead of converting Dockerfile.in to Dockerfile then copying it to Containerfile, skip these steps and just go directly to Containerfile
     
     sed -r -e 's|\$\{CI_X_VERSION\}\.\$\{CI_Y_VERSION\}|'"$DH_VERSION"'|g' Dockerfile.in > Dockerfile
 
@@ -1008,8 +1003,8 @@ for d in $these_dirs; do
       # TODO: RHIDP-4041 switch to Cachi2'd version (Dockerfile) instead of pure upstream Dockerfile for hub
       cp -f "$TMPDIR/repo0/docker/Dockerfile" Containerfile
     elif [[ $d == "distgit/containers/rhdh-operator" ]]; then
-      # for operator use the transformed Dockerfile with the correct LABEL and ENV  values
-      cp -f Dockerfile Containerfile
+      # for operator use the transformed Dockerfile.in with the correct LABEL and ENV  values
+      cp -f Dockerfile.in Containerfile
     elif [[ $d == "distgit/containers/rhdh-operator-bundle" ]]; then
       # for bundle use the downstream OSBS Dockerfile with the correct LABEL and ENV  values
       cp -f Dockerfile Containerfile
@@ -1072,6 +1067,10 @@ elif [[ $DO_BUILD -eq 0 ]]; then
     distgit/containers/rhdh-hub/packages/app/public/ \
     distgit/containers/rhdh-hub/packages/backend/ \
     distgit/containers/rhdh-hub/yarn.lock \
+    ; do git restore --staged $d; git restore $d
+  done
+else # if build or not, but not building bundle
+  for d in \
     distgit/containers/rhdh-operator-bundle/ \
     sync/upstream_SHA_rhdh-operator-bundle \
     ; do git restore --staged $d; git restore $d
