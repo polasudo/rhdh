@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (c) 2023-2024 Red Hat, Inc.
+# Copyright (c) Red Hat, Inc.
 #
 # sync from upstream github to midstream gitlab
 #
@@ -173,11 +173,11 @@ Commandline switches:
 CLEAN=$CLEAN
 FORCE=$FORCE
 DO_BUILD=$DO_BUILD
+BUNDLEONLY=$BUNDLEONLY
 DO_COMMIT=$DO_COMMIT
 DO_PUSH=$DO_PUSH
 GITLAB_PIPELINE=$GITLAB_PIPELINE
-#################################
-"
+#################################"
 
 set -e
 
@@ -423,7 +423,7 @@ for ((i = START_REPO; i < NUM_REPOS; i++)); do # echo $i
 
     ##################################### rhdh-operator-bundle #####################################
     # if processing the upstream operator, also make some changes to the operator-bundle folder dowstream
-    if [[ $destination_folder == *"rhdh-operator"* ]]; then
+    if [[ $BUNDLEONLY -eq 1 ]] && [[ $destination_folder == *"rhdh-operator"* ]]; then
       echo " and ${destination_folder%/}-bundle ... "
       BUNDLEDIR="${ROOTPATH}/${destination_folder%/}-bundle"
       # copy the contents of bundle/rhdh/ into distgit/containers/rhdh-operator-bundle/
@@ -726,13 +726,14 @@ LABEL summary="\$SUMMARY" \\
 EOT
 echo "[INFO] Added metadata to $TMPDIR/operator.Dockerfile.foot"
 
-for c in distgit/containers/rhdh-operator-bundle/Dockerfile.in distgit/containers/rhdh-operator-bundle/Dockerfile distgit/containers/rhdh-operator-bundle/Containerfile; do
-  if [[ -f $c ]]; then 
-    echo "Adjust $c to add downstream metadata"
-    sed -i '/# append Brew metadata here/q' $c
-  fi
-done
-cat <<EOT >$TMPDIR/operator-bundle.Dockerfile.foot
+if [[ $BUNDLEONLY -eq 1 ]]; then
+  for c in distgit/containers/rhdh-operator-bundle/Dockerfile.in distgit/containers/rhdh-operator-bundle/Dockerfile distgit/containers/rhdh-operator-bundle/Containerfile; do
+    if [[ -f $c ]]; then 
+      echo "Adjust $c to add downstream metadata"
+      sed -i '/# append Brew metadata here/q' $c
+    fi
+  done
+  cat <<EOT >$TMPDIR/operator-bundle.Dockerfile.foot
 ENV SUMMARY="Red Hat Developer Hub operator bundle" \\
     DESCRIPTION="Red Hat Developer Hub operator bundle" \\
     UPSTREAM_REPO="${upstream_repo_op}" \\
@@ -767,7 +768,8 @@ LABEL operators.operatorframework.io.bundle.mediatype.v1=registry+v1 \\
       distribution-scope="public" \\
       url="https://red.ht/rhdh"
 EOT
-echo "[INFO] Added metadata to $TMPDIR/operator-bundle.Dockerfile.foot"
+  echo "[INFO] Added metadata to $TMPDIR/operator-bundle.Dockerfile.foot"
+fi
 
 # build the plugins
 if [[ $DO_BUILD -eq 0 ]]; then
@@ -968,7 +970,7 @@ echo "[INFO] Got DH_VERSION = $DH_VERSION from $showcasePackageJson #.version"
 if [[ $BUNDLEONLY -eq 1 ]]; then
   these_dirs="distgit/containers/rhdh-operator-bundle"
 else
-  these_dirs="distgit/containers/rhdh-hub distgit/containers/rhdh-operator distgit/containers/rhdh-operator-bundle"
+  these_dirs="distgit/containers/rhdh-hub distgit/containers/rhdh-operator" # distgit/containers/rhdh-operator-bundle
 fi
 for d in $these_dirs; do
   echo "[INFO] Remove generated/ignored content; regen Dockerfiles from Dockerfile.in [$d] ..."
@@ -1070,6 +1072,8 @@ elif [[ $DO_BUILD -eq 0 ]]; then
     distgit/containers/rhdh-hub/packages/app/public/ \
     distgit/containers/rhdh-hub/packages/backend/ \
     distgit/containers/rhdh-hub/yarn.lock \
+    distgit/containers/rhdh-operator-bundle/ \
+    sync/upstream_SHA_rhdh-operator-bundle \
     ; do git restore --staged $d; git restore $d
   done
 fi
@@ -1146,7 +1150,8 @@ echo "$gitdiff" > "/tmp/sync-midstream.sh.diff.txt"
   fi
 
   ## include license files from hub and operator in /licenses folder to make Konflux happy
-  for d in rhdh-hub rhdh-operator rhdh-operator-bundle; do
+  [[ $BUNDLEONLY -eq 1 ]] && LICENSE_DIRS="rhdh-operator-bundle" || LICENSE_DIRS="rhdh-hub rhdh-operator" 
+  for d in $LICENSE_DIRS; do
     if [[ -f distgit/containers/${d}/LICENSE ]]; then
       cp -f distgit/containers/${d}/LICENSE licenses/${d}-LICENSE
       git add licenses/${d}-LICENSE 1>/dev/null 2>&1 || true
