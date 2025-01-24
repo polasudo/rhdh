@@ -461,8 +461,7 @@ for ((i = START_REPO; i < NUM_REPOS; i++)); do # echo $i
 
               sed -i $yml -r \
                 -e "s@quay.io/fedora/postgresql-15:@registry.redhat.io/rhel9/postgresql-15:@g" \
-                -e "s@quay.io/rhdh/rhdh-hub-rhel9:.*@registry.redhat.io/rhdh/rhdh-hub-rhel9:$dhImageTag@g" \
-                -e "s@quay.io/rhdh/@registry.redhat.io/rhdh/@g"
+                -e "s@quay.io/rhdh/rhdh-hub-rhel9:.*@quay.io/rhdh/rhdh-hub-rhel9:$dhImageTag@g"
 
               # transform tags to digests
               # shellcheck disable=SC2013
@@ -501,9 +500,17 @@ for ((i = START_REPO; i < NUM_REPOS; i++)); do # echo $i
 
       echo "In BUNDLEDIR=$BUNDLEDIR, add files"
       pushd "${BUNDLEDIR}" >/dev/null || exit 1
+        yml=manifests/rhdh-operator.clusterserviceversion.yaml
         # use rhdh-operator.clusterserviceversion.yaml instead of backstage-operator as we need the product name in konflux configs
-        git mv -f manifests/{backstage,rhdh}-operator.clusterserviceversion.yaml || \
-            mv -f manifests/{backstage,rhdh}-operator.clusterserviceversion.yaml
+        git mv -f manifests/{backstage,rhdh}-operator.clusterserviceversion.yaml >/dev/null 2>&1 || \
+            mv -f manifests/{backstage,rhdh}-operator.clusterserviceversion.yaml >/dev/null 2>&1 
+          if [[ $(git diff --name-only $yml) ]]; then # also update createdAt timestamp
+            now=$(date -u +%FT%TZ) # "2023-12-18T16:11:34Z"
+            echo "[INFO] Set createdAt: $now in $yml"
+            sed -i $yml -r \
+                -e "s/createdAt: \"[0-9TZ:-]+\"/createdAt: \"${now}\"/g" \
+                -e "s@quay.io/rhdh/@registry.redhat.io/rhdh/@g"
+          fi
         git add . || true
       popd >/dev/null || exit 1
 
@@ -612,18 +619,6 @@ for ((i = START_REPO; i < NUM_REPOS; i++)); do # echo $i
       fi
     done
 
-    # disabled as we don't use OSBS anymore for builds and don't need these transformations in Konflux
-    # # transform Dockerfile.in for use in Brew
-    # sed -i Dockerfile.in -r \
-    #   `# Remove registry for Brew` \
-    #   -e "s#FROM (registry.access.redhat.com|registry.redhat.io)/#FROM #g" \
-    #   `# Use registry-proxy.engineering.redhat.com/rh-osbs/rhel9-go-toolset for Brew` \
-    #   -e "s#FROM(.+)ubi9/go-toolset#FROM\1rhel9/go-toolset#g" \
-    #   `# remove @SHA256:digest suffixes that were added by renovate` \
-    #   -e "s#FROM (.+):(.+)(\@sha256:[0-9a-f]+)([A-Za-z ]*)#FROM \1:\2\4#g" \
-    #   `# Remove unnecessary intermediate named stages (which Brew doesn't like); rename initial stage from skeleton to builder`
-    # # -e "/FROM (skeleton|deps|cleanup) AS .+/d" -e "s/--from=build //" -e "s/--from=cleanup/--from=builder/" -e "s/AS skeleton/AS builder/"
-
   popd >/dev/null || exit 1 # distgit/containers/*
 done                        # foreach upstream repo
 
@@ -641,11 +636,10 @@ fi
 # upstream_repo_and_SHA__hub=$(sed -r -e "s|([0-9a-f]+) = (.+) @ .+/([^/]+/[^/]+)|\3 \2 @ \1|" "${ROOTPATH}/sync/upstream_SHA_rhdh-hub")
 # upstream_repo_and_SHA__operator=$(sed -r -e "s|([0-9a-f]+) = (.+) @ .+/([^/]+/[^/]+)|\3 \2 @ \1|" "${ROOTPATH}/sync/upstream_SHA_rhdh-operator")
 midstream_repo="https://gitlab.cee.redhat.com/rhidp/rhdh/-/commits/${DWNSTM_BRANCH}"
-echo "Using upstream repos:
-* hub: ${upstream_repo_hub}
-* operator: ${upstream_repo_op}
-
-Using midstream_repo:
+echo "Using upstream repo(s):"
+[[ ${upstream_repo_hub} ]] && echo "* hub: ${upstream_repo_hub}"
+[[ ${upstream_repo_op} ]]  && echo "* operator: ${upstream_repo_op}"
+echo "Using midstream_repo:
 * ${midstream_repo}
 "
 
@@ -979,7 +973,7 @@ else
   these_dirs="distgit/containers/rhdh-hub distgit/containers/rhdh-operator" # distgit/containers/rhdh-operator-bundle
 fi
 for d in $these_dirs; do
-  echo "[INFO] Remove generated/ignored content; regen Dockerfiles from Dockerfile.in [$d] ..."
+  echo "[INFO] Remove generated/ignored content"
   pushd "$d" >/dev/null || exit 1
     set +e
     # shellcheck disable=SC2086
@@ -1001,6 +995,7 @@ for d in $these_dirs; do
     done
     set -e
     
+    echo "Regen Containerfile from Dockerfile.in [$d] ..."
     sed -r -e 's|\$\{CI_X_VERSION\}\.\$\{CI_Y_VERSION\}|'"$DH_VERSION"'|g' Dockerfile.in > Dockerfile
 
     ## generate Containerfile for Konflux
