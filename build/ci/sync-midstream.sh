@@ -501,7 +501,7 @@ for ((i = START_REPO; i < NUM_REPOS; i++)); do # echo $i
 
       # use rhdh-operator.clusterserviceversion.yaml instead of backstage-operator as we need the product name in konflux configs
       pushd "${BUNDLEDIR}" >/dev/null || exit 1
-        cp -f "${ROOTPATH}/${destination_folder%/}/bundle/rhdh/manifests/backstage-operator.clusterserviceversion.yaml" "./manifests/rhdh-operator.clusterserviceversion.yaml"
+        mv -f "${ROOTPATH}/${destination_folder%/}/bundle/rhdh/manifests/backstage-operator.clusterserviceversion.yaml" "./manifests/rhdh-operator.clusterserviceversion.yaml"
         git add . || true
       popd >/dev/null || exit 1
     fi
@@ -1057,6 +1057,7 @@ if [[ $BUNDLEONLY -eq 1 ]]; then
     distgit/containers/rhdh-operator/ \
     sync/upstream_SHA_rhdh-hub \
     sync/upstream_SHA_rhdh-operator \
+    distgit/containers/rhdh-operator-bundle/manifests/backstage-operator.clusterserviceversion.yaml \
     ; do git restore --staged $d; git restore $d
   done
   rm -fr distgit/containers/rhdh-operator/.rhdh/
