@@ -103,12 +103,10 @@ else
   oc project rhdh-tenant >/dev/null 2>&1 || true
 fi
 
-# break if opm v1.47.0 or newer not installed
-opmversion=$(opm version | sed -r -e "s@.+OpmVersion:\"([0-9a-fv.]+)\".+@\1@")
-if [[ $opmversion != *"."* ]]; then echo -e "\n[ERROR] OPM version $opmversion is too old. You must install opm v1.47.0 or newer from https://github.com/operator-framework/operator-registry/releases/tag/v1.47.0 to continue.\n"; usage; fi
-vergte "${opmversion}" "1.47.0" && \
-  echo "opm version $opmversion found" || \
-  { echo -e "\n[ERROR] OPM version $opmversion is too old. You must install opm v1.47.0 or newer from https://github.com/operator-framework/operator-registry/releases/tag/v1.47.0 to continue.\n"; usage; }
+# check if $1 is greater than or equal to $2
+vergte() {
+    [  "$1" = "$(echo -e "$1\n$2" | sort -Vr | head -n1)" ]
+}
 
 if [[ $# -lt 1 ]]; then usage; fi
 
@@ -134,14 +132,19 @@ while [[ "$#" -gt 0 ]]; do
   shift 1
 done
 
+# break if opm 1.47.0 or newer not installed
+opmversion=$(opm version | sed -r -e "s@.+OpmVersion:\"([0-9a-fv.]+)\".+@\1@" | tr -d "v")
+if [[ $opmversion != *"."* ]]; then echo -e "\n[ERROR] OPM version $opmversion is too old. You must install opm v1.47.0 or newer from https://github.com/operator-framework/operator-registry/releases/tag/v1.47.0 to continue.\n"; usage; fi
+if vergte "${opmversion}" "1.47.0"; then
+  # echo "opm version $opmversion found"
+  true
+else
+  echo -e "\n[ERROR] OPM version $opmversion is too old. You must install opm 1.47.0 or newer from https://github.com/operator-framework/operator-registry/releases/tag/v1.47.0 to continue.\n"; usage;
+fi
+
 if [[ $templateFileInput ]] && [[ ! -f $templateFileInput ]]; then
   echo "[ERROR] Could not find template file $templateFileInput !"; echo; usage 
 fi
-
-# check if $1 is greater than or equal to $2
-vergte() {
-    [  "$1" = "$(echo -e "$1\n$2" | sort -Vr | head -n1)" ]
-}
 
 PROD_VERSION=${PROD_FULL_VERSION%.*} # x.y
 
