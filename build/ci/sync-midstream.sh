@@ -995,8 +995,10 @@ for d in $these_dirs; do
     done
     set -e
     
-    echo "Regen Containerfile from Dockerfile.in [$d] ..."
-    sed -r -e 's|\$\{CI_X_VERSION\}\.\$\{CI_Y_VERSION\}|'"$DH_VERSION"'|g' Dockerfile.in > Dockerfile
+    if [[ -f Dockerfile.in ]] then 
+      echo "Regen Containerfile from Dockerfile.in [$d] ..."
+      sed -r -e 's|\$\{CI_X_VERSION\}\.\$\{CI_Y_VERSION\}|'"$DH_VERSION"'|g' Dockerfile.in > Dockerfile
+    fi
 
     ## generate Containerfile for Konflux
     
