@@ -2,7 +2,7 @@
 import { Logger } from 'winston';
 import { Writable } from 'stream';
 import { JsonObject, JsonValue, Observable } from '@backstage/types';
-import { BackstageCredentials, UrlReaderService } from '@backstage/backend-plugin-api';
+import { BackstageCredentials, LoggerService, UrlReaderService } from '@backstage/backend-plugin-api';
 import { TaskSpec, TemplateInfo } from '@backstage/plugin-scaffolder-common';
 import { UserEntity } from '@backstage/catalog-model';
 import { Schema } from 'jsonschema';
@@ -195,6 +195,12 @@ type ActionContext<TActionInput extends JsonObject, TActionOutput extends JsonOb
      * Get the credentials for the current request
      */
     getInitiatorCredentials(): Promise<BackstageCredentials>;
+    /**
+     * Task information
+     */
+    task: {
+        id: string;
+    };
     templateInfo?: TemplateInfo;
     /**
      * Whether this action invocation is a dry-run or not.
@@ -275,7 +281,12 @@ type ExecuteShellCommandOptions = {
     args: string[];
     /** options to pass to spawn */
     options?: SpawnOptionsWithoutStdio;
-    /** stream to capture stdout and stderr output */
+    /** logger to capture stdout and stderr output */
+    logger?: LoggerService;
+    /**
+     * stream to capture stdout and stderr output
+     * @deprecated  please provide a logger instead.
+     */
     logStream?: Writable;
 };
 /**

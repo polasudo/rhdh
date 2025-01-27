@@ -1,6 +1,6 @@
 {
   "name": "@backstage/plugin-kubernetes-node",
-  "version": "0.1.20+embedded",
+  "version": "0.2.2+embedded",
   "description": "Node.js library for the kubernetes plugin",
   "backstage": {
     "role": "node-library",
@@ -38,17 +38,24 @@
     "test": "backstage-cli package test"
   },
   "dependencies": {
-    "@backstage/plugin-kubernetes-common": "^0.8.3",
-    "@kubernetes/client-node": "^0.20.0",
+    "@backstage/plugin-kubernetes-common": "^0.9.2",
+    "@kubernetes/client-node": "1.0.0-rc7",
     "node-fetch": "^2.7.0",
     "winston": "^3.2.1"
   },
   "devDependencies": {},
+  "typesVersions": {
+    "*": {
+      "index": [
+        "dist/index.d.ts"
+      ]
+    }
+  },
   "private": true,
   "peerDependencies": {
-    "@backstage/backend-plugin-api": "^1.0.1",
-    "@backstage/catalog-model": "^1.7.0",
-    "@backstage/types": "^1.1.1"
+    "@backstage/backend-plugin-api": "^1.1.1",
+    "@backstage/catalog-model": "^1.7.3",
+    "@backstage/types": "^1.2.1"
   },
   "overrides": {
     "@aws-sdk/util-utf8-browser": {

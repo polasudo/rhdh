@@ -531,54 +531,52 @@ __metadata:
   linkType: hard
 
 "@backstage/plugin-notifications-backend-module-email@file:./embedded/backstage-plugin-notifications-backend-module-email::locator=backstage-plugin-notifications-backend-module-email-dynamic%40workspace%3A.":
-  version: 0.3.2+embedded
-  resolution: "@backstage/plugin-notifications-backend-module-email@file:./embedded/backstage-plugin-notifications-backend-module-email#./embedded/backstage-plugin-notifications-backend-module-email::hash=835c71&locator=backstage-plugin-notifications-backend-module-email-dynamic%40workspace%3A."
+  version: 0.3.5+embedded
+  resolution: "@backstage/plugin-notifications-backend-module-email@file:./embedded/backstage-plugin-notifications-backend-module-email#./embedded/backstage-plugin-notifications-backend-module-email::hash=8af436&locator=backstage-plugin-notifications-backend-module-email-dynamic%40workspace%3A."
   dependencies:
     "@aws-sdk/client-ses": ^3.550.0
     "@aws-sdk/types": ^3.347.0
-    "@backstage/plugin-notifications-common": ^0.0.5
-    "@backstage/plugin-notifications-node": ^0.2.8
+    "@backstage/plugin-notifications-common": ^0.0.8
+    "@backstage/plugin-notifications-node": ^0.2.11
     lodash: ^4.17.21
     nodemailer: ^6.9.13
     p-throttle: ^4.1.1
   peerDependencies:
-    "@backstage/backend-common": ^0.25.0
-    "@backstage/backend-plugin-api": ^1.0.1
-    "@backstage/catalog-client": ^1.7.1
-    "@backstage/catalog-model": ^1.7.0
-    "@backstage/config": ^1.2.0
-    "@backstage/integration-aws-node": ^0.1.12
-    "@backstage/plugin-catalog-node": ^1.13.1
-    "@backstage/types": ^1.1.1
-  checksum: 44a5b82a3daca9b851c8d2569f1554b9202fa7edf6e755be2029b9ea8238f24660a1c4b61ccc4ddbb64d96e1f3baa93409ed1fd8ff77deab391f3b2a38eb9c82
+    "@backstage/backend-plugin-api": ^1.1.1
+    "@backstage/catalog-client": ^1.9.1
+    "@backstage/catalog-model": ^1.7.3
+    "@backstage/config": ^1.3.2
+    "@backstage/integration-aws-node": ^0.1.15
+    "@backstage/plugin-catalog-node": ^1.15.1
+    "@backstage/types": ^1.2.1
+  checksum: 7c0bccc9c7384bcf1871cf264514e8880137703f7784f982c80b9df09a0ba0b82447a3613fcf55efe2e767382d89d4f29b4bb1f3fe09fdf32048b9a23ceebc54
   languageName: node
   linkType: hard
 
 "@backstage/plugin-notifications-common@file:./embedded/backstage-plugin-notifications-common::locator=backstage-plugin-notifications-backend-module-email-dynamic%40workspace%3A.":
-  version: 0.0.6+embedded
-  resolution: "@backstage/plugin-notifications-common@file:./embedded/backstage-plugin-notifications-common#./embedded/backstage-plugin-notifications-common::hash=899bac&locator=backstage-plugin-notifications-backend-module-email-dynamic%40workspace%3A."
+  version: 0.0.8+embedded
+  resolution: "@backstage/plugin-notifications-common@file:./embedded/backstage-plugin-notifications-common#./embedded/backstage-plugin-notifications-common::hash=dea4f2&locator=backstage-plugin-notifications-backend-module-email-dynamic%40workspace%3A."
   dependencies:
     "@material-ui/icons": ^4.9.1
   peerDependencies:
-    "@backstage/config": ^1.3.0
-  checksum: bf79f780b9e0b701358efb3e04f468a0a7afe175b608bc96617991958f5a74a741a9d149c2660aad0bee0401ac6db077e42c232622c9e0a36a587304cc4f089c
+    "@backstage/config": ^1.3.2
+  checksum: 1463b7661907ffda5d09792270633689f3be7664c66fc8f3d3dc49efa7e053238e987dcb8f2e4994c43399b6ac90d41f7476ec0c0f3ef856b46c307dbe78ea2c
   languageName: node
   linkType: hard
 
 "@backstage/plugin-notifications-node@file:./embedded/backstage-plugin-notifications-node::locator=backstage-plugin-notifications-backend-module-email-dynamic%40workspace%3A.":
-  version: 0.2.9+embedded
-  resolution: "@backstage/plugin-notifications-node@file:./embedded/backstage-plugin-notifications-node#./embedded/backstage-plugin-notifications-node::hash=7ce330&locator=backstage-plugin-notifications-backend-module-email-dynamic%40workspace%3A."
+  version: 0.2.11+embedded
+  resolution: "@backstage/plugin-notifications-node@file:./embedded/backstage-plugin-notifications-node#./embedded/backstage-plugin-notifications-node::hash=bcf772&locator=backstage-plugin-notifications-backend-module-email-dynamic%40workspace%3A."
   dependencies:
-    "@backstage/plugin-notifications-common": ^0.0.6
+    "@backstage/plugin-notifications-common": ^0.0.8
     knex: ^3.0.0
-    node-fetch: ^2.7.0
     uuid: ^11.0.0
   peerDependencies:
-    "@backstage/backend-plugin-api": ^1.0.2
-    "@backstage/catalog-client": ^1.8.0
-    "@backstage/catalog-model": ^1.7.1
-    "@backstage/plugin-signals-node": ^0.1.14
-  checksum: 28bc49a3752dbacc258128b7d472b52f8b599973e2b1052d8c2a6736a9e5932f7330558cdd089fa5a4745b71fa27b3e3e5900f474a8212131ab7a57ab9babeef
+    "@backstage/backend-plugin-api": ^1.1.1
+    "@backstage/catalog-client": ^1.9.1
+    "@backstage/catalog-model": ^1.7.3
+    "@backstage/plugin-signals-node": ^0.1.16
+  checksum: 3afdfa09ac307d5b29d3e9dcea6455b4afd1e0363e0addeab2559340b5570e9cece18310964f1165ff149454585dfcf317252069dcdce0ff17cfd91d3d327436
   languageName: node
   linkType: hard
 
@@ -1091,17 +1089,16 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "backstage-plugin-notifications-backend-module-email-dynamic@workspace:."
   dependencies:
-    "@backstage/plugin-notifications-backend-module-email": 0.3.2
+    "@backstage/plugin-notifications-backend-module-email": 0.3.5
   peerDependencies:
-    "@backstage/backend-common": ^0.25.0
-    "@backstage/backend-plugin-api": ^1.0.2
-    "@backstage/catalog-client": ^1.8.0
-    "@backstage/catalog-model": ^1.7.1
-    "@backstage/config": ^1.3.0
-    "@backstage/integration-aws-node": ^0.1.12
-    "@backstage/plugin-catalog-node": ^1.13.1
-    "@backstage/plugin-signals-node": ^0.1.14
-    "@backstage/types": ^1.1.1
+    "@backstage/backend-plugin-api": ^1.1.1
+    "@backstage/catalog-client": ^1.9.1
+    "@backstage/catalog-model": ^1.7.3
+    "@backstage/config": ^1.3.2
+    "@backstage/integration-aws-node": ^0.1.15
+    "@backstage/plugin-catalog-node": ^1.15.1
+    "@backstage/plugin-signals-node": ^0.1.16
+    "@backstage/types": ^1.2.1
   languageName: unknown
   linkType: soft
 
@@ -1184,12 +1181,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"hasown@npm:^2.0.0":
-  version: 2.0.1
-  resolution: "hasown@npm:2.0.1"
+"hasown@npm:^2.0.2":
+  version: 2.0.2
+  resolution: "hasown@npm:2.0.2"
   dependencies:
     function-bind: ^1.1.2
-  checksum: 9081c382a4fe8a62639a8da5c7d3322b203c319147e48783763dd741863d9f2dcaa743574fe2a1283871c445d8ba99ea45d5fff384e5ad27ca9dd7a367d79de0
+  checksum: e8516f776a15149ca6c6ed2ae3110c417a00b62260e222590e54aa367cbcd6ed99122020b37b7fbdf05748df57b265e70095d7bf35a47660587619b15ffb93db
   languageName: node
   linkType: hard
 
@@ -1201,11 +1198,11 @@ __metadata:
   linkType: hard
 
 "is-core-module@npm:^2.13.0":
-  version: 2.13.1
-  resolution: "is-core-module@npm:2.13.1"
+  version: 2.16.1
+  resolution: "is-core-module@npm:2.16.1"
   dependencies:
-    hasown: ^2.0.0
-  checksum: 256559ee8a9488af90e4bad16f5583c6d59e92f0742e9e8bb4331e758521ee86b810b93bae44f390766ffbc518a0488b18d9dab7da9a5ff997d499efc9403f7c
+    hasown: ^2.0.2
+  checksum: 6ec5b3c42d9cbf1ac23f164b16b8a140c3cec338bf8f884c076ca89950c7cc04c33e78f02b8cae7ff4751f3247e3174b2330f1fe4de194c7210deb8b1ea316a7
   languageName: node
   linkType: hard
 
@@ -1259,20 +1256,6 @@ __metadata:
   version: 2.1.2
   resolution: "ms@npm:2.1.2"
   checksum: 673cdb2c3133eb050c745908d8ce632ed2c02d85640e2edb3ace856a2266a813b30c613569bf3354fdf4ea7d1a1494add3bfa95e2713baa27d0c2c71fc44f58f
-  languageName: node
-  linkType: hard
-
-"node-fetch@npm:^2.7.0":
-  version: 2.7.0
-  resolution: "node-fetch@npm:2.7.0"
-  dependencies:
-    whatwg-url: ^5.0.0
-  peerDependencies:
-    encoding: ^0.1.0
-  peerDependenciesMeta:
-    encoding:
-      optional: true
-  checksum: d76d2f5edb451a3f05b15115ec89fc6be39de37c6089f1b6368df03b91e1633fd379a7e01b7ab05089a25034b2023d959b47e59759cb38d88341b2459e89d6e5
   languageName: node
   linkType: hard
 
@@ -1381,13 +1364,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tr46@npm:~0.0.3":
-  version: 0.0.3
-  resolution: "tr46@npm:0.0.3"
-  checksum: 726321c5eaf41b5002e17ffbd1fb7245999a073e8979085dacd47c4b4e8068ff5777142fc6726d6ca1fd2ff16921b48788b87225cbc57c72636f6efa8efbffe3
-  languageName: node
-  linkType: hard
-
 "tslib@npm:^2.5.0, tslib@npm:^2.6.2":
   version: 2.8.1
   resolution: "tslib@npm:2.8.1"
@@ -1396,11 +1372,11 @@ __metadata:
   linkType: hard
 
 "uuid@npm:^11.0.0":
-  version: 11.0.3
-  resolution: "uuid@npm:11.0.3"
+  version: 11.0.5
+  resolution: "uuid@npm:11.0.5"
   bin:
     uuid: dist/esm/bin/uuid
-  checksum: 646181c77e8b8df9bd07254faa703943e1c4d5ccde7d080312edf12f443f6c5750801fd9b27bf2e628594182165e6b1b880c0382538f7eca00b26622203741dc
+  checksum: 8a8ed824c77ccc9387eed3049e75268a862379f0d41222716020743c438f31e9acfbe6495bd4cb1a7727c91fcf5ae20be40b306826a62c96f9ff42db48e8ed93
   languageName: node
   linkType: hard
 
@@ -1410,22 +1386,5 @@ __metadata:
   bin:
     uuid: dist/bin/uuid
   checksum: 39931f6da74e307f51c0fb463dc2462807531dc80760a9bff1e35af4316131b4fc3203d16da60ae33f07fdca5b56f3f1dd662da0c99fea9aaeab2004780cc5f4
-  languageName: node
-  linkType: hard
-
-"webidl-conversions@npm:^3.0.0":
-  version: 3.0.1
-  resolution: "webidl-conversions@npm:3.0.1"
-  checksum: c92a0a6ab95314bde9c32e1d0a6dfac83b578f8fa5f21e675bc2706ed6981bc26b7eb7e6a1fab158e5ce4adf9caa4a0aee49a52505d4d13c7be545f15021b17c
-  languageName: node
-  linkType: hard
-
-"whatwg-url@npm:^5.0.0":
-  version: 5.0.0
-  resolution: "whatwg-url@npm:5.0.0"
-  dependencies:
-    tr46: ~0.0.3
-    webidl-conversions: ^3.0.0
-  checksum: b8daed4ad3356cc4899048a15b2c143a9aed0dfae1f611ebd55073310c7b910f522ad75d727346ad64203d7e6c79ef25eafd465f4d12775ca44b90fa82ed9e2c
   languageName: node
   linkType: hard

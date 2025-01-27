@@ -1,12 +1,21 @@
 'use strict';
 
-var fetch = require('node-fetch');
 var integration = require('@backstage/integration');
+var pThrottle = require('p-throttle');
 
 function _interopDefaultCompat (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }
 
-var fetch__default = /*#__PURE__*/_interopDefaultCompat(fetch);
+var pThrottle__default = /*#__PURE__*/_interopDefaultCompat(pThrottle);
 
+const throttle = pThrottle__default.default({
+  limit: 1,
+  interval: 1e3
+});
+const throttledFetch = throttle(
+  async (url, options) => {
+    return await fetch(url, options);
+  }
+);
 class BitbucketServerClient {
   config;
   static fromConfig(options) {
@@ -30,15 +39,14 @@ class BitbucketServerClient {
     );
   }
   async getFile(options) {
-    const base = new URL(this.config.apiBaseUrl);
-    return fetch__default.default(
-      `${base.protocol}//${base.host}/projects/${options.projectKey}/repos/${options.repo}/raw/${options.path}`,
+    return throttledFetch(
+      `${this.config.apiBaseUrl}/projects/${options.projectKey}/repos/${options.repo}/raw/${options.path}`,
       integration.getBitbucketServerRequestOptions(this.config)
     );
   }
   async getRepository(options) {
     const request = `${this.config.apiBaseUrl}/projects/${options.projectKey}/repos/${options.repo}`;
-    const response = await fetch__default.default(
+    const response = await throttledFetch(
       request,
       integration.getBitbucketServerRequestOptions(this.config)
     );
@@ -65,19 +73,20 @@ class BitbucketServerClient {
     });
   }
   async get(url) {
-    return this.request(new fetch.Request(url.toString(), { method: "GET" }));
+    return this.request(new Request(url.toString(), { method: "GET" }));
   }
   async request(req) {
-    return fetch__default.default(req, integration.getBitbucketServerRequestOptions(this.config)).then(
-      (response) => {
-        if (!response.ok) {
-          throw new Error(
-            `Unexpected response for ${req.method} ${req.url}. Expected 200 but got ${response.status} - ${response.statusText}`
-          );
-        }
-        return response;
+    return throttledFetch(
+      req,
+      integration.getBitbucketServerRequestOptions(this.config)
+    ).then((response) => {
+      if (!response.ok) {
+        throw new Error(
+          `Unexpected response for ${req.method} ${req.url}. Expected 200 but got ${response.status} - ${response.statusText}`
+        );
       }
-    );
+      return response;
+    });
   }
 }
 async function* paginated(request, options) {

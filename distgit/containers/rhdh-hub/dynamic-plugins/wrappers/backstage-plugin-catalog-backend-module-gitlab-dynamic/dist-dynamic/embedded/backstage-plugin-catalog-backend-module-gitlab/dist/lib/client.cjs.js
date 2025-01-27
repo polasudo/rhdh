@@ -1,7 +1,7 @@
 'use strict';
 
-var integration = require('@backstage/integration');
 var fetch = require('node-fetch');
+var integration = require('@backstage/integration');
 
 function _interopDefaultCompat (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }
 
@@ -80,6 +80,11 @@ class GitLabClient {
   }
   async listGroups(options) {
     return this.pagedRequest(`/groups`, options);
+  }
+  // https://docs.gitlab.com/ee/api/groups.html#list-group-details
+  // id can either be group id or encoded full path
+  async getGroupByPath(groupPath, options) {
+    return this.nonPagedRequest(`/groups/${groupPath}`, options);
   }
   async listDescendantGroups(groupPath) {
     const items = [];

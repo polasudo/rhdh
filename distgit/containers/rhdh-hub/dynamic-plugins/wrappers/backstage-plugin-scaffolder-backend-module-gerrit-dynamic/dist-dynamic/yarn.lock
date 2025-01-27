@@ -6,37 +6,36 @@ __metadata:
   cacheKey: 8
 
 "@backstage/plugin-scaffolder-backend-module-gerrit@file:./embedded/backstage-plugin-scaffolder-backend-module-gerrit::locator=backstage-plugin-scaffolder-backend-module-gerrit-dynamic%40workspace%3A.":
-  version: 0.2.2+embedded
-  resolution: "@backstage/plugin-scaffolder-backend-module-gerrit@file:./embedded/backstage-plugin-scaffolder-backend-module-gerrit#./embedded/backstage-plugin-scaffolder-backend-module-gerrit::hash=6721ee&locator=backstage-plugin-scaffolder-backend-module-gerrit-dynamic%40workspace%3A."
+  version: 0.2.5+embedded
+  resolution: "@backstage/plugin-scaffolder-backend-module-gerrit@file:./embedded/backstage-plugin-scaffolder-backend-module-gerrit#./embedded/backstage-plugin-scaffolder-backend-module-gerrit::hash=b627d5&locator=backstage-plugin-scaffolder-backend-module-gerrit-dynamic%40workspace%3A."
   dependencies:
-    "@backstage/plugin-scaffolder-node": ^0.6.0
-    node-fetch: ^2.7.0
+    "@backstage/plugin-scaffolder-node": ^0.6.3
     yaml: ^2.0.0
   peerDependencies:
-    "@backstage/backend-plugin-api": ^1.0.2
-    "@backstage/config": ^1.3.0
-    "@backstage/errors": ^1.2.5
-    "@backstage/integration": ^1.15.2
-  checksum: e65bc5a2bad5a10336104b8188d1b48fd4fa994300a296ea02cb8e147ea7938d28c21b3184a5dd0fea2c9972db5c2d5820e7af381eea585794919e28cff9e12c
+    "@backstage/backend-plugin-api": ^1.1.1
+    "@backstage/config": ^1.3.2
+    "@backstage/errors": ^1.2.7
+    "@backstage/integration": ^1.16.1
+  checksum: 9d9b19eebf0b363fdda95b1d139c9c44481803388957b0fdfdbe4910fb2d08c1afb30f8c612c072d622d8a2343a5e5c97c62be3bb4eb1eafc7224d056075d5df
   languageName: node
   linkType: hard
 
 "@backstage/plugin-scaffolder-common@file:./embedded/backstage-plugin-scaffolder-common::locator=backstage-plugin-scaffolder-backend-module-gerrit-dynamic%40workspace%3A.":
-  version: 1.5.7+embedded
-  resolution: "@backstage/plugin-scaffolder-common@file:./embedded/backstage-plugin-scaffolder-common#./embedded/backstage-plugin-scaffolder-common::hash=137df0&locator=backstage-plugin-scaffolder-backend-module-gerrit-dynamic%40workspace%3A."
+  version: 1.5.9+embedded
+  resolution: "@backstage/plugin-scaffolder-common@file:./embedded/backstage-plugin-scaffolder-common#./embedded/backstage-plugin-scaffolder-common::hash=fc32c5&locator=backstage-plugin-scaffolder-backend-module-gerrit-dynamic%40workspace%3A."
   peerDependencies:
-    "@backstage/catalog-model": ^1.7.1
-    "@backstage/plugin-permission-common": ^0.8.2
-    "@backstage/types": ^1.2.0
-  checksum: 4c902527b03ead7a652ddb2d29141464897a78233b52e45bf105105eae323a8a0e3a0d1d2c835a335650d268420a5915f61e09d0006b0005832bd37205472d60
+    "@backstage/catalog-model": ^1.7.3
+    "@backstage/plugin-permission-common": ^0.8.4
+    "@backstage/types": ^1.2.1
+  checksum: d88c57fecd2f5bcbefa8541e1d4b90a3a3ad79c9902d0aef2ba02c5b464b9f6e542afa0e400196874645c5158cb2ea39f8f9d6ce14ff2b2e4886b282b3928c3c
   languageName: node
   linkType: hard
 
 "@backstage/plugin-scaffolder-node@file:./embedded/backstage-plugin-scaffolder-node::locator=backstage-plugin-scaffolder-backend-module-gerrit-dynamic%40workspace%3A.":
-  version: 0.6.1+embedded
-  resolution: "@backstage/plugin-scaffolder-node@file:./embedded/backstage-plugin-scaffolder-node#./embedded/backstage-plugin-scaffolder-node::hash=d95006&locator=backstage-plugin-scaffolder-backend-module-gerrit-dynamic%40workspace%3A."
+  version: 0.6.3+embedded
+  resolution: "@backstage/plugin-scaffolder-node@file:./embedded/backstage-plugin-scaffolder-node#./embedded/backstage-plugin-scaffolder-node::hash=a0a72f&locator=backstage-plugin-scaffolder-backend-module-gerrit-dynamic%40workspace%3A."
   dependencies:
-    "@backstage/plugin-scaffolder-common": ^1.5.7
+    "@backstage/plugin-scaffolder-common": ^1.5.9
     concat-stream: ^2.0.0
     fs-extra: ^11.2.0
     globby: ^11.0.0
@@ -49,12 +48,12 @@ __metadata:
     zod-to-json-schema: ^3.20.4
   peerDependencies:
     "@backstage/backend-common": ^0.25.0
-    "@backstage/backend-plugin-api": ^1.0.2
-    "@backstage/catalog-model": ^1.7.1
-    "@backstage/errors": ^1.2.5
-    "@backstage/integration": ^1.15.2
-    "@backstage/types": ^1.2.0
-  checksum: 99e315e13c985f2fc50a878e24901d90ef8c3fe3b3b068d1a3af0394e6a34861a5f8d4f9fd9eac3e4be28b175a1b3d7c5ea2c981184dbfbe403982e27c37c896
+    "@backstage/backend-plugin-api": ^1.1.1
+    "@backstage/catalog-model": ^1.7.3
+    "@backstage/errors": ^1.2.7
+    "@backstage/integration": ^1.16.1
+    "@backstage/types": ^1.2.1
+  checksum: 54de8726a008db21f8d156e0496f9c011fdb33f23cc65e5ffb76a9f86a357eda10528541053cbd2f241107afd8c608e4473b57581f78ee425da56dce28a86f3a
   languageName: node
   linkType: hard
 
@@ -135,16 +134,16 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "backstage-plugin-scaffolder-backend-module-gerrit-dynamic@workspace:."
   dependencies:
-    "@backstage/plugin-scaffolder-backend-module-gerrit": 0.2.2
+    "@backstage/plugin-scaffolder-backend-module-gerrit": 0.2.5
   peerDependencies:
     "@backstage/backend-common": ^0.25.0
-    "@backstage/backend-plugin-api": ^1.0.2
-    "@backstage/catalog-model": ^1.7.1
-    "@backstage/config": ^1.3.0
-    "@backstage/errors": ^1.2.5
-    "@backstage/integration": ^1.15.2
-    "@backstage/plugin-permission-common": ^0.8.2
-    "@backstage/types": ^1.2.0
+    "@backstage/backend-plugin-api": ^1.1.1
+    "@backstage/catalog-model": ^1.7.3
+    "@backstage/config": ^1.3.2
+    "@backstage/errors": ^1.2.7
+    "@backstage/integration": ^1.16.1
+    "@backstage/plugin-permission-common": ^0.8.4
+    "@backstage/types": ^1.2.1
   languageName: unknown
   linkType: soft
 
@@ -380,9 +379,9 @@ __metadata:
   linkType: hard
 
 "ignore@npm:^5.1.4, ignore@npm:^5.2.0":
-  version: 5.3.1
-  resolution: "ignore@npm:5.3.1"
-  checksum: 71d7bb4c1dbe020f915fd881108cbe85a0db3d636a0ea3ba911393c53946711d13a9b1143c7e70db06d571a5822c0a324a6bcde5c9904e7ca5047f01f1bf8cd3
+  version: 5.3.2
+  resolution: "ignore@npm:5.3.2"
+  checksum: 2acfd32a573260ea522ea0bfeff880af426d68f6831f973129e2ba7363f422923cf53aab62f8369cbf4667c7b25b6f8a3761b34ecdb284ea18e87a5262a865be
   languageName: node
   linkType: hard
 
@@ -571,20 +570,6 @@ __metadata:
   version: 2.1.3
   resolution: "ms@npm:2.1.3"
   checksum: aa92de608021b242401676e35cfa5aa42dd70cbdc082b916da7fb925c542173e36bce97ea3e804923fe92c0ad991434e4a38327e15a1b5b5f945d66df615ae6d
-  languageName: node
-  linkType: hard
-
-"node-fetch@npm:^2.7.0":
-  version: 2.7.0
-  resolution: "node-fetch@npm:2.7.0"
-  dependencies:
-    whatwg-url: ^5.0.0
-  peerDependencies:
-    encoding: ^0.1.0
-  peerDependenciesMeta:
-    encoding:
-      optional: true
-  checksum: d76d2f5edb451a3f05b15115ec89fc6be39de37c6089f1b6368df03b91e1633fd379a7e01b7ab05089a25034b2023d959b47e59759cb38d88341b2459e89d6e5
   languageName: node
   linkType: hard
 
@@ -783,13 +768,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tr46@npm:~0.0.3":
-  version: 0.0.3
-  resolution: "tr46@npm:0.0.3"
-  checksum: 726321c5eaf41b5002e17ffbd1fb7245999a073e8979085dacd47c4b4e8068ff5777142fc6726d6ca1fd2ff16921b48788b87225cbc57c72636f6efa8efbffe3
-  languageName: node
-  linkType: hard
-
 "triple-beam@npm:^1.3.0":
   version: 1.4.1
   resolution: "triple-beam@npm:1.4.1"
@@ -815,23 +793,6 @@ __metadata:
   version: 1.0.2
   resolution: "util-deprecate@npm:1.0.2"
   checksum: 474acf1146cb2701fe3b074892217553dfcf9a031280919ba1b8d651a068c9b15d863b7303cb15bd00a862b498e6cf4ad7b4a08fb134edd5a6f7641681cb54a2
-  languageName: node
-  linkType: hard
-
-"webidl-conversions@npm:^3.0.0":
-  version: 3.0.1
-  resolution: "webidl-conversions@npm:3.0.1"
-  checksum: c92a0a6ab95314bde9c32e1d0a6dfac83b578f8fa5f21e675bc2706ed6981bc26b7eb7e6a1fab158e5ce4adf9caa4a0aee49a52505d4d13c7be545f15021b17c
-  languageName: node
-  linkType: hard
-
-"whatwg-url@npm:^5.0.0":
-  version: 5.0.0
-  resolution: "whatwg-url@npm:5.0.0"
-  dependencies:
-    tr46: ~0.0.3
-    webidl-conversions: ^3.0.0
-  checksum: b8daed4ad3356cc4899048a15b2c143a9aed0dfae1f611ebd55073310c7b910f522ad75d727346ad64203d7e6c79ef25eafd465f4d12775ca44b90fa82ed9e2c
   languageName: node
   linkType: hard
 

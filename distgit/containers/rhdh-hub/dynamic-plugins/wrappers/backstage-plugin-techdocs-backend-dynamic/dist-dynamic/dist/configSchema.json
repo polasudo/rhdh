@@ -295,6 +295,10 @@
                     "projectId": {
                       "description": "(Optional) GCP project ID that contains the bucket. Should be\nset if credentials is not set, or if the service account in\nthe credentials belongs to a different project to the bucket.",
                       "type": "string"
+                    },
+                    "bucketRootPath": {
+                      "description": "(Optional) Location in storage bucket to save files\nIf not set, the default location will be the root of the storage bucket",
+                      "type": "string"
                     }
                   }
                 }

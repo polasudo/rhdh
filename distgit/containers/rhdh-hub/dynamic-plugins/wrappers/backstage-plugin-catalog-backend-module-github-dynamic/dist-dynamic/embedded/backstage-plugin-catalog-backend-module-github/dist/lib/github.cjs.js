@@ -2,6 +2,8 @@
 
 var defaultTransformers = require('./defaultTransformers.cjs.js');
 var withLocations = require('./withLocations.cjs.js');
+var core = require('@octokit/core');
+var pluginThrottling = require('@octokit/plugin-throttling');
 
 async function getOrganizationUsers(client, org, tokenType, userTransformer = defaultTransformers.defaultUserTransformer) {
   const query = `
@@ -405,8 +407,46 @@ const createReplaceEntitiesOperation = (id, host) => (org, entities) => {
     added: entitiesToReplace
   };
 };
+const createGraphqlClient = (args) => {
+  const { headers, baseUrl, logger } = args;
+  const ThrottledOctokit = core.Octokit.plugin(pluginThrottling.throttling);
+  const octokit = new ThrottledOctokit({
+    throttle: {
+      onRateLimit: (retryAfter, rateLimitData, _, retryCount) => {
+        logger.warn(
+          `Request quota exhausted for request ${rateLimitData?.method} ${rateLimitData?.url}`
+        );
+        if (retryCount < 2) {
+          logger.warn(
+            `Retrying after ${retryAfter} seconds for the ${retryCount} time due to Rate Limit!`
+          );
+          return true;
+        }
+        return false;
+      },
+      onSecondaryRateLimit: (retryAfter, rateLimitData, _, retryCount) => {
+        logger.warn(
+          `Secondary Rate Limit Exhausted for request ${rateLimitData?.method} ${rateLimitData?.url}`
+        );
+        if (retryCount < 2) {
+          logger.warn(
+            `Retrying after ${retryAfter} seconds for the ${retryCount} time due to Secondary Rate Limit!`
+          );
+          return true;
+        }
+        return false;
+      }
+    }
+  });
+  const client = octokit.graphql.defaults({
+    headers,
+    baseUrl
+  });
+  return client;
+};
 
 exports.createAddEntitiesOperation = createAddEntitiesOperation;
+exports.createGraphqlClient = createGraphqlClient;
 exports.createRemoveEntitiesOperation = createRemoveEntitiesOperation;
 exports.createReplaceEntitiesOperation = createReplaceEntitiesOperation;
 exports.getOrganizationRepositories = getOrganizationRepositories;

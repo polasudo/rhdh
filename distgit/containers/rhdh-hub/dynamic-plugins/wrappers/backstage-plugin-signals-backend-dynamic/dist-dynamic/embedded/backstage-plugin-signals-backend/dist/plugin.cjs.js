@@ -1,8 +1,8 @@
 'use strict';
 
 var backendPluginApi = require('@backstage/backend-plugin-api');
-var deprecated = require('./deprecated.cjs.js');
 var pluginEventsNode = require('@backstage/plugin-events-node');
+var router = require('./service/router.cjs.js');
 
 const signalsPlugin = backendPluginApi.createBackendPlugin({
   pluginId: "signals",
@@ -29,7 +29,7 @@ const signalsPlugin = backendPluginApi.createBackendPlugin({
         events
       }) {
         httpRouter.use(
-          await deprecated.createRouter({
+          await router.createRouter({
             logger,
             config,
             lifecycle,

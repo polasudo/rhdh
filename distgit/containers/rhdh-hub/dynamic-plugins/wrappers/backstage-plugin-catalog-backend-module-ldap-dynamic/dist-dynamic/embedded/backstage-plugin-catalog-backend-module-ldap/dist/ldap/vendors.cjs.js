@@ -40,6 +40,24 @@ const AEDirVendor = {
     });
   }
 };
+const GoogleLdapVendor = {
+  dnAttributeName: "dn",
+  uuidAttributeName: "uid",
+  decodeStringAttribute: (entry, name) => {
+    return decode(entry, name, (value) => {
+      return value.toString();
+    });
+  }
+};
+const LLDAPVendor = {
+  dnAttributeName: "dn",
+  uuidAttributeName: "entryuuid",
+  decodeStringAttribute: (entry, name) => {
+    return decode(entry, name.toLocaleLowerCase("en-US"), (value) => {
+      return value.toString();
+    });
+  }
+};
 function decode(entry, attributeName, decoder) {
   const values = entry.raw[attributeName];
   if (Array.isArray(values)) {
@@ -71,4 +89,6 @@ exports.AEDirVendor = AEDirVendor;
 exports.ActiveDirectoryVendor = ActiveDirectoryVendor;
 exports.DefaultLdapVendor = DefaultLdapVendor;
 exports.FreeIpaVendor = FreeIpaVendor;
+exports.GoogleLdapVendor = GoogleLdapVendor;
+exports.LLDAPVendor = LLDAPVendor;
 //# sourceMappingURL=vendors.cjs.js.map

@@ -21,6 +21,7 @@ function readGitlabConfig(id, config) {
   const allowInherited = config.getOptionalBoolean("allowInherited") ?? false;
   const relations = config.getOptionalStringArray("relations") ?? [];
   const skipForkedRepos = config.getOptionalBoolean("skipForkedRepos") ?? false;
+  const includeArchivedRepos = config.getOptionalBoolean("includeArchivedRepos") ?? false;
   const excludeRepos = config.getOptionalStringArray("excludeRepos") ?? [];
   const schedule = config.has("schedule") ? backendPluginApi.readSchedulerServiceTaskScheduleDefinitionFromConfig(
     config.getConfig("schedule")
@@ -42,6 +43,7 @@ function readGitlabConfig(id, config) {
     allowInherited,
     relations,
     skipForkedRepos,
+    includeArchivedRepos,
     excludeRepos,
     restrictUsersToGroup,
     includeUsersWithoutSeat

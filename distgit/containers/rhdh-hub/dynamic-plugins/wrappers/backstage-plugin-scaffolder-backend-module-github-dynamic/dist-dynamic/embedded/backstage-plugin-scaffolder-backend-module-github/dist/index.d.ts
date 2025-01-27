@@ -3,10 +3,11 @@ import * as _backstage_types from '@backstage/types';
 import { ScmIntegrations, GithubCredentialsProvider, ScmIntegrationRegistry } from '@backstage/integration';
 import { Config } from '@backstage/config';
 import { CatalogApi } from '@backstage/catalog-client';
+import * as _backstage_backend_plugin_api from '@backstage/backend-plugin-api';
+import { AuthService } from '@backstage/backend-plugin-api';
 import { Octokit } from 'octokit';
 import { createPullRequest } from 'octokit-plugin-create-pull-request';
 import { OctokitOptions } from '@octokit/core/dist-types/types';
-import * as _backstage_backend_plugin_api from '@backstage/backend-plugin-api';
 
 /**
  * Creates a new action that dispatches a GitHub Action workflow for a given branch or tag.
@@ -104,9 +105,11 @@ declare function createGithubRepoCreateAction(options: {
         includeClaimKeys?: string[] | undefined;
     } | undefined;
     requireCommitSigning?: boolean | undefined;
+    requiredLinearHistory?: boolean | undefined;
     customProperties?: {
         [key: string]: string;
     } | undefined;
+    subscribe?: boolean | undefined;
 }, _backstage_types.JsonObject>;
 
 /**
@@ -147,6 +150,7 @@ declare function createGithubRepoPushAction(options: {
     sourcePath?: string | undefined;
     token?: string | undefined;
     requiredCommitSigning?: boolean | undefined;
+    requiredLinearHistory?: boolean | undefined;
     requireLastPushApproval?: boolean | undefined;
 }, _backstage_types.JsonObject>;
 
@@ -193,6 +197,7 @@ declare function createGithubDeployKeyAction(options: {
 declare function createGithubEnvironmentAction(options: {
     integrations: ScmIntegrationRegistry;
     catalogClient?: CatalogApi;
+    auth?: AuthService;
 }): _backstage_plugin_scaffolder_node.TemplateAction<{
     repoUrl: string;
     name: string;
@@ -351,9 +356,11 @@ declare function createPublishGithubAction(options: {
         includeClaimKeys?: string[] | undefined;
     } | undefined;
     requiredCommitSigning?: boolean | undefined;
+    requiredLinearHistory?: boolean | undefined;
     customProperties?: {
         [key: string]: string;
     } | undefined;
+    subscribe?: boolean | undefined;
 }, _backstage_types.JsonObject>;
 
 /**
@@ -416,6 +423,7 @@ declare function createGithubBranchProtectionAction(options: {
     requiredConversationResolution?: boolean | undefined;
     requireLastPushApproval?: boolean | undefined;
     requiredCommitSigning?: boolean | undefined;
+    requiredLinearHistory?: boolean | undefined;
     token?: string | undefined;
 }, _backstage_types.JsonObject>;
 

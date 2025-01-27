@@ -74,7 +74,8 @@ type AutocompleteHandler = ({ resource, token, context, }: {
     context: Record<string, string>;
 }) => Promise<{
     results: {
-        title: string;
+        title?: string;
+        id: string;
     }[];
 }>;
 /**

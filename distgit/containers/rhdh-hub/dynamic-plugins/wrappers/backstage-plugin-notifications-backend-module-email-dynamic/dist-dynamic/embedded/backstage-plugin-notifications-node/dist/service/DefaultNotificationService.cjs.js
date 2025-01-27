@@ -1,11 +1,5 @@
 'use strict';
 
-var fetch = require('node-fetch');
-
-function _interopDefaultCompat (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }
-
-var fetch__default = /*#__PURE__*/_interopDefaultCompat(fetch);
-
 class DefaultNotificationService {
   constructor(discovery, auth) {
     this.discovery = discovery;
@@ -21,7 +15,7 @@ class DefaultNotificationService {
         onBehalfOf: await this.auth.getOwnServiceCredentials(),
         targetPluginId: "notifications"
       });
-      const response = await fetch__default.default(baseUrl, {
+      const response = await fetch(baseUrl, {
         method: "POST",
         body: JSON.stringify(notification),
         headers: {

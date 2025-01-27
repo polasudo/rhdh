@@ -1,6 +1,5 @@
 import * as _backstage_backend_plugin_api from '@backstage/backend-plugin-api';
 import { LoggerService, SchedulerServiceTaskRunner, SchedulerService } from '@backstage/backend-plugin-api';
-import { Response } from 'node-fetch';
 import { BitbucketServerIntegrationConfig } from '@backstage/integration';
 import { Config } from '@backstage/config';
 import { LocationSpec, EntityProvider, EntityProviderConnection } from '@backstage/plugin-catalog-node';

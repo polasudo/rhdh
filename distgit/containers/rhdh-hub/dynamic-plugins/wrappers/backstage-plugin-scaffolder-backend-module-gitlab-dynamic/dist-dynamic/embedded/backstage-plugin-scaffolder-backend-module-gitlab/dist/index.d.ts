@@ -32,7 +32,7 @@ declare function createPublishGitlabAction(options: {
         ci_config_path?: string | undefined;
         description?: string | undefined;
         merge_method?: "merge" | "ff" | "rebase_merge" | undefined;
-        squash_option?: "always" | "never" | "default_off" | "default_on" | undefined;
+        squash_option?: "always" | "never" | "default_on" | "default_off" | undefined;
         topics?: string[] | undefined;
         visibility?: "internal" | "private" | "public" | undefined;
         only_allow_merge_if_all_discussions_are_resolved?: boolean | undefined;
@@ -65,7 +65,10 @@ declare function createPublishGitlabAction(options: {
 declare const createGitlabGroupEnsureExistsAction: (options: {
     integrations: ScmIntegrationRegistry;
 }) => _backstage_plugin_scaffolder_node.TemplateAction<{
-    path: string[];
+    path: (string | {
+        name: string;
+        slug: string;
+    })[];
     repoUrl: string;
     token?: string | undefined;
 }, {
@@ -183,6 +186,7 @@ declare const createPublishGitlabMergeRequestAction: (options: {
     projectid?: string | undefined;
     removeSourceBranch?: boolean | undefined;
     assignee?: string | undefined;
+    reviewers?: string[] | undefined;
 }, _backstage_types.JsonObject>;
 
 /**
@@ -234,11 +238,11 @@ declare const createGitlabProjectDeployTokenAction: (options: {
     integrations: ScmIntegrationRegistry;
 }) => _backstage_plugin_scaffolder_node.TemplateAction<{
     name: string;
+    scopes: string[];
     repoUrl: string;
     projectId: string | number;
     username?: string | undefined;
     token?: string | undefined;
-    scopes?: string[] | undefined;
 }, {
     user: string;
     deploy_token: string;

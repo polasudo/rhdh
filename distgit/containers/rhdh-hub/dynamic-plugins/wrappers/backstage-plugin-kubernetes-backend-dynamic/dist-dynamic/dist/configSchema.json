@@ -24,6 +24,7 @@
               "limitranges",
               "pods",
               "replicasets",
+              "resourcequotas",
               "services",
               "statefulsets"
             ],
@@ -37,8 +38,12 @@
           ],
           "properties": {
             "type": {
-              "type": "string",
-              "const": "multiTenant"
+              "enum": [
+                "catalogRelation",
+                "multiTenant",
+                "singleTenant"
+              ],
+              "type": "string"
             }
           }
         },
@@ -81,15 +86,6 @@
                         },
                         "authProvider": {
                           "visibility": "frontend",
-                          "enum": [
-                            "aks",
-                            "aws",
-                            "azure",
-                            "google",
-                            "googleServiceAccount",
-                            "oidc",
-                            "serviceAccount"
-                          ],
                           "type": "string"
                         },
                         "authMetadata": {
@@ -253,6 +249,9 @@
               "type": "string"
             },
             "limitranges": {
+              "type": "string"
+            },
+            "resourcequotas": {
               "type": "string"
             },
             "replicasets": {

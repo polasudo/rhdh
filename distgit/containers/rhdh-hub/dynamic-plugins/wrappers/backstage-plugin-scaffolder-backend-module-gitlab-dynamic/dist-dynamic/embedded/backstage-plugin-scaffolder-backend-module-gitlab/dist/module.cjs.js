@@ -14,6 +14,8 @@ var gitlabProjectDeployTokenCreate = require('./actions/gitlabProjectDeployToken
 var gitlabProjectVariableCreate = require('./actions/gitlabProjectVariableCreate.cjs.js');
 var gitlabRepoPush = require('./actions/gitlabRepoPush.cjs.js');
 require('./commonGitlabConfig.cjs.js');
+var gitlabProjectMigrate = require('./actions/gitlabProjectMigrate.cjs.js');
+var autocomplete = require('./autocomplete/autocomplete.cjs.js');
 
 const gitlabModule = backendPluginApi.createBackendModule({
   pluginId: "scaffolder",
@@ -22,12 +24,14 @@ const gitlabModule = backendPluginApi.createBackendModule({
     registerInit({
       deps: {
         scaffolder: alpha.scaffolderActionsExtensionPoint,
+        autocomplete: alpha.scaffolderAutocompleteExtensionPoint,
         config: backendPluginApi.coreServices.rootConfig
       },
-      async init({ scaffolder, config }) {
+      async init({ scaffolder, autocomplete: autocomplete$1, config }) {
         const integrations = integration.ScmIntegrations.fromConfig(config);
         scaffolder.addActions(
           gitlabGroupEnsureExists.createGitlabGroupEnsureExistsAction({ integrations }),
+          gitlabProjectMigrate.createGitlabProjectMigrateAction({ integrations }),
           gitlabIssueCreate.createGitlabIssueAction({ integrations }),
           gitlabProjectAccessTokenCreate.createGitlabProjectAccessTokenAction({ integrations }),
           gitlabProjectDeployTokenCreate.createGitlabProjectDeployTokenAction({ integrations }),
@@ -38,6 +42,10 @@ const gitlabModule = backendPluginApi.createBackendModule({
           gitlabMergeRequest.createPublishGitlabMergeRequestAction({ integrations }),
           gitlabPipelineTrigger.createTriggerGitlabPipelineAction({ integrations })
         );
+        autocomplete$1.addAutocompleteProvider({
+          id: "gitlab",
+          handler: autocomplete.createHandleAutocompleteRequest({ integrations })
+        });
       }
     });
   }

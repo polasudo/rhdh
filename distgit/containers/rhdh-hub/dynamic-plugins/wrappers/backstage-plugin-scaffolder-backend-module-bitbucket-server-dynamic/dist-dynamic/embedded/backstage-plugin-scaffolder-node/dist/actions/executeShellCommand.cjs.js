@@ -8,15 +8,22 @@ async function executeShellCommand(options) {
     command,
     args,
     options: spawnOptions,
+    logger,
     logStream = new stream.PassThrough()
   } = options;
   await new Promise((resolve, reject) => {
     const process = child_process.spawn(command, args, spawnOptions);
-    process.stdout.on("data", (stream) => {
-      logStream.write(stream);
+    process.stdout.on("data", (chunk) => {
+      logStream?.write(chunk);
+      logger?.info(
+        Buffer.isBuffer(chunk) ? chunk.toString("utf8").trim() : chunk.trim()
+      );
     });
-    process.stderr.on("data", (stream) => {
-      logStream.write(stream);
+    process.stderr.on("data", (chunk) => {
+      logStream?.write(chunk);
+      logger?.error(
+        Buffer.isBuffer(chunk) ? chunk.toString("utf8").trim() : chunk.trim()
+      );
     });
     process.on("error", (error) => {
       return reject(error);

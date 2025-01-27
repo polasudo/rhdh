@@ -167,6 +167,7 @@ class LdapClient {
     if (this.vendor) {
       return this.vendor;
     }
+    const clientHost = this.client?.host || "";
     this.vendor = this.getRootDSE().then((root) => {
       if (root && root.raw?.forestFunctionality) {
         return vendors.ActiveDirectoryVendor;
@@ -174,6 +175,10 @@ class LdapClient {
         return vendors.FreeIpaVendor;
       } else if (root && "aeRoot" in root.raw) {
         return vendors.AEDirVendor;
+      } else if (clientHost === "ldap.google.com") {
+        return vendors.GoogleLdapVendor;
+      } else if (root && root.raw?.vendorName?.toString() === "LLDAP") {
+        return vendors.LLDAPVendor;
       }
       return vendors.DefaultLdapVendor;
     }).catch((err) => {

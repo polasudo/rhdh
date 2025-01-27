@@ -18,7 +18,8 @@ const enableBranchProtectionOnDefaultRepoBranch = async ({
   defaultBranch = "master",
   enforceAdmins = true,
   dismissStaleReviews = false,
-  requiredCommitSigning = false
+  requiredCommitSigning = false,
+  requiredLinearHistory = false
 }) => {
   const tryOnce = async () => {
     try {
@@ -49,7 +50,8 @@ const enableBranchProtectionOnDefaultRepoBranch = async ({
           dismiss_stale_reviews: dismissStaleReviews,
           require_last_push_approval: requireLastPushApproval
         },
-        required_conversation_resolution: requiredConversationResolution
+        required_conversation_resolution: requiredConversationResolution,
+        required_linear_history: requiredLinearHistory
       });
       if (requiredCommitSigning) {
         await client.rest.repos.createCommitSignatureProtection({

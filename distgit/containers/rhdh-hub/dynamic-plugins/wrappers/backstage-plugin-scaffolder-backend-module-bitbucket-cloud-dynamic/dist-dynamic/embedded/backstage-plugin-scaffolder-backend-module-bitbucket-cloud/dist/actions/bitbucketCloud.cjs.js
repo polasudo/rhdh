@@ -2,13 +2,8 @@
 
 var errors = require('@backstage/errors');
 var pluginScaffolderNode = require('@backstage/plugin-scaffolder-node');
-var fetch = require('node-fetch');
 var helpers = require('./helpers.cjs.js');
 var bitbucketCloud_examples = require('./bitbucketCloud.examples.cjs.js');
-
-function _interopDefaultCompat (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }
-
-var fetch__default = /*#__PURE__*/_interopDefaultCompat(fetch);
 
 const createRepository = async (opts) => {
   const {
@@ -36,7 +31,7 @@ const createRepository = async (opts) => {
   };
   let response;
   try {
-    response = await fetch__default.default(
+    response = await fetch(
       `${apiBaseUrl}/repositories/${workspace}/${repo}`,
       options
     );

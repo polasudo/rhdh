@@ -17,7 +17,9 @@ async function handleAutocompleteRequest({
     case "workspaces": {
       const results = [];
       for await (const page of client.listWorkspaces().iteratePages()) {
-        const slugs = [...page.values].map((p) => ({ title: p.slug }));
+        const slugs = [...page.values].map((p) => ({
+          id: p.slug
+        }));
         results.push(...slugs);
       }
       return { results };
@@ -27,7 +29,9 @@ async function handleAutocompleteRequest({
         throw new errors.InputError("Missing workspace context parameter");
       const results = [];
       for await (const page of client.listProjectsByWorkspace(context.workspace).iteratePages()) {
-        const keys = [...page.values].map((p) => ({ title: p.key }));
+        const keys = [...page.values].map((p) => ({
+          id: p.key
+        }));
         results.push(...keys);
       }
       return { results };
@@ -41,7 +45,9 @@ async function handleAutocompleteRequest({
       for await (const page of client.listRepositoriesByWorkspace(context.workspace, {
         q: `project.key="${context.project}"`
       }).iteratePages()) {
-        const slugs = [...page.values].map((p) => ({ title: p.slug }));
+        const slugs = [...page.values].map((p) => ({
+          id: p.slug
+        }));
         results.push(...slugs);
       }
       return { results };
@@ -53,7 +59,9 @@ async function handleAutocompleteRequest({
         );
       const results = [];
       for await (const page of client.listBranchesByRepository(context.repository, context.workspace).iteratePages()) {
-        const names = [...page.values].map((p) => ({ title: p.name }));
+        const names = [...page.values].map((p) => ({
+          id: p.name
+        }));
         results.push(...names);
       }
       return { results };

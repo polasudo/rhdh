@@ -3,7 +3,7 @@
 Object.defineProperty(exports, '__esModule', { value: true });
 
 var name = "@backstage/plugin-kubernetes-backend";
-var version = "0.18.7";
+var version = "0.19.2";
 var description = "A Backstage backend plugin that integrates towards Kubernetes";
 var backstage = {
 	role: "backend-plugin",
@@ -81,7 +81,7 @@ var dependencies = {
 	"@backstage/types": "workspace:^",
 	"@google-cloud/container": "^5.0.0",
 	"@jest-mock/express": "^2.0.1",
-	"@kubernetes/client-node": "0.20.0",
+	"@kubernetes/client-node": "1.0.0-rc7",
 	"@types/express": "^4.17.6",
 	"@types/http-proxy-middleware": "^1.0.0",
 	"@types/luxon": "^3.0.0",

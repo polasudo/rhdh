@@ -144,7 +144,7 @@ class KubernetesProxy {
       throw new errors.NotFoundError(`Cluster '${clusterName}' not found`);
     }
     const authProvider = cluster.authMetadata[pluginKubernetesCommon.ANNOTATION_KUBERNETES_AUTH_PROVIDER];
-    if (authProvider === "serviceAccount" && fs__default.default.pathExistsSync(clientNode.Config.SERVICEACCOUNT_CA_PATH) && !cluster.authMetadata.serviceAccountToken) {
+    if (authProvider === "serviceAccount" && fs__default.default.pathExistsSync(pluginKubernetesCommon.SERVICEACCOUNT_CA_PATH) && !cluster.authMetadata.serviceAccountToken) {
       const kc = new clientNode.KubeConfig();
       kc.loadFromCluster();
       const clusterFromKubeConfig = kc.getCurrentCluster();

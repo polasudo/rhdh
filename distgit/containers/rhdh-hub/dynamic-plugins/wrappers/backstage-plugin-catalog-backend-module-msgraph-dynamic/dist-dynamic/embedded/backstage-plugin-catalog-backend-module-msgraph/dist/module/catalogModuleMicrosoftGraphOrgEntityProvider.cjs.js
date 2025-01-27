@@ -5,7 +5,6 @@ var alpha = require('@backstage/plugin-catalog-node/alpha');
 var MicrosoftGraphOrgEntityProvider = require('../processors/MicrosoftGraphOrgEntityProvider.cjs.js');
 require('@backstage/plugin-catalog-node');
 require('@azure/identity');
-require('node-fetch');
 require('qs');
 require('lodash');
 require('@backstage/catalog-model');

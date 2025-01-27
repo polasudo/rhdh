@@ -1,6 +1,0 @@
-{
-  "name": "@backstage/plugin-catalog-backend-module-msgraph__alpha",
-  "version": "0.6.3",
-  "main": "../dist/alpha.cjs.js",
-  "types": "../dist/alpha.d.ts"
-}

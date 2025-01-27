@@ -80,7 +80,7 @@ const DEFAULT_OBJECTS = [
     objectType: "daemonsets"
   }
 ];
-const isPodFetchResponse = (fr) => fr.type === "pods";
+const isPodFetchResponse = (fr) => fr.type === "pods" || fr.type === "customresources" && fr.resources.length > 0 && fr.resources[0].apiVersion === "v1" && fr.resources[0].kind === "Pod";
 const isString = (str) => str !== void 0;
 const numberOrBigIntToNumberOrString = (value) => {
   return typeof value === "bigint" ? value.toString() : value;

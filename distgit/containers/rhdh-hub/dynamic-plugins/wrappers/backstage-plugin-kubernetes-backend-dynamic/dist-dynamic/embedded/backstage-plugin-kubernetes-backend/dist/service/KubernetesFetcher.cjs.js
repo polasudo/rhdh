@@ -110,7 +110,7 @@ class KubernetesClientBasedFetcher {
       if (podMetrics.ok && podList.ok) {
         return clientNode.topPods(
           {
-            listPodForAllNamespaces: () => podList.json().then((b) => ({ body: b }))
+            listPodForAllNamespaces: () => podList.json()
           },
           {
             getPodMetrics: () => podMetrics.json()
@@ -171,7 +171,7 @@ class KubernetesClientBasedFetcher {
     return fetch__default.default(url, requestInit);
   }
   isServiceAccountAuthentication(authProvider, clusterDetails) {
-    return authProvider === "serviceAccount" && !clusterDetails.authMetadata.serviceAccountToken && fs__default.default.pathExistsSync(clientNode.Config.SERVICEACCOUNT_CA_PATH);
+    return authProvider === "serviceAccount" && !clusterDetails.authMetadata.serviceAccountToken && fs__default.default.pathExistsSync(pluginKubernetesCommon.SERVICEACCOUNT_CA_PATH);
   }
   isCredentialMissing(authProvider, credential) {
     return authProvider !== "localKubectlProxy" && credential.type === "anonymous";

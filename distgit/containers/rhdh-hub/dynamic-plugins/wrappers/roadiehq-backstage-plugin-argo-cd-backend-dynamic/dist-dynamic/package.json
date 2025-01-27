@@ -10,7 +10,7 @@
   },
   "backstage": {
     "role": "backend-plugin",
-    "supported-versions": "1.32.6",
+    "supported-versions": "1.35.0",
     "pluginId": "roadiehq-argo-cd",
     "pluginPackages": [
       "roadiehq-backstage-plugin-argo-cd",

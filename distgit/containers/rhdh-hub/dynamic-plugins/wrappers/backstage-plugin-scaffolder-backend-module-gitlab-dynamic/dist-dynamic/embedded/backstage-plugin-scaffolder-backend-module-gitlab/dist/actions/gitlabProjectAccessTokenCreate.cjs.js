@@ -68,8 +68,8 @@ const createGitlabProjectAccessTokenAction = (options) => {
         projectId,
         name,
         scopes,
+        expiresAt || luxon.DateTime.now().plus({ days: 365 }).toISODate(),
         {
-          expiresAt: expiresAt || luxon.DateTime.now().plus({ days: 365 }).toISODate(),
           accessLevel
         }
       );

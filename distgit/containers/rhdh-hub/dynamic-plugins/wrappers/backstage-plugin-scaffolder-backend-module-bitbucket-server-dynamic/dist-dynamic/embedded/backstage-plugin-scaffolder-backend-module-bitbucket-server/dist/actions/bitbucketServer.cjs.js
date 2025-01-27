@@ -3,12 +3,7 @@
 var errors = require('@backstage/errors');
 var integration = require('@backstage/integration');
 var pluginScaffolderNode = require('@backstage/plugin-scaffolder-node');
-var fetch = require('node-fetch');
 var bitbucketServer_examples = require('./bitbucketServer.examples.cjs.js');
-
-function _interopDefaultCompat (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }
-
-var fetch__default = /*#__PURE__*/_interopDefaultCompat(fetch);
 
 const createRepository = async (opts) => {
   const {
@@ -35,7 +30,7 @@ const createRepository = async (opts) => {
     }
   };
   try {
-    response = await fetch__default.default(`${apiBaseUrl}/projects/${project}/repos`, options);
+    response = await fetch(`${apiBaseUrl}/projects/${project}/repos`, options);
   } catch (e) {
     throw new Error(`Unable to create repository, ${e}`);
   }
@@ -62,7 +57,7 @@ const performEnableLFS = async (opts) => {
       Authorization: authorization
     }
   };
-  const { ok, status, statusText } = await fetch__default.default(
+  const { ok, status, statusText } = await fetch(
     `https://${host}/rest/git-lfs/admin/projects/${project}/repos/${repo}/enabled`,
     options
   );

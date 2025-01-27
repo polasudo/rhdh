@@ -12,6 +12,7 @@ class GitLabDiscoveryProcessor {
   cache;
   skipReposWithoutExactFileMatch;
   skipForkedRepos;
+  includeArchivedRepos;
   static fromConfig(config, options) {
     const integrations = integration.ScmIntegrations.fromConfig(config);
     const pluginCache = cache.CacheManager.fromConfig(config).forPlugin("gitlab-discovery");
@@ -27,6 +28,7 @@ class GitLabDiscoveryProcessor {
     this.logger = options.logger;
     this.skipReposWithoutExactFileMatch = options.skipReposWithoutExactFileMatch || false;
     this.skipForkedRepos = options.skipForkedRepos || false;
+    this.includeArchivedRepos = options.includeArchivedRepos || false;
   }
   getProcessorName() {
     return "GitLabDiscoveryProcessor";
@@ -50,12 +52,12 @@ class GitLabDiscoveryProcessor {
     this.logger.debug(`Reading GitLab projects from ${location.target}`);
     const lastActivity = await this.cache.get(this.getCacheKey());
     const opts = {
-      archived: false,
       group,
       page: 1,
       // We check for the existence of lastActivity and only set it if it's present to ensure
       // that the options doesn't include the key so that the API doesn't receive an empty query parameter.
-      ...lastActivity && { last_activity_after: lastActivity }
+      ...lastActivity && { last_activity_after: lastActivity },
+      ...!this.includeArchivedRepos && { archived: false }
     };
     const projects = client.paginated((options) => client$1.listProjects(options), opts);
     const res = {

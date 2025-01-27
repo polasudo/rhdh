@@ -57,7 +57,9 @@ function createPublishGithubAction(options) {
           secrets: inputProperties.secrets,
           oidcCustomization: inputProperties.oidcCustomization,
           requiredCommitSigning: inputProperties.requiredCommitSigning,
-          customProperties: inputProperties.customProperties
+          requiredLinearHistory: inputProperties.requiredLinearHistory,
+          customProperties: inputProperties.customProperties,
+          subscribe: inputProperties.subscribe
         }
       },
       output: {
@@ -108,7 +110,9 @@ function createPublishGithubAction(options) {
         oidcCustomization,
         token: providedToken,
         customProperties,
-        requiredCommitSigning = false
+        subscribe = false,
+        requiredCommitSigning = false,
+        requiredLinearHistory = false
       } = ctx.input;
       const octokitOptions = await helpers.getOctokitOptions({
         integrations,
@@ -145,6 +149,7 @@ function createPublishGithubAction(options) {
         secrets,
         oidcCustomization,
         customProperties,
+        subscribe,
         ctx.logger
       );
       const remoteUrl = newRepo.clone_url;
@@ -174,7 +179,8 @@ function createPublishGithubAction(options) {
         gitAuthorName,
         gitAuthorEmail,
         dismissStaleReviews,
-        requiredCommitSigning
+        requiredCommitSigning,
+        requiredLinearHistory
       );
       ctx.output("commitHash", commitResult?.commitHash);
       ctx.output("remoteUrl", remoteUrl);

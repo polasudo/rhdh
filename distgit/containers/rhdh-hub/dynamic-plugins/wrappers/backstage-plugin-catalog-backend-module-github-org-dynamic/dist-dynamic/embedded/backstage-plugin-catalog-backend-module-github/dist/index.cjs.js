@@ -13,6 +13,8 @@ var GithubOrgEntityProvider = require('./providers/GithubOrgEntityProvider.cjs.j
 var defaultTransformers = require('./lib/defaultTransformers.cjs.js');
 require('@backstage/catalog-model');
 require('lodash');
+require('@octokit/core');
+require('@octokit/plugin-throttling');
 var deprecated = require('./deprecated.cjs.js');
 
 

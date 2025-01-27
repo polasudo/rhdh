@@ -2,7 +2,7 @@
 
 var backendPluginApi = require('@backstage/backend-plugin-api');
 var testUtils = require('@backstage/catalog-client/testUtils');
-var alpha = require('@backstage/plugin-catalog-node/alpha');
+var pluginCatalogNode = require('@backstage/plugin-catalog-node');
 
 function simpleMock(ref, mockFactory) {
   return (partialImpl) => {
@@ -30,11 +30,11 @@ function catalogServiceMock(options) {
 }
 ((catalogServiceMock2) => {
   catalogServiceMock2.factory = (options) => backendPluginApi.createServiceFactory({
-    service: alpha.catalogServiceRef,
+    service: pluginCatalogNode.catalogServiceRef,
     deps: {},
     factory: () => new testUtils.InMemoryCatalogClient(options)
   });
-  catalogServiceMock2.mock = simpleMock(alpha.catalogServiceRef, () => ({
+  catalogServiceMock2.mock = simpleMock(pluginCatalogNode.catalogServiceRef, () => ({
     getEntities: jest.fn(),
     getEntitiesByRefs: jest.fn(),
     queryEntities: jest.fn(),

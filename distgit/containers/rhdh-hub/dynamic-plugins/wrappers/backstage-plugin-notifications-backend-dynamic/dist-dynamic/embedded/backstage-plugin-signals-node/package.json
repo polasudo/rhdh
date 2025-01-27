@@ -1,6 +1,6 @@
 {
   "name": "@backstage/plugin-signals-node",
-  "version": "0.1.13+embedded",
+  "version": "0.1.16+embedded",
   "description": "Node.js library for the signals plugin",
   "backstage": {
     "role": "node-library",
@@ -38,18 +38,24 @@
   },
   "dependencies": {
     "express": "^4.17.1",
-    "uuid": "^9.0.0",
+    "uuid": "^11.0.0",
     "ws": "^8.18.0"
   },
   "devDependencies": {},
+  "typesVersions": {
+    "*": {
+      "index": [
+        "dist/index.d.ts"
+      ]
+    }
+  },
   "private": true,
   "peerDependencies": {
-    "@backstage/backend-common": "^0.25.0",
-    "@backstage/backend-plugin-api": "^1.0.1",
-    "@backstage/config": "^1.2.0",
-    "@backstage/plugin-auth-node": "^0.5.3",
-    "@backstage/plugin-events-node": "^0.4.2",
-    "@backstage/types": "^1.1.1"
+    "@backstage/backend-plugin-api": "^1.1.1",
+    "@backstage/config": "^1.3.2",
+    "@backstage/plugin-auth-node": "^0.5.6",
+    "@backstage/plugin-events-node": "^0.4.7",
+    "@backstage/types": "^1.2.1"
   },
   "overrides": {
     "@aws-sdk/util-utf8-browser": {

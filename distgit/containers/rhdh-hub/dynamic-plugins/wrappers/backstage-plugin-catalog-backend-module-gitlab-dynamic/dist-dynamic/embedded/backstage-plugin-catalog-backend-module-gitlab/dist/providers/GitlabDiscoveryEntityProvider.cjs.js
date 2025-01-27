@@ -148,10 +148,10 @@ class GitlabDiscoveryEntityProvider {
     const projects = client.paginated(
       (options) => this.gitLabClient.listProjects(options),
       {
-        archived: false,
         group: this.config.group,
         page: 1,
-        per_page: 50
+        per_page: 50,
+        ...!this.config.includeArchivedRepos && { archived: false }
       }
     );
     const res = {

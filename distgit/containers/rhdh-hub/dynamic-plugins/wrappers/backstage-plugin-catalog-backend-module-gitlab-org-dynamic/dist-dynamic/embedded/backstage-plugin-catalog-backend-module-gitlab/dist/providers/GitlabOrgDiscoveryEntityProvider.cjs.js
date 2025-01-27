@@ -214,6 +214,7 @@ class GitlabOrgDiscoveryEntityProvider {
     let users;
     if (this.gitLabClient.isSelfManaged() && this.config.restrictUsersToGroup) {
       groups = (await this.gitLabClient.listDescendantGroups(this.config.group)).items;
+      groups.push(await this.gitLabClient.getGroupByPath(this.config.group));
       users = client.paginated(
         (options) => this.gitLabClient.listGroupMembers(this.config.group, options),
         // calls /groups/<groupId>/members
@@ -238,11 +239,12 @@ class GitlabOrgDiscoveryEntityProvider {
       );
     } else {
       groups = (await this.gitLabClient.listDescendantGroups(this.config.group)).items;
+      groups.push(await this.gitLabClient.getGroupByPath(this.config.group));
       const rootGroupSplit = this.config.group.split("/");
-      const rootGroup = this.config.restrictUsersToGroup ? rootGroupSplit[rootGroupSplit.length - 1] : rootGroupSplit[0];
+      const groupPath = this.config.restrictUsersToGroup ? this.config.group : rootGroupSplit[0];
       users = client.paginated(
         (options) => this.gitLabClient.listSaaSUsers(
-          rootGroup,
+          groupPath,
           options,
           this.config.includeUsersWithoutSeat
         ),
@@ -522,7 +524,7 @@ class GitlabOrgDiscoveryEntityProvider {
     });
   }
   shouldProcessGroup(group) {
-    return this.config.groupPattern.test(group.full_path) && (!this.config.group || group.full_path.startsWith(`${this.config.group}/`));
+    return this.config.groupPattern.test(group.full_path) && (!this.config.group || group.full_path.startsWith(`${this.config.group}/`) || group.full_path === this.config.group);
   }
   shouldProcessUser(user) {
     return this.config.userPattern.test(user.email ?? user.username ?? "") && user.state === "active";

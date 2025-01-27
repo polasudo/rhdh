@@ -216,18 +216,34 @@ function ensureItems(target, key, values) {
     }
   }
 }
+function getValueFromMapWithInsensitiveKey(map, searchValue) {
+  const result = map.get(searchValue);
+  return result ? result : map.get(searchValue.toLocaleLowerCase("en-US"));
+}
 function resolveRelations(groups, users, userMemberOf, groupMemberOf, groupMember) {
   const userMap = /* @__PURE__ */ new Map();
   const groupMap = /* @__PURE__ */ new Map();
   for (const user of users) {
     userMap.set(catalogModel.stringifyEntityRef(user), user);
     userMap.set(user.metadata.annotations[constants.LDAP_DN_ANNOTATION], user);
+    userMap.set(
+      user.metadata.annotations[constants.LDAP_DN_ANNOTATION]?.toLocaleLowerCase(
+        "en-US"
+      ),
+      user
+    );
     userMap.set(user.metadata.annotations[constants.LDAP_RDN_ANNOTATION], user);
     userMap.set(user.metadata.annotations[constants.LDAP_UUID_ANNOTATION], user);
   }
   for (const group of groups) {
     groupMap.set(catalogModel.stringifyEntityRef(group), group);
     groupMap.set(group.metadata.annotations[constants.LDAP_DN_ANNOTATION], group);
+    groupMap.set(
+      group.metadata.annotations[constants.LDAP_DN_ANNOTATION]?.toLocaleLowerCase(
+        "en-US"
+      ),
+      group
+    );
     groupMap.set(group.metadata.annotations[constants.LDAP_RDN_ANNOTATION], group);
     groupMap.set(group.metadata.annotations[constants.LDAP_UUID_ANNOTATION], group);
   }
@@ -239,10 +255,10 @@ function resolveRelations(groups, users, userMemberOf, groupMemberOf, groupMembe
   const newGroupParents = /* @__PURE__ */ new Map();
   const newGroupChildren = /* @__PURE__ */ new Map();
   for (const [userN, groupsN] of userMemberOf.entries()) {
-    const user = userMap.get(userN);
+    const user = getValueFromMapWithInsensitiveKey(userMap, userN);
     if (user) {
       for (const groupN of groupsN) {
-        const group = groupMap.get(groupN);
+        const group = getValueFromMapWithInsensitiveKey(groupMap, groupN);
         if (group) {
           ensureItems(newUserMemberOf, catalogModel.stringifyEntityRef(user), [
             catalogModel.stringifyEntityRef(group)
@@ -252,10 +268,13 @@ function resolveRelations(groups, users, userMemberOf, groupMemberOf, groupMembe
     }
   }
   for (const [groupN, parentsN] of groupMemberOf.entries()) {
-    const group = groupMap.get(groupN);
+    const group = getValueFromMapWithInsensitiveKey(groupMap, groupN);
     if (group) {
       for (const parentN of parentsN) {
-        const parentGroup = groupMap.get(parentN);
+        const parentGroup = getValueFromMapWithInsensitiveKey(
+          groupMap,
+          parentN
+        );
         if (parentGroup) {
           ensureItems(newGroupParents, catalogModel.stringifyEntityRef(group), [
             catalogModel.stringifyEntityRef(parentGroup)
@@ -268,16 +287,19 @@ function resolveRelations(groups, users, userMemberOf, groupMemberOf, groupMembe
     }
   }
   for (const [groupN, membersN] of groupMember.entries()) {
-    const group = groupMap.get(groupN);
+    const group = getValueFromMapWithInsensitiveKey(groupMap, groupN);
     if (group) {
       for (const memberN of membersN) {
-        const memberUser = userMap.get(memberN);
+        const memberUser = getValueFromMapWithInsensitiveKey(userMap, memberN);
         if (memberUser) {
           ensureItems(newUserMemberOf, catalogModel.stringifyEntityRef(memberUser), [
             catalogModel.stringifyEntityRef(group)
           ]);
         } else {
-          const memberGroup = groupMap.get(memberN);
+          const memberGroup = getValueFromMapWithInsensitiveKey(
+            groupMap,
+            memberN
+          );
           if (memberGroup) {
             ensureItems(newGroupChildren, catalogModel.stringifyEntityRef(group), [
               catalogModel.stringifyEntityRef(memberGroup)
@@ -291,21 +313,21 @@ function resolveRelations(groups, users, userMemberOf, groupMemberOf, groupMembe
     }
   }
   for (const [userN, groupsN] of newUserMemberOf.entries()) {
-    const user = userMap.get(userN);
+    const user = getValueFromMapWithInsensitiveKey(userMap, userN);
     if (user) {
       user.spec.memberOf = Array.from(groupsN).sort();
     }
   }
   for (const [groupN, parentsN] of newGroupParents.entries()) {
     if (parentsN.size === 1) {
-      const group = groupMap.get(groupN);
+      const group = getValueFromMapWithInsensitiveKey(groupMap, groupN);
       if (group) {
         group.spec.parent = parentsN.values().next().value;
       }
     }
   }
   for (const [groupN, childrenN] of newGroupChildren.entries()) {
-    const group = groupMap.get(groupN);
+    const group = getValueFromMapWithInsensitiveKey(groupMap, groupN);
     if (group) {
       group.spec.children = Array.from(childrenN).sort();
     }

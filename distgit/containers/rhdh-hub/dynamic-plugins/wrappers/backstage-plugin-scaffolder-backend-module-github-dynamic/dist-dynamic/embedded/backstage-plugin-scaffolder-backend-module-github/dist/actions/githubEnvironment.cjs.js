@@ -12,7 +12,7 @@ function _interopDefaultCompat (e) { return e && typeof e === 'object' && 'defau
 var Sodium__default = /*#__PURE__*/_interopDefaultCompat(Sodium);
 
 function createGithubEnvironmentAction(options) {
-  const { integrations, catalogClient } = options;
+  const { integrations, catalogClient, auth } = options;
   return pluginScaffolderNode.createTemplateAction({
     id: "github:environment:create",
     description: "Creates Deployment Environments",
@@ -98,7 +98,7 @@ function createGithubEnvironmentAction(options) {
           reviewers: {
             title: "Reviewers",
             type: "array",
-            description: "Reviewers for this environment",
+            description: "Reviewers for this environment. Must be a list of Backstage entity references.",
             items: {
               type: "string"
             }
@@ -120,6 +120,10 @@ function createGithubEnvironmentAction(options) {
         preventSelfReview,
         reviewers
       } = ctx.input;
+      const { token } = await auth?.getPluginRequestToken({
+        onBehalfOf: await ctx.getInitiatorCredentials(),
+        targetPluginId: "catalog"
+      }) ?? { token: ctx.secrets?.backstageToken };
       await new Promise((resolve) => setTimeout(resolve, 2e3));
       const octokitOptions = await helpers.getOctokitOptions({
         integrations,
@@ -138,9 +142,14 @@ function createGithubEnvironmentAction(options) {
       const githubReviewers = [];
       if (reviewers) {
         let reviewersEntityRefs = [];
-        const catalogResponse = await catalogClient?.getEntitiesByRefs({
-          entityRefs: reviewers
-        });
+        const catalogResponse = await catalogClient?.getEntitiesByRefs(
+          {
+            entityRefs: reviewers
+          },
+          {
+            token
+          }
+        );
         if (catalogResponse?.items?.length) {
           reviewersEntityRefs = catalogResponse.items;
         }

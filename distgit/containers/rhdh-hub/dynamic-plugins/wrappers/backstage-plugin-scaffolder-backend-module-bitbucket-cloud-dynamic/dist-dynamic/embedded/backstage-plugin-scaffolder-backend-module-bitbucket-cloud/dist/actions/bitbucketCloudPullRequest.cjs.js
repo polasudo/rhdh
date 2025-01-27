@@ -2,14 +2,12 @@
 
 var errors = require('@backstage/errors');
 var pluginScaffolderNode = require('@backstage/plugin-scaffolder-node');
-var fetch = require('node-fetch');
 var fs = require('fs-extra');
 var helpers = require('./helpers.cjs.js');
 var bitbucketCloudPullRequest_examples = require('./bitbucketCloudPullRequest.examples.cjs.js');
 
 function _interopDefaultCompat (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }
 
-var fetch__default = /*#__PURE__*/_interopDefaultCompat(fetch);
 var fs__default = /*#__PURE__*/_interopDefaultCompat(fs);
 
 const createPullRequest = async (opts) => {
@@ -49,7 +47,7 @@ const createPullRequest = async (opts) => {
     }
   };
   try {
-    response = await fetch__default.default(
+    response = await fetch(
       `${apiBaseUrl}/repositories/${workspace}/${repo}/pullrequests`,
       data
     );
@@ -75,7 +73,7 @@ const findBranches = async (opts) => {
     }
   };
   try {
-    response = await fetch__default.default(
+    response = await fetch(
       `${apiBaseUrl}/repositories/${workspace}/${repo}/refs/branches?q=${encodeURIComponent(
         `name = "${branchName}"`
       )}`,
@@ -116,7 +114,7 @@ const createBranch = async (opts) => {
     }
   };
   try {
-    response = await fetch__default.default(
+    response = await fetch(
       `${apiBaseUrl}/repositories/${workspace}/${repo}/refs/branches`,
       options
     );
@@ -141,7 +139,7 @@ const getDefaultBranch = async (opts) => {
     }
   };
   try {
-    response = await fetch__default.default(
+    response = await fetch(
       `${apiBaseUrl}/repositories/${workspace}/${repo}`,
       options
     );

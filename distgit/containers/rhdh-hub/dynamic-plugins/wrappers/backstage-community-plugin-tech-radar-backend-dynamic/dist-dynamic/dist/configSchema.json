@@ -911,6 +911,7 @@
               }
             },
             "google": {
+              "visibility": "frontend",
               "type": "object",
               "additionalProperties": {
                 "type": "object",
@@ -1293,18 +1294,6 @@
                                 "resolver": {
                                   "type": "string",
                                   "const": "emailMatchingUserEntityProfileEmail"
-                                }
-                              },
-                              "required": [
-                                "resolver"
-                              ]
-                            },
-                            {
-                              "type": "object",
-                              "properties": {
-                                "resolver": {
-                                  "type": "string",
-                                  "const": "preferredUsernameMatchingUserEntityName"
                                 }
                               },
                               "required": [

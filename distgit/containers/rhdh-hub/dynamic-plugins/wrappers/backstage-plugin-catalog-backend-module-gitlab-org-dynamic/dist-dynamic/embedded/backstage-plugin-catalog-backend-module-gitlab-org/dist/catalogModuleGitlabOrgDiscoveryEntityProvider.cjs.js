@@ -1,6 +1,5 @@
 'use strict';
 
-var backendCommon = require('@backstage/backend-common');
 var backendPluginApi = require('@backstage/backend-plugin-api');
 var pluginCatalogBackendModuleGitlab = require('@backstage/plugin-catalog-backend-module-gitlab');
 var alpha = require('@backstage/plugin-catalog-node/alpha');
@@ -20,7 +19,7 @@ const catalogModuleGitlabOrgDiscoveryEntityProvider = backendPluginApi.createBac
       },
       async init({ config, catalog, logger, scheduler, events }) {
         const gitlabOrgDiscoveryEntityProvider = pluginCatalogBackendModuleGitlab.GitlabOrgDiscoveryEntityProvider.fromConfig(config, {
-          logger: backendCommon.loggerToWinstonLogger(logger),
+          logger,
           events,
           scheduler
         });

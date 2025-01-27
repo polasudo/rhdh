@@ -1,14 +1,165 @@
 # @backstage/plugin-signals-backend
 
-## 0.2.2
+## 0.3.0
+
+### Minor Changes
+
+- f59ea1d: Removed support for the old backend system. If you were using the old `createRouter` export, please migrate to [the new backend system](https://backstage.io/docs/backend-system/).
 
 ### Patch Changes
 
 - Updated dependencies
-  - @backstage/plugin-events-node@0.4.2
-  - @backstage/plugin-signals-node@0.1.13
-  - @backstage/backend-plugin-api@1.0.1
-  - @backstage/plugin-auth-node@0.5.3
+  - @backstage/types@1.2.1
+  - @backstage/plugin-auth-node@0.5.6
+  - @backstage/backend-plugin-api@1.1.1
+  - @backstage/config@1.3.2
+  - @backstage/plugin-events-node@0.4.7
+  - @backstage/plugin-signals-node@0.1.16
+
+## 0.3.0-next.2
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/types@1.2.1-next.0
+  - @backstage/backend-plugin-api@1.1.1-next.1
+  - @backstage/config@1.3.2-next.0
+  - @backstage/plugin-auth-node@0.5.6-next.1
+  - @backstage/plugin-events-node@0.4.7-next.1
+  - @backstage/plugin-signals-node@0.1.16-next.1
+
+## 0.3.0-next.1
+
+### Minor Changes
+
+- f59ea1d: Removed support for the old backend system. If you were using the old `createRouter` export, please migrate to [the new backend system](https://backstage.io/docs/backend-system/).
+
+## 0.2.5-next.0
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/plugin-auth-node@0.5.6-next.0
+  - @backstage/backend-plugin-api@1.1.1-next.0
+  - @backstage/config@1.3.1
+  - @backstage/types@1.2.0
+  - @backstage/plugin-events-node@0.4.7-next.0
+  - @backstage/plugin-signals-node@0.1.16-next.0
+
+## 0.2.4
+
+### Patch Changes
+
+- 1e624ca: Restrict `@types/express` version range from `*` to `^4.17.6`.
+- 5c9cc05: Use native fetch instead of node-fetch
+- Updated dependencies
+  - @backstage/plugin-auth-node@0.5.5
+  - @backstage/backend-plugin-api@1.1.0
+  - @backstage/plugin-events-node@0.4.6
+  - @backstage/config@1.3.1
+  - @backstage/types@1.2.0
+  - @backstage/plugin-signals-node@0.1.15
+
+## 0.2.4-next.2
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/backend-plugin-api@1.1.0-next.2
+  - @backstage/plugin-auth-node@0.5.5-next.2
+  - @backstage/plugin-events-node@0.4.6-next.2
+  - @backstage/plugin-signals-node@0.1.15-next.2
+  - @backstage/config@1.3.1-next.0
+  - @backstage/types@1.2.0
+
+## 0.2.4-next.1
+
+### Patch Changes
+
+- 5c9cc05: Use native fetch instead of node-fetch
+- Updated dependencies
+  - @backstage/plugin-auth-node@0.5.5-next.1
+  - @backstage/backend-plugin-api@1.1.0-next.1
+  - @backstage/plugin-signals-node@0.1.15-next.1
+  - @backstage/config@1.3.0
+  - @backstage/types@1.2.0
+  - @backstage/plugin-events-node@0.4.6-next.1
+
+## 0.2.4-next.0
+
+### Patch Changes
+
+- 1e624ca: Restrict `@types/express` version range from `*` to `^4.17.6`.
+- Updated dependencies
+  - @backstage/backend-plugin-api@1.0.3-next.0
+  - @backstage/plugin-events-node@0.4.6-next.0
+  - @backstage/plugin-auth-node@0.5.5-next.0
+  - @backstage/config@1.3.0
+  - @backstage/types@1.2.0
+  - @backstage/plugin-signals-node@0.1.15-next.0
+
+## 0.2.3
+
+### Patch Changes
+
+- a1e01ff: The signals backend now supports scaled deployments where clients may be connecting to one of many signal backend instances.
+- 4e58bc7: Upgrade to uuid v11 internally
+- Updated dependencies
+  - @backstage/config@1.3.0
+  - @backstage/plugin-events-node@0.4.5
+  - @backstage/types@1.2.0
+  - @backstage/plugin-auth-node@0.5.4
+  - @backstage/backend-plugin-api@1.0.2
+  - @backstage/plugin-signals-node@0.1.14
+
+## 0.2.3-next.3
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/plugin-events-node@0.4.5-next.3
+  - @backstage/backend-plugin-api@1.0.2-next.2
+  - @backstage/config@1.2.0
+  - @backstage/types@1.1.1
+  - @backstage/plugin-auth-node@0.5.4-next.2
+  - @backstage/plugin-signals-node@0.1.14-next.3
+
+## 0.2.3-next.2
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/plugin-events-node@0.4.5-next.2
+  - @backstage/plugin-auth-node@0.5.4-next.2
+  - @backstage/backend-plugin-api@1.0.2-next.2
+  - @backstage/config@1.2.0
+  - @backstage/types@1.1.1
+  - @backstage/plugin-signals-node@0.1.14-next.2
+
+## 0.2.3-next.1
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/backend-plugin-api@1.0.2-next.1
+  - @backstage/config@1.2.0
+  - @backstage/types@1.1.1
+  - @backstage/plugin-auth-node@0.5.4-next.1
+  - @backstage/plugin-events-node@0.4.4-next.1
+  - @backstage/plugin-signals-node@0.1.14-next.1
+
+## 0.2.3-next.0
+
+### Patch Changes
+
+- a1e01ff: The signals backend now supports scaled deployments where clients may be connecting to one of many signal backend instances.
+- Updated dependencies
+  - @backstage/plugin-events-node@0.4.3-next.0
+  - @backstage/plugin-auth-node@0.5.4-next.0
+  - @backstage/backend-plugin-api@1.0.2-next.0
+  - @backstage/config@1.2.0
+  - @backstage/types@1.1.1
+  - @backstage/plugin-signals-node@0.1.14-next.0
 
 ## 0.2.1
 

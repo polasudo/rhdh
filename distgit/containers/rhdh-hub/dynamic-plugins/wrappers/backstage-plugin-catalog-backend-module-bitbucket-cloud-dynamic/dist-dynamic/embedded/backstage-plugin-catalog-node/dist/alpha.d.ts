@@ -1,7 +1,7 @@
 import * as _backstage_backend_plugin_api from '@backstage/backend-plugin-api';
 import { CatalogApi } from '@backstage/catalog-client';
 import { Entity, Validators } from '@backstage/catalog-model';
-import { CatalogProcessor, EntityProvider, PlaceholderResolver, LocationAnalyzer, ScmLocationAnalyzer, EntitiesSearchFilter, CatalogProcessorParser } from '@backstage/plugin-catalog-node';
+import { CatalogProcessor, EntityProvider, PlaceholderResolver, CatalogProcessorParser, LocationAnalyzer, ScmLocationAnalyzer, EntitiesSearchFilter } from '@backstage/plugin-catalog-node';
 import { PermissionRuleParams, Permission } from '@backstage/plugin-permission-common';
 import { PermissionRule } from '@backstage/plugin-permission-node';
 

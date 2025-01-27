@@ -335,7 +335,7 @@ class GithubMultiOrgEntityProvider {
         editTeamUrl: `${url}/edit`,
         combinedSlug: `${org}/${slug}`,
         description: description ?? void 0,
-        parentTeam: { slug: event.team?.parent?.slug || "" },
+        parentTeam: event.team?.parent?.slug ? { slug: event.team.parent.slug } : void 0,
         // entity will be removed or is new
         members: []
       },
@@ -414,7 +414,7 @@ class GithubMultiOrgEntityProvider {
         slug: oldSlug,
         combinedSlug: `${org$1}/${oldSlug}`,
         description: event.changes.description?.from,
-        parentTeam: { slug: event.team?.parent?.slug || "" },
+        parentTeam: event.team?.parent?.slug ? { slug: event.team.parent.slug } : void 0,
         // entity will be removed
         members: []
       },

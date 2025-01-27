@@ -2,7 +2,7 @@
 
 var errors = require('@backstage/errors');
 var pluginScaffolderNode = require('@backstage/plugin-scaffolder-node');
-var node = require('@gitbeaker/node');
+var rest = require('@gitbeaker/rest');
 var gitlab_examples = require('./gitlab.examples.cjs.js');
 
 function createPublishGitlabAction(options) {
@@ -269,7 +269,7 @@ function createPublishGitlabAction(options) {
       }
       const token = ctx.input.token || integrationConfig.config.token;
       const tokenType = ctx.input.token ? "oauthToken" : "token";
-      const client = new node.Gitlab({
+      const client = new rest.Gitlab({
         host: integrationConfig.config.baseUrl,
         [tokenType]: token
       });
@@ -285,19 +285,19 @@ function createPublishGitlabAction(options) {
         }
         throw e;
       }
-      const { id: userId } = await client.Users.current();
+      const { id: userId } = await client.Users.showCurrentUser();
       if (!targetNamespaceId) {
         targetNamespaceId = userId;
       }
       const { id: projectId, http_url_to_repo } = await client.Projects.create({
-        namespace_id: targetNamespaceId,
+        namespaceId: targetNamespaceId,
         name: repo,
         visibility: repoVisibility,
         ...topics.length ? { topics } : {},
         ...Object.keys(settings).length ? { ...settings } : {}
       });
       if (setUserAsOwner && integrationConfig.config.token) {
-        const adminClient = new node.Gitlab({
+        const adminClient = new rest.Gitlab({
           host: integrationConfig.config.baseUrl,
           token: integrationConfig.config.token
         });
@@ -365,7 +365,16 @@ function createPublishGitlabAction(options) {
           try {
             await client.ProjectVariables.create(
               projectId,
-              variableWithDefaults
+              variableWithDefaults.key,
+              variableWithDefaults.value,
+              {
+                variableType: variableWithDefaults.variable_type,
+                protected: variableWithDefaults.protected,
+                masked: variableWithDefaults.masked,
+                environmentScope: variableWithDefaults.environment_scope,
+                description: variableWithDefaults.description,
+                raw: variableWithDefaults.raw
+              }
             );
           } catch (e) {
             throw new errors.InputError(

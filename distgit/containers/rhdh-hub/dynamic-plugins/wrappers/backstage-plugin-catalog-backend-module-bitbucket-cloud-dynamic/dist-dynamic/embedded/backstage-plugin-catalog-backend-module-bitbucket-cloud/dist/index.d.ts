@@ -49,6 +49,7 @@ declare class BitbucketCloudEntityProvider implements EntityProvider {
     onRepoPush(event: Events.RepoPushEvent): Promise<void>;
     private findExistingLocations;
     private findCatalogFiles;
+    private processQuery;
     private matchesFilters;
     private toDeferredEntities;
     private static toUrl;

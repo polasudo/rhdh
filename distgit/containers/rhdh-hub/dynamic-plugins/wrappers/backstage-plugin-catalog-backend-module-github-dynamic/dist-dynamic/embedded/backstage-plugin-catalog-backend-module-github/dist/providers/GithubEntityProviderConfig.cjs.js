@@ -4,6 +4,14 @@ var backendPluginApi = require('@backstage/backend-plugin-api');
 
 const DEFAULT_CATALOG_PATH = "/catalog-info.yaml";
 const DEFAULT_PROVIDER_ID = "default";
+const DEFAULT_GITHUB_ENTITY_PROVIDER_CONFIG_SCHEDULE = {
+  frequency: {
+    hours: 3
+  },
+  timeout: {
+    hours: 1
+  }
+};
 function readProviderConfigs(config) {
   const providersConfig = config.getOptionalConfig("catalog.providers.github");
   if (!providersConfig) {
@@ -40,7 +48,7 @@ function readProviderConfig(id, config) {
   }
   const schedule = config.has("schedule") ? backendPluginApi.readSchedulerServiceTaskScheduleDefinitionFromConfig(
     config.getConfig("schedule")
-  ) : void 0;
+  ) : DEFAULT_GITHUB_ENTITY_PROVIDER_CONFIG_SCHEDULE;
   return {
     id,
     catalogPath,
@@ -71,5 +79,6 @@ function compileRegExp(pattern) {
   return new RegExp(fullLinePattern);
 }
 
+exports.DEFAULT_GITHUB_ENTITY_PROVIDER_CONFIG_SCHEDULE = DEFAULT_GITHUB_ENTITY_PROVIDER_CONFIG_SCHEDULE;
 exports.readProviderConfigs = readProviderConfigs;
 //# sourceMappingURL=GithubEntityProviderConfig.cjs.js.map

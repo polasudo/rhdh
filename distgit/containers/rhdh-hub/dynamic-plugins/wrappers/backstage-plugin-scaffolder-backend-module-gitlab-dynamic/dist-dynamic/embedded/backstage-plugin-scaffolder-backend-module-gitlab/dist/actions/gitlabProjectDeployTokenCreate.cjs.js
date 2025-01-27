@@ -2,7 +2,7 @@
 
 var errors = require('@backstage/errors');
 var pluginScaffolderNode = require('@backstage/plugin-scaffolder-node');
-var node = require('@gitbeaker/node');
+var rest = require('@gitbeaker/rest');
 var zod = require('zod');
 var commonGitlabConfig = require('../commonGitlabConfig.cjs.js');
 var util = require('../util.cjs.js');
@@ -21,7 +21,7 @@ const createGitlabProjectDeployTokenAction = (options) => {
           }),
           name: zod.z.string({ description: "Deploy Token Name" }),
           username: zod.z.string({ description: "Deploy Token Username" }).optional(),
-          scopes: zod.z.array(zod.z.string(), { description: "Scopes" }).optional()
+          scopes: zod.z.array(zod.z.string(), { description: "Scopes" })
         })
       ),
       output: zod.z.object({
@@ -33,15 +33,20 @@ const createGitlabProjectDeployTokenAction = (options) => {
       ctx.logger.info(`Creating Token for Project "${ctx.input.projectId}"`);
       const { projectId, name, username, scopes } = ctx.input;
       const { token, integrationConfig } = util.getToken(ctx.input, integrations);
-      const api = new node.Gitlab({
+      if (scopes.length === 0) {
+        throw new errors.InputError(
+          `Could not create token for project "${ctx.input.projectId}": scopes cannot be empty.`
+        );
+      }
+      const api = new rest.Gitlab({
         host: integrationConfig.config.baseUrl,
         token
       });
-      const deployToken = await api.ProjectDeployTokens.add(
-        projectId,
+      const deployToken = await api.DeployTokens.create(
         name,
         scopes,
         {
+          projectId,
           username
         }
       );

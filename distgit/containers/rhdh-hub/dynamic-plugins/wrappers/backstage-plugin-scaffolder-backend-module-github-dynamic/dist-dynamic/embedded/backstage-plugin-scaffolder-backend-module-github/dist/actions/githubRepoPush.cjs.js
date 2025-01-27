@@ -37,7 +37,8 @@ function createGithubRepoPushAction(options) {
           gitAuthorEmail: inputProperties.gitAuthorEmail,
           sourcePath: inputProperties.sourcePath,
           token: inputProperties.token,
-          requiredCommitSigning: inputProperties.requiredCommitSigning
+          requiredCommitSigning: inputProperties.requiredCommitSigning,
+          requiredLinearHistory: inputProperties.requiredLinearHistory
         }
       },
       output: {
@@ -68,7 +69,8 @@ function createGithubRepoPushAction(options) {
         requiredConversationResolution = false,
         requireLastPushApproval = false,
         token: providedToken,
-        requiredCommitSigning = false
+        requiredCommitSigning = false,
+        requiredLinearHistory = false
       } = ctx.input;
       const { owner, repo } = pluginScaffolderNode.parseRepoUrl(repoUrl, integrations);
       if (!owner) {
@@ -109,7 +111,8 @@ function createGithubRepoPushAction(options) {
         gitAuthorName,
         gitAuthorEmail,
         dismissStaleReviews,
-        requiredCommitSigning
+        requiredCommitSigning,
+        requiredLinearHistory
       );
       ctx.output("remoteUrl", remoteUrl);
       ctx.output("repoContentsUrl", repoContentsUrl);

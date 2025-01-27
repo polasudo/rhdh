@@ -3,7 +3,6 @@ import { SchedulerServiceTaskScheduleDefinition, LoggerService, SchedulerService
 import { UserTransformer as UserTransformer$1, GroupTransformer as GroupTransformer$1, OrganizationTransformer as OrganizationTransformer$1, ProviderConfigTransformer as ProviderConfigTransformer$1 } from '@backstage/plugin-catalog-backend-module-msgraph';
 import { TokenCredential } from '@azure/identity';
 import * as MicrosoftGraph from '@microsoft/microsoft-graph-types';
-import { Response } from 'node-fetch';
 import { Config } from '@backstage/config';
 import { GroupEntity, UserEntity } from '@backstage/catalog-model';
 import { EntityProvider, EntityProviderConnection, CatalogProcessor, CatalogProcessorEmit } from '@backstage/plugin-catalog-node';

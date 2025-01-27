@@ -2,7 +2,6 @@
 
 var catalogModel = require('@backstage/catalog-model');
 var errors = require('@backstage/errors');
-var fetch = require('node-fetch');
 var pLimit = require('p-limit');
 var stream = require('stream');
 var winston = require('winston');
@@ -29,7 +28,6 @@ function _interopNamespaceCompat(e) {
   return Object.freeze(n);
 }
 
-var fetch__default = /*#__PURE__*/_interopDefaultCompat(fetch);
 var pLimit__default = /*#__PURE__*/_interopDefaultCompat(pLimit);
 var winston__namespace = /*#__PURE__*/_interopNamespaceCompat(winston);
 
@@ -160,7 +158,7 @@ class DocsSynchronizer {
     try {
       const [sourceMetadata, cachedMetadata] = await Promise.all([
         this.publisher.fetchTechDocsMetadata({ namespace, kind, name }),
-        fetch__default.default(
+        fetch(
           `${baseUrl}/static/docs/${entityTripletPath}/techdocs_metadata.json`,
           {
             headers: token ? { Authorization: `Bearer ${token}` } : {}

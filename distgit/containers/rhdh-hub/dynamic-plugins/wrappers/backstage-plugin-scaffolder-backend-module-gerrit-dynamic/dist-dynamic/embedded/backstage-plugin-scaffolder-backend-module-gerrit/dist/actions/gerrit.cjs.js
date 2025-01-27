@@ -4,13 +4,11 @@ var crypto = require('crypto');
 var errors = require('@backstage/errors');
 var integration = require('@backstage/integration');
 var pluginScaffolderNode = require('@backstage/plugin-scaffolder-node');
-var fetch = require('node-fetch');
 var gerrit_examples = require('./gerrit.examples.cjs.js');
 
 function _interopDefaultCompat (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }
 
 var crypto__default = /*#__PURE__*/_interopDefaultCompat(crypto);
-var fetch__default = /*#__PURE__*/_interopDefaultCompat(fetch);
 
 const createGerritProject = async (config, options) => {
   const { projectName, parent, owner, description, defaultBranch } = options;
@@ -28,7 +26,7 @@ const createGerritProject = async (config, options) => {
       "Content-Type": "application/json"
     }
   };
-  const response = await fetch__default.default(
+  const response = await fetch(
     `${config.baseUrl}/a/projects/${encodeURIComponent(projectName)}`,
     fetchOptions
   );

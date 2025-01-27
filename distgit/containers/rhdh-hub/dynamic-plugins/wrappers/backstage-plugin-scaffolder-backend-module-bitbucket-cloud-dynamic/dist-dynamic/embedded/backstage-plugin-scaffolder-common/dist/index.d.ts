@@ -1,4 +1,4 @@
-import { EntityMeta, UserEntity, KindValidator, Entity } from '@backstage/catalog-model';
+import { EntityMeta, UserEntity, Entity, KindValidator } from '@backstage/catalog-model';
 import { JsonObject, JsonArray, JsonValue } from '@backstage/types';
 
 /**
@@ -167,6 +167,13 @@ interface TemplateEntityV1beta3 extends Entity {
          * Recovery strategy for the template
          */
         EXPERIMENTAL_recovery?: TemplateRecoveryV1beta3;
+        /**
+         * Form hooks to be run
+         */
+        EXPERIMENTAL_formDecorators?: {
+            id: string;
+            input?: JsonObject;
+        }[];
         /**
          * This is a JSONSchema or an array of JSONSchema's which is used to render a form in the frontend
          * to collect user input and validate it against that schema. This can then be used in the `steps` part below to template

@@ -2,13 +2,8 @@
 
 var bitbucketCloudPipelinesRun_examples = require('./bitbucketCloudPipelinesRun.examples.cjs.js');
 var pluginScaffolderNode = require('@backstage/plugin-scaffolder-node');
-var fetch = require('node-fetch');
 var inputProperties = require('./inputProperties.cjs.js');
 var helpers = require('./helpers.cjs.js');
-
-function _interopDefaultCompat (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }
-
-var fetch__default = /*#__PURE__*/_interopDefaultCompat(fetch);
 
 const id = "bitbucket:pipelines:run";
 const createBitbucketPipelinesRunAction = (options) => {
@@ -56,7 +51,7 @@ const createBitbucketPipelinesRunAction = (options) => {
       );
       let response;
       try {
-        response = await fetch__default.default(
+        response = await fetch(
           `https://api.bitbucket.org/2.0/repositories/${workspace}/${repo_slug}/pipelines`,
           {
             method: "POST",

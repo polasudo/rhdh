@@ -48,7 +48,9 @@ function createGithubRepoCreateAction(options) {
           secrets: inputProperties.secrets,
           oidcCustomization: inputProperties.oidcCustomization,
           requiredCommitSigning: inputProperties.requiredCommitSigning,
-          customProperties: inputProperties.customProperties
+          requiredLinearHistory: inputProperties.requiredLinearHistory,
+          customProperties: inputProperties.customProperties,
+          subscribe: inputProperties.subscribe
         }
       },
       output: {
@@ -82,6 +84,7 @@ function createGithubRepoCreateAction(options) {
         secrets,
         oidcCustomization,
         customProperties,
+        subscribe,
         token: providedToken
       } = ctx.input;
       const octokitOptions = await helpers.getOctokitOptions({
@@ -119,6 +122,7 @@ function createGithubRepoCreateAction(options) {
         secrets,
         oidcCustomization,
         customProperties,
+        subscribe,
         ctx.logger
       );
       ctx.output("remoteUrl", newRepo.clone_url);

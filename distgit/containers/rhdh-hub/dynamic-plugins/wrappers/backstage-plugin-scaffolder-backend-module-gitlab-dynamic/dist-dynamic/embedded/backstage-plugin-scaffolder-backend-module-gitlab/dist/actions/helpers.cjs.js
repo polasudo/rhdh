@@ -2,7 +2,7 @@
 
 var pluginScaffolderNode = require('@backstage/plugin-scaffolder-node');
 var errors = require('@backstage/errors');
-var node = require('@gitbeaker/node');
+var rest = require('@gitbeaker/rest');
 
 function createGitlabApi(options) {
   const { integrations, token: providedToken, repoUrl } = options;
@@ -18,7 +18,7 @@ function createGitlabApi(options) {
   }
   const token = providedToken ?? integrationConfig.config.token;
   const tokenType = providedToken ? "oauthToken" : "token";
-  return new node.Gitlab({
+  return new rest.Gitlab({
     host: integrationConfig.config.baseUrl,
     [tokenType]: token
   });

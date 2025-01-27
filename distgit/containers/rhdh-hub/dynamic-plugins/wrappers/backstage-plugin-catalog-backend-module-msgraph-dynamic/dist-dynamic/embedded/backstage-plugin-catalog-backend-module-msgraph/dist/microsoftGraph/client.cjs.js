@@ -1,12 +1,10 @@
 'use strict';
 
 var identity = require('@azure/identity');
-var fetch = require('node-fetch');
 var qs = require('qs');
 
 function _interopDefaultCompat (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }
 
-var fetch__default = /*#__PURE__*/_interopDefaultCompat(fetch);
 var qs__default = /*#__PURE__*/_interopDefaultCompat(qs);
 
 class MicrosoftGraphClient {
@@ -118,7 +116,7 @@ class MicrosoftGraphClient {
       throw new Error("Failed to obtain token from Azure Identity");
     }
     try {
-      return await fetch__default.default(url, {
+      return await fetch(url, {
         headers: {
           ...headers,
           Authorization: `Bearer ${token.token}`

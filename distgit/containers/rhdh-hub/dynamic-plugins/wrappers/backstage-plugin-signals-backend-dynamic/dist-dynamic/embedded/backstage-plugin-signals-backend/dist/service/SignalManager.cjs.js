@@ -1,7 +1,12 @@
 'use strict';
 
+var crypto = require('crypto');
 var ws = require('ws');
 var uuid = require('uuid');
+
+function _interopDefaultCompat (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }
+
+var crypto__default = /*#__PURE__*/_interopDefaultCompat(crypto);
 
 class SignalManager {
   connections = /* @__PURE__ */ new Map();
@@ -12,13 +17,16 @@ class SignalManager {
     return new SignalManager(options);
   }
   constructor(options) {
-    ({ events: this.events, logger: this.logger } = options);
+    this.events = options.events;
+    const id = `signals-${crypto__default.default.randomBytes(8).toString("hex")}`;
+    this.logger = options.logger.child({ subscriberId: id });
+    this.logger.info(`Signals manager is subscribing to signals events`);
     this.events.subscribe({
-      id: "signals",
+      id,
       topics: ["signals"],
       onEvent: (params) => this.onEventBrokerEvent(params.eventPayload)
     });
-    options.lifecycle?.addShutdownHook(() => this.onShutdown());
+    options.lifecycle.addShutdownHook(() => this.onShutdown());
   }
   ping() {
     this.connections.forEach((conn) => {

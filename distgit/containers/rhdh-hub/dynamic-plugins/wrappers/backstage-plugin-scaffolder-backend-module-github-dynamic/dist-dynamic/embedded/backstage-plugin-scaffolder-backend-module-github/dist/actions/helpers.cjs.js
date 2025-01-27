@@ -41,7 +41,7 @@ async function getOctokitOptions(options) {
   });
   if (!credentialProviderToken) {
     throw new errors.InputError(
-      `No token available for host: ${host}, with owner ${owner}, and repo ${repo}`
+      `No token available for host: ${host}, with owner ${owner}, and repo ${repo}. Make sure GitHub auth is configured correctly. See https://backstage.io/docs/auth/github/provider for more details.`
     );
   }
   return {
@@ -50,7 +50,7 @@ async function getOctokitOptions(options) {
     previews: ["nebula-preview"]
   };
 }
-async function createGithubRepoWithCollaboratorsAndTopics(client, repo, owner, repoVisibility, description, homepage, deleteBranchOnMerge, allowMergeCommit, allowSquashMerge, squashMergeCommitTitle, squashMergeCommitMessage, allowRebaseMerge, allowAutoMerge, access, collaborators, hasProjects, hasWiki, hasIssues, topics, repoVariables, secrets, oidcCustomization, customProperties, logger) {
+async function createGithubRepoWithCollaboratorsAndTopics(client, repo, owner, repoVisibility, description, homepage, deleteBranchOnMerge, allowMergeCommit, allowSquashMerge, squashMergeCommitTitle, squashMergeCommitMessage, allowRebaseMerge, allowAutoMerge, access, collaborators, hasProjects, hasWiki, hasIssues, topics, repoVariables, secrets, oidcCustomization, customProperties, subscribe, logger) {
   const user = await client.rest.users.getByUsername({
     username: owner
   });
@@ -212,9 +212,17 @@ async function createGithubRepoWithCollaboratorsAndTopics(client, repo, owner, r
       }
     );
   }
+  if (subscribe) {
+    await client.rest.activity.setRepoSubscription({
+      subscribed: true,
+      ignored: false,
+      owner,
+      repo
+    });
+  }
   return newRepo;
 }
-async function initRepoPushAndProtect(remoteUrl, password, workspacePath, sourcePath, defaultBranch, protectDefaultBranch, protectEnforceAdmins, owner, client, repo, requireCodeOwnerReviews, bypassPullRequestAllowances, requiredApprovingReviewCount, restrictions, requiredStatusCheckContexts, requireBranchesToBeUpToDate, requiredConversationResolution, requireLastPushApproval, config, logger, gitCommitMessage, gitAuthorName, gitAuthorEmail, dismissStaleReviews, requiredCommitSigning) {
+async function initRepoPushAndProtect(remoteUrl, password, workspacePath, sourcePath, defaultBranch, protectDefaultBranch, protectEnforceAdmins, owner, client, repo, requireCodeOwnerReviews, bypassPullRequestAllowances, requiredApprovingReviewCount, restrictions, requiredStatusCheckContexts, requireBranchesToBeUpToDate, requiredConversationResolution, requireLastPushApproval, config, logger, gitCommitMessage, gitAuthorName, gitAuthorEmail, dismissStaleReviews, requiredCommitSigning, requiredLinearHistory) {
   const gitAuthorInfo = {
     name: gitAuthorName ? gitAuthorName : config.getOptionalString("scaffolder.defaultAuthor.name"),
     email: gitAuthorEmail ? gitAuthorEmail : config.getOptionalString("scaffolder.defaultAuthor.email")
@@ -250,7 +258,8 @@ async function initRepoPushAndProtect(remoteUrl, password, workspacePath, source
         requireLastPushApproval,
         enforceAdmins: protectEnforceAdmins,
         dismissStaleReviews,
-        requiredCommitSigning
+        requiredCommitSigning,
+        requiredLinearHistory
       });
     } catch (e) {
       errors.assertError(e);

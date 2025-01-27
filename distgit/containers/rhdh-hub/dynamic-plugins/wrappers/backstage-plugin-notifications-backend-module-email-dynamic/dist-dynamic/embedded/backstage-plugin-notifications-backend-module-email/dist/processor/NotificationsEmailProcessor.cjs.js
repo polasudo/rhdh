@@ -32,10 +32,14 @@ class NotificationsEmailProcessor {
     this.sender = emailProcessorConfig.getString("sender");
     this.replyTo = emailProcessorConfig.getOptionalString("replyTo");
     this.concurrencyLimit = emailProcessorConfig.getOptionalNumber("concurrencyLimit") ?? 2;
-    const throttleConfig = emailProcessorConfig.getOptionalConfig("throttleInterval");
-    this.throttleInterval = throttleConfig ? types.durationToMilliseconds(config.readDurationFromConfig(throttleConfig)) : 100;
-    const cacheConfig = emailProcessorConfig.getOptionalConfig("cache.ttl");
-    this.cacheTtl = cacheConfig ? types.durationToMilliseconds(config.readDurationFromConfig(cacheConfig)) : 36e5;
+    this.throttleInterval = emailProcessorConfig.has("throttleInterval") ? types.durationToMilliseconds(
+      config.readDurationFromConfig(emailProcessorConfig, {
+        key: "throttleInterval"
+      })
+    ) : 100;
+    this.cacheTtl = emailProcessorConfig.has("cache.ttl") ? types.durationToMilliseconds(
+      config.readDurationFromConfig(emailProcessorConfig, { key: "cache.ttl" })
+    ) : 36e5;
     this.frontendBaseUrl = config$1.getString("app.baseUrl");
     this.allowlistEmailAddresses = emailProcessorConfig.getOptionalStringArray(
       "allowlistEmailAddresses"

@@ -51,11 +51,6 @@ class GithubEntityProvider {
           `There is no GitHub config that matches host ${integrationHost}. Please add a configuration entry for it under integrations.github`
         );
       }
-      if (!options.schedule && !providerConfig.schedule) {
-        throw new Error(
-          `No schedule provided neither via code nor config for github-provider:${providerConfig.id}.`
-        );
-      }
       const taskRunner = options.schedule ?? options.scheduler.createScheduledTaskRunner(providerConfig.schedule);
       return new GithubEntityProvider(
         providerConfig,

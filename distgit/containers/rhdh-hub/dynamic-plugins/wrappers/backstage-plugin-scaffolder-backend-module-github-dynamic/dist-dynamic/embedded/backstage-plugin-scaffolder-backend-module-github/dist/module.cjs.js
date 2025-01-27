@@ -28,9 +28,10 @@ const githubModule = backendPluginApi.createBackendModule({
       deps: {
         scaffolder: alpha.scaffolderActionsExtensionPoint,
         config: backendPluginApi.coreServices.rootConfig,
-        discovery: backendPluginApi.coreServices.discovery
+        discovery: backendPluginApi.coreServices.discovery,
+        auth: backendPluginApi.coreServices.auth
       },
-      async init({ scaffolder, config, discovery }) {
+      async init({ scaffolder, config, discovery, auth }) {
         const integrations = integration.ScmIntegrations.fromConfig(config);
         const githubCredentialsProvider = integration.DefaultGithubCredentialsProvider.fromIntegrations(integrations);
         const catalogClient$1 = new catalogClient.CatalogClient({
@@ -50,7 +51,8 @@ const githubModule = backendPluginApi.createBackendModule({
           }),
           githubEnvironment.createGithubEnvironmentAction({
             integrations,
-            catalogClient: catalogClient$1
+            catalogClient: catalogClient$1,
+            auth
           }),
           githubIssuesLabel.createGithubIssuesLabelAction({
             integrations,

@@ -210,6 +210,18 @@ class BitbucketCloudEntityProvider {
     const catalogFilename = catalogPath.substring(
       catalogPath.lastIndexOf("/") + 1
     );
+    const optRepoFilter = repoSlug ? ` repo:${repoSlug}` : "";
+    const query = `"${catalogFilename}" path:${catalogPath}${optRepoFilter}`;
+    const projects = this.client.listProjectsByWorkspace(workspace).iterateResults();
+    let results = [];
+    for await (const project of projects) {
+      const projectQuery = `${query} project:${project.key}`;
+      const result = await this.processQuery(workspace, projectQuery);
+      results = results.concat(result);
+    }
+    return results;
+  }
+  async processQuery(workspace, query) {
     const fields = [
       // exclude code/content match details
       "-values.content_matches",
@@ -224,8 +236,6 @@ class BitbucketCloudEntityProvider {
       // ...except the one we need
       "+values.file.commit.repository.links.html.href"
     ].join(",");
-    const optRepoFilter = repoSlug ? ` repo:${repoSlug}` : "";
-    const query = `"${catalogFilename}" path:${catalogPath}${optRepoFilter}`;
     const searchResults = this.client.searchCode(workspace, query, { fields }).iterateResults();
     const result = [];
     for await (const searchResult of searchResults) {

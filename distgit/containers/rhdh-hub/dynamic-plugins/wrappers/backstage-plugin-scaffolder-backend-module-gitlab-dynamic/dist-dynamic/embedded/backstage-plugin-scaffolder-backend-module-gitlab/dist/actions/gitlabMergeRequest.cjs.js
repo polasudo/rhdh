@@ -113,6 +113,14 @@ which uses additional API calls in order to detect whether to 'create', 'update'
             title: "Merge Request Assignee",
             type: "string",
             description: "User this merge request will be assigned to"
+          },
+          reviewers: {
+            title: "Merge Request Reviewers",
+            type: "array",
+            items: {
+              type: "string"
+            },
+            description: "Users that will be assigned as reviewers"
           }
         }
       },
@@ -142,6 +150,7 @@ which uses additional API calls in order to detect whether to 'create', 'update'
     async handler(ctx) {
       const {
         assignee,
+        reviewers,
         branchName,
         targetBranchName,
         description,
@@ -162,7 +171,7 @@ which uses additional API calls in order to detect whether to 'create', 'update'
       let assigneeId = void 0;
       if (assignee !== void 0) {
         try {
-          const assigneeUser = await api.Users.username(assignee);
+          const assigneeUser = await api.Users.all({ username: assignee });
           assigneeId = assigneeUser[0].id;
         } catch (e) {
           ctx.logger.warn(
@@ -171,6 +180,24 @@ which uses additional API calls in order to detect whether to 'create', 'update'
             )}. Proceeding with MR creation without an assignee.`
           );
         }
+      }
+      let reviewerIds = void 0;
+      if (reviewers !== void 0) {
+        reviewerIds = (await Promise.all(
+          reviewers.map(async (reviewer) => {
+            try {
+              const reviewerUser = await api.Users.all({
+                username: reviewer
+              });
+              return reviewerUser[0].id;
+            } catch (e) {
+              ctx.logger.warn(
+                `Failed to find gitlab user id for ${reviewer}: ${e}. Proceeding with MR creation without reviewer.`
+              );
+              return void 0;
+            }
+          })
+        )).filter((id) => id !== void 0);
       }
       let fileRoot;
       if (sourcePath) {
@@ -186,13 +213,20 @@ which uses additional API calls in order to detect whether to 'create', 'update'
       let targetBranch = targetBranchName;
       if (!targetBranch) {
         const projects = await api.Projects.show(repoID);
-        const { default_branch: defaultBranch } = projects;
+        const defaultBranch = projects.default_branch ?? projects.defaultBranch;
+        if (typeof defaultBranch !== "string" || !defaultBranch) {
+          throw new errors.InputError(
+            `The branch creation failed. Target branch was not provided, and could not find default branch from project settings. Project: ${JSON.stringify(
+              project
+            )}`
+          );
+        }
         targetBranch = defaultBranch;
       }
       let remoteFiles = [];
       if ((ctx.input.commitAction ?? "auto") === "auto") {
         try {
-          remoteFiles = await api.Repositories.tree(repoID, {
+          remoteFiles = await api.Repositories.allRepositoryTrees(repoID, {
             ref: targetBranch,
             recursive: true,
             path: targetPath ?? void 0
@@ -261,7 +295,7 @@ which uses additional API calls in order to detect whether to 'create', 'update'
         }
       }
       try {
-        const mergeRequestUrl = await api.MergeRequests.create(
+        let mergeRequest = await api.MergeRequests.create(
           repoID,
           branchName,
           String(targetBranch),
@@ -269,15 +303,43 @@ which uses additional API calls in order to detect whether to 'create', 'update'
           {
             description,
             removeSourceBranch: removeSourceBranch ? removeSourceBranch : false,
-            assigneeId
+            assigneeId,
+            reviewerIds
           }
-        ).then((mergeRequest) => {
-          return mergeRequest.web_url;
-        });
+        );
+        while (mergeRequest.detailed_merge_status === "preparing" || mergeRequest.detailed_merge_status === "approvals_syncing" || mergeRequest.detailed_merge_status === "checking") {
+          mergeRequest = await api.MergeRequests.show(repoID, mergeRequest.iid);
+          ctx.logger.info(`${mergeRequest.detailed_merge_status}`);
+        }
+        const approvalRules = await api.MergeRequestApprovals.allApprovalRules(
+          repoID,
+          {
+            mergerequestIId: mergeRequest.iid
+          }
+        );
+        if (approvalRules.length !== 0) {
+          const eligibleApprovers = approvalRules.filter((rule) => rule.eligible_approvers !== void 0).map((rule) => {
+            return rule.eligible_approvers;
+          }).flat();
+          const eligibleUserIds = /* @__PURE__ */ new Set([
+            ...eligibleApprovers.map((user) => user.id),
+            ...reviewerIds ?? []
+          ]);
+          mergeRequest = await api.MergeRequests.edit(
+            repoID,
+            mergeRequest.iid,
+            {
+              reviewerIds: Array.from(eligibleUserIds)
+            }
+          );
+        }
         ctx.output("projectid", repoID);
         ctx.output("targetBranchName", targetBranch);
         ctx.output("projectPath", repoID);
-        ctx.output("mergeRequestUrl", mergeRequestUrl);
+        ctx.output(
+          "mergeRequestUrl",
+          mergeRequest.web_url ?? mergeRequest.webUrl
+        );
       } catch (e) {
         throw new errors.InputError(
           `Merge request creation failed. ${helpers.getErrorMessage(e)}`

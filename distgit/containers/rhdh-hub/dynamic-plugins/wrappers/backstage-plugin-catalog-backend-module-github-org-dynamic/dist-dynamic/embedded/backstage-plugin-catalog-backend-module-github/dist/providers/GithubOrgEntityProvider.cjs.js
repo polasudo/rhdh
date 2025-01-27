@@ -6,10 +6,10 @@ var graphql = require('@octokit/graphql');
 var uuid = require('uuid');
 var defaultTransformers = require('../lib/defaultTransformers.cjs.js');
 var github = require('../lib/github.cjs.js');
+var guards = require('../lib/guards.cjs.js');
 var org = require('../lib/org.cjs.js');
 var util = require('../lib/util.cjs.js');
 var withLocations = require('../lib/withLocations.cjs.js');
-var guards = require('../lib/guards.cjs.js');
 
 function _interopNamespaceCompat(e) {
   if (e && typeof e === 'object' && 'default' in e) return e;
@@ -95,9 +95,10 @@ class GithubOrgEntityProvider {
     const { headers, type: tokenType } = await this.credentialsProvider.getCredentials({
       url: this.options.orgUrl
     });
-    const client = graphql.graphql.defaults({
+    const client = github.createGraphqlClient({
+      headers,
       baseUrl: this.options.gitHubConfig.apiBaseUrl,
-      headers
+      logger
     });
     const { org: org$1 } = util.parseGithubOrgUrl(this.options.orgUrl);
     const { users } = await github.getOrganizationUsers(
@@ -314,7 +315,7 @@ class GithubOrgEntityProvider {
         editTeamUrl: `${url}/edit`,
         combinedSlug: `${org}/${slug}`,
         description: description || void 0,
-        parentTeam: { slug: event.team?.parent?.slug || "" },
+        parentTeam: event.team?.parent?.slug ? { slug: event.team.parent.slug } : void 0,
         // entity will be removed
         members: []
       },

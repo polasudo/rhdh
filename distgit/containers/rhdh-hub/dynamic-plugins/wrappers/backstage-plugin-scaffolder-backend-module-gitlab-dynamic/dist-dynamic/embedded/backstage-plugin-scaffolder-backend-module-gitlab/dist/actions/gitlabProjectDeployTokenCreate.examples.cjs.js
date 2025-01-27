@@ -18,14 +18,15 @@ const examples = [
           input: {
             repoUrl: "gitlab.com?repo=repo&owner=owner",
             projectId: "456",
-            name: "tokenname"
+            name: "tokenname",
+            scopes: ["read_registry"]
           }
         }
       ]
     })
   },
   {
-    description: "Create a GitLab project deploy token with custom scopes.",
+    description: "Create a GitLab project deploy token with many custom scopes.",
     example: yaml__default.default.stringify({
       steps: [
         {
@@ -53,7 +54,8 @@ const examples = [
           input: {
             repoUrl: "gitlab.com?repo=repo&owner=owner",
             projectId: "101112",
-            name: "my-custom-token"
+            name: "my-custom-token",
+            scopes: ["read_registry"]
           }
         }
       ]
@@ -70,7 +72,8 @@ const examples = [
           input: {
             repoUrl: "gitlab.com?repo=repo&owner=owner",
             projectId: 42,
-            name: "tokenname"
+            name: "tokenname",
+            scopes: ["read_registry"]
           }
         }
       ]
@@ -88,7 +91,8 @@ const examples = [
             repoUrl: "gitlab.com?repo=repo&owner=owner",
             projectId: 42,
             name: "tokenname",
-            username: "tokenuser"
+            username: "tokenuser",
+            scopes: ["read_registry"]
           }
         }
       ]

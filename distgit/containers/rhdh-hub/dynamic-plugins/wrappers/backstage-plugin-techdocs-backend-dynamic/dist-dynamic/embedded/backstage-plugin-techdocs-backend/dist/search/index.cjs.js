@@ -1,7 +1,6 @@
 'use strict';
 
 require('@backstage/catalog-model');
-require('node-fetch');
 require('lodash/unescape');
 require('p-limit');
 require('@backstage/plugin-catalog-common/alpha');

@@ -1,7 +1,6 @@
 'use strict';
 
 var catalogModel = require('@backstage/catalog-model');
-var fetch = require('node-fetch');
 var unescape = require('lodash/unescape');
 var pLimit = require('p-limit');
 var alpha = require('@backstage/plugin-catalog-common/alpha');
@@ -10,7 +9,6 @@ var pluginTechdocsCommon = require('@backstage/plugin-techdocs-common');
 
 function _interopDefaultCompat (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }
 
-var fetch__default = /*#__PURE__*/_interopDefaultCompat(fetch);
 var unescape__default = /*#__PURE__*/_interopDefaultCompat(unescape);
 var pLimit__default = /*#__PURE__*/_interopDefaultCompat(pLimit);
 
@@ -70,7 +68,7 @@ class DefaultTechDocsCollator {
         );
         try {
           const { token: newToken } = await tokenManager.getToken();
-          const searchIndexResponse = await fetch__default.default(
+          const searchIndexResponse = await fetch(
             DefaultTechDocsCollator.constructDocsIndexUrl(
               techDocsBaseUrl,
               entityInfo

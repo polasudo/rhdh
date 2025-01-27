@@ -4,7 +4,6 @@ var backendCommon = require('@backstage/backend-common');
 var catalogClient = require('@backstage/catalog-client');
 var catalogModel = require('@backstage/catalog-model');
 var alpha = require('@backstage/plugin-catalog-common/alpha');
-var fetch = require('node-fetch');
 var pLimit = require('p-limit');
 var stream = require('stream');
 var defaultTechDocsCollatorEntityTransformer = require('./defaultTechDocsCollatorEntityTransformer.cjs.js');
@@ -12,7 +11,6 @@ var defaultTechDocsCollatorDocumentTransformer = require('./defaultTechDocsColla
 
 function _interopDefaultCompat (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }
 
-var fetch__default = /*#__PURE__*/_interopDefaultCompat(fetch);
 var pLimit__default = /*#__PURE__*/_interopDefaultCompat(pLimit);
 
 class DefaultTechDocsCollatorFactory {
@@ -100,7 +98,7 @@ class DefaultTechDocsCollatorFactory {
               onBehalfOf: await this.auth.getOwnServiceCredentials(),
               targetPluginId: "techdocs"
             });
-            const searchIndexResponse = await fetch__default.default(
+            const searchIndexResponse = await fetch(
               DefaultTechDocsCollatorFactory.constructDocsIndexUrl(
                 techDocsBaseUrl,
                 entityInfo

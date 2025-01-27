@@ -23,10 +23,12 @@ declare class GitLabDiscoveryProcessor implements CatalogProcessor {
     private readonly cache;
     private readonly skipReposWithoutExactFileMatch;
     private readonly skipForkedRepos;
+    private readonly includeArchivedRepos;
     static fromConfig(config: Config, options: {
         logger: LoggerService;
         skipReposWithoutExactFileMatch?: boolean;
         skipForkedRepos?: boolean;
+        includeArchivedRepos?: boolean;
     }): GitLabDiscoveryProcessor;
     private constructor();
     getProcessorName(): string;
@@ -241,6 +243,10 @@ type GitlabProviderConfig = {
      * If the project is a fork, skip repository
      */
     skipForkedRepos?: boolean;
+    /**
+     * If the project is archived, include repository
+     */
+    includeArchivedRepos?: boolean;
     /**
      * List of repositories to exclude from discovery, should be the full path to the repository, e.g. `group/project`
      * Paths should not start or end with a slash.

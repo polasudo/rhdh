@@ -36,6 +36,7 @@ function createGithubBranchProtectionAction(options) {
           requiredConversationResolution: inputProperties.requiredConversationResolution,
           requireLastPushApproval: inputProperties.requireLastPushApproval,
           requiredCommitSigning: inputProperties.requiredCommitSigning,
+          requiredLinearHistory: inputProperties.requiredLinearHistory,
           token: inputProperties.token
         }
       }
@@ -55,6 +56,7 @@ function createGithubBranchProtectionAction(options) {
         requiredConversationResolution = false,
         requireLastPushApproval = false,
         requiredCommitSigning = false,
+        requiredLinearHistory = false,
         token: providedToken
       } = ctx.input;
       const octokitOptions = await helpers.getOctokitOptions({
@@ -87,7 +89,8 @@ function createGithubBranchProtectionAction(options) {
         defaultBranch: branch ?? repository.data.default_branch,
         enforceAdmins,
         dismissStaleReviews,
-        requiredCommitSigning
+        requiredCommitSigning,
+        requiredLinearHistory
       });
     }
   });

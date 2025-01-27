@@ -1,6 +1,6 @@
 {
   "name": "@backstage/plugin-catalog-backend-module-gitlab-org",
-  "version": "0.2.2+embedded",
+  "version": "0.2.5+embedded",
   "description": "The gitlab-org backend module for the catalog plugin.",
   "backstage": {
     "role": "backend-plugin-module",
@@ -33,15 +33,21 @@
     "test": "backstage-cli package test"
   },
   "dependencies": {
-    "@backstage/plugin-catalog-backend-module-gitlab": "^0.4.4",
-    "@backstage/plugin-catalog-node": "^1.13.1"
+    "@backstage/plugin-catalog-backend-module-gitlab": "^0.6.2",
+    "@backstage/plugin-catalog-node": "^1.15.1"
   },
   "devDependencies": {},
+  "typesVersions": {
+    "*": {
+      "index": [
+        "dist/index.d.ts"
+      ]
+    }
+  },
   "private": true,
   "peerDependencies": {
-    "@backstage/backend-common": "^0.25.0",
-    "@backstage/backend-plugin-api": "^1.0.1",
-    "@backstage/plugin-events-node": "^0.4.2"
+    "@backstage/backend-plugin-api": "^1.1.1",
+    "@backstage/plugin-events-node": "^0.4.7"
   },
   "overrides": {
     "@aws-sdk/util-utf8-browser": {

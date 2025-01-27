@@ -1,11 +1,11 @@
 import * as _backstage_backend_plugin_api from '@backstage/backend-plugin-api';
-import { AuthService, LoggerService, SchedulerServiceTaskRunner, SchedulerService } from '@backstage/backend-plugin-api';
+import { DiscoveryService, AuthService, LoggerService, SchedulerServiceTaskRunner, SchedulerService } from '@backstage/backend-plugin-api';
 import * as _backstage_catalog_model from '@backstage/catalog-model';
 import { Entity, UserEntity } from '@backstage/catalog-model';
 import { CatalogApi } from '@backstage/catalog-client';
 import { GithubCredentialsProvider, ScmIntegrationRegistry, GithubIntegrationConfig } from '@backstage/integration';
 import { ScmLocationAnalyzer, AnalyzeOptions, CatalogProcessor, LocationSpec, CatalogProcessorEmit, EntityProvider, EntityProviderConnection } from '@backstage/plugin-catalog-node';
-import { PluginEndpointDiscovery, TokenManager } from '@backstage/backend-common';
+import { TokenManager } from '@backstage/backend-common';
 import { Config } from '@backstage/config';
 import { graphql } from '@octokit/graphql';
 import { EventSubscriber, EventsService, EventParams } from '@backstage/plugin-events-node';
@@ -20,7 +20,7 @@ declare const githubCatalogModule: _backstage_backend_plugin_api.BackendFeature;
 /** @public */
 type GithubLocationAnalyzerOptions = {
     config: Config;
-    discovery: PluginEndpointDiscovery;
+    discovery: DiscoveryService;
     tokenManager?: TokenManager;
     auth?: AuthService;
     githubCredentialsProvider?: GithubCredentialsProvider;

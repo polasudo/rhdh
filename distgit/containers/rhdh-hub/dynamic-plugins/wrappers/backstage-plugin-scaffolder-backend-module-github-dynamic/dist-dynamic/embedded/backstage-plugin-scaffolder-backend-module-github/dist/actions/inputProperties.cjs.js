@@ -240,6 +240,11 @@ const requiredCommitSigning = {
   type: "boolean",
   description: `Require commit signing so that you must sign commits on this branch.`
 };
+const requiredLinearHistory = {
+  title: "Require linear history",
+  type: "boolean",
+  description: `Prevent merge commits from being pushed to matching branches.`
+};
 const repoVariables = {
   title: "Repository Variables",
   description: `Variables attached to the repository`,
@@ -276,6 +281,11 @@ const customProperties = {
   description: "Custom properties to be added to the repository (note, this only works for organization repositories)",
   type: "object"
 };
+const subscribe = {
+  title: "Subscribe to repository",
+  description: `Subscribe to the repository. The default value is 'false'`,
+  type: "boolean"
+};
 
 exports.access = access;
 exports.allowAutoMerge = allowAutoMerge;
@@ -308,12 +318,14 @@ exports.requireLastPushApproval = requireLastPushApproval;
 exports.requiredApprovingReviewCount = requiredApprovingReviewCount;
 exports.requiredCommitSigning = requiredCommitSigning;
 exports.requiredConversationResolution = requiredConversationResolution;
+exports.requiredLinearHistory = requiredLinearHistory;
 exports.requiredStatusCheckContexts = requiredStatusCheckContexts;
 exports.restrictions = restrictions;
 exports.secrets = secrets;
 exports.sourcePath = sourcePath;
 exports.squashMergeCommitMessage = squashMergeCommitMessage;
 exports.squashMergeCommitTitle = squashMergeCommitTitle;
+exports.subscribe = subscribe;
 exports.token = token;
 exports.topics = topics;
 //# sourceMappingURL=inputProperties.cjs.js.map

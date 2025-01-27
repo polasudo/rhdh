@@ -71,6 +71,28 @@ class DatabaseNotificationsStore {
       }
     }));
   };
+  mapToNotificationSettings = (rows) => {
+    return rows.reduce(
+      (acc, row) => {
+        let chan = acc.channels.find(
+          (channel) => channel.id === row.channel
+        );
+        if (!chan) {
+          acc.channels.push({
+            id: row.channel,
+            origins: []
+          });
+          chan = acc.channels[acc.channels.length - 1];
+        }
+        chan.origins.push({
+          id: row.origin,
+          enabled: Boolean(row.enabled)
+        });
+        return acc;
+      },
+      { channels: [] }
+    );
+  };
   mapNotificationToDbRow = (notification) => {
     return {
       id: notification.id,
@@ -212,7 +234,7 @@ class DatabaseNotificationsStore {
     if (!rows || rows.length === 0) {
       return null;
     }
-    return rows[0];
+    return this.mapToNotifications(rows)[0];
   }
   async getExistingScopeBroadcast(options) {
     const query = this.db("broadcast").where("scope", options.scope).where("origin", options.origin).limit(1);
@@ -220,7 +242,7 @@ class DatabaseNotificationsStore {
     if (!rows || rows.length === 0) {
       return null;
     }
-    return rows[0];
+    return this.mapToNotifications(rows)[0];
   }
   async restoreExistingNotification({
     id,
@@ -269,7 +291,9 @@ class DatabaseNotificationsStore {
         ).onConflict(["broadcast_id", "user"]).merge(["read", "saved"]);
       } else {
         for (const b of broadcasts) {
-          const baseQuery = this.db("broadcast_user_status").where("broadcast_id", b.id).where("user", user);
+          const baseQuery = this.db(
+            "broadcast_user_status"
+          ).where("broadcast_id", b.id).where("user", user);
           const exists = await baseQuery.clone().limit(1).select().first();
           if (exists) {
             await baseQuery.clone().update({ read, saved });
@@ -290,6 +314,41 @@ class DatabaseNotificationsStore {
   }
   async markUnsaved(options) {
     await this.markReadSaved(options.ids, options.user, void 0, null);
+  }
+  async getUserNotificationOrigins(options) {
+    const rows = await this.db(
+      "notification"
+    ).where("user", options.user).select("origin").distinct();
+    return { origins: rows.map((row) => row.origin) };
+  }
+  async getNotificationSettings(options) {
+    const settingsQuery = this.db("user_settings").where(
+      "user",
+      options.user
+    );
+    if (options.origin) {
+      settingsQuery.where("origin", options.origin);
+    }
+    if (options.channel) {
+      settingsQuery.where("channel", options.channel);
+    }
+    const settings = await settingsQuery.select();
+    return this.mapToNotificationSettings(settings);
+  }
+  async saveNotificationSettings(options) {
+    const rows = [];
+    options.settings.channels.map((channel) => {
+      channel.origins.map((origin) => {
+        rows.push({
+          user: options.user,
+          channel: channel.id,
+          origin: origin.id,
+          enabled: origin.enabled
+        });
+      });
+    });
+    await this.db("user_settings").where("user", options.user).delete();
+    await this.db("user_settings").insert(rows);
   }
 }
 

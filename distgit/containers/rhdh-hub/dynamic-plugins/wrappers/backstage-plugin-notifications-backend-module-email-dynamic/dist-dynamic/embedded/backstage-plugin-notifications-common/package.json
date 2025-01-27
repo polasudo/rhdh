@@ -1,6 +1,6 @@
 {
   "name": "@backstage/plugin-notifications-common",
-  "version": "0.0.6+embedded",
+  "version": "0.0.8+embedded",
   "description": "Common functionalities for the notifications plugin",
   "backstage": {
     "role": "common-library",
@@ -52,7 +52,7 @@
   "module": "dist/index.esm.js",
   "private": true,
   "peerDependencies": {
-    "@backstage/config": "^1.3.0"
+    "@backstage/config": "^1.3.2"
   },
   "overrides": {
     "@aws-sdk/util-utf8-browser": {
