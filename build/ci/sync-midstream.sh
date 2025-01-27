@@ -106,7 +106,7 @@ while [[ "$#" -gt 0 ]]; do
   '--force')
     FORCE="-f"
     #shellcheck disable=SC2044
-    for d in $(find "${ROOTPATH}"/sync/ -type f); do echo "" > $d; done
+    for d in $(find "${ROOTPATH}"/sync/ -type f); do echo "" > "$d"; done
     shift 1
     ;;
   '--clean')
@@ -995,7 +995,7 @@ for d in $these_dirs; do
     done
     set -e
     
-    if [[ -f Dockerfile.in ]] then 
+    if [[ -f Dockerfile.in ]]; then 
       echo "Regen Containerfile from Dockerfile.in [$d] ..."
       sed -r -e 's|\$\{CI_X_VERSION\}\.\$\{CI_Y_VERSION\}|'"$DH_VERSION"'|g' Dockerfile.in > Dockerfile
     fi
