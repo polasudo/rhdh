@@ -98,11 +98,17 @@ exit
 
 # break if not logged in
 if [[ $(oc whoami 2>&1 || true) == *"You must be logged in"* ]]; then 
-  echo; echo "You must be logged into the konflux console!"; echo
-  usage
+  echo -e "\n[ERROR] You must be logged into the konflux console!\n"; usage
 else
   oc project rhdh-tenant >/dev/null 2>&1 || true
 fi
+
+# break if opm v1.47.0 or newer not installed
+opmversion=$(opm version | sed -r -e "s@.+OpmVersion:\"([0-9a-fv.]+)\".+@\1@")
+if [[ $opmversion != *"."* ]]; then echo -e "\n[ERROR] OPM version $opmversion is too old. You must install opm v1.47.0 or newer from https://github.com/operator-framework/operator-registry/releases/tag/v1.47.0 to continue.\n"; usage; fi
+vergte "${opmversion}" "1.47.0" && \
+  echo "opm version $opmversion found" || \
+  { echo -e "\n[ERROR] OPM version $opmversion is too old. You must install opm v1.47.0 or newer from https://github.com/operator-framework/operator-registry/releases/tag/v1.47.0 to continue.\n"; usage; }
 
 if [[ $# -lt 1 ]]; then usage; fi
 
