@@ -19,17 +19,33 @@ bundle_image="quay.io/rhdh/rhdh-operator-bundle"
 maintainers="RHDH Team <rhdh-bot@redhat.com>"
 templateFileInput=""
 
+# eg., rhdh-1.5-rhel-9
+latestStableBranch="$(curl -sSLk --url "https://gitlab.cee.redhat.com/api/v4/projects/rhidp%2Frhdh/repository/branches?per_page=200&regex=^rhdh-1..*-rhel-9$" | jq -r '.[].name' | sort -uV | tail -1)"; # echo $latestStableBranch
+
 DWNSTM_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "rhdh-1-rhel-9")
 latestNextExample=""
 if [[ ${DWNSTM_BRANCH} == "rhdh-"*"-rhel-"* ]]; then 
   if [[ $DWNSTM_BRANCH == "rhdh-1-rhel-9" ]]; then
     latestNextExample="--next"
-  else
+  elif [[ "$DWNSTM_BRANCH" == "${latestStableBranch}" ]]; then # latest stable branch
     latestNextExample="--latest"
   fi
 fi
 
-RHDH_VERSION="1.5.0"; # latestNextExample=""
+norm="\033[0;39m"
+green="\033[1;32m"
+blue="\033[1;34m"
+red="\033[1;31m"
+
+SCRIPT_DIR=$(cd "$(dirname "$0")" || exit; pwd)
+ROOT_DIR=$(cd "$SCRIPT_DIR"/../../ || exit; pwd)
+
+if [[ -f ${ROOT_DIR}/distgit/containers/rhdh-hub/package.json ]]; then
+  RHDH_VERSION="$(jq -r '.version' "${ROOT_DIR}/distgit/containers/rhdh-hub/package.json")"
+else
+RHDH_VERSION="1.y.z"
+fi
+
 OCP_VERSIONS="4.14 4.15 4.16 4.17 4.18"
 
 DO_COMMIT=1 # by default, commit change
@@ -73,17 +89,8 @@ Options:
 Examples:
     oc login --token=<your-token-here> --server=https://api.<your-cluster-here>.openshiftapps.com:6443
 
-    RHDH_VERSION="$RHDH_VERSION"; \\
-    for OCP_VERSION in $OCP_VERSIONS; do \\
-      $0 $latestNextExample --clean --versions "\${OCP_VERSION}" -v "\${RHDH_VERSION}"; \\
-      echo 'Sleep 1 min to avoid tag collisions (KONFLUX-5865)'; sleep 60s; echo; \\
-    done
-    # until 4.18 is live, copy the catalog from 4.17
-    cp -f catalogs/v4.{17,18}/catalog-template.json
-    OCP_VERSION=4.18
-    $0 $latestNextExample --clean --versions "\${OCP_VERSION}" -v "\${RHDH_VERSION}" --template "catalogs/v\${OCP_VERSION}/catalog-template.json"
-
-    # OR, if all your templates are the same: render one template, and then copy it for the other 4 versions
+    # If all your templates are the same - that is, the same versions of operator-bundles exist on all OCP versions), 
+    # you can render one template from the public index, and then copy it for the other OCP versions
 
     RHDH_VERSION="$RHDH_VERSION"
     OCP_VERSION=4.14
@@ -97,10 +104,12 @@ exit
 }
 
 # break if not logged in
-if [[ $(oc whoami 2>&1 || true) == *"You must be logged in"* ]]; then 
-  echo -e "\n[ERROR] You must be logged into the konflux console!\n"; usage
+if [[ $(oc whoami 2>&1 || true) == *"You must be logged in"* ]] || [[ $(oc whoami 2>&1 || true) == *"cannot get resource"* ]]; then 
+  echo; echo -e "${red}[ERROR] You must be logged into the konflux console!${norm}"; echo
+  usage
 else
-  oc project rhdh-tenant >/dev/null 2>&1 || true
+  oc project rhdh-tenant >/dev/null 2>&1 || { echo -e "${red}[ERROR] You must have access to the rhdh-tenant namespace!${norm}"; echo; usage; }
+  oc -n rhdh-tenant get PipelineRuns >/dev/null 2>&1 || { echo -e "${red}[ERROR] Cannot load PipelineRuns from rhdh-tenant namespace. Are you logged into the correct konflux console?${norm}"; echo; usage; }
 fi
 
 # check if $1 is greater than or equal to $2
@@ -134,16 +143,16 @@ done
 
 # break if opm 1.47.0 or newer not installed
 opmversion=$(opm version | sed -r -e "s@.+OpmVersion:\"([0-9a-fv.]+)\".+@\1@" | tr -d "v")
-if [[ $opmversion != *"."* ]]; then echo -e "\n[ERROR] OPM version $opmversion is too old. You must install opm v1.47.0 or newer from https://github.com/operator-framework/operator-registry/releases/tag/v1.47.0 to continue.\n"; usage; fi
+if [[ $opmversion != *"."* ]]; then echo -e "\n${red}[ERROR] OPM version $opmversion is too old. You must install opm v1.47.0 or newer from https://github.com/operator-framework/operator-registry/releases/tag/v1.47.0 to continue.${norm}\n"; usage; fi
 if vergte "${opmversion}" "1.47.0"; then
   # echo "opm version $opmversion found"
   true
 else
-  echo -e "\n[ERROR] OPM version $opmversion is too old. You must install opm 1.47.0 or newer from https://github.com/operator-framework/operator-registry/releases/tag/v1.47.0 to continue.\n"; usage;
+  echo -e "\n${red}[ERROR] OPM version $opmversion is too old. You must install opm 1.47.0 or newer from https://github.com/operator-framework/operator-registry/releases/tag/v1.47.0 to continue.${norm}\n"; usage;
 fi
 
 if [[ $templateFileInput ]] && [[ ! -f $templateFileInput ]]; then
-  echo "[ERROR] Could not find template file $templateFileInput !"; echo; usage 
+  echo -e "${red}[ERROR] Could not find template file $templateFileInput !${norm}"; echo; usage 
 fi
 
 PROD_VERSION=${PROD_FULL_VERSION%.*} # x.y
@@ -168,13 +177,13 @@ for OCP_VERSION in ${OCP_VERSIONS}; do
     # eg., for 1.4.0 want to replace 1.3.1 (last released item on the fast channel)
     # but for 1.3.4, want to replace 1.3.3 (not 1.4.0) so filter by PROD_VERSION
     PROD_PREV_VERSION=$(jq -r '.entries[]|select(.name=="fast")|.entries[]|select(.name|contains("'"$PROD_VERSION"'"))|.name' "${templateFile}" | tail -1)
-    echo "[DEBUG] Got last PROD_PREV_VERSION of $PROD_VERSION in fast channel = $PROD_PREV_VERSION" # last released 1.3.z version in fast channel = 1.3.3
+    echo -e "${blue}[DEBUG] Got last PROD_PREV_VERSION of $PROD_VERSION in fast channel = ${PROD_PREV_VERSION}${norm}" # last released 1.3.z version in fast channel = 1.3.3
     if [[ $PROD_PREV_VERSION ]] && [[ $PROD_PREV_VERSION != "null" ]]; then 
       # update "replaces": "rhdh-operator.v1.3.3" ==> "replaces": "rhdh-operator.v1.3.4"
       sed -r -e 's@"replaces": "'"$PROD_PREV_VERSION"'"@"replaces": "'"${operator_name}"'.v'"${PROD_FULL_VERSION}"'"@' -i "${templateFile}"
     else 
       PROD_LAST_VERSION=$(jq -r '.entries[]|select(.name=="fast")|.entries|last|.name' "${templateFile}")
-      echo "[DEBUG] Got last PROD_LAST_VERSION in fast channel = $PROD_LAST_VERSION" # last released version in fast channel = 1.4.0
+      echo -e "${blue}[DEBUG] Got last PROD_LAST_VERSION in fast channel = ${PROD_LAST_VERSION}${norm}" # last released version in fast channel = 1.4.0
       PROD_PREV_VERSION="${PROD_LAST_VERSION}"
     fi
 
@@ -213,7 +222,7 @@ for OCP_VERSION in ${OCP_VERSIONS}; do
 
     # latest CI build
     bundle_digest=$(skopeo inspect "docker://${bundle_image}:$PROD_VERSION" | jq -r '.Digest')
-    echo "Got $bundle_image@$bundle_digest"
+    echo -e "${green}Got $bundle_image@$bundle_digest${norm}"
     ./build/scripts/getTagForSHA.sh "$bundle_image@$bundle_digest" -y -q
 
     # inject new bundle
@@ -312,28 +321,28 @@ EOF
     git push origin "${DWNSTM_BRANCH}" >/dev/null 2>&1
     echo
     waitTime="20"
-    echo -n "Waiting ${waitTime}s for new pipeline to trigger from the above commit and push"
-    for ((i = 0; i < waitTime; ++i)); do sleep 1s; echo -n "."; done; echo
+    echo -n -e "${blue}Waiting ${waitTime}s for new pipeline to trigger from the above commit and push${norm}"
+    for ((i = 0; i < waitTime; ++i)); do sleep 1s; echo -n -e "{$blue}.${norm}"; done; echo
     oc -n rhdh-tenant get PipelineRuns --sort-by=.metadata.creationTimestamp --selector='pipelinesascode.tekton.dev/original-prname=fbc-'"${OCP_VERSION/./-}"'-on-push' -o yaml > "/tmp/fbc-pipelineruns-${OCP_VERSION}.yaml"
     # debugging
-    echo "Found pipeline run(s):"
-    echo -e "timestamp\t\tmidstreamCommitSHA\t\t\t\tpipelinerunURL"
+    echo -e "${green}Found pipeline run(s):${norm}"
+    echo -e "${blue}timestamp\t\tmidstreamCommitSHA\t\t\t\tpipelinerunURL${blue}"
     yq -r '.items[]|select(.metadata.annotations."pipelinesascode.tekton.dev/branch" == "'"${DWNSTM_BRANCH}"'")|select(.metadata.annotations."pipelinesascode.tekton.dev/state" != "completed")|.status.conditions[0].lastTransitionTime + "\t" + .metadata.annotations."pipelinesascode.tekton.dev/sha" + "\t" + .metadata.annotations."pipelinesascode.tekton.dev/log-url"' "/tmp/fbc-pipelineruns-${OCP_VERSION}.yaml"  | tail -3
 
     # choose the latest run
     pipelinerun=$(yq -r '.items[]|select(.metadata.annotations."pipelinesascode.tekton.dev/branch" == "'"${DWNSTM_BRANCH}"'")|select(.metadata.annotations."pipelinesascode.tekton.dev/state" != "completed")|.metadata.annotations."pipelinesascode.tekton.dev/log-url"' "/tmp/fbc-pipelineruns-${OCP_VERSION}.yaml" | tail -1)
     if [[ $pipelinerun ]] && [[ $pipelinerun != "null" ]]; then
       PIPELINE_URL="$pipelinerun"
-      echo -e "\nRunning in $PIPELINE_URL"
+      echo -e "\n${green}Running in $PIPELINE_URL${green}"
     else
       PIPELINE_URL="https://konflux.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/application-pipeline/workspaces/rhdh/applications/fbc-${OCP_VERSION/./-}/activity/pipelineruns"
-      echo -e "\nPipelinerun not found for branch = $DWNSTM_BRANCH - see running pipelineruns at $PIPELINE_URL"
+      echo -e "\n${blue}Pipelinerun not found for branch = $DWNSTM_BRANCH - see running pipelineruns at $PIPELINE_URL${norm}"
     fi
     # open a browser to watch the release
     if [[ $(command -v google-chrome) == *"google-chrome"* ]] || [[ $(which google-chrome) != *"which: no google-chrome"* ]]; then google-chrome "$PIPELINE_URL"; fi
     echo "-----------------------------------------------------------------------"
     echo
     rm -f "/tmp/fbc-pipelineruns-${OCP_VERSION}.yaml"
-  fi 
+  fi
 done
 

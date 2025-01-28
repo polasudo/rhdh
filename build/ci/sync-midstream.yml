@@ -16,8 +16,8 @@ sync-midstream:
 
       # sync, build and commit changes
       latestNext=""
-      latestStableBranch="$(curl -sSLk --header "PRIVATE-TOKEN: $PRIVATE_TOKEN" --url "https://gitlab.cee.redhat.com/api/v4/projects/rhidp%2Frhdh/repository/branches" | \
-        jq -r '.[].name' | grep -v "rhdh-1-rhel-9" | sort -Vr | head -1)" # rhdh-1.4-rhel-9
+      latestStableBranch="$(curl -sSLk --header "PRIVATE-TOKEN: $PRIVATE_TOKEN" --url "https://gitlab.cee.redhat.com/api/v4/projects/rhidp%2Frhdh/repository/branches?per_page=200&regex=^rhdh-1..*-rhel-9$" | \
+        jq -r '.[].name' | sort -uV | tail -1)" # rhdh-1.5-rhel-9
       echo "latestStableBranch = $latestStableBranch" 
       if [[ "$CI_COMMIT_REF_NAME" == "rhdh-1-rhel-9" ]]; then # next CI branch
         latestNext="--next"
