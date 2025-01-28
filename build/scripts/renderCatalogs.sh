@@ -182,7 +182,7 @@ for OCP_VERSION in ${OCP_VERSIONS}; do
       # update "replaces": "rhdh-operator.v1.3.3" ==> "replaces": "rhdh-operator.v1.3.4"
       sed -r -e 's@"replaces": "'"$PROD_PREV_VERSION"'"@"replaces": "'"${operator_name}"'.v'"${PROD_FULL_VERSION}"'"@' -i "${templateFile}"
     else 
-      PROD_LAST_VERSION=$(jq -r '.entries[]|select(.name=="fast")|.entries|last|.name' "${templateFile}")
+      PROD_LAST_VERSION=$(jq -r '.entries[]|select(.name=="fast")|.entries[].name' "${templateFile}" | sort -uV | tail -1)
       echo -e "${blue}[DEBUG] Got last PROD_LAST_VERSION in fast channel = ${PROD_LAST_VERSION}${norm}" # last released version in fast channel = 1.4.0
       PROD_PREV_VERSION="${PROD_LAST_VERSION}"
     fi
