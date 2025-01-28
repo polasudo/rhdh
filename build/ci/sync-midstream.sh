@@ -981,8 +981,9 @@ if [[ $BUNDLEONLY -eq 1 ]]; then
 else
   these_dirs="distgit/containers/rhdh-hub distgit/containers/rhdh-operator" # distgit/containers/rhdh-operator-bundle
 fi
+set -x
 for d in $these_dirs; do
-  echo "[INFO] Remove generated/ignored content"
+  echo "[INFO] Remove generated/ignored content from $d/"
   pushd "$d" >/dev/null || exit 1
     set +e
     # shellcheck disable=SC2086
@@ -1004,8 +1005,9 @@ for d in $these_dirs; do
     done
     set -e
     
+    set -x
     if [[ -f Dockerfile.in ]]; then 
-      echo "Regen Containerfile from Dockerfile.in [$d] ..."
+      echo "[INFO] Regen Containerfile from Dockerfile.in [$(pwd), ${d}] ..."
       sed -r -e 's|\$\{CI_X_VERSION\}\.\$\{CI_Y_VERSION\}|'"$DH_VERSION"'|g' Dockerfile.in > Dockerfile
     fi
 
@@ -1016,7 +1018,7 @@ for d in $these_dirs; do
       cp -f "$TMPDIR/repo0/docker/Dockerfile" Containerfile
     elif [[ $d == "distgit/containers/rhdh-operator" ]]; then
       # for operator use the transformed Dockerfile.in with the correct LABEL and ENV  values
-      cp -f Dockerfile.in Containerfile
+      cp -f Dockerfile Containerfile
     elif [[ $d == "distgit/containers/rhdh-operator-bundle" ]]; then
       # for bundle use the downstream OSBS Dockerfile with the correct LABEL and ENV  values
       cp -f Dockerfile Containerfile
@@ -1027,6 +1029,7 @@ for d in $these_dirs; do
       cat "$TMPDIR/${d##*rhdh-}.Dockerfile.foot" >> Containerfile
       sed -r -e 's|\$\{CI_X_VERSION\}\.\$\{CI_Y_VERSION\}|'"$DH_VERSION"'|g' -i "Containerfile"
     fi
+    set +x
 
     ##################################### set NVR values for Konflux #####################################
     # remove release= value from Dockerfile (OSBS creates this)
