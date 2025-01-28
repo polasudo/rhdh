@@ -326,14 +326,14 @@ EOF
     oc -n rhdh-tenant get PipelineRuns --sort-by=.metadata.creationTimestamp --selector='pipelinesascode.tekton.dev/original-prname=fbc-'"${OCP_VERSION/./-}"'-on-push' -o yaml > "/tmp/fbc-pipelineruns-${OCP_VERSION}.yaml"
     # debugging
     echo -e "${green}Found pipeline run(s):${norm}"
-    echo -e "${blue}timestamp\t\tmidstreamCommitSHA\t\t\t\tpipelinerunURL${blue}"
+    echo -e "${blue}timestamp\t\tmidstreamCommitSHA\t\t\t\tpipelinerunURL${norm}"
     yq -r '.items[]|select(.metadata.annotations."pipelinesascode.tekton.dev/branch" == "'"${DWNSTM_BRANCH}"'")|select(.metadata.annotations."pipelinesascode.tekton.dev/state" != "completed")|.status.conditions[0].lastTransitionTime + "\t" + .metadata.annotations."pipelinesascode.tekton.dev/sha" + "\t" + .metadata.annotations."pipelinesascode.tekton.dev/log-url"' "/tmp/fbc-pipelineruns-${OCP_VERSION}.yaml"  | tail -3
 
     # choose the latest run
     pipelinerun=$(yq -r '.items[]|select(.metadata.annotations."pipelinesascode.tekton.dev/branch" == "'"${DWNSTM_BRANCH}"'")|select(.metadata.annotations."pipelinesascode.tekton.dev/state" != "completed")|.metadata.annotations."pipelinesascode.tekton.dev/log-url"' "/tmp/fbc-pipelineruns-${OCP_VERSION}.yaml" | tail -1)
     if [[ $pipelinerun ]] && [[ $pipelinerun != "null" ]]; then
       PIPELINE_URL="$pipelinerun"
-      echo -e "\n${green}Running in $PIPELINE_URL${green}"
+      echo -e "\n${green}Running in $PIPELINE_URL${norm}"
     else
       PIPELINE_URL="https://konflux.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/application-pipeline/workspaces/rhdh/applications/fbc-${OCP_VERSION/./-}/activity/pipelineruns"
       echo -e "\n${blue}Pipelinerun not found for branch = $DWNSTM_BRANCH - see running pipelineruns at $PIPELINE_URL${norm}"
