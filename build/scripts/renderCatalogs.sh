@@ -43,7 +43,7 @@ ROOT_DIR=$(cd "$SCRIPT_DIR"/../../ || exit; pwd)
 if [[ -f ${ROOT_DIR}/distgit/containers/rhdh-hub/package.json ]]; then
   RHDH_VERSION="$(jq -r '.version' "${ROOT_DIR}/distgit/containers/rhdh-hub/package.json")"
 else
-RHDH_VERSION="1.y.z"
+  RHDH_VERSION="1.y.z"
 fi
 
 OCP_VERSIONS="4.14 4.15 4.16 4.17 4.18"
