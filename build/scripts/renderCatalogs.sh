@@ -322,7 +322,7 @@ EOF
     echo
     waitTime="20"
     echo -n -e "${blue}Waiting ${waitTime}s for new pipeline to trigger from the above commit and push${norm}"
-    for ((i = 0; i < waitTime; ++i)); do sleep 1s; echo -n -e "{$blue}.${norm}"; done; echo
+    for ((i = 0; i < waitTime; ++i)); do sleep 1s; echo -n -e "${blue}.${norm}"; done; echo
     oc -n rhdh-tenant get PipelineRuns --sort-by=.metadata.creationTimestamp --selector='pipelinesascode.tekton.dev/original-prname=fbc-'"${OCP_VERSION/./-}"'-on-push' -o yaml > "/tmp/fbc-pipelineruns-${OCP_VERSION}.yaml"
     # debugging
     echo -e "${green}Found pipeline run(s):${norm}"
