@@ -11,7 +11,6 @@
 
 # see also .gitlab-ci.yml and upstream_repos.yml
 
-# set -x
 set -e
 
 SCRIPT=$(readlink -f "$0")
@@ -24,6 +23,7 @@ DO_BUILD=1  # fetch, transform, then build by default; use this to disable build
 DO_COMMIT=1 # by default, commit change
 DO_PUSH=1   # push the commit
 GITLAB_PIPELINE="" # set "true" when running inside a gitlab pipeline to override default git push settings
+CONTAINER_NUDGE="" # set  to tru when running inside a containerfile to skip git processes
 
 TMPDIR=/tmp
 
@@ -75,7 +75,7 @@ Options:
     --gitlab-pipeline-push    use this flag to push changes when running inside a gitlab pipeline
     -b DWNSTM_BRANCH          downstream branch to update w/ latest SHA; default: '$DWNSTM_BRANCH'
     --latest, --next          in addition to :1.y and :1.y-zz image tags, also create a :latest or :next tag 
-    -y                        build and push to current branch, $(git branch --show-current), using all defaults
+    -y                        build and push to current branch, $(git branch --show-current || true), using all defaults
 
 Examples:
 
@@ -106,7 +106,7 @@ while [[ "$#" -gt 0 ]]; do
   '--force')
     FORCE="-f"
     #shellcheck disable=SC2044
-    for d in $(find "${ROOTPATH}"/sync/ -type f); do echo "" > "$d"; done
+    if [[ "${ROOTPATH}" ]]; then for d in $(find "${ROOTPATH}"/sync/ -type f); do echo "" > "$d"; done; fi
     shift 1
     ;;
   '--clean')
@@ -137,7 +137,7 @@ while [[ "$#" -gt 0 ]]; do
     shift 1
     ;;
   '-y')
-    DWNSTM_BRANCH="$(git branch --show-current)"
+    DWNSTM_BRANCH="$(git branch --show-current || true)"
     DO_BUILD=1
     DO_COMMIT=1
     DO_PUSH=1
@@ -146,6 +146,13 @@ while [[ "$#" -gt 0 ]]; do
   '--gitlab-pipeline-push')
     DO_PUSH=0
     GITLAB_PIPELINE="true"
+    shift 1
+    ;;
+  '--container-nudge')
+    DO_BUILD=0
+    DO_PUSH=0
+    DO_COMMIT=0
+    CONTAINER_NUDGE="true"
     shift 1
     ;;
   '-h' | '--help')
@@ -177,6 +184,7 @@ BUNDLEONLY=$BUNDLEONLY
 DO_COMMIT=$DO_COMMIT
 DO_PUSH=$DO_PUSH
 GITLAB_PIPELINE=$GITLAB_PIPELINE
+CONTAINER_NUDGE=$CONTAINER_NUDGE
 #################################"
 
 set -e
@@ -773,15 +781,16 @@ fi
 
 # build the plugins
 if [[ $DO_BUILD -eq 0 ]]; then
-  destination_folder="distgit/containers/rhdh-hub"
-  pushd $destination_folder >/dev/null || exit 1
-    #shellcheck disable=SC2044
-    YARN=$(which yarn)
-    export YARN
-    # TODO do we still need these yarn 1 leftovers?
-    # $YARN config set enableStrictSsl false
-    # $YARN config set httpTimeout 600000
-  popd >/dev/null || exit 1
+  # TODO do we still need these yarn 1 leftovers?
+  # destination_folder="distgit/containers/rhdh-hub"
+  # pushd $destination_folder >/dev/null || exit 1
+  #   #shellcheck disable=SC2044
+  #   YARN=$(which yarn)
+  #   export YARN
+  #   $YARN config set enableStrictSsl false
+  #   $YARN config set httpTimeout 600000
+  # popd >/dev/null || exit 1
+  true
 else
   destination_folder="distgit/containers/rhdh-hub"
   pushd $destination_folder >/dev/null || exit 1
@@ -1052,38 +1061,48 @@ for d in $these_dirs; do
   popd >/dev/null || exit 1
 done
 
+
+# revert local changes if running locally or in gitlab, but skip if inside a Containerfile build
+revertFiles() {
+  d="$1"
+  if [[ -f $d ]] || [[ -d $d ]]; then git restore --staged "$d"; git restore "$d"; fi
+}
+
 # revert any local changes to the hub so we don't accidentally push in changes from upstream without first running a yarn build
 # want to keep changes to distgit/containers/rhdh-hub/packages/app/src/build-metadata.json ! 
-if [[ $BUNDLEONLY -eq 1 ]]; then
-  for d in \
-    distgit/containers/rhdh-hub/ \
-    distgit/containers/rhdh-operator/ \
-    sync/upstream_SHA_rhdh-hub \
-    sync/upstream_SHA_rhdh-operator \
-    ; do git restore --staged $d; git restore $d
-  done
-  rm -fr distgit/containers/rhdh-operator/.rhdh/
-else
-  if [[ $DO_BUILD -eq 0 ]]; then
+if [[ $CONTAINER_NUDGE != "true" ]]; then
+  if [[ $BUNDLEONLY -eq 1 ]]; then
     for d in \
-      distgit/containers/rhdh-hub/dynamic-plugins/ \
-      distgit/containers/rhdh-hub/e2e-tests/ \
-      distgit/containers/rhdh-hub/packages/app/public/ \
-      distgit/containers/rhdh-hub/packages/backend/ \
-      distgit/containers/rhdh-hub/yarn.lock \
-      ; do git restore --staged $d; git restore $d
+      distgit/containers/rhdh-hub/ \
+      distgit/containers/rhdh-operator/ \
+      distgit/containers/rhdh-operator-bundle/bundle.Dockerfile \
+      sync/upstream_SHA_rhdh-hub \
+      sync/upstream_SHA_rhdh-operator \
+      ; do revertFiles "$d"
     done
-  fi
-  for d in \
-    distgit/containers/rhdh-operator-bundle/ \
-    sync/upstream_SHA_rhdh-operator-bundle \
-    ; do git restore --staged $d; git restore $d
-  done
-  if [[ $(git diff --name-only distgit/containers/rhdh-hub) == "distgit/containers/rhdh-hub/Containerfile" ]]; then # revert the single change to bump the version
-    d="distgit/containers/rhdh-hub/Containerfile"; git restore --staged $d; git restore $d
-  fi
-  if [[ $(git diff --name-only distgit/containers/rhdh-operator) == "distgit/containers/rhdh-operator/Containerfile" ]]; then # revert the single change to bump the version
-    d="distgit/containers/rhdh-operator/Containerfile"; git restore --staged $d; git restore $d
+    rm -fr distgit/containers/rhdh-operator/.rhdh/
+  else
+    if [[ $DO_BUILD -eq 0 ]]; then
+      for d in \
+        distgit/containers/rhdh-hub/dynamic-plugins/ \
+        distgit/containers/rhdh-hub/e2e-tests/ \
+        distgit/containers/rhdh-hub/packages/app/public/ \
+        distgit/containers/rhdh-hub/packages/backend/ \
+        distgit/containers/rhdh-hub/yarn.lock \
+        ; do revertFiles "$d"
+      done
+    fi
+    for d in \
+      distgit/containers/rhdh-operator-bundle/ \
+      sync/upstream_SHA_rhdh-operator-bundle \
+      ; do revertFiles "$d"
+    done
+    if [[ $(git diff --name-only distgit/containers/rhdh-hub) == "distgit/containers/rhdh-hub/Containerfile" ]]; then # revert the single change to bump the version
+      revertFiles "distgit/containers/rhdh-hub/Containerfile"
+    fi
+    if [[ $(git diff --name-only distgit/containers/rhdh-operator) == "distgit/containers/rhdh-operator/Containerfile" ]]; then # revert the single change to bump the version
+      revertFiles "distgit/containers/rhdh-operator/Containerfile"
+    fi
   fi
 fi
 
@@ -1104,6 +1123,7 @@ for d in \
   distgit/containers/rhdh-operator-bundle/Dockerfile.in \
   distgit/containers/rhdh-operator-bundle/docker/Dockerfile \
   distgit/containers/rhdh-operator-bundle/docker/Dockerfile.in \
+  distgit/containers/rhdh-operator-bundle/bundle.Dockerfile \
   ; do git rm -fr $d >/dev/null 2>&1 || rm -fr $d >/dev/null 2>&1 
 done
 
@@ -1112,7 +1132,9 @@ done
 # concurrency=6 crashes the build, so use 4
 # +    "export-dynamic": "turbo run export-dynamic --concurrency=z",
 # +    "export-dynamic:clean": "turbo run export-dynamic:clean --concurrency=z",
-sed -i distgit/containers/rhdh-hub/package.json -r -e 's| --concurrency=[0-9]+||g' -e 's|("export-dynamic.+)",|\1 --concurrency=4",|'
+if [[ -f distgit/containers/rhdh-hub/package.json ]]; then
+  sed -i distgit/containers/rhdh-hub/package.json -r -e 's| --concurrency=[0-9]+||g' -e 's|("export-dynamic.+)",|\1 --concurrency=4",|'
+fi
 
 echo
 if [[ $(git status -s || true) ]]; then

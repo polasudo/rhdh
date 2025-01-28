@@ -10,8 +10,9 @@
 # set -x
 set -e
 
-export RHDH_HUB="quay.io/rhdh/rhdh-hub-rhel9@sha256:1c2fead5406f7c1c164efa83b56210839bc296400284d3ca80753ccdc08f274a"
-export RHDH_OPERATOR="quay.io/rhdh/rhdh-rhel9-operator@sha256:9539680c13deaac90cd6846bd5a39d5ce593eb92b6ce377076de2f09eb9dcc33"
+# TODO: are these consistently aligned to the latest images, for the correct 1.y branch?
+export RHDH_HUB="quay.io/rhdh/rhdh-hub-rhel9@sha256:73b23b44d5b2fb64a70c7a94deb7bf58619a8398866c302580b778acf7cdbd48"
+export RHDH_OPERATOR="quay.io/rhdh/rhdh-rhel9-operator@sha256:d2c7c32a3c0283ebe20f8435c90ef2b41f51d321979ddce0ea35945a2c0ef349"
     
 SCRIPTPATH=$(dirname "$(readlink -f "$0")")
 

@@ -6,10 +6,8 @@ metadata:
     build.appstudio.redhat.com/commit_sha: '{{revision}}'
     build.appstudio.redhat.com/target_branch: '{{target_branch}}'
     pipelinesascode.tekton.dev/max-keep-runs: "7"
-    build.appstudio.openshift.io/build-nudge-files: ".*Dockerfile.*, .*.yaml, .*Containerfile.*"
     pipelinesascode.tekton.dev/on-cel-expression: event == "push" && target_branch
-      == "rhdh-1-rhel-9" && ( "distgit/containers/rhdh-operator-bundle/***".pathChanged() ||
-      ".tekton/rhdh-operator-bundle-1-push.yaml".pathChanged() )
+      == "rhdh-1-rhel-9" && ( "build/ci/update-bundle.sh".pathChanged() || "distgit/containers/rhdh-operator-bundle/***".pathChanged() || ".tekton/rhdh-operator-bundle-1-push.yaml".pathChanged() )
   creationTimestamp: null
   labels:
     appstudio.openshift.io/application: rhdh-1
@@ -28,9 +26,9 @@ spec:
   - name: image-expires-after
     value: ''
   - name: dockerfile
-    value: Containerfile
+    value: distgit/containers/rhdh-operator-bundle/Containerfile
   - name: path-context
-    value: distgit/containers/rhdh-operator-bundle
+    value: .
   pipelineSpec:
     finally:
     - name: show-sbom
