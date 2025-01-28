@@ -2107,7 +2107,7 @@
     "schema": "olm.bundle",
     "name": "rhdh-operator.v1.5.0",
     "package": "rhdh",
-    "image": "quay.io/rhdh/rhdh-operator-bundle@sha256:c5a21e0dddb02fd7bef6506ed5076700449dc2a100a84916ee4084a5a4f64ad3",
+    "image": "quay.io/rhdh/rhdh-operator-bundle@sha256:8340f39a8bf7a8c076d0a33f7a395aac24ebeb528a418bf06de1f7dd4faa5151",
     "properties": [
         {
             "type": "olm.gvk",
@@ -2149,7 +2149,7 @@
                     "categories": "Developer Tools",
                     "certified": "true",
                     "containerImage": "registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:9df7690d01960c80a3ab0a8783d008a0e37d417da25a863f58bc722d8517d494",
-                    "createdAt": "2025-01-27T19:42:54Z",
+                    "createdAt": "2025-01-28T11:48:54Z",
                     "description": "Red Hat Developer Hub is a Red Hat supported version of Backstage. It comes with pre-built plug-ins and configuration settings, supports use of an external database, and can help streamline the process of setting up a self-managed internal developer portal for adopters who are just starting out.",
                     "features.operators.openshift.io/cnf": "false",
                     "features.operators.openshift.io/cni": "false",
@@ -2258,11 +2258,11 @@
     "relatedImages": [
         {
             "name": "",
-            "image": "quay.io/rhdh/rhdh-operator-bundle@sha256:c5a21e0dddb02fd7bef6506ed5076700449dc2a100a84916ee4084a5a4f64ad3"
+            "image": "quay.io/rhdh/rhdh-operator-bundle@sha256:8340f39a8bf7a8c076d0a33f7a395aac24ebeb528a418bf06de1f7dd4faa5151"
         },
         {
             "name": "backstage",
-            "image": "registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:e015de5694ae3ffda82354f329e3b679aec9757257223eb434c5d406f1277b92"
+            "image": "registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:625b1a8bbf7d46ba4573d75392ee8fb175e0eb03f87dd5587dd84957d4f50c77"
         },
         {
             "name": "",
