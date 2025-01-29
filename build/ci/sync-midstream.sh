@@ -286,7 +286,8 @@ if [[ $CLEAN -eq 1 ]]; then
   git reset --hard HEAD
   git clean -fdx
 fi
-git config core.autocrlf input
+git config --global core.autocrlf input
+git config --global core.eol input
 git config --global merge.ff true
 git config --global pull.ff-only true
 git config --global pull.rebase true
@@ -295,6 +296,7 @@ git config --global branch.autosetuprebase always
 
 git config --global advice.skippedCherryPicks false
 git config --global advice.detachedHead false
+git config --global core.safecrlf false
 
 # read "${UPSTREAM_FILE}" file; check out sources and include the required ones
 NUM_REPOS=$(grep -v -E " +#" "${UPSTREAM_FILE}" | grep -c "repo:") # 2
