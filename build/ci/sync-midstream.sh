@@ -498,12 +498,13 @@ for ((i = START_REPO; i < NUM_REPOS; i++)); do # echo $i
                 fi
               done
               sed -i $yml -r \
-                  -e "s/createdAt: \"[0-9TZ:-]+\"/createdAt: \"${now}\"/g" \
                   -e "s@registry-proxy.engineering.redhat.com/rh-osbs/([^-]+)-(.+)@registry.redhat.io/\1/\2@g" \
                   -e "s@quay.io/rhdh/@registry.redhat.io/rhdh/@g"
               if [[ $(git diff --name-only $yml) ]]; then # also update createdAt timestamp
                 now=$(date -u +%FT%TZ) # "2023-12-18T16:11:34Z"
                 echo "[INFO] Set createdAt: $now in $yml"
+                sed -i $yml -r \
+                    -e "s/createdAt: \"[0-9TZ:-]+\"/createdAt: \"${now}\"/g"
               fi
             fi
           done
