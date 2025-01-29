@@ -67,13 +67,13 @@ for c in $CONTAINERS; do
     # set -x
     latestQuay=$("${SCRIPTPATH}"/getLatestImageTags.sh -b "${MIDSTM_BRANCH}" -c "$c" --quay --tag "${TAG}-" 2>&1 | sed -r -e "s|.+:([0-9.]+)-([0-9]+)|\2|")
     latestNVR=""
-    if [[ $CHECK_NVR ]]; then 
-        latestNVR=$("${SCRIPTPATH}"/getLatestImageTags.sh -b "${MIDSTM_BRANCH}" -c "$c" --nvr 2>&1                   | sed -r -e "s|.+container-([0-9.]+)-([0-9]+)|\2|")
+    if [[ $CHECK_NVR ]]; then # obsolete as of 1.4+
+        latestNVR=$("${SCRIPTPATH}"/getLatestImageTags.sh -b "${MIDSTM_BRANCH}" -c "$c" --nvr 2>&1               | sed -r -e "s|.+container-([0-9.]+)-([0-9]+)|\2|")
     fi
     # set +x
     # echo "* [$latestQuay] ?? [$latestNVR]"
     # for first build on the new release stream
-    if [[ $latestQuay == "???" ]]; then 
+    if [[ $latestQuay == *"???"* ]]; then 
         latest=0
     else
         # if builds exist, increment

@@ -986,16 +986,16 @@ if [[ $BUNDLEONLY -eq 1 ]]; then
 else
   these_dirs="distgit/containers/rhdh-hub distgit/containers/rhdh-operator" # distgit/containers/rhdh-operator-bundle
 fi
-set -x
+# set -x
 for d in $these_dirs; do
   if [[ $d == "distgit/containers/rhdh-hub" ]] && [[ " ${SKIPPED_CONTAINERS[*]} " == *"rhdh-hub/"* ]]; then
-    echo "[INFO] Skip rhdh-hub"
+    echo "[INFO] ======= Skip rhdh-hub ======="
     continue
   elif [[ $d == "distgit/containers/rhdh-operator" ]] && [[ " ${SKIPPED_CONTAINERS[*]} " == *"rhdh-operator/"* ]]; then
-    echo "[INFO] Skip rhdh-operator"
+    echo "[INFO] ======= Skip rhdh-operator ======="
     continue
   elif [[ $d == "distgit/containers/rhdh-operator-bundle" ]] &&[[ " ${SKIPPED_CONTAINERS[*]} " == *"rhdh-operator-bundle/"* ]]; then
-    echo "[INFO] Skip rhdh-operator-bundle"
+    echo "[INFO] ======= Skip rhdh-operator-bundle ======="
     continue
   fi
   echo "[INFO] Remove generated/ignored content from $d/"
@@ -1022,7 +1022,7 @@ for d in $these_dirs; do
 
     ls -1 Containerfile Dockerfile* || true
     
-    set -x
+    # set -x
     if [[ -f Dockerfile.in ]]; then 
       echo "[INFO] Regen Containerfile from Dockerfile.in [$(pwd), ${d}] ..."
       sed -r -e 's|\$\{CI_X_VERSION\}\.\$\{CI_Y_VERSION\}|'"$DH_VERSION"'|g' Dockerfile.in > Dockerfile
@@ -1046,7 +1046,7 @@ for d in $these_dirs; do
       cat "$TMPDIR/${d##*rhdh-}.Dockerfile.foot" >> Containerfile
       sed -r -e 's|\$\{CI_X_VERSION\}\.\$\{CI_Y_VERSION\}|'"$DH_VERSION"'|g' -i "Containerfile"
     fi
-    set +x
+    # set +x
 
     ##################################### set NVR values for Konflux #####################################
     # remove release= value from Dockerfile (OSBS creates this)
@@ -1054,7 +1054,7 @@ for d in $these_dirs; do
     # set release value in Containerfile (Konflux does not do this)
     nextReleaseNum=000
     set -x
-    # NOTE: to also check for latest NVRs in Brew, use getNextReleaseNum.sh --check-nvr
+    # NOTE: to also check for latest NVRs in Brew, use getNextReleaseNum.sh --check-nvr (obsolete as of 1.4+)
     if [[ $d == "distgit/containers/rhdh-hub" ]]; then
       image=rhdh/rhdh-hub-rhel9
       nextReleaseNum=$("${ROOTPATH}"/build/scripts/getNextReleaseNum.sh -b "${DWNSTM_BRANCH}" --tag "${DH_VERSION}" -c "$image" -q)
