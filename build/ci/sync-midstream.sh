@@ -311,7 +311,8 @@ commitMsg=""
 # num_plugins=0 # total number of plugins to fetch/build
 destination_folders=""
 mkdir -p sync/
-NUM_SKIPS=0
+declare -A SKIPPED_CONTAINERS
+
 BUNDLEDIR="" # absolute path distgit/containers/rhdh-operator-bundle/ folder
 
 # if we're only doing the bundle start on repo 1; else start on the showcase (repo 0)
@@ -362,7 +363,7 @@ for ((i = START_REPO; i < NUM_REPOS; i++)); do # echo $i
       else
         echo "[INFO] Nothing changed in upstream repo: $SHA = $branch @ $repo; skip sync!"
       fi
-      (( NUM_SKIPS = NUM_SKIPS + 1 ))
+      SKIPPED_CONTAINERS[${#SKIPPED_CONTAINERS[@]}]="${CONTAINER_NAME}/"
       popd >/dev/null || exit 1
       # rm -fr $TMPDIR/repo${i}
       continue
@@ -630,10 +631,10 @@ for ((i = START_REPO; i < NUM_REPOS; i++)); do # echo $i
   popd >/dev/null || exit 1 # distgit/containers/*
 done                        # foreach upstream repo
 
-if [[ "$NUM_SKIPS" == "$NUM_REPOS" ]]; then 
+if [[ "${#SKIPPED_CONTAINERS[@]}" == "$NUM_REPOS" ]]; then 
   echo " 
 =================================================================
-[SKIP] Nothing to sync or build: $NUM_SKIPS of $NUM_REPOS upstream repos unchanged!
+[SKIP] Nothing to sync or build: ${#SKIPPED_CONTAINERS[@]} of $NUM_REPOS upstream repos unchanged!
 =================================================================
 " | tee /tmp/sync-midstream.sh.result.txt
   ./build/ci/cancel-pipeline.sh
@@ -983,6 +984,16 @@ else
 fi
 set -x
 for d in $these_dirs; do
+  if [[ $d == "distgit/containers/rhdh-hub" ]] && [[ " ${SKIPPED_CONTAINERS[*]} " == *"rhdh-hub/"* ]]; then
+    echo "[INFO] Skip rhdh-hub"
+    continue
+  elif [[ $d == "distgit/containers/rhdh-operator" ]] && [[ " ${SKIPPED_CONTAINERS[*]} " == *"rhdh-operator/"* ]]; then
+    echo "[INFO] Skip rhdh-operator"
+    continue
+  elif [[ $d == "distgit/containers/rhdh-operator-bundle" ]] &&[[ " ${SKIPPED_CONTAINERS[*]} " == *"rhdh-operator-bundle/"* ]]; then
+    echo "[INFO] Skip rhdh-operator-bundle"
+    continue
+  fi
   echo "[INFO] Remove generated/ignored content from $d/"
   pushd "$d" >/dev/null || exit 1
     set +e
@@ -1004,6 +1015,8 @@ for d in $these_dirs; do
         find . -name "${ignored}" -exec rm -fr {} \; 2>/dev/null
     done
     set -e
+
+    ls -1 Containerfile Dockerfile* || true
     
     set -x
     if [[ -f Dockerfile.in ]]; then 
@@ -1013,13 +1026,13 @@ for d in $these_dirs; do
 
     ## generate Containerfile for Konflux
     
-    if [[ $d == "distgit/containers/rhdh-hub" ]]; then
+    if [[ $d == "distgit/containers/rhdh-hub" ]] && [[ " ${SKIPPED_CONTAINERS[*]} " != *"rhdh-hub/"* ]]; then
       # TODO: RHIDP-4041 switch to Cachi2'd version (Dockerfile) instead of pure upstream Dockerfile for hub
       cp -f "$TMPDIR/repo0/docker/Dockerfile" Containerfile
-    elif [[ $d == "distgit/containers/rhdh-operator" ]]; then
+    elif [[ $d == "distgit/containers/rhdh-operator" ]] && [[ " ${SKIPPED_CONTAINERS[*]} " != *"rhdh-operator/"* ]]; then
       # for operator use the transformed Dockerfile.in with the correct LABEL and ENV  values
       cp -f Dockerfile Containerfile
-    elif [[ $d == "distgit/containers/rhdh-operator-bundle" ]]; then
+    elif [[ $d == "distgit/containers/rhdh-operator-bundle" ]] && [[ " ${SKIPPED_CONTAINERS[*]} " != *"rhdh-operator-bundle/"* ]]; then
       # for bundle use the downstream OSBS Dockerfile with the correct LABEL and ENV  values
       cp -f Dockerfile Containerfile
     fi
