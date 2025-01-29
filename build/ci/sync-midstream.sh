@@ -836,6 +836,7 @@ else
   popd >/dev/null || exit 1
 
   echo "[INFO] ====================== Remove node_modules and other generated / gitignored content =====================>"
+  set +x
   set +e
   # shellcheck disable=SC2086
   for ignored in \
