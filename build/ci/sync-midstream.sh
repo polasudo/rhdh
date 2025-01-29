@@ -1126,7 +1126,8 @@ if [[ $CONTAINER_NUDGE != "true" ]]; then
   fi
 fi
 
-# purge any files we definitely don't want downstream
+# purge any files we definitely don't want downstream, including things that confuse snyk/clair scans
+# remove rhdh-operator/bundle folder so we don't have upstream dockerfiles or CSVs referencing unpinned digests or quay.io images
 # shellcheck disable=SC2086
 for d in \
   distgit/containers/rhdh-hub/Dockerfile \
@@ -1134,6 +1135,7 @@ for d in \
   distgit/containers/rhdh-hub/docker/Dockerfile \
   distgit/containers/rhdh-hub/docker/Dockerfile.in \
   \
+  distgit/containers/rhdh-operator/bundle \
   distgit/containers/rhdh-operator/Dockerfile \
   distgit/containers/rhdh-operator/Dockerfile.in \
   distgit/containers/rhdh-operator/docker/Dockerfile \
