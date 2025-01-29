@@ -16,19 +16,17 @@ export RHDH_OPERATOR="quay.io/rhdh/rhdh-rhel9-operator@sha256:d2c7c32a3c0283ebe2
     
 SCRIPTPATH=$(dirname "$(readlink -f "$0")")
 
-DWNSTM_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "rhdh-1-rhel-9")
+DWNSTM_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null | tail -1 || echo "rhdh-1-rhel-9")
 if [[ ${DWNSTM_BRANCH} != "rhdh-"*"-rhel-"* ]]; then DWNSTM_BRANCH="rhdh-1-rhel-9"; fi
 
 latestStableBranch="$(curl -sSLk --url "https://gitlab.cee.redhat.com/api/v4/projects/rhidp%2Frhdh/repository/branches?per_page=200&regex=^rhdh-1..*-rhel-9$" | jq -r '.[].name' | sort -uV | tail -1)"; # echo $latestStableBranch
-
-DWNSTM_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "rhdh-1-rhel-9")
-latestNextExample=""
+latestNextFlag=""
 if [[ ${DWNSTM_BRANCH} == "rhdh-"*"-rhel-"* ]]; then 
   if [[ $DWNSTM_BRANCH == "rhdh-1-rhel-9" ]]; then
-    latestNextExample="--next"
+    latestNextFlag="--next"
   elif [[ "$DWNSTM_BRANCH" == "${latestStableBranch}" ]]; then # latest stable branch
-    latestNextExample="--latest"
+    latestNextFlag="--latest"
   fi
 fi
 
-"${SCRIPTPATH}/sync-midstream.sh" --bundleonly --force -b "$DWNSTM_BRANCH" "$latestNextExample" "$@"
+"${SCRIPTPATH}/sync-midstream.sh" --bundleonly --force -b "$DWNSTM_BRANCH" "$latestNextFlag" "$@"
