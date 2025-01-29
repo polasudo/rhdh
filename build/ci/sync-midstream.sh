@@ -462,9 +462,9 @@ for ((i = START_REPO; i < NUM_REPOS; i++)); do # echo $i
 
       for bundle_dir in "${BUNDLEDIR}"; do
         pushd "${bundle_dir}" >/dev/null || exit 1
-          for yml in manifests/backstage-operator.clusterserviceversion.yaml; do
-          echo "[INFO] Transforming $bundle_dir/$yml ..."
+          for yml in manifests/backstage-operator.clusterserviceversion.yaml manifests/rhdh-operator.clusterserviceversion.yaml; do
             if [[ -f $yml ]]; then
+              echo "[INFO] Transforming $bundle_dir/$yml ..."
               # upstream CSV uses references to quay.io => replace with registry.redhat.io
               # This is especially needed for example because quay.io/fedora/postgresql-15
               # for example is not the same as registry.redhat.io/rhel9/postgresql-15
@@ -497,32 +497,25 @@ for ((i = START_REPO; i < NUM_REPOS; i++)); do # echo $i
                   echo "[WARNING] Could not compute digest for $imageAndSHA or $imageFloatingTag !"
                 fi
               done
+              sed -i $yml -r \
+                  -e "s/createdAt: \"[0-9TZ:-]+\"/createdAt: \"${now}\"/g" \
+                  -e "s@registry-proxy.engineering.redhat.com/rh-osbs/([^-]+)-(.+)@registry.redhat.io/\1/\2@g" \
+                  -e "s@quay.io/rhdh/@registry.redhat.io/rhdh/@g"
               if [[ $(git diff --name-only $yml) ]]; then # also update createdAt timestamp
                 now=$(date -u +%FT%TZ) # "2023-12-18T16:11:34Z"
                 echo "[INFO] Set createdAt: $now in $yml"
-                sed -i $yml -r \
-                    -e "s/createdAt: \"[0-9TZ:-]+\"/createdAt: \"${now}\"/g" \
-                    -e "s@registry-proxy.engineering.redhat.com/rh-osbs/([^-]+)-(.+)@registry.redhat.io/\1/\2@g" \
-                    -e "s@quay.io/rhdh/@registry.redhat.io/rhdh/@g"
               fi
             fi
           done
         popd >/dev/null || exit 1
       done
 
-      echo "In BUNDLEDIR=$BUNDLEDIR, add files"
+      yml=manifests/rhdh-operator.clusterserviceversion.yaml
+      echo "In BUNDLEDIR=$BUNDLEDIR, add $yml (replace/remove backstage CSV)"
       pushd "${BUNDLEDIR}" >/dev/null || exit 1
-        yml=manifests/rhdh-operator.clusterserviceversion.yaml
         # use rhdh-operator.clusterserviceversion.yaml instead of backstage-operator as we need the product name in konflux configs
         git mv -f manifests/{backstage,rhdh}-operator.clusterserviceversion.yaml >/dev/null 2>&1 || \
             mv -f manifests/{backstage,rhdh}-operator.clusterserviceversion.yaml >/dev/null 2>&1 
-          if [[ $(git diff --name-only $yml) ]]; then # also update createdAt timestamp
-            now=$(date -u +%FT%TZ) # "2023-12-18T16:11:34Z"
-            echo "[INFO] Set createdAt: $now in $yml"
-            sed -i $yml -r \
-                -e "s/createdAt: \"[0-9TZ:-]+\"/createdAt: \"${now}\"/g" \
-                -e "s@quay.io/rhdh/@registry.redhat.io/rhdh/@g"
-          fi
         git add . || true
       popd >/dev/null || exit 1
 
