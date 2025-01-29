@@ -564,88 +564,6 @@
                 }
               }
             },
-            "cfaccess": {
-              "visibility": "frontend",
-              "type": "object",
-              "required": [
-                "teamName"
-              ],
-              "properties": {
-                "teamName": {
-                  "type": "string"
-                },
-                "serviceTokens": {
-                  "deepVisibility": "secret",
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "required": [
-                      "subject",
-                      "token"
-                    ],
-                    "properties": {
-                      "token": {
-                        "type": "string"
-                      },
-                      "subject": {
-                        "type": "string"
-                      }
-                    }
-                  }
-                },
-                "jwtHeaderName": {
-                  "type": "string"
-                },
-                "authorizationCookieName": {
-                  "type": "string"
-                },
-                "signIn": {
-                  "type": "object",
-                  "required": [
-                    "resolvers"
-                  ],
-                  "properties": {
-                    "resolvers": {
-                      "type": "array",
-                      "items": {
-                        "anyOf": [
-                          {
-                            "type": "object",
-                            "properties": {
-                              "resolver": {
-                                "type": "string",
-                                "const": "emailLocalPartMatchingUserEntityName"
-                              },
-                              "allowedDomains": {
-                                "type": "array",
-                                "items": {
-                                  "type": "string"
-                                }
-                              }
-                            },
-                            "required": [
-                              "resolver"
-                            ]
-                          },
-                          {
-                            "type": "object",
-                            "properties": {
-                              "resolver": {
-                                "type": "string",
-                                "const": "emailMatchingUserEntityProfileEmail"
-                              }
-                            },
-                            "required": [
-                              "resolver"
-                            ]
-                          }
-                        ]
-                      }
-                    }
-                  }
-                }
-              }
-            },
             "gcpIap": {
               "description": "Configuration for the Google Cloud Platform Identity-Aware Proxy (IAP) auth provider.",
               "type": "object",
@@ -822,6 +740,88 @@
                             }
                           ]
                         }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "cfaccess": {
+              "visibility": "frontend",
+              "type": "object",
+              "required": [
+                "teamName"
+              ],
+              "properties": {
+                "teamName": {
+                  "type": "string"
+                },
+                "serviceTokens": {
+                  "deepVisibility": "secret",
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "subject",
+                      "token"
+                    ],
+                    "properties": {
+                      "token": {
+                        "type": "string"
+                      },
+                      "subject": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                },
+                "jwtHeaderName": {
+                  "type": "string"
+                },
+                "authorizationCookieName": {
+                  "type": "string"
+                },
+                "signIn": {
+                  "type": "object",
+                  "required": [
+                    "resolvers"
+                  ],
+                  "properties": {
+                    "resolvers": {
+                      "type": "array",
+                      "items": {
+                        "anyOf": [
+                          {
+                            "type": "object",
+                            "properties": {
+                              "resolver": {
+                                "type": "string",
+                                "const": "emailLocalPartMatchingUserEntityName"
+                              },
+                              "allowedDomains": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                }
+                              }
+                            },
+                            "required": [
+                              "resolver"
+                            ]
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "resolver": {
+                                "type": "string",
+                                "const": "emailMatchingUserEntityProfileEmail"
+                              }
+                            },
+                            "required": [
+                              "resolver"
+                            ]
+                          }
+                        ]
                       }
                     }
                   }
