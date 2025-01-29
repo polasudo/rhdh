@@ -7,14 +7,14 @@
 # see build/dockerfiles/yarn3-ubi9.Dockerfile
 # to test, run in quay.io/rhdh/gitlab-runner:yarn3-latest
 
-set -x
+# set -x
 set -e
 
-echo "CI_BUILDS_DIR = $CI_BUILDS_DIR
-CI_PROJECT_DIR = $CI_PROJECT_DIR
-CI_PROJECT_PATH = $CI_PROJECT_PATH
-CI_PROJECT_NAMESPACE = $CI_PROJECT_NAMESPACE
-CI_PROJECT_NAME = $CI_PROJECT_NAME"
+# echo "CI_BUILDS_DIR = $CI_BUILDS_DIR
+# CI_PROJECT_DIR = $CI_PROJECT_DIR
+# CI_PROJECT_PATH = $CI_PROJECT_PATH
+# CI_PROJECT_NAMESPACE = $CI_PROJECT_NAMESPACE
+# CI_PROJECT_NAME = $CI_PROJECT_NAME"
 
 cd /tmp
 # find latest at https://coprbe.devel.redhat.com/results/@endpoint-systems-sysadmins/unsupported-fedora-packages/epel-9-x86_64/
@@ -37,7 +37,7 @@ skip_if_unavailable=False
 EOL
 dnf clean all; dnf update -y
 dnf -y -q install helm redhat-internal-cert-install*.rpm krb5-workstation
-dnf -y install brewkoji koji-containerbuild 
+dnf -y -q install brewkoji koji-containerbuild 
 rm -f redhat-internal-cert-install*.rpm
 
 # add ~/.ssh/known_hosts entry for gitlab.cee.redhat.com and pkgs.devel.redhat.com
