@@ -1081,7 +1081,7 @@ done
 # revert local changes if running locally or in gitlab, but skip if inside a Containerfile build
 revertFiles() {
   d="$1"
-  if [[ -f $d ]] || [[ -d $d ]]; then git restore --staged "$d"; git restore "$d"; fi
+  if [[ -f $d ]] || [[ -d $d ]]; then git restore --staged "$d" || true; git restore "$d" || true; fi
 }
 
 # revert any local changes to the hub so we don't accidentally push in changes from upstream without first running a yarn build
@@ -1091,7 +1091,6 @@ if [[ $CONTAINER_NUDGE != "true" ]]; then
     for d in \
       distgit/containers/rhdh-hub/ \
       distgit/containers/rhdh-operator/ \
-      distgit/containers/rhdh-operator-bundle/bundle.Dockerfile \
       sync/upstream_SHA_rhdh-hub \
       sync/upstream_SHA_rhdh-operator \
       ; do revertFiles "$d"
@@ -1113,10 +1112,12 @@ if [[ $CONTAINER_NUDGE != "true" ]]; then
       sync/upstream_SHA_rhdh-operator-bundle \
       ; do revertFiles "$d"
     done
-    if [[ $(git diff --name-only distgit/containers/rhdh-hub) == "distgit/containers/rhdh-hub/Containerfile" ]]; then # revert the single change to bump the version
+
+    # revert the single change to bump the version if no other changes
+    if [[ $(git diff --name-only distgit/containers/rhdh-hub) == "distgit/containers/rhdh-hub/Containerfile" ]]; then 
       revertFiles "distgit/containers/rhdh-hub/Containerfile"
     fi
-    if [[ $(git diff --name-only distgit/containers/rhdh-operator) == "distgit/containers/rhdh-operator/Containerfile" ]]; then # revert the single change to bump the version
+    if [[ $(git diff --name-only distgit/containers/rhdh-operator) == "distgit/containers/rhdh-operator/Containerfile" ]]; then
       revertFiles "distgit/containers/rhdh-operator/Containerfile"
     fi
   fi
