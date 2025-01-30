@@ -1,5 +1,22 @@
  # Release Guide for RHDH 1.3 and earlier (DEPRECATED)
 
+== Summary of Release Process
+
+The table below provides a high-level overview of the release process before diving into detailed steps:
+
+[options="header"]
+|===
+| Step | Key Action | Responsible Team
+| 1. Code Freeze | Block changes & freeze pipeline | Release Engineering
+| 2. RC Build | Push to Quay & Errata | Release Engineering
+| 3. Testing | Smoke tests & QE validation | QE Team
+| 4. GA Week Prep | Update Docs & obtain approvals | Docs, PM, QE
+| 5. GA Release | Push Helm chart, IIB final, tag repos | Release Engineering
+| 6. Post-Release | Remove EOL versions & security checks | Release Engineering, Security Team
+|===
+
+TODO: Think about how best to create a release guide (Gantt chart, Smartsheet, etc.)
+
 This document seeks to explain the whole end-to-end process for releasing RHDH, from branch creation to GA push.
 
 _TODO_: Think about how best to create a release guide (gantt chart, smartsheet, etc.)
