@@ -34,7 +34,8 @@ sync-midstream:
       ./build/ci/sync-midstream.sh $latestNext -b "$CI_COMMIT_REF_NAME" --gitlab-pipeline-push || exit 15
 
       # TODO DISABLE THIS RHIDP-4451 once nudges work
-      # ./build/ci/sync-midstream.sh $latestNext -b "$CI_COMMIT_REF_NAME" --gitlab-pipeline-push --bundleonly --force || exit 16
+      # disabled on 01/29 to test if nudging works but NOPE so re-enable this
+      ./build/ci/sync-midstream.sh $latestNext -b "$CI_COMMIT_REF_NAME" --gitlab-pipeline-push --bundleonly --force || exit 16
 
       echo "Committed: $CI_COMMIT_REF_NAME"
       set -x
