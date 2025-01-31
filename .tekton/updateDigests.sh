@@ -45,17 +45,25 @@ for file in $(find "$ROOTPATH" -name "*yaml" | sort -V); do
         line="${line##*value: }"
         (( cl = cl + 1 ))
         # echo "[DEBUG] [$cf/$tf] [$cl/$tl] $line"
-        base=${line%%@sha256:*};                                       # echo "[DEBUG]     base: $base"
-        oldSHA=${line##*@};                                            # echo "[DEBUG]     OLD SHA: $oldSHA"
+        base=${line%%@sha256:*}
+        echo "[DEBUG]     base: $base"
+        oldTag=${base#*:}
+        echo "[DEBUG]     OLD tag: $oldTag"
+        base=${base%:*}
+        newTag=$(skopeo inspect "docker://${base}:${oldTag}" | jq -r '.RepoTags' | yq -r '.[]' | grep -v -- "-" | sort -uV | tail -1)
+        echo "[DEBUG]     NEW tag: ${newTag}"
+        oldSHA=${line##*@};
+        echo "[DEBUG]     OLD SHA: $oldSHA"
         if [[ ! "${digests["$base"]}" ]]; then 
-            newSHA=$(skopeo inspect "docker://$base" | jq -r '.Digest');   # echo "[DEBUG]     NEW SHA: $newSHA"
+            newSHA=$(skopeo inspect "docker://${base}:${newTag}" | jq -r '.Digest');
+            echo "[DEBUG]     NEW SHA: $newSHA"
         else
             newSHA="${digests["$base"]}"
         fi
         digests["$base"]="$newSHA"
         if [[ "$oldSHA" != "$newSHA" ]]; then
-            sed -i "$file" -r -e "s|$oldSHA|$newSHA|g"
-            echo -e "[$cf/$tf] [$cl/$tl] ${green}+${norm} $(echo "$line" | sed -r -e "s|$oldSHA|$newSHA|g")"
+            sed -i "$file" -r -e "s|${oldTag}@${oldSHA}|${newTag}@${newSHA}|g"
+            echo -e "[$cf/$tf] [$cl/$tl] ${green}+${norm} $(echo "$line" | sed -r -e "s|${oldTag}@${oldSHA}|${newTag}@${newSHA}|g")"
         else
             echo -e "[$cf/$tf] [$cl/$tl] ${blue}=${norm} $line"
         fi
