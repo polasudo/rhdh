@@ -213,8 +213,8 @@ createPr() {
 int(){ printf '%d' "${1:-}" 2>/dev/null || :; }
 
 checkImage () {
-    USE_QUAY="true"
-    QUIET=1
+    local USE_QUAY="true"
+    local QUIET=1
 
     checkImage_result=""
     local imageAndSHA="$1"
@@ -790,6 +790,11 @@ if [[ $DO_BUILD -eq 0 ]]; then
   # popd >/dev/null || exit 1
   true
 else
+  haderror=0
+
+  # Redirect console output and errors to a log file to make this log shorter
+  exec 3>&1 4>&2 1>> /tmp/sync-midstream.sh.build.log.txt 2>> /tmp/sync-midstream.sh.build.log.txt
+
   destination_folder="distgit/containers/rhdh-hub"
   pushd $destination_folder >/dev/null || exit 1
     echo "
@@ -812,6 +817,7 @@ else
 
     echo "[INFO] ===================================== INSTALL =====================================>"
     time $YARN install --no-immutable --silent 2> >(grep -v warning 1>&2) || exit 10
+    if [[ $? -gt 0 ]]; then (( haderror = haderror + 1 ))
     # if we need node-gyp to be globally installed in gitlab runner, re can re-enable this
     # if [[ $(id -u) -eq 0 ]]; then
     #   time npm i -g node-gyp@^9.4.1 turbo prettier
@@ -824,7 +830,9 @@ else
     # see (brew.)Dockerfile for more details about these steps
     echo -n "Yarn version ($YARN): ";  $YARN --version
     time $YARN export-dynamic 2> >(grep -v warning 1>&2) || exit 41
+    if [[ $? -gt 0 ]]; then (( haderror = haderror + 1 ))
     time $YARN copy-dynamic-plugins dist 2> >(grep -v warning 1>&2) || exit 42
+    if [[ $? -gt 0 ]]; then (( haderror = haderror + 1 ))
     echo "[INFO] <===================================== EXPORT + COPY DYNAMIC PLUGINS ====================================="
     echo
   popd >/dev/null || exit 1
@@ -893,7 +901,6 @@ else
 
   echo "[INFO] ===================================== Configure cachito =====================================>"
   # verify folders exist and are configured correctly for cachito to use
-  haderror=0
   # for d in $(yq -r -Y '.remote_sources[0].remote_source.packages.yarn' distgit/containers/rhdh-hub/container.yaml.in | sed -r "s#- path: ##"); do
   #   if [[ ! -d $d ]] || [[ ! -f $d/package.json ]] || [[ ! -f $d/yarn.lock ]]; then
   #     echo "[ERROR] Problem with folder $d -- check if package.json or yarn.lock are present!"
@@ -966,7 +973,17 @@ else
   done
   echo "[INFO] <===================================== Apply branding to distgit/ folders ====================================="
   echo
+  # end console redirection of output and errors
+  exec 1>&3 3>&- 2>&4 4>&- 
 fi ## if DO_BUILD
+
+if [[ $? -gt 0 ]] || [[ $haderror -gt 0 ]]; then 
+  echo "[ERROR] Build error occurred!";
+  cat /tmp/sync-midstream.sh.build.log.txt
+else
+  # TODO optionally do we want a --debug flag to show the log?
+  echo "[INFO] Build passed (lengthy yarn log suppressed)."
+fi
 
 # compute x.y version from package.json upstream
 # TODO RHIDP-1022 switch to rhdh repo instead of showcase
