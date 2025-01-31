@@ -460,6 +460,7 @@ for ((i = START_REPO; i < NUM_REPOS; i++)); do # echo $i
         popd >/dev/null || exit 1
       done
 
+      # shellcheck disable=SC2066
       for bundle_dir in "${BUNDLEDIR}"; do
         pushd "${bundle_dir}" >/dev/null || exit 1
           for yml in manifests/backstage-operator.clusterserviceversion.yaml manifests/rhdh-operator.clusterserviceversion.yaml; do
@@ -816,8 +817,10 @@ else
     echo
 
     echo "[INFO] ===================================== INSTALL =====================================>"
-    time $YARN install --no-immutable --silent 2> >(grep -v warning 1>&2) || exit 10
-    if [[ $? -gt 0 ]]; then (( haderror = haderror + 1 ))
+    # suppress warnings with: >(grep -v warning 1>&2)
+    if ! time $YARN install --no-immutable --silent; then
+      (( haderror = haderror + 40 ))
+    fi
     # if we need node-gyp to be globally installed in gitlab runner, re can re-enable this
     # if [[ $(id -u) -eq 0 ]]; then
     #   time npm i -g node-gyp@^9.4.1 turbo prettier
@@ -829,10 +832,12 @@ else
     echo "[INFO] ===================================== EXPORT + COPY DYNAMIC PLUGINS =====================================>"
     # see (brew.)Dockerfile for more details about these steps
     echo -n "Yarn version ($YARN): ";  $YARN --version
-    time $YARN export-dynamic 2> >(grep -v warning 1>&2) || exit 41
-    if [[ $? -gt 0 ]]; then (( haderror = haderror + 1 ))
-    time $YARN copy-dynamic-plugins dist 2> >(grep -v warning 1>&2) || exit 42
-    if [[ $? -gt 0 ]]; then (( haderror = haderror + 1 ))
+    if ! time $YARN export-dynamic; then
+      (( haderror = haderror + 41 ))
+    fi
+    if ! time $YARN copy-dynamic-plugins dist; then
+      (( haderror = haderror + 42 ))
+    fi
     echo "[INFO] <===================================== EXPORT + COPY DYNAMIC PLUGINS ====================================="
     echo
   popd >/dev/null || exit 1
@@ -961,7 +966,6 @@ else
   for d in $(find distgit/containers/rhdh-hub/ -name yarn.lock); do sed -i "$d" -r -e "s#registry.yarnpkg.com#registry.npmjs.org#g"; done
 
   # shellcheck disable=SC2086
-  if [[ $haderror -gt 0 ]]; then echo "[ERROR] Had $haderror problems; must exit."; exit $haderror; fi
   echo "[INFO] <===================================== Configure cachito ====================================="
   echo
 
