@@ -793,9 +793,6 @@ if [[ $DO_BUILD -eq 0 ]]; then
 else
   haderror=0
 
-  # Redirect console output and errors to a log file to make this log shorter
-  exec 3>&1 4>&2 1>> /tmp/sync-midstream.sh.build.log.txt 2>> /tmp/sync-midstream.sh.build.log.txt
-
   destination_folder="distgit/containers/rhdh-hub"
   pushd $destination_folder >/dev/null || exit 1
     echo "
@@ -804,7 +801,11 @@ else
 [INFO] Build $(pwd) ...
 =================================================================
  
-"
+" | tee /tmp/sync-midstream.sh.build.log.txt
+
+    # Redirect console output and errors to a log file to make this log shorter
+    exec 3>&1 4>&2 1>> /tmp/sync-midstream.sh.build.log.txt 2>> /tmp/sync-midstream.sh.build.log.txt
+
     echo
     #shellcheck disable=SC2044
     YARN=$(which yarn)
