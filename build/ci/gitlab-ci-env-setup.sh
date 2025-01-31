@@ -78,14 +78,18 @@ git rev-parse --abbrev-ref HEAD
 DSF_TAG="v0.1.11"
 dnf -y -q install golang make cmake openssl openssl-devel gcc gcc-c++ git
 pushd /tmp >/dev/null || exit 1
-rm -fr download-secure-files/
-git clone https://gitlab.com/gitlab-org/incubation-engineering/mobile-devops/download-secure-files.git && cd download-secure-files/
-git checkout $DSF_TAG
-echo "download-secure-files version: $(cat VERSION)"
-go get; CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-X 'main.Version=$(cat VERSION)'"  -o "$HOME/bin/download-secure-files" download-secure-files
-go test -v
-chmod +x "$HOME/bin/download-secure-files"
-rm -fr /tmp/download-secure-files
+# Redirect console output and errors to a log file to make this log shorter
+exec 3>&1 4>&2 1>> /tmp/gitlab-ci-env-setup.sh.build.log.txt 2>> /tmp/gitlab-ci-env-setup.sh.build.log.txt
+    rm -fr download-secure-files/
+    git clone https://gitlab.com/gitlab-org/incubation-engineering/mobile-devops/download-secure-files.git && cd download-secure-files/
+    git checkout $DSF_TAG
+    echo "download-secure-files version: $(cat VERSION)"
+    go get; CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-X 'main.Version=$(cat VERSION)'"  -o "$HOME/bin/download-secure-files" download-secure-files
+    go test -v
+    chmod +x "$HOME/bin/download-secure-files"
+    rm -fr /tmp/download-secure-files
+# end console redirection of output and errors
+exec 1>&3 3>&- 2>&4 4>&- 
 popd >/dev/null || exit 1
 # try several times because it seems to work less than half the time...
 for d in {1..90}; do 
