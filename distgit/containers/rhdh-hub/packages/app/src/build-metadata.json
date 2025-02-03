@@ -2,7 +2,7 @@
   "title": "RHDH Metadata",
   "card": [
     "RHDH Version: 1.5.0",
-    "Backstage Version: 1.35.0",
-    "Upstream: https://github.com/redhat-developer/rhdh/tree/main @ 3510574c", "Midstream: https://gitlab.cee.redhat.com/rhidp/rhdh/-/commits/rhdh-1-rhel-9 @ 97b590b1", "Build Time: 2025-01-31T23:25:48Z"
+    "Backstage Version: 1.35.1",
+    "Upstream: https://github.com/redhat-developer/rhdh/tree/main @ 80eb00c7", "Midstream: https://gitlab.cee.redhat.com/rhidp/rhdh/-/commits/rhdh-1-rhel-9 @ 6d750175", "Build Time: 2025-02-03T20:25:43Z"
   ]
 }
