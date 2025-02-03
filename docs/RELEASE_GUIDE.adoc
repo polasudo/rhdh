@@ -10,6 +10,14 @@ Once the branches are created, expect a flurry of last minute cherrypicks and re
 
 **Reject those requests** and send them to PM/QE/Doc for approval as these should have already landed in the LOCKED test/doc plan weeks ago.
 
+### Onboard new application & components
+
+New application, component, test, RP, and RPA configuration is required to create a new 1.5 stable branch.
+
+See link:https://gitlab.cee.redhat.com/releng/konflux-release-data/-/merge_requests/?scope=all&state=merged&author_username=nboldt[konflux-release-data] for details.
+
+TODO: automate creation of content in https://issues.redhat.com/browse/RHIDP-5432
+
 ### Create branches (eg., release-1.4, release-1.5)
 
 Use the link:../build/scripts/tagRelease.sh[tagRelease.sh] script like this:
@@ -76,7 +84,7 @@ Submit PR (or just merge change) to fix version reference in `upstream_repos.yml
 Existing applications:
 
 * https://konflux.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/application-pipeline/workspaces/rhdh/applications/rhdh-1/activity (for CI builds only, cannot be released as GA)
-* https://konflux.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/application-pipeline/workspaces/rhdh/applications/rhdh-1-3/activity (not currently working)
+* https://konflux.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/application-pipeline/workspaces/rhdh/applications/rhdh-1-4/activity (for 1.4.z builds)
 
 Existing tekton pipelines for builds and FBCs: 
 

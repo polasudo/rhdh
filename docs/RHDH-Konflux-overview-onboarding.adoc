@@ -54,7 +54,13 @@ When support for an older version of OCP is to be dropped, FBC publishing for th
 
 ### Helm
 
-Helm charts are manually created 
+Helm charts for GA releases are manually created. See https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1-rhel-9/build/helm/prepare.sh
+
+Each CI build produces a helm chart pointing back to that new build. 
+
+See the following JIRAs:
+* https://issues.redhat.com/browse/RHIDP-4452 (completed, github publishing)
+* https://issues.redhat.com/browse/RHIDP-5267 (in progress, OCI artifact publishing)
 
 ### Operator
 

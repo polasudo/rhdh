@@ -71,7 +71,10 @@ export GITHUB_TOKEN=ghp_rhdh-bot-token-here # see BitWarden for this token
 * For the rhdh-1 branch (CI ONLY), watch builds here: https://konflux.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/application-pipeline/workspaces/rhdh/applications/rhdh-1
 * For other branches, see the appropriate application: https://konflux.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/application-pipeline/workspaces/rhdh/applications
 
-* TODO - add info about the 1.y branch builds, RPAs, etc.
+Note that some pages in the Konflux UI may take over 30 seconds to load, then another 30 seconds to fill in with log content. Report performance issues in https://issues.redhat.com/browse/KONFLUX-6616
+
+Once a quarter new stable branches are created from new configuration files in the link:https://gitlab.cee.redhat.com/releng/konflux-release-data/-/merge_requests/?scope=all&state=merged&author_username=nboldt[konflux-release-data] repo. See the `Create branches` section of link:RELEASE_GUIDE.adoc[RELEASE_GUIDE.adoc] for more info.
+
 
 ## Triggering Konflux builds for Pull Requests
 
