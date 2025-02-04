@@ -17,6 +17,7 @@ EXCLUDES="next|latest|candidate|guest|containers|-source|-pr-|-tmp-|-ci-|-gh-|sh
 # TODO switch to jq wrapper version of yq (not mikefarah)
 mikefarahyq_version="4.35.2"
 helmdocs_version="v1.11.3"
+oras_version="1.2.2"
 # Exit when any command fails
 set -e
 
@@ -194,6 +195,14 @@ if ! command -v podman &> /dev/null; then
     echo "Installing podman from $ocrpmrepo ..."
     sudo dnf config-manager --add-repo $ocrpmrepo -q && sudo dnf -y -q install podman
 fi
+if ! command -v oras &> /dev/null; then
+    orasrepo="https://github.com/oras-project/oras/releases/download/v${oras_version}/"
+    orastar="oras_${oras_version}_linux_amd64.tar.gz"
+    echo "Installing oras from $orasrepo ..."
+    curl -LO "${orasrepo}${orastar}"
+    sudo tar -zxf $orastar -C /usr/local/bin/ oras
+    rm -rf $orastar oras-install/
+fi
 # TODO switch to jq wrapper version of yq (not mikefarah)
 if ! command -v $YQ &> /dev/null; then
     echo "Installing mikefarah yq version $mikefarahyq_version ..."
@@ -291,6 +300,14 @@ git -C "${CATALOG_DIR}" pull $QUIET origin redhat-developer-hub-"${CHART_VERSION
 mkdir -p "${CATALOG_DIR}"/charts/redhat/redhat/redhat-developer-hub/"${CHART_VERSION}"
 git -C "${CATALOG_DIR}" rm -f "${CATALOG_DIR}"/charts/redhat/redhat/redhat-developer-hub/"${CHART_VERSION}"/*eveloper-hub-"${CHART_VERSION}".tgz 1>/dev/null 2>&1 || true
 helm package "${HELM_DIR}"/charts/backstage -d "${CATALOG_DIR}"/charts/redhat/redhat/redhat-developer-hub/"${CHART_VERSION}" 1>/dev/null
+echo "[DEBUG] Attempting to push Helm chart to quay.io/rhdh/charts"
+helm_config=$(mktemp)
+helm show chart "${CATALOG_DIR}"/charts/redhat/redhat/redhat-developer-hub/"${CHART_VERSION}"/redhat-developer-hub-"${CHART_VERSION}".tgz | $YQ -p yaml -o json  > ${helm_config}
+oras push "quay.io/rhdh/chart:${CHART_VERSION}" \
+    "${CATALOG_DIR}"/charts/redhat/redhat/redhat-developer-hub/"${CHART_VERSION}"/redhat-developer-hub-"${CHART_VERSION}".tgz:application/vnd.cncf.helm.chart.content.v1.tar+gzip \
+    --registry-config '/var/workdir/registry_auth.json' --disable-path-validation \
+    --config "${helm_config}:application/vnd.cncf.helm.config.v1+json"
+# TODO: Stop pushing to Catalog fork starting April 1st https://issues.redhat.com/browse/RHIDP-5841
 git -C "${CATALOG_DIR}" add -f "${CATALOG_DIR}"/charts/redhat/redhat/redhat-developer-hub/"${CHART_VERSION}"/redhat-developer-hub-"${CHART_VERSION}".tgz --sparse 1>/dev/null
 
 if [[ $CREATE_REPORT -eq 1 ]]; then
@@ -339,6 +356,7 @@ This chart's folder:  $CATALOG_DIR/charts/redhat/redhat/redhat-developer-hub/${C
 "
 
 if [[ $PUBLISH -eq 1 ]]; then
+    # TODO: Stop pushing to Catalog fork starting April 1st https://issues.redhat.com/browse/RHIDP-5841
     git -C "${CATALOG_DIR}" pull $QUIET origin redhat-developer-hub-"${CHART_VERSION}" 1>/dev/null 2>&1 || true
     git -C "${CATALOG_DIR}" push $QUIET origin redhat-developer-hub-"${CHART_VERSION}" -f 2>/dev/null || \
         { echo "[ERROR] Could not push to branch redhat-developer-hub-${CHART_VERSION}: must exit!"; exit 44; } 
