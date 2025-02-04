@@ -351,26 +351,6 @@ spec:
         workspaces:
           - name: workspace
             workspace: workspace
-      - name: fbc-related-image-check
-        runAfter:
-          - fbc-validate
-        taskRef:
-          params:
-            - name: name
-              value: fbc-related-image-check
-            - name: bundle
-              value: quay.io/konflux-ci/tekton-catalog/task-fbc-related-image-check:0.2@sha256:2d3c98b36a144609e8d15c7afd35ccfbb636e4aaefc599459129d8557f846631
-            - name: kind
-              value: task
-          resolver: bundles
-        when:
-          - input: $(params.skip-checks)
-            operator: in
-            values:
-              - "false"
-        workspaces:
-          - name: workspace
-            workspace: workspace
     workspaces:
       - name: workspace
       - name: git-auth
