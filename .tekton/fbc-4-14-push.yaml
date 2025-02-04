@@ -299,39 +299,12 @@ spec:
             operator: in
             values:
               - "false"
-      - name: inspect-image
-        params:
-          - name: IMAGE_URL
-            value: $(tasks.build-image-index.results.IMAGE_URL)
-          - name: IMAGE_DIGEST
-            value: $(tasks.build-image-index.results.IMAGE_DIGEST)
-        runAfter:
-          - build-image-index
-        taskRef:
-          params:
-            - name: name
-              value: inspect-image
-            - name: bundle
-              value: quay.io/konflux-ci/tekton-catalog/task-inspect-image:0.2@sha256:aa190f4ec75f62df2cef65c5547aa9836a95b84dcc97aee1dc81cc22066511ab
-            - name: kind
-              value: task
-          resolver: bundles
-        when:
-          - input: $(params.skip-checks)
-            operator: in
-            values:
-              - "false"
-        workspaces:
-          - name: source
-            workspace: workspace
       - name: validate-fbc
         params:
           - name: IMAGE_URL
             value: $(tasks.build-image-index.results.IMAGE_URL)
           - name: IMAGE_DIGEST
             value: $(tasks.build-image-index.results.IMAGE_DIGEST)
-          - name: BASE_IMAGE
-            value: $(tasks.inspect-image.results.BASE_IMAGE)
         runAfter:
           - build-image-index
         taskRef:
