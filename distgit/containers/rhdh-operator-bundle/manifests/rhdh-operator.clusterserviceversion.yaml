@@ -259,8 +259,8 @@ spec:
                 - name: RELATED_IMAGE_postgresql
                   value: registry.redhat.io/rhel9/postgresql-15@sha256:afaaab335eba328d9ee3702086f6a6574e70045066669055fd684077f1b320d0
                 - name: RELATED_IMAGE_backstage
-                  value: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:db9c0c8b52adaa43e1dc2a8a266155b0d70131b7097717bacb96d9954a973cd6
-                image: registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:022d541baeb9eb9e9306bf6ef9a058115c20c882aa699f953b6b1e83fa0751d5
+                  value: registry.redhat.io/rhdh/rhdh-hub-rhel9:1.5
+                image: registry.redhat.io/rhdh/rhdh-rhel9-operator:1.5
                 livenessProbe:
                   httpGet:
                     path: /healthz
@@ -370,7 +370,7 @@ spec:
   relatedImages:
   - image: registry.redhat.io/rhel9/postgresql-15@sha256:afaaab335eba328d9ee3702086f6a6574e70045066669055fd684077f1b320d0
     name: postgresql
-  - image: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:db9c0c8b52adaa43e1dc2a8a266155b0d70131b7097717bacb96d9954a973cd6
+  - image: registry.redhat.io/rhdh/rhdh-hub-rhel9:1.5
     name: backstage
   replaces: rhdh-operator.v1.4.0
   version: 1.5.0
