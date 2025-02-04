@@ -32,6 +32,15 @@ spec:
       args:
         - use
         - $(params.SOURCE_ARTIFACT)=/var/workdir/source
+    - name: add-quay-credentials
+      image: quay.io/konflux-ci/oras:latest@sha256:b03f21e1ad303744c91d083a64fab2fd436fd63d46110923053a915cfb0fee03
+      env:
+        - name: REPO
+          value: quay.io/rhdh/chart
+      script: |
+        #!/usr/bin/env bash
+        echo "Creating registry config file to be used by helm"
+        select-oci-auth $REPO > /var/workdir/registry_auth.json
     - name: publish
       image: 'registry.redhat.io/ubi9/ubi@sha256:b632d0cc6263372a90e9097dcac0a369e456b144a66026b9eac029a22f0f6e07'
       workingDir: /var/workdir/
