@@ -45,12 +45,6 @@ NOTE: **_TODO_ link:https://issues.redhat.com/browse/RHIDP-5432[RHIDP-5432	gener
 
 .. [ ] https://gitlab.cee.redhat.com/rhidp/rhdh/-/tree/rhdh-1.y-rhel-9 (from the rhdh-1-rhel-9 branch)
 
-. Create 3 new branches in pkgs.devel MANUALLY (tagRelease.sh doesn't work for this due to timeouts)
-
-.. [ ] https://pkgs.devel.redhat.com/cgit/containers/rhdh-hub/tree/?h=rhdh-1.4-rhel-9
-.. [ ] https://pkgs.devel.redhat.com/cgit/containers/rhdh-operator/tree/?h=rhdh-1.4-rhel-9
-.. [ ] https://pkgs.devel.redhat.com/cgit/containers/rhdh-operator-bundle/tree/?h=rhdh-1.4-rhel-9
-
 ### Update main branch versions
 
 Bump versions in upstream main branches - run link:../build/scripts/tagRelease.sh[tagRelease.sh] 
@@ -349,7 +343,7 @@ https://github.com/openshift-helm-charts/charts/pull/1556
 
 #### Tag the repos
 
-. [ ] link:../build/scripts/tagRelease.sh[Tag the repos listed above] - note that repo tagging for pkgs.devel is manual, but the script will tell you what to run!
+. [ ] link:../build/scripts/tagRelease.sh[Tag the repos listed above]
 +
 ```
 cd /tmp; git clone git@gitlab.cee.redhat.com:rhidp/rhdh.git --depth 1 && cd rhdh
