@@ -194,7 +194,9 @@ for CONTAINER in $CONTAINERS; do
 
   processed_images["${CONTAINER}:${tagXYZ}"]+="${CONTAINER}@${digest}"
 
-  # compute the midstream commit SHA
+  # TODO: should we compute the midstream commit SHA based on $latest_bundle, not the RHDH_VERSION (want 1.4-166, not 1.4) ? 
+  # if the floating tag points to an older build (because of a build glitch) the next step will fail because 1.4 != 1.4-166)
+
   MID_SHA=$(jq -r '.Labels."vcs-ref"' /tmp/container_inspect.txt)
   MID_SHA=${MID_SHA/sha256:/}
 
