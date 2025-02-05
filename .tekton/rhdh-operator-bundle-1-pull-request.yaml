@@ -374,6 +374,9 @@ spec:
         operator: in
         values:
         - "false"
+      workspaces:
+      - name: workspace
+        workspace: workspace
     - name: clamav-scan
       params:
       - name: image-digest
