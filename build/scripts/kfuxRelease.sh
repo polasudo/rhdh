@@ -129,6 +129,9 @@ while [[ "$#" -gt 0 ]]; do
   shift 1
 done
 
+# disable autorelease until we fix https://issues.redhat.com/browse/RHIDP-5840 and can automatically pull in a list of CVEs to include in the release
+if [[ $CONTAINERS ]]; then AUTORELEASE=0; fi
+
 # compute numbder of OCP versions and fail if we're trying to run a specific snapshot from multiple OCP versions
 num_ocp_versions=0
 for OCP_VERSION in $OCP_VERSIONS; do
