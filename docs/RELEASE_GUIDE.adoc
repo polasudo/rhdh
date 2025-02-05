@@ -34,7 +34,7 @@ NOTE: **_TODO_ link:https://issues.redhat.com/browse/RHIDP-5432[RHIDP-5432	gener
 . Create 6 Github branches - run link:../build/scripts/tagRelease.sh[tagRelease.sh] 
 
 .. [ ] https://github.com/janus-idp/backstage-plugins/branches/all?query=1.&lastTab=overview
-.. [ ] https://github.com/janus-idp/backstage-showcase/branches/all?query=1.&lastTab=overview (**_TODO_: migrate to link:https://issues.redhat.com/browse/RHIDP-1022[rhdh]**)
+.. [ ] https://github.com/redhat-developer/rhdh/branches/all?query=1.&lastTab=overview
 .. [ ] https://github.com/redhat-developer/rhdh-operator/branches/all?query=1.&lastTab=overview
 
 .. [ ] https://github.com/redhat-developer/red-hat-developers-documentation-rhdh/branches/all?query=1.&lastTab=overview
@@ -52,9 +52,9 @@ Bump versions in upstream main branches - run link:../build/scripts/tagRelease.s
 . [ ] janus-idp/backstage-plugins (_TODO_: migrate to link:https://github.com/backstage/community-plugins[backstage/community-plugins])
 .. [ ] Bump all non-private plugin & package package.json files to new version 1.y+1 - see link:../build/scripts/checkPluginVersions.sh[checkPluginVersions.sh] (called from link:../build/scripts/tagRelease.sh[tagRelease.sh])
 
-. [ ] janus-idp/backstage-showcase (**_TODO_: migrate to link:https://issues.redhat.com/browse/RHIDP-1022[rhdh]**)
-.. [ ] Bump link:https://github.com/janus-idp/backstage-showcase/blob/main/package.json#L3[package.json] and e2e-tests/package.json to new 1.y+1 version
-.. [ ] Verify https://github.com/janus-idp/backstage-showcase/blob/main/packages/app/src/build-metadata.json is correct (both Backstage and RHDH versions)
+. [ ] redhat-developer/rhdh
+.. [ ] Bump link:https://github.com/redhat-developer/rhdh/blob/main/package.json#L3[package.json] and e2e-tests/package.json to new 1.y+1 version
+.. [ ] Verify https://github.com/redhat-developer/rhdh/blob/main/packages/app/src/build-metadata.json is correct (both Backstage and RHDH versions)
 
 . [ ] redhat-developer/rhdh-operator
 .. [ ] Bump versions to 0.y+1 upstream and 1.y+1 downstream (link:https://github.com/redhat-developer/rhdh-operator/tree/main/.rhdh[.rhdh folder]):
