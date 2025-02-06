@@ -40,7 +40,7 @@ ENV EXTERNAL_SOURCE_NESTED=.
 ENV CONTAINER_SOURCE=/opt/app-root/src
 
 # Env vars
-ENV YARN=$CONTAINER_SOURCE/.yarn/releases/yarn-3.8.6.cjs
+ENV YARN=$CONTAINER_SOURCE/.yarn/releases/yarn-3.8.7.cjs
 
 WORKDIR $CONTAINER_SOURCE/
 COPY $EXTERNAL_SOURCE_NESTED/.yarn ./.yarn
@@ -285,7 +285,7 @@ ENTRYPOINT ["node", "--require", "./instrumentation.js", "packages/backend", "--
 # append Brew metadata here
 ENV SUMMARY="Red Hat Developer Hub container" \
     DESCRIPTION="Red Hat Developer Hub container" \
-    UPSTREAM_REPO="https://github.com/redhat-developer/rhdh/tree/main @ 4db5bc80" \
+    UPSTREAM_REPO="https://github.com/redhat-developer/rhdh/tree/main @ 6b0bd9a5" \
     MIDSTREAM_REPO="https://gitlab.cee.redhat.com/rhidp/rhdh/-/commits/rhdh-1-rhel-9" \
     PRODNAME="rhdh" \
     COMPNAME="hub"
@@ -298,12 +298,12 @@ LABEL summary="$SUMMARY" \
       com.redhat.component="$PRODNAME-$COMPNAME-container" \
       name="$PRODNAME/$PRODNAME-$COMPNAME-rhel9" \
       version="1.5" \
-      release="130" \
+      release="131" \
       license="ASLv2" \
       maintainer="RHDH Team <rhdh-bot@redhat.com>" \
       vendor="Red Hat, Inc." \
       io.openshift.expose-services="" \
       usage="" \
-      konflux.additional-tags="next, 1.5, 1.5-130" \
+      konflux.additional-tags="next, 1.5, 1.5-131" \
       distribution-scope="public" \
       url="https://red.ht/rhdh"
