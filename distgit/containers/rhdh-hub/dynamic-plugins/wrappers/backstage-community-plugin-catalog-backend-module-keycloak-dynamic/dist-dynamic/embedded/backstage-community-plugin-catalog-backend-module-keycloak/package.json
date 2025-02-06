@@ -1,6 +1,6 @@
 {
   "name": "@backstage-community/plugin-catalog-backend-module-keycloak",
-  "version": "3.2.2+embedded",
+  "version": "3.4.0+embedded",
   "description": "A Backend backend plugin for Keycloak",
   "main": "./dist/index.cjs.js",
   "types": "./dist/index.d.ts",
@@ -23,6 +23,13 @@
     },
     "./package.json": "./package.json"
   },
+  "typesVersions": {
+    "*": {
+      "index": [
+        "dist/index.d.ts"
+      ]
+    }
+  },
   "scripts": {
     "build": "backstage-cli package build",
     "clean": "backstage-cli package clean",
@@ -39,7 +46,7 @@
     "prettier:fix": "prettier --ignore-unknown --write ."
   },
   "dependencies": {
-    "@keycloak/keycloak-admin-client": "24.0.5",
+    "@keycloak/keycloak-admin-client": "26.1.0",
     "inclusion": "^1.0.1",
     "lodash": "^4.17.21",
     "pg-format": "^1.0.4",
@@ -76,10 +83,10 @@
   "author": "Red Hat",
   "private": true,
   "peerDependencies": {
-    "@backstage/backend-plugin-api": "^1.0.1",
-    "@backstage/catalog-model": "^1.7.0",
-    "@backstage/errors": "^1.2.4",
-    "@backstage/plugin-catalog-node": "^1.13.1"
+    "@backstage/backend-plugin-api": "^1.1.0",
+    "@backstage/catalog-model": "^1.7.2",
+    "@backstage/errors": "^1.2.6",
+    "@backstage/plugin-catalog-node": "^1.15.0"
   },
   "overrides": {
     "@aws-sdk/util-utf8-browser": {

@@ -6,40 +6,51 @@ import { GroupEntity, UserEntity } from '@backstage/catalog-model';
 import GroupRepresentation from '@keycloak/keycloak-admin-client/lib/defs/groupRepresentation';
 import UserRepresentation from '@keycloak/keycloak-admin-client/lib/defs/userRepresentation';
 
+/**
+ * @public
+ */
 interface GroupRepresentationWithParent extends GroupRepresentation {
     parentId?: string;
     parent?: string;
     members?: string[];
 }
+/**
+ * @public
+ */
 interface GroupRepresentationWithParentAndEntity extends GroupRepresentationWithParent {
     entity: GroupEntity;
 }
+/**
+ * @public
+ */
 interface UserRepresentationWithEntity extends UserRepresentation {
     entity: UserEntity;
 }
 /**
- * Customize the ingested User entity
+ * Customize the ingested User entity.
  *
  * @public
  *
- * @param {UserEntity} entity The output of the default parser
- * @param {UserRepresentation} user Keycloak user representation
- * @param {string} realm Realm name
- * @param {GroupRepresentationWithParentAndEntity[]} groups Data about available groups (can be used to create additional relationships)
+ * @param entity - The output of the default parser.
+ * @param user - The Keycloak user representation.
+ * @param realm - The realm name.
+ * @param groups - Data about available groups, which can be used to create additional relationships.
  *
- * @returns {Promise<UserEntity | undefined>} Resolve to a modified `UserEntity` object that will be ingested into the catalog or resolve to `undefined` to reject the entity
+ * @returns A promise resolving to a modified `UserEntity` object to be ingested into the catalog,
+ * or `undefined` to reject the entity.
  */
 type UserTransformer = (entity: UserEntity, user: UserRepresentation, realm: string, groups: GroupRepresentationWithParentAndEntity[]) => Promise<UserEntity | undefined>;
 /**
- * Customize the ingested Group entity
+ * Customize the ingested Group entity.
  *
  * @public
  *
- * @param {GroupEntity} entity The output of the default parser
- * @param {GroupRepresentation} group Keycloak group representation
- * @param {string} realm Realm name
+ * @param entity - The output of the default parser.
+ * @param group - The Keycloak group representation.
+ * @param realm - The realm name.
  *
- * @returns {Promise<GroupEntity | undefined>} Resolve to a modified `GroupEntity` object that will be ingested into the catalog or resolve to `undefined` to reject the entity
+ * @returns A promise resolving to a modified `GroupEntity` object to be ingested into the catalog,
+ * or `undefined` to reject the entity.
  */
 type GroupTransformer = (entity: GroupEntity, group: GroupRepresentation, realm: string) => Promise<GroupEntity | undefined>;
 
@@ -186,9 +197,16 @@ declare class KeycloakOrgEntityProvider implements EntityProvider {
     schedule(taskRunner: SchedulerServiceTaskRunner): void;
 }
 
+/**
+ * @public
+ */
 declare const noopGroupTransformer: GroupTransformer;
+/**
+ * @public
+ */
 declare const noopUserTransformer: UserTransformer;
 /**
+ * @public
  * User transformer that sanitizes .metadata.name from email address to a valid name
  */
 declare const sanitizeEmailTransformer: UserTransformer;
@@ -212,8 +230,8 @@ type KeycloakTransformerExtensionPoint = {
 /**
  * Registers the `KeycloakEntityProvider` with the catalog processing extension point.
  *
- * @alpha
+ * @public
  */
 declare const catalogModuleKeycloakEntityProvider: _backstage_backend_plugin_api.BackendFeature;
 
-export { type GroupRepresentationWithParent, type GroupRepresentationWithParentAndEntity, type GroupTransformer, KeycloakOrgEntityProvider, type KeycloakOrgEntityProviderOptions, type KeycloakTransformerExtensionPoint, type UserRepresentationWithEntity, type UserTransformer, catalogModuleKeycloakEntityProvider as default, keycloakTransformerExtensionPoint, noopGroupTransformer, noopUserTransformer, sanitizeEmailTransformer };
+export { type GroupRepresentationWithParent, type GroupRepresentationWithParentAndEntity, type GroupTransformer, KeycloakOrgEntityProvider, type KeycloakOrgEntityProviderOptions, type KeycloakProviderConfig, type KeycloakTransformerExtensionPoint, type UserRepresentationWithEntity, type UserTransformer, catalogModuleKeycloakEntityProvider as default, keycloakTransformerExtensionPoint, noopGroupTransformer, noopUserTransformer, sanitizeEmailTransformer };

@@ -23,7 +23,7 @@
     "./package.json": "./package.json"
   },
   "dependencies": {
-    "@backstage-community/plugin-catalog-backend-module-keycloak": "3.2.2"
+    "@backstage-community/plugin-catalog-backend-module-keycloak": "3.4.0"
   },
   "files": [
     "dist",
@@ -55,9 +55,9 @@
     "@backstage-community/plugin-catalog-backend-module-keycloak": "file:./embedded/backstage-community-plugin-catalog-backend-module-keycloak"
   },
   "peerDependencies": {
-    "@backstage/backend-plugin-api": "^1.0.1",
-    "@backstage/catalog-model": "^1.7.0",
-    "@backstage/errors": "^1.2.4",
-    "@backstage/plugin-catalog-node": "^1.13.1"
+    "@backstage/backend-plugin-api": "^1.1.0",
+    "@backstage/catalog-model": "^1.7.2",
+    "@backstage/errors": "^1.2.6",
+    "@backstage/plugin-catalog-node": "^1.15.0"
   }
 }
