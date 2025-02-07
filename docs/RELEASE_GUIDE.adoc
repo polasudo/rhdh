@@ -141,7 +141,7 @@ If the changes you expect are not seen when installing via Operator, but are see
 
 ## Release Candidates
 
-Once the code freeze is achieved and all the last minute changes have stopped, you need to :
+Once the code freeze is achieved and all the last minute changes have stopped, you need to:
 
 * disable the 1.y pipeline so you don't get any unexpected/unapproved changes in the release candidate
 ** Note that because a Konflux release uses *snapshots*, this is a step to avoid confusion; you should still be able to release an older snapshot if you forget this
@@ -220,6 +220,35 @@ MIDSTREAM_REPO=https://gitlab.cee.redhat.com/rhidp/rhdh/-/commits/rhdh-1.4-rhel-
 * NOTE: FBCs are not supported on the RHEC Stage instance link:https://gitlab.cee.redhat.com/releng/konflux-release-data/-/merge_requests/3947[if the production policy is in effect]. See link:https://redhat-internal.slack.com/archives/C06RBUP0M2Q/p1737051256060019[this thread].
 
 If a second RC build is needed, re-enable the scheduled GL pipeline (or you can just trigger a one-time pipeline manually), and repeat the above steps. If only rebuilding a bundle, you don't have to re-enable the GL pipelines as the bundle can be triggered from the above script with `sync-midstream.sh --bundleonly`.
+
+====
+**IMPORTANT**:
+
+* Once the RC images are created (containers and FBCs), you *must notify the following people* via the following methods:
+** Slack channel: link:https://app.slack.com/client/E030G10V24F/C07EVRDD7KN[forum-rhdh-releases]
+*** Be sure to mention **@rhdh-qe**, **@rhdh-security**, and **@rhdh-docs-gate-keeper** as well as the current _Release Manager_ (**@Pavol Srna**) so everyone is aware. 
+** email: to or cc: the following people (dev/productization, testing, security, docs, and manangement)
+```
+Fortune Ndlovu <fndlovu@redhat.com>,
+Nick Boldt <nboldt@redhat.com>,
+
+rhdh-backstage-qe@redhat.com,
+Joseph Kim <joskim@redhat.com>,
+
+Kim Tsao <ktsao@redhat.com>
+Corey Daley <cdaley@redhat.com>,
+
+Fabrice Flore-Thébault <ffloreth@redhat.com>,
+Kavya Verma <kavverma@redhat.com>,
+
+Pavol Srna <psrna@redhat.com>,
+Jasper Chui <jchui@redhat.com>,
+Linda Sharar <lsharar@redhat.com>,
+Christophe Fargette <jfargett@redhat.com>
+```
+
+* In future we want to improve the notifications by generating them via a slack bot. See https://issues.redhat.com/browse/RHIDP-4524
+====
 
 ## During GA week
 
