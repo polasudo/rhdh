@@ -76,7 +76,7 @@ data:
                   value: /var/lib/pgsql/data
                 - name: PGDATA
                   value: /var/lib/pgsql/data/userdata
-              image: quay.io/fedora/postgresql-15:latest # will be replaced with the actual image
+              image: registry.redhat.io/rhel9/postgresql-15@sha256:b84ed1c0789d08b9ea9d8609ac80c1863bf47fb872abe3e33387aaca8ae1150d
               imagePullPolicy: IfNotPresent
               securityContext:
                 # runAsUser:26 does not work for Openshift but looks work for AKS/EKS
@@ -211,7 +211,7 @@ data:
                 - ./install-dynamic-plugins.sh
                 - /dynamic-plugins-root
               # image will be replaced by the value of the `RELATED_IMAGE_backstage` env var, if set
-              image: quay.io/rhdh/rhdh-hub-rhel9:next
+              image: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:3a0db49007a3aa33cfe8c6c63aba0275ebbe7c229c0cd5fa261565611214facf
               imagePullPolicy: IfNotPresent
               securityContext:
                 runAsNonRoot: true
@@ -248,7 +248,7 @@ data:
           containers:
             - name: backstage-backend
               # image will be replaced by the value of the `RELATED_IMAGE_backstage` env var, if set
-              image: quay.io/rhdh/rhdh-hub-rhel9:next
+              image: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:3a0db49007a3aa33cfe8c6c63aba0275ebbe7c229c0cd5fa261565611214facf
               imagePullPolicy: IfNotPresent
               args:
                 - "--config"

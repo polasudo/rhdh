@@ -460,12 +460,14 @@ for ((i = START_REPO; i < NUM_REPOS; i++)); do # echo $i
         popd >/dev/null || exit 1
       done
 
+      declare -A digest_mapping
+
       # shellcheck disable=SC2066
       for bundle_dir in "${BUNDLEDIR}"; do
         pushd "${bundle_dir}" >/dev/null || exit 1
           for yml in manifests/backstage-operator.clusterserviceversion.yaml manifests/rhdh-operator.clusterserviceversion.yaml; do
             if [[ -f $yml ]]; then
-              echo "[INFO] Transforming $bundle_dir/$yml ..."
+              echo "[INFO] Transform $bundle_dir/$yml ..."
               # upstream CSV uses references to quay.io => replace with registry.redhat.io
               # This is especially needed for example because quay.io/fedora/postgresql-15
               # for example is not the same as registry.redhat.io/rhel9/postgresql-15
@@ -480,7 +482,7 @@ for ((i = START_REPO; i < NUM_REPOS; i++)); do # echo $i
               # shellcheck disable=SC2013
               for imageAndSHA in $(cat $yml | grep -E "registry|quay.io" | sed -r "s/.+(containerImage|image|value): //g" | sort -u); do
                 imageFloatingTag=${imageAndSHA%%@*}
-                echo "         Computing digest for ${imageFloatingTag} ..."
+                echo "         Compute digest for ${imageFloatingTag} ..."
                 checkImage "${imageFloatingTag}"
                 if [[ "$checkImage_result" == "NONE" ]]; then
                   if [[ "${imageFloatingTag}" != "quay.io/"* ]]; then # don't check quay again if we already did!
@@ -492,6 +494,8 @@ for ((i = START_REPO; i < NUM_REPOS; i++)); do # echo $i
                 fi
                 # echo "Got $checkImage_result for $imageAndSHA"
                 if [[ "$checkImage_result" != "NONE" ]]; then
+                  digest_mapping["${imageAndSHA}"]="${checkImage_result}"
+                  digest_mapping["${imageFloatingTag}"]="${checkImage_result}"
                   sed -i $yml -r -e "s|$imageAndSHA|$checkImage_result|g" 
                   # git diff $yml
                 else
@@ -509,18 +513,45 @@ for ((i = START_REPO; i < NUM_REPOS; i++)); do # echo $i
               fi
             fi
           done
+
+          # replace upstream refs in configmap
+            # image: quay.io/fedora/postgresql-15:latest
+            # image: quay.io/rhdh/rhdh-hub-rhel9:next
+          yml=manifests/rhdh-default-config_v1_configmap.yaml
+          echo -e "\n[INFO] Transform $bundle_dir/$yml ..."
+          sed -i $yml -r \
+              -e "s@quay.io/fedora/postgresql-15:.+@registry.redhat.io/rhel9/postgresql-15:latest@g" \
+              -e "s@quay.io/rhdh/rhdh-hub-rhel9:.*@quay.io/rhdh/rhdh-hub-rhel9:$dhImageTag@g"
+          for d in registry.redhat.io/rhel9/postgresql-15:latest quay.io/rhdh/rhdh-hub-rhel9:$dhImageTag; do
+            if [[ ! ${digest_mapping[$d]} ]]; then 
+              checkImage "$d"
+              echo "       + Got $checkImage_result for $d"
+              if [[ "$checkImage_result" != "NONE" ]]; then
+                digest_mapping["${d}"]="${checkImage_result}"
+              fi
+            else
+              echo "       > Use ${digest_mapping[$d]} for $d"
+              checkImage_result="${digest_mapping[$d]}"
+            fi
+            if [[ "$checkImage_result" != "NONE" ]]; then
+              sed -i $yml -r -e "s|$d|$checkImage_result|g" 
+            fi
+          done
+          sed -i $yml -r -e "s@quay.io/rhdh/@registry.redhat.io/rhdh/@g"
+          # debugging: show contents after transformation
+          # grep "image:" $yml
         popd >/dev/null || exit 1
       done
 
-      yml=manifests/rhdh-operator.clusterserviceversion.yaml
-      echo "In BUNDLEDIR=$BUNDLEDIR, add $yml (replace/remove backstage CSV)"
       pushd "${BUNDLEDIR}" >/dev/null || exit 1
+        yml=manifests/rhdh-operator.clusterserviceversion.yaml
+        echo -e "\n[INFO] Replace backstage CSV in $BUNDLEDIR/manifests ..."
         # use rhdh-operator.clusterserviceversion.yaml instead of backstage-operator as we need the product name in konflux configs
         git mv -f manifests/{backstage,rhdh}-operator.clusterserviceversion.yaml >/dev/null 2>&1 || \
             mv -f manifests/{backstage,rhdh}-operator.clusterserviceversion.yaml >/dev/null 2>&1 
         git add . || true
+        
       popd >/dev/null || exit 1
-
     fi
     ##################################### rhdh-operator-bundle #####################################
 
@@ -987,7 +1018,9 @@ if [[ $? -gt 0 ]] || [[ $haderror -gt 0 ]]; then
   cat /tmp/sync-midstream.sh.build.log.txt
 else
   # TODO optionally do we want a --debug flag to show the log?
-  echo "[INFO] Build passed (lengthy yarn log suppressed)."
+  if [[ $DO_BUILD -eq 1 ]]; then 
+    echo "[INFO] Build passed (lengthy yarn log suppressed)."
+  fi
 fi
 
 # compute x.y version from package.json upstream
@@ -1036,7 +1069,7 @@ for d in $these_dirs; do
     done
     set -e
 
-    ls -1 Containerfile Dockerfile* || true
+    # ls -1 Containerfile Dockerfile* || true
     
     # set -x
     if [[ -f Dockerfile.in ]]; then 
@@ -1069,7 +1102,7 @@ for d in $these_dirs; do
     sed -r -i '/release=".+"/d' Dockerfile
     # set release value in Containerfile (Konflux does not do this)
     nextReleaseNum=000
-    set -x
+    # set -x
     # NOTE: to also check for latest NVRs in Brew, use getNextReleaseNum.sh --check-nvr (obsolete as of 1.4+)
     if [[ $d == "distgit/containers/rhdh-hub" ]]; then
       image=rhdh/rhdh-hub-rhel9
