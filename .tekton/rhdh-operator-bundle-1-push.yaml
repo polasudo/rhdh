@@ -26,9 +26,9 @@ spec:
   - name: image-expires-after
     value: ''
   - name: dockerfile
-    value: distgit/containers/rhdh-operator-bundle/Containerfile
+    value: Containerfile
   - name: path-context
-    value: .
+    value: distgit/containers/rhdh-operator-bundle
   pipelineSpec:
     finally:
     - name: show-sbom
