@@ -39,7 +39,7 @@ metadata:
     categories: Developer Tools
     certified: "true"
     containerImage: registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:b11fd9f39e3692e4fa311d1e66f41a8b5d73316a32f10275f4bb29527cc2cc68
-    createdAt: "2025-01-20T11:25:12Z"
+    createdAt: "2025-02-03T00:37:46Z"
     description: Red Hat Developer Hub is a Red Hat supported version of Backstage.
       It comes with pre-built plug-ins and configuration settings, supports use of
       an external database, and can help streamline the process of setting up a self-managed
@@ -259,7 +259,7 @@ spec:
                 - name: RELATED_IMAGE_postgresql
                   value: registry.redhat.io/rhel9/postgresql-15@sha256:b84ed1c0789d08b9ea9d8609ac80c1863bf47fb872abe3e33387aaca8ae1150d
                 - name: RELATED_IMAGE_backstage
-                  value: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:92cc569b35f2306cd6930367c2f6163edc6590de7d7424e4573cdd78df7ebbdb
+                  value: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:3631857e84e6a81acd9f991dda0278d3ec0d0024ea6e51c4a5a140dc4a579d2c
                 image: registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:b11fd9f39e3692e4fa311d1e66f41a8b5d73316a32f10275f4bb29527cc2cc68
                 livenessProbe:
                   httpGet:
@@ -292,6 +292,7 @@ spec:
                   capabilities:
                     drop:
                     - ALL
+                  readOnlyRootFilesystem: true
                 volumeMounts:
                 - mountPath: /default-config
                   name: default-config
@@ -370,7 +371,7 @@ spec:
   relatedImages:
   - image: registry.redhat.io/rhel9/postgresql-15@sha256:b84ed1c0789d08b9ea9d8609ac80c1863bf47fb872abe3e33387aaca8ae1150d
     name: postgresql
-  - image: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:92cc569b35f2306cd6930367c2f6163edc6590de7d7424e4573cdd78df7ebbdb
+  - image: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:3631857e84e6a81acd9f991dda0278d3ec0d0024ea6e51c4a5a140dc4a579d2c
     name: backstage
   replaces: rhdh-operator.v1.4.0
   version: 1.5.0
