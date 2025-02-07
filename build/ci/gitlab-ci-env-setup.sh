@@ -35,7 +35,7 @@ gpgcheck=0
 sslverify=0
 skip_if_unavailable=False
 EOL
-dnf clean all; dnf update -y
+dnf clean all; dnf update -y -q
 dnf -y -q install helm redhat-internal-cert-install*.rpm krb5-workstation
 dnf -y -q install brewkoji koji-containerbuild 
 rm -f redhat-internal-cert-install*.rpm

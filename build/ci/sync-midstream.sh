@@ -499,7 +499,7 @@ for ((i = START_REPO; i < NUM_REPOS; i++)); do # echo $i
                   sed -i $yml -r -e "s|$imageAndSHA|$checkImage_result|g" 
                   # git diff $yml
                 else
-                  echo "[WARNING] Could not compute digest for $imageAndSHA or $imageFloatingTag !"
+                  echo "[ERROR] Could not compute digest for $imageAndSHA or $imageFloatingTag !"; exit 1
                 fi
               done
               sed -i $yml -r \
@@ -550,7 +550,6 @@ for ((i = START_REPO; i < NUM_REPOS; i++)); do # echo $i
         git mv -f manifests/{backstage,rhdh}-operator.clusterserviceversion.yaml >/dev/null 2>&1 || \
             mv -f manifests/{backstage,rhdh}-operator.clusterserviceversion.yaml >/dev/null 2>&1 
         git add . || true
-        
       popd >/dev/null || exit 1
     fi
     ##################################### rhdh-operator-bundle #####################################
@@ -1078,7 +1077,6 @@ for d in $these_dirs; do
     fi
 
     ## generate Containerfile for Konflux
-    
     if [[ $d == "distgit/containers/rhdh-hub" ]] && [[ " ${SKIPPED_CONTAINERS[*]} " != *"rhdh-hub/"* ]]; then
       # TODO: RHIDP-4041 switch to Cachi2'd version (Dockerfile) instead of pure upstream Dockerfile for hub
       cp -f "$TMPDIR/repo0/docker/Dockerfile" Containerfile
@@ -1129,7 +1127,6 @@ for d in $these_dirs; do
     ##################################### rhdh-operator-bundle #####################################
   popd >/dev/null || exit 1
 done
-
 
 # revert local changes if running locally or in gitlab, but skip if inside a Containerfile build
 revertFiles() {
