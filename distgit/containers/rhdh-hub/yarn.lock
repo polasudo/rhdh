@@ -6730,7 +6730,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@backstage/plugin-catalog-node@npm:^1.12.4, @backstage/plugin-catalog-node@npm:^1.13.1, @backstage/plugin-catalog-node@npm:^1.15.0, @backstage/plugin-catalog-node@npm:^1.15.1":
+"@backstage/plugin-catalog-node@npm:1.15.1, @backstage/plugin-catalog-node@npm:^1.12.4, @backstage/plugin-catalog-node@npm:^1.13.1, @backstage/plugin-catalog-node@npm:^1.15.0, @backstage/plugin-catalog-node@npm:^1.15.1":
   version: 1.15.1
   resolution: "@backstage/plugin-catalog-node@npm:1.15.1"
   dependencies:
@@ -10618,7 +10618,7 @@ __metadata:
     "@types/mock-fs": 4.13.4
     "@types/supertest": 6.0.2
     express: 4.21.2
-    mock-fs: 5.4.1
+    mock-fs: 5.5.0
     msw: 1.3.5
     node-fetch: 2.7.0
     prettier: 3.4.2
@@ -20152,12 +20152,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:20.17.16, @types/node@npm:^20.1.1":
-  version: 20.17.16
-  resolution: "@types/node@npm:20.17.16"
+"@types/node@npm:20.17.17":
+  version: 20.17.17
+  resolution: "@types/node@npm:20.17.17"
   dependencies:
     undici-types: ~6.19.2
-  checksum: dd19c04c592b602f20448187b4b6ab0293f22173a8bbe53aa3b559188f078b5261d748a107b84ee0580e2074cda760049b13d6e210f9850039bead01cb666a3f
+  checksum: 94a8b10cf1ef3745dac87ae758d491852321a86a627edba1cc77bb8eb73d289d02eb4c2795248535d7127cdbfff233464225c48a2200b86b8be2c7f88a9fc9b3
   languageName: node
   linkType: hard
 
@@ -20181,6 +20181,15 @@ __metadata:
   dependencies:
     undici-types: ~5.26.4
   checksum: 8e45a05aa91437d3d11a346775ac16589353070c504f91a62cd91945a384231ccbbe92009a8e1ae653f954f9de5bf8ff106cc8e26721ecab98914dc019217aef
+  languageName: node
+  linkType: hard
+
+"@types/node@npm:^20.1.1":
+  version: 20.17.16
+  resolution: "@types/node@npm:20.17.16"
+  dependencies:
+    undici-types: ~6.19.2
+  checksum: dd19c04c592b602f20448187b4b6ab0293f22173a8bbe53aa3b559188f078b5261d748a107b84ee0580e2074cda760049b13d6e210f9850039bead01cb666a3f
   languageName: node
   linkType: hard
 
@@ -21745,7 +21754,7 @@ __metadata:
     "@testing-library/react": 14.3.1
     "@testing-library/react-hooks": 8.0.1
     "@testing-library/user-event": 14.6.1
-    "@types/node": 20.17.16
+    "@types/node": 20.17.17
     "@types/react": 18.3.18
     "@types/react-dom": 18.3.5
     lodash: 4.17.21
@@ -22492,6 +22501,8 @@ __metadata:
     "@backstage/backend-defaults": 0.7.0
     "@backstage/backend-dynamic-feature-service": 0.5.3
     "@backstage/backend-plugin-api": 1.1.1
+    "@backstage/backend-test-utils": 1.2.1
+    "@backstage/catalog-client": 1.9.1
     "@backstage/catalog-model": 1.7.3
     "@backstage/cli": 0.29.6
     "@backstage/cli-node": 0.2.12
@@ -22506,6 +22517,7 @@ __metadata:
     "@backstage/plugin-catalog-backend-module-logs": 0.1.6
     "@backstage/plugin-catalog-backend-module-openapi": 0.2.6
     "@backstage/plugin-catalog-backend-module-scaffolder-entity-model": 0.2.4
+    "@backstage/plugin-catalog-node": 1.15.1
     "@backstage/plugin-events-backend": 0.4.1
     "@backstage/plugin-events-node": 0.4.7
     "@backstage/plugin-proxy-backend": 0.5.10
@@ -26833,7 +26845,7 @@ __metadata:
     "@kubernetes/client-node": 0.22.3
     "@microsoft/microsoft-graph-client": 3.0.7
     "@playwright/test": 1.50.1
-    "@types/node": 20.17.16
+    "@types/node": 20.17.17
     "@typescript-eslint/eslint-plugin": 6.21.0
     "@typescript-eslint/parser": 6.21.0
     eslint: 8.57.1
@@ -35838,10 +35850,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mock-fs@npm:5.4.1":
-  version: 5.4.1
-  resolution: "mock-fs@npm:5.4.1"
-  checksum: b46f6e81dc1442aedb5d04244ab4263e0e2629dc8e7694dd1ef7af397a29b7382f588924cbecb0bd403eef8b325c5cf6a01061f92afa4b705d098b24922220dd
+"mock-fs@npm:5.5.0":
+  version: 5.5.0
+  resolution: "mock-fs@npm:5.5.0"
+  checksum: 4712ddaba7cf51c2fb556ff8e4e72828f3606ab8496108ab1d680260789256e6727cb7c13dffa59f4e2987cfef130b97f92f429197c1ac1af705bc8115a007da
   languageName: node
   linkType: hard
 
@@ -41245,7 +41257,7 @@ __metadata:
     husky: 8.0.3
     lint-staged: 15.4.3
     node-gyp: 10.3.1
-    sherif: 1.2.0
+    sherif: 1.3.0
     turbo: 2.4.0
     typescript: 5.7.3
   languageName: unknown
@@ -41751,58 +41763,58 @@ __metadata:
   languageName: node
   linkType: hard
 
-"sherif-darwin-arm64@npm:1.2.0":
-  version: 1.2.0
-  resolution: "sherif-darwin-arm64@npm:1.2.0"
+"sherif-darwin-arm64@npm:1.3.0":
+  version: 1.3.0
+  resolution: "sherif-darwin-arm64@npm:1.3.0"
   conditions: os=darwin & cpu=arm64
   languageName: node
   linkType: hard
 
-"sherif-darwin-x64@npm:1.2.0":
-  version: 1.2.0
-  resolution: "sherif-darwin-x64@npm:1.2.0"
+"sherif-darwin-x64@npm:1.3.0":
+  version: 1.3.0
+  resolution: "sherif-darwin-x64@npm:1.3.0"
   conditions: os=darwin & cpu=x64
   languageName: node
   linkType: hard
 
-"sherif-linux-arm64@npm:1.2.0":
-  version: 1.2.0
-  resolution: "sherif-linux-arm64@npm:1.2.0"
+"sherif-linux-arm64@npm:1.3.0":
+  version: 1.3.0
+  resolution: "sherif-linux-arm64@npm:1.3.0"
   conditions: os=linux & cpu=arm64
   languageName: node
   linkType: hard
 
-"sherif-linux-x64@npm:1.2.0":
-  version: 1.2.0
-  resolution: "sherif-linux-x64@npm:1.2.0"
+"sherif-linux-x64@npm:1.3.0":
+  version: 1.3.0
+  resolution: "sherif-linux-x64@npm:1.3.0"
   conditions: os=linux & cpu=x64
   languageName: node
   linkType: hard
 
-"sherif-windows-arm64@npm:1.2.0":
-  version: 1.2.0
-  resolution: "sherif-windows-arm64@npm:1.2.0"
+"sherif-windows-arm64@npm:1.3.0":
+  version: 1.3.0
+  resolution: "sherif-windows-arm64@npm:1.3.0"
   conditions: os=win32 & cpu=arm64
   languageName: node
   linkType: hard
 
-"sherif-windows-x64@npm:1.2.0":
-  version: 1.2.0
-  resolution: "sherif-windows-x64@npm:1.2.0"
+"sherif-windows-x64@npm:1.3.0":
+  version: 1.3.0
+  resolution: "sherif-windows-x64@npm:1.3.0"
   conditions: os=win32 & cpu=x64
   languageName: node
   linkType: hard
 
-"sherif@npm:1.2.0":
-  version: 1.2.0
-  resolution: "sherif@npm:1.2.0"
+"sherif@npm:1.3.0":
+  version: 1.3.0
+  resolution: "sherif@npm:1.3.0"
   dependencies:
-    sherif-darwin-arm64: 1.2.0
-    sherif-darwin-x64: 1.2.0
-    sherif-linux-arm64: 1.2.0
-    sherif-linux-x64: 1.2.0
-    sherif-windows-arm64: 1.2.0
-    sherif-windows-x64: 1.2.0
+    sherif-darwin-arm64: 1.3.0
+    sherif-darwin-x64: 1.3.0
+    sherif-linux-arm64: 1.3.0
+    sherif-linux-x64: 1.3.0
+    sherif-windows-arm64: 1.3.0
+    sherif-windows-x64: 1.3.0
   dependenciesMeta:
     sherif-darwin-arm64:
       optional: true
@@ -41818,7 +41830,7 @@ __metadata:
       optional: true
   bin:
     sherif: index.js
-  checksum: 71862cfcddc07606e4765a5859b99c0249f978c162eda4724a1f9a21f9a0aa90998c675b718eeb5b6a2b1c3e1326bd9fafd1385c409eea6cf409c6f654340bad
+  checksum: b7964ab340d08580c34cc09426127e04c66e691924ce0a4b1c161503544468c3d2e9f2c9a1cfdb123814d5daedd6e72cac771ef57f65d8b811a4b711475ef60d
   languageName: node
   linkType: hard
 

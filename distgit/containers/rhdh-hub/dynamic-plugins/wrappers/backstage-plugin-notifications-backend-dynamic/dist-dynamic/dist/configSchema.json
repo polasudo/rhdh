@@ -564,6 +564,102 @@
                 }
               }
             },
+            "github": {
+              "visibility": "frontend",
+              "type": "object",
+              "additionalProperties": {
+                "type": "object",
+                "required": [
+                  "clientId",
+                  "clientSecret"
+                ],
+                "properties": {
+                  "clientId": {
+                    "type": "string"
+                  },
+                  "clientSecret": {
+                    "visibility": "secret",
+                    "type": "string"
+                  },
+                  "callbackUrl": {
+                    "type": "string"
+                  },
+                  "enterpriseInstanceUrl": {
+                    "type": "string"
+                  },
+                  "additionalScopes": {
+                    "anyOf": [
+                      {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      {
+                        "type": "string"
+                      }
+                    ]
+                  },
+                  "signIn": {
+                    "type": "object",
+                    "required": [
+                      "resolvers"
+                    ],
+                    "properties": {
+                      "resolvers": {
+                        "type": "array",
+                        "items": {
+                          "anyOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "resolver": {
+                                  "type": "string",
+                                  "const": "usernameMatchingUserEntityName"
+                                }
+                              },
+                              "required": [
+                                "resolver"
+                              ]
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "resolver": {
+                                  "type": "string",
+                                  "const": "emailLocalPartMatchingUserEntityName"
+                                },
+                                "allowedDomains": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                }
+                              },
+                              "required": [
+                                "resolver"
+                              ]
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "resolver": {
+                                  "type": "string",
+                                  "const": "emailMatchingUserEntityProfileEmail"
+                                }
+                              },
+                              "required": [
+                                "resolver"
+                              ]
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
             "gcpIap": {
               "description": "Configuration for the Google Cloud Platform Identity-Aware Proxy (IAP) auth provider.",
               "type": "object",
@@ -732,102 +828,6 @@
                 }
               }
             },
-            "github": {
-              "visibility": "frontend",
-              "type": "object",
-              "additionalProperties": {
-                "type": "object",
-                "required": [
-                  "clientId",
-                  "clientSecret"
-                ],
-                "properties": {
-                  "clientId": {
-                    "type": "string"
-                  },
-                  "clientSecret": {
-                    "visibility": "secret",
-                    "type": "string"
-                  },
-                  "callbackUrl": {
-                    "type": "string"
-                  },
-                  "enterpriseInstanceUrl": {
-                    "type": "string"
-                  },
-                  "additionalScopes": {
-                    "anyOf": [
-                      {
-                        "type": "array",
-                        "items": {
-                          "type": "string"
-                        }
-                      },
-                      {
-                        "type": "string"
-                      }
-                    ]
-                  },
-                  "signIn": {
-                    "type": "object",
-                    "required": [
-                      "resolvers"
-                    ],
-                    "properties": {
-                      "resolvers": {
-                        "type": "array",
-                        "items": {
-                          "anyOf": [
-                            {
-                              "type": "object",
-                              "properties": {
-                                "resolver": {
-                                  "type": "string",
-                                  "const": "usernameMatchingUserEntityName"
-                                }
-                              },
-                              "required": [
-                                "resolver"
-                              ]
-                            },
-                            {
-                              "type": "object",
-                              "properties": {
-                                "resolver": {
-                                  "type": "string",
-                                  "const": "emailLocalPartMatchingUserEntityName"
-                                },
-                                "allowedDomains": {
-                                  "type": "array",
-                                  "items": {
-                                    "type": "string"
-                                  }
-                                }
-                              },
-                              "required": [
-                                "resolver"
-                              ]
-                            },
-                            {
-                              "type": "object",
-                              "properties": {
-                                "resolver": {
-                                  "type": "string",
-                                  "const": "emailMatchingUserEntityProfileEmail"
-                                }
-                              },
-                              "required": [
-                                "resolver"
-                              ]
-                            }
-                          ]
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            },
             "gitlab": {
               "visibility": "frontend",
               "type": "object",
@@ -924,21 +924,28 @@
                 }
               }
             },
-            "google": {
+            "microsoft": {
               "visibility": "frontend",
               "type": "object",
               "additionalProperties": {
                 "type": "object",
                 "required": [
                   "clientId",
-                  "clientSecret"
+                  "clientSecret",
+                  "tenantId"
                 ],
                 "properties": {
                   "clientId": {
                     "type": "string"
                   },
+                  "tenantId": {
+                    "type": "string"
+                  },
                   "clientSecret": {
                     "visibility": "secret",
+                    "type": "string"
+                  },
+                  "domainHint": {
                     "type": "string"
                   },
                   "callbackUrl": {
@@ -956,6 +963,9 @@
                         "type": "string"
                       }
                     ]
+                  },
+                  "skipUserProfile": {
+                    "type": "boolean"
                   },
                   "signIn": {
                     "type": "object",
@@ -1017,28 +1027,21 @@
                 }
               }
             },
-            "microsoft": {
+            "google": {
               "visibility": "frontend",
               "type": "object",
               "additionalProperties": {
                 "type": "object",
                 "required": [
                   "clientId",
-                  "clientSecret",
-                  "tenantId"
+                  "clientSecret"
                 ],
                 "properties": {
                   "clientId": {
                     "type": "string"
                   },
-                  "tenantId": {
-                    "type": "string"
-                  },
                   "clientSecret": {
                     "visibility": "secret",
-                    "type": "string"
-                  },
-                  "domainHint": {
                     "type": "string"
                   },
                   "callbackUrl": {
@@ -1056,9 +1059,6 @@
                         "type": "string"
                       }
                     ]
-                  },
-                  "skipUserProfile": {
-                    "type": "boolean"
                   },
                   "signIn": {
                     "type": "object",
