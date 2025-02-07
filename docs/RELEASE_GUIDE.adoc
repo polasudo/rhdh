@@ -221,6 +221,8 @@ MIDSTREAM_REPO=https://gitlab.cee.redhat.com/rhidp/rhdh/-/commits/rhdh-1.4-rhel-
 
 If a second RC build is needed, re-enable the scheduled GL pipeline (or you can just trigger a one-time pipeline manually), and repeat the above steps. If only rebuilding a bundle, you don't have to re-enable the GL pipelines as the bundle can be triggered from the above script with `sync-midstream.sh --bundleonly`.
 
+### Release Candidates Notifications
+
 ====
 **IMPORTANT**:
 
