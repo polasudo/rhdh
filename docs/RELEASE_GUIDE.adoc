@@ -448,3 +448,54 @@ Ongoing through the quarter, remember to:
 - notify Docs that they can release the latest RN updates
 - tag the repos w/ new 1.y.z tag; bump the repos 1.y.(z+1) to prepare for subsequent releases
 - for a .0 release, remove EOL versions of RHD from Comet
+
+### Extented Summary
+|===
+| **Step** | **Key Actions & Required Scripts** | **Responsible Team**
+
+| **1. Code Freeze** | Ensure all changes are merged before freeze. Reject non-blocker requests and route them to PM/QE/Docs. Test/documentation plans must be locked. | Release Engineering
+
+| **2. Branch Creation** | Run the branch creation https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1-rhel-9/build/scripts/tagRelease.sh?ref_type=heads[tagRelease] script:
+```export GITHUB_TOKEN=<your_GH_token>
+./build/scripts/tagRelease.sh -t 1.4 --branchfrom main -gh release-1.4
+```
+This script creates link:https://github.com/redhat-developer/rhdh/branches/all?query=release-1.4[release-1.4] and link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/tree/rhdh-1.4-rhel-9[rhdh-1.4-rhel-9] branches and updates `main`. | Release Engineering
+
+| **3. Build & Test** | Trigger Tekton Pipelines for builds and Functional Bundle Containers (FBCs). Run automated tests to ensure stability. Review Tekton pipeline status: link:../.tekton/README.adoc[Tekton Pipelines]. | QE, Engineering
+
+| **4. Release Candidate (RC)** | **Disable scheduled pipelines** to prevent unapproved changes:  
+Go to link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/pipeline_schedules[pipeline schedules], uncheck *Activated*, and save changes.
+
+**Update the Catalog Sources (IIBs) using the https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1-rhel-9/build/scripts/renderCatalogs.sh?ref_type=heads[renderCatalogs.sh] script:**
+```/home/fndlovu/pp/renderCatalogs.sh
+```
+If replacements are incorrect, modify `catalog-template.json` and rerun the script. | Release Engineering, PM, QE
+
+| **5. GA Preparation** | Update documentation and release notes:
+Check PRs for Release Notes: link:https://github.com/redhat-developer/red-hat-developers-documentation-rhdh/[RHDH Docs Repo].
+Run update scripts:
+```./modules/dynamic-plugins/rhdh-supported-plugins.sh
+./modules/release-notes/single-source-release-notes.py
+```
+Notify QE for final validation. | Docs, PM, QE
+
+| **6. GA Release** | **Trigger the Helm Chart release:**
+```./build/helm/prepare.sh --chart-version 1.4.2 --rhdh-version 1.4-132 --chart-branch release-1.4 --catalog git@github.com:rhdh-bot/openshift-helm-charts.git --publish
+```
+See PR: link:https://github.com/openshift-helm-charts/charts/pull/1556[Helm Chart PR].
+
+**Trigger Operator FBC release:**
+```./build/scripts/kfuxRelease.sh --prod --fbc :1.4-1737079124 -v 1.4.1 --debug --auto
+```
+
+**Tag repositories:**
+```./build/scripts/tagRelease.sh -v 1.4.2 -t 1.4 -gh release-1.4 -pd rhdh-1.4-rhel-9 -ghtoken $GITHUB_TOKEN
+``` | Release Engineering
+
+| **7. Post-Release** | **Remove EOL versions** from Comet:
+Delete old versions: link:https://comet.engineering.redhat.com/containers/repositories?view=myRepos&filter=repoPath:rhdh[Comet].
+Monitor Quay image updates.
+Update pipeline runner images **at least once per quarter**. | Security, Release Engineering
+|===
+
+
