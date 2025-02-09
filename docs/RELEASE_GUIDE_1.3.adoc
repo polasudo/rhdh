@@ -15,7 +15,6 @@ The table below provides a high-level overview of the release process before div
 | 6. Post-Release | Remove EOL versions & security checks | Release Engineering, Security Team
 |===
 
-TODO: Think about how best to create a release guide (Gantt chart, Smartsheet, etc.)
 
 This document seeks to explain the whole end-to-end process for releasing RHDH, from branch creation to GA push.
 
