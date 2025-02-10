@@ -19,7 +19,10 @@
     }
   ],
   "dockerfile": {
-    "enabled": false,
+    "enabled": true,
+    "groupName": "Containerfile references [ci skip]",
+    "additionalBranchPrefix": "{{parentDir}}-",
+    "automerge": false,
     "fileMatch": ["Containerfile"],
     "includePaths": [
       "distgit/containers/**"
@@ -45,6 +48,8 @@
         "excludeCommitPaths": ["sync/upstream_SHA*", "upstream_sources.yml"],
         "enabled": true,
         "additionalBranchPrefix": "{{parentDir}}-",
+        "groupName": "Konflux references [ci skip]",
+        "automerge": false,
         "branchPrefix": "konflux/references/",
         "group": {
           "branchTopic": "{{{baseBranch}}}",
