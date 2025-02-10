@@ -758,7 +758,7 @@
                 }
               }
             },
-            "github": {
+            "gitlab": {
               "visibility": "frontend",
               "type": "object",
               "additionalProperties": {
@@ -775,10 +775,10 @@
                     "visibility": "secret",
                     "type": "string"
                   },
-                  "callbackUrl": {
+                  "audience": {
                     "type": "string"
                   },
-                  "enterpriseInstanceUrl": {
+                  "callbackUrl": {
                     "type": "string"
                   },
                   "additionalScopes": {
@@ -854,7 +854,7 @@
                 }
               }
             },
-            "gitlab": {
+            "github": {
               "visibility": "frontend",
               "type": "object",
               "additionalProperties": {
@@ -871,10 +871,10 @@
                     "visibility": "secret",
                     "type": "string"
                   },
-                  "audience": {
+                  "callbackUrl": {
                     "type": "string"
                   },
-                  "callbackUrl": {
+                  "enterpriseInstanceUrl": {
                     "type": "string"
                   },
                   "additionalScopes": {
@@ -982,6 +982,109 @@
                         "type": "string"
                       }
                     ]
+                  },
+                  "signIn": {
+                    "type": "object",
+                    "required": [
+                      "resolvers"
+                    ],
+                    "properties": {
+                      "resolvers": {
+                        "type": "array",
+                        "items": {
+                          "anyOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "resolver": {
+                                  "type": "string",
+                                  "const": "emailMatchingUserEntityAnnotation"
+                                }
+                              },
+                              "required": [
+                                "resolver"
+                              ]
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "resolver": {
+                                  "type": "string",
+                                  "const": "emailLocalPartMatchingUserEntityName"
+                                },
+                                "allowedDomains": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                }
+                              },
+                              "required": [
+                                "resolver"
+                              ]
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "resolver": {
+                                  "type": "string",
+                                  "const": "emailMatchingUserEntityProfileEmail"
+                                }
+                              },
+                              "required": [
+                                "resolver"
+                              ]
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "microsoft": {
+              "visibility": "frontend",
+              "type": "object",
+              "additionalProperties": {
+                "type": "object",
+                "required": [
+                  "clientId",
+                  "clientSecret",
+                  "tenantId"
+                ],
+                "properties": {
+                  "clientId": {
+                    "type": "string"
+                  },
+                  "tenantId": {
+                    "type": "string"
+                  },
+                  "clientSecret": {
+                    "visibility": "secret",
+                    "type": "string"
+                  },
+                  "domainHint": {
+                    "type": "string"
+                  },
+                  "callbackUrl": {
+                    "type": "string"
+                  },
+                  "additionalScopes": {
+                    "anyOf": [
+                      {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      {
+                        "type": "string"
+                      }
+                    ]
+                  },
+                  "skipUserProfile": {
+                    "type": "boolean"
                   },
                   "signIn": {
                     "type": "object",
@@ -1151,7 +1254,7 @@
                 }
               }
             },
-            "microsoft": {
+            "oidc": {
               "visibility": "frontend",
               "type": "object",
               "additionalProperties": {
@@ -1159,23 +1262,26 @@
                 "required": [
                   "clientId",
                   "clientSecret",
-                  "tenantId"
+                  "metadataUrl"
                 ],
                 "properties": {
                   "clientId": {
-                    "type": "string"
-                  },
-                  "tenantId": {
                     "type": "string"
                   },
                   "clientSecret": {
                     "visibility": "secret",
                     "type": "string"
                   },
-                  "domainHint": {
+                  "metadataUrl": {
                     "type": "string"
                   },
                   "callbackUrl": {
+                    "type": "string"
+                  },
+                  "tokenEndpointAuthMethod": {
+                    "type": "string"
+                  },
+                  "tokenSignedResponseAlg": {
                     "type": "string"
                   },
                   "additionalScopes": {
@@ -1191,8 +1297,8 @@
                       }
                     ]
                   },
-                  "skipUserProfile": {
-                    "type": "boolean"
+                  "prompt": {
+                    "type": "string"
                   },
                   "signIn": {
                     "type": "object",
@@ -1204,18 +1310,6 @@
                         "type": "array",
                         "items": {
                           "anyOf": [
-                            {
-                              "type": "object",
-                              "properties": {
-                                "resolver": {
-                                  "type": "string",
-                                  "const": "emailMatchingUserEntityAnnotation"
-                                }
-                              },
-                              "required": [
-                                "resolver"
-                              ]
-                            },
                             {
                               "type": "object",
                               "properties": {
@@ -1318,100 +1412,6 @@
                                 "resolver"
                               ]
                             },
-                            {
-                              "type": "object",
-                              "properties": {
-                                "resolver": {
-                                  "type": "string",
-                                  "const": "emailLocalPartMatchingUserEntityName"
-                                },
-                                "allowedDomains": {
-                                  "type": "array",
-                                  "items": {
-                                    "type": "string"
-                                  }
-                                }
-                              },
-                              "required": [
-                                "resolver"
-                              ]
-                            },
-                            {
-                              "type": "object",
-                              "properties": {
-                                "resolver": {
-                                  "type": "string",
-                                  "const": "emailMatchingUserEntityProfileEmail"
-                                }
-                              },
-                              "required": [
-                                "resolver"
-                              ]
-                            }
-                          ]
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            },
-            "oidc": {
-              "visibility": "frontend",
-              "type": "object",
-              "additionalProperties": {
-                "type": "object",
-                "required": [
-                  "clientId",
-                  "clientSecret",
-                  "metadataUrl"
-                ],
-                "properties": {
-                  "clientId": {
-                    "type": "string"
-                  },
-                  "clientSecret": {
-                    "visibility": "secret",
-                    "type": "string"
-                  },
-                  "metadataUrl": {
-                    "type": "string"
-                  },
-                  "callbackUrl": {
-                    "type": "string"
-                  },
-                  "tokenEndpointAuthMethod": {
-                    "type": "string"
-                  },
-                  "tokenSignedResponseAlg": {
-                    "type": "string"
-                  },
-                  "additionalScopes": {
-                    "anyOf": [
-                      {
-                        "type": "array",
-                        "items": {
-                          "type": "string"
-                        }
-                      },
-                      {
-                        "type": "string"
-                      }
-                    ]
-                  },
-                  "prompt": {
-                    "type": "string"
-                  },
-                  "signIn": {
-                    "type": "object",
-                    "required": [
-                      "resolvers"
-                    ],
-                    "properties": {
-                      "resolvers": {
-                        "type": "array",
-                        "items": {
-                          "anyOf": [
                             {
                               "type": "object",
                               "properties": {
