@@ -222,7 +222,7 @@ for SNAPSHOT in $SNAPSHOTS; do
     oc -n rhdh-tenant get Snapshot "$SNAPSHOT" -o yaml > /tmp/"$SNAPSHOT".yaml
     # collect 3 images
     for i in $(yq -r '.spec.components[].containerImage' /tmp/"$SNAPSHOT".yaml | sort -uV); do 
-      imageAndTag="$(~/pp/getTagForSHA.sh "$i" -q -y)" 
+      imageAndTag="$("${SCRIPT_DIR}/getTagForSHA.sh" "$i" -q -y)" 
       echo -e " * $imageAndTag = $i"
       echo "$imageAndTag" >> "/tmp/imagelist_$SNAPSHOT.txt"
     done
