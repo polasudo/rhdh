@@ -108,7 +108,10 @@ while [[ "$#" -gt 0 ]]; do
 done
 
 if [[ ! ${PROD_VERSION} ]]; then
-  PROD_VERSION=${CSV_VERSION%.*} # given 1.y.0, want 1.y
+	PROD_VERSION=${CSV_VERSION%.*} # given 1.y.0, want 1.y
+fi
+if [[ ! ${PROD_VERSION} ]]; then
+	PROD_VERSION=${TARGET_BRANCH/release-} # given release-1.y, want 1.y
 fi
 KFUX_VERSION=${PROD_VERSION/./-} # want 1-4, not 1.4
 
@@ -154,8 +157,8 @@ createPr() {
 				gh pr view --web || true
 			fi
 		else # not github
-			PR_URL=$(git push origin "${headBranch}" 2>&1 | grep "${headBranch}" | grep "https://" | sed -r -e "s/remote:   //")
-			echo "Create merge request at $PR_URL"
+			PR_URL=$(git push origin "${headBranch}" 2>&1 | grep "${headBranch}" | grep "https://" | sed -r -e "s/remote:   //" | tr -d " ")"&merge_request%5Btarget_branch%5D=${baseBranch}"
+			echo "Create merge request at ${PR_URL}"
 			google-chrome "$PR_URL"
 		fi
 	else
@@ -595,11 +598,14 @@ pushTagGL ()
 				git config user.email "${MIDSTM_USER}@redhat.com"
 				git config user.name "RHDH Build (${MIDSTM_USER})"
 				git checkout --track origin/"${MIDSTM_BRANCH}" -q 2>/dev/null || true
-				git pull -q 2>/dev/null
+				git pull -q 2>/dev/null || true
 				if [[ ${SOURCE_BRANCH} ]]; then 
+
 					# create a branch or use existing
 					git branch --set-upstream-to="origin/${DWNSTM_TARGET_BRANCH}" "${DWNSTM_TARGET_BRANCH}" || git branch "${DWNSTM_TARGET_BRANCH}" || true
-					git checkout --track origin/"${DWNSTM_TARGET_BRANCH}" 1>/dev/null || true
+					git checkout --track origin/"${DWNSTM_TARGET_BRANCH}" 1>/dev/null || git checkout "${DWNSTM_TARGET_BRANCH}" 1>/dev/null || true
+					# echo "[DEBUG] Currently in branch $(git rev-parse --abbrev-ref HEAD); expecting ${DWNSTM_TARGET_BRANCH}"
+					
 					git pull origin "${DWNSTM_TARGET_BRANCH}" 1>/dev/null || true
 					git push origin "${DWNSTM_TARGET_BRANCH}" 1>/dev/null || true
 
@@ -608,7 +614,7 @@ pushTagGL ()
 						sed -i upstream_repos.yml -r -e "s|- main|- ${TARGET_BRANCH}|g"
 						rm -f sync/*
 						COMMITMSG="chore: tagRelease.sh: use $TARGET_BRANCH in upstream_repos.yml; trigger full build"
-						git commit --no-gpg-sign -s -m "${COMMITMSG}" sync/ upstream_repos.yml
+						git commit --no-gpg-sign -s -m "${COMMITMSG}" sync/ upstream_repos.yml || echo "nothing to commit, working tree clean"
 					fi
 
 					if [[ $DO_PUSH -eq 1 ]]; then 
@@ -636,6 +642,7 @@ updateRPATagVersion ()
 
 	pushd "$TMPDIR" >/dev/null || exit 1
 	# fetch repo
+	if [[ -d "${repo}" ]]; then rm -fr "${repo}"; fi
 	git clone -q --depth 1 -b main "git@gitlab.cee.redhat.com:releng/${repo}.git" "${repo}"
 	if [[ -d "$TMPDIR/${repo}" ]]; then
 		pushd "$TMPDIR/${repo}/config/stone-prod-p02.hjvn.p1/product/ReleasePlanAdmission/rhdh" >/dev/null || exit 1
@@ -659,6 +666,25 @@ updateRPATagVersion ()
 	fi
 	popd  >/dev/null || exit 1
 }
+
+# update the konflux-release-data for a new branch
+generateKRD ()
+{
+	repo=konflux-release-data
+	
+	echo; echo "== $repo :: generate $KFUX_VERSION yamls for $PROD_VERSION  =="
+
+	pushd "$TMPDIR" >/dev/null || exit 1
+	# fetch repo
+	if [[ -d "${repo}" ]]; then rm -fr "${repo}"; fi
+	git clone -q --depth 1 -b main "git@gitlab.cee.redhat.com:releng/${repo}.git" "${repo}"
+	if [[ -d "$TMPDIR/${repo}" ]]; then
+		echo
+		# TODO https://issues.redhat.com/browse/RHIDP-5432
+	fi
+	popd >/dev/null || exit 1
+}
+
 
 ####################################
 
@@ -729,11 +755,15 @@ if [[ $SKIP_GL -eq 0 ]]; then
 		pushTagGL $repo
 		done
 
-		# midstream konflux-release-data sources
-		updateRPATagVersion
+		if [[ $CSV_VERSION ]]; then # for tagging
+			# midstream konflux-release-data sources
+			updateRPATagVersion
+		else # for branching
+			generateKRD 
+		fi
 
 		# cleanup
-		rm -fr "$TMPDIR"/*
+		rm -fr "${TMPDIR:?}"/*
 	fi
 fi
 
