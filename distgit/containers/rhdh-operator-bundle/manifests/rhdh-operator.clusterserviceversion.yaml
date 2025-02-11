@@ -259,7 +259,7 @@ spec:
                 - name: RELATED_IMAGE_postgresql
                   value: registry.redhat.io/rhel9/postgresql-15@sha256:b84ed1c0789d08b9ea9d8609ac80c1863bf47fb872abe3e33387aaca8ae1150d
                 - name: RELATED_IMAGE_backstage
-                  value: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:14c648bc68b258c5059f2f42567a84579f275db128c56c168a44aa6a2e930832
+                  value: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:85e0f54d757dded6d1600f82a15992d5c01e17d60f7deadb05637d5cf878c33f
                 image: registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:0c4f164614015559f66c20df5a775b3e5f22c00d3cbd9bbd9cf58a179629c7ca
                 livenessProbe:
                   httpGet:
@@ -371,7 +371,7 @@ spec:
   relatedImages:
   - image: registry.redhat.io/rhel9/postgresql-15@sha256:b84ed1c0789d08b9ea9d8609ac80c1863bf47fb872abe3e33387aaca8ae1150d
     name: postgresql
-  - image: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:14c648bc68b258c5059f2f42567a84579f275db128c56c168a44aa6a2e930832
+  - image: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:85e0f54d757dded6d1600f82a15992d5c01e17d60f7deadb05637d5cf878c33f
     name: backstage
   replaces: rhdh-operator.v1.4.0
   version: 1.5.0
