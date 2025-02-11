@@ -1,6 +1,6 @@
 {
   "name": "@backstage-community/plugin-3scale-backend",
-  "version": "3.0.3+embedded",
+  "version": "3.2.0+embedded",
   "license": "Apache-2.0",
   "main": "./dist/index.cjs.js",
   "types": "./dist/index.d.ts",
@@ -21,6 +21,13 @@
       "default": "./dist/index.cjs.js"
     },
     "./package.json": "./package.json"
+  },
+  "typesVersions": {
+    "*": {
+      "index": [
+        "dist/index.d.ts"
+      ]
+    }
   },
   "scripts": {
     "build": "backstage-cli package build",
@@ -60,10 +67,10 @@
   "author": "Red Hat",
   "private": true,
   "peerDependencies": {
-    "@backstage/backend-plugin-api": "^1.0.1",
-    "@backstage/catalog-model": "^1.7.0",
-    "@backstage/errors": "^1.2.4",
-    "@backstage/plugin-catalog-node": "^1.13.1"
+    "@backstage/backend-plugin-api": "^1.1.1",
+    "@backstage/catalog-model": "^1.7.3",
+    "@backstage/errors": "^1.2.7",
+    "@backstage/plugin-catalog-node": "^1.15.1"
   },
   "overrides": {
     "@aws-sdk/util-utf8-browser": {

@@ -6,14 +6,14 @@ __metadata:
   cacheKey: 8
 
 "@backstage-community/plugin-scaffolder-backend-module-sonarqube@file:./embedded/backstage-community-plugin-scaffolder-backend-module-sonarqube::locator=backstage-community-plugin-scaffolder-backend-module-sonarqube-dynamic%40workspace%3A.":
-  version: 2.2.2+embedded
-  resolution: "@backstage-community/plugin-scaffolder-backend-module-sonarqube@file:./embedded/backstage-community-plugin-scaffolder-backend-module-sonarqube#./embedded/backstage-community-plugin-scaffolder-backend-module-sonarqube::hash=5a33fb&locator=backstage-community-plugin-scaffolder-backend-module-sonarqube-dynamic%40workspace%3A."
+  version: 2.4.0+embedded
+  resolution: "@backstage-community/plugin-scaffolder-backend-module-sonarqube@file:./embedded/backstage-community-plugin-scaffolder-backend-module-sonarqube#./embedded/backstage-community-plugin-scaffolder-backend-module-sonarqube::hash=1cddab&locator=backstage-community-plugin-scaffolder-backend-module-sonarqube-dynamic%40workspace%3A."
   dependencies:
     yaml: ^2.3.3
   peerDependencies:
-    "@backstage/backend-plugin-api": ^1.0.1
-    "@backstage/plugin-scaffolder-node": ^0.5.0
-  checksum: 3a9228ca66bb3b2ee3ecb8c7d62a9d10cb6d8c3143e90048449bb225f293e654faba59c5063cf0aab4a61c01d8982da0464e39df1052c8fb866300c6fbe71405
+    "@backstage/backend-plugin-api": ^1.1.1
+    "@backstage/plugin-scaffolder-node": ^0.6.3
+  checksum: 409bff41b65e409f6e3adeae7e080663fc0bcf20e1b5896db15dc888c23207c6958acb5a2bda7c4bb7fe72744c6bb883fe52b538fb3682c1ed52b06c5e800f44
   languageName: node
   linkType: hard
 
@@ -21,10 +21,10 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "backstage-community-plugin-scaffolder-backend-module-sonarqube-dynamic@workspace:."
   dependencies:
-    "@backstage-community/plugin-scaffolder-backend-module-sonarqube": 2.2.2
+    "@backstage-community/plugin-scaffolder-backend-module-sonarqube": 2.4.0
   peerDependencies:
-    "@backstage/backend-plugin-api": ^1.0.1
-    "@backstage/plugin-scaffolder-node": ^0.5.0
+    "@backstage/backend-plugin-api": ^1.1.1
+    "@backstage/plugin-scaffolder-node": ^0.6.3
   languageName: unknown
   linkType: soft
 

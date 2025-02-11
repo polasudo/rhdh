@@ -219,7 +219,7 @@ function getDocInfo(spec) {
   if (openApiMergerConverter.isSwagger2_0(spec) || openApiMergerConverter.isOpenAPI3_0(spec)) {
     return spec.info;
   }
-  return void 0;
+  return undefined;
 }
 
 exports.ThreeScaleApiEntityProvider = ThreeScaleApiEntityProvider;

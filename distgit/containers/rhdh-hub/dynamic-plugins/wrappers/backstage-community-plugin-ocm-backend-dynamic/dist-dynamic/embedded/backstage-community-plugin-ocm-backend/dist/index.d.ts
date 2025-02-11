@@ -4,9 +4,13 @@ import { Config } from '@backstage/config';
 import { EntityProvider, EntityProviderConnection } from '@backstage/plugin-catalog-node';
 import { CustomObjectsApi } from '@kubernetes/client-node';
 
+/**
+ * @public
+ */
 declare const bundle: _backstage_backend_plugin_api.BackendFeature;
 
 /**
+ * @public
  * Provides OpenShift cluster resource entities from Open Cluster Management.
  */
 declare class ManagedClusterProvider implements EntityProvider {
@@ -34,8 +38,14 @@ declare class ManagedClusterProvider implements EntityProvider {
     run(): Promise<void>;
 }
 
+/**
+ * @public
+ */
 declare const catalogModuleOCMEntityProvider: _backstage_backend_plugin_api.BackendFeature;
 
+/**
+ * @public
+ */
 declare const ocmPlugin: _backstage_backend_plugin_api.BackendFeature;
 
 export { ManagedClusterProvider, catalogModuleOCMEntityProvider, bundle as default, ocmPlugin };

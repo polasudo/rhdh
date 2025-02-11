@@ -7,7 +7,7 @@ var defaultTransformers = require('./defaultTransformers.cjs.js');
 const findGroupMemberships = (userId, groups, groupMembersMap) => {
   const groupMemberships = [];
   groups.forEach((group) => {
-    const groupId = group.metadata.annotations ? group.metadata.annotations[constants.PING_IDENTITY_ID_ANNOTATION] : void 0;
+    const groupId = group.metadata.annotations ? group.metadata.annotations[constants.PING_IDENTITY_ID_ANNOTATION] : undefined;
     if (groupId && groupMembersMap.has(groupId) && groupMembersMap.get(groupId)?.has(userId)) {
       groupMemberships.push(group.metadata.name);
     }
@@ -57,7 +57,7 @@ const parsePingIdentityUsers = async (client, groups, groupMembersMap, userQuery
       );
     })
   );
-  return transformedUsers.filter((user) => user !== void 0);
+  return transformedUsers.filter((user) => user !== undefined);
 };
 const parsePingIdentityGroups = async (client, groupMembersMap, parentGroupMap, groupQuerySize, groupTransformer) => {
   const transformer = groupTransformer ?? defaultTransformers.defaultGroupTransformer;
@@ -96,7 +96,7 @@ const parsePingIdentityGroups = async (client, groupMembersMap, parentGroupMap, 
               displayName: group.name
             },
             children: [],
-            parent: void 0
+            parent: undefined
             // will be updated later
           }
         },
@@ -106,7 +106,7 @@ const parsePingIdentityGroups = async (client, groupMembersMap, parentGroupMap, 
     })
   );
   return transformedGroups.filter(
-    (group) => group !== void 0
+    (group) => group !== undefined
   );
 };
 const readPingIdentity = async (client, options) => {

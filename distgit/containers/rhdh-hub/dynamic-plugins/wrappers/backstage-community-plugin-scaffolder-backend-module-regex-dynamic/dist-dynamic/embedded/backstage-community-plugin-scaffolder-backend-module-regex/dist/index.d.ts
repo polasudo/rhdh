@@ -1,7 +1,10 @@
 import * as _backstage_plugin_scaffolder_node from '@backstage/plugin-scaffolder-node';
-import * as _backstage_types from '@backstage/types';
+import * as _backstage_types_index from '@backstage/types/index';
 import * as _backstage_backend_plugin_api from '@backstage/backend-plugin-api';
 
+/**
+ * @public
+ */
 declare const createReplaceAction: () => _backstage_plugin_scaffolder_node.TemplateAction<{
     regExps: {
         values: {
@@ -12,8 +15,11 @@ declare const createReplaceAction: () => _backstage_plugin_scaffolder_node.Templ
         replacement: string;
         flags?: ("g" | "m" | "i" | "y" | "u" | "s" | "d")[] | undefined;
     }[];
-}, _backstage_types.JsonObject>;
+}, _backstage_types_index.JsonObject>;
 
+/**
+ * @public
+ */
 declare const scaffolderModuleRegexActions: _backstage_backend_plugin_api.BackendFeature;
 
 export { createReplaceAction, scaffolderModuleRegexActions as default };

@@ -1,6 +1,6 @@
 {
   "name": "backstage-community-plugin-3scale-backend-dynamic",
-  "version": "3.0.3",
+  "version": "3.2.0",
   "main": "./dist/index.cjs.js",
   "types": "./dist/index.d.ts",
   "license": "Apache-2.0",
@@ -25,7 +25,7 @@
     "./package.json": "./package.json"
   },
   "dependencies": {
-    "@backstage-community/plugin-3scale-backend": "3.0.3"
+    "@backstage-community/plugin-3scale-backend": "3.2.0"
   },
   "files": [
     "dist"
@@ -56,9 +56,9 @@
     "@backstage-community/plugin-3scale-backend": "file:./embedded/backstage-community-plugin-3scale-backend"
   },
   "peerDependencies": {
-    "@backstage/backend-plugin-api": "^1.0.1",
-    "@backstage/catalog-model": "^1.7.0",
-    "@backstage/errors": "^1.2.4",
-    "@backstage/plugin-catalog-node": "^1.13.1"
+    "@backstage/backend-plugin-api": "^1.1.1",
+    "@backstage/catalog-model": "^1.7.3",
+    "@backstage/errors": "^1.2.7",
+    "@backstage/plugin-catalog-node": "^1.15.1"
   }
 }

@@ -1,7 +1,10 @@
 import * as _backstage_plugin_scaffolder_node from '@backstage/plugin-scaffolder-node';
-import * as _backstage_types from '@backstage/types';
+import * as _backstage_types_index from '@backstage/types/index';
 import * as _backstage_backend_plugin_api from '@backstage/backend-plugin-api';
 
+/**
+ * @public
+ */
 type TemplateActionParameters = {
     baseUrl: string;
     token?: string;
@@ -12,8 +15,14 @@ type TemplateActionParameters = {
     branch?: string;
     visibility?: string;
 };
-declare const createSonarQubeProjectAction: () => _backstage_plugin_scaffolder_node.TemplateAction<TemplateActionParameters, _backstage_types.JsonObject>;
+/**
+ * @public
+ */
+declare const createSonarQubeProjectAction: () => _backstage_plugin_scaffolder_node.TemplateAction<TemplateActionParameters, _backstage_types_index.JsonObject>;
 
+/**
+ * @public
+ */
 declare const scaffolderModuleSonarqubeActions: _backstage_backend_plugin_api.BackendFeature;
 
-export { createSonarQubeProjectAction, scaffolderModuleSonarqubeActions as default };
+export { type TemplateActionParameters, createSonarQubeProjectAction, scaffolderModuleSonarqubeActions as default };

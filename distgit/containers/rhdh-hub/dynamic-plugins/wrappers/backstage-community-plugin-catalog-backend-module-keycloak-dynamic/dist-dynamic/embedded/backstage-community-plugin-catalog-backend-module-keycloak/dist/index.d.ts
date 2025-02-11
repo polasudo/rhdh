@@ -8,22 +8,40 @@ import UserRepresentation from '@keycloak/keycloak-admin-client/lib/defs/userRep
 
 /**
  * @public
+ * The Keycloak group representation with parent and group members information.
  */
 interface GroupRepresentationWithParent extends GroupRepresentation {
+    /**
+     * The parent group ID.
+     */
     parentId?: string;
+    /**
+     * The parent group name.
+     */
     parent?: string;
+    /**
+     * The group members.
+     */
     members?: string[];
 }
 /**
  * @public
+ * The Keycloak group representation with parent, group members, and conrresponding backstage entity information.
  */
 interface GroupRepresentationWithParentAndEntity extends GroupRepresentationWithParent {
+    /**
+     * The corresponding backstage entity information.
+     */
     entity: GroupEntity;
 }
 /**
  * @public
+ * The Keycloak user representation with corresponding backstage entity information.
  */
 interface UserRepresentationWithEntity extends UserRepresentation {
+    /**
+     * The corresponding backstage entity information.
+     */
     entity: UserEntity;
 }
 /**
@@ -116,6 +134,10 @@ type KeycloakProviderConfig = {
      * @see https://www.keycloak.org/docs-api/11.0/rest-api/index.html#_groups_resource
      */
     groupQuerySize?: number;
+    /**
+     * Maximum request concurrency to prevent DoS attacks on the Keycloak server.
+     */
+    maxConcurrency?: number;
 };
 
 /**
@@ -166,6 +188,12 @@ declare class KeycloakOrgEntityProvider implements EntityProvider {
     private options;
     private connection?;
     private scheduleFn?;
+    /**
+     * Static builder method to create multiple KeycloakOrgEntityProvider instances from a single config.
+     * @param deps - The dependencies required for the provider, including the configuration and logger.
+     * @param options - Options for scheduling tasks and transforming users and groups.
+     * @returns An array of KeycloakOrgEntityProvider instances.
+     */
     static fromConfig(deps: {
         config: Config;
         logger: LoggerService;
@@ -185,7 +213,14 @@ declare class KeycloakOrgEntityProvider implements EntityProvider {
         userTransformer?: UserTransformer;
         groupTransformer?: GroupTransformer;
     });
+    /**
+     * Returns the name of this entity provider.
+     */
     getProviderName(): string;
+    /**
+     * Connect to Backstage catalog entity provider
+     * @param connection - The connection to the catalog API ingestor, which allows the provision of new entities.
+     */
     connect(connection: EntityProviderConnection): Promise<void>;
     /**
      * Runs one complete ingestion loop. Call this method regularly at some
@@ -194,15 +229,21 @@ declare class KeycloakOrgEntityProvider implements EntityProvider {
     read(options?: {
         logger?: LoggerService;
     }): Promise<void>;
+    /**
+     * Periodically schedules a task to read Keycloak user and group information, parse it, and provision it to the Backstage catalog.
+     * @param taskRunner - The task runner to use for scheduling tasks.
+     */
     schedule(taskRunner: SchedulerServiceTaskRunner): void;
 }
 
 /**
  * @public
+ * Group transformer that does nothing.
  */
 declare const noopGroupTransformer: GroupTransformer;
 /**
  * @public
+ * User transformer that does nothing.
  */
 declare const noopUserTransformer: UserTransformer;
 /**

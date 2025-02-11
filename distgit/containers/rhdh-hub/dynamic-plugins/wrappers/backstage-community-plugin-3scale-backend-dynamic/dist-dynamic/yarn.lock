@@ -6,19 +6,19 @@ __metadata:
   cacheKey: 8
 
 "@backstage-community/plugin-3scale-backend@file:./embedded/backstage-community-plugin-3scale-backend::locator=backstage-community-plugin-3scale-backend-dynamic%40workspace%3A.":
-  version: 3.0.3+embedded
-  resolution: "@backstage-community/plugin-3scale-backend@file:./embedded/backstage-community-plugin-3scale-backend#./embedded/backstage-community-plugin-3scale-backend::hash=4bbf5b&locator=backstage-community-plugin-3scale-backend-dynamic%40workspace%3A."
+  version: 3.2.0+embedded
+  resolution: "@backstage-community/plugin-3scale-backend@file:./embedded/backstage-community-plugin-3scale-backend#./embedded/backstage-community-plugin-3scale-backend::hash=3aa742&locator=backstage-community-plugin-3scale-backend-dynamic%40workspace%3A."
   dependencies:
     atlassian-openapi: ^1.0.19
     openapi-merge: ^1.3.3
     swagger-converter: 2.1.0
     swagger2openapi: ^7.0.4
   peerDependencies:
-    "@backstage/backend-plugin-api": ^1.0.1
-    "@backstage/catalog-model": ^1.7.0
-    "@backstage/errors": ^1.2.4
-    "@backstage/plugin-catalog-node": ^1.13.1
-  checksum: d340ce0a6f26aa387d0132893d7800565d45d2dc92c10b06b9f092afa63099c68f63620f4a9592b1d9682c750f21a7834e9275adc85c9c7bed48c20dfbe0e551
+    "@backstage/backend-plugin-api": ^1.1.1
+    "@backstage/catalog-model": ^1.7.3
+    "@backstage/errors": ^1.2.7
+    "@backstage/plugin-catalog-node": ^1.15.1
+  checksum: 1fd4c906d04b97b021cbc4b3797913cf199ba85f08ee7c6e4e0f189bc9de4f7fe8dab208284c0ea15ca51944eca14d5791077822ea21ec10d8ce913697569a7d
   languageName: node
   linkType: hard
 
@@ -59,12 +59,12 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "backstage-community-plugin-3scale-backend-dynamic@workspace:."
   dependencies:
-    "@backstage-community/plugin-3scale-backend": 3.0.3
+    "@backstage-community/plugin-3scale-backend": 3.2.0
   peerDependencies:
-    "@backstage/backend-plugin-api": ^1.0.1
-    "@backstage/catalog-model": ^1.7.0
-    "@backstage/errors": ^1.2.4
-    "@backstage/plugin-catalog-node": ^1.13.1
+    "@backstage/backend-plugin-api": ^1.1.1
+    "@backstage/catalog-model": ^1.7.3
+    "@backstage/errors": ^1.2.7
+    "@backstage/plugin-catalog-node": ^1.15.1
   languageName: unknown
   linkType: soft
 

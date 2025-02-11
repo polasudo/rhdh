@@ -18,7 +18,7 @@ const readProviderConfig = (id, providerConfigInstance) => {
   }
   const schedule = providerConfigInstance.has("schedule") ? backendPluginApi.readSchedulerServiceTaskScheduleDefinitionFromConfig(
     providerConfigInstance.getConfig("schedule")
-  ) : void 0;
+  ) : undefined;
   return {
     id,
     apiPath,

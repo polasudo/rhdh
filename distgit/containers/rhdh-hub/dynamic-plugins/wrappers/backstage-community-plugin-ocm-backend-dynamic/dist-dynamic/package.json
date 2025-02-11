@@ -1,6 +1,6 @@
 {
   "name": "backstage-community-plugin-ocm-backend-dynamic",
-  "version": "5.2.3",
+  "version": "5.3.0",
   "main": "./dist/index.cjs.js",
   "types": "./dist/index.d.ts",
   "license": "Apache-2.0",
@@ -25,7 +25,7 @@
     "./package.json": "./package.json"
   },
   "dependencies": {
-    "@backstage-community/plugin-ocm-backend": "5.2.3"
+    "@backstage-community/plugin-ocm-backend": "5.3.0"
   },
   "files": [
     "dist"
@@ -57,13 +57,13 @@
     "@backstage-community/plugin-ocm-common": "file:./embedded/backstage-community-plugin-ocm-common"
   },
   "peerDependencies": {
-    "@backstage/backend-defaults": "^0.5.2",
-    "@backstage/backend-openapi-utils": "^0.2.0",
-    "@backstage/backend-plugin-api": "^1.0.1",
-    "@backstage/catalog-model": "^1.7.0",
-    "@backstage/errors": "^1.2.4",
-    "@backstage/plugin-catalog-node": "^1.13.1",
-    "@backstage/plugin-permission-common": "^0.8.1",
-    "@backstage/plugin-permission-node": "^0.8.4"
+    "@backstage/backend-defaults": "^0.7.0",
+    "@backstage/backend-openapi-utils": "^0.4.1",
+    "@backstage/backend-plugin-api": "^1.1.1",
+    "@backstage/catalog-model": "^1.7.3",
+    "@backstage/errors": "^1.2.7",
+    "@backstage/plugin-catalog-node": "^1.15.1",
+    "@backstage/plugin-permission-common": "^0.8.4",
+    "@backstage/plugin-permission-node": "^0.8.7"
   }
 }

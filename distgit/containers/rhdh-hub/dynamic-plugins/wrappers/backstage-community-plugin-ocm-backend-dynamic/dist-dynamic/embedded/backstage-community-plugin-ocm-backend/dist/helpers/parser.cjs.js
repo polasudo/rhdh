@@ -5,7 +5,7 @@ var constants = require('../constants.cjs.js');
 
 const convertCpus = (cpus) => {
   if (!cpus) {
-    return void 0;
+    return undefined;
   }
   if (cpus.endsWith("m")) {
     return parseInt(cpus.slice(0, cpus.length - 1), 10) / 1e3;
@@ -15,7 +15,7 @@ const convertCpus = (cpus) => {
 const parseResources = (resources) => ({
   cpuCores: convertCpus(resources?.cpu),
   memorySize: resources?.memory,
-  numberOfPods: parseInt(resources?.pods, 10) || void 0
+  numberOfPods: parseInt(resources?.pods, 10) || undefined
 });
 const getClaim = (cluster, claimName) => cluster.status?.clusterClaims?.find((value) => value.name === claimName)?.value ?? "";
 const parseClusterStatus = (mc) => {

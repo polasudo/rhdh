@@ -6,32 +6,32 @@ __metadata:
   cacheKey: 8
 
 "@backstage-community/plugin-ocm-backend@file:./embedded/backstage-community-plugin-ocm-backend::locator=backstage-community-plugin-ocm-backend-dynamic%40workspace%3A.":
-  version: 5.2.3+embedded
-  resolution: "@backstage-community/plugin-ocm-backend@file:./embedded/backstage-community-plugin-ocm-backend#./embedded/backstage-community-plugin-ocm-backend::hash=c9541f&locator=backstage-community-plugin-ocm-backend-dynamic%40workspace%3A."
+  version: 5.3.0+embedded
+  resolution: "@backstage-community/plugin-ocm-backend@file:./embedded/backstage-community-plugin-ocm-backend#./embedded/backstage-community-plugin-ocm-backend::hash=6c0711&locator=backstage-community-plugin-ocm-backend-dynamic%40workspace%3A."
   dependencies:
-    "@backstage-community/plugin-ocm-common": ^3.6.1
+    "@backstage-community/plugin-ocm-common": ^3.7.0
     "@kubernetes/client-node": ^0.22.1
     express: ^4.18.2
     semver: ^7.5.4
   peerDependencies:
-    "@backstage/backend-defaults": ^0.5.2
-    "@backstage/backend-openapi-utils": ^0.2.0
-    "@backstage/backend-plugin-api": ^1.0.1
-    "@backstage/catalog-model": ^1.7.0
-    "@backstage/errors": ^1.2.4
-    "@backstage/plugin-catalog-node": ^1.13.1
-    "@backstage/plugin-permission-common": ^0.8.1
-    "@backstage/plugin-permission-node": ^0.8.4
-  checksum: 457f716a4707af0d838d5514e196c0e70ce54fdea2d69a4b95d86b795f12a0e62dcab5387d0a2f1147e4047c7374d7f80e7d1c7af97e8be7bd712f3e934e80fd
+    "@backstage/backend-defaults": ^0.7.0
+    "@backstage/backend-openapi-utils": ^0.4.1
+    "@backstage/backend-plugin-api": ^1.1.1
+    "@backstage/catalog-model": ^1.7.3
+    "@backstage/errors": ^1.2.7
+    "@backstage/plugin-catalog-node": ^1.15.1
+    "@backstage/plugin-permission-common": ^0.8.4
+    "@backstage/plugin-permission-node": ^0.8.7
+  checksum: 1cb756859811c0d2efa3a121c1e2b29922f325b890fdb6e21abb1c7fb9753c581d42a35216b18e0453207460846dddfc83b544055ebdf3e4d648e7212aa22285
   languageName: node
   linkType: hard
 
 "@backstage-community/plugin-ocm-common@file:./embedded/backstage-community-plugin-ocm-common::locator=backstage-community-plugin-ocm-backend-dynamic%40workspace%3A.":
-  version: 3.6.1+embedded
-  resolution: "@backstage-community/plugin-ocm-common@file:./embedded/backstage-community-plugin-ocm-common#./embedded/backstage-community-plugin-ocm-common::hash=7f9d69&locator=backstage-community-plugin-ocm-backend-dynamic%40workspace%3A."
+  version: 3.7.0+embedded
+  resolution: "@backstage-community/plugin-ocm-common@file:./embedded/backstage-community-plugin-ocm-common#./embedded/backstage-community-plugin-ocm-common::hash=578ed5&locator=backstage-community-plugin-ocm-backend-dynamic%40workspace%3A."
   peerDependencies:
-    "@backstage/plugin-permission-common": ^0.8.1
-  checksum: 3898e72e53c50480f228e19a9a4b9c4316257d3c130fdac5e897384f158d5fbcb53a832b77030d7d57cd1374146c0715faf397c5e4118b57ccf6825b78ea31c2
+    "@backstage/plugin-permission-common": ^0.8.4
+  checksum: 3b411e107bbaaf48d7728f21598704129c1ba87b965815314eb962ae64402696c4b7acf9c78161c4c210f5a6c2cbdd1ab8700bb10b91dc4123894744d7bc9375
   languageName: node
   linkType: hard
 
@@ -212,16 +212,16 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "backstage-community-plugin-ocm-backend-dynamic@workspace:."
   dependencies:
-    "@backstage-community/plugin-ocm-backend": 5.2.3
+    "@backstage-community/plugin-ocm-backend": 5.3.0
   peerDependencies:
-    "@backstage/backend-defaults": ^0.5.2
-    "@backstage/backend-openapi-utils": ^0.2.0
-    "@backstage/backend-plugin-api": ^1.0.1
-    "@backstage/catalog-model": ^1.7.0
-    "@backstage/errors": ^1.2.4
-    "@backstage/plugin-catalog-node": ^1.13.1
-    "@backstage/plugin-permission-common": ^0.8.1
-    "@backstage/plugin-permission-node": ^0.8.4
+    "@backstage/backend-defaults": ^0.7.0
+    "@backstage/backend-openapi-utils": ^0.4.1
+    "@backstage/backend-plugin-api": ^1.1.1
+    "@backstage/catalog-model": ^1.7.3
+    "@backstage/errors": ^1.2.7
+    "@backstage/plugin-catalog-node": ^1.15.1
+    "@backstage/plugin-permission-common": ^0.8.4
+    "@backstage/plugin-permission-node": ^0.8.7
   languageName: unknown
   linkType: soft
 

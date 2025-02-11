@@ -6,15 +6,15 @@ __metadata:
   cacheKey: 8
 
 "@backstage-community/plugin-scaffolder-backend-module-kubernetes@file:./embedded/backstage-community-plugin-scaffolder-backend-module-kubernetes::locator=backstage-community-plugin-scaffolder-backend-module-kubernetes-dynamic%40workspace%3A.":
-  version: 2.2.2+embedded
-  resolution: "@backstage-community/plugin-scaffolder-backend-module-kubernetes@file:./embedded/backstage-community-plugin-scaffolder-backend-module-kubernetes#./embedded/backstage-community-plugin-scaffolder-backend-module-kubernetes::hash=a35a8f&locator=backstage-community-plugin-scaffolder-backend-module-kubernetes-dynamic%40workspace%3A."
+  version: 2.4.0+embedded
+  resolution: "@backstage-community/plugin-scaffolder-backend-module-kubernetes@file:./embedded/backstage-community-plugin-scaffolder-backend-module-kubernetes#./embedded/backstage-community-plugin-scaffolder-backend-module-kubernetes::hash=7847e8&locator=backstage-community-plugin-scaffolder-backend-module-kubernetes-dynamic%40workspace%3A."
   dependencies:
     "@kubernetes/client-node": ^0.22.1
   peerDependencies:
-    "@backstage/backend-plugin-api": ^1.0.1
-    "@backstage/catalog-client": ^1.7.1
-    "@backstage/plugin-scaffolder-node": ^0.5.0
-  checksum: f5e3777905160142c22cc3d25453fa4aba6dcc9158d67d03438058a14db2e25a2e42546112220b4a5bcc4f66053f1757a3a6a04c1b3db299a3ae9195d0389816
+    "@backstage/backend-plugin-api": ^1.1.1
+    "@backstage/catalog-client": ^1.9.1
+    "@backstage/plugin-scaffolder-node": ^0.6.3
+  checksum: 2f75f9172bca62af0a21918a6a074a7fe213582bcf3dd5bc8bc64e8b98cb00d6205143f15f30640805386459e5ee1c69bbc6145e003dd320e20dccb5c46dac3a
   languageName: node
   linkType: hard
 
@@ -178,11 +178,11 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "backstage-community-plugin-scaffolder-backend-module-kubernetes-dynamic@workspace:."
   dependencies:
-    "@backstage-community/plugin-scaffolder-backend-module-kubernetes": 2.2.2
+    "@backstage-community/plugin-scaffolder-backend-module-kubernetes": 2.4.0
   peerDependencies:
-    "@backstage/backend-plugin-api": ^1.0.1
-    "@backstage/catalog-client": ^1.7.1
-    "@backstage/plugin-scaffolder-node": ^0.5.0
+    "@backstage/backend-plugin-api": ^1.1.1
+    "@backstage/catalog-client": ^1.9.1
+    "@backstage/plugin-scaffolder-node": ^0.6.3
   languageName: unknown
   linkType: soft
 

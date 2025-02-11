@@ -1,5 +1,17 @@
 # @backstage-community/plugin-catalog-backend-module-pingidentity
 
+## 0.2.0
+
+### Minor Changes
+
+- c328f9c: Backstage version bump to v1.35.0
+
+## 0.1.6
+
+### Patch Changes
+
+- a6e850f: Updated dependency `msw` to `1.3.5`.
+
 ## 0.1.5
 
 ### Patch Changes

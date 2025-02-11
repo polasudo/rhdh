@@ -35,7 +35,7 @@ class PingIdentityClient {
       const response = await this.requestApi(url, true);
       const data = await response.json();
       allUsers.push(...data._embedded.users);
-      nextUrl = data._links?.next?.href || void 0;
+      nextUrl = data._links?.next?.href || undefined;
     }
     return allUsers;
   }
@@ -54,7 +54,7 @@ class PingIdentityClient {
       const response = await this.requestApi(url, true);
       const data = await response.json();
       allGroups.push(...data._embedded.groups);
-      nextUrl = data._links?.next?.href || void 0;
+      nextUrl = data._links?.next?.href || undefined;
     }
     return allGroups;
   }
@@ -68,7 +68,7 @@ class PingIdentityClient {
   async getParentGroupId(groupId) {
     const response = await this.requestApi(`groups/${groupId}/memberOfGroups`);
     const data = await response.json();
-    return data.size > 0 ? data._embedded.groupMemberships[0].id : void 0;
+    return data.size > 0 ? data._embedded.groupMemberships[0].id : undefined;
   }
   /**
    * Gets all user IDs of users in a given group

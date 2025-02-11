@@ -40,6 +40,10 @@
                         "description": "The number of groups to query at a time.",
                         "type": "number"
                       },
+                      "maxConcurrency": {
+                        "description": "Maximum request concurrency to prevent DoS attacks on the Keycloak server.",
+                        "type": "number"
+                      },
                       "schedule": {},
                       "username": {
                         "description": "Keycloak credentials. Use together with \"password\".",
@@ -78,6 +82,10 @@
                       },
                       "groupQuerySize": {
                         "description": "The number of groups to query at a time.",
+                        "type": "number"
+                      },
+                      "maxConcurrency": {
+                        "description": "Maximum request concurrency to prevent DoS attacks on the Keycloak server.",
                         "type": "number"
                       },
                       "schedule": {},

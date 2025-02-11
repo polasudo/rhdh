@@ -21,7 +21,7 @@ function readThreeScaleApiEntityConfig(id, config) {
   const addLabels = config.getOptionalBoolean("addLabels") || true;
   const schedule = config.has("schedule") ? backendPluginApi.readSchedulerServiceTaskScheduleDefinitionFromConfig(
     config.getConfig("schedule")
-  ) : void 0;
+  ) : undefined;
   return {
     id,
     baseUrl,

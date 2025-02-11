@@ -61,7 +61,7 @@ const getHubClusterFromConfig = (id, config, globalConfig) => {
     owner: config.getOptionalString(OWNER_KEY) ?? "unknown",
     schedule: config.has("schedule") ? backendPluginApi.readSchedulerServiceTaskScheduleDefinitionFromConfig(
       config.getConfig("schedule")
-    ) : void 0
+    ) : undefined
   };
 };
 const readOcmConfigs = (config) => {
