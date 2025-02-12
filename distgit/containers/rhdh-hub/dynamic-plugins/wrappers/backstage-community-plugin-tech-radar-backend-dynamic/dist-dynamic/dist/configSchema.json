@@ -718,7 +718,7 @@
                 }
               }
             },
-            "gitlab": {
+            "github": {
               "visibility": "frontend",
               "type": "object",
               "additionalProperties": {
@@ -735,10 +735,10 @@
                     "visibility": "secret",
                     "type": "string"
                   },
-                  "audience": {
+                  "callbackUrl": {
                     "type": "string"
                   },
-                  "callbackUrl": {
+                  "enterpriseInstanceUrl": {
                     "type": "string"
                   },
                   "additionalScopes": {
@@ -814,7 +814,7 @@
                 }
               }
             },
-            "github": {
+            "gitlab": {
               "visibility": "frontend",
               "type": "object",
               "additionalProperties": {
@@ -831,10 +831,10 @@
                     "visibility": "secret",
                     "type": "string"
                   },
-                  "callbackUrl": {
+                  "audience": {
                     "type": "string"
                   },
-                  "enterpriseInstanceUrl": {
+                  "callbackUrl": {
                     "type": "string"
                   },
                   "additionalScopes": {
