@@ -60,13 +60,13 @@ Examples:
 
     # Published on every build in gitlab via the rhdh-bot user - see RHIDP-33
     $ TAG=1.y-zzz; $0 --chart-version \${TAG}-CI --rhdh-version \${TAG} --extra-branch rhdh-1.y-rhel-9 \\
-        --catalog git@github.com:rhdh-bot/openshift-helm-charts.git --publish
+        --chart-branch release-1.y --catalog git@github.com:rhdh-bot/openshift-helm-charts.git --publish
     Chart version:        1.y-zzz-CI
     Developer Hub image:  quay.io/rhdh/rhdh-hub-rhel9:1.y-zzz
 
-     # Or, log into the quay.io and registry.redhat.io to be able to pull container metadata, then compute the latest 1.4-zz or next 1.5-zzz tag
+     # Or, log into the quay.io and registry.redhat.io to be able to pull container metadata, then compute the latest 1.5-zz or next 1.6-zzz tag
     $ export GITHUB_TOKEN=ghp_rhdh-bot-token-here
-    $ $0 --latest --chart-branch release-1.4 --publish --extra-branch rhdh-1.4-rhel-9
+    $ $0 --latest --chart-branch release-1.5 --publish --extra-branch rhdh-1.5-rhel-9
     $ $0 --next   --chart-branch main        --publish --extra-branch rhdh-1-rhel-9
     Chart version:        1.next-zzz-CI
     Developer Hub image:  quay.io/rhdh/rhdh-hub-rhel9:1.next-zzz
