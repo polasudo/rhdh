@@ -12,7 +12,7 @@ SCRIPT_DIR=$(cd "$(dirname "$0")" || exit; pwd)
 DEBUG=0 # quieter
 AUTORELEASE=0
 
-RHDH_FULL_VERSION_INPUT="1.4.1"
+RHDH_FULL_VERSION_INPUT="1.4.2"
 
 CONTAINERS=""
 DEST=""
@@ -21,6 +21,12 @@ OCP_VERSIONS="4.14 4.15 4.16 4.17 4.18"
 BUNDLE_TAG_OR_SHA=""
 SNAPSHOT_OVERRIDE=""
 midstreamCommitSHA=""
+CVEListFile="" # full path to a .csv file containing CVE ids and container references
+
+norm="\033[0;39m"
+green="\033[1;32m"
+blue="\033[1;34m"
+red="\033[1;31m"
 
 usage () {
     echo "\
@@ -44,12 +50,20 @@ usageContainers () {
 Usage - for container snapshots:
 =======================
 
-oc login ...
+1. oc login ...
 
-$0 --stage -c rhdh-operator-bundle -v $RHDH_FULL_VERSION_INPUT --debug
-$0 --prod  -c rhdh-operator-bundle -v $RHDH_FULL_VERSION_INPUT
+2. Export a csv file
+   from https://docs.google.com/spreadsheets/d/1JZVTc03wirx-bTpjn3muWed8cGyFTRTNe6x3Gr02hys/edit?gid=1689785403#gid=1689785403 
+   for the sheet matching this release
+   using File > Download > Comma Separated Values (.csv)
+
+3. Pass that .csv file to this script:
+
+$0 --stage -c rhdh-operator-bundle -v $RHDH_FULL_VERSION_INPUT --cve /tmp/RHDH\ CVE\ Management\ -\ 1.4.2.csv --debug 
+$0 --prod  -c rhdh-operator-bundle -v 1.5.0 --cve /tmp/RHDH\ CVE\ Management\ -\ 1.5.0.csv
 
 Options:
+  --cve              Full path to the CVE list file to use for the container Release, eg., /tmp/RHDH\ CVE\ Management\ -\ 1.y.z.csv
   --stage, --prod    Push to the stage or prod version of the RH Ecosystem Catalog
   -c                 Space-separated list of containers to release, such as \"rhdh-hub-rhel9 rhdh-rhel9-operator rhdh-operator-bundle\"
   -v                 RHDH version x.y.z to release
@@ -113,6 +127,14 @@ Options:
   "
 }
 
+# break if not logged in
+OCwhoami=$(oc whoami 2>&1 || true)
+if [[ $OCwhoami == *"You must be logged in"* ]] || [[ $OCwhoami == *"cannot get resource"* ]] || [[ $OCwhoami == *"Error"* ]] || [[ $OCwhoami == *"Forbidden"* ]]; then 
+  usage
+  echo; echo -e "${red}$OCwhoami\n[ERROR] You must be logged into the konflux console!${norm}"; echo
+  exit 1
+fi
+
 while [[ "$#" -gt 0 ]]; do
   case $1 in
     '--debug') DEBUG=1;;
@@ -124,7 +146,8 @@ while [[ "$#" -gt 0 ]]; do
     '--snapshot') SNAPSHOT_OVERRIDE=$2; shift 1;;
     '--commit')   midstreamCommitSHA="$2"; shift 1;;
     '-c') CONTAINERS="$CONTAINERS $2"; shift 1;;
-    *) usage; usageContainers; usageFBCs; echo; echo "[ERROR] Unknown flag $1"; exit 1;;
+    '--cve') CVEListFile="$2"; shift 1;;
+    *) usage; usageContainers; usageFBCs; echo; echo -e "${red}[ERROR] Unknown flag ${1}${norm}"; exit 1;;
   esac
   shift 1
 done
@@ -139,25 +162,25 @@ for OCP_VERSION in $OCP_VERSIONS; do
 done
 
 if [[ $SNAPSHOT_OVERRIDE ]] && [[ $num_ocp_versions -gt 1 ]]; then
-  usage; usageFBCs; echo; echo "[ERROR] Can only specify a snapshot for a single OCP version! Use '-o 4.18' to set the OCP version for the specified snapshot $SNAPSHOT_OVERRIDE !"; exit 1
+  usage; usageFBCs; echo; echo -e "${red}[ERROR] Can only specify a snapshot for a single OCP version! Use '-o 4.18' to set the OCP version for the specified snapshot $SNAPSHOT_OVERRIDE !${norm}"; exit 1
 fi
 
 if [[ ! $CONTAINERS ]] && [[ ! $BUNDLE_TAG_OR_SHA ]]; then 
-  usage; usageContainers; usageFBCs; echo; echo "[ERROR] Must specify '-c rhdh-operator-bundle', or for FBCs, use a bundle image tag with --fbc 1.y-zzz to perfom a release!"; exit 1
+  usage; usageContainers; usageFBCs; echo; echo -e "${red}[ERROR] Must specify '-c rhdh-operator-bundle', or for FBCs, use a bundle image tag with --fbc 1.y-zzz to perfom a release!${norm}"; exit 1
 fi
 
 if [[ ! $RHDH_FULL_VERSION ]]; then 
   usage; 
-  if [[ $CONTAINERS ]]; then usageContainers; fi
+  if [[ $CONTAINERS ]] || [[ -f $CVEListFile ]]; then usageContainers; fi
   if [[ $BUNDLE_TAG_OR_SHA ]]; then usageFBCs; fi;
-  echo; echo "[ERROR] Must specify full RHDH version with -v x.y.z to perfom a release!"; exit 1
+  echo; echo -e "${red}[ERROR] Must specify full RHDH version with -v x.y.z to perfom a release!${norm}"; exit 1
 fi
 
 if [[ ! $DEST ]]; then 
   usage; 
   if [[ $CONTAINERS ]]; then usageContainers; fi
   if [[ $BUNDLE_TAG_OR_SHA ]]; then usageFBCs; fi;
-  echo; echo "[ERROR] Must specify --stage or --prod to perfom a release!"; exit 1
+  echo; echo -e "${red}[ERROR] Must specify --stage or --prod to perfom a release!${norm}"; exit 1
 fi
 
 ######################################################################################################################
@@ -169,7 +192,7 @@ TS=$(date +'%Y%m%d-%H%M%S' -u) # unique timestamp
 
 if [[ $CONTAINERS ]]; then
   echo
-  echo -n "[INFO] Collect bundle and related images from quay.io/rhdh/rhdh-operator-bundle:$RHDH_VERSION " 
+  echo -n -e "${blue}[INFO] Collect bundle and related images from quay.io/rhdh/rhdh-operator-bundle:$RHDH_VERSION " 
 
   rm -f "/tmp/imagelist_latest_$RHDH_VERSION.txt"
   latest_bundle=$("${SCRIPT_DIR}/getLatestImageTags.sh" -b "rhdh-${RHDH_VERSION}-rhel-9" --quay -c rhdh/rhdh-operator-bundle)
@@ -178,7 +201,7 @@ if [[ $CONTAINERS ]]; then
   "${SCRIPT_DIR}/checkImagesInCSV.sh" -q -y "$latest_bundle" -i 'hub|operator' >> "/tmp/imagelist_latest_$RHDH_VERSION.txt"
   echo -n "."
   sort -uV "/tmp/imagelist_latest_$RHDH_VERSION.txt" > "/tmp/imagelist_latest_$RHDH_VERSION.txt_"; mv "/tmp/imagelist_latest_$RHDH_VERSION.txt"{_,}
-  echo ". done."
+  echo -e ". done.${norm}"
   echo
 fi
 
@@ -205,19 +228,52 @@ for CONTAINER in $CONTAINERS; do
   SNAPSHOT=$(oc -n rhdh-tenant get Snapshots --sort-by=.metadata.creationTimestamp \
     --selector='pac.test.appstudio.openshift.io/original-prname='"${CONTAINER/-rhel9/}"'-'"${RHDH_VERSION/./-}"'-on-push,pac.test.appstudio.openshift.io/sha='"${MID_SHA}"| \
     sed -r -e '/NAME +AGE/d' -e "s/([a-z0-9-]+)\ +([0-9smhdy]+)/\1/g")
+
+  if [[ ! $SNAPSHOT ]]; then
+    echo -e "${red}[ERROR] No Snapshots found for ${CONTAINER/-rhel9/}-${RHDH_VERSION/./-}-on-push and sha=${MID_SHA}! ${norm}"
+    exit 1
+  fi
+
   if [[ $DEBUG -eq 1 ]]; then set +x; fi
-  echo; echo -e "[INFO] For midstream SHA = $MID_SHA, found these snapshot(s):\n$SNAPSHOT"
+  echo; echo -e "${blue}[INFO] For midstream SHA = $MID_SHA, found these snapshot(s):${norm}\n$SNAPSHOT"
   # TODO fail if we find more than one snapshot for this image; exit 1
   SNAPSHOTS="${SNAPSHOTS} ${SNAPSHOT}"
   rm -f /tmp/container_inspect.txt
 done
 echo 
 
+# get the list of CVE by ID and container reference
+cves_yaml=""
+references_yaml=""
+getCVElist () {
+  # read CVEListFile: find the CVE (2) and Container (5) columns; combine with " ; "; strip spaces; omit the header row with tail
+  
+  for line in $(awk -F "\"*,\"*" '{print $2,";",$5}' "$CVEListFile" | tr -d " " | tail --lines=+2); do 
+    #split into CVE ID and component
+    CVE_ID=${line%;*}
+    component=${line#*;}
+    if [[ $component == *"hub"* ]]; then 
+      component="rhdh-hub"
+    elif [[ $component == *"operator"* ]]; then 
+      component="rhdh-operator"
+    else
+      component="UNKNOWN"
+    fi
+    if [[ $component != "UNKNOWN" ]]; then
+      cves_yaml="$cves_yaml
+        - key: $CVE_ID
+          component: $component"
+      references_yaml="$references_yaml
+        - https://access.redhat.com/security/cve/$CVE_ID"
+    fi
+  done
+}
+
 # TODO now compute the images in the bundle snapshot to make sure we have one that contains all the latest/correct images; if not all are present, fail!
 for SNAPSHOT in $SNAPSHOTS; do
   if [[ ! -v processed_images["$SNAPSHOT"] ]]; then # process this new one
     rm -f "/tmp/imagelist_$SNAPSHOT.txt"
-    echo "[INFO] Inspecting $SNAPSHOT:"
+    echo -e "${blue}[INFO] Inspecting $SNAPSHOT:${norm}"
     
     oc -n rhdh-tenant get Snapshot "$SNAPSHOT" -o yaml > /tmp/"$SNAPSHOT".yaml
     # collect 3 images
@@ -230,21 +286,24 @@ for SNAPSHOT in $SNAPSHOTS; do
 
     # compare with the contents of the latest bundle's operands
     if [[ "$(cat "/tmp/imagelist_latest_$RHDH_VERSION.txt")" != "$(cat "/tmp/imagelist_$SNAPSHOT.txt")" ]]; then
-      echo "[ERROR] Latest images != images in snapshot:"
-      echo "===================latest==================="
+      echo -e "${red}[ERROR] Latest images != images in snapshot:${norm}"
+      echo -e "${red}===================latest===================${norm}"
       cat "/tmp/imagelist_latest_$RHDH_VERSION.txt"
-      echo "===================latest==================="
+      echo -e "${red}===================latest===================${norm}"
       echo
-      echo "===================snapshot==================="
+      echo -e "${red}===================snapshot===================${norm}"
       cat "/tmp/imagelist_$SNAPSHOT.txt"
-      echo "===================snapshot==================="
+      echo -e "${red}===================snapshot===================${norm}"
       exit 
     else
-      echo "[INFO] Snapshot images match latest images - release can proceed!"
+      echo -e "${green}[INFO] Snapshot images match latest images - release can proceed!${norm}"
       cat "/tmp/imagelist_$SNAPSHOT.txt"
     fi
     rm -f "/tmp/imagelist_$SNAPSHOT.txt" "/tmp/imagelist_latest_$RHDH_VERSION.txt"
 
+    # compute $cves_yaml and $references_yaml
+    getCVElist "$CVEListFile"
+    
     echo
     cat << EOT > "/tmp/release-${SNAPSHOT}-${DEST}-${TS}.yaml"
 apiVersion: appstudio.redhat.com/v1alpha1
@@ -253,10 +312,28 @@ metadata:
   name: release-${RHDH_FULL_VERSION}-${SNAPSHOT}-${DEST}-${TS}
   namespace: rhdh-tenant
   labels:
-    release.appstudio.openshift.io/author: nboldt
+    release.appstudio.openshift.io/author: $(oc whoami)
 spec:
   releasePlan: rhdh-${RHDH_VERSION/./-}-${DEST}
   snapshot: ${SNAPSHOT}
+  data:
+    releaseNotes:
+      synopsis: Red Hat Developer Hub ${RHDH_FULL_VERSION//-/.} release.
+      topic: Red Hat Developer Hub ${RHDH_FULL_VERSION//-/.} has been released.
+      type: RHSA
+      references: 
+        - "https://developers.redhat.com/rhdh/overview"
+        - "https://docs.redhat.com/en/documentation/red_hat_developer_hub"
+        - "https://catalog.redhat.com/search?gs&searchType=containers&q=rhdh"
+        # add CVE links here
+        # - https://access.redhat.com/security/cve/CVE-2024-12345
+        # - https://access.redhat.com/security/cve/CVE-2024-23456 $references_yaml
+      cves:
+      # add CVEs here
+      #   - key: CVE-2024-12345
+      #     component: rhdh-hub
+      #  - key: CVE-2024-23456
+      #    component: rhdh-operator $cves_yaml
 EOT
     # if [[ $DEBUG -eq 1 ]]; then cat "/tmp/release-${SNAPSHOT}-${DEST}-${TS}.yaml"; fi
     if [[ $AUTORELEASE -eq 1 ]]; then
@@ -269,12 +346,12 @@ EOT
       managedPipeline=$(oc -n rhdh-tenant get Releases --sort-by=.metadata.creationTimestamp -o yaml | yq -r '.items[]|select(.metadata.name|startswith("'"release-${RHDH_FULL_VERSION}-${SNAPSHOT}-${DEST}-${TS}"'"))' | grep pipelineRun | sed -r -e "s|.+rhtap-releng-tenant/(.+)\",|\1|")
       if [[ $managedPipeline ]]; then
         managedPipelineURL="https://konflux.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/application-pipeline/workspaces/rhtap-releng/applications/rhdh-${RHDH_VERSION/./-}/pipelineruns/${managedPipeline}/taskruns"
-        echo -e -n "[INFO] Run in $managedPipelineURL\n       and "
+        echo -e -n "${green}[INFO] Run in $managedPipelineURL\n       and "
       else 
-        echo -e -n "[INFO] Run in "
+        echo -e -n "${blue}[INFO] Run in "
       fi
       RELEASE_URL="https://konflux.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/application-pipeline/workspaces/rhdh/applications/rhdh-${RHDH_VERSION/./-}/releases/release-${RHDH_FULL_VERSION}-${SNAPSHOT}-${DEST}-${TS}"
-      echo "$RELEASE_URL"
+      echo -e "$RELEASE_URL${norm}"
 
       # open a browser to watch the release
       if [[ $(command -v google-chrome) == *"google-chrome"* ]] || [[ $(which google-chrome) != *"which: no google-chrome"* ]]; then 
@@ -311,13 +388,13 @@ if [[ $BUNDLE_TAG_OR_SHA ]]; then
   fi
   # shellcheck disable=SC2143
   if [[ $(skopeo inspect --raw "docker://${CONTAINER_PRE}/rhdh-operator-bundle${BUNDLE_TAG_OR_SHA}" 2>&1 | grep "Error parsing") ]]; then
-    echo "[ERROR] Could not find operator bundle from specifed tag or SHA! Try this again to get a valid tag:"; 
+    echo -e "${red}[ERROR] Could not find operator bundle from specifed tag or SHA! Try this again to get a valid tag:${norm}"
     echo "  skopeo inspect --raw docker://${CONTAINER_PRE}/rhdh-operator-bundle${BUNDLE_TAG_OR_SHA}";
     exit 1
   else 
-    echo "Inspecting ${CONTAINER_PRE}/rhdh-operator-bundle${BUNDLE_TAG_OR_SHA} ..."
+    echo -e "${blue}Inspecting ${CONTAINER_PRE}/rhdh-operator-bundle${BUNDLE_TAG_OR_SHA} ..."
     time skopeo inspect "docker://${CONTAINER_PRE}/rhdh-operator-bundle${BUNDLE_TAG_OR_SHA}" > /tmp/fbc_inspect.txt
-    echo
+    echo -e "${norm}"
   fi
   tagXYZ=$(jq -r '.Labels.version+"-"+.Labels.release' /tmp/fbc_inspect.txt)
   digest=$(jq -r '.Digest' /tmp/fbc_inspect.txt)
@@ -374,14 +451,14 @@ if [[ $BUNDLE_TAG_OR_SHA ]]; then
     SNAPSHOT=$(yq -r '.items[]|select(.metadata.annotations."pac.test.appstudio.openshift.io/branch" == "'"${BRANCH}"'")|select(.metadata.labels."pac.test.appstudio.openshift.io/state" == "completed")'"$extraSelect"'|.metadata.name' "/tmp/fbc-snapshots-${OCP_VERSION}.yaml" | tail -1)
     
     if [[ ! $SNAPSHOT ]] || [[ ! $pipelinerunfinishtime ]]; then
-      echo "[ERROR] Could not find a snapshot! Try different values for the --fbc, --snapshot, and/or --commit flags."; exit 1
+      echo -e "${red}[ERROR] Could not find a snapshot! Try different values for the --fbc, --snapshot, and/or --commit flags.${norm}"; exit 1
     fi
 
     # pipelinerun: https://konflux.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/application-pipeline/workspaces/rhdh/applications/fbc-4-14/pipelineruns/fbc-4-14-on-push-g9fpp
     # snapshot:    https://konflux.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/application-pipeline/workspaces/rhdh/applications/fbc-4-14/snapshots/fbc-4-14-d766t
-    echo -e "For $OCP_VERSION, found snapshot (completed $pipelinerunfinishtime):"
+    echo -e "${green}For $OCP_VERSION, found snapshot (completed $pipelinerunfinishtime):"
     echo -e " * Commit:   https://gitlab.cee.redhat.com/rhidp/rhdh/-/commit/$(tail -1 "/tmp/fbc-snapshots-${OCP_VERSION}.csv" | sed -r -e "s@.+\t([^\t]+)@\1@")"
-    echo -e " * Snapshot: https://konflux.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/application-pipeline/workspaces/rhdh/applications/fbc-${OCP_VERSION}/snapshots/$SNAPSHOT\n"
+    echo -e " * Snapshot: https://konflux.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/application-pipeline/workspaces/rhdh/applications/fbc-${OCP_VERSION}/snapshots/$SNAPSHOT${norm}\n"
 
     # for each SNAPSHOT, find the iib bundle, extract its contents, and pick the last bundle reference; check if that matches the value above
     oc -n rhdh-tenant get Snapshot "${SNAPSHOT}" -o yaml > "/tmp/${SNAPSHOT}.yaml"
@@ -419,7 +496,7 @@ apiVersion: appstudio.redhat.com/v1alpha1
 kind: Release
 metadata:
   labels:
-    release.appstudio.openshift.io/author: nboldt
+    release.appstudio.openshift.io/author: $(oc whoami)
   name: release-rhdh-${RHDH_FULL_VERSION}-fbc-${OCP_VERSION}-${DEST}-${TS}
   namespace: rhdh-tenant
 spec:
@@ -448,9 +525,9 @@ EOT
       if [[ $PROCEED -eq 1 ]]; then break; fi
     done
     if [[ $PROCEED -eq 0 ]]; then 
-      echo "[ERROR] Can not proceed with the release: matching operator-bundle image not found!"
-      echo "[ERROR] Make sure to pass in the correct image tag to release with '--fbc x.y-zzz'. Note that prod and stage may use different bundle tags (:1.4-1734113472 vs. :1.4-127)"
-      echo "[ERROR] Use the --commit or --snapshot flag to specify an older snapshot with the desired bundle image."
+      echo -e "${red}[ERROR] Can not proceed with the release: matching operator-bundle image not found!${norm}"
+      echo -e "${red}[ERROR] Make sure to pass in the correct image tag to release with '--fbc x.y-zzz'. Note that prod and stage may use different bundle tags (:1.4-1734113472 vs. :1.4-127)${norm}"
+      echo -e "${red}[ERROR] Use the --commit or --snapshot flag to specify an older snapshot with the desired bundle image.${norm}"
       exit 1
     fi
   done
@@ -487,17 +564,17 @@ EOT
         yq -r '.items[]|select(.spec.releasePlan == "'"${RP}"'")|select(.metadata.name|startswith("'"${RN}"'"))|select(.status.managedProcessing.pipelineRun|split("/")[1] == "'"$managedPipeline"'")|.metadata.name + "\t" + .spec.releasePlan + "\t'"${managedPipeline}"'\t\t" + .status.managedProcessing.startTime + "\t" + .status.managedProcessing.completionTime' "/tmp/releases-${OCP_VERSION}.yaml"
       done
     else 
-      echo " >> No Releases found for ReleasePlan $RP - submit one using the steps above."
+      echo -e "${red} >> No Releases found for ReleasePlan $RP - submit one using the steps above.${norm}"
     fi
   done
   rm -f /tmp/releases-*
   echo
   
   if [[ ${#managedPipeline_mapping[@]} -gt 0 ]]; then 
-    echo "Found these managed pipeline releases:"
+    echo -e "${green}Found these managed pipeline releases:${norm}"
     for k in "${!managedPipeline_mapping[@]}"; do 
       for managedPipeline in ${managedPipeline_mapping[$k]}; do
-        echo "  https://konflux.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/application-pipeline/workspaces/rhtap-releng/applications/fbc-$k/pipelineruns/${managedPipeline}/taskruns"
+        echo -e "${green}  https://konflux.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/application-pipeline/workspaces/rhtap-releng/applications/fbc-$k/pipelineruns/${managedPipeline}/taskruns${norm}"
       done
     done
   fi
