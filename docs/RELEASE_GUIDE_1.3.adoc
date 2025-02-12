@@ -10,9 +10,9 @@ The table below provides a high-level overview of the release process before div
 | 1. Code Freeze | Block changes & freeze pipeline | Release Engineering
 | 2. RC Build | Push to Quay & Errata | Release Engineering
 | 3. Testing | Smoke tests & QE validation | QE Team
-| 4. GA Week Prep | Update Docs & obtain approvals | Docs, PM, QE
+| 4. GA Week Prep | Update Docs & obtain approvals from stakeholders | QE, Security Team, Docs
 | 5. GA Release | Push Helm chart, IIB final, tag repos | Release Engineering
-| 6. Post-Release | Remove EOL versions & security checks | Release Engineering, Security Team
+| 6. Post-Release | Remove EOL versions & security checks | Release Engineering
 |===
 
 
@@ -23,6 +23,12 @@ _TODO_: Think about how best to create a release guide (gantt chart, smartsheet,
 ## Code Freeze / Blockers Only / New Stream Day
 
 Creation of brew targets and errata PV can be done any time before starting the feature/code frozen builds from the new 1.y branch, but it's better to do it in advance so your builds don't fail due to the missing brew target / PV.
+
+### RHSA Errata setup
+
+====
+NOTE: As of 1.3.5, we've been asked to use RHSA instead of RHBA when creating erratas. HOWEVER, a **Product Security Approval Request** IS NOT REQUIRED. 
+====
 
 Once set up, you can then run the branch creation script whenever dev is done (or nearly done) it's time for feature.
 
