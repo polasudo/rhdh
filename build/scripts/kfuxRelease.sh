@@ -203,25 +203,26 @@ if [[ $CONTAINERS ]]; then
   echo -n "."
   sort -uV "/tmp/imagelist_bundle_latest_$RHDH_VERSION.txt" > "/tmp/imagelist_bundle_latest_$RHDH_VERSION.txt_"; mv "/tmp/imagelist_bundle_latest_$RHDH_VERSION.txt"{_,}
   echo -e ". done.${norm}"
-  echo
   if [[ "$(cat "/tmp/imagelist_bundle_latest_$RHDH_VERSION.txt")" != "$latest_images" ]]; then
-    echo -e "${red}[ERROR] Latest images != images in bundle:${norm}"
+    echo
+    echo -e "${red}[ERROR] Latest images != images in $latest_bundle !${norm}"
     echo -e "${red}===================latest===================${norm}"
-    echo -e "$latest_images"
+    echo -e "$latest_images" | grep -v operator-bundle
     echo -e "${red}===================latest===================${norm}"
     echo
     echo -e "${red}===================bundle===================${norm}"
-    cat "/tmp/imagelist_bundle_latest_$RHDH_VERSION.txt"
+    grep -v operator-bundle "/tmp/imagelist_bundle_latest_$RHDH_VERSION.txt"
     echo -e "${red}===================bundle===================${norm}"
     echo -e "\n${red}Rebuild the operator-bundle to pick up the latest operand images!${norm}"
     exit 
   else
     if [[ $DEBUG -eq 1 ]]; then
-      echo "[DEBUG] Related images in $latest_bundle"
+      echo -e "\n${blue}[DEBUG] Related images in $latest_bundle :"
       while IFS= read -r line; do
-        echo " * $line"
+        echo "        > $line"
       done < <(grep -v "operator-bundle" "/tmp/imagelist_bundle_latest_$RHDH_VERSION.txt")
     fi
+    echo -e "${norm}"
   fi
 fi
 
@@ -233,7 +234,7 @@ for CONTAINER in $CONTAINERS; do
   skopeo inspect "docker://quay.io/rhdh/${CONTAINER}:${RHDH_VERSION}" > /tmp/container_inspect.txt
   tagXYZ=$(jq -r '.Labels.version+"-"+.Labels.release' /tmp/container_inspect.txt)
   digest=$(jq -r '.Digest' /tmp/container_inspect.txt)
-  echo " * $CONTAINER:${tagXYZ}@${digest} built on $(jq -r '.Labels."build-date"' /tmp/container_inspect.txt) from $(jq -r '.Env[]|select(.|contains("UPSTREAM_REPO"))' /tmp/container_inspect.txt)"
+  echo -e "${blue} * $CONTAINER:${tagXYZ}@${digest}\n * built on $(jq -r '.Labels."build-date"' /tmp/container_inspect.txt)\n * from $(jq -r '.Env[]|select(.|contains("UPSTREAM_REPO"))' /tmp/container_inspect.txt)${norm}"
 
   processed_images["${CONTAINER}:${tagXYZ}"]+="${CONTAINER}@${digest}"
 
@@ -248,13 +249,13 @@ for CONTAINER in $CONTAINERS; do
   SNAPSHOT=$(oc -n rhdh-tenant get Snapshots --sort-by=.metadata.creationTimestamp \
     --selector='pac.test.appstudio.openshift.io/original-prname='"${CONTAINER/-rhel9/}"'-'"${RHDH_VERSION/./-}"'-on-push,pac.test.appstudio.openshift.io/sha='"${MID_SHA}"| \
     sed -r -e '/NAME +AGE/d' -e "s/([a-z0-9-]+)\ +([0-9smhdy]+)/\1/g")
+  if [[ $DEBUG -eq 1 ]]; then set +x; fi
 
   if [[ ! $SNAPSHOT ]]; then
     echo -e "${red}[ERROR] No Snapshots found for ${CONTAINER/-rhel9/}-${RHDH_VERSION/./-}-on-push and sha=${MID_SHA}! ${norm}"
     exit 1
   fi
 
-  if [[ $DEBUG -eq 1 ]]; then set +x; fi
   echo; echo -e "${blue}[INFO] For midstream SHA = $MID_SHA, found these snapshot(s):${norm}\n$SNAPSHOT"
   # TODO fail if we find more than one snapshot for this image; exit 1
   SNAPSHOTS="${SNAPSHOTS} ${SNAPSHOT}"
@@ -316,8 +317,10 @@ for SNAPSHOT in $SNAPSHOTS; do
       echo -e "${red}===================snapshot===================${norm}"
       exit 
     else
-      echo -e "${green}[INFO] Snapshot images match latest images - release can proceed!${norm}"
-      cat "/tmp/imagelist_$SNAPSHOT.txt"
+      echo -e "${green}[INFO] Snapshot images match latest images - release can proceed for the following containers:${norm}"
+      while IFS= read -r line; do
+        echo -e "${blue}       > ${line}${norm}"
+      done < "/tmp/imagelist_$SNAPSHOT.txt"
     fi
     rm -f "/tmp/imagelist_$SNAPSHOT.txt" "/tmp/imagelist_bundle_latest_$RHDH_VERSION.txt"
 
@@ -381,13 +384,13 @@ EOT
       echo
     else
       collected_commands="${collected_commands}\n  oc apply -f /tmp/release-${SNAPSHOT}-${DEST}-${TS}.yaml"
-      echo -e "Run this:\n  oc apply -f /tmp/release-${SNAPSHOT}-${DEST}-${TS}.yaml"; echo 
+      echo -e "Run this:\n   oc apply -f /tmp/release-${SNAPSHOT}-${DEST}-${TS}.yaml"; echo 
       releasesURL="https://konflux.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/application-pipeline/workspaces/rhdh/applications/rhdh-${RHDH_VERSION/./-}/releases/"
-      echo "Then watch release at $releasesURL"
+      echo -e "Then watch Release at\n   ${green}${releasesURL}${norm}"
       if [[ $(command -v google-chrome) == *"google-chrome"* ]] || [[ $(which google-chrome) != *"which: no google-chrome"* ]]; then 
         google-chrome "$releasesURL" >/dev/null 2>&1; 
       fi
-      echo -e "\nOr run: oc -n rhdh-tenant get Releases --sort-by=.metadata.creationTimestamp -o yaml > /tmp/releases.yaml"
+      echo -e "\nOr for a list of Releases:\n   oc -n rhdh-tenant get Releases --sort-by=.metadata.creationTimestamp -o yaml > /tmp/releases.yaml"
     fi
   fi
 done
