@@ -194,15 +194,35 @@ if [[ $CONTAINERS ]]; then
   echo
   echo -n -e "${blue}[INFO] Collect bundle and related images from quay.io/rhdh/rhdh-operator-bundle:$RHDH_VERSION " 
 
-  rm -f "/tmp/imagelist_latest_$RHDH_VERSION.txt"
-  latest_bundle=$("${SCRIPT_DIR}/getLatestImageTags.sh" -b "rhdh-${RHDH_VERSION}-rhel-9" --quay -c rhdh/rhdh-operator-bundle)
+  rm -f "/tmp/imagelist_bundle_latest_$RHDH_VERSION.txt"
+  latest_images=$("${SCRIPT_DIR}/getLatestImageTags.sh" -b "rhdh-${RHDH_VERSION}-rhel-9" --quay | sort -uV)
+  latest_bundle=$(echo -e "$latest_images" | grep operator-bundle)
   echo -n "."
-  echo "$latest_bundle" >> "/tmp/imagelist_latest_$RHDH_VERSION.txt"
-  "${SCRIPT_DIR}/checkImagesInCSV.sh" -q -y "$latest_bundle" -i 'hub|operator' >> "/tmp/imagelist_latest_$RHDH_VERSION.txt"
+  echo "$latest_bundle" >> "/tmp/imagelist_bundle_latest_$RHDH_VERSION.txt"
+  "${SCRIPT_DIR}/checkImagesInCSV.sh" -q -y "$latest_bundle" -i 'hub|operator' >> "/tmp/imagelist_bundle_latest_$RHDH_VERSION.txt"
   echo -n "."
-  sort -uV "/tmp/imagelist_latest_$RHDH_VERSION.txt" > "/tmp/imagelist_latest_$RHDH_VERSION.txt_"; mv "/tmp/imagelist_latest_$RHDH_VERSION.txt"{_,}
+  sort -uV "/tmp/imagelist_bundle_latest_$RHDH_VERSION.txt" > "/tmp/imagelist_bundle_latest_$RHDH_VERSION.txt_"; mv "/tmp/imagelist_bundle_latest_$RHDH_VERSION.txt"{_,}
   echo -e ". done.${norm}"
   echo
+  if [[ "$(cat "/tmp/imagelist_bundle_latest_$RHDH_VERSION.txt")" != "$latest_images" ]]; then
+    echo -e "${red}[ERROR] Latest images != images in bundle:${norm}"
+    echo -e "${red}===================latest===================${norm}"
+    echo -e "$latest_images"
+    echo -e "${red}===================latest===================${norm}"
+    echo
+    echo -e "${red}===================bundle===================${norm}"
+    cat "/tmp/imagelist_bundle_latest_$RHDH_VERSION.txt"
+    echo -e "${red}===================bundle===================${norm}"
+    echo -e "\n${red}Rebuild the operator-bundle to pick up the latest operand images!${norm}"
+    exit 
+  else
+    if [[ $DEBUG -eq 1 ]]; then
+      echo "[DEBUG] Related images in $latest_bundle"
+      while IFS= read -r line; do
+        echo " * $line"
+      done < <(grep -v "operator-bundle" "/tmp/imagelist_bundle_latest_$RHDH_VERSION.txt")
+    fi
+  fi
 fi
 
 # collect array of processed images so we don't process duplicate snapshots
@@ -285,10 +305,10 @@ for SNAPSHOT in $SNAPSHOTS; do
     echo
 
     # compare with the contents of the latest bundle's operands
-    if [[ "$(cat "/tmp/imagelist_latest_$RHDH_VERSION.txt")" != "$(cat "/tmp/imagelist_$SNAPSHOT.txt")" ]]; then
+    if [[ "$(cat "/tmp/imagelist_bundle_latest_$RHDH_VERSION.txt")" != "$(cat "/tmp/imagelist_$SNAPSHOT.txt")" ]]; then
       echo -e "${red}[ERROR] Latest images != images in snapshot:${norm}"
       echo -e "${red}===================latest===================${norm}"
-      cat "/tmp/imagelist_latest_$RHDH_VERSION.txt"
+      cat "/tmp/imagelist_bundle_latest_$RHDH_VERSION.txt"
       echo -e "${red}===================latest===================${norm}"
       echo
       echo -e "${red}===================snapshot===================${norm}"
@@ -299,7 +319,7 @@ for SNAPSHOT in $SNAPSHOTS; do
       echo -e "${green}[INFO] Snapshot images match latest images - release can proceed!${norm}"
       cat "/tmp/imagelist_$SNAPSHOT.txt"
     fi
-    rm -f "/tmp/imagelist_$SNAPSHOT.txt" "/tmp/imagelist_latest_$RHDH_VERSION.txt"
+    rm -f "/tmp/imagelist_$SNAPSHOT.txt" "/tmp/imagelist_bundle_latest_$RHDH_VERSION.txt"
 
     # compute $cves_yaml and $references_yaml
     getCVElist "$CVEListFile"
