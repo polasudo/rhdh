@@ -160,9 +160,21 @@ createPr() {
 				gh pr view --web || true
 			fi
 		else # not github
-			PR_URL=$(git push origin "${headBranch}" 2>&1 | grep "${headBranch}" | grep "https://" | sed -r -e "s/remote:   //" | tr -d " ")"&merge_request%5Btarget_branch%5D=${baseBranch}"
-			echo "Create merge request at ${PR_URL}"
-			google-chrome "$PR_URL"
+			PR_URL=$(git push origin "${headBranch}" 2>&1 | grep "${headBranch}" | grep "https://" | sed -r -e "s/remote:   //" | tr -d " ")
+			# didn't work for this MR https://gitlab.cee.redhat.com/prodsec/product-definitions/-/merge_requests/3267
+			# if [[ ! $PR_URL ]]; then
+			# 	# try again using the current user's fork
+			# 	git remote add "$(whoami)" "git@gitlab.cee.redhat.com:$(whoami)/prodsec-product-definitions.git"
+			# 	PR_URL=$(git push -f "$(whoami)" "${headBranch}" 2>&1 | grep "${headBranch}" | grep "https://" | sed -r -e "s/remote:   //" | tr -d " ")
+			# fi
+			if [[ ! $PR_URL ]]; then 
+				echo "[ERROR] Cannot create a PR for your changes. Please create a PR manually from sources in $(pwd) !"
+				exit 1
+			else 
+				PR_URL="${PR_URL}&merge_request%5Btarget_branch%5D=${baseBranch}"
+				echo "Create merge request at ${PR_URL}"
+				google-chrome "$PR_URL"
+			fi
 		fi
 	else
 		echo "No changes for which to create PR for $baseBranch"
@@ -670,11 +682,78 @@ updateKonfluxReleasePlanAdmissionYamls ()
 	popd  >/dev/null || exit 1
 }
 
+# update the prodsec/product-definitions for a new release stream, and remove obsolete ones
+generateNewProdsecDefinitions ()
+{
+	repo=product-definitions
+
+	# if adding 1.5, then delete 1.2
+	if [[ $PROD_VERSION =~ ^([0-9]+)\.([0-9]+) ]]; then # decrease the y digit by 3
+		XX=${BASH_REMATCH[1]}
+		YY=${BASH_REMATCH[2]}
+		(( YY=YY-3 ))
+		PROD_VERSION_PREV2="$XX.$YY"
+	fi
+
+	echo; echo "== $repo :: generate Prod Sec yaml for RHDH $PROD_VERSION; remove $PROD_VERSION_PREV2 config =="
+
+	pushd "$TMPDIR" >/dev/null || exit 1
+	# fetch repo
+	if [[ ! -d "${repo}" ]]; then 
+		if [[ $VERBOSE -eq 1 ]]; then echo "Clone prodsec/$repo ..."; fi
+		git clone -q -b master "git@gitlab.cee.redhat.com:prodsec/${repo}.git" "${repo}"
+	fi
+	if [[ -d "$TMPDIR/${repo}" ]]; then
+		echo
+		pushd "$TMPDIR/${repo}" >/dev/null || exit 1
+			if [[ $VERBOSE -eq 1 ]]; then echo "Working dir: $(pwd)" ;fi
+
+			NEW_STREAM='{ "pp_label": "rhdh-rhdh-'"${PROD_VERSION}"'", "version": "'"${PROD_VERSION}"'", "cpe": [ "cpe:/a:redhat:rhdh:'"${PROD_VERSION}"'::el9" ] }'
+			NEW_KEY="rhdh-${PROD_VERSION}"
+			DEL_KEY="rhdh-${PROD_VERSION_PREV2}"
+
+		    # set -x
+			jq --arg NEW_KEY "${NEW_KEY}" --arg NEW_STREAM "${NEW_STREAM}" '.ps_update_streams."'"$NEW_KEY"'" += '"$NEW_STREAM" \
+				data/developer/ps_update_streams/rhdh.json > data/developer/ps_update_streams/rhdh.json_; mv data/developer/ps_update_streams/rhdh.json{_,}
+			# if in future we want to remove old streams, here's how
+			# jq --arg DEL_KEY "${DEL_KEY}" 'del(.ps_update_streams."'"$DEL_KEY"'")' \
+			# 	data/developer/ps_update_streams/rhdh.json > data/developer/ps_update_streams/rhdh.json_; mv data/developer/ps_update_streams/rhdh.json{_,}
+
+			for ARR_KEY in ps_update_streams active_ps_update_streams default_ps_update_streams; do 
+				jq --arg ARR_KEY "${ARR_KEY}" --arg NEW_KEY "${NEW_KEY}" '."ps_modules"."rhdh-1".'"$ARR_KEY"' |= . + ["'"$NEW_KEY"'"]' \
+					data/developer/ps_modules.json > data/developer/ps_modules.json_; mv data/developer/ps_modules.json{_,}
+				# if in future we want to remove old streams, here's how
+				# remove keys from the active and default arrays only
+				if [[ $ARR_KEY != "ps_update_streams" ]]; then
+					jq --arg ARR_KEY "${ARR_KEY}" --arg DEL_KEY "${DEL_KEY}" 'del(."ps_modules"."rhdh-1".'"$ARR_KEY"'[]|select(.=="'"$DEL_KEY"'"))' \
+						data/developer/ps_modules.json > data/developer/ps_modules.json_; mv data/developer/ps_modules.json{_,}
+				fi
+			done
+		    # set +x
+			git add data/developer/
+
+			# commit changes 
+			COMMITMSG="chore: add new CPE and update streams for upcoming release RHDH $PROD_VERSION"
+			if [[ ${DO_PUSH} -eq 1 ]]; then
+				# submit a MR
+				git commit --no-gpg-sign -s -m "${COMMITMSG}" data/developer/
+				set -x
+				doPush "master"
+				set +x
+			else
+				echo "$COMMITMSG"
+				git diff || true
+			fi
+		popd >/dev/null || exit 1
+	fi
+	popd >/dev/null || exit 1
+}
+
 # update the konflux-release-data for a new branch: create new application, components, RPAs, RPs, etc. 
 generateNewKonfluxReleaseDataYamls ()
 {
 	repo=konflux-release-data
-	
+
 	if [[ $PROD_VERSION =~ ^([0-9]+)\.([0-9]+) ]]; then # decrease the y digit
 		XX=${BASH_REMATCH[1]}
 		YY=${BASH_REMATCH[2]}
@@ -682,7 +761,7 @@ generateNewKonfluxReleaseDataYamls ()
 		PROD_VERSION_PREV="$XX.$YY"
 	fi
 
-	echo; echo "== $repo :: generate Konflux $KFUX_VERSION yaml for RHDH $PROD_VERSION (based on $PROD_VERSION_PREV config)=="
+	echo; echo "== $repo :: generate Konflux $KFUX_VERSION yaml for RHDH $PROD_VERSION (based on $PROD_VERSION_PREV config) =="
 
 	pushd "$TMPDIR" >/dev/null || exit 1
 	# fetch repo
@@ -736,7 +815,6 @@ generateNewKonfluxReleaseDataYamls ()
 				echo "$COMMITMSG"
 				git diff || true
 			fi
-
 		popd >/dev/null || exit 1
 	fi
 	popd >/dev/null || exit 1
@@ -811,6 +889,7 @@ if [[ $SKIP_KRD -eq 0 ]] && [[ "${MIDSTM_BRANCH}" ]]; then
 		# midstream konflux-release-data sources - bump the RPA to 1.5.z
 		updateKonfluxReleasePlanAdmissionYamls
 	else # for branching - create everything at version 1.5.0
+		generateNewProdsecDefinitions
 		generateNewKonfluxReleaseDataYamls
 	fi
 	# cleanup
