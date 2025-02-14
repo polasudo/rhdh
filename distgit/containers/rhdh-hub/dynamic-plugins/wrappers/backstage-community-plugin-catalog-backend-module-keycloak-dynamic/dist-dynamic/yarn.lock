@@ -6,13 +6,13 @@ __metadata:
   cacheKey: 8
 
 "@backstage-community/plugin-catalog-backend-module-keycloak@file:./embedded/backstage-community-plugin-catalog-backend-module-keycloak::locator=backstage-community-plugin-catalog-backend-module-keycloak-dynamic%40workspace%3A.":
-  version: 3.5.0+embedded
-  resolution: "@backstage-community/plugin-catalog-backend-module-keycloak@file:./embedded/backstage-community-plugin-catalog-backend-module-keycloak#./embedded/backstage-community-plugin-catalog-backend-module-keycloak::hash=9a3849&locator=backstage-community-plugin-catalog-backend-module-keycloak-dynamic%40workspace%3A."
+  version: 3.5.1+embedded
+  resolution: "@backstage-community/plugin-catalog-backend-module-keycloak@file:./embedded/backstage-community-plugin-catalog-backend-module-keycloak#./embedded/backstage-community-plugin-catalog-backend-module-keycloak::hash=fd41ee&locator=backstage-community-plugin-catalog-backend-module-keycloak-dynamic%40workspace%3A."
   dependencies:
     "@common.js/p-limit": ^6.1.0
     "@keycloak/keycloak-admin-client": 26.1.0
     inclusion: ^1.0.1
-    jsonwebtoken: ^8.5.1
+    jsonwebtoken: ^9.0.0
     lodash: ^4.17.21
     p-limit: ^6.1.0
     pg-format: ^1.0.4
@@ -22,7 +22,7 @@ __metadata:
     "@backstage/catalog-model": ^1.7.3
     "@backstage/errors": ^1.2.7
     "@backstage/plugin-catalog-node": ^1.15.1
-  checksum: b83a5885e31d7e4723b2c2c43bb3ea08cbefda5234a93cc48bdf892289161b40f8102ad455997cdf003c011fb6246610a69cba36597f7ac2b4cefa346463a3a6
+  checksum: 8d010f8264ebd4184731fdae2d9b871a44a7a66f47eb34d6a1ac6e26e57ed2fbe8a62ac42d83e8544ba1e8c11d0958c39e3ce25aff2ca0aee79c019cb676d34c
   languageName: node
   linkType: hard
 
@@ -57,7 +57,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "backstage-community-plugin-catalog-backend-module-keycloak-dynamic@workspace:."
   dependencies:
-    "@backstage-community/plugin-catalog-backend-module-keycloak": 3.5.0
+    "@backstage-community/plugin-catalog-backend-module-keycloak": 3.5.1
   peerDependencies:
     "@backstage/backend-plugin-api": ^1.1.1
     "@backstage/catalog-model": ^1.7.3
@@ -105,9 +105,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jsonwebtoken@npm:^8.5.1":
-  version: 8.5.1
-  resolution: "jsonwebtoken@npm:8.5.1"
+"jsonwebtoken@npm:^9.0.0":
+  version: 9.0.2
+  resolution: "jsonwebtoken@npm:9.0.2"
   dependencies:
     jws: ^3.2.2
     lodash.includes: ^4.3.0
@@ -118,8 +118,8 @@ __metadata:
     lodash.isstring: ^4.0.1
     lodash.once: ^4.0.0
     ms: ^2.1.1
-    semver: ^5.6.0
-  checksum: 93c9e3f23c59b758ac88ba15f4e4753b3749dfce7a6f7c40fb86663128a1e282db085eec852d4e0cbca4cefdcd3a8275ee255dbd08fcad0df26ad9f6e4cc853a
+    semver: ^7.5.4
+  checksum: fc739a6a8b33f1974f9772dca7f8493ca8df4cc31c5a09dcfdb7cff77447dcf22f4236fb2774ef3fe50df0abeb8e1c6f4c41eba82f500a804ab101e2fbc9d61a
   languageName: node
   linkType: hard
 
@@ -239,12 +239,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"semver@npm:^5.6.0":
-  version: 5.7.2
-  resolution: "semver@npm:5.7.2"
+"semver@npm:^7.5.4":
+  version: 7.6.3
+  resolution: "semver@npm:7.6.3"
   bin:
-    semver: bin/semver
-  checksum: fb4ab5e0dd1c22ce0c937ea390b4a822147a9c53dbd2a9a0132f12fe382902beef4fbf12cf51bb955248d8d15874ce8cd89532569756384f994309825f10b686
+    semver: bin/semver.js
+  checksum: 4110ec5d015c9438f322257b1c51fe30276e5f766a3f64c09edd1d7ea7118ecbc3f379f3b69032bacf13116dc7abc4ad8ce0d7e2bd642e26b0d271b56b61a7d8
   languageName: node
   linkType: hard
 

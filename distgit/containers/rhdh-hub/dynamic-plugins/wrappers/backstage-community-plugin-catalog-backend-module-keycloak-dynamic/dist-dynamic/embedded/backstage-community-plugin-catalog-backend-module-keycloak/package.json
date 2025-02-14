@@ -1,6 +1,6 @@
 {
   "name": "@backstage-community/plugin-catalog-backend-module-keycloak",
-  "version": "3.5.0+embedded",
+  "version": "3.5.1+embedded",
   "description": "A Backend backend plugin for Keycloak",
   "main": "./dist/index.cjs.js",
   "types": "./dist/index.d.ts",
@@ -47,7 +47,7 @@
     "@common.js/p-limit": "^6.1.0",
     "@keycloak/keycloak-admin-client": "26.1.0",
     "inclusion": "^1.0.1",
-    "jsonwebtoken": "^8.5.1",
+    "jsonwebtoken": "^9.0.0",
     "lodash": "^4.17.21",
     "p-limit": "^6.1.0",
     "pg-format": "^1.0.4",
