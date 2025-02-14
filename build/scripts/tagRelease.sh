@@ -32,8 +32,8 @@ DO_BUILD=1  # update yarn locks
 DO_PUSH=1   # push the commit
 DO_UPDATE=0 # force update of release-1.yy branches, even if tag already exists
 SKIP_GH=0   # skip updates to GH repos
-SKIP_GL=0   # skip updates to GL repos
-
+SKIP_GL=0   # skip updates to RHDH GL repo
+SKIP_KRD=0  # skip updates to konflux-release-data repo
 # make builds faster
 export HUSKY=0
 
@@ -74,6 +74,7 @@ Options:
     -tmpdir                   temporary dir for checkouts; default $TMPDIR
     --skip-gh                 skip github updates
     --skip-gl                 skip gitlab updates
+    --debug                   more output
 "
 }
 
@@ -101,6 +102,8 @@ while [[ "$#" -gt 0 ]]; do
 	'-tmpdir') TMPDIR="$2"; shift 1;;
 	'--skip-gh') SKIP_GH=1;;
 	'--skip-gl') SKIP_GL=1;;
+	'--skip-krd') SKIP_KRD=1;;
+	'--debug') VERBOSE=1;;
 	'-h'|'--help') usage;;
     *) echo "Unknown parameter used: $1."; usage; exit 1;;
   esac
@@ -634,7 +637,7 @@ pushTagGL ()
 }
 
 # update the RPA to provide a semver tag
-updateRPATagVersion ()
+updateKonfluxReleasePlanAdmissionYamls ()
 {
 	repo=konflux-release-data
 	getNextCSVZ "$CSV_VERSION"
@@ -667,24 +670,77 @@ updateRPATagVersion ()
 	popd  >/dev/null || exit 1
 }
 
-# update the konflux-release-data for a new branch
-generateKRD ()
+# update the konflux-release-data for a new branch: create new application, components, RPAs, RPs, etc. 
+generateNewKonfluxReleaseDataYamls ()
 {
 	repo=konflux-release-data
 	
-	echo; echo "== $repo :: generate $KFUX_VERSION yamls for $PROD_VERSION  =="
+	if [[ $PROD_VERSION =~ ^([0-9]+)\.([0-9]+) ]]; then # decrease the y digit
+		XX=${BASH_REMATCH[1]}
+		YY=${BASH_REMATCH[2]}
+		(( YY=YY-1 ))
+		PROD_VERSION_PREV="$XX.$YY"
+	fi
+
+	echo; echo "== $repo :: generate Konflux $KFUX_VERSION yaml for RHDH $PROD_VERSION (based on $PROD_VERSION_PREV config)=="
 
 	pushd "$TMPDIR" >/dev/null || exit 1
 	# fetch repo
-	if [[ -d "${repo}" ]]; then rm -fr "${repo}"; fi
-	git clone -q --depth 1 -b main "git@gitlab.cee.redhat.com:releng/${repo}.git" "${repo}"
+	if [[ ! -d "${repo}" ]]; then 
+		if [[ $VERBOSE -eq 1 ]]; then echo "Clone releng/$repo ..."; fi
+		git clone -q --depth 1 -b main "git@gitlab.cee.redhat.com:releng/${repo}.git" "${repo}"
+	fi
 	if [[ -d "$TMPDIR/${repo}" ]]; then
 		echo
-		# TODO https://issues.redhat.com/browse/RHIDP-5432
+		pushd "$TMPDIR/${repo}" >/dev/null || exit 1
+			if [[ $VERBOSE -eq 1 ]]; then echo "Working dir: $(pwd)" ;fi
+
+			# 1. create content in config and tenants-config folders, including three kustomization.yaml files
+			for d in \
+				config/stone-prod-p02.hjvn.p1/product/ReleasePlanAdmission/rhdh/ \
+				tenants-config/cluster/stone-prod-p02/tenants/rhdh-tenant \
+				tenants-config/cluster/stone-prod-p02/tenants/rhdh-tenant/components \
+				tenants-config/cluster/stone-prod-p02/tenants/rhdh-tenant/release-plans; do
+				for f in $(find $d -maxdepth 1 -type f -name "*${PROD_VERSION_PREV/./-}*" | sort -uV); do # find the previous files
+					g=$(echo "$f" | sed -r -e "s@${PROD_VERSION_PREV/./-}@${KFUX_VERSION}@")
+					echo "Convert $f to ${g##*/} ..."
+					cp "$f" "$g"
+					sed -i "$g" -r \
+						-e "s@-${PROD_VERSION_PREV/./-}@-${KFUX_VERSION}@g" \
+						-e "s@Hub ${PROD_VERSION_PREV//./\\.}@Hub ${PROD_VERSION}@g" \
+						-e "s@rhdh-${PROD_VERSION_PREV//./\\.}@rhdh-${PROD_VERSION}@g" \
+						-e "s@\"${PROD_VERSION_PREV//./\\.}\"@\"${PROD_VERSION}\"@g" \
+						-e "s@\"${PROD_VERSION_PREV//./\\.}\.([1-9]+)\"@\"${PROD_VERSION}.0\"@g"
+					# append into kustomization file
+					if [[ -f $d/kustomization.yaml ]]; then 
+						echo "   Edit $d/kustomization.yaml ..."
+						sed -i $d/kustomization.yaml -r -e "/  - ${f##*/}/a \ \ - ${g##*/}"
+					fi
+				done
+
+			done
+			# 2. auto-generate content
+			pushd "$TMPDIR/${repo}/tenants-config" >/dev/null || exit 1
+				./build-single.sh rhdh
+			popd >/dev/null || exit 1
+			echo 
+			git add config/stone-prod-p02.hjvn.p1/product/ReleasePlanAdmission/rhdh/ tenants-config/cluster/stone-prod-p02/tenants/rhdh-tenant tenants-config/auto-generated/cluster/stone-prod-p02/tenants/rhdh-tenant
+
+			# commit changes 
+			COMMITMSG="chore: add new applications, components, RPs, RPAs for upcoming release RHDH $PROD_VERSION"
+			if [[ ${DO_PUSH} -eq 1 ]]; then
+				# submit a MR
+				git commit --no-gpg-sign -s -m "${COMMITMSG}" config/ tenants-config/
+				doPush "main"
+			else
+				echo "$COMMITMSG"
+				git diff || true
+			fi
+
+		popd >/dev/null || exit 1
 	fi
 	popd >/dev/null || exit 1
 }
-
 
 ####################################
 
@@ -741,30 +797,24 @@ fi
 
 # echo "SKIPS: $SKIP_GL"
 # branch or tag GL repo(s)
-if [[ $SKIP_GL -eq 0 ]]; then
-	# for branch creation, create new RPAs, RPs, etc. 
-	# if [[ ${SOURCE_BRANCH} ]]; then
-	# 	# TODO: RHIDP-5432
-	# fi
-	
-	if [[ "${MIDSTM_BRANCH}" ]]; then
-		# midstream build sources
-		for repo in \
-			rhdh \
-			; do
-		pushTagGL $repo
-		done
+if [[ $SKIP_GL -eq 0 ]] && [[ "${MIDSTM_BRANCH}" ]]; then
+	# midstream build sources
+	for repo in \
+		rhdh \
+		; do
+	pushTagGL $repo
+	done
+fi
 
-		if [[ $CSV_VERSION ]]; then # for tagging
-			# midstream konflux-release-data sources
-			updateRPATagVersion
-		else # for branching
-			generateKRD 
-		fi
-
-		# cleanup
-		rm -fr "${TMPDIR:?}"/*
+if [[ $SKIP_KRD -eq 0 ]] && [[ "${MIDSTM_BRANCH}" ]]; then
+	if [[ $CSV_VERSION ]]; then # for tagging
+		# midstream konflux-release-data sources - bump the RPA to 1.5.z
+		updateKonfluxReleasePlanAdmissionYamls
+	else # for branching - create everything at version 1.5.0
+		generateNewKonfluxReleaseDataYamls
 	fi
+	# cleanup
+	# rm -fr "${TMPDIR:?}"/*
 fi
 
 # cleanup
