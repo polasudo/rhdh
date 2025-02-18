@@ -47,7 +47,10 @@ create_payload() {
   BUNDLE_IMAGE="quay.io/rhdh/rhdh-operator-bundle:$BUNDLE_TAG"
   FBC_LINK="https://quay.io/repository/rhdh/iib?tab=tags"
 
-  #  Create Slack payload in Block Kit format
+  # Create Slack payload in Block Kit format
+  # See https://api.slack.com/reference/surfaces/formatting#mentioning-groups on how to mention groups and retrieve slack group IDs.
+  # Currently the following groups/people are mentioned: rhdh-security(S07HB36PXN0), rhdh-qe(S06E0SM1W77), rhdh-docs-gate-keeper(S07LTQM5JGM), rhdh-release-manager(S08DAH1PCF6), lsharar(UMX6MAAH0)
+
   PAYLOAD=$(
     cat <<EOF
 {
@@ -78,6 +81,13 @@ create_payload() {
 			"text": {
 				"type": "mrkdwn",
 				"text": ":package: *Helm Chart Installation:*\n${CHART_LINK}"
+			}
+		},
+		{
+			"type": "section",
+			"text": {
+				"type": "mrkdwn",
+				"text": "<!subteam^S07HB36PXN0> <!subteam^S06E0SM1W77> <!subteam^S07LTQM5JGM> <!subteam^S08DAH1PCF6> <@UMX6MAAH0>"
 			}
 		}
 	]
