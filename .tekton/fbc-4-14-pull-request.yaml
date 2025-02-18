@@ -264,21 +264,6 @@ spec:
         operator: in
         values:
         - "false"
-    - name: apply-tags
-      params:
-      - name: IMAGE
-        value: $(tasks.build-image-index.results.IMAGE_URL)
-      runAfter:
-      - build-image-index
-      taskRef:
-        params:
-        - name: name
-          value: apply-tags
-        - name: bundle
-          value: quay.io/konflux-ci/tekton-catalog/task-apply-tags:0.1@sha256:5e5f290359fd34ae4cc77cbbba6ef8c9907d752572d6dc2a00f5a4c504eb48bb
-        - name: kind
-          value: task
-        resolver: bundles
     - name: rpms-signature-scan
       params:
       - name: image-url
