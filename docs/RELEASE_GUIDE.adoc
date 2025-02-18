@@ -499,7 +499,8 @@ Notify QE and Security for final validation. | Security, Docs, QE
 See PR: link:https://github.com/openshift-helm-charts/charts/pull/1556[Helm Chart PR].
 
 **Trigger FBC release:**
-```./build/scripts/kfuxRelease.sh --prod --fbc :1.4.2 -v 1.4.2 --debug
+```./build/scripts/renderCatalogs.sh --rhec ...
+./build/scripts/kfuxRelease.sh --prod --fbc :1.4.2 -v 1.4.2 --debug
 ```
 
 **Tag repositories:**

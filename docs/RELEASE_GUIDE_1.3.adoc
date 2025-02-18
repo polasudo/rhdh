@@ -11,10 +11,11 @@ The table below provides a high-level overview of the release process before div
 | 2. RC Build | Push to Quay & Errata | Release Engineering
 | 3. Testing | Smoke tests & QE validation | QE Team
 | 4. GA Week Prep | Update Docs & obtain approvals from stakeholders | QE, Security Team, Docs
-| 5. GA Release | Push Helm chart, IIB final, tag repos | Release Engineering
+| 5. GA Release | Re-render & publish FBCs; push Helm chart; tag repos | Release Engineering
 | 6. Post-Release | Remove EOL versions & security checks | Release Engineering
 |===
 
+See also link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1-rhel-9/docs/RELEASE_GUIDE_1.3.adoc#user-content-summary-of-release-tasks[Summary of Release tasks]
 
 This document seeks to explain the whole end-to-end process for releasing RHDH, from branch creation to GA push.
 
@@ -172,7 +173,7 @@ If the script fails with an error like this, try again in an hour or two:
 
 . Perform install smoke tests
 .. helm chart from https://github.com/rhdh-bot/openshift-helm-charts/tree/rhdh-1-rhel-9/installation#installation and https://github.com/rhdh-bot/openshift-helm-charts/tree/rhdh-1.4-rhel-9/installation#installation
-.. operator install from https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1-rhel-9/build/scripts/installCatalogSourceFromIIB.sh for `--latest` and `--next`
+.. operator install from https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1-rhel-9/build/scripts/installCatalogSourceFromIIB.sh
 +
 [WARNING]
 ====
@@ -200,7 +201,7 @@ Once the code freeze is achieved and all the last minute changes have stopped, y
 TAG=1.3-95
 STREAM=1.3
 EXTRA_TAG="-e 1.3.0.RC-09-26"
-./copyIIBsToQuay.sh -p -t ${TAG} --latest ${EXTRA_TAG}
+./copyIIBsToQuay.sh -p -t ${TAG} ${EXTRA_TAG}
 ```
 +
 ** verify the IIB is correct:
@@ -282,7 +283,7 @@ git checkout rhdh-1.4-rhel-9
 RHDH_VERSION="1.4.1"
 alias cp=cp
 for OCP_VERSION in 4.14 4.15 4.16 4.17 4.18; do \
-  time ./build/scripts/renderCatalogs.sh --latest --rhec --versions "${OCP_VERSION}" -v "${RHDH_VERSION}" \
+  time ./build/scripts/renderCatalogs.sh --rhec --versions "${OCP_VERSION}" -v "${RHDH_VERSION}" \
     --template "catalogs/v${OCP_VERSION}/catalog-template.json"; sleep 30s; \
 done
 
@@ -344,7 +345,7 @@ https://github.com/openshift-helm-charts/charts/pull/1556
 cd /tmp; git clone git@gitlab.cee.redhat.com:rhidp/rhdh.git --depth 1 && cd rhdh
 
 # use tag from https://quay.io/repository/rhdh/rhdh-operator-bundle?tab=tags
-./build/scripts/copyIIBsToQuay.sh -t 1.3-137 --force --push --latest -e 1.3.5.GA
+./build/scripts/copyIIBsToQuay.sh -t 1.3-137 --force --push -e 1.3.5.GA
 ```
 
 #### Tag the repos
