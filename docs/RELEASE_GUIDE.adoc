@@ -353,7 +353,6 @@ Branch:               https://github.com/rhdh-bot/openshift-helm-charts/tree/red
 https://github.com/openshift-helm-charts/charts/pull/1556
 ```
 
-
 #### FBC release (30 mins)
 
 . [ ] Find the latest operator bundle tag from https://catalog.redhat.com/software/containers/rhdh/rhdh-operator-bundle/64bfdcd740aa90644e579cc6
