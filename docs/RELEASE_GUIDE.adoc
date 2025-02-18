@@ -391,9 +391,17 @@ Note: If tags already exist but version bump PRs were not created, you can rerun
 ... [ ] install from `fast` - see link:https://github.com/redhat-developer/rhdh-operator/blob/main/.rhdh/docs/installing-ci-builds.adoc[installation]
 ... [ ] switch to `fast-1.4` or `fast-1.5` subscription channel
 ... [ ] verify update from of 1.4.0 -> 1.4.1 (or 1.5.0)
++
+image::images/smoketest-rosa-operator_1.png[browse for operator]
+image::images/smoketest-rosa-operator_2.png[check fast channel for version just released and install]
+image::images/smoketest-rosa-operator_3.png[check fast-1.y channel for version just released and install]
+
 .. [ ] Helm Chart: smoke test the ability to:
 ... [ ] install latest chart
 ... [ ] upgrade to a newer chart - see link:https://github.com/rhdh-bot/openshift-helm-charts/tree/rhdh-1-rhel-9/installation[installation]
++
+image::images/smoketest-rosa-helm_1.png[browse for chart]
+image::images/smoketest-rosa-helm_2.png[install the version just released]
 
 . Review websites
 .. Developers.redhat.com
