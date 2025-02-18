@@ -43,17 +43,6 @@ Once the branches are created, expect a flurry of last minute cherrypicks and re
 
 . Once the associated Errata PV is created, ProdSec gets notified and adds the appropriate CPE within a day or two. For questions, ping Martin Prpič or link:https://docs.engineering.redhat.com/pages/viewpage.action?spaceKey=PRODSEC&title=CPE[send an email] to prodsec-request@redhat.com.
 
-### Create branches (eg., release-1.4, release-1.5)
-
-Use the link:../build/scripts/tagRelease.sh[tagRelease.sh] script like this:
-```
-# to create release-1.4 + rhdh-1.4-rhel-9 branches, then update main + rhdh-1-rhel-9 branches
-export GITHUB_TOKEN=<your_GH_token>
-./build/scripts/tagRelease.sh -t 1.4 --branchfrom main -gh release-1.4
-```
-
-Script will create/update 1.y branches and update the main + rhdh-1-rhel-9 branches with minor version bumps for the GH and GL repos.
-
 NOTE: Repo branching for pkgs.devel is manual, but the script will tell you what to run!
 
 NOTE: **_TODO_ https://issues.redhat.com/browse/RHIDP-931 verify branch creation and update steps work**
@@ -74,9 +63,9 @@ NOTE: **_TODO_ https://issues.redhat.com/browse/RHIDP-931 verify branch creation
 
 . Create 3 new branches in pkgs.devel MANUALLY (tagRelease.sh doesn't work for this due to timeouts)
 
-.. [ ] https://pkgs.devel.redhat.com/cgit/containers/rhdh-hub/tree/?h=rhdh-1.4-rhel-9
-.. [ ] https://pkgs.devel.redhat.com/cgit/containers/rhdh-operator/tree/?h=rhdh-1.4-rhel-9
-.. [ ] https://pkgs.devel.redhat.com/cgit/containers/rhdh-operator-bundle/tree/?h=rhdh-1.4-rhel-9
+.. [ ] https://pkgs.devel.redhat.com/cgit/containers/rhdh-hub/tree/?h=rhdh-1.3-rhel-9
+.. [ ] https://pkgs.devel.redhat.com/cgit/containers/rhdh-operator/tree/?h=rhdh-1.3-rhel-9
+.. [ ] https://pkgs.devel.redhat.com/cgit/containers/rhdh-operator-bundle/tree/?h=rhdh-1.3-rhel-9
 
 ### Update main branch versions
 
@@ -106,32 +95,7 @@ NOTE: **_TODO_ https://issues.redhat.com/browse/RHIDP-931 verify branch creation
 
 Submit PR (or just merge change) to fix version reference in `upstream_repos.yml` for the new rhdh-1.yy-rhel-9 branch; trigger a build from the new branch.
 
-### Trigger respins, 1.4 and newer (RH Internal Konflux)
-
-. This process is still evolving but the overview is that you need a set of tekton pipelines, a Release, Release Plan, and Release Plan Admission for each new 1.y version of RHDH that will be released to the RHEC as a GA build.
-
-Existing applications:
-
-* https://konflux.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/application-pipeline/workspaces/rhdh/applications/rhdh-1/activity (for CI builds only, cannot be released as GA)
-* https://konflux.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/application-pipeline/workspaces/rhdh/applications/rhdh-1-3/activity (not currently working)
-
-Existing tekton pipelines for builds and FBCs: 
-
-* link:../.tekton/README.adoc[.tekton/README.adoc]
-* link:../.tekton[.tekton]
-
-Existing FBC catalog content:
-
-* link:../catalogs[catalogs]
-* link:../build/scripts/renderCatalogs.sh[renderCatalogs] (replacement for link:../build/scripts/copyIIBsToQuay.sh[copyIIBsToQuay], used for OSBS IIB builds)
-
-See also link:RHDH-Konflux-overview-onboarding.adoc[RHDH-Konflux-overview-onboarding.adoc]
-
-Since the midstream transformation still requires a GL pipeline to trigger Konflux, you still need a new pipeline for 1.4. See next step.
-
 ### Trigger respins, 1.3 and earlier (OSBS)
-
-. **FOR 1.3 and earlier** Create new gitlab pipeline schedule for stable branch 1.3 (to run in parallel with CI builds from 1.next)
 
 . Run pipelines from
 .. https://gitlab.cee.redhat.com/rhidp/rhdh/-/pipeline_schedules or 
@@ -172,7 +136,7 @@ If the script fails with an error like this, try again in an hour or two:
 ... [ ] https://quay.io/repository/rhdh/iib?tab=tags
 
 . Perform install smoke tests
-.. helm chart from https://github.com/rhdh-bot/openshift-helm-charts/tree/rhdh-1-rhel-9/installation#installation and https://github.com/rhdh-bot/openshift-helm-charts/tree/rhdh-1.4-rhel-9/installation#installation
+.. helm chart from https://github.com/rhdh-bot/openshift-helm-charts/tree/rhdh-1-rhel-9/installation#installation and https://github.com/rhdh-bot/openshift-helm-charts/tree/rhdh-1.3-rhel-9/installation#installation
 .. operator install from https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1-rhel-9/build/scripts/installCatalogSourceFromIIB.sh
 +
 [WARNING]
@@ -279,8 +243,8 @@ If a second RC build is needed, re-enable the scheduled pipeline (or trigger a p
 ```
 oc login --token=... # log into the https://console-openshift-console.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/k8s/cluster/projects/rhdh-tenant cluster
 
-git checkout rhdh-1.4-rhel-9
-RHDH_VERSION="1.4.1"
+git checkout rhdh-1.3-rhel-9
+RHDH_VERSION="1.3.5"
 alias cp=cp
 for OCP_VERSION in 4.14 4.15 4.16 4.17 4.18; do \
   time ./build/scripts/renderCatalogs.sh --rhec --versions "${OCP_VERSION}" -v "${RHDH_VERSION}" \
@@ -301,22 +265,22 @@ export GITHUB_TOKEN=ghp_*****
 gh auth status
 
 # create pull request
-./build/helm/prepare.sh --chart-version 1.4.2 --rhdh-version 1.4-132 --chart-branch release-1.4 --catalog git@github.com:rhdh-bot/openshift-helm-charts.git --publish
+./build/helm/prepare.sh --chart-version 1.3.5 --rhdh-version 1.3-142 --chart-branch release-1.3 --catalog git@github.com:rhdh-bot/openshift-helm-charts.git --publish
 ```
 +
 You should see something like this:
 +
 ```
-Create chart for 1.4-132 (1.4.2)
+Create chart for 1.3-142 (1.3.5)
 Set image digests in charts/backstage/values.yaml: 
 * RHDH_DIGEST = 9709e056f194a24c809dd82b4ab10aa05a9c31574e68ae8d1a5e91de19237045, 
 * POSTGRESQL_DIGEST = f1f581d8974799f17d4707f9161b2d0568a07255e535ca3be3b36ce254b091a4
 ...
-Chart version:        1.4.2
-Developer Hub image:  registry.redhat.io/rhdh/rhdh-hub-rhel9:1.4-132
-Branch:               https://github.com/rhdh-bot/openshift-helm-charts/tree/redhat-developer-hub-1.4.2
+Chart version:        1.3.5
+Developer Hub image:  registry.redhat.io/rhdh/rhdh-hub-rhel9:1.3-142
+Branch:               https://github.com/rhdh-bot/openshift-helm-charts/tree/redhat-developer-hub-1.3.5
 ...
-[release-1.4.2 daf0844] chore: chart: add Red Hat Developer 1.4.2 for registry.redhat.io/rhdh/rhdh-hub-rhel9:1.4-132
+[release-1.3.5 daf0844] chore: chart: add Red Hat Developer 1.3.5 for registry.redhat.io/rhdh/rhdh-hub-rhel9:1.3-142
 ...
 https://github.com/openshift-helm-charts/charts/pull/1556
 ```
@@ -364,8 +328,8 @@ cd /tmp; git clone git@gitlab.cee.redhat.com:rhidp/rhdh.git --depth 1 && cd rhdh
 . Smoke tests using clusterbot
 .. [ ] Operator: smoke test the ability to:
 ... [ ] install from `fast` - see link:https://github.com/redhat-developer/rhdh-operator/blob/main/.rhdh/docs/installing-ci-builds.adoc[installation]
-... [ ] switch to `fast-1.4` or `fast-1.5` subscription channel
-... [ ] verify update from of 1.4.0 -> 1.4.1 (or 1.5.0)
+... [ ] switch to `fast-1.3` or `fast` subscription channel
+... [ ] verify update from of 1.3.4 -> 1.3.5 
 +
 image::images/smoketest-rosa-operator_1.png[browse for operator,width=640]
 image::images/smoketest-rosa-operator_2.png[check fast channel for version just released and install,width=640]
@@ -389,6 +353,12 @@ image::images/smoketest-rosa-helm_2.png[install the version just released,width=
 ### [DOCUMENTATION] Notify docs team
 
 . In the link:https://app.slack.com/client/E030G10V24F/C07EVRDD7KN[forum-rhdh-releases], update any existing threads about this release, and at-mention the `@rhdh-docs-gate-keeper` group so that Docs is aware they can release the doc updates. This may include the dynamic plugin lists, release notes, and any other queued fixes. 
+
+## Known Issues
+
+Due to a known issue with Pyxis not being able to update from Errata after onbooarding to Konflux, your pushed containers in registry.redhat.io will NOT be listed in catalog.redhat.com.
+
+See https://gitlab.cee.redhat.com/konflux/docs/users/-/merge_requests/219#note_14312475 and https://issues.redhat.com/browse/CWFHEALTH-3992 for more details
 
 ## Other considerations
 
