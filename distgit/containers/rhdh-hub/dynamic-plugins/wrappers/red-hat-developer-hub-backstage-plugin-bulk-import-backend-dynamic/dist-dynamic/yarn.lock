@@ -227,12 +227,12 @@ __metadata:
   linkType: hard
 
 "@red-hat-developer-hub/backstage-plugin-bulk-import-backend@file:./embedded/red-hat-developer-hub-backstage-plugin-bulk-import-backend::locator=red-hat-developer-hub-backstage-plugin-bulk-import-backend-dynamic%40workspace%3A.":
-  version: 5.2.0+embedded
-  resolution: "@red-hat-developer-hub/backstage-plugin-bulk-import-backend@file:./embedded/red-hat-developer-hub-backstage-plugin-bulk-import-backend#./embedded/red-hat-developer-hub-backstage-plugin-bulk-import-backend::hash=12f965&locator=red-hat-developer-hub-backstage-plugin-bulk-import-backend-dynamic%40workspace%3A."
+  version: 5.3.0+embedded
+  resolution: "@red-hat-developer-hub/backstage-plugin-bulk-import-backend@file:./embedded/red-hat-developer-hub-backstage-plugin-bulk-import-backend#./embedded/red-hat-developer-hub-backstage-plugin-bulk-import-backend::hash=ac9dda&locator=red-hat-developer-hub-backstage-plugin-bulk-import-backend-dynamic%40workspace%3A."
   dependencies:
     "@octokit/auth-app": ^6.0.3
     "@octokit/rest": ^20.0.2
-    "@red-hat-developer-hub/backstage-plugin-bulk-import-common": ^1.4.1
+    "@red-hat-developer-hub/backstage-plugin-bulk-import-common": ^1.5.0
     ajv-formats: ^3.0.1
     express: ^4.17.1
     git-url-parse: ^14.0.0
@@ -241,24 +241,24 @@ __metadata:
     node-fetch: ^2.6.7
     openapi-backend: ^5.10.6
   peerDependencies:
-    "@backstage/backend-defaults": ^0.5.2
-    "@backstage/backend-plugin-api": ^1.0.1
-    "@backstage/errors": ^1.2.4
-    "@backstage/integration": ^1.15.1
-    "@backstage/plugin-catalog-node": ^1.13.1
-    "@backstage/plugin-permission-common": ^0.8.1
-    "@backstage/plugin-permission-node": ^0.8.4
+    "@backstage/backend-defaults": ^0.7.0
+    "@backstage/backend-plugin-api": ^1.1.1
+    "@backstage/errors": ^1.2.7
+    "@backstage/integration": ^1.16.1
+    "@backstage/plugin-catalog-node": ^1.15.1
+    "@backstage/plugin-permission-common": ^0.8.4
+    "@backstage/plugin-permission-node": ^0.8.7
     "@janus-idp/backstage-plugin-audit-log-node": ^1.7.0
-  checksum: 30e8e08eab6da6b6d3fec21c99415f789193319374ef52528c3ae60ba4ccb441904c2f88f5bd49e1d34e01b13fdc85366c5cedc56bbd83d3dd6576493871ec98
+  checksum: 94d5e718c24f2669452ab5a480e43ae50312b5696e654e590437cfcff51780d4126d5f6ea29bee900d3a301c2c53de2b3211667d8c55e354d09da16e212ea646
   languageName: node
   linkType: hard
 
 "@red-hat-developer-hub/backstage-plugin-bulk-import-common@file:./embedded/red-hat-developer-hub-backstage-plugin-bulk-import-common::locator=red-hat-developer-hub-backstage-plugin-bulk-import-backend-dynamic%40workspace%3A.":
-  version: 1.4.1+embedded
-  resolution: "@red-hat-developer-hub/backstage-plugin-bulk-import-common@file:./embedded/red-hat-developer-hub-backstage-plugin-bulk-import-common#./embedded/red-hat-developer-hub-backstage-plugin-bulk-import-common::hash=268589&locator=red-hat-developer-hub-backstage-plugin-bulk-import-backend-dynamic%40workspace%3A."
+  version: 1.5.0+embedded
+  resolution: "@red-hat-developer-hub/backstage-plugin-bulk-import-common@file:./embedded/red-hat-developer-hub-backstage-plugin-bulk-import-common#./embedded/red-hat-developer-hub-backstage-plugin-bulk-import-common::hash=1295a6&locator=red-hat-developer-hub-backstage-plugin-bulk-import-backend-dynamic%40workspace%3A."
   peerDependencies:
-    "@backstage/plugin-permission-common": ^0.8.1
-  checksum: 2e6b6926e4b203f9948dff1eeecfb595c25f21c35d2a0dadddf6dc2cef8dae0ee812e486362f64fcb1ebf0ef9e48bf4a6a72ac3aaa5a3bab8e423ca33c6dd947
+    "@backstage/plugin-permission-common": ^0.8.4
+  checksum: 394babfbfef34d57d8882a95c586649cbe7ec3dd41cd911a81a7b83fa8f91f983cb7dd43729d324c558c8dc3a3bdc332e8e958c849fda236d3db8d740824d064
   languageName: node
   linkType: hard
 
@@ -1172,15 +1172,15 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "red-hat-developer-hub-backstage-plugin-bulk-import-backend-dynamic@workspace:."
   dependencies:
-    "@red-hat-developer-hub/backstage-plugin-bulk-import-backend": 5.2.0
+    "@red-hat-developer-hub/backstage-plugin-bulk-import-backend": 5.3.0
   peerDependencies:
-    "@backstage/backend-defaults": ^0.5.2
-    "@backstage/backend-plugin-api": ^1.0.1
-    "@backstage/errors": ^1.2.4
-    "@backstage/integration": ^1.15.1
-    "@backstage/plugin-catalog-node": ^1.13.1
-    "@backstage/plugin-permission-common": ^0.8.1
-    "@backstage/plugin-permission-node": ^0.8.4
+    "@backstage/backend-defaults": ^0.7.0
+    "@backstage/backend-plugin-api": ^1.1.1
+    "@backstage/errors": ^1.2.7
+    "@backstage/integration": ^1.16.1
+    "@backstage/plugin-catalog-node": ^1.15.1
+    "@backstage/plugin-permission-common": ^0.8.4
+    "@backstage/plugin-permission-node": ^0.8.7
     "@janus-idp/backstage-plugin-audit-log-node": ^1.7.0
   languageName: unknown
   linkType: soft

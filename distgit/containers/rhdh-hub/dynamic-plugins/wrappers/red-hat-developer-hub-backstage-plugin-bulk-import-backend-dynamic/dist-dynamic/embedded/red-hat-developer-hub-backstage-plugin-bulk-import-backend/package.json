@@ -1,6 +1,6 @@
 {
   "name": "@red-hat-developer-hub/backstage-plugin-bulk-import-backend",
-  "version": "5.2.0+embedded",
+  "version": "5.3.0+embedded",
   "main": "./dist/index.cjs.js",
   "types": "./dist/index.d.ts",
   "license": "Apache-2.0",
@@ -26,6 +26,13 @@
     },
     "./package.json": "./package.json"
   },
+  "typesVersions": {
+    "*": {
+      "index": [
+        "dist/index.d.ts"
+      ]
+    }
+  },
   "scripts": {
     "build": "backstage-cli package build",
     "clean": "backstage-cli package clean",
@@ -43,7 +50,7 @@
   "dependencies": {
     "@octokit/auth-app": "^6.0.3",
     "@octokit/rest": "^20.0.2",
-    "@red-hat-developer-hub/backstage-plugin-bulk-import-common": "^1.4.1",
+    "@red-hat-developer-hub/backstage-plugin-bulk-import-common": "^1.5.0",
     "ajv-formats": "^3.0.1",
     "express": "^4.17.1",
     "git-url-parse": "^14.0.0",
@@ -55,13 +62,13 @@
   "devDependencies": {},
   "peerDependencies": {
     "@janus-idp/backstage-plugin-audit-log-node": "^1.7.0",
-    "@backstage/backend-defaults": "^0.5.2",
-    "@backstage/backend-plugin-api": "^1.0.1",
-    "@backstage/errors": "^1.2.4",
-    "@backstage/integration": "^1.15.1",
-    "@backstage/plugin-catalog-node": "^1.13.1",
-    "@backstage/plugin-permission-common": "^0.8.1",
-    "@backstage/plugin-permission-node": "^0.8.4"
+    "@backstage/backend-defaults": "^0.7.0",
+    "@backstage/backend-plugin-api": "^1.1.1",
+    "@backstage/errors": "^1.2.7",
+    "@backstage/integration": "^1.16.1",
+    "@backstage/plugin-catalog-node": "^1.15.1",
+    "@backstage/plugin-permission-common": "^0.8.4",
+    "@backstage/plugin-permission-node": "^0.8.7"
   },
   "files": [
     "dist",

@@ -1,5 +1,36 @@
 ### Dependencies
 
+## 5.3.0
+
+### Minor Changes
+
+- fbbd37f: Backstage version bump to v1.35.0
+
+### Patch Changes
+
+- 05a1ce0: Updated dependency `@openapitools/openapi-generator-cli` to `2.16.3`.
+- 816d8bc: Updated dependency `@openapitools/openapi-generator-cli` to `2.16.2`.
+- Updated dependencies [fbbd37f]
+  - @red-hat-developer-hub/backstage-plugin-bulk-import-common@1.5.0
+
+## 5.2.2
+
+### Patch Changes
+
+- b47ad99: Implemented Server Side Sorting for `GET /imports`
+
+## 5.2.1
+
+### Patch Changes
+
+- 97534e9: Updated dependency `@types/express` to `4.17.21`.
+- 18547a0: Updated dependency `msw` to `1.3.5`.
+- d59e940: Updated dependency `@openapitools/openapi-generator-cli` to `2.15.3`.
+  Updated dependency `openapicmd` to `2.6.1`.
+  Updated dependency `prettier` to `3.4.2`.
+- Updated dependencies [d59e940]
+  - @red-hat-developer-hub/backstage-plugin-bulk-import-common@1.4.2
+
 ## 5.2.0
 
 ### Minor Changes

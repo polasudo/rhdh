@@ -42,7 +42,7 @@ function extractOrgMap(allOrgsAccessible) {
   const orgMap = /* @__PURE__ */ new Map();
   for (const org of allOrgsAccessible.organizations ?? []) {
     let totalRepoCount;
-    if (org.public_repos !== void 0 || org.total_private_repos !== void 0 || org.owned_private_repos !== void 0) {
+    if (org.public_repos !== undefined || org.total_private_repos !== undefined || org.owned_private_repos !== undefined) {
       totalRepoCount = (org.public_repos ?? 0) + (org.owned_private_repos ?? org.total_private_repos ?? 0);
     }
     orgMap.set(org.name, {
@@ -59,13 +59,13 @@ function extractOrgMap(allOrgsAccessible) {
 function sortOrgs(orgMap) {
   const organizations = Array.from(orgMap.values());
   organizations.sort((a, b) => {
-    if (a.name === void 0 && b.name === void 0) {
+    if (a.name === undefined && b.name === undefined) {
       return 0;
     }
-    if (a.name === void 0) {
+    if (a.name === undefined) {
       return -1;
     }
-    if (b.name === void 0) {
+    if (b.name === undefined) {
       return 1;
     }
     return a.name.localeCompare(b.name);

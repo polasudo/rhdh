@@ -43,7 +43,7 @@ function createCredentialError(credential, err) {
       }
     };
   }
-  return void 0;
+  return undefined;
 }
 function verifyAndGetIntegrations(deps, integrations) {
   const ghConfigs = integrations.github.list().map((ghInt) => ghInt.config);
@@ -103,7 +103,7 @@ async function computeTotalCountFromGitHubToken(deps, lastPageDataLengthProvider
   }
   const lastPageNumber = parseInt(match[1], 10);
   const lastPageDataLength = await lastPageDataLengthProviderFn(lastPageNumber);
-  return pageSize ? (lastPageNumber - 1) * pageSize + lastPageDataLength : void 0;
+  return pageSize ? (lastPageNumber - 1) * pageSize + lastPageDataLength : undefined;
 }
 async function executeFunctionOnFirstSuccessfulIntegration(deps, integrations, params) {
   const validatedRepo = await repoUtils.validateAndBuildRepoData(
@@ -130,7 +130,7 @@ async function executeFunctionOnFirstSuccessfulIntegration(deps, integrations, p
     }
     return res.result;
   }
-  return void 0;
+  return undefined;
 }
 async function fetchFromAllIntegrations(deps, integrations, params) {
   const ghConfigs = verifyAndGetIntegrations(deps, integrations);

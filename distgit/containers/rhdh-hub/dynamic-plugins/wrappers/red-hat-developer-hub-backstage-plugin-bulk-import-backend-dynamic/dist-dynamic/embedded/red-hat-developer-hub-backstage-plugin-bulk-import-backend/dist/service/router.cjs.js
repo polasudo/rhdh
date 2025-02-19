@@ -175,7 +175,7 @@ async function createRouter(options) {
       };
       let page;
       let size;
-      if (apiVersion === void 0 || apiVersion === "v1") {
+      if (apiVersion === undefined || apiVersion === "v1") {
         page = stringToNumber(q.page || q.pagePerIntegration);
         size = stringToNumber(q.size || q.sizePerIntegration);
       } else {
@@ -195,7 +195,9 @@ async function createRouter(options) {
         {
           search: q.search,
           pageNumber: page,
-          pageSize: size
+          pageSize: size,
+          sortColumn: q.sortColumn,
+          sortOrder: q.sortOrder
         }
       );
       return res.status(response.statusCode).json(response.responseBody);
@@ -311,11 +313,11 @@ async function createRouter(options) {
   return router;
 }
 function stringToNumber(s) {
-  return s ? Number.parseInt(s.toString(), 10) : void 0;
+  return s ? Number.parseInt(s.toString(), 10) : undefined;
 }
 function stringToBoolean(s) {
   if (!s) {
-    return void 0;
+    return undefined;
   }
   return s.toString() === "true";
 }

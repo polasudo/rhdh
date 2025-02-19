@@ -20,10 +20,10 @@ function buildOcto(deps, input, apiBaseUrl = GITHUB_DEFAULT_API_ENDPOINT) {
         }
       }
     }
-    return void 0;
+    return undefined;
   }
   if (types.isGithubAppCredential(input.credential) && input.owner && input.credential.accountLogin !== input.owner) {
-    return void 0;
+    return undefined;
   }
   const octokit = new rest.Octokit({
     baseUrl: apiBaseUrl,
@@ -78,7 +78,7 @@ function tryReplacingPlaceholdersInUrl(options) {
   let startIdx = 0;
   const url = options.url;
   if (!url) {
-    return void 0;
+    return undefined;
   }
   while (startIdx < url.length) {
     const openBraceIdx = url.indexOf("{", startIdx);

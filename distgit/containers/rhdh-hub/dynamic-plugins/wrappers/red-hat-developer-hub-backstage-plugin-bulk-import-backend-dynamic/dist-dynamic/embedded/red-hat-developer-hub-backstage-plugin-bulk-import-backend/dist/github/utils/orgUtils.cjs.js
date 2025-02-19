@@ -21,7 +21,7 @@ async function getAllAppOrgs(githubCredentialsProvider, ghConfig, credentialAcco
     }
     result.set(acc.url, {
       id: acc.id,
-      description: acc.description ?? void 0,
+      description: acc.description ?? undefined,
       name: acc.login,
       url: acc.html_url,
       html_url: acc.html_url,

@@ -7,24 +7,26 @@ require('@backstage/plugin-permission-common');
 require('@red-hat-developer-hub/backstage-plugin-bulk-import-common');
 var loggingUtils = require('../../../helpers/loggingUtils.cjs.js');
 var pagination = require('../../../helpers/pagination.cjs.js');
+var utils = require('../../../helpers/utils.cjs.js');
 var handlers = require('../handlers.cjs.js');
 
 function _interopDefaultCompat (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }
 
 var gitUrlParse__default = /*#__PURE__*/_interopDefaultCompat(gitUrlParse);
 
-function sortImports(imports) {
+function sortImports(imports, sortColumn = handlers.DefaultSortColumn, sortOrder = handlers.DefaultSortOrder) {
   imports.sort((a, b) => {
-    if (a.repository?.name === void 0 && b.repository?.name === void 0) {
-      return 0;
+    const value1 = utils.getNestedValue(a, sortColumn);
+    const value2 = utils.getNestedValue(b, sortColumn);
+    if (value1 === undefined && value2 === undefined) return 0;
+    if (value1 === undefined) return sortOrder === "asc" ? -1 : 1;
+    if (value2 === undefined) return sortOrder === "asc" ? 1 : -1;
+    if (sortColumn === "lastUpdate") {
+      const date1 = new Date(value1);
+      const date2 = new Date(value2);
+      return sortOrder === "asc" ? date2.getTime() - date1.getTime() : date1.getTime() - date2.getTime();
     }
-    if (a.repository?.name === void 0) {
-      return -1;
-    }
-    if (b.repository?.name === void 0) {
-      return 1;
-    }
-    return a.repository.name.localeCompare(b.repository.name);
+    return sortOrder === "asc" ? value1.localeCompare(value2) : value2.localeCompare(value1);
   });
 }
 async function findAllImports(deps, requestHeaders, queryParams) {
@@ -32,9 +34,8 @@ async function findAllImports(deps, requestHeaders, queryParams) {
   const search = queryParams?.search;
   const pageNumber = queryParams?.pageNumber ?? handlers.DefaultPageNumber;
   const pageSize = queryParams?.pageSize ?? handlers.DefaultPageSize;
-  deps.logger.debug(
-    `Getting all bulk import jobs (apiVersion=${apiVersion}, search=${search}, page=${pageNumber}, size=${pageSize})..`
-  );
+  const sortColumn = queryParams?.sortColumn ?? handlers.DefaultSortColumn;
+  const sortOrder = queryParams?.sortOrder ?? handlers.DefaultSortOrder;
   const catalogFilename = catalogUtils.getCatalogFilename(deps.config);
   const allLocations = (await deps.catalogHttpClient.listCatalogUrlLocations(
     search,
@@ -75,13 +76,13 @@ async function findAllImports(deps, requestHeaders, queryParams) {
   const result = await Promise.all(importStatusPromises);
   const imports = result.filter((res) => res.responseBody).map((res) => res.responseBody).map((res) => {
     const key = res?.repository?.url;
-    const location = key ? repoUrlToLocation.get(key) : void 0;
+    const location = key ? repoUrlToLocation.get(key) : undefined;
     return {
       ...res,
-      source: location ? allLocations.get(location)?.source : void 0
+      source: location ? allLocations.get(location)?.source : undefined
     };
   });
-  sortImports(imports);
+  sortImports(imports, sortColumn, sortOrder);
   const paginated = pagination.paginateArray(imports, pageNumber, pageSize);
   if (apiVersion === "v1") {
     return {
@@ -123,7 +124,7 @@ async function resolveReposDefaultBranches(logger, githubApiService, allLocation
         );
         return {
           repoUrl,
-          defaultBranch: void 0
+          defaultBranch: undefined
         };
       })
     );
@@ -138,7 +139,7 @@ async function resolveReposDefaultBranches(logger, githubApiService, allLocation
 function repoUrlFromLocation(loc) {
   const split = loc.split("/blob/");
   if (split.length < 2) {
-    return void 0;
+    return undefined;
   }
   return split[0];
 }
@@ -189,9 +190,7 @@ async function handleAddedReposFromCreateImportJobs(deps, importRequests) {
       req.repository.url,
       req.repository.defaultBranch
     );
-    const hasLocation = await deps.catalogHttpClient.verifyLocationExistence(
-      repoCatalogUrl
-    );
+    const hasLocation = await deps.catalogHttpClient.verifyLocationExistence(repoCatalogUrl);
     if (!hasLocation) {
       continue;
     }
@@ -213,7 +212,7 @@ async function handleAddedReposFromCreateImportJobs(deps, importRequests) {
     const gitUrl = gitUrlParse__default.default(req.repository.url);
     result.push({
       status: "ADDED",
-      lastUpdate: ghRepo?.repository?.updated_at ?? void 0,
+      lastUpdate: ghRepo?.repository?.updated_at ?? undefined,
       repository: {
         url: req.repository.url,
         name: gitUrl.name,
@@ -360,9 +359,7 @@ async function dryRunCreateImportJobs(deps, importRequests) {
 }
 async function performDryRunChecks(deps, req) {
   const checkCatalog = async (catalogEntityName) => {
-    const hasEntity = await deps.catalogHttpClient.hasEntityInCatalog(
-      catalogEntityName
-    );
+    const hasEntity = await deps.catalogHttpClient.hasEntityInCatalog(catalogEntityName);
     if (hasEntity) {
       return { dryRunStatuses: ["CATALOG_ENTITY_CONFLICT"] };
     }
@@ -474,9 +471,7 @@ async function findImportStatusByRepo(deps, repoUrl, defaultBranch, includeCatal
           defaultBranch
         );
       }
-      const ghRepo = await deps.githubApiService.getRepositoryFromIntegrations(
-        repoUrl
-      );
+      const ghRepo = await deps.githubApiService.getRepositoryFromIntegrations(repoUrl);
       result.lastUpdate = ghRepo.repository?.updated_at ?? void 0;
       return {
         statusCode: 200,
@@ -539,7 +534,7 @@ async function deleteImportByRepo(deps, repoUrl, defaultBranch) {
         return loc.id;
       }
     }
-    return void 0;
+    return undefined;
   };
   const locationId = findLocationFrom(
     (await deps.catalogHttpClient.listCatalogUrlLocationsByIdFromLocationsEndpoint()).locations
@@ -549,7 +544,7 @@ async function deleteImportByRepo(deps, repoUrl, defaultBranch) {
   }
   return {
     statusCode: 204,
-    responseBody: void 0
+    responseBody: undefined
   };
 }
 

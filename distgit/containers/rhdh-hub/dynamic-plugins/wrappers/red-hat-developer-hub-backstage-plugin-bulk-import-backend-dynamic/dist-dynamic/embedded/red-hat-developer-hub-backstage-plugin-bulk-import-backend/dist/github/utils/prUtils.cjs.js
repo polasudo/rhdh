@@ -62,7 +62,7 @@ async function getCatalogInfoContentFromPR(logger, config, octo, owner, repo, pr
       `Error fetching catalog-info content from PR ${prNumber}`,
       error
     );
-    return void 0;
+    return undefined;
   }
 }
 async function closePRWithComment(octo, owner, repo, prNum, comment) {

@@ -29,13 +29,13 @@ async function findRepositoriesByOrganization(deps, orgName, search, checkStatus
 }
 function sortRepos(repoList) {
   repoList.sort((a, b) => {
-    if (a.name === void 0 && b.name === void 0) {
+    if (a.name === undefined && b.name === undefined) {
       return 0;
     }
-    if (a.name === void 0) {
+    if (a.name === undefined) {
       return -1;
     }
-    if (b.name === void 0) {
+    if (b.name === undefined) {
       return 1;
     }
     return a.name.localeCompare(b.name);
@@ -68,10 +68,10 @@ async function formatResponse(deps, allReposAccessible, checkStatus) {
         repo.default_branch
       ).catch((error) => {
         errors.push(error.message);
-        return void 0;
+        return undefined;
       });
     }
-    const repoUpdatedAt = repo.updated_at ?? void 0;
+    const repoUpdatedAt = repo.updated_at ?? undefined;
     repoList.push({
       id: `${gitUrl.organization}/${repo.name}`,
       name: repo.name,

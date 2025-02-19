@@ -47,7 +47,7 @@ class GithubApiService {
       ghConfig
     );
     const errors = /* @__PURE__ */ new Map();
-    let repository = void 0;
+    let repository = undefined;
     for (const credential of credentials) {
       const octokit = ghUtils.buildOcto(
         {
@@ -538,14 +538,14 @@ class GithubApiService {
             input.fileName,
             input.defaultBranch
           );
-          if (exists === void 0) {
+          if (exists === undefined) {
             return { successful: false };
           }
           return { successful: true, result: exists };
         }
       }
     );
-    if (fileExists === void 0) {
+    if (fileExists === undefined) {
       throw new Error(
         `Could not determine if repo at ${input.repoUrl} already has a file named ${input.fileName} in its default branch (${input.defaultBranch})`
       );

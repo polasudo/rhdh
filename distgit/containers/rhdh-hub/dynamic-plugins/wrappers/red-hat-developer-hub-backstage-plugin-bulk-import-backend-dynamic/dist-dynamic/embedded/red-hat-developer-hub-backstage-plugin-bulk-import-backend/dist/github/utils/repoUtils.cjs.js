@@ -256,7 +256,7 @@ async function fileExistsInDefaultBranch(logger, octo, owner, repo, fileName, de
     logger.debug(
       `Unable to determine if a file named ${fileName} already exists in repo ${repo}: ${error}`
     );
-    return void 0;
+    return undefined;
   }
 }
 async function createOrUpdateFileInBranch(octo, owner, repo, branchName, fileName, fileContent) {

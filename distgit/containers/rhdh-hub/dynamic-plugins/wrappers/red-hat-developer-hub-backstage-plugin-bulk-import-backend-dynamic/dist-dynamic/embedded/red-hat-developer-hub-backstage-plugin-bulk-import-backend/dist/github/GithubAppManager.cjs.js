@@ -69,7 +69,7 @@ class GithubAppManager {
       installationDataFiltered = installationData;
     }
     if (installationDataFiltered.length === 0) {
-      return Array.of({ accessToken: void 0 });
+      return Array.of({ accessToken: undefined });
     }
     for (const installation of installationDataFiltered) {
       const installationId = installation.installationId;
@@ -147,13 +147,13 @@ class GithubAppsCredentialManager {
   }
   async getAppToken(host) {
     if (this.apps.length === 0) {
-      return void 0;
+      return undefined;
     }
     const results = await Promise.all(
       this.apps.map(
         (app) => app.getInstallationCredentials(host).then(
-          (credentials) => ({ credentials, error: void 0 }),
-          (error) => ({ credentials: void 0, error })
+          (credentials) => ({ credentials, error: undefined }),
+          (error) => ({ credentials: undefined, error })
         )
       )
     );
@@ -168,7 +168,7 @@ class GithubAppsCredentialManager {
     if (notNotFoundError) {
       throw notNotFoundError;
     }
-    return void 0;
+    return undefined;
   }
   /**
    * Returns an array of app access tokens.
@@ -183,9 +183,9 @@ class GithubAppsCredentialManager {
           (credentials2) => ({
             appId: app.getAppId(),
             credentials: credentials2,
-            error: void 0
+            error: undefined
           }),
-          (error) => ({ appId: app.getAppId(), credentials: void 0, error })
+          (error) => ({ appId: app.getAppId(), credentials: undefined, error })
         )
       )
     );
@@ -250,7 +250,7 @@ class CustomSingleInstanceGithubCredentialsProvider {
       token = this.token;
     }
     return {
-      headers: token ? { Authorization: `Bearer ${token}` } : void 0,
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
       token,
       type
     };
