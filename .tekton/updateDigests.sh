@@ -64,7 +64,7 @@ green="\033[1;32m"
 blue="\033[1;34m"
 red="\033[1;31m"
 
-# mappings of base -> new SHA
+# mappings of base:oldTag = newTag and base:newTag = newSHA to avoid doing a lot of skopeo inspects
 declare -A digests
 
 # file counters: tf, cf
@@ -98,21 +98,26 @@ for file in $(find "$ROOTPATH" -name "*yaml" | sort -V); do
         if [[ $QUIET -eq 0 ]]; then echo "[DEBUG]     OLD tag: $oldTag"; fi
         base=${base%:*}
         if [[ $DO_MINOR == "true" ]]; then
-            newTag=$(skopeo inspect "docker://${base}:${oldTag}" | jq -r '.RepoTags' | yq -r '.[]' | grep -v -- "-" | sort -uV | tail -1)
-            if [[ $QUIET -eq 0 ]]; then echo "[DEBUG]     NEW tag: ${newTag}"; fi
+            if [[ ! "${digests["${base}:${oldTag}_tag"]}" ]]; then 
+                newTag=$(skopeo inspect "docker://${base}:${oldTag}" | jq -r '.RepoTags' | yq -r '.[]' | grep -v -- "-" | sort -uV | tail -1)
+                digests["${base}:${oldTag}_tag"]="$newTag"
+                if [[ $QUIET -eq 0 ]]; then echo "[DEBUG]     NEW tag: ${newTag}"; fi
+            else
+                newTag="${digests["${base}:${oldTag}_tag"]}"
+            fi
         else
             # keep the old tag unless we're doing minor updates
             newTag="${oldTag}"
         fi
         oldSHA=${line##*@};
         if [[ $QUIET -eq 0 ]]; then echo "[DEBUG]     OLD SHA: $oldSHA"; fi
-        if [[ ! "${digests["$base"]}" ]]; then 
+        if [[ ! "${digests["${base}:${newTag}_sha"]}" ]]; then 
             newSHA=$(skopeo inspect "docker://${base}:${newTag}" | jq -r '.Digest');
+            digests["${base}:${newTag}_sha"]="$newSHA"
             if [[ $QUIET -eq 0 ]]; then echo "[DEBUG]     NEW SHA: $newSHA"; fi
         else
-            newSHA="${digests["$base"]}"
+            newSHA="${digests["${base}:${newTag}_sha"]}"
         fi
-        digests["$base"]="$newSHA"
         if [[ "$oldSHA" != "$newSHA" ]]; then
             sed -i "$file" -r -e "s|${oldTag}@${oldSHA}|${newTag}@${newSHA}|g"
             echo -e "[$cf/$tf] [$cl/$tl] ${green}+${norm} $(echo "$line" | sed -r -e "s|${oldTag}@${oldSHA}|${newTag}@${newSHA}|g")"
