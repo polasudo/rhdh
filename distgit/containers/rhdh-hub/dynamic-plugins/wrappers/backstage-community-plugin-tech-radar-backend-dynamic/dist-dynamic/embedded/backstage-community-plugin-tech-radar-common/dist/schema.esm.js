@@ -1,0 +1,61 @@
+import { z } from 'zod';
+import { MovedState } from './model.esm.js';
+
+const RadarRingParser = z.object({
+  // ID of the Ring
+  id: z.string(),
+  // Display name of the Ring
+  name: z.string(),
+  // Color used for entries in particular Ring, Supports any value parseable by {@link https://www.npmjs.com/package/color-string | color-string}
+  color: z.string(),
+  // Description of the Ring
+  description: z.string().optional()
+});
+const RadarQuadrantParser = z.object({
+  // ID of the Quadrant
+  id: z.string(),
+  // Display name of the Quadrant
+  name: z.string()
+});
+const RadarEntryLinkParser = z.object({
+  // URL of the link
+  url: z.string(),
+  // Display name of the link
+  title: z.string()
+});
+const RadarEntrySnapshotParser = z.object({
+  // Point in time when change happened
+  date: z.coerce.date(),
+  // ID of {@link RadarRing}
+  ringId: z.string(),
+  // Description of change
+  description: z.string().optional(),
+  // Indicates trend compared to previous snapshot
+  moved: z.nativeEnum(MovedState).optional()
+});
+const RadarEntryParser = z.object({
+  // React key to use for this Entry
+  key: z.string(),
+  // ID of this Radar Entry
+  id: z.string(),
+  // ID of {@link RadarQuadrant} this Entry belongs to
+  quadrant: z.string(),
+  // Display name of the Entry
+  title: z.string(),
+  // User-clickable URL when rendered in Radar
+  url: z.string().optional(),
+  // History of the Entry moving through {@link RadarRing}
+  timeline: z.array(RadarEntrySnapshotParser),
+  // Description of the Entry
+  description: z.string().optional(),
+  // User-clickable links to provide more information about the Entry
+  links: z.array(RadarEntryLinkParser).optional()
+});
+const TechRadarLoaderResponseParser = z.object({
+  quadrants: z.array(RadarQuadrantParser),
+  rings: z.array(RadarRingParser),
+  entries: z.array(RadarEntryParser)
+});
+
+export { TechRadarLoaderResponseParser };
+//# sourceMappingURL=schema.esm.js.map

@@ -1,0 +1,65 @@
+{
+  "name": "roadiehq-backstage-plugin-argo-cd-backend-dynamic",
+  "version": "3.2.3",
+  "main": "./dist/index.cjs.js",
+  "types": "./dist/index.d.ts",
+  "license": "Apache-2.0",
+  "private": true,
+  "publishConfig": {
+    "access": "public"
+  },
+  "backstage": {
+    "role": "backend-plugin",
+    "supported-versions": "1.35.1",
+    "pluginId": "roadiehq-argo-cd",
+    "pluginPackages": [
+      "roadiehq-backstage-plugin-argo-cd",
+      "roadiehq-backstage-plugin-argo-cd-backend"
+    ]
+  },
+  "exports": {
+    ".": {
+      "require": "./dist/index.cjs.js",
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.cjs.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "dependencies": {
+    "@roadiehq/backstage-plugin-argo-cd-backend": "3.2.3"
+  },
+  "files": [
+    "dist"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/redhat-developer/rhdh",
+    "directory": "dynamic-plugins/wrappers/roadiehq-backstage-plugin-argo-cd-backend-dynamic"
+  },
+  "maintainers": [
+    "@janus-idp/maintainers-showcase"
+  ],
+  "author": "Red Hat",
+  "homepage": "https://red.ht/rhdh",
+  "bugs": "https://issues.redhat.com/browse/RHIDP",
+  "keywords": [
+    "support:production",
+    "lifecycle:active"
+  ],
+  "bundleDependencies": true,
+  "overrides": {
+    "@aws-sdk/util-utf8-browser": {
+      "@smithy/util-utf8": "^2.0.0"
+    }
+  },
+  "resolutions": {
+    "@aws-sdk/util-utf8-browser": "npm:@smithy/util-utf8@~2",
+    "@roadiehq/backstage-plugin-argo-cd-backend": "file:./embedded/roadiehq-backstage-plugin-argo-cd-backend"
+  },
+  "peerDependencies": {
+    "@backstage/backend-common": "^0.24.0",
+    "@backstage/backend-plugin-api": "^0.8.0",
+    "@backstage/catalog-client": "^1.6.6",
+    "@backstage/config": "^1.2.0"
+  }
+}

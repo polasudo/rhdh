@@ -1,0 +1,71 @@
+{
+  "name": "@parfuemerie-douglas/scaffolder-backend-module-azure-repositories",
+  "version": "0.3.0+embedded",
+  "description": "A collection of Backstage scaffolder backend modules for Azure repositories.",
+  "main": "dist/index.cjs.js",
+  "types": "dist/index.d.ts",
+  "publishConfig": {
+    "access": "public",
+    "main": "dist/index.cjs.js",
+    "types": "dist/index.d.ts"
+  },
+  "backstage": {
+    "role": "backend-plugin-module",
+    "pluginId": "scaffolder",
+    "pluginPackage": "@backstage/plugin-scaffolder-backend"
+  },
+  "scripts": {
+    "start": "backstage-cli package start",
+    "build": "backstage-cli package build",
+    "lint": "backstage-cli package lint",
+    "test": "backstage-cli package test",
+    "clean": "backstage-cli package clean",
+    "prepack": "backstage-cli package prepack",
+    "postpack": "backstage-cli package postpack"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Parfuemerie-Douglas/scaffolder-backend-module-azure-repositories.git"
+  },
+  "keywords": [
+    "backstage",
+    "azure-devops",
+    "azure-repositories",
+    "backstage-plugin",
+    "backstage-template"
+  ],
+  "author": "Parfümerie Douglas GmbH",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/Parfuemerie-Douglas/scaffolder-backend-module-azure-repositories/issues"
+  },
+  "homepage": "https://github.com/Parfuemerie-Douglas/scaffolder-backend-module-azure-repositories#readme",
+  "dependencies": {
+    "azure-devops-node-api": "^13.0.0",
+    "winston": "^3.2.1"
+  },
+  "devDependencies": {},
+  "files": [
+    "dist"
+  ],
+  "private": true,
+  "peerDependencies": {
+    "@backstage/backend-common": "^0.22.0",
+    "@backstage/backend-plugin-api": "^0.7.0",
+    "@backstage/cli": "^0.26.11",
+    "@backstage/config": "^1.2.0",
+    "@backstage/errors": "^1.2.3",
+    "@backstage/integration": "^1.8.0",
+    "@backstage/plugin-scaffolder-backend": "^1.22.6",
+    "@backstage/plugin-scaffolder-node": "^0.2.9",
+    "@backstage/types": "^1.1.1"
+  },
+  "overrides": {
+    "@aws-sdk/util-utf8-browser": {
+      "@smithy/util-utf8": "^2.0.0"
+    }
+  },
+  "resolutions": {
+    "@aws-sdk/util-utf8-browser": "npm:@smithy/util-utf8@~2"
+  }
+}
