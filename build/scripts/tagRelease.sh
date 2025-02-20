@@ -72,8 +72,9 @@ Options:
     --midstream-user          run as a different bot user; default: $MIDSTM_USER 
     --midstream-branch        run against a different midstream branch; default: $MIDSTM_BRANCH
     -tmpdir                   temporary dir for checkouts; default $TMPDIR
-    --skip-gh                 skip github updates
-    --skip-gl                 skip gitlab updates
+    --skip-gh                 skip all github updates
+    --skip-gl                 skip gitlab rhdh repo updates
+    --skip-krd                skip gitlab konflux-release-data repo updates
     --debug                   more output
 "
 }
@@ -248,7 +249,7 @@ function updatePluginVersions() {
 	# TODO move to backstage/community-plugins
 	orgAndRepo="janus-idp/backstage-plugins"
 	d="${orgAndRepo/\//__}"
-	pushd ""$TMPDIR"/projects_${d}" >/dev/null || exit 1
+	pushd "$TMPDIR/projects_${d}" >/dev/null || exit 1
 	git checkout "${SOURCE_BRANCH}" || true
 	
 	# get script
@@ -278,8 +279,8 @@ function updatePluginsRootVersion() {
 	# TODO move to backstage/community-plugins
 	orgAndRepo="janus-idp/backstage-plugins"
 	d="${orgAndRepo/\//__}"
-	rm -fr ""$TMPDIR"/projects_${d}_2" && git clone -q --depth 1 -b "${the_branch}" "git@github.com:${orgAndRepo}" ""$TMPDIR"/projects_${d}_2" || echo "Branch $clone_branch doesn't exist: skip!"
-	pushd ""$TMPDIR"/projects_${d}_2" >/dev/null || exit 1
+	rm -fr "$TMPDIR/projects_${d}_2" && git clone -q --depth 1 -b "${the_branch}" "git@github.com:${orgAndRepo}" "$TMPDIR/projects_${d}_2" || echo "Branch $clone_branch doesn't exist: skip!"
+	pushd "$TMPDIR/projects_${d}_2" >/dev/null || exit 1
 
 	###############
 	# update 1 file
@@ -315,8 +316,8 @@ function updateShowcaseVersions() {
 	# TODO move to red-hat-developer-hub
 	orgAndRepo="redhat-developer/rhdh"
 	d="${orgAndRepo/\//__}"
-	rm -fr ""$TMPDIR"/projects_${d}_2" && git clone -q --depth 1 -b "${the_branch}" "git@github.com:${orgAndRepo}" ""$TMPDIR"/projects_${d}_2" || echo "Branch $clone_branch doesn't exist: skip!"
-	pushd ""$TMPDIR"/projects_${d}_2" >/dev/null || exit 1
+	rm -fr "$TMPDIR/projects_${d}_2" && git clone -q --depth 1 -b "${the_branch}" "git@github.com:${orgAndRepo}" "$TMPDIR/projects_${d}_2" || echo "Branch $clone_branch doesn't exist: skip!"
+	pushd "$TMPDIR/projects_${d}_2" >/dev/null || exit 1
 
 	################
 	# update 3 files
@@ -356,8 +357,8 @@ function updateOperatorVersions() {
 	the_version_op="$3"
 	orgAndRepo="redhat-developer/rhdh-operator"
 	d="${orgAndRepo/\//__}"
-	rm -fr ""$TMPDIR"/projects_${d}_2" && git clone -q --depth 1 -b "${the_branch}" "git@github.com:${orgAndRepo}" ""$TMPDIR"/projects_${d}_2" || echo "Branch $clone_branch doesn't exist: skip!"
-	pushd ""$TMPDIR"/projects_${d}_2" >/dev/null || exit 1
+	rm -fr "$TMPDIR/projects_${d}_2" && git clone -q --depth 1 -b "${the_branch}" "git@github.com:${orgAndRepo}" "$TMPDIR/projects_${d}_2" || echo "Branch $clone_branch doesn't exist: skip!"
+	pushd "$TMPDIR/projects_${d}_2" >/dev/null || exit 1
 
 	################
 	# update 4 files
@@ -407,8 +408,8 @@ function updateDocVersions() {
 	the_version="$2"
 	orgAndRepo="redhat-developer/red-hat-developers-documentation-rhdh"
 	d="${orgAndRepo/\//__}"
-	rm -fr ""$TMPDIR"/projects_${d}_2" && git clone -q --depth 1 -b "${the_branch}" "git@github.com:${orgAndRepo}" ""$TMPDIR"/projects_${d}_2" || echo "Branch $clone_branch doesn't exist: skip!"
-	pushd ""$TMPDIR"/projects_${d}_2" >/dev/null || exit 1
+	rm -fr "$TMPDIR/projects_${d}_2" && git clone -q --depth 1 -b "${the_branch}" "git@github.com:${orgAndRepo}" "$TMPDIR/projects_${d}_2" || echo "Branch $clone_branch doesn't exist: skip!"
+	pushd "$TMPDIR/projects_${d}_2" >/dev/null || exit 1
 
 	###############
 	# update 1 file
@@ -442,8 +443,8 @@ function updateChartVersions(){
     # push path to repo onto the stack
     orgAndRepo="redhat-developer/rhdh-chart"
     d="${orgAndRepo/\//__}"
-	rm -fr ""$TMPDIR"/projects_${d}_2" && git clone -q --depth 1 -b "${the_branch}" "git@github.com:${orgAndRepo}" ""$TMPDIR"/projects_${d}_2" || echo "Branch $clone_branch doesn't exist: skip!"
-	pushd ""$TMPDIR"/projects_${d}_2" >/dev/null || exit 1
+	rm -fr "$TMPDIR/projects_${d}_2" && git clone -q --depth 1 -b "${the_branch}" "git@github.com:${orgAndRepo}" "$TMPDIR/projects_${d}_2" || echo "Branch $clone_branch doesn't exist: skip!"
+	pushd "$TMPDIR/projects_${d}_2" >/dev/null || exit 1
 
 	files_to_bump="./charts/backstage/README.md ./charts/backstage/Chart.yaml"
 
@@ -508,11 +509,11 @@ pushBranchAndOrTagGH () {
 		fi
 		# echo "[DEBUG] Using clone_branch=$clone_branch ..."
 		
-		if [[ ! -d ""$TMPDIR"/projects_${d}" ]]; then
+		if [[ ! -d "$TMPDIR/projects_${d}" ]]; then
 			git clone -q --depth 1 -b "${clone_branch}" "git@github.com:${orgAndRepo}" "projects_${d}" || echo "Branch $clone_branch doesn't exist: skip!"
 		fi
-		if [[ -d ""$TMPDIR"/projects_${d}" ]]; then
-			pushd ""$TMPDIR"/projects_${d}" >/dev/null || exit 1
+		if [[ -d "$TMPDIR/projects_${d}" ]]; then
+			pushd "$TMPDIR/projects_${d}" >/dev/null || exit 1
 				export GITHUB_TOKEN="${GITHUB_TOKEN}"
 				git config user.email "${MIDSTM_USER}@redhat.com"
 				git config user.name "RHDH Build (${MIDSTM_USER})"
@@ -605,36 +606,49 @@ pushTagGL ()
 		elif [[ $CSV_VERSION ]]; then
 			echo "== $d :: tag $CSV_VERSION from $DWNSTM_TARGET_BRANCH =="
 		fi
-		if [[ ! -d ""$TMPDIR"/gitlab_${d}" ]]; then
-			git clone -q --depth 1 -b "${MIDSTM_BRANCH}" "git@gitlab.cee.redhat.com:rhidp/${d}.git" "gitlab_${d}" || echo "Branch $MIDSTM_BRANCH doesn't exist: skip!"
+		if [[ ! -d "$TMPDIR/gitlab_${d}" ]]; then
+			git clone -q --depth 1 -b "${DWNSTM_TARGET_BRANCH}" "git@gitlab.cee.redhat.com:rhidp/${d}.git" "gitlab_${d}" || \
+			git clone -q --depth 1 -b "${MIDSTM_BRANCH}" "git@gitlab.cee.redhat.com:rhidp/${d}.git" "gitlab_${d}" || \
+			echo "Branch $MIDSTM_BRANCH doesn't exist: skip!"
 		fi
-		if [[ -d ""$TMPDIR"/gitlab_${d}" ]]; then
-			pushd ""$TMPDIR"/gitlab_${d}" >/dev/null || exit 1
+		if [[ -d "$TMPDIR/gitlab_${d}" ]]; then
+			pushd "$TMPDIR/gitlab_${d}" >/dev/null || exit 1
 				git config user.email "${MIDSTM_USER}@redhat.com"
 				git config user.name "RHDH Build (${MIDSTM_USER})"
-				git checkout --track origin/"${MIDSTM_BRANCH}" -q 2>/dev/null || true
-				git pull -q 2>/dev/null || true
+				if [[ $(git rev-parse --abbrev-ref HEAD 2>/dev/null || true) == "$DWNSTM_TARGET_BRANCH" ]]; then #if already on 1.y branch
+					echo "Update existing branch $DWNSTM_TARGET_BRANCH"
+				else 
+					git checkout --track origin/"${MIDSTM_BRANCH}" -q 2>/dev/null || true
+					git pull -q 2>/dev/null || true
+				fi
 				if [[ ${SOURCE_BRANCH} ]]; then 
-
-					# create a branch or use existing
-					git branch --set-upstream-to="origin/${DWNSTM_TARGET_BRANCH}" "${DWNSTM_TARGET_BRANCH}" || git branch "${DWNSTM_TARGET_BRANCH}" || true
-					git checkout --track origin/"${DWNSTM_TARGET_BRANCH}" 1>/dev/null || git checkout "${DWNSTM_TARGET_BRANCH}" 1>/dev/null || true
-					# echo "[DEBUG] Currently in branch $(git rev-parse --abbrev-ref HEAD); expecting ${DWNSTM_TARGET_BRANCH}"
-					
-					git pull origin "${DWNSTM_TARGET_BRANCH}" 1>/dev/null || true
-					git push origin "${DWNSTM_TARGET_BRANCH}" 1>/dev/null || true
+					if [[ $(git rev-parse --abbrev-ref HEAD 2>/dev/null || true) != "$DWNSTM_TARGET_BRANCH" ]]; then # if not already on 1.y branch
+						# create a branch or use existing
+						git branch --set-upstream-to="origin/${DWNSTM_TARGET_BRANCH}" "${DWNSTM_TARGET_BRANCH}" || git branch "${DWNSTM_TARGET_BRANCH}" || true
+						git checkout --track origin/"${DWNSTM_TARGET_BRANCH}" 1>/dev/null || git checkout "${DWNSTM_TARGET_BRANCH}" 1>/dev/null || true
+						# echo "[DEBUG] Currently in branch $(git rev-parse --abbrev-ref HEAD); expecting ${DWNSTM_TARGET_BRANCH}"
+						git pull origin "${DWNSTM_TARGET_BRANCH}" 1>/dev/null || true
+						git push origin "${DWNSTM_TARGET_BRANCH}" 1>/dev/null || true
+					fi
 
 					# changes to apply to new midstream rhdh-1.yy-rhel-9 branch
 					if [[ $d == "rhdh" ]]; then # for rhidp/rhdh
+						pushd "$TMPDIR/gitlab_${d}/.tekton" >/dev/null || exit 1
+						generateNewTektonPipelines "${TARGET_BRANCH/release-/}" "$DWNSTM_TARGET_BRANCH" # 1.y rhdh-1.y-rhel-9 
+						popd >/dev/null || exit 1
+
 						sed -i upstream_repos.yml -r -e "s|- main|- ${TARGET_BRANCH}|g"
 						rm -f sync/*
+
 						COMMITMSG="chore: tagRelease.sh: use $TARGET_BRANCH in upstream_repos.yml; trigger full build"
-						git commit --no-gpg-sign -s -m "${COMMITMSG}" sync/ upstream_repos.yml || echo "nothing to commit, working tree clean"
+						git commit --no-gpg-sign -s -m "${COMMITMSG}" .tekton/ sync/ upstream_repos.yml || echo "nothing to commit, working tree clean"
 					fi
 
 					if [[ $DO_PUSH -eq 1 ]]; then 
 						git push origin "${DWNSTM_TARGET_BRANCH}" 1>/dev/null 2>&1  || true
 						doPush "${DWNSTM_TARGET_BRANCH}"
+					else
+						echo "Updated files are in $TMPDIR/gitlab_${d}/ -- commit and push them manually"
 					fi
 				fi
 				if [[ $CSV_VERSION ]]; then # push a new tag (or no-op if exists)
@@ -820,6 +834,30 @@ generateNewKonfluxReleaseDataYamls ()
 	popd >/dev/null || exit 1
 }
 
+# create new pipelines based on the rhdh-1 versions; rename and do sed replacements
+generateNewTektonPipelines ()
+{
+	xdashy=$1; xdashy=${xdashy/./-} # 1-5
+	branchy=$2                       # rhdh-1.5-rhel-9
+	# rename the -1- files to -1.y-
+	# update them to replace -1- with -1-y- and rhdh-1-rhel-9 with rhdh-1.y-rhel-9
+	echo "generate new piplines in $(pwd) for $branchy ($xdashy)"
+	for d in *.yaml; do
+		if [[ $d == *"-1-"* ]]; then # rename rhdh pipelines
+			e="$(echo "$d" | sed -r -e "s@-1-([a-z]+)@-${xdashy}-\1@g")"
+			if [[ "$e" != "$d" ]]; then
+				if [[ $VERBOSE -eq 1 ]]; then echo -n ">> $d"; fi
+				git mv "$d" "$e"
+				d="${e}"
+			fi
+		fi
+		echo " > $d"
+		sed -i "$d" -r \
+			-e "s@rhdh-1-rhel-9@${branchy}@g" \
+			-e "s@-1-([a-z]+)@-${xdashy}-\1@g"
+	done
+}
+
 ####################################
 
 getXYplusOneFromBranch "$TARGET_BRANCH"
@@ -896,5 +934,7 @@ if [[ $SKIP_KRD -eq 0 ]] && [[ "${MIDSTM_BRANCH}" ]]; then
 	# rm -fr "${TMPDIR:?}"/*
 fi
 
-# cleanup
-rm -fr "$TMPDIR"
+if [[ ${DO_PUSH} -eq 1 ]]; then
+	# cleanup
+	rm -fr "$TMPDIR"
+fi
