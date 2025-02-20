@@ -855,7 +855,8 @@ generateNewTektonPipelines ()
 		sed -i "$d" -r \
 			-e "s@rhdh-1-rhel-9@${branchy}@g" \
 			-e "s@-1-([a-z]+)@-${xdashy}-\1@g" \
-			-e "s@application: rhdh-1@application: rhdh-${xdashy}@"
+			-e "s|application: rhdh-1$|application: rhdh-${xdashy}|" \
+			-e "s|(component: rhdh-[a-z-]+)-1$|\1-${xdashy}|"
 	done
 }
 
