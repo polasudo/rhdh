@@ -28,8 +28,21 @@ Creation of brew targets and errata PV can be done any time before starting the 
 ### RHSA Errata setup
 
 ====
-NOTE: As of 1.3.5, we've been asked to use RHSA instead of RHBA when creating erratas. HOWEVER, a **Product Security Approval Request** IS NOT REQUIRED. 
+NOTE: As of 1.3.5, we've been asked to use RHSA instead of RHBA when creating erratas. HOWEVER, a **Product Security Approval Request** IS NOT REQUIRED. Moreover Errata System has updated its authentication method to meet approved Red Hat standards.  At this time, users are no longer allowed to authenticate using kerberos ID and password but rather must use kinit for authentication.
+
+If you encounter an "Unauthorized" error when accessing the Errata System, and you know you have an Errata System account make use of the https://www.ibm.com/docs/pl/aix/7.2?topic=k-kinit-command[kinit command]:
+
+Run https://www.ibm.com/docs/pl/aix/7.2?topic=k-klist-command[klist] in your terminal to check for a valid ticket. If no valid ticket is found, run: `kinit <your_username>` and enter your password. Then verify again with klist.
+
+Test Kerberos Authentication by running `curl --negotiate -u : <https://errata.engineering.redhat.com/kerberos_test`
+
+A successful response should display: Connected with kerberos user <your_username>@IPA.REDHAT.COM
+
+Launch the browser with: `google-chrome --auth-server-whitelist="errata.engineering.redhat.com"` or refresh the existing tab.
 ====
+
+
+
 
 Once set up, you can then run the branch creation script whenever dev is done (or nearly done) it's time for feature.
 
