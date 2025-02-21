@@ -1164,10 +1164,14 @@ if [[ $CONTAINER_NUDGE != "true" ]]; then
     done
 
     # revert the single change to bump the version if no other changes
-    if [[ $(git diff --name-only distgit/containers/rhdh-hub) == "distgit/containers/rhdh-hub/Containerfile" ]]; then 
+    # shellcheck disable=SC2143
+    if [[ $(git diff --name-only distgit/containers/rhdh-hub) == "distgit/containers/rhdh-hub/Containerfile" ]] && \
+       [[ $(git diff distgit/containers/rhdh-hub/Containerfile | grep -v -E "^\+\+\+|release=|konflux.additional-tags=" | grep -E "^\+") == "" ]]; then
       revertFiles "distgit/containers/rhdh-hub/Containerfile"
     fi
-    if [[ $(git diff --name-only distgit/containers/rhdh-operator) == "distgit/containers/rhdh-operator/Containerfile" ]]; then
+    # shellcheck disable=SC2143
+    if [[ $(git diff --name-only distgit/containers/rhdh-operator) == "distgit/containers/rhdh-operator/Containerfile" ]] && \
+       [[ $(git diff distgit/containers/rhdh-operator/Containerfile | grep -v -E "^\+\+\+|release=|konflux.additional-tags=" | grep -E "^\+") == "" ]]; then
       revertFiles "distgit/containers/rhdh-operator/Containerfile"
     fi
   fi
