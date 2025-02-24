@@ -290,10 +290,14 @@ fi
 git config --global core.autocrlf input
 git config --global core.eol input
 git config --global pull.rebase true
-git config --global merge.ff only
-git config --global pull.ff only
-git config --global branch.autosetupmerge true
-git config --global branch.autosetuprebase always
+
+# not sure we want these restrictions
+# git config --global merge.ff only
+# git config --global pull.ff only
+
+# https://stackoverflow.com/questions/5480069/autosetuprebase-vs-autosetupmerge
+git config --global branch.autosetupmerge true  # for tracking upstream 
+git config --global branch.autosetuprebase always # to rebase (linear history) when pulling 
 
 git config --global advice.skippedCherryPicks false
 git config --global advice.detachedHead false
@@ -1282,8 +1286,7 @@ fi ## if DO_COMMIT
 if [[ ${DO_PUSH} -eq 1 ]]; then
   BRANCHUSED="${DWNSTM_BRANCH}"
   PR_BRANCH="pr-update-sync-rhdh-hub-$(date +%s)"
-
-  git pull origin "${BRANCHUSED}" --ff-only
+  git pull origin "${BRANCHUSED}"
   set -x
   PUSH_TRY="$(git push origin "${BRANCHUSED}" ${FORCE} 2>&1 || true)"
   # shellcheck disable=SC2181
@@ -1299,7 +1302,7 @@ if [[ $GITLAB_PIPELINE == "true" ]]; then
   # push changes; see also https://docs.gitlab.com/ee/ci/variables/predefined_variables.html
   echo "Pushing changes as $GITLAB_USER_LOGIN ($GITLAB_USER_EMAIL) to branch $CI_COMMIT_REF_NAME of ${CI_SERVER_HOST}/${CI_PROJECT_NAMESPACE}/${CI_PROJECT_NAME} ..."
   set -x
-  git pull origin "HEAD:$CI_COMMIT_REF_NAME" --ff-only || true
+  git pull --rebase origin "HEAD:$CI_COMMIT_REF_NAME" || true
   git push origin "HEAD:$CI_COMMIT_REF_NAME" -o ci.skip ${FORCE} || exit 16
   set +x
 fi
