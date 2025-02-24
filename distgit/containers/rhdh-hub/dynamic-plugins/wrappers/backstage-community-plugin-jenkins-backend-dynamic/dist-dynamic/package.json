@@ -1,0 +1,72 @@
+{
+  "name": "backstage-community-plugin-jenkins-backend-dynamic",
+  "version": "0.6.2",
+  "main": "./dist/index.cjs.js",
+  "types": "./dist/index.d.ts",
+  "license": "Apache-2.0",
+  "private": true,
+  "publishConfig": {
+    "access": "public"
+  },
+  "backstage": {
+    "role": "backend-plugin",
+    "supported-versions": "1.35.1",
+    "pluginId": "jenkins",
+    "pluginPackages": [
+      "backstage-community-plugin-jenkins",
+      "backstage-community-plugin-jenkins-backend"
+    ]
+  },
+  "exports": {
+    ".": {
+      "require": "./dist/index.cjs.js",
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.cjs.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "dependencies": {
+    "@backstage-community/plugin-jenkins-backend": "0.6.2"
+  },
+  "files": [
+    "dist"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/redhat-developer/rhdh",
+    "directory": "dynamic-plugins/wrappers/backstage-community-plugin-jenkins-backend-dynamic"
+  },
+  "maintainers": [
+    "@janus-idp/maintainers-showcase"
+  ],
+  "author": "Red Hat",
+  "homepage": "https://red.ht/rhdh",
+  "bugs": "https://issues.redhat.com/browse/RHIDP",
+  "keywords": [
+    "support:tech-preview",
+    "lifecycle:active"
+  ],
+  "bundleDependencies": true,
+  "overrides": {
+    "@aws-sdk/util-utf8-browser": {
+      "@smithy/util-utf8": "^2.0.0"
+    }
+  },
+  "resolutions": {
+    "@aws-sdk/util-utf8-browser": "npm:@smithy/util-utf8@~2",
+    "@backstage-community/plugin-jenkins-backend": "file:./embedded/backstage-community-plugin-jenkins-backend",
+    "@backstage-community/plugin-jenkins-common": "file:./embedded/backstage-community-plugin-jenkins-common"
+  },
+  "peerDependencies": {
+    "@backstage/backend-common": "^0.25.0",
+    "@backstage/backend-plugin-api": "^1.0.1",
+    "@backstage/catalog-client": "^1.7.1",
+    "@backstage/catalog-model": "^1.7.0",
+    "@backstage/config": "^1.2.0",
+    "@backstage/errors": "^1.2.4",
+    "@backstage/plugin-catalog-common": "^1.1.0",
+    "@backstage/plugin-catalog-node": "^1.13.1",
+    "@backstage/plugin-permission-common": "^0.8.1",
+    "@backstage/plugin-permission-node": "^0.8.4"
+  }
+}

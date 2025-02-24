@@ -1,0 +1,75 @@
+{
+  "type": "object",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "properties": {
+    "catalog": {
+      "type": "object",
+      "properties": {
+        "providers": {
+          "type": "object",
+          "properties": {
+            "ocm": {
+              "type": "object",
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "required": [
+                      "kubernetesPluginRef"
+                    ],
+                    "properties": {
+                      "kubernetesPluginRef": {
+                        "description": "Match the cluster name in kubernetes plugin config",
+                        "type": "string"
+                      },
+                      "owner": {
+                        "description": "Owner reference to created cluster entities in the catalog",
+                        "type": "string"
+                      },
+                      "schedule": {}
+                    }
+                  },
+                  {
+                    "type": "object",
+                    "required": [
+                      "name",
+                      "url"
+                    ],
+                    "properties": {
+                      "url": {
+                        "description": "Url of the hub cluster API endpoint",
+                        "type": "string"
+                      },
+                      "name": {
+                        "description": "Name that the hub cluster will assume in Backstage Catalog (in OCM this is always local-cluster which can be confusing)",
+                        "type": "string"
+                      },
+                      "serviceAccountToken": {
+                        "description": "Service Account Token which is used for querying data from the hub",
+                        "visibility": "secret",
+                        "type": "string"
+                      },
+                      "skipTLSVerify": {
+                        "description": "Skip TLS certificate verification presented by the API server, defaults to false",
+                        "type": "boolean"
+                      },
+                      "caData": {
+                        "description": "Base64-encoded CA bundle in PEM format used for verifying the TLS cert presented by the API server",
+                        "type": "string"
+                      },
+                      "owner": {
+                        "description": "Owner reference to created cluster entities in the catalog",
+                        "type": "string"
+                      },
+                      "schedule": {}
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

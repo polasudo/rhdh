@@ -1,0 +1,60 @@
+{
+  "name": "backstage-community-plugin-scaffolder-backend-module-servicenow-dynamic",
+  "version": "2.4.0",
+  "main": "./dist/index.cjs.js",
+  "types": "./dist/index.d.ts",
+  "license": "Apache-2.0",
+  "private": true,
+  "publishConfig": {
+    "access": "public"
+  },
+  "backstage": {
+    "role": "backend-plugin-module",
+    "supported-versions": "1.35.1",
+    "pluginId": "scaffolder",
+    "pluginPackage": "@backstage/plugin-scaffolder-backend"
+  },
+  "exports": {
+    ".": {
+      "require": "./dist/index.cjs.js",
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.cjs.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "dependencies": {
+    "@backstage-community/plugin-scaffolder-backend-module-servicenow": "2.4.0"
+  },
+  "files": [
+    "dist"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/redhat-developer/rhdh",
+    "directory": "dynamic-plugins/wrappers/backstage-community-plugin-scaffolder-backend-module-servicenow-dynamic"
+  },
+  "maintainers": [
+    "@janus-idp/maintainers-showcase"
+  ],
+  "author": "Red Hat",
+  "homepage": "https://red.ht/rhdh",
+  "bugs": "https://issues.redhat.com/browse/RHIDP",
+  "keywords": [
+    "support:tech-preview",
+    "lifecycle:active"
+  ],
+  "bundleDependencies": true,
+  "overrides": {
+    "@aws-sdk/util-utf8-browser": {
+      "@smithy/util-utf8": "^2.0.0"
+    }
+  },
+  "resolutions": {
+    "@aws-sdk/util-utf8-browser": "npm:@smithy/util-utf8@~2",
+    "@backstage-community/plugin-scaffolder-backend-module-servicenow": "file:./embedded/backstage-community-plugin-scaffolder-backend-module-servicenow"
+  },
+  "peerDependencies": {
+    "@backstage/backend-plugin-api": "^1.1.1",
+    "@backstage/plugin-scaffolder-node": "^0.6.3"
+  }
+}
