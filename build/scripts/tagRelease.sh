@@ -140,50 +140,54 @@ git config --global advice.detachedHead false
 createPr() {
   headBranch=$1
   baseBranch=$2
-  # in case we checked out from release-1.4 but need to base a PR against main
-  git config remote.origin.fetch '+refs/heads/*:refs/remotes/origin/*'; git fetch --depth=10
-  git pull origin "${baseBranch}" 1>/dev/null 2>&1 || true
-  git branch "${headBranch}" || true
-  git checkout "${headBranch}" 1>/dev/null 2>&1
-  git merge "${baseBranch}" 1>/dev/null 2>&1 || true
-  # shellcheck disable=SC2086
-  if [[ $(/usr/bin/gh version 2>/dev/null || true) ]] || [[ $(which gh 2>/dev/null || true) ]]; then
-    if [[ $(git diff --name-only HEAD~1 2>/dev/null || true) ]]; then
-		# if github
-		if [[ $(git remote -v | grep github || true) ]]; then
-			git push origin "${headBranch}" 1>/dev/null # ${FORCE_PUSH}
-			gh repo set-default "$(git remote get-url origin)"
-			# shellcheck disable=SC2086
-			# echo "### tR.sh CREATING PR for baseBranch=$baseBranch .. headBranch=$headBranch ..."
-			gh pr create --fill -B "${baseBranch}" -H "${headBranch}" ${DRYRUN} || true
-			# if not running in a gitlab pipeline, open the PR in a browser 
-			if [[ $GITLAB_PIPELINE != "true" ]]; then
-				gh pr view --web || true
+  if [[ $(git diff --name-only HEAD~1 2>/dev/null || true) ]]; then # only if we have changes
+	# in case we checked out from release-1.4 but need to base a PR against main
+	git config remote.origin.fetch '+refs/heads/*:refs/remotes/origin/*'; git fetch --depth=10 >/dev/null 2>&1 || true
+	git pull origin "${baseBranch}" 1>/dev/null 2>&1 || true
+	git branch "${headBranch}" || true
+	git checkout "${headBranch}" 1>/dev/null 2>&1
+	git merge "${baseBranch}" 1>/dev/null 2>&1 || true
+	# shellcheck disable=SC2086
+	if [[ $(/usr/bin/gh version 2>/dev/null || true) ]] || [[ $(which gh 2>/dev/null || true) ]]; then
+		if [[ $(git diff --name-only HEAD~1 2>/dev/null || true) ]]; then
+			# if github
+			if [[ $(git remote -v | grep github || true) ]]; then
+				git push origin "${headBranch}" 1>/dev/null # ${FORCE_PUSH}
+				gh repo set-default "$(git remote get-url origin)"
+				# shellcheck disable=SC2086
+				# echo "### tR.sh CREATING PR for baseBranch=$baseBranch .. headBranch=$headBranch ..."
+				gh pr create --fill -B "${baseBranch}" -H "${headBranch}" ${DRYRUN} || true
+				# if not running in a gitlab pipeline, open the PR in a browser 
+				if [[ $GITLAB_PIPELINE != "true" ]]; then
+					gh pr view --web || true
+				fi
+			else # not github; assume gitlab
+				PR_URL=$(git push origin "${headBranch}" 2>&1 | grep "${headBranch}" | grep "https://" | sed -r -e "s/remote:   //" | tr -d " ")
+				# didn't work for this MR https://gitlab.cee.redhat.com/prodsec/product-definitions/-/merge_requests/3267
+				# if [[ ! $PR_URL ]]; then
+				# 	# try again using the current user's fork
+				# 	git remote add "$(whoami)" "git@gitlab.cee.redhat.com:$(whoami)/prodsec-product-definitions.git"
+				# 	PR_URL=$(git push -f "$(whoami)" "${headBranch}" 2>&1 | grep "${headBranch}" | grep "https://" | sed -r -e "s/remote:   //" | tr -d " ")
+				# fi
+				if [[ ! $PR_URL ]]; then 
+					echo "[ERROR] Cannot create a PR for your changes. Please create a PR manually from sources in $(pwd) !"
+					exit 1
+				else 
+					PR_URL="${PR_URL}&merge_request%5Btarget_branch%5D=${baseBranch}"
+					echo "Create merge request at ${PR_URL}"
+					google-chrome "$PR_URL"
+				fi
 			fi
-		else # not github
-			PR_URL=$(git push origin "${headBranch}" 2>&1 | grep "${headBranch}" | grep "https://" | sed -r -e "s/remote:   //" | tr -d " ")
-			# didn't work for this MR https://gitlab.cee.redhat.com/prodsec/product-definitions/-/merge_requests/3267
-			# if [[ ! $PR_URL ]]; then
-			# 	# try again using the current user's fork
-			# 	git remote add "$(whoami)" "git@gitlab.cee.redhat.com:$(whoami)/prodsec-product-definitions.git"
-			# 	PR_URL=$(git push -f "$(whoami)" "${headBranch}" 2>&1 | grep "${headBranch}" | grep "https://" | sed -r -e "s/remote:   //" | tr -d " ")
-			# fi
-			if [[ ! $PR_URL ]]; then 
-				echo "[ERROR] Cannot create a PR for your changes. Please create a PR manually from sources in $(pwd) !"
-				exit 1
-			else 
-				PR_URL="${PR_URL}&merge_request%5Btarget_branch%5D=${baseBranch}"
-				echo "Create merge request at ${PR_URL}"
-				google-chrome "$PR_URL"
-			fi
+		else
+			echo "No changes for which to create PR for $baseBranch"
 		fi
 	else
-		echo "No changes for which to create PR for $baseBranch"
+		echo "[WARN] gh cli is required to generate pull requests. See https://github.com/cli/cli?tab=readme-ov-file#installation to install it."
+		echo -n "# To manually create a pull request, go here: "
+		git config --get remote.origin.url | sed -r -e "s#:#/#" -e "s#git@#https://#" -e "s#\.git#/tree/${headBranch}/#"
 	fi
   else
-    echo "[WARN] gh cli is required to generate pull requests. See https://github.com/cli/cli?tab=readme-ov-file#installation to install it."
-    echo -n "# To manually create a pull request, go here: "
-    git config --get remote.origin.url | sed -r -e "s#:#/#" -e "s#git@#https://#" -e "s#\.git#/tree/${headBranch}/#"
+	echo "nothing to commit, working tree clean (6)"
   fi
 }
 
@@ -634,19 +638,34 @@ pushTagGL ()
 					# changes to apply to new midstream rhdh-1.yy-rhel-9 branch
 					if [[ $d == "rhdh" ]]; then # for rhidp/rhdh
 						pushd "$TMPDIR/gitlab_${d}/.tekton" >/dev/null || exit 1
-						generateNewTektonPipelines "${TARGET_BRANCH/release-/}" "$DWNSTM_TARGET_BRANCH" # 1.y rhdh-1.y-rhel-9 
+							generateNewTektonPipelines "${TARGET_BRANCH/release-/}" "$DWNSTM_TARGET_BRANCH" # 1.y rhdh-1.y-rhel-9 
 						popd >/dev/null || exit 1
 
-						sed -i upstream_repos.yml -r -e "s|- main|- ${TARGET_BRANCH}|g"
-						rm -f sync/*
+						# in new 1.y branch, switch from next tags to latest tags
+						# TODO how do we remove latest tags 3mo later for older streams?
+						echo " = update FBCs in $DWNSTM_TARGET_BRANCH to latest"
+						pushd "$TMPDIR/gitlab_${d}/catalogs" >/dev/null || exit 1
+							for c in */Containerfile; do 
+								echo " > $c"
+								sed -i "$c" -r -e "s@next-v4@latest-v4@g"
+							done
+							COMMITMSG="chore: tagRelease.sh: update FBCs in $DWNSTM_TARGET_BRANCH to latest"						
+							git commit --no-gpg-sign -s -m "${COMMITMSG}" . || echo "nothing to commit, working tree clean (4)"
+						popd >/dev/null || exit 1
 
+						if [[ $(git diff --name-only) != "" ]]; then 
+							sed -i upstream_repos.yml -r -e "s|- main|- ${TARGET_BRANCH}|g"
+							rm -f sync/*
+						fi
 						COMMITMSG="chore: tagRelease.sh: use $TARGET_BRANCH in upstream_repos.yml; trigger full build"
-						git commit --no-gpg-sign -s -m "${COMMITMSG}" .tekton/ sync/ upstream_repos.yml || echo "nothing to commit, working tree clean"
+						git commit --no-gpg-sign -s -m "${COMMITMSG}" .tekton/ sync/ upstream_repos.yml || echo "nothing to commit, working tree clean (5)"
 					fi
 
-					if [[ $DO_PUSH -eq 1 ]]; then 
-						git push origin "${DWNSTM_TARGET_BRANCH}" 1>/dev/null 2>&1  || true
-						doPush "${DWNSTM_TARGET_BRANCH}"
+					if [[ $DO_PUSH -eq 1 ]]; then
+						if [[ $(git diff --name-only) != "" ]]; then 
+							git push origin "${DWNSTM_TARGET_BRANCH}" 1>/dev/null 2>&1  || true
+							doPush "${DWNSTM_TARGET_BRANCH}"
+						fi
 					else
 						echo "Updated files are in $TMPDIR/gitlab_${d}/ -- commit and push them manually"
 					fi
@@ -841,18 +860,18 @@ generateNewTektonPipelines ()
 	branchy=$2                       # rhdh-1.5-rhel-9
 	# rename the -1- files to -1.y-
 	# update them to replace -1- with -1-y- and rhdh-1-rhel-9 with rhdh-1.y-rhel-9
-	echo "generate new piplines in $(pwd) for $branchy ($xdashy)"
-	for d in *.yaml; do
-		if [[ $d == *"-1-"* ]]; then # rename rhdh pipelines
-			e="$(echo "$d" | sed -r -e "s@-1-([a-z]+)@-${xdashy}-\1@g")"
-			if [[ "$e" != "$d" ]]; then
-				if [[ $VERBOSE -eq 1 ]]; then echo -n ">> $d"; fi
-				git mv "$d" "$e"
-				d="${e}"
+	echo " = generate new piplines in $(pwd) for $branchy ($xdashy)"
+	for y in *.yaml; do
+		if [[ $y == *"-1-"* ]]; then # rename rhdh pipelines
+			e="$(echo "$y" | sed -r -e "s@-1-([a-z]+)@-${xdashy}-\1@g")"
+			if [[ "$e" != "$y" ]]; then
+				if [[ $VERBOSE -eq 1 ]]; then echo -n ">> $y"; fi
+				git mv "$y" "$e"
+				y="${e}"
 			fi
 		fi
-		echo " > $d"
-		sed -i "$d" -r \
+		echo " > $y"
+		sed -i "$y" -r \
 			-e "s@rhdh-1-rhel-9@${branchy}@g" \
 			-e "s@-1-([a-z]+)@-${xdashy}-\1@g" \
 			-e "s|application: rhdh-1$|application: rhdh-${xdashy}|" \
@@ -860,6 +879,43 @@ generateNewTektonPipelines ()
 	done
 }
 
+function updateFBCVersions() {
+	if [[ $PROD_VERSION =~ ^([0-9]+)\.([0-9]+) ]]; then # decrease the y digit by 3
+		XX=${BASH_REMATCH[1]}
+		YY=${BASH_REMATCH[2]}
+		(( YY=YY+1 ))
+		PROD_VERSION_NEXTY="$XX.$YY"
+	fi
+	echo "= update FBCs in $MIDSTM_BRANCH to $PROD_VERSION_NEXTY"
+	d="rhdh"
+	if [[ -d "$TMPDIR/gitlab_${d}" ]]; then rm -fr "$TMPDIR/gitlab_${d}"; fi
+	git clone -q --depth 1 -b "${MIDSTM_BRANCH}" "git@gitlab.cee.redhat.com:rhidp/${d}.git" "gitlab_${d}" || \
+		{ echo "ERROR: Branch $MIDSTM_BRANCH doesn't exist: fail!"; exit 1; }
+	pushd "$TMPDIR/gitlab_${d}" >/dev/null || exit 1
+		git checkout --track origin/"${MIDSTM_BRANCH}" -q 2>/dev/null || true
+		git pull -q 2>/dev/null || true
+		pushd "$TMPDIR/gitlab_${d}/catalogs" >/dev/null || exit 1
+			for c in */Containerfile; do 
+				echo " > $c"
+				sed -i "$c" -r \
+					-e "s@$PROD_VERSION-v@$PROD_VERSION_NEXTY-v@g"  \
+					-e "s@fast-$PROD_VERSION@fast-$PROD_VERSION_NEXTY@g"
+			done
+			COMMITMSG="chore: tagRelease.sh: update FBCs in $MIDSTM_BRANCH to $PROD_VERSION_NEXTY"
+			git commit --no-gpg-sign -s -m "${COMMITMSG}" . || echo "nothing to commit, working tree clean (2)"
+			if [[ $DO_PUSH -eq 1 ]]; then
+				if [[ $(git diff --name-only HEAD~1 2>/dev/null || true) ]]; then 
+					git push origin "${MIDSTM_BRANCH}" 1>/dev/null 2>&1  || true
+					doPush "${MIDSTM_BRANCH}"
+				else 
+					echo "nothing to commit, working tree clean (3)"
+				fi
+			else
+				echo "Updated files are in $TMPDIR/gitlab_${d}/ -- commit and push them manually"
+			fi
+		popd >/dev/null || exit 1
+	popd >/dev/null || exit 1
+}
 ####################################
 
 getXYplusOneFromBranch "$TARGET_BRANCH"
@@ -920,7 +976,12 @@ if [[ $SKIP_GL -eq 0 ]] && [[ "${MIDSTM_BRANCH}" ]]; then
 	for repo in \
 		rhdh \
 		; do
-	pushTagGL $repo
+		pushTagGL $repo
+		# updates to 1.x branch after branching
+		if [[ ! $CSV_VERSION ]] && [[ $repo == "rhdh" ]]; then
+			echo "Update existing branch $MIDSTM_BRANCH" 
+			updateFBCVersions
+		fi
 	done
 fi
 
