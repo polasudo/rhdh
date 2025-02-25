@@ -81,22 +81,22 @@ for file in $(find "$ROOTPATH" -name "*yaml" | sort -V); do
     tl=0; cl=0
 
     echo -e "[$cf/$tf] ${red}>${norm} $file"
-    grep @sha256 < "$file" | sort -uV > mypipe &
+    grep -E "@sha256|value: .+(task|tekton|konflux)-.+:[0-9.]+" < "$file" | sort -uV > mypipe &
     while IFS= read -r line; do
         if [[ $line != "value:" ]]; then
             (( tl = tl + 1 ))
         fi
     done < mypipe
-    grep @sha256 < "$file" | sort -uV > mypipe &
+    grep -E "@sha256|value: .+(task|tekton|konflux)-.+:[0-9.]+" < "$file" | sort -urV > mypipe &
     while IFS= read -r line; do
         line="${line##*value: }"
         (( cl = cl + 1 ))
         # if [[ $QUIET -eq 0 ]]; then echo "[DEBUG] [$cf/$tf] [$cl/$tl] $line"; fi
         base=${line%%@sha256:*}
-        if [[ $QUIET -eq 0 ]]; then echo "[DEBUG]     base: $base"; fi
         oldTag=${base#*:}
         if [[ $QUIET -eq 0 ]]; then echo "[DEBUG]     OLD tag: $oldTag"; fi
         base=${base%:*}
+        if [[ $QUIET -eq 0 ]]; then echo "[DEBUG]     base: $base"; fi
         if [[ $DO_MINOR == "true" ]]; then
             if [[ ! "${digests["${base}:${oldTag}_tag"]}" ]]; then 
                 newTag=$(skopeo inspect "docker://${base}:${oldTag}" | jq -r '.RepoTags' | yq -r '.[]' | grep -v -- "-" | sort -uV | tail -1)
@@ -109,7 +109,12 @@ for file in $(find "$ROOTPATH" -name "*yaml" | sort -V); do
             # keep the old tag unless we're doing minor updates
             newTag="${oldTag}"
         fi
-        oldSHA=${line##*@};
+        if [[ $line == *"@"* ]]; then 
+            oldSHA="${line##*@}"
+        else
+            oldSHA="NONE"
+        fi
+        
         if [[ $QUIET -eq 0 ]]; then echo "[DEBUG]     OLD SHA: $oldSHA"; fi
         if [[ ! "${digests["${base}:${newTag}_sha"]}" ]]; then 
             newSHA=$(skopeo inspect "docker://${base}:${newTag}" | jq -r '.Digest');
@@ -119,8 +124,12 @@ for file in $(find "$ROOTPATH" -name "*yaml" | sort -V); do
             newSHA="${digests["${base}:${newTag}_sha"]}"
         fi
         if [[ "$oldSHA" != "$newSHA" ]]; then
-            sed -i "$file" -r -e "s|${oldTag}@${oldSHA}|${newTag}@${newSHA}|g"
-            echo -e "[$cf/$tf] [$cl/$tl] ${green}+${norm} $(echo "$line" | sed -r -e "s|${oldTag}@${oldSHA}|${newTag}@${newSHA}|g")"
+            if [[ $oldSHA == "NONE" ]]; then
+                sed -i "$file" -r -e "s|${oldTag}$|${newTag}@${newSHA}|g"
+            else
+                sed -i "$file" -r -e "s|${oldTag}@${oldSHA}$|${newTag}@${newSHA}|g"
+            fi
+            echo -e "[$cf/$tf] [$cl/$tl] ${green}+${norm} $base:${newTag}@${newSHA}"
         else
             echo -e "[$cf/$tf] [$cl/$tl] ${blue}=${norm} $line"
         fi
