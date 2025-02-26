@@ -258,9 +258,9 @@ for OCP_VERSION in ${OCP_VERSIONS}; do
   # for 4.15+, use the rhel9 image
   vergte "${OCP_VERSION}" "4.15" && registry="registry.redhat.io/openshift4/ose-operator-registry-rhel9:v${OCP_VERSION}" || registry="registry.redhat.io/openshift4/ose-operator-registry:v${OCP_VERSION}"
   
-  # temporary hackaround for v4.18 because it isn't live yet; fall back to brew.reg (CI build)
-  # TODO change this in March when 4.18 is live
-  vergte "${OCP_VERSION}" "4.18" && registry="brew.registry.redhat.io/rh-osbs/openshift-ose-operator-registry-rhel9:v4.18"
+  # hackaround for unreleased version of OCP
+  # TODO change this after 06-02-2025 when 4.19 is live
+  vergte "${OCP_VERSION}" "4.19" && registry="brew.registry.redhat.io/rh-osbs/openshift-ose-operator-registry-rhel9:v4.19"
 
   fastYChannel=""; if [[ $PROD_VERSION ]]; then fastYChannel=",fast-${PROD_VERSION}"; fi
 
