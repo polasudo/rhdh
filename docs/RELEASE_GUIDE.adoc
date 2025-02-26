@@ -237,10 +237,10 @@ If a second RC build is needed, re-enable the scheduled GL pipeline (or you can 
 ====
 **IMPORTANT**:
 
-* Once the RC images are created (containers and FBCs), you *must notify the following people* via the following methods:
-** Slack channel: link:https://app.slack.com/client/E030G10V24F/C07EVRDD7KN[forum-rhdh-releases]
-*** Be sure to mention **@rhdh-qe**, **@rhdh-security**, and **@rhdh-docs-gate-keeper** as well as the current _Release Manager_ (**@Pavol Srna**) so everyone is aware. 
-** email: to or cc: the following people (dev/productization, testing, security, docs, and manangement)
+* Once the RC images are created (containers and FBCs), *notify the following people* via the following methods:
+** Slack channel: link:https://app.slack.com/client/E030G10V24F/C07EVRDD7KN[forum-rhdh-releases] - use the link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1-rhel-9/build/scripts/sendSlackNotifications.sh[sendSlackNotifications.sh] script 
+
+** email the following people (dev/productization, testing, security, docs, and manangement) a link to the slack message as FYI
 ```
 Fortune Ndlovu <fndlovu@redhat.com>,
 Nick Boldt <nboldt@redhat.com>,
@@ -260,7 +260,6 @@ Linda Sharar <lsharar@redhat.com>,
 Christophe Fargette <jfargett@redhat.com>
 ```
 
-* In future we want to improve the notifications by generating them via a slack bot. See https://issues.redhat.com/browse/RHIDP-4524
 ====
 
 ## During GA week
