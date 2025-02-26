@@ -486,33 +486,6 @@
                 }
               }
             },
-            "bitbucketServer": {
-              "visibility": "frontend",
-              "type": "object",
-              "additionalProperties": {
-                "type": "object",
-                "required": [
-                  "clientId",
-                  "clientSecret",
-                  "host"
-                ],
-                "properties": {
-                  "clientId": {
-                    "type": "string"
-                  },
-                  "clientSecret": {
-                    "visibility": "secret",
-                    "type": "string"
-                  },
-                  "host": {
-                    "type": "string"
-                  },
-                  "callbackUrl": {
-                    "type": "string"
-                  }
-                }
-              }
-            },
             "bitbucket": {
               "visibility": "frontend",
               "type": "object",
@@ -599,6 +572,33 @@
                         }
                       }
                     }
+                  }
+                }
+              }
+            },
+            "bitbucketServer": {
+              "visibility": "frontend",
+              "type": "object",
+              "additionalProperties": {
+                "type": "object",
+                "required": [
+                  "clientId",
+                  "clientSecret",
+                  "host"
+                ],
+                "properties": {
+                  "clientId": {
+                    "type": "string"
+                  },
+                  "clientSecret": {
+                    "visibility": "secret",
+                    "type": "string"
+                  },
+                  "host": {
+                    "type": "string"
+                  },
+                  "callbackUrl": {
+                    "type": "string"
                   }
                 }
               }
@@ -771,7 +771,7 @@
                 }
               }
             },
-            "google": {
+            "github": {
               "visibility": "frontend",
               "type": "object",
               "additionalProperties": {
@@ -789,6 +789,9 @@
                     "type": "string"
                   },
                   "callbackUrl": {
+                    "type": "string"
+                  },
+                  "enterpriseInstanceUrl": {
                     "type": "string"
                   },
                   "additionalScopes": {
@@ -819,7 +822,7 @@
                               "properties": {
                                 "resolver": {
                                   "type": "string",
-                                  "const": "emailMatchingUserEntityAnnotation"
+                                  "const": "usernameMatchingUserEntityName"
                                 }
                               },
                               "required": [
@@ -960,7 +963,7 @@
                 }
               }
             },
-            "github": {
+            "google": {
               "visibility": "frontend",
               "type": "object",
               "additionalProperties": {
@@ -978,9 +981,6 @@
                     "type": "string"
                   },
                   "callbackUrl": {
-                    "type": "string"
-                  },
-                  "enterpriseInstanceUrl": {
                     "type": "string"
                   },
                   "additionalScopes": {
@@ -1011,7 +1011,7 @@
                               "properties": {
                                 "resolver": {
                                   "type": "string",
-                                  "const": "usernameMatchingUserEntityName"
+                                  "const": "emailMatchingUserEntityAnnotation"
                                 }
                               },
                               "required": [
@@ -1267,6 +1267,100 @@
                 }
               }
             },
+            "oidc": {
+              "visibility": "frontend",
+              "type": "object",
+              "additionalProperties": {
+                "type": "object",
+                "required": [
+                  "clientId",
+                  "clientSecret",
+                  "metadataUrl"
+                ],
+                "properties": {
+                  "clientId": {
+                    "type": "string"
+                  },
+                  "clientSecret": {
+                    "visibility": "secret",
+                    "type": "string"
+                  },
+                  "metadataUrl": {
+                    "type": "string"
+                  },
+                  "callbackUrl": {
+                    "type": "string"
+                  },
+                  "tokenEndpointAuthMethod": {
+                    "type": "string"
+                  },
+                  "tokenSignedResponseAlg": {
+                    "type": "string"
+                  },
+                  "additionalScopes": {
+                    "anyOf": [
+                      {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      {
+                        "type": "string"
+                      }
+                    ]
+                  },
+                  "prompt": {
+                    "type": "string"
+                  },
+                  "signIn": {
+                    "type": "object",
+                    "required": [
+                      "resolvers"
+                    ],
+                    "properties": {
+                      "resolvers": {
+                        "type": "array",
+                        "items": {
+                          "anyOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "resolver": {
+                                  "type": "string",
+                                  "const": "emailLocalPartMatchingUserEntityName"
+                                },
+                                "allowedDomains": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                }
+                              },
+                              "required": [
+                                "resolver"
+                              ]
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "resolver": {
+                                  "type": "string",
+                                  "const": "emailMatchingUserEntityProfileEmail"
+                                }
+                              },
+                              "required": [
+                                "resolver"
+                              ]
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
             "okta": {
               "visibility": "frontend",
               "type": "object",
@@ -1331,100 +1425,6 @@
                                 "resolver"
                               ]
                             },
-                            {
-                              "type": "object",
-                              "properties": {
-                                "resolver": {
-                                  "type": "string",
-                                  "const": "emailLocalPartMatchingUserEntityName"
-                                },
-                                "allowedDomains": {
-                                  "type": "array",
-                                  "items": {
-                                    "type": "string"
-                                  }
-                                }
-                              },
-                              "required": [
-                                "resolver"
-                              ]
-                            },
-                            {
-                              "type": "object",
-                              "properties": {
-                                "resolver": {
-                                  "type": "string",
-                                  "const": "emailMatchingUserEntityProfileEmail"
-                                }
-                              },
-                              "required": [
-                                "resolver"
-                              ]
-                            }
-                          ]
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            },
-            "oidc": {
-              "visibility": "frontend",
-              "type": "object",
-              "additionalProperties": {
-                "type": "object",
-                "required": [
-                  "clientId",
-                  "clientSecret",
-                  "metadataUrl"
-                ],
-                "properties": {
-                  "clientId": {
-                    "type": "string"
-                  },
-                  "clientSecret": {
-                    "visibility": "secret",
-                    "type": "string"
-                  },
-                  "metadataUrl": {
-                    "type": "string"
-                  },
-                  "callbackUrl": {
-                    "type": "string"
-                  },
-                  "tokenEndpointAuthMethod": {
-                    "type": "string"
-                  },
-                  "tokenSignedResponseAlg": {
-                    "type": "string"
-                  },
-                  "additionalScopes": {
-                    "anyOf": [
-                      {
-                        "type": "array",
-                        "items": {
-                          "type": "string"
-                        }
-                      },
-                      {
-                        "type": "string"
-                      }
-                    ]
-                  },
-                  "prompt": {
-                    "type": "string"
-                  },
-                  "signIn": {
-                    "type": "object",
-                    "required": [
-                      "resolvers"
-                    ],
-                    "properties": {
-                      "resolvers": {
-                        "type": "array",
-                        "items": {
-                          "anyOf": [
                             {
                               "type": "object",
                               "properties": {

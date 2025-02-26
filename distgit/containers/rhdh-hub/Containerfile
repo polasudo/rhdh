@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:1.13-labs
+# syntax=docker/dockerfile:1.14-labs
 
 # THIS IS USED BY Konflux builds >= 1.4
 # TODO verify this works with Cachi2 once we enable that, or switch to use ../.rhdh/docker/Dockerfile as input
@@ -287,7 +287,7 @@ ENTRYPOINT ["node", "--require", "./instrumentation.js", "packages/backend", "--
 # append Brew metadata here
 ENV SUMMARY="Red Hat Developer Hub container" \
     DESCRIPTION="Red Hat Developer Hub container" \
-    UPSTREAM_REPO="https://github.com/redhat-developer/rhdh/tree/main @ d10dd383" \
+    UPSTREAM_REPO="https://github.com/redhat-developer/rhdh/tree/main @ 7e7b8ccc" \
     MIDSTREAM_REPO="https://gitlab.cee.redhat.com/rhidp/rhdh/-/commits/rhdh-1-rhel-9" \
     PRODNAME="rhdh" \
     COMPNAME="hub"
