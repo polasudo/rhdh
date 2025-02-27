@@ -267,7 +267,6 @@ function updatePluginVersions() {
 		popd >/dev/null || exit
 	fi
 
-	# TODO VERIFY THIS WORKS with 1.4 branch creation
 	set -x
 	$CPV -s "$(pwd)" -b "${TARGET_BRANCH}" --pr-branch "tagRelease.sh_create_branch_${TARGET_BRANCH}" --push
 	set +x
@@ -368,8 +367,8 @@ function updateOperatorVersions() {
 	# update 4 files
 	################
 
-	set -x 
-	pwd
+	# set -x 
+	# pwd
 
 	# update Makefile
 	sed -i Makefile -r -e "s/(VERSION \?= )[0-9.]+/\1$the_version_op/" # 0.y.0

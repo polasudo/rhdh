@@ -394,9 +394,10 @@ https://github.com/openshift-helm-charts/charts/pull/1743
 +
 ```
 cd /tmp; git clone git@gitlab.cee.redhat.com:rhidp/rhdh.git --depth 1 && cd rhdh
+git checkout rhdh-1-rhel-9
 
-./build/scripts/tagRelease.sh -v 1.4.2 -t 1.4 -gh release-1.4 -pd rhdh-1.4-rhel-9 -ghtoken $GITHUB_TOKEN
-
+export GITHUB_TOKEN=rhdh-bot-token-goes-here
+./build/scripts/tagRelease.sh -v 1.4.2 -t 1.4 -gh release-1.4 --midstream-branch rhdh-1.4-rhel-9 --clean --force-update --nobuild
 ```
 Note: If tags already exist but version bump PRs were not created, you can rerun the script with the `--force-update` flag to resolve this. Use `--skip-pd` and `--skip-gl` if those steps were completed previously.
 
@@ -523,7 +524,9 @@ See PR: link:https://github.com/openshift-helm-charts/charts/pull/1556[Helm Char
 ```
 
 **Tag repositories:**
-```./build/scripts/tagRelease.sh -v 1.4.2 -t 1.4 -gh release-1.4 -pd rhdh-1.4-rhel-9 -ghtoken $GITHUB_TOKEN
+```
+export GITHUB_TOKEN=rhdh-bot-token-goes-here
+./build/scripts/tagRelease.sh -v 1.4.2 -t 1.4 -gh release-1.4 --midstream-branch rhdh-1.4-rhel-9 --clean --force-update --nobuild
 ``` | Release Engineering
 
 | **7. Post-Release** | For a .0 releaase, **Delete EOL versions** from Comet: link:https://comet.engineering.redhat.com/containers/repositories?view=myRepos&filter=repoPath:rhdh[Comet].
