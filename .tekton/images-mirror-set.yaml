@@ -1,0 +1,10 @@
+apiVersion: operator.openshift.io/v1alpha1
+kind: ImageDigestMirrorSet
+metadata:
+  name: fbc-fips-check-idms
+spec:
+  imageDigestMirrors:
+  - mirrors:
+    - quay.io/rhdh
+    source: registry.redhat.io/rhdh
+  mirrorSourcePolicy: AllowContactingSource
