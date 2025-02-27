@@ -65,7 +65,8 @@ $0 --prod  -c rhdh-operator-bundle -v 1.5.0 --cve /tmp/RHDH\ CVE\ Management\ -\
 Options:
   --cve              Full path to the CVE list file to use for the container Release, eg., /tmp/RHDH\ CVE\ Management\ -\ 1.y.z.csv
   --stage, --prod    Push to the stage or prod version of the RH Ecosystem Catalog
-  -c                 Space-separated list of containers to release, such as \"rhdh-hub-rhel9 rhdh-rhel9-operator rhdh-operator-bundle\"
+  -c                 Space-separated list of containers to release
+                     use \"rhdh-operator-bundle\" to release the bundle and its included operands (hub + operator)
   -v                 RHDH version x.y.z to release
   
 Releases can be found at:
