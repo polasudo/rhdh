@@ -307,16 +307,20 @@ NOTE: To get access to the rhtap-releng namespace to watch managed pipelines, se
 
 #### FBC re-render (15 mins)
 
+====
+[NOTE]
+The `--latest` flag is ONLY for the latest stable release, not for maintenance. For example if `main` branch is currently at version `1.6.0`, then the `release-1.5` branch (eg., `1.5.0`, `1.5.1`) is the "latest" branch. If releasing a `1.4.z` update, DO NOT use `--latest`. This alignment changes every quarter when a new release-1.y branch is created, aligning to a NEW set of `latest` tags. 
+====
+
 . [ ] Re-render the FBC catalogs with link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1-rhel-9/build/scripts/renderCatalogs.sh#L66[`renderCatalogs.sh --rhec`], to switch to registry.redhat.io/rhdh instead of quay.io/rhdh image references. This should take about 2 mins per OCP version, and the builds in Konflux should take 5-10 mins total. Whole step should be under 15 mins. 
 +
 ```
 oc login --token=... # log into the https://console-openshift-console.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/k8s/cluster/projects/rhdh-tenant cluster
 
 git checkout rhdh-1.4-rhel-9
-RHDH_VERSION="1.4.1"
-alias cp=cp
+RHDH_VERSION="1.4.2"
 for OCP_VERSION in 4.14 4.15 4.16 4.17 4.18; do \
-  time ./build/scripts/renderCatalogs.sh --latest --rhec --versions "${OCP_VERSION}" -v "${RHDH_VERSION}" \
+  time ./build/scripts/renderCatalogs.sh --rhec --versions "${OCP_VERSION}" -v "${RHDH_VERSION}" [--latest] \
     --template "catalogs/v${OCP_VERSION}/catalog-template.json"; sleep 30s; \
 done
 
@@ -327,10 +331,10 @@ done
 . [ ] Find the latest rhdh-hub tag from https://catalog.redhat.com/software/containers/rhdh/rhdh-hub-rhel9/645bd4c15c00598369c31aba
 +
 ```
-1.4-1737055846
+1.4.2
 ```
 +
-.. NOTE: Starting with 1.4.2, the tag will be 1.4.2 instead of 1.4-timestamp. _TODO: RHIDP-5431 update this doc and usage in prepare.sh_
+.. NOTE: Starting with 1.4.2, the tag will be 1.4.2 instead of 1.3-zzz.
 +
 . [ ] link:../build/helm/prepare.sh[Push the helm chart].
 +
@@ -342,25 +346,28 @@ export GITHUB_TOKEN=ghp_*****
 gh auth status
 
 # create pull request
-# TODO RHIDP-5431 when we have semver tags in RHEC, use --rhdh-version 1.4.z instead of 1.4-timestamp from https://catalog.redhat.com/software/containers/rhdh/rhdh-hub-rhel9/645bd4c15c00598369c31aba
-./build/helm/prepare.sh --chart-version 1.4.1 --rhdh-version 1.4-1737055846 --chart-branch release-1.4 --catalog git@github.com:rhdh-bot/openshift-helm-charts.git --publish
+./build/helm/prepare.sh --chart-version 1.4.2 --rhdh-version 1.4.2 --chart-branch release-1.4 --catalog git@github.com:rhdh-bot/openshift-helm-charts.git --publish
 ```
 +
 You should see something like this:
 +
 ```
-Create chart for 1.4-1737055846 (1.4.1)
+Create chart for 1.4.2 (1.4.2)
 Set image digests in charts/backstage/values.yaml: 
-* RHDH_DIGEST = d8268197ba0466643efb818fcad8f0fc29e32463f75b0f7f51d9ce75ec717572, 
-* POSTGRESQL_DIGEST = 44a08b83a6c50714b52f4cf1c3476bc16b66faec21dd9a9bc07d1be5f97b8150
+* RHDH_DIGEST = 5eb109362246ccddd564febe6387bc6015d47555df00c36aa88c2247099851b7, 
+* POSTGRESQL_DIGEST = b5f1af9950aee7306f5063229aad0da08f885c4cf4bf39ba74b11b4e58e8d40b
 ...
-Chart version:        1.4.1
-Developer Hub image:  registry.redhat.io/rhdh/rhdh-hub-rhel9:1.4-1737055846
-Branch:               https://github.com/rhdh-bot/openshift-helm-charts/tree/redhat-developer-hub-1.4.1
+Chart version:        1.4.2
+
+Developer Hub image:  registry.redhat.io/rhdh/rhdh-hub-rhel9:1.4.2
+
+Branch:               https://github.com/rhdh-bot/openshift-helm-charts/tree/redhat-developer-hub-1.4.2
+Full repo folder:     /tmp/tmp.QqY6kY8oou
+This chart's folder:  /tmp/tmp.QqY6kY8oou/charts/redhat/redhat/redhat-developer-hub/1.4.2/
 ...
-[release-1.4.1 4e21879] chore: chart: add Red Hat Developer 1.4.1 for registry.redhat.io/rhdh/rhdh-hub-rhel9:1.4-1737055846
+[release-1.4.2 2cfbc91] chore: chart: add Red Hat Developer Hub 1.4.2 for registry.redhat.io/rhdh/rhdh-hub-rhel9:1.4.2
 ...
-https://github.com/openshift-helm-charts/charts/pull/1556
+https://github.com/openshift-helm-charts/charts/pull/1743
 ```
 
 #### FBC release (30 mins)
@@ -368,17 +375,17 @@ https://github.com/openshift-helm-charts/charts/pull/1556
 . [ ] Find the latest operator bundle tag from https://catalog.redhat.com/software/containers/rhdh/rhdh-operator-bundle/64bfdcd740aa90644e579cc6
 +
 ```
-1.4-1737079124
+1.4.2
 ```
 +
-.. NOTE: Starting with 1.4.2, the tag will be 1.4.2 instead of 1.4-timestamp. _TODO: RHIDP-5431 update this doc and usage in kfuxRelease.sh_
+.. NOTE: Starting with 1.4.2, the tag will be 1.4.2 instead of 1.3-zzz
 . [ ] Release the FBCs (once re-rendering is complete above)
 +
 ```
 ./build/scripts/kfuxRelease.sh --fbc help # get help
 
 # same timestamp as the previous step
-./build/scripts/kfuxRelease.sh --prod   --fbc :1.4-1737079124 -v 1.4.1 --debug [--auto]
+./build/scripts/kfuxRelease.sh --prod   --fbc :1.4.2 -v 1.4.2 --debug [--auto]
 ```
 
 #### Tag the repos
@@ -399,7 +406,7 @@ Note: If tags already exist but version bump PRs were not created, you can rerun
 .. [ ] Operator: smoke test the ability to:
 ... [ ] install from `fast` - see link:https://github.com/redhat-developer/rhdh-operator/blob/main/.rhdh/docs/installing-ci-builds.adoc[installation]
 ... [ ] switch to `fast-1.4` or `fast-1.5` subscription channel
-... [ ] verify update from of 1.4.0 -> 1.4.1 (or 1.5.0)
+... [ ] verify update from of 1.4.1 -> 1.4.2 (or 1.5.0)
 +
 image::images/smoketest-rosa-operator_1.png[browse for operator,width=640]
 image::images/smoketest-rosa-operator_2.png[check fast channel for version just released and install,width=640]
