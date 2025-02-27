@@ -511,13 +511,15 @@ Notify QE and Security for final validation. | Security, Docs, QE
 ```
 
 **Trigger the Helm Chart release:**
-```./build/helm/prepare.sh --chart-version 1.4.2 --rhdh-version 1.4-132 --chart-branch release-1.4 --catalog git@github.com:rhdh-bot/openshift-helm-charts.git --publish
+```./build/helm/prepare.sh --chart-version 1.4.2 --rhdh-version 1.4-191 --chart-branch release-1.4 --catalog git@github.com:rhdh-bot/openshift-helm-charts.git --publish
 ```
 See PR: link:https://github.com/openshift-helm-charts/charts/pull/1556[Helm Chart PR].
 
 **Trigger FBC release:**
 ```./build/scripts/renderCatalogs.sh --rhec ...
-./build/scripts/kfuxRelease.sh --prod --fbc :1.4.2 -v 1.4.2 --debug
+./build/scripts/kfuxRelease.sh --stage --fbc :1.4.2 -v 1.4.2 [--debug] [--auto]
+# if successful, then push to prod
+./build/scripts/kfuxRelease.sh --prod  --fbc :1.4.2 -v 1.4.2 [--debug] [--auto]
 ```
 
 **Tag repositories:**
