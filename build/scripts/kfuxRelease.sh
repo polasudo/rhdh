@@ -275,9 +275,9 @@ getCVElist () {
     CVE_ID=${line%;*}
     component=${line#*;}
     if [[ $component == *"hub"* ]]; then 
-      component="rhdh-hub"
+      component="rhdh-hub-${RHDH_VERSION/./-}"
     elif [[ $component == *"operator"* ]]; then 
-      component="rhdh-operator"
+      component="rhdh-operator-${RHDH_VERSION/./-}"
     else
       component="UNKNOWN"
     fi
