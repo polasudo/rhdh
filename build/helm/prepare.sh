@@ -78,8 +78,9 @@ Examples:
     # 2. get the latest timestamp tag for the live GA container at https://catalog.redhat.com/software/containers/rhdh/rhdh-hub-rhel9/645bd4c15c00598369c31aba
     # 3. Run a manual release as the bot:
     $ export GITHUB_TOKEN=ghp_rhdh-bot-token-here
-    $ $0 --chart-version 1.4.1 --rhdh-version 1.4-1737055846 --chart-branch release-1.4 --catalog git@github.com:rhdh-bot/openshift-helm-charts.git --publish
-    $ $0 --chart-version 1.3.3 --rhdh-version 1.3-131        --chart-branch release-1.3 --catalog git@github.com:rhdh-bot/openshift-helm-charts.git --publish
+    $ $0 --chart-version 1.5.0 --rhdh-version 1.5.0   --chart-branch release-1.5 --catalog git@github.com:rhdh-bot/openshift-helm-charts.git --publish
+    $ $0 --chart-version 1.4.2 --rhdh-version 1.4.2   --chart-branch release-1.4 --catalog git@github.com:rhdh-bot/openshift-helm-charts.git --publish
+    $ $0 --chart-version 1.3.5 --rhdh-version 1.3-142 --chart-branch release-1.3 --catalog git@github.com:rhdh-bot/openshift-helm-charts.git --publish
     Chart version:       1.y.z
     Developer Hub image:  quay.io/rhdh/rhdh-hub-rhel9:1.y-zzz
 
@@ -300,9 +301,9 @@ git -C "${CATALOG_DIR}" pull $QUIET origin redhat-developer-hub-"${CHART_VERSION
 mkdir -p "${CATALOG_DIR}"/charts/redhat/redhat/redhat-developer-hub/"${CHART_VERSION}"
 git -C "${CATALOG_DIR}" rm -f "${CATALOG_DIR}"/charts/redhat/redhat/redhat-developer-hub/"${CHART_VERSION}"/*eveloper-hub-"${CHART_VERSION}".tgz 1>/dev/null 2>&1 || true
 helm package "${HELM_DIR}"/charts/backstage -d "${CATALOG_DIR}"/charts/redhat/redhat/redhat-developer-hub/"${CHART_VERSION}" 1>/dev/null
-echo "[DEBUG] Attempting to push Helm chart to quay.io/rhdh/charts"
+echo "[INFO] Pushing Helm chart to quay.io/rhdh/chart ..."
 helm_config=$(mktemp)
-helm show chart "${CATALOG_DIR}"/charts/redhat/redhat/redhat-developer-hub/"${CHART_VERSION}"/redhat-developer-hub-"${CHART_VERSION}".tgz | $YQ -p yaml -o json  > ${helm_config}
+helm show chart "${CATALOG_DIR}"/charts/redhat/redhat/redhat-developer-hub/"${CHART_VERSION}"/redhat-developer-hub-"${CHART_VERSION}".tgz | $YQ -p yaml -o json  > "${helm_config}"
 oras push "quay.io/rhdh/chart:${CHART_VERSION}" \
     "${CATALOG_DIR}"/charts/redhat/redhat/redhat-developer-hub/"${CHART_VERSION}"/redhat-developer-hub-"${CHART_VERSION}".tgz:application/vnd.cncf.helm.chart.content.v1.tar+gzip \
     --registry-config '/var/workdir/registry_auth.json' --disable-path-validation \
