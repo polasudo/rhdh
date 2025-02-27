@@ -260,7 +260,7 @@ spec:
                   value: registry.redhat.io/rhel9/postgresql-15@sha256:b5f1af9950aee7306f5063229aad0da08f885c4cf4bf39ba74b11b4e58e8d40b
                 - name: RELATED_IMAGE_backstage
                   value: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:43922255bb875635d4eccaf733cfb55db3a7147b7e401b736dd904be54698828
-                image: registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:9c2299f7a8fb0c46924f129e6ea6688608efc9db222d03b847f6438d67a3576f
+                image: registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:2b1c3306dfbdb94abb216bcf2d99e3546aad2fbe787286ee1ad5f154fc9c0973
                 livenessProbe:
                   httpGet:
                     path: /healthz
