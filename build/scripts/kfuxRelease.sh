@@ -109,8 +109,13 @@ done
 $0 --stage  --fbc :1.3-133 -v 1.3.4 -o \"4.14 4.15 ...\" --auto --debug
 $0 --prod   --fbc :1.3-133 -v 1.3.4 -o \"4.14 4.15 ...\"
 
-$0 --stage  --fbc :1.4-zzz -v 1.4.2 --debug
+# for an unreleased RC build
+$0 --stage  --fbc :1.4-191 -v 1.4.2 --debug
+
+# for releasing FBCs after containers are already live
+$0 --stage  --fbc :1.4.2   -v 1.4.2 --debug
 $0 --prod   --fbc :1.4.2   -v 1.4.2 --debug
+
 # or use SHA
 $0 --prod   --fbc @sha256:2981d2470951ea1e26eb968aefc39ab48ab7d9634a520cf2bbd8c5fef313db15 -v $RHDH_FULL_VERSION_INPUT
 
@@ -167,7 +172,7 @@ if [[ $SNAPSHOT_OVERRIDE ]] && [[ $num_ocp_versions -gt 1 ]]; then
 fi
 
 if [[ ! $CONTAINERS ]] && [[ ! $BUNDLE_TAG_OR_SHA ]]; then 
-  usage; usageContainers; usageFBCs; echo; echo -e "${red}[ERROR] Must specify '-c rhdh-operator-bundle', or for FBCs, use a bundle image tag with --fbc 1.y-zzz to perfom a release!${norm}"; exit 1
+  usage; usageContainers; usageFBCs; echo; echo -e "${red}[ERROR] Must specify '-c rhdh-operator-bundle', or for FBCs, use a bundle image tag with --fbc :1.y-zzz to perfom a release!${norm}"; exit 1
 fi
 
 if [[ ! $RHDH_FULL_VERSION ]]; then 
@@ -405,21 +410,20 @@ if [[ $BUNDLE_TAG_OR_SHA ]]; then
   declare -A operator_bundle_mapping
   
   # compute the correct operator bundle 
-  if [[ $DEST == "prod" ]]; then
-    CONTAINER_PRE="registry.redhat.io/rhdh"
-  else
-    CONTAINER_PRE="quay.io/rhdh"
-  fi
+  CONTAINER_PRE="registry.redhat.io/rhdh"
   # shellcheck disable=SC2143
   if [[ $(skopeo inspect --raw "docker://${CONTAINER_PRE}/rhdh-operator-bundle${BUNDLE_TAG_OR_SHA}" 2>&1 | grep "Error parsing") ]]; then
-    echo -e "${red}[ERROR] Could not find operator bundle from specifed tag or SHA! Try this again to get a valid tag:${norm}"
-    echo "  skopeo inspect --raw docker://${CONTAINER_PRE}/rhdh-operator-bundle${BUNDLE_TAG_OR_SHA}";
-    exit 1
-  else 
-    echo -e "${blue}Inspecting ${CONTAINER_PRE}/rhdh-operator-bundle${BUNDLE_TAG_OR_SHA} ..."
-    time skopeo inspect "docker://${CONTAINER_PRE}/rhdh-operator-bundle${BUNDLE_TAG_OR_SHA}" > /tmp/fbc_inspect.txt
-    echo -e "${norm}"
+    # fall back to checking quay, if the image is not yet released
+    CONTAINER_PRE="quay.io/rhdh"
+    if [[ $(skopeo inspect --raw "docker://${CONTAINER_PRE}/rhdh-operator-bundle${BUNDLE_TAG_OR_SHA}" 2>&1 | grep "Error parsing") ]]; then
+      echo -e "${red}[ERROR] Could not find operator bundle from specifed tag or SHA! Try this again to get a valid tag:${norm}"
+      echo "  skopeo inspect --raw docker://${CONTAINER_PRE}/rhdh-operator-bundle${BUNDLE_TAG_OR_SHA}";
+      exit 1
+    fi
   fi
+  echo -e "${blue}Inspecting ${CONTAINER_PRE}/rhdh-operator-bundle${BUNDLE_TAG_OR_SHA} ..."
+  time skopeo inspect "docker://${CONTAINER_PRE}/rhdh-operator-bundle${BUNDLE_TAG_OR_SHA}" > /tmp/fbc_inspect.txt
+  echo -e "${norm}"
   tagXYZ=$(jq -r '.Labels.version+"-"+.Labels.release' /tmp/fbc_inspect.txt)
   digest=$(jq -r '.Digest' /tmp/fbc_inspect.txt)
   operator_bundle_mapping["rhdh-operator-bundle:${tagXYZ}"]+="rhdh-operator-bundle@${digest}"
@@ -549,9 +553,10 @@ EOT
       if [[ $PROCEED -eq 1 ]]; then break; fi
     done
     if [[ $PROCEED -eq 0 ]]; then 
-      echo -e "${red}[ERROR] Can not proceed with the release: matching operator-bundle image not found!${norm}"
-      echo -e "${red}[ERROR] Make sure to pass in the correct image tag to release with '--fbc x.y-zzz'. Note that prod and stage may use different bundle tags (:1.4-1734113472 vs. :1.4-127)${norm}"
-      echo -e "${red}[ERROR] Use the --commit or --snapshot flag to specify an older snapshot with the desired bundle image.${norm}"
+      echo -e "${red}[ERROR] Can not proceed with the release: matching operator-bundle image\n > ${operator_bundle_mapping[$k]} ($k)\n not found in\n > $IIB\n${norm}"
+      echo -e "${red}[ERROR] If operator-bundle is live in RHEC, use production tag: '--fbc :1.4.2'${norm}"
+      echo -e "${red}[ERROR] If staging an RC, use unreleased quay tag '--fbc :1.4-191'${norm}\n"
+      echo -e "${red}[ERROR] Or, use the --commit or --snapshot flag to specify an older snapshot with the desired bundle image.${norm}"
       exit 1
     fi
   done
