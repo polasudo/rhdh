@@ -355,9 +355,9 @@ spec:
       cves:
       # add CVEs here
       #   - key: CVE-2024-12345
-      #     component: rhdh-hub
+      #     component: rhdh-hub-1-y
       #  - key: CVE-2024-23456
-      #    component: rhdh-operator $cves_yaml
+      #    component: rhdh-operator-1-y $cves_yaml
 EOT
     # if [[ $DEBUG -eq 1 ]]; then cat "/tmp/release-${SNAPSHOT}-${DEST}-${TS}.yaml"; fi
     if [[ $AUTORELEASE -eq 1 ]]; then
