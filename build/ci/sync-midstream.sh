@@ -1124,7 +1124,7 @@ for d in $these_dirs; do
     ##################################### set NVR values for Konflux #####################################
 
     ##################################### update the RPM lock files to make Cachi2 and ECP happy ##################################### 
-    if [[ $d == "distgit/containers/rhdh-hub" ]] || [[ $d == "distgit/containers/rhdh-hub" ]]; then
+    if [[ $d == "distgit/containers/rhdh-hub" ]] || [[ $d == "distgit/containers/rhdh-operator" ]]; then
       if [[ -f rpms.in.yaml ]] && [[ -f rpms.lock.yaml ]]; then
         if [[ $(which rpm-lockfile-prototype 2>&1) == *"no rpm-lockfile-prototype in"* ]]; then 
           echo "Installing rpm-lockfile-prototype ... "
