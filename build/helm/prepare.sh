@@ -8,6 +8,7 @@ CREATE_REPORT=0 # Set to True if you want to run https://github.com/redhat-certi
 CHART_BRANCH="main" # can also be release-1.4, etc.
 EXTRA_BRANCH="" # another branch to force push, eg., rhdh-1.4-rhel-9
 DELETE_OLD_BRANCHES=0 # set to 1 to purge old 1.4-zzz branches from the rhdh-bot repo when pushing a 1.4.z release to the openshift charts repo
+QUAY_REGISTRY_CONFIG=""
 DO_LATEST=0 # if we want to generate a chart for the :latest, we need to set a --chart-branch 
 DEBUG=0
 QUIET="-q"
@@ -44,6 +45,8 @@ Options:
     --chart-branch            branch of rhdh-charts to use as input, for example release-1.4; default: main
     --delete-old-branches     Optionally, purge old 1.4-zzz branches from the rhdh-bot repo when pushing a 1.4.z release to the openshift charts repo
                               DO NOT USE if releasing .z chart updates for CVE fixes pushed by Freshmaker
+    --quay-registry-config    Path of the authentication file for registry to be used by oras to push to quay
+                              If not set, will use default credentials cache
     --debug                   Enable logging
     --help                    Prints this message
 
@@ -124,6 +127,7 @@ while [[ "$#" -gt 0 ]]; do
         shift 1;;
     '--create-report') CREATE_REPORT=1;;
     '--delete-old-branches') DELETE_OLD_BRANCHES=1;;
+    '--quay-registry-config') QUAY_REGISTRY_CONFIG="--registry-config ${2}"; shift 1;;
     '--debug') DEBUG=1; QUIET="";;
     '--help') usage;;
   esac
@@ -301,13 +305,6 @@ git -C "${CATALOG_DIR}" pull $QUIET origin redhat-developer-hub-"${CHART_VERSION
 mkdir -p "${CATALOG_DIR}"/charts/redhat/redhat/redhat-developer-hub/"${CHART_VERSION}"
 git -C "${CATALOG_DIR}" rm -f "${CATALOG_DIR}"/charts/redhat/redhat/redhat-developer-hub/"${CHART_VERSION}"/*eveloper-hub-"${CHART_VERSION}".tgz 1>/dev/null 2>&1 || true
 helm package "${HELM_DIR}"/charts/backstage -d "${CATALOG_DIR}"/charts/redhat/redhat/redhat-developer-hub/"${CHART_VERSION}" 1>/dev/null
-echo "[INFO] Pushing Helm chart to quay.io/rhdh/chart ..."
-helm_config=$(mktemp)
-helm show chart "${CATALOG_DIR}"/charts/redhat/redhat/redhat-developer-hub/"${CHART_VERSION}"/redhat-developer-hub-"${CHART_VERSION}".tgz | $YQ -p yaml -o json  > "${helm_config}"
-oras push "quay.io/rhdh/chart:${CHART_VERSION}" \
-    "${CATALOG_DIR}"/charts/redhat/redhat/redhat-developer-hub/"${CHART_VERSION}"/redhat-developer-hub-"${CHART_VERSION}".tgz:application/vnd.cncf.helm.chart.content.v1.tar+gzip \
-    --registry-config '/var/workdir/registry_auth.json' --disable-path-validation \
-    --config "${helm_config}:application/vnd.cncf.helm.config.v1+json"
 # TODO: Stop pushing to Catalog fork starting April 1st https://issues.redhat.com/browse/RHIDP-5841
 git -C "${CATALOG_DIR}" add -f "${CATALOG_DIR}"/charts/redhat/redhat/redhat-developer-hub/"${CHART_VERSION}"/redhat-developer-hub-"${CHART_VERSION}".tgz --sparse 1>/dev/null
 
@@ -357,6 +354,12 @@ This chart's folder:  $CATALOG_DIR/charts/redhat/redhat/redhat-developer-hub/${C
 "
 
 if [[ $PUBLISH -eq 1 ]]; then
+    echo "[INFO] Pushing Helm chart to quay.io/rhdh/chart ..."
+    helm_config=$(mktemp)
+    helm show chart "${CATALOG_DIR}"/charts/redhat/redhat/redhat-developer-hub/"${CHART_VERSION}"/redhat-developer-hub-"${CHART_VERSION}".tgz | $YQ -p yaml -o json  > "${helm_config}"
+    oras push "quay.io/rhdh/chart:${CHART_VERSION}" \
+        "${CATALOG_DIR}"/charts/redhat/redhat/redhat-developer-hub/"${CHART_VERSION}"/redhat-developer-hub-"${CHART_VERSION}".tgz:application/vnd.cncf.helm.chart.content.v1.tar+gzip \
+        --disable-path-validation --config "${helm_config}:application/vnd.cncf.helm.config.v1+json" $QUAY_REGISTRY_CONFIG
     # TODO: Stop pushing to Catalog fork starting April 1st https://issues.redhat.com/browse/RHIDP-5841
     git -C "${CATALOG_DIR}" pull $QUIET origin redhat-developer-hub-"${CHART_VERSION}" 1>/dev/null 2>&1 || true
     git -C "${CATALOG_DIR}" push $QUIET origin redhat-developer-hub-"${CHART_VERSION}" -f 2>/dev/null || \
