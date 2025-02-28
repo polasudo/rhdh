@@ -1123,6 +1123,20 @@ for d in $these_dirs; do
     set +x
     ##################################### set NVR values for Konflux #####################################
 
+    ##################################### update the RPM lock files to make Cachi2 and ECP happy ##################################### 
+    if [[ $d == "distgit/containers/rhdh-hub" ]] || [[ $d == "distgit/containers/rhdh-hub" ]]; then
+      if [[ -f rpms.in.yaml ]] && [[ -f rpms.lock.yaml ]]; then
+        if [[ $(which rpm-lockfile-prototype 2>&1) == *"no rpm-lockfile-prototype in"* ]]; then 
+          echo "Installing rpm-lockfile-prototype ... "
+          sudo dnf -q -y install python3 python3-pip python3-dnf
+          python3 -m pip install --user https://github.com/konflux-ci/rpm-lockfile-prototype/archive/refs/heads/main.zip
+        fi
+        rpm-lockfile-prototype -f Containerfile rpms.in.yaml
+      fi
+    fi
+
+    ##################################### update the RPM lock file to make Cachi2 and ECP happy ##################################### 
+
     ##################################### rhdh-operator-bundle #####################################
     # generate annotations from upstream file in .rhdh/bundle/metadata/annotations.yaml
     if [[ $d == "distgit/containers/rhdh-operator-bundle" ]] && [[ -f metadata/annotations.yaml ]]; then 
