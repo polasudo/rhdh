@@ -5,7 +5,7 @@ arches:
 - arch: x86_64
   packages:
   - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/baseos/os/Packages/o/openssl-3.2.2-6.el9_5.1.x86_64.rpm
-    repoid: ubi-9-baseos-rpms
+    repoid: ubi-9-for-x86_64-baseos-rpms
     size: 1420999
     checksum: sha256:f379686df99db814e30568a896b417278775fc96864ac6d2660bf48ef94309e3
     name: openssl
@@ -13,7 +13,7 @@ arches:
     sourcerpm: openssl-3.2.2-6.el9_5.1.src.rpm
   source:
   - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/baseos/source/SRPMS/Packages/o/openssl-3.2.2-6.el9_5.1.src.rpm
-    repoid: ubi-9-baseos-source-rpms
+    repoid: ubi-9-for-x86_64-baseos-source-rpms
     size: 17985138
     checksum: sha256:56c0b951be3e5ad6a1da594f9d4f09b8b752e2fb3d6827bcc03892f22f622b22
     name: openssl

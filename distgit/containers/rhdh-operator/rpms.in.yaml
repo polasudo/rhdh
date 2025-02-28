@@ -8,18 +8,18 @@
 allowerasing: true
 contentOrigin:
   repos:
-    - repoid: ubi-9-appstream-rpms
+    - repoid: ubi-9-for-$basearch-appstream-rpms
       baseurl: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/$basearch/appstream/os/
-    - repoid: ubi-9-appstream-source-rpms
+    - repoid: ubi-9-for-$basearch-appstream-source-rpms
       baseurl: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/$basearch/appstream/source/SRPMS
-    - repoid: ubi-9-baseos-rpms
+    - repoid: ubi-9-for-$basearch-baseos-rpms
       baseurl: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/$basearch/baseos/os/
-    - repoid: ubi-9-baseos-source-rpms
+    - repoid: ubi-9-for-$basearch-baseos-source-rpms
       baseurl: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/$basearch/baseos/source/SRPMS
-    # - repoid: ubi-9-codeready-builder
+    # - repoid: ubi-9-for-$basearch-codeready-builder
     #   baseurl: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/$basearch/codeready-builder/os/
     #   # gpgcheck: 0
-    # - repoid: ubi-9-codeready-builder-source-rpms
+    # - repoid: ubi-9-for-$basearch-codeready-builder-source-rpms
     #   baseurl: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/$basearch/codeready-builder/source/SRPMS
     #   # gpgcheck: 0
 
