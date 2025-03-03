@@ -732,7 +732,7 @@
                 }
               }
             },
-            "google": {
+            "github": {
               "visibility": "frontend",
               "type": "object",
               "additionalProperties": {
@@ -750,6 +750,9 @@
                     "type": "string"
                   },
                   "callbackUrl": {
+                    "type": "string"
+                  },
+                  "enterpriseInstanceUrl": {
                     "type": "string"
                   },
                   "additionalScopes": {
@@ -780,7 +783,7 @@
                               "properties": {
                                 "resolver": {
                                   "type": "string",
-                                  "const": "emailMatchingUserEntityAnnotation"
+                                  "const": "usernameMatchingUserEntityName"
                                 }
                               },
                               "required": [
@@ -921,7 +924,7 @@
                 }
               }
             },
-            "github": {
+            "google": {
               "visibility": "frontend",
               "type": "object",
               "additionalProperties": {
@@ -939,9 +942,6 @@
                     "type": "string"
                   },
                   "callbackUrl": {
-                    "type": "string"
-                  },
-                  "enterpriseInstanceUrl": {
                     "type": "string"
                   },
                   "additionalScopes": {
@@ -972,7 +972,7 @@
                               "properties": {
                                 "resolver": {
                                   "type": "string",
-                                  "const": "usernameMatchingUserEntityName"
+                                  "const": "emailMatchingUserEntityAnnotation"
                                 }
                               },
                               "required": [
