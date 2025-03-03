@@ -38,7 +38,7 @@ metadata:
     capabilities: Seamless Upgrades
     categories: Developer Tools
     certified: "true"
-    containerImage: registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:30f6d66c03889e17f6db3fe7ee4aa8ec5eccd4d4e79261d9a11533e5bef7e4e1
+    containerImage: registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:635ee839181f4259d1c321eac511f5bc646c8b99ba6cafb9cc1539b703508e51
     createdAt: "2025-02-17T10:12:59Z"
     description: Red Hat Developer Hub is a Red Hat supported version of Backstage.
       It comes with pre-built plug-ins and configuration settings, supports use of
@@ -257,10 +257,10 @@ spec:
                     fieldRef:
                       fieldPath: metadata.name
                 - name: RELATED_IMAGE_postgresql
-                  value: registry.redhat.io/rhel9/postgresql-15@sha256:b5f1af9950aee7306f5063229aad0da08f885c4cf4bf39ba74b11b4e58e8d40b
+                  value: registry.redhat.io/rhel9/postgresql-15@sha256:60f96b983d272a32a6421c66a485c610523bd6a87955668efc99162ed66f287c
                 - name: RELATED_IMAGE_backstage
                   value: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:7e60003fc8770be4059c2919c80724b9cc4a77f44b3d2460ab8157034219ba62
-                image: registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:560d2de8e702fafe07325c04bbbb6b35e1cf69903f82825acf9388cd0fa635fc
+                image: registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:3a1186b79ea39dc3ac8570aa580daca2c5f59d6cf6fdca417aa26c0dcb8d7f9a
                 livenessProbe:
                   httpGet:
                     path: /healthz
@@ -369,7 +369,7 @@ spec:
     name: Red Hat Inc.
     url: https://www.redhat.com/
   relatedImages:
-  - image: registry.redhat.io/rhel9/postgresql-15@sha256:b5f1af9950aee7306f5063229aad0da08f885c4cf4bf39ba74b11b4e58e8d40b
+  - image: registry.redhat.io/rhel9/postgresql-15@sha256:60f96b983d272a32a6421c66a485c610523bd6a87955668efc99162ed66f287c
     name: postgresql
   - image: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:7e60003fc8770be4059c2919c80724b9cc4a77f44b3d2460ab8157034219ba62
     name: backstage
