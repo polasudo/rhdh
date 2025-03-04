@@ -35,66 +35,66 @@ const hubApiClient = (clusterConfig, logger) => {
   return kubeConfig.makeApiClient(clientNode.CustomObjectsApi);
 };
 const kubeApiResponseHandler = (call) => {
-  return call.then((r) => {
-    return r.body;
-  }).catch((r) => {
-    if (!r.body) {
-      throw Object.assign(new Error(r.message), {
-        // If there is no body, there is no status code, default to 500
-        statusCode: 500,
-        name: r.message
-      });
-    } else if (typeof r.body === "string") {
-      throw Object.assign(new Error(r.body), {
-        statusCode: r.body.code || r.statusCode,
-        name: r.body
-      });
+  return call.catch((e) => {
+    if ("body" in e && typeof e.body === "string") {
+      let body;
+      try {
+        body = JSON.parse(e.body);
+      } catch (error) {
+      }
+      if (body) {
+        throw Object.assign(new Error(body.reason), {
+          // Name and statusCode are required by the backstage error handler
+          statusCode: body.code,
+          name: body.reason,
+          ...body
+        });
+      }
     }
-    throw Object.assign(new Error(r.body.reason), {
-      // Name and statusCode are required by the backstage error handler
-      statusCode: r.body.code || r.statusCode,
-      name: r.body.reason,
-      ...r.body
+    throw Object.assign(new Error(e.message), {
+      // If there is no body, default to 500
+      statusCode: 500,
+      name: e.message
     });
   });
 };
 const getManagedCluster = (api, name) => {
   return kubeApiResponseHandler(
-    api.getClusterCustomObject(
-      "cluster.open-cluster-management.io",
-      "v1",
-      "managedclusters",
+    api.getClusterCustomObject({
+      plural: "managedclusters",
+      version: "v1",
+      group: "cluster.open-cluster-management.io",
       name
-    )
+    })
   );
 };
 const listManagedClusters = (api) => {
   return kubeApiResponseHandler(
-    api.listClusterCustomObject(
-      "cluster.open-cluster-management.io",
-      "v1",
-      "managedclusters"
-    )
+    api.listClusterCustomObject({
+      group: "cluster.open-cluster-management.io",
+      version: "v1",
+      plural: "managedclusters"
+    })
   );
 };
 const getManagedClusterInfo = (api, name) => {
   return kubeApiResponseHandler(
-    api.getNamespacedCustomObject(
-      "internal.open-cluster-management.io",
-      "v1beta1",
+    api.getNamespacedCustomObject({
+      group: "internal.open-cluster-management.io",
+      version: "v1beta1",
       name,
-      "managedclusterinfos",
-      name
-    )
+      namespace: name,
+      plural: "managedclusterinfos"
+    })
   );
 };
 const listManagedClusterInfos = (api) => {
   return kubeApiResponseHandler(
-    api.listClusterCustomObject(
-      "internal.open-cluster-management.io",
-      "v1beta1",
-      "managedclusterinfos"
-    )
+    api.listClusterCustomObject({
+      group: "internal.open-cluster-management.io",
+      version: "v1beta1",
+      plural: "managedclusterinfos"
+    })
   );
 };
 

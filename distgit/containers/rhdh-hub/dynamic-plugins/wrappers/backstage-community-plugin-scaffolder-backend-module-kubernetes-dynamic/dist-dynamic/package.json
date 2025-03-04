@@ -1,6 +1,6 @@
 {
   "name": "backstage-community-plugin-scaffolder-backend-module-kubernetes-dynamic",
-  "version": "2.4.0",
+  "version": "2.5.0",
   "main": "./dist/index.cjs.js",
   "types": "./dist/index.d.ts",
   "license": "Apache-2.0",
@@ -23,7 +23,7 @@
     "./package.json": "./package.json"
   },
   "dependencies": {
-    "@backstage-community/plugin-scaffolder-backend-module-kubernetes": "2.4.0"
+    "@backstage-community/plugin-scaffolder-backend-module-kubernetes": "2.5.0"
   },
   "files": [
     "dist"

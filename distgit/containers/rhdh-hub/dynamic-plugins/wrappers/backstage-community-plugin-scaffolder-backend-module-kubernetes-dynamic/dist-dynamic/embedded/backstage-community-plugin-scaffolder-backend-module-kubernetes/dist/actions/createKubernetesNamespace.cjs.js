@@ -163,18 +163,27 @@ function createKubernetesNamespaceAction(catalogClient) {
       const namespaceLabels = convertLabelsToObject(labels);
       const api = kubeConfig.makeApiClient(clientNode.CoreV1Api);
       const k8sNamespace = {
-        metadata: {
-          name: namespace,
-          labels: namespaceLabels
+        body: {
+          metadata: {
+            name: namespace,
+            labels: namespaceLabels
+          }
         }
       };
       await api.createNamespace(k8sNamespace).catch((e) => {
-        const errorBody = e.body;
-        const statusCode = errorBody?.code || e.statusCode;
-        const message = errorBody?.message || e.message;
-        throw new Error(
-          `Failed to create kubernetes namespace, ${statusCode} -- ${message}`
-        );
+        if ("body" in e && typeof e.body === "string") {
+          let body;
+          try {
+            body = JSON.parse(e.body);
+          } catch (error) {
+          }
+          if (body) {
+            throw new Error(
+              `Failed to create kubernetes namespace, API code: ${body.code} -- ${body.message}`
+            );
+          }
+        }
+        throw new Error(`Failed to create kubernetes namespace, ${e.message}`);
       });
     }
   });
