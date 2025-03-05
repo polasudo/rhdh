@@ -1,7 +1,7 @@
 'use strict';
 
-var backendCommon = require('@backstage/backend-common');
-var pluginScaffolderBackend = require('@backstage/plugin-scaffolder-backend');
+var backendPluginApi = require('@backstage/backend-plugin-api');
+var pluginScaffolderNode = require('@backstage/plugin-scaffolder-node');
 var errors = require('@backstage/errors');
 var AdmZip = require('adm-zip');
 var fs = require('fs-extra');
@@ -12,7 +12,7 @@ var AdmZip__default = /*#__PURE__*/_interopDefaultCompat(AdmZip);
 var fs__default = /*#__PURE__*/_interopDefaultCompat(fs);
 
 function createZipAction() {
-  return pluginScaffolderBackend.createTemplateAction({
+  return pluginScaffolderNode.createTemplateAction({
     id: "roadiehq:utils:zip",
     description: "Zips the content of the path",
     supportsDryRun: true,
@@ -45,11 +45,11 @@ function createZipAction() {
     },
     async handler(ctx) {
       const zip = new AdmZip__default.default();
-      const sourceFilepath = backendCommon.resolveSafeChildPath(
+      const sourceFilepath = backendPluginApi.resolveSafeChildPath(
         ctx.workspacePath,
         ctx.input.path
       );
-      const destFilepath = backendCommon.resolveSafeChildPath(
+      const destFilepath = backendPluginApi.resolveSafeChildPath(
         ctx.workspacePath,
         ctx.input.outputPath
       );

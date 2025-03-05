@@ -86,7 +86,7 @@ class JenkinsBuilder {
         } catch (err) {
           if (err.errors) {
             throw new Error(
-              `Unable to fetch projects, for ${jenkinsInfo.jobFullName}: ${errors.stringifyError(err.errors)}`
+              `Unable to fetch projects, for ${jenkinsInfo.fullJobNames}: ${errors.stringifyError(err.errors)}`
             );
           }
           throw err;
@@ -103,7 +103,7 @@ class JenkinsBuilder {
             namespace,
             name
           },
-          jobFullName,
+          fullJobNames: [jobFullName],
           credentials: await httpAuth.credentials(request)
         });
         const build = await jenkinsApi$1.getBuild(
@@ -126,7 +126,7 @@ class JenkinsBuilder {
             namespace,
             name
           },
-          jobFullName,
+          fullJobNames: [jobFullName],
           credentials: await httpAuth.credentials(request)
         });
         const build = await jenkinsApi$1.getJobBuilds(jenkinsInfo, jobFullName);
@@ -145,7 +145,7 @@ class JenkinsBuilder {
             namespace,
             name
           },
-          jobFullName,
+          fullJobNames: [jobFullName],
           credentials: await httpAuth.credentials(request)
         });
         const resourceRef = catalogModel.stringifyEntityRef({ kind, namespace, name });
@@ -159,6 +159,29 @@ class JenkinsBuilder {
           }
         );
         response.json({}).status(status);
+      }
+    );
+    router.get(
+      "/v1/entity/:namespace/:kind/:name/job/:jobFullName/:buildNumber/consoleText",
+      async (request, response) => {
+        const { namespace, kind, name, jobFullName, buildNumber } = request.params;
+        const jenkinsInfo = await jenkinsInfoProvider.getInstance({
+          entityRef: {
+            kind,
+            namespace,
+            name
+          },
+          fullJobNames: [jobFullName],
+          credentials: await httpAuth.credentials(request)
+        });
+        const consoleText = await jenkinsApi$1.getBuildConsoleText(
+          jenkinsInfo,
+          jobFullName,
+          parseInt(buildNumber, 10)
+        );
+        response.json({
+          consoleText
+        });
       }
     );
     return router;

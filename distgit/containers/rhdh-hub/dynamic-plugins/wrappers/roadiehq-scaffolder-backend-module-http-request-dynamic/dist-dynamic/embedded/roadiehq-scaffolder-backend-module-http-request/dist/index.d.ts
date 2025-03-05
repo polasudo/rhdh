@@ -1,7 +1,7 @@
-import * as _backstage_plugin_scaffolder_node from '@backstage/plugin-scaffolder-node';
-import * as _backstage_types from '@backstage/types';
+import { TemplateAction } from '@backstage/plugin-scaffolder-node';
 import { DiscoveryApi } from '@backstage/core-plugin-api';
 import { AuthService } from '@backstage/backend-plugin-api';
+import { JsonObject } from '@backstage/config/index';
 export { default } from './new-backend.js';
 
 type Headers = {
@@ -15,7 +15,7 @@ type Methods = 'GET' | 'HEAD' | 'OPTIONS' | 'POST' | 'UPDATE' | 'DELETE' | 'PUT'
 declare function createHttpBackstageAction(options: {
     discovery: DiscoveryApi;
     auth?: AuthService;
-}): _backstage_plugin_scaffolder_node.TemplateAction<{
+}): TemplateAction<{
     path: string;
     method: Methods;
     headers?: Headers;
@@ -23,6 +23,6 @@ declare function createHttpBackstageAction(options: {
     body?: any;
     logRequestPath?: boolean;
     continueOnBadResponse?: boolean;
-}, _backstage_types.JsonObject>;
+}, JsonObject>;
 
 export { createHttpBackstageAction };

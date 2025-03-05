@@ -24,7 +24,7 @@ declare class GitlabFillerProcessor implements CatalogProcessor {
     private isAllowedEntity;
 }
 
-declare const catalogPluginGitlabFillerProcessorModule: _backstage_backend_plugin_api.BackendFeatureCompat;
-declare const gitlabPlugin: _backstage_backend_plugin_api.BackendFeatureCompat;
+declare const catalogPluginGitlabFillerProcessorModule: _backstage_backend_plugin_api.BackendFeature;
+declare const gitlabPlugin: _backstage_backend_plugin_api.BackendFeature;
 
 export { GitlabFillerProcessor, type RouterOptions, catalogPluginGitlabFillerProcessorModule, createRouter, gitlabPlugin };

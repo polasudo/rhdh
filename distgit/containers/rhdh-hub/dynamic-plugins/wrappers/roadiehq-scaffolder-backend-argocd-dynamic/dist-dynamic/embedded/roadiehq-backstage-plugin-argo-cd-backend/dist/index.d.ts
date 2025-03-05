@@ -1,9 +1,10 @@
 import { Config } from '@backstage/config';
 import express from 'express';
 import { Logger } from 'winston';
+import { LoggerService } from '@backstage/backend-plugin-api';
 
 interface RouterOptions {
-    logger: Logger;
+    logger: Logger | LoggerService;
     config: Config;
 }
 type Response = {
@@ -53,7 +54,7 @@ interface CreateArgoResourcesProps {
     sourceRepo: string;
     sourcePath: string;
     labelValue: string;
-    logger: Logger;
+    logger: Logger | LoggerService;
 }
 interface UpdateArgoProjectAndAppProps {
     instanceConfig: InstanceConfig;
@@ -181,6 +182,7 @@ type Metadata = {
     deletionTimestamp?: string;
     deletionGracePeriodSeconds?: number;
     resourceVersion?: string;
+    finalizers?: string[];
 };
 type getArgoApplicationInfoProps = {
     argoApplicationName: string;
@@ -205,7 +207,7 @@ declare class ArgoService implements ArgoServiceApi {
     private readonly config;
     private readonly logger;
     instanceConfigs: InstanceConfig[];
-    constructor(username: string, password: string, config: Config, logger: Logger);
+    constructor(username: string, password: string, config: Config, logger: Logger | LoggerService);
     getArgoInstanceArray(): InstanceConfig[];
     getAppArray(): Config[];
     getRevisionData(baseUrl: string, options: {

@@ -3,7 +3,7 @@
 var pluginScaffolderNode = require('@backstage/plugin-scaffolder-node');
 var fs = require('fs-extra');
 var errors = require('@backstage/errors');
-var backendCommon = require('@backstage/backend-common');
+var backendPluginApi = require('@backstage/backend-plugin-api');
 
 function _interopDefaultCompat (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }
 
@@ -62,7 +62,7 @@ function createReplaceInFileAction() {
             "each file must have a find and replaceWith property"
           );
         }
-        const sourceFilepath = backendCommon.resolveSafeChildPath(
+        const sourceFilepath = backendPluginApi.resolveSafeChildPath(
           ctx.workspacePath,
           file.file
         );

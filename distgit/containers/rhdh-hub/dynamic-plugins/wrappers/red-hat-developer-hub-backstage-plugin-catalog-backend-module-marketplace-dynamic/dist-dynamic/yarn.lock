@@ -6,28 +6,31 @@ __metadata:
   cacheKey: 8
 
 "@red-hat-developer-hub/backstage-plugin-catalog-backend-module-marketplace@file:./embedded/red-hat-developer-hub-backstage-plugin-catalog-backend-module-marketplace::locator=red-hat-developer-hub-backstage-plugin-catalog-backend-module-marketplace-dynamic%40workspace%3A.":
-  version: 0.0.2+embedded
-  resolution: "@red-hat-developer-hub/backstage-plugin-catalog-backend-module-marketplace@file:./embedded/red-hat-developer-hub-backstage-plugin-catalog-backend-module-marketplace#./embedded/red-hat-developer-hub-backstage-plugin-catalog-backend-module-marketplace::hash=804c72&locator=red-hat-developer-hub-backstage-plugin-catalog-backend-module-marketplace-dynamic%40workspace%3A."
+  version: 0.2.0+embedded
+  resolution: "@red-hat-developer-hub/backstage-plugin-catalog-backend-module-marketplace@file:./embedded/red-hat-developer-hub-backstage-plugin-catalog-backend-module-marketplace#./embedded/red-hat-developer-hub-backstage-plugin-catalog-backend-module-marketplace::hash=312cb9&locator=red-hat-developer-hub-backstage-plugin-catalog-backend-module-marketplace-dynamic%40workspace%3A."
   dependencies:
-    "@red-hat-developer-hub/backstage-plugin-marketplace-common": ^0.0.2
+    "@red-hat-developer-hub/backstage-plugin-marketplace-common": ^0.2.0
     semver: ^7.6.3
   peerDependencies:
-    "@backstage/backend-plugin-api": ^1.0.1
-    "@backstage/catalog-model": ^1.7.0
-    "@backstage/plugin-catalog-common": ^1.1.0
-    "@backstage/plugin-catalog-node": ^1.13.1
-    "@backstage/types": ^1.1.1
-  checksum: 0a6fbeedb2fb99660fd23685b4e8febfffdbce7ea66bc0814e0dd5be2a3f046b8a01687f93a7c3b6dbfab5ff76b523f910884110de62b4aa3468fa9d31ac2892
+    "@backstage/backend-plugin-api": ^1.1.1
+    "@backstage/catalog-model": ^1.7.3
+    "@backstage/plugin-catalog-common": ^1.1.3
+    "@backstage/plugin-catalog-node": ^1.15.1
+    "@backstage/types": ^1.2.1
+  checksum: 75524160708fd0bcca76e3f7bbe1802a523b4109617f4a898db84c78a178e591e2288b47ea61270fdb5df4995683a51811fe5fb17adb562be6c0659ca435a7ae
   languageName: node
   linkType: hard
 
-"@red-hat-developer-hub/backstage-plugin-marketplace-common@npm:^0.0.2":
-  version: 0.0.2
-  resolution: "@red-hat-developer-hub/backstage-plugin-marketplace-common@npm:0.0.2"
+"@red-hat-developer-hub/backstage-plugin-marketplace-common@file:./embedded/red-hat-developer-hub-backstage-plugin-marketplace-common::locator=red-hat-developer-hub-backstage-plugin-catalog-backend-module-marketplace-dynamic%40workspace%3A.":
+  version: 0.2.0+embedded
+  resolution: "@red-hat-developer-hub/backstage-plugin-marketplace-common@file:./embedded/red-hat-developer-hub-backstage-plugin-marketplace-common#./embedded/red-hat-developer-hub-backstage-plugin-marketplace-common::hash=746793&locator=red-hat-developer-hub-backstage-plugin-catalog-backend-module-marketplace-dynamic%40workspace%3A."
   peerDependencies:
-    "@backstage/catalog-model": ^1.7.0
-    "@backstage/types": ^1.1.1
-  checksum: 4f1783ab36fe4b0823e5e96c5a43e0292157696230036dfa8ce06cef94c0b58a8fbb2de75e9c0688391da6340265c3f075fe35f783538a2b82037bb639252036
+    "@backstage/backend-plugin-api": ^1.1.1
+    "@backstage/catalog-client": ^1.9.1
+    "@backstage/catalog-model": ^1.7.3
+    "@backstage/errors": ^1.2.7
+    "@backstage/types": ^1.2.1
+  checksum: 5252a26985ee27e223e9516b93aa6f14ef42eefbaef05d9fa7cf08c8bf30dd0c6a0a71bc46508660131ab5bb8025d10bbddfbf196d18df049307b154b0efaabe
   languageName: node
   linkType: hard
 
@@ -35,13 +38,15 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "red-hat-developer-hub-backstage-plugin-catalog-backend-module-marketplace-dynamic@workspace:."
   dependencies:
-    "@red-hat-developer-hub/backstage-plugin-catalog-backend-module-marketplace": 0.0.2
+    "@red-hat-developer-hub/backstage-plugin-catalog-backend-module-marketplace": 0.2.0
   peerDependencies:
-    "@backstage/backend-plugin-api": ^1.0.1
-    "@backstage/catalog-model": ^1.7.0
-    "@backstage/plugin-catalog-common": ^1.1.0
-    "@backstage/plugin-catalog-node": ^1.13.1
-    "@backstage/types": ^1.1.1
+    "@backstage/backend-plugin-api": ^1.1.1
+    "@backstage/catalog-client": ^1.9.1
+    "@backstage/catalog-model": ^1.7.3
+    "@backstage/errors": ^1.2.7
+    "@backstage/plugin-catalog-common": ^1.1.3
+    "@backstage/plugin-catalog-node": ^1.15.1
+    "@backstage/types": ^1.2.1
   languageName: unknown
   linkType: soft
 

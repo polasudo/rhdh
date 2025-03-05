@@ -1,6 +1,6 @@
 {
   "name": "@roadiehq/scaffolder-backend-argocd",
-  "version": "1.2.0+embedded",
+  "version": "1.5.0+embedded",
   "main": "dist/index.cjs.js",
   "types": "dist/index.d.ts",
   "license": "Apache-2.0",
@@ -16,11 +16,19 @@
   },
   "exports": {
     ".": {
+      "backstage": "@backstage/BackendFeature",
       "require": "./dist/index.cjs.js",
       "types": "./dist/index.d.ts",
       "default": "./dist/index.cjs.js"
     },
     "./package.json": "./package.json"
+  },
+  "typesVersions": {
+    "*": {
+      "index": [
+        "dist/index.d.ts"
+      ]
+    }
   },
   "repository": {
     "type": "git",
@@ -41,22 +49,21 @@
     "clean": "backstage-cli clean"
   },
   "dependencies": {
-    "@roadiehq/backstage-plugin-argo-cd-backend": "^3.2.2",
+    "@roadiehq/backstage-plugin-argo-cd-backend": "^3.3.0",
     "winston": "^3.2.1"
   },
   "devDependencies": {},
   "files": [
     "dist"
   ],
-  "gitHead": "e5f30d0623ad5075dc38e65a348bb948ae64afe9",
+  "gitHead": "9a0b512b73a67ff211d65da6bb5ed37881590377",
   "private": true,
   "peerDependencies": {
-    "@backstage/backend-common": "^0.24.0",
-    "@backstage/backend-plugin-api": "^0.8.0",
-    "@backstage/backend-test-utils": "^0.5.0",
-    "@backstage/config": "^1.2.0",
-    "@backstage/plugin-scaffolder-backend": "^1.24.0",
-    "@backstage/plugin-scaffolder-node": "^0.4.9"
+    "@backstage/backend-common": "^0.25.0",
+    "@backstage/backend-plugin-api": "^1.0.2",
+    "@backstage/backend-test-utils": "^1.1.0",
+    "@backstage/config": "^1.3.0",
+    "@backstage/plugin-scaffolder-node": "^0.6.2"
   },
   "overrides": {
     "@aws-sdk/util-utf8-browser": {

@@ -1,93 +1,97 @@
-import * as _backstage_plugin_scaffolder_node from '@backstage/plugin-scaffolder-node';
-import * as _backstage_types from '@backstage/types';
+import { TemplateAction } from '@backstage/plugin-scaffolder-node';
 import { ToStringOptions } from 'yaml';
+import { JsonObject } from '@backstage/config/index';
 export { default } from './new-backend.js';
 import '@backstage/backend-plugin-api';
 
-declare function createZipAction(): _backstage_plugin_scaffolder_node.TemplateAction<{
+declare function createZipAction(): TemplateAction<{
     path: string;
     outputPath: string;
-}, _backstage_types.JsonObject>;
+}>;
 
-declare function createWriteFileAction(): _backstage_plugin_scaffolder_node.TemplateAction<{
+declare function createWriteFileAction(): TemplateAction<{
     path: string;
     content: string;
     preserveFormatting?: boolean;
-}, _backstage_types.JsonObject>;
+}>;
 
-declare function createAppendFileAction(): _backstage_plugin_scaffolder_node.TemplateAction<{
+declare function createAppendFileAction(): TemplateAction<{
     path: string;
     content: string;
-}, _backstage_types.JsonObject>;
+}>;
 
-declare function createParseFileAction(): _backstage_plugin_scaffolder_node.TemplateAction<{
+declare function createParseFileAction(): TemplateAction<{
     path: string;
-    parser?: "yaml" | "json" | "multiyaml";
-}, _backstage_types.JsonObject>;
+    parser?: 'yaml' | 'json' | 'multiyaml';
+}>;
 
-declare function createReplaceInFileAction(): _backstage_plugin_scaffolder_node.TemplateAction<{
+declare function createReplaceInFileAction(): TemplateAction<{
     files: Array<{
         file: string;
         find: string;
         matchRegex: boolean;
         replaceWith: string;
     }>;
-}, _backstage_types.JsonObject>;
+}>;
 
 type stringifyOptions = Omit<ToStringOptions, 'commentString'>;
 
-declare function createMergeJSONAction({ actionId }: {
+declare function createMergeJSONAction({ actionId, }: {
     actionId?: string;
-}): _backstage_plugin_scaffolder_node.TemplateAction<{
+}): TemplateAction<{
     path: string;
     content: any;
     mergeArrays?: boolean;
     matchFileIndent?: boolean;
-}, _backstage_types.JsonObject>;
-declare function createMergeAction(): _backstage_plugin_scaffolder_node.TemplateAction<{
+}>;
+declare function createMergeAction(): TemplateAction<{
     path: string;
     content: any;
+    useDocumentIncludingField?: {
+        key: string;
+        value: string;
+    };
     mergeArrays?: boolean;
     preserveYamlComments?: boolean;
     options?: stringifyOptions;
-}, _backstage_types.JsonObject>;
+}>;
 
 declare function createSleepAction(options?: {
     maxSleep?: number;
-}): _backstage_plugin_scaffolder_node.TemplateAction<{
+}): TemplateAction<{
     amount: number;
-}, _backstage_types.JsonObject>;
+}>;
 
-declare function createJSONataAction(): _backstage_plugin_scaffolder_node.TemplateAction<{
+declare function createJSONataAction(): TemplateAction<{
     data: any;
     expression: string;
-}, _backstage_types.JsonObject>;
+}>;
 
-declare function createYamlJSONataTransformAction(): _backstage_plugin_scaffolder_node.TemplateAction<{
+declare function createYamlJSONataTransformAction(): TemplateAction<{
     path: string;
     expression: string;
     options?: stringifyOptions;
     loadAll?: boolean;
-    as?: "string" | "object";
-}, _backstage_types.JsonObject>;
+    as?: 'string' | 'object';
+}>;
 
-declare function createJsonJSONataTransformAction(): _backstage_plugin_scaffolder_node.TemplateAction<{
+declare function createJsonJSONataTransformAction(): TemplateAction<{
     path: string;
     expression: string;
     replacer?: string[];
     space?: string;
-    as?: "string" | "object";
-}, _backstage_types.JsonObject>;
+    as?: 'string' | 'object';
+}, JsonObject>;
 
-declare function createSerializeJsonAction(): _backstage_plugin_scaffolder_node.TemplateAction<{
+declare function createSerializeJsonAction(): TemplateAction<{
     data: any;
     replacer?: string[];
     space?: string;
-}, _backstage_types.JsonObject>;
+}>;
 
-declare function createSerializeYamlAction(): _backstage_plugin_scaffolder_node.TemplateAction<{
+declare function createSerializeYamlAction(): TemplateAction<{
     data: any;
     options?: stringifyOptions;
-}, _backstage_types.JsonObject>;
+}>;
 
 export { createAppendFileAction, createJSONataAction, createJsonJSONataTransformAction, createMergeAction, createMergeJSONAction, createParseFileAction, createReplaceInFileAction, createSerializeJsonAction, createSerializeYamlAction, createSleepAction, createWriteFileAction, createYamlJSONataTransformAction, createZipAction };

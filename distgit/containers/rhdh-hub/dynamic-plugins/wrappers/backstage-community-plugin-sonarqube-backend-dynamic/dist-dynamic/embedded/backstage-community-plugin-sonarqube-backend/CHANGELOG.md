@@ -1,5 +1,31 @@
 # @backstage-community/plugin-sonarqube-backend
 
+## 0.5.0
+
+### Minor Changes
+
+- dc47683: Backstage version bump to v1.35.1
+
+## 0.4.1
+
+### Patch Changes
+
+- a8acb68: Added missing `instanceKey` to the documentation examples
+
+## 0.4.0
+
+### Minor Changes
+
+- fb4e8b5: Backstage version bump to v1.34.1
+
+## 0.3.1
+
+### Patch Changes
+
+- f53852b: Removed usages and references of `@backstage/backend-common`
+
+  Deprecated `createRouter` and its router options in favour of the new backend system.
+
 ## 0.3.0
 
 ### Minor Changes

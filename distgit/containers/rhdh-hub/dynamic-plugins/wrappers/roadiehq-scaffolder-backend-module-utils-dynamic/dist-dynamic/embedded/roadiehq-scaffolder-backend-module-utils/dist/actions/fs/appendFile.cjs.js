@@ -1,7 +1,7 @@
 'use strict';
 
-var pluginScaffolderBackend = require('@backstage/plugin-scaffolder-backend');
-var backendCommon = require('@backstage/backend-common');
+var pluginScaffolderNode = require('@backstage/plugin-scaffolder-node');
+var backendPluginApi = require('@backstage/backend-plugin-api');
 var fs = require('fs-extra');
 
 function _interopDefaultCompat (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }
@@ -9,7 +9,7 @@ function _interopDefaultCompat (e) { return e && typeof e === 'object' && 'defau
 var fs__default = /*#__PURE__*/_interopDefaultCompat(fs);
 
 function createAppendFileAction() {
-  return pluginScaffolderBackend.createTemplateAction({
+  return pluginScaffolderNode.createTemplateAction({
     id: "roadiehq:utils:fs:append",
     description: "Append content to the end of the given file, it will create the file if it does not exist.",
     supportsDryRun: true,
@@ -41,7 +41,7 @@ function createAppendFileAction() {
       }
     },
     async handler(ctx) {
-      const sourceFilepath = backendCommon.resolveSafeChildPath(
+      const sourceFilepath = backendPluginApi.resolveSafeChildPath(
         ctx.workspacePath,
         ctx.input.path
       );

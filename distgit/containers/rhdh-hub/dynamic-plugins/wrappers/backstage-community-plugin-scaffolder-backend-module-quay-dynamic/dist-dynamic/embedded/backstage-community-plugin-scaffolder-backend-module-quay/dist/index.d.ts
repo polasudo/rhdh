@@ -1,7 +1,10 @@
 import * as _backstage_plugin_scaffolder_node from '@backstage/plugin-scaffolder-node';
-import * as _backstage_types from '@backstage/types';
+import * as _backstage_types_index from '@backstage/types/index';
 import * as _backstage_backend_plugin_api from '@backstage/backend-plugin-api';
 
+/**
+ * @public
+ */
 type TemplateActionParameters = {
     name: string;
     visibility: string;
@@ -11,8 +14,14 @@ type TemplateActionParameters = {
     namespace?: string;
     repoKind?: string;
 };
-declare function createQuayRepositoryAction(): _backstage_plugin_scaffolder_node.TemplateAction<TemplateActionParameters, _backstage_types.JsonObject>;
+/**
+ * @public
+ */
+declare function createQuayRepositoryAction(): _backstage_plugin_scaffolder_node.TemplateAction<TemplateActionParameters, _backstage_types_index.JsonObject>;
 
+/**
+ * @public
+ */
 declare const scaffolderModuleQuayAction: _backstage_backend_plugin_api.BackendFeature;
 
-export { createQuayRepositoryAction, scaffolderModuleQuayAction as default };
+export { type TemplateActionParameters, createQuayRepositoryAction, scaffolderModuleQuayAction as default };

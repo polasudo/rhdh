@@ -1,6 +1,6 @@
 'use strict';
 
-var pluginScaffolderBackend = require('@backstage/plugin-scaffolder-backend');
+var pluginScaffolderNode = require('@backstage/plugin-scaffolder-node');
 var jsonata = require('jsonata');
 
 function _interopDefaultCompat (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }
@@ -8,7 +8,7 @@ function _interopDefaultCompat (e) { return e && typeof e === 'object' && 'defau
 var jsonata__default = /*#__PURE__*/_interopDefaultCompat(jsonata);
 
 function createJSONataAction() {
-  return pluginScaffolderBackend.createTemplateAction({
+  return pluginScaffolderNode.createTemplateAction({
     id: "roadiehq:utils:jsonata",
     description: "Allows performing JSONata operations and transformations on input objects and produces the output result as a step output.",
     supportsDryRun: true,

@@ -3,7 +3,7 @@ import { DiscoveryService, AuthService } from '@backstage/backend-plugin-api';
 import { CatalogProcessor, CatalogProcessorEmit, CatalogProcessorCache } from '@backstage/plugin-catalog-node';
 import { LocationSpec } from '@backstage/plugin-catalog-common';
 import { Entity } from '@backstage/catalog-model';
-import { MarketplacePluginEntry } from '@red-hat-developer-hub/backstage-plugin-marketplace-common';
+import { MarketplacePlugin, MarketplacePackage } from '@red-hat-developer-hub/backstage-plugin-marketplace-common';
 
 /**
  * @public
@@ -17,13 +17,13 @@ declare class MarketplacePluginProcessor implements CatalogProcessor {
     private readonly validators;
     getProcessorName(): string;
     validateEntityKind(entity: Entity): Promise<boolean>;
-    postProcessEntity(entity: Entity, _location: LocationSpec, emit: CatalogProcessorEmit): Promise<Entity>;
+    postProcessEntity(entity: MarketplacePlugin, _location: LocationSpec, emit: CatalogProcessorEmit): Promise<Entity>;
 }
 
 /**
  * @public
  */
-declare class MarketplacePluginListProcessor implements CatalogProcessor {
+declare class MarketplaceCollectionProcessor implements CatalogProcessor {
     private readonly validators;
     validateEntityKind(entity: Entity): Promise<boolean>;
     getProcessorName(): string;
@@ -41,7 +41,7 @@ type CachedData = {
 /**
  * @public
  */
-declare class DynamicPluginInstallStatusProcessor implements CatalogProcessor {
+declare class DynamicPackageInstallStatusProcessor implements CatalogProcessor {
     private discovery;
     private auth;
     private readonly cacheTTLMilliseconds;
@@ -56,13 +56,13 @@ declare class DynamicPluginInstallStatusProcessor implements CatalogProcessor {
      * @returns True if data is expired
      */
     private isExpired;
-    preProcessEntity(entity: Entity, _location: LocationSpec, _emit: CatalogProcessorEmit, _originLocation: LocationSpec, cache: CatalogProcessorCache): Promise<MarketplacePluginEntry>;
+    preProcessEntity(entity: Entity, _location: LocationSpec, _emit: CatalogProcessorEmit, _originLocation: LocationSpec, cache: CatalogProcessorCache): Promise<Entity>;
 }
 
 /**
  * @public
  */
-declare class LocalPluginInstallStatusProcessor implements CatalogProcessor {
+declare class LocalPackageInstallStatusProcessor implements CatalogProcessor {
     private workspacesPath;
     private customPaths;
     /**
@@ -73,8 +73,17 @@ declare class LocalPluginInstallStatusProcessor implements CatalogProcessor {
     getProcessorName(): string;
     findWorkspacesPath(startPath?: string): string;
     private isPackageInstalled;
-    isJSON(str: string): boolean;
-    preProcessEntity(entity: MarketplacePluginEntry): Promise<Entity>;
+    preProcessEntity(entity: MarketplacePackage): Promise<MarketplacePackage>;
 }
 
-export { type CachedData, DynamicPluginInstallStatusProcessor, LocalPluginInstallStatusProcessor, MarketplacePluginListProcessor, MarketplacePluginProcessor, catalogModuleMarketplace as default };
+/**
+ * @public
+ */
+declare class MarketplacePackageProcessor implements CatalogProcessor {
+    private readonly validators;
+    getProcessorName(): string;
+    validateEntityKind(entity: Entity): Promise<boolean>;
+    postProcessEntity(entity: MarketplacePackage, _location: LocationSpec, emit: CatalogProcessorEmit): Promise<Entity>;
+}
+
+export { type CachedData, DynamicPackageInstallStatusProcessor, LocalPackageInstallStatusProcessor, MarketplaceCollectionProcessor, MarketplacePackageProcessor, MarketplacePluginProcessor, catalogModuleMarketplace as default };

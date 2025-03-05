@@ -1,6 +1,0 @@
-{
-  "name": "@roadiehq/scaffolder-backend-module-http-request__new-backend",
-  "version": "5.0.0",
-  "main": "../dist/new-backend.cjs.js",
-  "types": "../dist/new-backend.d.ts"
-}

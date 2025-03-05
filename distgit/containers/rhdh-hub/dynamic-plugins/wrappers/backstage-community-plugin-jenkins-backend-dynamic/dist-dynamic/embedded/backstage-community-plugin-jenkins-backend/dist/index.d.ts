@@ -4,7 +4,7 @@ import { CatalogApi } from '@backstage/catalog-client';
 import { CompoundEntityRef } from '@backstage/catalog-model';
 import { Config } from '@backstage/config';
 import express from 'express';
-import { PermissionEvaluator, PermissionAuthorizer } from '@backstage/plugin-permission-common';
+import { PermissionEvaluator } from '@backstage/plugin-permission-common';
 
 /** @public */
 interface JenkinsInfoProvider {
@@ -14,9 +14,9 @@ interface JenkinsInfoProvider {
          */
         entityRef: CompoundEntityRef;
         /**
-         * A specific job to get. This is only passed in when we know about a job name we are interested in.
+         * Specific job(s) to get. This is only passed in when we know the job name(s) we are interested in.
          */
-        jobFullName?: string;
+        fullJobNames?: string[];
         credentials?: BackstageCredentials;
         logger?: LoggerService;
     }): Promise<JenkinsInfo>;
@@ -25,7 +25,7 @@ interface JenkinsInfoProvider {
 interface JenkinsInfo {
     baseUrl: string;
     headers?: Record<string, string | string[]>;
-    jobFullName: string;
+    fullJobNames: string[];
     projectCountLimit: number;
     crumbIssuer?: boolean;
 }
@@ -88,31 +88,19 @@ declare class DefaultJenkinsInfoProvider implements JenkinsInfoProvider {
         config: Config;
         catalog: CatalogApi;
         discovery: DiscoveryService;
-        auth?: AuthService;
+        auth: AuthService;
         httpAuth?: HttpAuthService;
         logger: LoggerService;
     }): DefaultJenkinsInfoProvider;
     getInstance(opt: {
         entityRef: CompoundEntityRef;
-        jobFullName?: string;
+        fullJobNames?: string[];
         credentials?: BackstageCredentials;
     }): Promise<JenkinsInfo>;
     private static getEntityAnnotationValue;
     private static getEntityOverrideURL;
     private static verifyUrlMatchesRegex;
 }
-
-/** @public */
-interface RouterOptions {
-    logger: LoggerService;
-    jenkinsInfoProvider: JenkinsInfoProvider;
-    permissions?: PermissionEvaluator | PermissionAuthorizer;
-    discovery: DiscoveryService;
-    auth?: AuthService;
-    httpAuth?: HttpAuthService;
-}
-/** @public */
-declare function createRouter(options: RouterOptions): Promise<express.Router>;
 
 /** @public */
 type JenkinsBuilderReturn = Promise<{
@@ -146,4 +134,4 @@ declare class JenkinsBuilder {
  */
 declare const jenkinsPlugin: _backstage_backend_plugin_api.BackendFeature;
 
-export { DefaultJenkinsInfoProvider, JenkinsBuilder, type JenkinsBuilderReturn, JenkinsConfig, type JenkinsEnvironment, type JenkinsInfo, type JenkinsInfoProvider, type JenkinsInstanceConfig, type RouterOptions, createRouter, jenkinsPlugin as default };
+export { DefaultJenkinsInfoProvider, JenkinsBuilder, type JenkinsBuilderReturn, JenkinsConfig, type JenkinsEnvironment, type JenkinsInfo, type JenkinsInfoProvider, type JenkinsInstanceConfig, jenkinsPlugin as default };

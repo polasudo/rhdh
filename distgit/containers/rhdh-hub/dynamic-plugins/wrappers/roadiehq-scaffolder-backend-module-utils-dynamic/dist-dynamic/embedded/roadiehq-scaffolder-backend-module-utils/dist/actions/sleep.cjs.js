@@ -1,10 +1,10 @@
 'use strict';
 
-var pluginScaffolderBackend = require('@backstage/plugin-scaffolder-backend');
+var pluginScaffolderNode = require('@backstage/plugin-scaffolder-node');
 var errors = require('@backstage/errors');
 
 function createSleepAction(options) {
-  return pluginScaffolderBackend.createTemplateAction({
+  return pluginScaffolderNode.createTemplateAction({
     id: "roadiehq:utils:sleep",
     description: "Halts the scaffolding for the given amount of seconds",
     supportsDryRun: true,

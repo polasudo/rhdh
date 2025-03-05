@@ -1,6 +1,5 @@
 'use strict';
 
-var backendCommon = require('@backstage/backend-common');
 var express = require('express');
 var Router = require('express-promise-router');
 var jenkinsApi = require('./jenkinsApi.cjs.js');
@@ -9,6 +8,7 @@ var catalogModel = require('@backstage/catalog-model');
 var errors = require('@backstage/errors');
 var pluginPermissionNode = require('@backstage/plugin-permission-node');
 var pluginJenkinsCommon = require('@backstage-community/plugin-jenkins-common');
+var rootHttpRouter = require('@backstage/backend-defaults/rootHttpRouter');
 
 function _interopDefaultCompat (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }
 
@@ -16,7 +16,7 @@ var express__default = /*#__PURE__*/_interopDefaultCompat(express);
 var Router__default = /*#__PURE__*/_interopDefaultCompat(Router);
 
 async function createRouter(options) {
-  const { jenkinsInfoProvider, permissions, logger } = options;
+  const { jenkinsInfoProvider, permissions, logger, httpAuth, config } = options;
   let permissionEvaluator;
   if (permissions && "authorizeConditional" in permissions) {
     permissionEvaluator = permissions;
@@ -26,7 +26,6 @@ async function createRouter(options) {
     );
     permissionEvaluator = permissions ? pluginPermissionCommon.toPermissionEvaluator(permissions) : void 0;
   }
-  const { httpAuth } = backendCommon.createLegacyAuthAdapters(options);
   const jenkinsApi$1 = new jenkinsApi.JenkinsApiImpl(permissionEvaluator);
   const router = Router__default.default();
   router.use(express__default.default.json());
@@ -65,7 +64,7 @@ async function createRouter(options) {
       } catch (err) {
         if (err.errors) {
           throw new Error(
-            `Unable to fetch projects, for ${jenkinsInfo.jobFullName}: ${errors.stringifyError(err.errors)}`
+            `Unable to fetch projects, for ${jenkinsInfo.fullJobNames}: ${errors.stringifyError(err.errors)}`
           );
         }
         throw err;
@@ -82,7 +81,7 @@ async function createRouter(options) {
           namespace,
           name
         },
-        jobFullName,
+        fullJobNames: [jobFullName],
         credentials: await httpAuth.credentials(request)
       });
       const build = await jenkinsApi$1.getBuild(
@@ -105,7 +104,7 @@ async function createRouter(options) {
           namespace,
           name
         },
-        jobFullName,
+        fullJobNames: [jobFullName],
         credentials: await httpAuth.credentials(request)
       });
       const build = await jenkinsApi$1.getJobBuilds(jenkinsInfo, jobFullName);
@@ -124,7 +123,7 @@ async function createRouter(options) {
           namespace,
           name
         },
-        jobFullName,
+        fullJobNames: [jobFullName],
         credentials: await httpAuth.credentials(request)
       });
       const resourceRef = catalogModel.stringifyEntityRef({ kind, namespace, name });
@@ -140,7 +139,30 @@ async function createRouter(options) {
       response.json({}).status(status);
     }
   );
-  router.use(backendCommon.errorHandler());
+  router.get(
+    "/v1/entity/:namespace/:kind/:name/job/:jobFullName/:buildNumber/consoleText",
+    async (request, response) => {
+      const { namespace, kind, name, jobFullName, buildNumber } = request.params;
+      const jenkinsInfo = await jenkinsInfoProvider.getInstance({
+        entityRef: {
+          kind,
+          namespace,
+          name
+        },
+        fullJobNames: [jobFullName],
+        credentials: await httpAuth.credentials(request)
+      });
+      const consoleText = await jenkinsApi$1.getBuildConsoleText(
+        jenkinsInfo,
+        jobFullName,
+        parseInt(buildNumber, 10)
+      );
+      response.json({
+        consoleText
+      });
+    }
+  );
+  router.use(rootHttpRouter.MiddlewareFactory.create({ config, logger }).error());
   return router;
 }
 

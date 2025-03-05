@@ -3,99 +3,10 @@
 var pluginCatalogNode = require('@backstage/plugin-catalog-node');
 var catalogModel = require('@backstage/catalog-model');
 var backstagePluginMarketplaceCommon = require('@red-hat-developer-hub/backstage-plugin-marketplace-common');
+var plugins = require('../json-schema/plugins.json.cjs.js');
 
-const pluginJsonSchema = {
-  $schema: "http://json-schema.org/draft-07/schema",
-  $id: "PluginV1alpha1",
-  description: 'A Plugin describes a software component. It is typically intimately linked to the source code that constitutes the component, and should be what a developer may regard a "unit of software", usually with a distinct deployable or linkable artifact.',
-  allOf: [
-    {
-      type: "object",
-      properties: {
-        apiVersion: {
-          type: "string",
-          enum: ["marketplace.backstage.io/v1alpha1"]
-        },
-        kind: {
-          type: "string",
-          enum: ["Plugin"]
-        },
-        metadata: {
-          type: "object",
-          properties: {
-            name: {
-              type: "string"
-            },
-            title: {
-              type: "string"
-            },
-            description: {
-              type: "string"
-            },
-            tags: {
-              type: "array",
-              items: {
-                type: "string"
-              }
-            },
-            labels: {
-              type: "object"
-            },
-            annotations: {
-              type: "object"
-            }
-          },
-          required: ["name", "title", "description"]
-        },
-        spec: {
-          type: "object",
-          properties: {
-            type: {
-              type: "string"
-            },
-            lifecycle: {
-              type: "string"
-            },
-            owner: {
-              type: "string"
-            }
-          }
-          // required: ['type', 'lifecycle', 'owner'],
-        }
-      },
-      required: ["apiVersion", "kind", "metadata", "spec"]
-    }
-  ],
-  examples: [
-    {
-      apiVersion: {
-        enum: ["marketplace.backstage.io/v1alpha1"]
-      },
-      kind: {
-        enum: ["Plugin"]
-      },
-      metadata: {
-        name: "testplugin",
-        title: "Test Plugin",
-        description: "Creates Lorems like a pro.",
-        labels: {
-          product_name: "test-product"
-        },
-        annotations: {
-          docs: "https://github.com/..../tree/develop/doc"
-        }
-      },
-      spec: {
-        type: "frontend-plugin",
-        lifecycle: "production",
-        owner: "redhat"
-      }
-    }
-  ]
-};
 class MarketplacePluginProcessor {
-  validators = [catalogModel.entityKindSchemaValidator(pluginJsonSchema)];
-  // Return processor name
+  validators = [catalogModel.entityKindSchemaValidator(plugins.default)];
   getProcessorName() {
     return "MarketplacePluginProcessor";
   }
@@ -103,29 +14,83 @@ class MarketplacePluginProcessor {
   // engine that this entity is valid and should therefore be submitted for
   // further processing.
   async validateEntityKind(entity) {
-    for (const validator of this.validators) {
-      if (validator(entity)) {
-        return true;
+    if (backstagePluginMarketplaceCommon.isMarketplacePlugin(entity)) {
+      for (const validator of this.validators) {
+        if (validator(entity)) {
+          return true;
+        }
       }
     }
     return false;
   }
   async postProcessEntity(entity, _location, emit) {
-    if (entity.apiVersion === backstagePluginMarketplaceCommon.MARKETPLACE_API_VERSION && entity.kind === backstagePluginMarketplaceCommon.MarketplaceKinds.plugin) {
+    if (backstagePluginMarketplaceCommon.isMarketplacePlugin(entity)) {
+      if (!entity.metadata.annotations?.[backstagePluginMarketplaceCommon.MarketplaceAnnotation.PRE_INSTALLED]) {
+        entity.metadata.annotations = {
+          ...entity.metadata.annotations,
+          [backstagePluginMarketplaceCommon.MarketplaceAnnotation.PRE_INSTALLED]: "false"
+        };
+      }
+      const authors = [];
+      if (typeof entity.spec?.author === "string") {
+        authors.push({ name: entity.spec.author });
+      }
+      if (Array.isArray(entity.spec?.authors)) {
+        entity.spec.authors.forEach((author) => {
+          if (typeof author === "string") {
+            authors.push({ name: author });
+          } else {
+            authors.push(author);
+          }
+        });
+      }
+      if (typeof entity.spec?.developer === "string") {
+        authors.push({ name: entity.spec.developer });
+      }
+      delete entity.spec?.author;
+      delete entity.spec?.authors;
+      delete entity.spec?.developer;
+      if (authors.length > 0) {
+        if (!entity.spec) entity.spec = {};
+        entity.spec.authors = authors;
+      }
       const thisEntityRef = catalogModel.getCompoundEntityRef(entity);
-      const target = entity?.spec?.owner;
-      if (target) {
-        const targetRef = catalogModel.parseEntityRef(target, {
+      if (entity?.spec?.owner) {
+        const ownerRef = catalogModel.parseEntityRef(entity?.spec?.owner, {
           defaultKind: "Group",
-          defaultNamespace: thisEntityRef.namespace
+          defaultNamespace: entity.metadata.namespace
         });
         emit(
           pluginCatalogNode.processingResult.relation({
             type: catalogModel.RELATION_OWNED_BY,
-            target: targetRef,
-            source: thisEntityRef
+            source: thisEntityRef,
+            target: ownerRef
           })
         );
+      }
+      if (entity.spec?.packages && entity.spec.packages.length > 0) {
+        entity.spec.packages.forEach((packageName) => {
+          const packageRef = catalogModel.parseEntityRef(packageName, {
+            defaultKind: backstagePluginMarketplaceCommon.MarketplaceKind.Package,
+            defaultNamespace: entity.metadata.namespace
+          });
+          if (packageRef) {
+            emit(
+              pluginCatalogNode.processingResult.relation({
+                type: catalogModel.RELATION_PART_OF,
+                source: packageRef,
+                target: thisEntityRef
+              })
+            );
+            emit(
+              pluginCatalogNode.processingResult.relation({
+                type: catalogModel.RELATION_HAS_PART,
+                target: packageRef,
+                source: thisEntityRef
+              })
+            );
+          }
+        });
       }
     }
     return entity;

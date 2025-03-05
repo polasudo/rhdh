@@ -1,7 +1,7 @@
 'use strict';
 
-var pluginScaffolderBackend = require('@backstage/plugin-scaffolder-backend');
-var backendCommon = require('@backstage/backend-common');
+var pluginScaffolderNode = require('@backstage/plugin-scaffolder-node');
+var backendPluginApi = require('@backstage/backend-plugin-api');
 var fs = require('fs-extra');
 var YAML = require('yaml');
 
@@ -16,7 +16,7 @@ const parsers = {
   multiyaml: (cnt) => YAML__default.default.parseAllDocuments(cnt).map((doc) => doc.toJSON())
 };
 function createParseFileAction() {
-  return pluginScaffolderBackend.createTemplateAction({
+  return pluginScaffolderNode.createTemplateAction({
     id: "roadiehq:utils:fs:parse",
     description: "Reads a file from the workspace and optionally parses it",
     supportsDryRun: true,
@@ -49,7 +49,7 @@ function createParseFileAction() {
       }
     },
     async handler(ctx) {
-      const sourceFilepath = backendCommon.resolveSafeChildPath(
+      const sourceFilepath = backendPluginApi.resolveSafeChildPath(
         ctx.workspacePath,
         ctx.input.path
       );

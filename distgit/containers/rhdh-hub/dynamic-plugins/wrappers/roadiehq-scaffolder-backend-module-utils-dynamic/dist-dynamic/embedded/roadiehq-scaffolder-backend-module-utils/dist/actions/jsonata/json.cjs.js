@@ -1,8 +1,8 @@
 'use strict';
 
-var pluginScaffolderBackend = require('@backstage/plugin-scaffolder-backend');
+var pluginScaffolderNode = require('@backstage/plugin-scaffolder-node');
 var jsonata = require('jsonata');
-var backendCommon = require('@backstage/backend-common');
+var backendPluginApi = require('@backstage/backend-plugin-api');
 var fs = require('fs-extra');
 
 function _interopDefaultCompat (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }
@@ -11,7 +11,7 @@ var jsonata__default = /*#__PURE__*/_interopDefaultCompat(jsonata);
 var fs__default = /*#__PURE__*/_interopDefaultCompat(fs);
 
 function createJsonJSONataTransformAction() {
-  return pluginScaffolderBackend.createTemplateAction({
+  return pluginScaffolderNode.createTemplateAction({
     id: "roadiehq:utils:jsonata:json:transform",
     description: "Allows performing JSONata operations and transformations on a JSON file in the workspace. The result can be read from the `result` step output.",
     supportsDryRun: true,
@@ -68,7 +68,7 @@ function createJsonJSONataTransformAction() {
       } else {
         resultHandler = (rz) => JSON.stringify(rz, ctx.input.replacer, ctx.input.space);
       }
-      const sourceFilepath = backendCommon.resolveSafeChildPath(
+      const sourceFilepath = backendPluginApi.resolveSafeChildPath(
         ctx.workspacePath,
         ctx.input.path
       );

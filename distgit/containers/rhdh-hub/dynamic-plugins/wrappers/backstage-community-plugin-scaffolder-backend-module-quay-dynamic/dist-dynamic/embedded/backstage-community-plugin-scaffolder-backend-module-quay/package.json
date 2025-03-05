@@ -1,7 +1,7 @@
 {
   "name": "@backstage-community/plugin-scaffolder-backend-module-quay",
   "description": "The quay-actions module for @backstage-community/plugin-scaffolder-backend-module-quay",
-  "version": "2.2.2+embedded",
+  "version": "2.4.0+embedded",
   "main": "./dist/index.cjs.js",
   "types": "./dist/index.d.ts",
   "license": "Apache-2.0",
@@ -10,7 +10,7 @@
   },
   "backstage": {
     "role": "backend-plugin-module",
-    "supported-versions": "1.32.5",
+    "supported-versions": "1.35.0",
     "pluginId": "scaffolder",
     "pluginPackage": "@backstage/plugin-scaffolder-backend"
   },
@@ -22,6 +22,13 @@
       "default": "./dist/index.cjs.js"
     },
     "./package.json": "./package.json"
+  },
+  "typesVersions": {
+    "*": {
+      "index": [
+        "dist/index.d.ts"
+      ]
+    }
   },
   "scripts": {
     "build": "backstage-cli package build",
@@ -61,8 +68,8 @@
   ],
   "private": true,
   "peerDependencies": {
-    "@backstage/backend-plugin-api": "^1.0.1",
-    "@backstage/plugin-scaffolder-node": "^0.5.0"
+    "@backstage/backend-plugin-api": "^1.1.1",
+    "@backstage/plugin-scaffolder-node": "^0.6.3"
   },
   "overrides": {
     "@aws-sdk/util-utf8-browser": {

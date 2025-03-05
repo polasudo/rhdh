@@ -1,9 +1,9 @@
 'use strict';
 
-var pluginScaffolderBackend = require('@backstage/plugin-scaffolder-backend');
+var pluginScaffolderNode = require('@backstage/plugin-scaffolder-node');
 
 function createSerializeJsonAction() {
-  return pluginScaffolderBackend.createTemplateAction({
+  return pluginScaffolderNode.createTemplateAction({
     id: "roadiehq:utils:serialize:json",
     description: "Allows performing serialization on an object",
     supportsDryRun: true,

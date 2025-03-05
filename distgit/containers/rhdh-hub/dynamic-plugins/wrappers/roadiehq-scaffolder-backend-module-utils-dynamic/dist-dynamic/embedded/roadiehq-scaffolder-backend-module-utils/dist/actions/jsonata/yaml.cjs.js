@@ -1,8 +1,8 @@
 'use strict';
 
-var pluginScaffolderBackend = require('@backstage/plugin-scaffolder-backend');
+var pluginScaffolderNode = require('@backstage/plugin-scaffolder-node');
 var jsonata = require('jsonata');
-var backendCommon = require('@backstage/backend-common');
+var backendPluginApi = require('@backstage/backend-plugin-api');
 var fs = require('fs-extra');
 var YAML = require('yaml');
 var types = require('../../types.cjs.js');
@@ -14,7 +14,7 @@ var fs__default = /*#__PURE__*/_interopDefaultCompat(fs);
 var YAML__default = /*#__PURE__*/_interopDefaultCompat(YAML);
 
 function createYamlJSONataTransformAction() {
-  return pluginScaffolderBackend.createTemplateAction({
+  return pluginScaffolderNode.createTemplateAction({
     id: "roadiehq:utils:jsonata:yaml:transform",
     description: "Allows performing JSONata operations and transformations on a YAML file in the workspace. The result can be read from the `result` step output.",
     supportsDryRun: true,
@@ -64,7 +64,7 @@ function createYamlJSONataTransformAction() {
       } else {
         resultHandler = (rz) => YAML__default.default.stringify(rz, ctx.input.options);
       }
-      const sourceFilepath = backendCommon.resolveSafeChildPath(
+      const sourceFilepath = backendPluginApi.resolveSafeChildPath(
         ctx.workspacePath,
         ctx.input.path
       );

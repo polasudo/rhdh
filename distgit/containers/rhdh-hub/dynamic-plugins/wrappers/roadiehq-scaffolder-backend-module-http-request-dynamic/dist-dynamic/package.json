@@ -1,6 +1,6 @@
 {
   "name": "roadiehq-scaffolder-backend-module-http-request-dynamic",
-  "version": "5.0.0",
+  "version": "5.3.0",
   "main": "./dist/index.cjs.js",
   "types": "./dist/index.d.ts",
   "license": "Apache-2.0",
@@ -23,7 +23,7 @@
     "./package.json": "./package.json"
   },
   "dependencies": {
-    "@roadiehq/scaffolder-backend-module-http-request": "5.0.0"
+    "@roadiehq/scaffolder-backend-module-http-request": "5.3.0"
   },
   "files": [
     "dist"
@@ -55,10 +55,9 @@
   },
   "peerDependencies": {
     "@backstage/backend-common": "^0.25.0",
-    "@backstage/backend-plugin-api": "^1.0.1",
-    "@backstage/core-app-api": "^1.15.1",
-    "@backstage/core-plugin-api": "^1.10.0",
-    "@backstage/plugin-scaffolder-backend": "^1.26.1",
-    "@backstage/plugin-scaffolder-node": "^0.5.0"
+    "@backstage/backend-plugin-api": "^1.0.2",
+    "@backstage/core-app-api": "^1.15.2",
+    "@backstage/core-plugin-api": "^1.10.1",
+    "@backstage/plugin-scaffolder-node": "^0.6.2"
   }
 }

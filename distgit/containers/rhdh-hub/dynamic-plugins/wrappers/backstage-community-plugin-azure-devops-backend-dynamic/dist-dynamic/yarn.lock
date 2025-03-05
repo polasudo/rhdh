@@ -6,41 +6,39 @@ __metadata:
   cacheKey: 8
 
 "@backstage-community/plugin-azure-devops-backend@file:./embedded/backstage-community-plugin-azure-devops-backend::locator=backstage-community-plugin-azure-devops-backend-dynamic%40workspace%3A.":
-  version: 0.8.0+embedded
-  resolution: "@backstage-community/plugin-azure-devops-backend@file:./embedded/backstage-community-plugin-azure-devops-backend#./embedded/backstage-community-plugin-azure-devops-backend::hash=a8d554&locator=backstage-community-plugin-azure-devops-backend-dynamic%40workspace%3A."
+  version: 0.11.0+embedded
+  resolution: "@backstage-community/plugin-azure-devops-backend@file:./embedded/backstage-community-plugin-azure-devops-backend#./embedded/backstage-community-plugin-azure-devops-backend::hash=9ef495&locator=backstage-community-plugin-azure-devops-backend-dynamic%40workspace%3A."
   dependencies:
-    "@backstage-community/plugin-azure-devops-common": ^0.4.9
+    "@backstage-community/plugin-azure-devops-common": ^0.7.0
     "@types/express": ^4.17.6
     azure-devops-node-api: ^13.0.0
     express: ^4.17.1
     express-promise-router: ^4.1.0
-    lodash: ^4.17.21
     mime-types: ^2.1.27
     p-limit: ^3.1.0
-    yn: ^4.0.0
   peerDependencies:
-    "@backstage/backend-defaults": ^0.5.2
-    "@backstage/backend-plugin-api": ^1.0.1
-    "@backstage/catalog-model": ^1.7.0
-    "@backstage/config": ^1.2.0
-    "@backstage/errors": ^1.2.4
-    "@backstage/integration": ^1.15.1
-    "@backstage/plugin-auth-node": ^0.5.3
-    "@backstage/plugin-catalog-common": ^1.1.0
-    "@backstage/plugin-catalog-node": ^1.13.1
-    "@backstage/plugin-permission-common": ^0.8.1
-    "@backstage/plugin-permission-node": ^0.8.4
-  checksum: 13f891851d4e9c6994cfa758ea163fde871e29bf66352072a2ab456728ec9f00d8bdf809a8859e6dd4aea21697ae67d750087f6af53a20431525f21f21b0b329
+    "@backstage/backend-defaults": ^0.7.0
+    "@backstage/backend-plugin-api": ^1.1.1
+    "@backstage/catalog-model": ^1.7.3
+    "@backstage/config": ^1.3.2
+    "@backstage/errors": ^1.2.7
+    "@backstage/integration": ^1.16.1
+    "@backstage/plugin-auth-node": ^0.5.6
+    "@backstage/plugin-catalog-common": ^1.1.3
+    "@backstage/plugin-catalog-node": ^1.15.1
+    "@backstage/plugin-permission-common": ^0.8.4
+    "@backstage/plugin-permission-node": ^0.8.7
+  checksum: a6c362efa94d1049a096290e56d9a888e46f4728181460e9fbfac66e81f8d9a1aae72b136cedb36d728fd1aacc5b5e1a25d79dfc4be33047846ac9b731e4db16
   languageName: node
   linkType: hard
 
 "@backstage-community/plugin-azure-devops-common@file:./embedded/backstage-community-plugin-azure-devops-common::locator=backstage-community-plugin-azure-devops-backend-dynamic%40workspace%3A.":
-  version: 0.4.9+embedded
-  resolution: "@backstage-community/plugin-azure-devops-common@file:./embedded/backstage-community-plugin-azure-devops-common#./embedded/backstage-community-plugin-azure-devops-common::hash=ee15bc&locator=backstage-community-plugin-azure-devops-backend-dynamic%40workspace%3A."
+  version: 0.7.0+embedded
+  resolution: "@backstage-community/plugin-azure-devops-common@file:./embedded/backstage-community-plugin-azure-devops-common#./embedded/backstage-community-plugin-azure-devops-common::hash=631120&locator=backstage-community-plugin-azure-devops-backend-dynamic%40workspace%3A."
   peerDependencies:
-    "@backstage/plugin-catalog-common": ^1.1.0
-    "@backstage/plugin-permission-common": ^0.8.1
-  checksum: ed4231ecbc7e1e4af9be020be47c83d2aea65c91e05f487ed6386270ee755bd316fd63c2c352d19d76dd4433e33bff972c68371c04400b6aa9eeccdd7bf652ae
+    "@backstage/plugin-catalog-common": ^1.1.3
+    "@backstage/plugin-permission-common": ^0.8.4
+  checksum: 2ca1a533fb05b25088454480826c5163c0afec7e99f6dd1e9806e5907972e3b87c7d3b776ab3d738a2dc27a1dcdf2ea5d8541bb960b15747ad007c499f76f033
   languageName: node
   linkType: hard
 
@@ -176,19 +174,19 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "backstage-community-plugin-azure-devops-backend-dynamic@workspace:."
   dependencies:
-    "@backstage-community/plugin-azure-devops-backend": 0.8.0
+    "@backstage-community/plugin-azure-devops-backend": 0.11.0
   peerDependencies:
-    "@backstage/backend-defaults": ^0.5.2
-    "@backstage/backend-plugin-api": ^1.0.1
-    "@backstage/catalog-model": ^1.7.0
-    "@backstage/config": ^1.2.0
-    "@backstage/errors": ^1.2.4
-    "@backstage/integration": ^1.15.1
-    "@backstage/plugin-auth-node": ^0.5.3
-    "@backstage/plugin-catalog-common": ^1.1.0
-    "@backstage/plugin-catalog-node": ^1.13.1
-    "@backstage/plugin-permission-common": ^0.8.1
-    "@backstage/plugin-permission-node": ^0.8.4
+    "@backstage/backend-defaults": ^0.7.0
+    "@backstage/backend-plugin-api": ^1.1.1
+    "@backstage/catalog-model": ^1.7.3
+    "@backstage/config": ^1.3.2
+    "@backstage/errors": ^1.2.7
+    "@backstage/integration": ^1.16.1
+    "@backstage/plugin-auth-node": ^0.5.6
+    "@backstage/plugin-catalog-common": ^1.1.3
+    "@backstage/plugin-catalog-node": ^1.15.1
+    "@backstage/plugin-permission-common": ^0.8.4
+    "@backstage/plugin-permission-node": ^0.8.7
   languageName: unknown
   linkType: soft
 
@@ -554,13 +552,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lodash@npm:^4.17.21":
-  version: 4.17.21
-  resolution: "lodash@npm:4.17.21"
-  checksum: eb835a2e51d381e561e508ce932ea50a8e5a68f4ebdd771ea240d3048244a8d13658acbd502cd4829768c56f2e16bdd4340b9ea141297d472517b83868e677f7
-  languageName: node
-  linkType: hard
-
 "math-intrinsics@npm:^1.1.0":
   version: 1.1.0
   resolution: "math-intrinsics@npm:1.1.0"
@@ -897,13 +888,6 @@ __metadata:
   version: 1.1.2
   resolution: "vary@npm:1.1.2"
   checksum: ae0123222c6df65b437669d63dfa8c36cee20a504101b2fcd97b8bf76f91259c17f9f2b4d70a1e3c6bbcee7f51b28392833adb6b2770b23b01abec84e369660b
-  languageName: node
-  linkType: hard
-
-"yn@npm:^4.0.0":
-  version: 4.0.0
-  resolution: "yn@npm:4.0.0"
-  checksum: 2d60113b6f43f7c29a0a97719d8da4f626b755f5bb2fd19b00d1fe732db1900ad3f1785811a86d941cbe2800f02773af00d0ed99201333eeb3618db8502f7e96
   languageName: node
   linkType: hard
 

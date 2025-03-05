@@ -1,6 +1,6 @@
 {
   "name": "red-hat-developer-hub-backstage-plugin-marketplace-backend-dynamic",
-  "version": "0.0.2",
+  "version": "0.2.0",
   "main": "./dist/index.cjs.js",
   "types": "./dist/index.d.ts",
   "license": "Apache-2.0",
@@ -26,7 +26,7 @@
     "./package.json": "./package.json"
   },
   "dependencies": {
-    "@red-hat-developer-hub/backstage-plugin-marketplace-backend": "0.0.2"
+    "@red-hat-developer-hub/backstage-plugin-marketplace-backend": "0.2.0"
   },
   "files": [
     "dist"
@@ -58,11 +58,12 @@
     "@red-hat-developer-hub/backstage-plugin-marketplace-common": "file:./embedded/red-hat-developer-hub-backstage-plugin-marketplace-common"
   },
   "peerDependencies": {
-    "@backstage/backend-defaults": "^0.5.2",
-    "@backstage/backend-plugin-api": "^1.0.1",
-    "@backstage/catalog-client": "^1.8.0",
-    "@backstage/catalog-model": "^1.7.0",
-    "@backstage/errors": "^1.2.4",
-    "@backstage/types": "^1.1.1"
+    "@backstage/backend-defaults": "^0.7.0",
+    "@backstage/backend-plugin-api": "^1.1.1",
+    "@backstage/catalog-client": "^1.9.1",
+    "@backstage/catalog-model": "^1.7.3",
+    "@backstage/errors": "^1.2.7",
+    "@backstage/plugin-catalog-node": "^1.15.1",
+    "@backstage/types": "^1.2.1"
   }
 }

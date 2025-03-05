@@ -1,7 +1,7 @@
 'use strict';
 
-var pluginScaffolderBackend = require('@backstage/plugin-scaffolder-backend');
-var backendCommon = require('@backstage/backend-common');
+var pluginScaffolderNode = require('@backstage/plugin-scaffolder-node');
+var backendPluginApi = require('@backstage/backend-plugin-api');
 var fs = require('fs-extra');
 
 function _interopDefaultCompat (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }
@@ -9,7 +9,7 @@ function _interopDefaultCompat (e) { return e && typeof e === 'object' && 'defau
 var fs__default = /*#__PURE__*/_interopDefaultCompat(fs);
 
 function createWriteFileAction() {
-  return pluginScaffolderBackend.createTemplateAction({
+  return pluginScaffolderNode.createTemplateAction({
     id: "roadiehq:utils:fs:write",
     description: "Creates a file with the content on the given path",
     supportsDryRun: true,
@@ -47,7 +47,7 @@ function createWriteFileAction() {
       }
     },
     async handler(ctx) {
-      const destFilepath = backendCommon.resolveSafeChildPath(
+      const destFilepath = backendPluginApi.resolveSafeChildPath(
         ctx.workspacePath,
         ctx.input.path
       );

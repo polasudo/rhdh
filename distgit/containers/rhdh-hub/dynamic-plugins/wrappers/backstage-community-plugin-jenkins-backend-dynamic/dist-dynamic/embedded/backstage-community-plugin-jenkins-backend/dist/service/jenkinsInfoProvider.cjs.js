@@ -1,6 +1,5 @@
 'use strict';
 
-var backendCommon = require('@backstage/backend-common');
 var catalogModel = require('@backstage/catalog-model');
 
 class JenkinsConfig {
@@ -105,11 +104,10 @@ class DefaultJenkinsInfoProvider {
   static NEW_JENKINS_ANNOTATION = "jenkins.io/job-full-name";
   static JENKINS_OVERRIDE_URL = "jenkins.io/override-base-url";
   static fromConfig(options) {
-    const { auth } = backendCommon.createLegacyAuthAdapters(options);
     return new DefaultJenkinsInfoProvider(
       JenkinsConfig.fromConfig(options.config),
       options.catalog,
-      auth,
+      options.auth,
       options.logger
     );
   }
@@ -127,24 +125,35 @@ class DefaultJenkinsInfoProvider {
         `Couldn't find entity with name: ${catalogModel.stringifyEntityRef(opt.entityRef)}`
       );
     }
-    const jenkinsAndJobName = DefaultJenkinsInfoProvider.getEntityAnnotationValue(entity);
-    if (!jenkinsAndJobName) {
+    const jenkinsAndJobNames = DefaultJenkinsInfoProvider.getEntityAnnotationValue(entity);
+    if (!jenkinsAndJobNames || jenkinsAndJobNames.length === 0) {
       throw new Error(
         `Couldn't find jenkins annotation (${DefaultJenkinsInfoProvider.NEW_JENKINS_ANNOTATION}) on entity with name: ${catalogModel.stringifyEntityRef(opt.entityRef)}`
       );
     }
-    let jobFullName;
-    let jenkinsName;
-    const splitIndex = jenkinsAndJobName.indexOf(":");
-    if (splitIndex === -1) {
-      jobFullName = jenkinsAndJobName;
-    } else {
-      jenkinsName = jenkinsAndJobName.substring(0, splitIndex);
-      jobFullName = jenkinsAndJobName.substring(
-        splitIndex + 1,
-        jenkinsAndJobName.length
+    const jobsByInstance = jenkinsAndJobNames.reduce(
+      (acc, name) => {
+        const splitIndex = name.indexOf(":");
+        const { default: defaultJobs = [] } = acc;
+        if (splitIndex === -1) {
+          acc.default = [...defaultJobs, name];
+        } else {
+          const instanceName = name.substring(0, splitIndex);
+          const jobName = name.substring(splitIndex + 1);
+          acc[instanceName] = [...acc[instanceName] || [], jobName];
+        }
+        return acc;
+      },
+      {}
+    );
+    const instancesFound = Object.keys(jobsByInstance);
+    if (instancesFound.length > 1) {
+      throw new Error(
+        `More than one Jenkins instance found: (${instancesFound}) on entity with name: ${catalogModel.stringifyEntityRef(opt.entityRef)}. Please use the same instance for all jobs.`
       );
     }
+    const jenkinsName = instancesFound.pop() ?? "default";
+    const fullJobNames = jobsByInstance[jenkinsName];
     const instanceConfig = this.config.getInstanceConfig(jenkinsName);
     const overrideUrlValue = DefaultJenkinsInfoProvider.getEntityOverrideURL(entity);
     if (instanceConfig.allowedBaseUrlOverrideRegex && overrideUrlValue && DefaultJenkinsInfoProvider.verifyUrlMatchesRegex(
@@ -164,13 +173,19 @@ class DefaultJenkinsInfoProvider {
         Authorization: `Basic ${creds}`,
         ...instanceConfig.extraRequestHeaders
       },
-      jobFullName,
+      fullJobNames,
       projectCountLimit: instanceConfig.projectCountLimit ?? DEFAULT_LIMITATION_OF_PROJECTS,
       crumbIssuer: instanceConfig.crumbIssuer
     };
   }
   static getEntityAnnotationValue(entity) {
-    return entity.metadata.annotations?.[DefaultJenkinsInfoProvider.OLD_JENKINS_ANNOTATION] || entity.metadata.annotations?.[DefaultJenkinsInfoProvider.NEW_JENKINS_ANNOTATION];
+    const oldAnnotation = entity.metadata.annotations?.[DefaultJenkinsInfoProvider.OLD_JENKINS_ANNOTATION];
+    const newAnnotation = entity.metadata.annotations?.[DefaultJenkinsInfoProvider.NEW_JENKINS_ANNOTATION];
+    if (oldAnnotation) return [oldAnnotation];
+    if (newAnnotation) {
+      return newAnnotation.split(",");
+    }
+    return [];
   }
   static getEntityOverrideURL(entity) {
     return entity.metadata.annotations?.[DefaultJenkinsInfoProvider.JENKINS_OVERRIDE_URL];

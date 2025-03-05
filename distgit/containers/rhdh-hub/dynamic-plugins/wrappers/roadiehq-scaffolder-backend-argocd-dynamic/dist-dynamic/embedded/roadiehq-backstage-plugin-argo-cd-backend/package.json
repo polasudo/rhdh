@@ -1,6 +1,6 @@
 {
   "name": "@roadiehq/backstage-plugin-argo-cd-backend",
-  "version": "3.2.3+embedded",
+  "version": "3.3.2+embedded",
   "main": "dist/index.cjs.js",
   "types": "dist/index.d.ts",
   "license": "Apache-2.0",
@@ -35,11 +35,22 @@
       "default": "./dist/index.cjs.js"
     },
     "./alpha": {
+      "backstage": "@backstage/BackendFeature",
       "require": "./dist/alpha.cjs.js",
       "types": "./dist/alpha.d.ts",
       "default": "./dist/alpha.cjs.js"
     },
     "./package.json": "./package.json"
+  },
+  "typesVersions": {
+    "*": {
+      "index": [
+        "dist/index.d.ts"
+      ],
+      "alpha": [
+        "dist/alpha.d.ts"
+      ]
+    }
   },
   "scripts": {
     "start": "backstage-cli package start",
@@ -61,17 +72,16 @@
   "devDependencies": {},
   "files": [
     "dist",
-    "config.d.ts",
-    "alpha"
+    "config.d.ts"
   ],
   "configSchema": "config.d.ts",
-  "gitHead": "5c5130d4dcf5bf15f1dd5351d09e2c65107baf77",
+  "gitHead": "cd635fefdab1db9409f9c75fd94cfcf66016b568",
   "private": true,
   "peerDependencies": {
-    "@backstage/backend-common": "^0.24.0",
-    "@backstage/backend-plugin-api": "^0.8.0",
-    "@backstage/catalog-client": "^1.6.6",
-    "@backstage/config": "^1.2.0"
+    "@backstage/backend-common": "^0.25.0",
+    "@backstage/backend-plugin-api": "^1.0.2",
+    "@backstage/catalog-client": "^1.8.0",
+    "@backstage/config": "^1.3.0"
   },
   "overrides": {
     "@aws-sdk/util-utf8-browser": {
