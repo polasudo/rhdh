@@ -24,7 +24,7 @@
 
 # Stage 1 - Build nodejs skeleton
 # https://registry.access.redhat.com/ubi9/nodejs-22
-FROM registry.access.redhat.com/ubi9/nodejs-22:9.5-1740412185 AS skeleton
+FROM registry.access.redhat.com/ubi9/nodejs-22:9.5-1741181304 AS skeleton
 # hadolint ignore=DL3002
 USER 0
 
@@ -205,7 +205,7 @@ RUN "$YARN" workspaces focus --all --production && \
 
 # Stage 5 - Build the runner image
 # https://registry.access.redhat.com/ubi9/nodejs-22-minimal
-FROM registry.access.redhat.com/ubi9/nodejs-22-minimal:9.5-1741091630 AS runner
+FROM registry.access.redhat.com/ubi9/nodejs-22-minimal:9.5-1741243183 AS runner
 USER 0
 
 # Upstream only
@@ -290,7 +290,7 @@ ENTRYPOINT ["node", "--require", "./instrumentation.js", "packages/backend", "--
 # append Brew metadata here
 ENV SUMMARY="Red Hat Developer Hub container" \
     DESCRIPTION="Red Hat Developer Hub container" \
-    UPSTREAM_REPO="https://github.com/redhat-developer/rhdh/tree/main @ c5dca7e7" \
+    UPSTREAM_REPO="https://github.com/redhat-developer/rhdh/tree/main @ 8b385ddb" \
     MIDSTREAM_REPO="https://gitlab.cee.redhat.com/rhidp/rhdh/-/commits/rhdh-1-rhel-9" \
     PRODNAME="rhdh" \
     COMPNAME="hub"
@@ -303,12 +303,12 @@ LABEL summary="$SUMMARY" \
       com.redhat.component="$PRODNAME-$COMPNAME-container" \
       name="$PRODNAME/$PRODNAME-$COMPNAME-rhel9" \
       version="1.6" \
-      release="38" \
+      release="39" \
       license="ASLv2" \
       maintainer="RHDH Team <rhdh-bot@redhat.com>" \
       vendor="Red Hat, Inc." \
       io.openshift.expose-services="" \
       usage="" \
-      konflux.additional-tags="next, 1.6, 1.6-38" \
+      konflux.additional-tags="next, 1.6, 1.6-39" \
       distribution-scope="public" \
       url="https://red.ht/rhdh"
