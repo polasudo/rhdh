@@ -58,6 +58,7 @@ async function getEntities(getEntitiesFn, config, logger, limit, entityQuerySize
   const rawEntityCount = await entitiesAPI.count({ realm: config.realm });
   const entityCount = typeof rawEntityCount === "number" ? rawEntityCount : rawEntityCount.count;
   const pageCount = Math.ceil(entityCount / entityQuerySize);
+  const brief = config.briefRepresentation ?? constants.KEYCLOAK_BRIEF_REPRESENTATION_DEFAULT;
   const entityPromises = Array.from(
     { length: pageCount },
     (_, i) => limit(
@@ -65,7 +66,8 @@ async function getEntities(getEntitiesFn, config, logger, limit, entityQuerySize
         return entities.find({
           realm: config.realm,
           max: entityQuerySize,
-          first: i * entityQuerySize
+          first: i * entityQuerySize,
+          briefRepresentation: brief
         }).then((ents) => {
           logger.debug(
             `Importing keycloak entities batch with index ${i} from pages: ${pageCount}`
@@ -106,6 +108,7 @@ async function getAllGroupMembers(groupsAPI, groupId, config, options) {
 }
 async function processGroupsRecursively(kcAdminClient, config, logger, topLevelGroups) {
   const allGroups = [];
+  const brief = config.briefRepresentation ?? constants.KEYCLOAK_BRIEF_REPRESENTATION_DEFAULT;
   for (const group of topLevelGroups) {
     allGroups.push(group);
     if (group.subGroupCount > 0) {
@@ -114,7 +117,7 @@ async function processGroupsRecursively(kcAdminClient, config, logger, topLevelG
         parentId: group.id,
         first: 0,
         max: group.subGroupCount,
-        briefRepresentation: true
+        briefRepresentation: brief
       });
       const subGroupResults = await processGroupsRecursively(
         kcAdminClient,
@@ -185,6 +188,7 @@ const readKeycloakRealm = async (client, config, logger, limit, options) => {
     );
   }
   logger.debug(`Fetching group members for keycloak groups and list subgroups`);
+  const brief = config.briefRepresentation ?? constants.KEYCLOAK_BRIEF_REPRESENTATION_DEFAULT;
   const kGroups = await Promise.all(
     rawKGroups.map(
       (g) => limit(async () => {
@@ -204,7 +208,7 @@ const readKeycloakRealm = async (client, config, logger, limit, options) => {
               parentId: g.id,
               first: 0,
               max: g.subGroupCount,
-              briefRepresentation: false,
+              briefRepresentation: brief,
               realm: config.realm
             });
           }

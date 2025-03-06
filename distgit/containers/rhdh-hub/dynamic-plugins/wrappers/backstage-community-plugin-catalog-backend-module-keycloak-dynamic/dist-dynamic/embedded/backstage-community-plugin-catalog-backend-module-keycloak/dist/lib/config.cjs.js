@@ -14,6 +14,9 @@ const readProviderConfig = (id, providerConfigInstance) => {
   const userQuerySize = providerConfigInstance.getOptionalNumber("userQuerySize");
   const groupQuerySize = providerConfigInstance.getOptionalNumber("groupQuerySize");
   const maxConcurrency = providerConfigInstance.getOptionalNumber("maxConcurrency");
+  const briefRepresentation = providerConfigInstance.getOptionalBoolean(
+    "briefRepresentation"
+  );
   if (clientId && !clientSecret) {
     throw new errors.InputError(
       `clientSecret must be provided when clientId is defined.`
@@ -45,7 +48,8 @@ const readProviderConfig = (id, providerConfigInstance) => {
     schedule,
     userQuerySize,
     groupQuerySize,
-    maxConcurrency
+    maxConcurrency,
+    briefRepresentation
   };
 };
 const readProviderConfigs = (config) => {

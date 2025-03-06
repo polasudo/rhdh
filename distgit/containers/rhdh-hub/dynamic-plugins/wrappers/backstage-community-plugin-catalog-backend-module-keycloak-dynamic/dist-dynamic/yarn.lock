@@ -6,11 +6,11 @@ __metadata:
   cacheKey: 8
 
 "@backstage-community/plugin-catalog-backend-module-keycloak@file:./embedded/backstage-community-plugin-catalog-backend-module-keycloak::locator=backstage-community-plugin-catalog-backend-module-keycloak-dynamic%40workspace%3A.":
-  version: 3.5.1+embedded
-  resolution: "@backstage-community/plugin-catalog-backend-module-keycloak@file:./embedded/backstage-community-plugin-catalog-backend-module-keycloak#./embedded/backstage-community-plugin-catalog-backend-module-keycloak::hash=fd41ee&locator=backstage-community-plugin-catalog-backend-module-keycloak-dynamic%40workspace%3A."
+  version: 3.7.0+embedded
+  resolution: "@backstage-community/plugin-catalog-backend-module-keycloak@file:./embedded/backstage-community-plugin-catalog-backend-module-keycloak#./embedded/backstage-community-plugin-catalog-backend-module-keycloak::hash=bfc0f3&locator=backstage-community-plugin-catalog-backend-module-keycloak-dynamic%40workspace%3A."
   dependencies:
     "@common.js/p-limit": ^6.1.0
-    "@keycloak/keycloak-admin-client": 26.1.0
+    "@keycloak/keycloak-admin-client": 26.1.2
     inclusion: ^1.0.1
     jsonwebtoken: ^9.0.0
     lodash: ^4.17.21
@@ -22,7 +22,7 @@ __metadata:
     "@backstage/catalog-model": ^1.7.3
     "@backstage/errors": ^1.2.7
     "@backstage/plugin-catalog-node": ^1.15.1
-  checksum: 8d010f8264ebd4184731fdae2d9b871a44a7a66f47eb34d6a1ac6e26e57ed2fbe8a62ac42d83e8544ba1e8c11d0958c39e3ce25aff2ca0aee79c019cb676d34c
+  checksum: e6c312f27eb7fc30e6f7d791817e712c232d7582caf605c300f17484f24aab80406e9d86c8812ff9f34781ee8ab4de2d7c74c720f6f463212fbab2b8f07b46ca
   languageName: node
   linkType: hard
 
@@ -42,14 +42,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@keycloak/keycloak-admin-client@npm:26.1.0":
-  version: 26.1.0
-  resolution: "@keycloak/keycloak-admin-client@npm:26.1.0"
+"@keycloak/keycloak-admin-client@npm:26.1.2":
+  version: 26.1.2
+  resolution: "@keycloak/keycloak-admin-client@npm:26.1.2"
   dependencies:
     camelize-ts: ^3.0.0
     url-join: ^5.0.0
     url-template: ^3.1.1
-  checksum: 04a573b48e24f31d2f409aee17894e70389e7eb3df0ef8fd7b169d8a8966feba6db287b3e88e403507455f20f9f6d3d1c60e80ac99d99e7e718bc8f8ec7ba2cf
+  checksum: 550c8f457c9804710a5d34bdde9071d0fec46177d8dd62d11c28075f0bd8247c7b81e3ca3f92e17785b5f47a14c3639bcabce7199f78082d015f6e543305114d
   languageName: node
   linkType: hard
 
@@ -57,7 +57,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "backstage-community-plugin-catalog-backend-module-keycloak-dynamic@workspace:."
   dependencies:
-    "@backstage-community/plugin-catalog-backend-module-keycloak": 3.5.1
+    "@backstage-community/plugin-catalog-backend-module-keycloak": 3.7.0
   peerDependencies:
     "@backstage/backend-plugin-api": ^1.1.1
     "@backstage/catalog-model": ^1.7.3

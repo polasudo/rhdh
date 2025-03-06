@@ -44,6 +44,10 @@
                         "description": "Maximum request concurrency to prevent DoS attacks on the Keycloak server.",
                         "type": "number"
                       },
+                      "briefRepresentation": {
+                        "description": "Whether the API call will return a brief representation for groups and users or not. Defaults to true",
+                        "type": "boolean"
+                      },
                       "schedule": {},
                       "username": {
                         "description": "Keycloak credentials. Use together with \"password\".",
@@ -87,6 +91,10 @@
                       "maxConcurrency": {
                         "description": "Maximum request concurrency to prevent DoS attacks on the Keycloak server.",
                         "type": "number"
+                      },
+                      "briefRepresentation": {
+                        "description": "Whether the API call will return a brief representation for groups and users or not. Defaults to true",
+                        "type": "boolean"
                       },
                       "schedule": {},
                       "clientId": {
