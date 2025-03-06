@@ -373,22 +373,26 @@ function updateOperatorVersions() {
 	# update Makefile
 	sed -i Makefile -r -e "s/(VERSION \?= )[0-9.]+/\1$the_version_op/" # 0.y.0
 
-	# update bundle/rhdh/manifests/backstage-operator.clusterserviceversion.yaml
-	sed -i bundle/rhdh/manifests/backstage-operator.clusterserviceversion.yaml -r \
-		` # update the tags in the CSV to the latest 1.y version` \
-		-e "s|(/rhdh/rhdh-.+:)([0-9.]+)|\1${the_version%.*}|g" \
-		` # update refs to the latest x.y.0 or x.y.z version` \
-		-e "s/(skipRange: '>=1.0.0 <)[0-9.]+'/\1$the_version'/" \
-		-e "s/(name: rhdh-operator.v)[0-9.]+/\1$the_version/" \
-		-e "s/(^  version: )[0-9.]+/\1$the_version/" \
-		-e "s/(rhdh-rhdh-hub-rhel9:|rhdh-rhdh-rhel9-operator:)[0-9.]+/\1${the_version%.*}/" \
-		-e "s|(.*https://access.redhat.com/documentation/en-us/red_hat_developer_hub/)([0-9.]+)(/html-single/administration_guide_for_red_hat_developer_hub/index#assembly-rhdh-telemetry_admin-rhdh.*)|\1${the_version%.*}\3|g" \
-		` # replace upstream refs to quay images with RHEC ones` \
-		-e "s|quay.io/fedora/postgresql-15:latest|registry.redhat.io/rhel9/postgresql-15:latest|" \
-		-e "s|quay.io/rhdh/rhdh-hub-rhel9:next|registry.redhat.io/rhdh/rhdh-hub-rhel9:${the_version%.*}|"
-	# NOTE: downstream we need to rename this file from backstage-operator.clusterserviceversion.yaml to rhdh-operator.clusterserviceversion.yaml
+	# update *.clusterserviceversion.yaml
+	for y in config/manifests/rhdh/bases/backstage-operator.clusterserviceversion.yaml bundle/rhdh/manifests/backstage-operator.clusterserviceversion.yaml; do 
+		sed -i $y -r \
+			` # update the tags in the CSV to the latest 1.y version` \
+			-e "s|(/rhdh/rhdh-.+:)([0-9.]+)|\1${the_version%.*}|g" \
+			` # update refs to the latest x.y.0 or x.y.z version` \
+			-e "s/(skipRange: '>=1.0.0 <)[0-9.]+'/\1$the_version'/" \
+			-e "s/(name: rhdh-operator.v)[0-9.]+/\1$the_version/" \
+			-e "s/(^  version: )[0-9.]+/\1$the_version/" \
+			-e "s/(^  replaces: rhdh-operator.v)[0-9.]+/\1${PROD_VERSION}.0/" \
+			-e "s/(rhdh-rhdh-hub-rhel9:|rhdh-rhdh-rhel9-operator:)[0-9.]+/\1${the_version%.*}/" \
+			-e "s|(.*https://access.redhat.com/documentation/en-us/red_hat_developer_hub/)([0-9.]+)(/html-single/administration_guide_for_red_hat_developer_hub/index#assembly-rhdh-telemetry_admin-rhdh.*)|\1${the_version%.*}\3|g" \
+			` # replace upstream refs to quay images with RHEC ones` \
+			-e "s|quay.io/fedora/postgresql-15:latest|registry.redhat.io/rhel9/postgresql-15:latest|" \
+			-e "s|quay.io/rhdh/rhdh-hub-rhel9:next|registry.redhat.io/rhdh/rhdh-hub-rhel9:${the_version%.*}|"
+		# NOTE: downstream we need to rename this file from backstage-operator.clusterserviceversion.yaml to rhdh-operator.clusterserviceversion.yaml
+	done
 
 	# update config/manager/kustomization.yaml
+	# shellcheck disable=SC2044
 	for d in $(find . -name kustomization.yaml); do sed -i "$d" -r \
 		-e "s/(^  newTag:  )[0-9.]+/\1$the_version_op/" # 0.y.0
 	done
@@ -957,10 +961,11 @@ if [[ $SKIP_GH -eq 0 ]]; then
 		# still needed for 1.4's janus plugins
 		updatePluginVersions 
 		updateOperatorVersions "$SOURCE_BRANCH" "$newver" "$newverOp"
-		## CCS has requested that we not bump the version in main branch, as they prefer manual steps to automation.
-		## updateDocVersions "$SOURCE_BRANCH" "$newver"
 		updateShowcaseVersions "$SOURCE_BRANCH" "$newver"
 		updateChartVersions "$SOURCE_BRANCH" "$newver"
+
+		## CCS has requested that we not bump the version in main branch, as they prefer manual steps to automation.
+		## updateDocVersions "$SOURCE_BRANCH" "$newver"
 	fi
 fi
 
