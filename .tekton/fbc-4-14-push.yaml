@@ -253,7 +253,7 @@ spec:
             - name: name
               value: deprecated-image-check
             - name: bundle
-              value: quay.io/konflux-ci/tekton-catalog/task-deprecated-image-check:0.5@sha256:a0a5b05286e3df5045432b3da3cc11224a831e05bc77c927cbfd00381f7f6235
+              value: quay.io/konflux-ci/tekton-catalog/task-deprecated-image-check:0.5@sha256:b2ab681c559e6de5f5df8fa3b88758eb1fa429e141d350539f55a00397b6f2c0
             - name: kind
               value: task
           resolver: bundles
@@ -290,7 +290,7 @@ spec:
             - name: name
               value: rpms-signature-scan
             - name: bundle
-              value: quay.io/konflux-ci/tekton-catalog/task-rpms-signature-scan:0.2@sha256:5bc61290c6d56cb3d61409efdf522574e7d08a497f362d7456ed33d56189c4f9
+              value: quay.io/konflux-ci/tekton-catalog/task-rpms-signature-scan:0.2@sha256:b9cb1e126d186010e0a5281501b475177d55b4eb2829c5e7d7614c173a8c929c
             - name: kind
               value: task
           resolver: bundles
@@ -316,7 +316,7 @@ spec:
           - name: name
             value: fbc-target-index-pruning-check
           - name: bundle
-            value: quay.io/konflux-ci/tekton-catalog/task-fbc-target-index-pruning-check:0.1@sha256:dbae7ad5cca552647330fb47e8556aa86e53dfa9852398c160860ff37de1cc56
+            value: quay.io/konflux-ci/tekton-catalog/task-fbc-target-index-pruning-check:0.1@sha256:5e0f86c05d716f5a20d2d91ccdbdc9f725dcc7b0ed2ef65ac7e71951b2fd7792
           - name: kind
             value: task
           resolver: bundles
@@ -338,7 +338,7 @@ spec:
             - name: name
               value: validate-fbc
             - name: bundle
-              value: quay.io/konflux-ci/tekton-catalog/task-validate-fbc:0.1@sha256:7bbbe842e75dcb2cb335080e6f11df56d96d2063697be9225b9236734152733f
+              value: quay.io/konflux-ci/tekton-catalog/task-validate-fbc:0.1@sha256:80fda663d5dc221fcb662dba12f726fb6195d8622f4839e76c44f75768e5f5a4
             - name: kind
               value: task
           resolver: bundles
@@ -360,7 +360,7 @@ spec:
             - name: name
               value: fbc-fips-check
             - name: bundle
-              value: quay.io/konflux-ci/tekton-catalog/task-fbc-fips-check:0.1@sha256:4bda93f29c06da0a3da8eadd41079e81ac3e47cd088d67d2d19e3ed40dc6aef7
+              value: quay.io/konflux-ci/tekton-catalog/task-fbc-fips-check:0.1@sha256:6cf7833b56948060d452713bcef692a7d5701c288b8f26c0d4fecc779e79fb89
             - name: kind
               value: task
           resolver: bundles
