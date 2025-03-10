@@ -8,6 +8,10 @@ var MarketplaceCollectionProcessor = require('./processors/MarketplaceCollection
 var DynamicPackageInstallStatusProcessor = require('./processors/DynamicPackageInstallStatusProcessor.cjs.js');
 var LocalPackageInstallStatusProcessor = require('./processors/LocalPackageInstallStatusProcessor.cjs.js');
 var MarketplacePackageProcessor = require('./processors/MarketplacePackageProcessor.cjs.js');
+var BaseEntityProvider = require('./providers/BaseEntityProvider.cjs.js');
+var MarketplacePluginProvider = require('./providers/MarketplacePluginProvider.cjs.js');
+var MarketplaceCollectionProvider = require('./providers/MarketplaceCollectionProvider.cjs.js');
+var MarketplacePackageProvider = require('./providers/MarketplacePackageProvider.cjs.js');
 
 
 
@@ -17,4 +21,8 @@ exports.MarketplaceCollectionProcessor = MarketplaceCollectionProcessor.Marketpl
 exports.DynamicPackageInstallStatusProcessor = DynamicPackageInstallStatusProcessor.DynamicPackageInstallStatusProcessor;
 exports.LocalPackageInstallStatusProcessor = LocalPackageInstallStatusProcessor.LocalPackageInstallStatusProcessor;
 exports.MarketplacePackageProcessor = MarketplacePackageProcessor.MarketplacePackageProcessor;
+exports.BaseEntityProvider = BaseEntityProvider.BaseEntityProvider;
+exports.MarketplacePluginProvider = MarketplacePluginProvider.MarketplacePluginProvider;
+exports.MarketplaceCollectionProvider = MarketplaceCollectionProvider.MarketplaceCollectionProvider;
+exports.MarketplacePackageProvider = MarketplacePackageProvider.MarketplacePackageProvider;
 //# sourceMappingURL=index.cjs.js.map

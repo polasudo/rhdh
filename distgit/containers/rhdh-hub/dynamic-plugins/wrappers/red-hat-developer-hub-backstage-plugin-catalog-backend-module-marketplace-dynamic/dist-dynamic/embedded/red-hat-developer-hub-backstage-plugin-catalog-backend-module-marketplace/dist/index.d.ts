@@ -1,9 +1,9 @@
 import * as _backstage_backend_plugin_api from '@backstage/backend-plugin-api';
-import { DiscoveryService, AuthService } from '@backstage/backend-plugin-api';
-import { CatalogProcessor, CatalogProcessorEmit, CatalogProcessorCache } from '@backstage/plugin-catalog-node';
+import { DiscoveryService, AuthService, SchedulerServiceTaskRunner } from '@backstage/backend-plugin-api';
+import { CatalogProcessor, CatalogProcessorEmit, CatalogProcessorCache, EntityProvider, EntityProviderConnection } from '@backstage/plugin-catalog-node';
 import { LocationSpec } from '@backstage/plugin-catalog-common';
 import { Entity } from '@backstage/catalog-model';
-import { MarketplacePlugin, MarketplacePackage } from '@red-hat-developer-hub/backstage-plugin-marketplace-common';
+import { MarketplacePlugin, MarketplacePackage, MarketplaceCollection } from '@red-hat-developer-hub/backstage-plugin-marketplace-common';
 
 /**
  * @public
@@ -86,4 +86,50 @@ declare class MarketplacePackageProcessor implements CatalogProcessor {
     postProcessEntity(entity: MarketplacePackage, _location: LocationSpec, emit: CatalogProcessorEmit): Promise<Entity>;
 }
 
-export { type CachedData, DynamicPackageInstallStatusProcessor, LocalPackageInstallStatusProcessor, MarketplaceCollectionProcessor, MarketplacePackageProcessor, MarketplacePluginProcessor, catalogModuleMarketplace as default };
+/**
+ * @public
+ */
+type JsonFileData<T> = {
+    filePath: string;
+    content: T;
+};
+
+/**
+ * @public
+ */
+declare abstract class BaseEntityProvider<T extends Entity> implements EntityProvider {
+    private connection?;
+    private taskRunner;
+    constructor(taskRunner: SchedulerServiceTaskRunner);
+    abstract getProviderName(): string;
+    abstract getKind(): string;
+    getEntities(allEntities: JsonFileData<T>[]): T[];
+    connect(connection: EntityProviderConnection): Promise<void>;
+    run(): Promise<void>;
+}
+
+/**
+ * @public
+ */
+declare class MarketplacePluginProvider extends BaseEntityProvider<MarketplacePlugin> {
+    getKind(): string;
+    getProviderName(): string;
+}
+
+/**
+ * @public
+ */
+declare class MarketplaceCollectionProvider extends BaseEntityProvider<MarketplaceCollection> {
+    getKind(): string;
+    getProviderName(): string;
+}
+
+/**
+ * @public
+ */
+declare class MarketplacePackageProvider extends BaseEntityProvider<MarketplacePackage> {
+    getKind(): string;
+    getProviderName(): string;
+}
+
+export { BaseEntityProvider, type CachedData, DynamicPackageInstallStatusProcessor, type JsonFileData, LocalPackageInstallStatusProcessor, MarketplaceCollectionProcessor, MarketplaceCollectionProvider, MarketplacePackageProcessor, MarketplacePackageProvider, MarketplacePluginProcessor, MarketplacePluginProvider, catalogModuleMarketplace as default };
