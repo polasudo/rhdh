@@ -22,22 +22,25 @@ QUIET=0
 REGEX_FILTER=""
 # by default show tags; use this to show digests only (eg., for use with a script that copies images inside an airgap)
 SHOW_DIGESTS_ONLY=0
-# defaults to pass to getIIBsForBundle.sh
-OCP_VER=""
+# default
+OCP_VER=4.18
 
-# compute a default value for PROD_VER to use in usage()
-PROD_VER="1.yy"
 # cleanup /tmp files
 rm -fr /tmp/job-config.json || true
 
 usage () {
+  if [[ ! $PROD_VER ]]; then
+    # compute a default value for PROD_VER to use in usage()
+    PROD_VER="$(curl -sSLk --url "https://gitlab.cee.redhat.com/api/v4/projects/rhidp%2Frhdh/repository/branches?per_page=200&regex=^rhdh-1..*-rhel-9$" | jq -r '.[].name' | sort -uV | tail -1 | sed -r -e "s/rhdh-//" -e "s/-rhel-[0-9]+//")"
+  fi
+
   echo "
 Usage:
   Using a specific bundle: $0 bundle-image1 [bundle-image2...] [OPTIONS]
-  Using the latest bundle: $0 -t $PROD_VER -o 4.12 [OPTIONS]
+  Using the latest bundle: $0 -t $PROD_VER -o 4.18 [OPTIONS]
 
 Options:
-  -t <product tag>     Use getIIBsForBundle.sh to fetch latest IIB's contained bundle image, 
+  -t <product tag>     Use getLatestImageTags.sh to fetch latest IIB's contained bundle image, 
   -o <OCP version>     and check that bundle's CSV; BOTH these are required.
 
   -y, --quay           If image not resolved from RH Ecosystem Catalog, check equivalent image on quay.io
@@ -48,15 +51,17 @@ Options:
   --digests            Instead of showing tags, just show image digests as seen in the IIB/CSV
 
 Examples:
-  $0 quay.io/rhdh/rhdh-operator-bundle:$PROD_VER -y -i 'hub'
+  $0 -y -q quay.io/rhdh/rhdh-operator-bundle:$PROD_VER
+  $0 -y -i 'hub|operator|postgresql' quay.io/rhdh/rhdh-operator-bundle:$PROD_VER
+  $0 -y -q -t $PROD_VER
 
 To compare latest image in Quay to latest CSV in bundle in latest IIB:
   TAG=$PROD_VER; \\
   IMG=rhdh/hub-rhel9; \\
   img_quay=\$(${SCRIPTPATH}/getLatestImageTags.sh -b rhdh-\${TAG}-rhel-9 --quay --tag \"\${TAG}-\" -c \${IMG}); echo \$img_quay; \\
-  img_iib=\$(${SCRIPTPATH}/checkImagesInCSV.sh --ds -t \${TAG} -o 4.12 -y -qq -i \${IMG}); echo \$img_iib; \\
+  img_iib=\$(${SCRIPTPATH}/checkImagesInCSV.sh --ds -t \${TAG} -o 4.18 -y -qq -i \${IMG}); echo \$img_iib; \\
   if [[ \$img_quay != \$img_iib ]]; then \\
-    ${SCRIPTPATH}/checkImagesInCSV.sh --ds -t \${TAG} -o 4.12 -y -i \${IMG}; \\
+    ${SCRIPTPATH}/checkImagesInCSV.sh --ds -t \${TAG} -o 4.18 -y -i \${IMG}; \\
   fi
 "
 }
@@ -84,20 +89,15 @@ if [[ ! $IMAGES ]] && [[ ! $OCP_VER ]]; then
   usage
 fi
 
-if [[ $PROD_VER ]] && [[ $PROD_VER != "1.yy" ]] && [[ $OCP_VER ]] && [[ ! $IMAGES ]]; then # compute latest IIB -> bundle
+if [[ $PROD_VER ]] && [[ $PROD_VER != "1.yy" ]] && [[ ! $IMAGES ]]; then # compute latest IIB -> bundle
   if [[ $QUIET -lt 2 ]]; then
-    echo "Checking for latest OCP v${OCP_VER} IIB for ${PROD_VER}"
+    echo "Checking for IIB for ${PROD_VER}, OCP = $OCP_VER"
   fi
-  if [[ $QUIET -lt 2 ]]; then
-    "${SCRIPTPATH}"/getIIBsForBundle.sh -t "${PROD_VER}" -o "${OCP_VER}"
-  fi
-  if [[ $QUIET -lt 2 ]]; then
-    echo "----------"
-  fi
-  # use getLatestImageTags.sh instead of getIIBsForBundle.sh as it's more reliable when resultsdb-api.engineering.redhat.com content is unavailable
+  # use getLatestImageTags.sh instead of getLatestImageTags.sh as it's more reliable when resultsdb-api.engineering.redhat.com content is unavailable
   GLIT=${SCRIPTPATH}/getLatestImageTags.sh
-  IMAGES=$(${GLIT} --osbs -c rhdh-rhdh-operator-bundle --tag "${PROD_VER}-")
+  IMAGES=$(${GLIT} --quay -c rhdh/rhdh-operator-bundle --tag "${PROD_VER}-")
 fi
+echo "> $IMAGES > "
 
 # echo "REGEX_FILTER = $REGEX_FILTER"
 MIDSTM_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "rhdh-1-rhel-9")

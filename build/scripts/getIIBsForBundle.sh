@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (c) 2023 Red Hat, Inc.
+# Copyright (c) Red Hat, Inc.
 # This program and the accompanying materials are made
 # available under the terms of the Eclipse Public License 2.0
 # which is available at https://www.eclipse.org/legal/epl-2.0/
@@ -10,6 +10,10 @@
 # for a given operator-bundle & tag, compute the associated IIBs for all OCP versions
 # this script uses resultsdb (CVP data) to compute IIB URLs
 #
+# DEPRECATED, will be deleted after Apr 1, 2025
+# this script is used for pulling IIBs from RH internal URLs; 
+# for Konflux-based FBC builds, FBCs are available at https://quay.io/repository/rhdh/iib?tab=tags
+# eg., quay.io/rhdh/iib:1.5-v4.17-x86_64 or quay.io/rhdh/iib:1.5-v4.18-x86_64
 
 VERBOSE=0
 QUIET="none"
