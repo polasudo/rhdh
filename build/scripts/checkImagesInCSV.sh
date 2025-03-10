@@ -96,8 +96,10 @@ if [[ $PROD_VER ]] && [[ $PROD_VER != "1.yy" ]] && [[ ! $IMAGES ]]; then # compu
   # use getLatestImageTags.sh instead of getLatestImageTags.sh as it's more reliable when resultsdb-api.engineering.redhat.com content is unavailable
   GLIT=${SCRIPTPATH}/getLatestImageTags.sh
   IMAGES=$(${GLIT} --quay -c rhdh/rhdh-operator-bundle --tag "${PROD_VER}-")
+  if [[ $QUIET -lt 2 ]]; then
+    echo "> $IMAGES"
+  fi
 fi
-echo "> $IMAGES > "
 
 # echo "REGEX_FILTER = $REGEX_FILTER"
 MIDSTM_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "rhdh-1-rhel-9")

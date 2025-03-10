@@ -19,12 +19,15 @@ usage() {
   Usage:
     $0 [OPTIONS]
   
-  OPTIONS:
+  Options:
     --release-state <release-state> : Release State (RC or GA) to be mentioned in the slack message. It is RC by default.
     --bundle-tag <bundle-tag> : Tag of the operator bundle to use. If not provided, the latest opertor bundle avialable of the given RHDH version will be used.
     --version <version> : RHDH version of the RC/GA build required.
     --slack-webhook <webhook> : Webhook to post a message to a given channel (For webhook for #forum-rhdh-releases, see bitwarden)
-  "
+
+  Example:
+    $0 --bundle-tag 1.5-155 --version 1.5 --slack-webhook https://hooks.slack.com/services/...
+"
 }
 
 send_slack_message() {
