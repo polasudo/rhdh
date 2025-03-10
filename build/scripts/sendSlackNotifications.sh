@@ -103,21 +103,23 @@ EOF
 
 get_images() {
   if [ -z "$BUNDLE_TAG" ]; then
-    BUNDLE_IMAGE=$(${PWD}/getLatestImageTags.sh --quay --tag "$(echo "$RHDH_VERSION" | cut -d '.' -f 1,2)-" -c rhdh/rhdh-operator-bundle)
+    BUNDLE_IMAGE=$("${PWD}/getLatestImageTags.sh" --quay --tag "$(echo "$RHDH_VERSION" | cut -d '.' -f 1,2)-" -c rhdh/rhdh-operator-bundle)
   else
     BUNDLE_IMAGE="quay.io/rhdh/rhdh-operator-bundle:$BUNDLE_TAG"
   fi
 
-  ${PWD}/checkImagesInCSV.sh -q -y $BUNDLE_IMAGE -i 'hub|operator' >>"/tmp/imagelist_CSV_$RHDH_VERSION.txt"
-  echo "$BUNDLE_IMAGE" >>"/tmp/imagelist_CSV_$RHDH_VERSION.txt"
-  sort -uV "/tmp/imagelist_CSV_$RHDH_VERSION.txt" >"/tmp/imagelist_CSV_$RHDH_VERSION.txt_"
-  mv "/tmp/imagelist_CSV_$RHDH_VERSION.txt"{_,}
+  # shellcheck disable=SC2086
+  "${PWD}/checkImagesInCSV.sh" -q -y $BUNDLE_IMAGE -i 'hub|operator' >>"${TMPDIR}/imagelist_CSV_$RHDH_VERSION.txt"
+  echo "$BUNDLE_IMAGE" >>"${TMPDIR}/imagelist_CSV_$RHDH_VERSION.txt"
+  sort -uV "${TMPDIR}/imagelist_CSV_$RHDH_VERSION.txt" >"${TMPDIR}/imagelist_CSV_$RHDH_VERSION.txt_"
+  mv "${TMPDIR}/imagelist_CSV_$RHDH_VERSION.txt"{_,}
 
   # Eg image: quay.io/rhdh/rhdh-operator-bundle:1.5-123
-  skopeo inspect docker://$BUNDLE_IMAGE >/tmp/container_inspect.txt
+  # shellcheck disable=SC2086
+  skopeo inspect docker://$BUNDLE_IMAGE >"${TMPDIR}"/container_inspect.txt
 
   # GET MID_SHA
-  MID_SHA=$(jq -r '.Labels."vcs-ref"' /tmp/container_inspect.txt)
+  MID_SHA=$(jq -r '.Labels."vcs-ref"' "${TMPDIR}"/container_inspect.txt)
   MID_SHA=${MID_SHA/sha256:/}
 
   # given a bundle and its SHA get the snapshot
@@ -125,15 +127,18 @@ get_images() {
     --selector="pac.test.appstudio.openshift.io/original-prname=rhdh-operator-bundle-$(echo "$RHDH_VERSION" | cut -d '.' -f 1,2 | tr '.' '-')-on-push,pac.test.appstudio.openshift.io/sha=${MID_SHA}" |
     sed -r -e '/NAME +AGE/d' -e "s/([a-z0-9-]+)\ +([0-9smhdy]+)/\1/g")
 
-  rm -f /tmp/container_inspect.txt
+  rm -f "${TMPDIR}"/container_inspect.txt
 
   # get hub and operator images from the bundle snapshot
-  oc -n 'rhdh-tenant' get Snapshot "$SNAPSHOT" -o yaml >/tmp/"$SNAPSHOT".yaml
-  IMAGES=$(yq -r '.spec.components[].containerImage' /tmp/"$SNAPSHOT".yaml | sort -uV)
+  oc -n 'rhdh-tenant' get Snapshot "$SNAPSHOT" -o yaml >"${TMPDIR}"/"$SNAPSHOT".yaml
+  IMAGES=$(yq -r '.spec.components[].containerImage' "${TMPDIR}"/"$SNAPSHOT".yaml | sort -uV)
+  # echo "Got images: $IMAGES"
   IMAGE_LIST=""
   for i in $IMAGES; do
-    imageAndTag="$(${PWD}/getTagForSHA.sh "$i" -q -y)"
-    echo $imageAndTag >>"/tmp/imagelist_$SNAPSHOT.txt"
+    imageAndTag="$("${PWD}/getTagForSHA.sh" "$i" -q -y)"
+    # shellcheck disable=SC2086
+    echo $imageAndTag >>"${TMPDIR}/imagelist_$SNAPSHOT.txt"
+    # shellcheck disable=SC2001
     i=$(echo $i | sed 's/^[^@]*\(@.*\)/\1/')
     IMAGE_LIST="$IMAGE_LIST$imageAndTag ($i)\n"
   done
@@ -142,21 +147,21 @@ get_images() {
   IMAGE_LIST=$(echo -e "$IMAGE_LIST" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
 
   # Check if images in Snapshot matches with CSV referecnes in the bundle
-  if [[ "$(cat "/tmp/imagelist_CSV_$RHDH_VERSION.txt")" != "$(cat "/tmp/imagelist_$SNAPSHOT.txt")" ]]; then
+  if [[ "$(cat "${TMPDIR}/imagelist_CSV_$RHDH_VERSION.txt")" != "$(cat "${TMPDIR}/imagelist_$SNAPSHOT.txt")" ]]; then
     echo "[ERROR] CSV images != images in snapshot:"
     echo "===================CSV========================"
-    cat "/tmp/imagelist_CSV_$RHDH_VERSION.txt"
+    cat "${TMPDIR}/imagelist_CSV_$RHDH_VERSION.txt"
     echo "===================CSV========================"
     echo
     echo "===================snapshot==================="
-    cat "/tmp/imagelist_$SNAPSHOT.txt"
+    cat "${TMPDIR}/imagelist_$SNAPSHOT.txt"
     echo "===================snapshot==================="
     exit
   else
     echo "[INFO] Snapshot images match CSV images!"
-    cat "/tmp/imagelist_$SNAPSHOT.txt"
+    cat "${TMPDIR}/imagelist_$SNAPSHOT.txt"
   fi
-  rm -f "/tmp/imagelist_$SNAPSHOT.txt" "/tmp/imagelist_CSV_$RHDH_VERSION.txt" "/tmp/"$SNAPSHOT".yaml"
+  rm -f "${TMPDIR}/imagelist_$SNAPSHOT.txt" "${TMPDIR}/imagelist_CSV_$RHDH_VERSION.txt" "${TMPDIR}/"$SNAPSHOT".yaml"
 }
 
 # Main script logic to process input options
@@ -198,6 +203,12 @@ if [ -z "$WEBHOOK_URL" ]; then
   exit 1
 fi
 
+# work in a unique folder
+TMPDIR=$(mktemp -d)
+
 get_images
 create_payload
 send_slack_message
+
+# cleanup
+rm -fr "$TMPDIR"
