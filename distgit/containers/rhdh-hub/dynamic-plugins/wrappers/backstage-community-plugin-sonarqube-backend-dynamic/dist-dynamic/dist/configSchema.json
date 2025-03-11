@@ -65,33 +65,116 @@
         "providers"
       ],
       "properties": {
-        "providers": {
+        "environment": {
+          "description": "The 'environment' attribute",
+          "visibility": "frontend",
+          "type": "string"
+        },
+        "session": {
           "type": "object",
-          "description": "The available auth-provider options and attributes",
-          "additionalProperties": true,
           "properties": {
-            "guest": {
+            "secret": {
+              "description": "The secret attribute of session object.",
+              "visibility": "secret",
+              "type": "string"
+            }
+          }
+        },
+        "identityTokenAlgorithm": {
+          "description": "JWS \"alg\" (Algorithm) Header Parameter value. Defaults to ES256.\nMust match one of the algorithms defined for IdentityClient.\nWhen setting a different algorithm, check if the `key` field\nof the `signing_keys` table can fit the length of the generated keys.\nIf not, add a knex migration file in the migrations folder.\nMore info on supported algorithms: https://github.com/panva/jose",
+          "type": "string"
+        },
+        "keyStore": {
+          "description": "To control how to store JWK data in auth-backend",
+          "type": "object",
+          "properties": {
+            "provider": {
+              "enum": [
+                "database",
+                "firestore",
+                "memory",
+                "static"
+              ],
+              "type": "string"
+            },
+            "firestore": {
               "type": "object",
               "properties": {
-                "userEntityRef": {
-                  "description": "The entity reference to use for the guest user.",
-                  "default": "user:development/guest",
+                "host": {
+                  "description": "The host to connect to",
                   "type": "string"
                 },
-                "ownershipEntityRefs": {
-                  "description": "A list of entity references to user for ownership of the guest user if the user\n is not found in the catalog.",
-                  "default": "[userEntityRef]",
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
+                "port": {
+                  "description": "The port to connect to",
+                  "type": "number"
                 },
-                "dangerouslyAllowOutsideDevelopment": {
-                  "description": "Allow users to sign in with the guest provider outside of their development environments.",
+                "ssl": {
+                  "description": "Whether to use SSL when connecting.",
                   "type": "boolean"
+                },
+                "projectId": {
+                  "description": "The Google Cloud Project ID",
+                  "type": "string"
+                },
+                "keyFilename": {
+                  "description": "Local file containing the Service Account credentials.\nYou can omit this value to automatically read from\nGOOGLE_APPLICATION_CREDENTIALS env which is useful for local\ndevelopment.",
+                  "type": "string"
+                },
+                "path": {
+                  "description": "The path to use for the collection. Defaults to 'sessions'",
+                  "type": "string"
+                },
+                "timeout": {
+                  "description": "Timeout used for database operations. Defaults to 10000ms",
+                  "type": "number"
                 }
               }
             },
+            "static": {
+              "type": "object",
+              "required": [
+                "keys"
+              ],
+              "properties": {
+                "keys": {
+                  "description": "Must be declared at least once and the first one will be used for signing",
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "keyId",
+                      "privateKeyFile",
+                      "publicKeyFile"
+                    ],
+                    "properties": {
+                      "publicKeyFile": {
+                        "description": "Path to the public key file in the SPKI format",
+                        "type": "string"
+                      },
+                      "privateKeyFile": {
+                        "description": "Path to the matching private key file in the PKCS#8 format",
+                        "type": "string"
+                      },
+                      "keyId": {
+                        "description": "id to uniquely identify this key within the JWK set",
+                        "type": "string"
+                      },
+                      "algorithm": {
+                        "description": "JWS \"alg\" (Algorithm) Header Parameter value. Defaults to ES256.\nMust match the algorithm used to generate the keys in the provided files",
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "providers": {
+          "description": "The available auth-provider options and attributes",
+          "type": "object",
+          "additionalProperties": true,
+          "properties": {
             "saml": {
               "visibility": "frontend",
               "type": "object",
@@ -271,6 +354,28 @@
             },
             "backstageTokenExpiration": {
               "description": "The backstage token expiration."
+            },
+            "guest": {
+              "type": "object",
+              "properties": {
+                "userEntityRef": {
+                  "description": "The entity reference to use for the guest user.",
+                  "default": "user:development/guest",
+                  "type": "string"
+                },
+                "ownershipEntityRefs": {
+                  "description": "A list of entity references to user for ownership of the guest user if the user\n is not found in the catalog.",
+                  "default": "[userEntityRef]",
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "dangerouslyAllowOutsideDevelopment": {
+                  "description": "Allow users to sign in with the guest provider outside of their development environments.",
+                  "type": "boolean"
+                }
+              }
             },
             "atlassian": {
               "visibility": "frontend",
@@ -458,6 +563,33 @@
                 }
               }
             },
+            "bitbucketServer": {
+              "visibility": "frontend",
+              "type": "object",
+              "additionalProperties": {
+                "type": "object",
+                "required": [
+                  "clientId",
+                  "clientSecret",
+                  "host"
+                ],
+                "properties": {
+                  "clientId": {
+                    "type": "string"
+                  },
+                  "clientSecret": {
+                    "visibility": "secret",
+                    "type": "string"
+                  },
+                  "host": {
+                    "type": "string"
+                  },
+                  "callbackUrl": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
             "cfaccess": {
               "visibility": "frontend",
               "type": "object",
@@ -622,33 +754,6 @@
                         ]
                       }
                     }
-                  }
-                }
-              }
-            },
-            "bitbucketServer": {
-              "visibility": "frontend",
-              "type": "object",
-              "additionalProperties": {
-                "type": "object",
-                "required": [
-                  "clientId",
-                  "clientSecret",
-                  "host"
-                ],
-                "properties": {
-                  "clientId": {
-                    "type": "string"
-                  },
-                  "clientSecret": {
-                    "visibility": "secret",
-                    "type": "string"
-                  },
-                  "host": {
-                    "type": "string"
-                  },
-                  "callbackUrl": {
-                    "type": "string"
                   }
                 }
               }
@@ -1339,111 +1444,6 @@
                             }
                           ]
                         }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        },
-        "environment": {
-          "description": "The 'environment' attribute",
-          "visibility": "frontend",
-          "type": "string"
-        },
-        "session": {
-          "type": "object",
-          "properties": {
-            "secret": {
-              "description": "The secret attribute of session object.",
-              "visibility": "secret",
-              "type": "string"
-            }
-          }
-        },
-        "identityTokenAlgorithm": {
-          "description": "JWS \"alg\" (Algorithm) Header Parameter value. Defaults to ES256.\nMust match one of the algorithms defined for IdentityClient.\nWhen setting a different algorithm, check if the `key` field\nof the `signing_keys` table can fit the length of the generated keys.\nIf not, add a knex migration file in the migrations folder.\nMore info on supported algorithms: https://github.com/panva/jose",
-          "type": "string"
-        },
-        "keyStore": {
-          "description": "To control how to store JWK data in auth-backend",
-          "type": "object",
-          "properties": {
-            "provider": {
-              "enum": [
-                "database",
-                "firestore",
-                "memory",
-                "static"
-              ],
-              "type": "string"
-            },
-            "firestore": {
-              "type": "object",
-              "properties": {
-                "host": {
-                  "description": "The host to connect to",
-                  "type": "string"
-                },
-                "port": {
-                  "description": "The port to connect to",
-                  "type": "number"
-                },
-                "ssl": {
-                  "description": "Whether to use SSL when connecting.",
-                  "type": "boolean"
-                },
-                "projectId": {
-                  "description": "The Google Cloud Project ID",
-                  "type": "string"
-                },
-                "keyFilename": {
-                  "description": "Local file containing the Service Account credentials.\nYou can omit this value to automatically read from\nGOOGLE_APPLICATION_CREDENTIALS env which is useful for local\ndevelopment.",
-                  "type": "string"
-                },
-                "path": {
-                  "description": "The path to use for the collection. Defaults to 'sessions'",
-                  "type": "string"
-                },
-                "timeout": {
-                  "description": "Timeout used for database operations. Defaults to 10000ms",
-                  "type": "number"
-                }
-              }
-            },
-            "static": {
-              "type": "object",
-              "required": [
-                "keys"
-              ],
-              "properties": {
-                "keys": {
-                  "description": "Must be declared at least once and the first one will be used for signing",
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "required": [
-                      "keyId",
-                      "privateKeyFile",
-                      "publicKeyFile"
-                    ],
-                    "properties": {
-                      "publicKeyFile": {
-                        "description": "Path to the public key file in the SPKI format",
-                        "type": "string"
-                      },
-                      "privateKeyFile": {
-                        "description": "Path to the matching private key file in the PKCS#8 format",
-                        "type": "string"
-                      },
-                      "keyId": {
-                        "description": "id to uniquely identify this key within the JWK set",
-                        "type": "string"
-                      },
-                      "algorithm": {
-                        "description": "JWS \"alg\" (Algorithm) Header Parameter value. Defaults to ES256.\nMust match the algorithm used to generate the keys in the provided files",
-                        "type": "string"
                       }
                     }
                   }
