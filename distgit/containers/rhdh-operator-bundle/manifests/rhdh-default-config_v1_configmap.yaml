@@ -7,6 +7,17 @@ data:
       name: my-backstage-config-cm1 # placeholder for <bs>-default-appconfig
     data:
       default.app-config.yaml: |
+        ###########################################################################################################
+        # /!\ WARNING
+        #
+        # This is the default app-config file created and managed by the Operator for your CR.
+        # Do NOT edit this manually in the Cluster, as your changes will be overridden by the Operator upon the
+        # next reconciliation.
+        # If you want to customize the application configuration, you should create your own app-config ConfigMap
+        # and reference it in your CR.
+        # See https://docs.redhat.com/en/documentation/red_hat_developer_hub/1.4/html/configuring/provisioning-and-using-your-custom-configuration#provisioning-your-custom-configuration
+        # for more details.
+        ###########################################################################################################
         backend:
           auth:
             externalAccess:
@@ -213,7 +224,7 @@ data:
                 - ./install-dynamic-plugins.sh
                 - /dynamic-plugins-root
               # image will be replaced by the value of the `RELATED_IMAGE_backstage` env var, if set
-              image: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:ce57adaca5dabbc9c8645568447df79490e45eb5f5323482998475527ebf32bb
+              image: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:ce1524ff7cb40376aec903d3aa4d593cb2ecd9df2f32897d53cab56c131692a0
               imagePullPolicy: IfNotPresent
               securityContext:
                 readOnlyRootFilesystem: true
@@ -253,7 +264,7 @@ data:
           containers:
             - name: backstage-backend
               # image will be replaced by the value of the `RELATED_IMAGE_backstage` env var, if set
-              image: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:ce57adaca5dabbc9c8645568447df79490e45eb5f5323482998475527ebf32bb
+              image: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:ce1524ff7cb40376aec903d3aa4d593cb2ecd9df2f32897d53cab56c131692a0
               imagePullPolicy: IfNotPresent
               args:
                 - "--config"
@@ -343,6 +354,18 @@ data:
       name: default-dynamic-plugins #  must be the same as (deployment.yaml).spec.template.spec.volumes.name.dynamic-plugins-conf.configMap.name
     data:
       "dynamic-plugins.yaml": |
+        ###########################################################################################################
+        # /!\ WARNING
+        #
+        # This is the default dynamic plugins configuration file created and managed by the Operator for your CR.
+        # Do NOT edit this manually in the Cluster, as your changes will be overridden by the Operator upon the
+        # next reconciliation.
+        # If you want to customize the dynamic plugins, you should create your own dynamic-plugins ConfigMap
+        # and reference it in your CR.
+        # See https://docs.redhat.com/en/documentation/red_hat_developer_hub/1.4/html/installing_and_viewing_plugins_in_red_hat_developer_hub/rhdh-installing-rhdh-plugins_title-plugins-rhdh-about#proc-config-dynamic-plugins-rhdh-operator_rhdh-installing-rhdh-plugins
+        # for more details or https://github.com/redhat-developer/rhdh-operator/blob/main/examples/rhdh-cr.yaml
+        # for an example.
+        ###########################################################################################################
         includes:
           - dynamic-plugins.default.yaml
         plugins: []
