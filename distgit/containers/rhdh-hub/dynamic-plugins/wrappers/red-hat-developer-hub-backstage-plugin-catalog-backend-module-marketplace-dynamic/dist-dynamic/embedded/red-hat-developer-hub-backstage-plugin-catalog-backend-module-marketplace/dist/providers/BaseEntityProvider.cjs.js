@@ -18,6 +18,7 @@ class BaseEntityProvider {
       metadata: {
         ...file.content.metadata,
         annotations: {
+          ...file.content.metadata.annotations,
           [catalogModel.ANNOTATION_LOCATION]: `file:${this.getProviderName()}`,
           [catalogModel.ANNOTATION_ORIGIN_LOCATION]: `file:${this.getProviderName()}`
         }
