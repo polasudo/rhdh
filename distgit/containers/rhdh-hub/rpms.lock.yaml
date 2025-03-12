@@ -1252,7 +1252,7 @@ arches:
     sourcerpm: zip-3.0-35.el9.src.rpm
   source: []
   module_metadata:
-  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/appstream/os/repodata/94602c9609b961f123ddabc1bb51c440b41614bb9a2d159ade873573a42e7146-modules.yaml.gz
+  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/appstream/os/repodata/fb124a1f6e3695cec8dddb0514545a117dbdb652f7ae6bbdcb1de08f8bb29b60-modules.yaml.gz
     repoid: ubi-9-appstream-rpms
     size: 6285
-    checksum: sha256:94602c9609b961f123ddabc1bb51c440b41614bb9a2d159ade873573a42e7146
+    checksum: sha256:fb124a1f6e3695cec8dddb0514545a117dbdb652f7ae6bbdcb1de08f8bb29b60
