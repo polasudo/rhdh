@@ -38,7 +38,7 @@ metadata:
     capabilities: Seamless Upgrades
     categories: Developer Tools
     certified: "true"
-    containerImage: registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:f8a0d2cb9e41a87a5fa56d02deda758e98975e251619652e1f60be6df0d4a60d
+    containerImage: registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:013f9a776347ed57f90a4d0758e6aaa4c997ae0e7aa447ab75d0ad994c5fd9d2
     createdAt: "2025-03-12T09:28:12Z"
     description: Red Hat Developer Hub is a Red Hat supported version of Backstage.
       It comes with pre-built plug-ins and configuration settings, supports use of
@@ -260,7 +260,7 @@ spec:
                   value: registry.redhat.io/rhel9/postgresql-15@sha256:7e6be12e9abcd2d8618ae1c8981d9be252c8e5ac61adb00b26d9452da03f5a0b
                 - name: RELATED_IMAGE_backstage
                   value: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:ce1524ff7cb40376aec903d3aa4d593cb2ecd9df2f32897d53cab56c131692a0
-                image: registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:f8a0d2cb9e41a87a5fa56d02deda758e98975e251619652e1f60be6df0d4a60d
+                image: registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:013f9a776347ed57f90a4d0758e6aaa4c997ae0e7aa447ab75d0ad994c5fd9d2
                 livenessProbe:
                   httpGet:
                     path: /healthz
