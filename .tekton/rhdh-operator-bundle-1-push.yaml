@@ -348,29 +348,12 @@ spec:
         operator: in
         values:
         - "false"
-    - name: ecosystem-cert-preflight-checks
-      params:
-      - name: image-url
-        value: $(tasks.build-image-index.results.IMAGE_URL)
-      # if introspection doesn't work, switch to bundle
-      # - name: artifact-type
-      #   value: operatorbundle
-      runAfter:
-      - build-image-index
-      taskRef:
-        params:
-        - name: name
-          value: ecosystem-cert-preflight-checks
-        - name: bundle
-          value: quay.io/konflux-ci/tekton-catalog/task-ecosystem-cert-preflight-checks:0.2@sha256:2ad615f9b8141ed2e0b060ebda366ce43cf55a9dd7c98e2d93970ff328dca8b2
-        - name: kind
-          value: task
-        resolver: bundles
-      when:
-      - input: $(params.skip-checks)
-        operator: in
-        values:
-        - "false"
+    # - name: ecosystem-cert-preflight-checks
+    # DO NOT INCLUDE THIS CHECK for operator-bundles for two reasons
+    # 1. it's pointless as it's checking for things that don't apply to an operator-bundle;
+    # 2 if you include it, the task itself will realize it's pointless, and exit as skipped, and then your ECP will fail with 
+    # ✕ [Violation] test.no_skipped_tests
+    # Reason: The Task "ecosystem-cert-preflight-checks" from the build Pipeline reports a test was skipped
     - name: sast-snyk-check
       params:
       - name: image-digest
