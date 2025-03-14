@@ -257,9 +257,9 @@ spec:
                     fieldRef:
                       fieldPath: metadata.name
                 - name: RELATED_IMAGE_postgresql
-                  value: registry.redhat.io/rhel9/postgresql-15@sha256:7e6be12e9abcd2d8618ae1c8981d9be252c8e5ac61adb00b26d9452da03f5a0b
+                  value: registry.redhat.io/rhel9/postgresql-15@sha256:fbed5b1292e8f08e47d4fffe55cce6e51519082c3c7f80736d0082f90292a3f6
                 - name: RELATED_IMAGE_backstage
-                  value: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:ce1524ff7cb40376aec903d3aa4d593cb2ecd9df2f32897d53cab56c131692a0
+                  value: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:5f2288673b1df5a36b3da31511a1d1826da79c3e6112175504ec4789d9cd842f
                 image: registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:02fc5fdadd310e8e399dc59f36888dcd903ceb00d18ffa035622def92930e523
                 livenessProbe:
                   httpGet:
@@ -369,9 +369,9 @@ spec:
     name: Red Hat Inc.
     url: https://www.redhat.com/
   relatedImages:
-  - image: registry.redhat.io/rhel9/postgresql-15@sha256:7e6be12e9abcd2d8618ae1c8981d9be252c8e5ac61adb00b26d9452da03f5a0b
+  - image: registry.redhat.io/rhel9/postgresql-15@sha256:fbed5b1292e8f08e47d4fffe55cce6e51519082c3c7f80736d0082f90292a3f6
     name: postgresql
-  - image: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:ce1524ff7cb40376aec903d3aa4d593cb2ecd9df2f32897d53cab56c131692a0
+  - image: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:5f2288673b1df5a36b3da31511a1d1826da79c3e6112175504ec4789d9cd842f
     name: backstage
   replaces: rhdh-operator.v1.5.0
   version: 1.6.0
