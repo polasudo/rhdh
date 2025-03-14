@@ -942,39 +942,11 @@ arches:
     name: fuse-common
     evr: 3.10.2-9.el9
     sourcerpm: fuse3-3.10.2-9.el9.src.rpm
-  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/baseos/os/Packages/g/glibc-2.34-125.el9_5.3.x86_64.rpm
-    repoid: ubi-9-baseos-rpms
-    size: 2064994
-    checksum: sha256:ed99fdb1e7e6961738188aedda701f0b3937455abfb2d493cd852d5b0c65e36e
-    name: glibc
-    evr: 2.34-125.el9_5.3
-    sourcerpm: glibc-2.34-125.el9_5.3.src.rpm
-  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/baseos/os/Packages/g/glibc-common-2.34-125.el9_5.3.x86_64.rpm
-    repoid: ubi-9-baseos-rpms
-    size: 310308
-    checksum: sha256:3987d332cfe660906639782722df749c04c77bda9da50c91ed1678c5acafc01d
-    name: glibc-common
-    evr: 2.34-125.el9_5.3
-    sourcerpm: glibc-2.34-125.el9_5.3.src.rpm
   - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/baseos/os/Packages/g/glibc-gconv-extra-2.34-125.el9_5.3.x86_64.rpm
     repoid: ubi-9-baseos-rpms
     size: 1788729
     checksum: sha256:64c3059556cd46e39ea37b8bb8de9fb1841464611c8c3381d87ae87edc1d4a9d
     name: glibc-gconv-extra
-    evr: 2.34-125.el9_5.3
-    sourcerpm: glibc-2.34-125.el9_5.3.src.rpm
-  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/baseos/os/Packages/g/glibc-langpack-en-2.34-125.el9_5.3.x86_64.rpm
-    repoid: ubi-9-baseos-rpms
-    size: 671162
-    checksum: sha256:e98503528366265941e770230960255f1084d5b1b04def9af7f433e51f5cb3a0
-    name: glibc-langpack-en
-    evr: 2.34-125.el9_5.3
-    sourcerpm: glibc-2.34-125.el9_5.3.src.rpm
-  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/baseos/os/Packages/g/glibc-minimal-langpack-2.34-125.el9_5.3.x86_64.rpm
-    repoid: ubi-9-baseos-rpms
-    size: 16969
-    checksum: sha256:12d6f54995345d418c1c94832b4bdf278357a2c6cf79554b43084f6d45bd1efb
-    name: glibc-minimal-langpack
     evr: 2.34-125.el9_5.3
     sourcerpm: glibc-2.34-125.el9_5.3.src.rpm
   - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/baseos/os/Packages/g/groff-base-1.22.4-10.el9.x86_64.rpm
