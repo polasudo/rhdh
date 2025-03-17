@@ -111,8 +111,8 @@ spec:
       description: Build a source image.
       name: build-source-image
       type: string
-    - default: "true"
-      description: Add built image into an OCI image index
+    - default: "false"
+      description: Add built image into an OCI image index - arewm says this should be disabled for operator-bundle builds
       name: build-image-index
       type: string
     - default: []
