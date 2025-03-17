@@ -143,19 +143,18 @@ If the changes you expect are not seen when installing via Operator, but are see
 
 Once the code freeze is achieved and all the last minute changes have stopped, you need to:
 
-* disable the 1.y pipeline so you don't get any unexpected/unapproved changes in the release candidate
+. disable the 1.y pipeline so you don't get any unexpected/unapproved changes in the release candidate
 ** Note that because a Konflux release uses *snapshots*, this is a step to avoid confusion; you should still be able to release an older snapshot if you forget this
 ** log in as rhdh-bot@redhat.com, then go to the link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/pipeline_schedules[pipeline schedules] page
 ** find the correct pipeline, eg., for 1.3 use https://gitlab.cee.redhat.com/rhidp/rhdh/-/pipeline_schedules/1804/edit?id=1804
 ** uncheck the *Activated* box, and hit *Save changes*
-
++
 ====
 [NOTE]
 The `--latest` flag is ONLY for the latest stable release, not for maintenance. For example if `main` branch is currently at version `1.6.0`, then the `release-1.5` branch (eg., `1.5.0`, `1.5.1`) is the "latest" branch. If releasing a `1.4.z` update, DO NOT use `--latest`. This alignment changes every quarter when a new release-1.y branch is created, aligning to a NEW set of `latest` tags. 
 ====
-
-* if you need to create a new operator-bundle quickly, use this
-
++
+. if you need to create a new operator-bundle quickly, use this
 +
 ```
 ./build/ci/sync-midstream.sh --bundleonly --force -b rhdh-1.4-rhel-9 [--latest]
@@ -174,13 +173,13 @@ The `--latest` flag is ONLY for the latest stable release, not for maintenance. 
  2 files changed, 6 insertions(+), 6 deletions(-)
 https://quay.io/repository/rhdh/rhdh-operator-bundle?tab=tags&tag=1.4-150
 ```
-
++
 ====
 [NOTE]
 The `--latest` flag is ONLY for the latest stable release, not for maintenance. For example if `main` branch is currently at version `1.6.0`, then the `release-1.5` branch (eg., `1.5.0`, `1.5.1`) is the "latest" branch. If releasing a `1.4.z` update, DO NOT use `--latest`. This alignment changes every quarter when a new release-1.y branch is created, aligning to a NEW set of `latest` tags. 
 ====
-
-* Publish new FBCs to quay.io/rhdh/iib using link:../build/scripts/renderCatalogs.sh[renderCatalogs] script
++
+. Publish new FBCs to quay.io/rhdh/iib using link:../build/scripts/renderCatalogs.sh[renderCatalogs] script
 +
 ```
 RHDH_VERSION="1.5.0"
@@ -225,12 +224,20 @@ quay.io/rhdh/rhdh-operator-bundle:1.5-161
 UPSTREAM_REPO=https://github.com/redhat-developer/rhdh-operator/tree/release-1.5 @ 6ce061ee
 MIDSTREAM_REPO=https://gitlab.cee.redhat.com/rhidp/rhdh/-/commits/rhdh-1.5-rhel-9
 ```
++
+. Release containers to Stage for any RCs using link:../build/scripts/kfuxRelease.sh[kfuxRelease.sh]
++
+====
+**NOTE**:
 
-* Release containers to Stage for any RCs using link:../build/scripts/kfuxRelease.sh[kfuxRelease.sh]
+. **Container images** pushed to RHEC Stage will throw 2 known `olm.unmapped_references` violations due to the fact that references to unreleased registry.redhat.io/rhdh images can't be resolved in the operator-bundle. See link:https://issues.redhat.com/browse/RHIDP-6434?focusedId=26799935&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-26799935[this issue] and link:https://redhat-internal.slack.com/archives/D08BWQ66FM5/p1742246906645529[this discussion].
 
-* NOTE: FBCs are not supported on the RHEC Stage instance link:https://gitlab.cee.redhat.com/releng/konflux-release-data/-/merge_requests/3947[if the production policy is in effect]. See link:https://redhat-internal.slack.com/archives/C06RBUP0M2Q/p1737051256060019[this thread].
-
-If a second RC build is needed, re-enable the scheduled GL pipeline (or you can just trigger a one-time pipeline manually), and repeat the above steps. If only rebuilding a bundle, you don't have to re-enable the GL pipelines as the bundle can be triggered from the above script with `sync-midstream.sh --bundleonly`.
+. **FBCs** are not supported on the RHEC Stage instance link:https://gitlab.cee.redhat.com/releng/konflux-release-data/-/merge_requests/3947[if the production policy is in effect]. See link:https://redhat-internal.slack.com/archives/C06RBUP0M2Q/p1737051256060019[this thread]. Because of this, there is no value in trying to push FBCs to stage prior to GA day. 
+====
++
+. If a second RC build is needed, re-enable the scheduled GL pipeline (or you can just trigger a one-time pipeline manually), and repeat the above steps. If only rebuilding a bundle, you don't have to re-enable the GL pipelines as the bundle can be triggered from the above script with `sync-midstream.sh --bundleonly`.
++
+. Notify team via slack and email - see next section for details.
 
 ### Release Candidates Notifications
 
@@ -496,15 +503,20 @@ This script creates link:https://github.com/redhat-developer/rhdh/branches/all?q
 
 | **3. Build & Test** | Tekton Pipelines for builds are triggered automatically when commits happen in the upstream GH repos. File Based Catalog fragments (FBCs) must be built by hand at intervals until link:https://issues.redhat.com/browse/RHIDP-5888[RHIDP-5888] is resolved . Run automated tests to ensure stability. Review Tekton pipeline status: link:../.tekton/README.adoc[Tekton Pipelines]. | QE, Engineering
 
-| **4. Release Candidate (RC)** | **Disable scheduled pipelines** to prevent unapproved changes:  
+| **4. Release Candidate (RC)** | 
+1. **Disable scheduled pipelines** to prevent unapproved changes:  
 Go to link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/pipeline_schedules[pipeline schedules], uncheck *Activated*, and save changes.
 
-**Update the FBCs using the https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1-rhel-9/build/scripts/renderCatalogs.sh?ref_type=heads[renderCatalogs.sh] script:**
-```./build/scripts/renderCatalogs.sh
-```
-If replacements are incorrect, modify `catalog-template.json` and rerun the script. 
+2. If needed, **spin a new operator-bundle build**. 
 
-**NOTE**: if multiple releases are in flight, remember to re-render FBCs after each GA push in order to not accidentally delete freshly released operators. | Release Engineering, PM, QE
+3. **Update the FBCs** using https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1-rhel-9/build/scripts/renderCatalogs.sh?ref_type=heads[renderCatalogs.sh].
+
+4. Verify FBC content. If replacements are incorrect, modify `catalog-template.json` and rerun the script. **NOTE**: if multiple releases are in flight, remember to re-render FBCs after each GA push in order to not accidentally delete freshly released operators. 
+
+5. Release containers to stage.
+
+6. Notify team about RC via slack and email.
+| Release Engineering, PM, QE
 
 | **5. GA Preparation** | Update documentation and release notes.
 
