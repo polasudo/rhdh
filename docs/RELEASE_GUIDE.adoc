@@ -183,20 +183,20 @@ The `--latest` flag is ONLY for the latest stable release, not for maintenance. 
 * Publish new FBCs to quay.io/rhdh/iib using link:../build/scripts/renderCatalogs.sh[renderCatalogs] script
 +
 ```
-RHDH_VERSION="1.4.1"
-    OCP_VERSION=4.14
-    ./build/scripts/renderCatalogs.sh [--latest] --clean --versions "${OCP_VERSION}" -v "${RHDH_VERSION}"; sleep 30s; echo
-    alias cp=cp
-    for OCP_VERSION in 4.15 4.16 4.17 4.18; do \
-      cp -f catalogs/v{4.14,${OCP_VERSION}}/catalog-template.json; ./build/scripts/renderCatalogs.sh [--latest] --clean --versions "${OCP_VERSION}" -v "${RHDH_VERSION}" --template "catalogs/v${OCP_VERSION}/catalog-template.json"; sleep 30s; \
-    done
+RHDH_VERSION="1.5.0"
+OCP_VERSION=4.14
+./build/scripts/renderCatalogs.sh [--latest] --clean --versions "${OCP_VERSION}" -v "${RHDH_VERSION}"; sleep 30s; echo
+alias cp=cp
+for OCP_VERSION in 4.15 4.16 4.17 4.18; do \
+  cp -f catalogs/v{4.14,${OCP_VERSION}}/catalog-template.json; ./build/scripts/renderCatalogs.sh [--latest] --clean --versions "${OCP_VERSION}" -v "${RHDH_VERSION}" --template "catalogs/v${OCP_VERSION}/catalog-template.json"; sleep 30s; \
+done
 ```
 
 +
 ** verify the FBC content is correct - check that the IIB/FBC image contains the SAME images as the latest ones; also use the list of branches/commits to verify that all expected commits have been built:
 +
 ```
-STREAM=1.4
+STREAM=1.5
 ./build/scripts/checkImagesInIIB.sh -y -q "quay.io/rhdh/iib:${STREAM}-v4.14-x86_64" --bundlefilter "v${STREAM}"; \
 ./build/scripts/getCommitsForImage.sh -v "${STREAM}"
 
@@ -205,25 +205,25 @@ sudo rm -fr /tmp/quay.io-rhdh-iib-*
 ```
 +
 ```
-[INFO] Bundle Version: rhdh-operator.v1.4.1
-[INFO] Bundle Image SHA: quay.io/rhdh/rhdh-operator-bundle@sha256:a91c4931ef5111c555ec5cc8128c3148c94fe2983d2e4fa7babe843e9292b303
-[INFO] Bundle Image Tag: quay.io/rhdh/rhdh-operator-bundle:1.4-150
+[INFO] Bundle Version: rhdh-operator.v1.5.0
+[INFO] Bundle Image SHA: quay.io/rhdh/rhdh-operator-bundle@sha256:38cd0447ab7ee2ca708e66ea435ee88bd0ca859ed8f962afe751bf5d2612ef0e
+[INFO] Bundle Image Tag: quay.io/rhdh/rhdh-operator-bundle:1.5-161
 [INFO] CSV contains:
-quay.io/rhdh/rhdh-hub-rhel9:1.4-138
-quay.io/rhdh/rhdh-rhel9-operator:1.4-148
-registry.redhat.io/rhel9/postgresql-15:1-1736455354
+quay.io/rhdh/rhdh-hub-rhel9:1.5-175
+quay.io/rhdh/rhdh-rhel9-operator:1.5-93
+registry.redhat.io/rhel9/postgresql-15:1-1741891035
 
-quay.io/rhdh/rhdh-hub-rhel9:1.4-138
-UPSTREAM_REPO=https://github.com/redhat-developer/rhdh/tree/release-1.4 @ 011f17d3
-MIDSTREAM_REPO=https://gitlab.cee.redhat.com/rhidp/rhdh/-/commits/rhdh-1.4-rhel-9
+quay.io/rhdh/rhdh-hub-rhel9:1.5-175
+UPSTREAM_REPO=https://github.com/redhat-developer/rhdh/tree/release-1.5 @ 22737d02
+MIDSTREAM_REPO=https://gitlab.cee.redhat.com/rhidp/rhdh/-/commits/rhdh-1.5-rhel-9
 
-quay.io/rhdh/rhdh-rhel9-operator:1.4-148
-UPSTREAM_REPO=https://github.com/redhat-developer/rhdh-operator/tree/release-1.4 @ 91e32198
-MIDSTREAM_REPO=https://gitlab.cee.redhat.com/rhidp/rhdh/-/commits/rhdh-1.4-rhel-9
+quay.io/rhdh/rhdh-rhel9-operator:1.5-93
+UPSTREAM_REPO=https://github.com/redhat-developer/rhdh-operator/tree/release-1.5 @ 6ce061ee
+MIDSTREAM_REPO=https://gitlab.cee.redhat.com/rhidp/rhdh/-/commits/rhdh-1.5-rhel-9
 
-quay.io/rhdh/rhdh-operator-bundle:1.4-150
-UPSTREAM_REPO=https://github.com/redhat-developer/rhdh-operator/tree/release-1.4 @ 91e32198
-MIDSTREAM_REPO=https://gitlab.cee.redhat.com/rhidp/rhdh/-/commits/rhdh-1.4-rhel-9
+quay.io/rhdh/rhdh-operator-bundle:1.5-161
+UPSTREAM_REPO=https://github.com/redhat-developer/rhdh-operator/tree/release-1.5 @ 6ce061ee
+MIDSTREAM_REPO=https://gitlab.cee.redhat.com/rhidp/rhdh/-/commits/rhdh-1.5-rhel-9
 ```
 
 * Release containers to Stage for any RCs using link:../build/scripts/kfuxRelease.sh[kfuxRelease.sh]
