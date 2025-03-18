@@ -53,13 +53,6 @@ arches:
     name: cmake-rpm-macros
     evr: 3.26.5-2.el9
     sourcerpm: cmake-3.26.5-2.el9.src.rpm
-  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/appstream/os/Packages/c/container-selinux-2.232.1-1.el9.noarch.rpm
-    repoid: ubi-9-appstream-rpms
-    size: 61729
-    checksum: sha256:0b79c666cfec3021b19a1e5e298340d1310c110e67f35e75a60ed28838a9f658
-    name: container-selinux
-    evr: 3:2.232.1-1.el9
-    sourcerpm: container-selinux-2.232.1-1.el9.src.rpm
   - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/appstream/os/Packages/c/containers-common-1-96.el9_5.x86_64.rpm
     repoid: ubi-9-appstream-rpms
     size: 148067
@@ -830,13 +823,6 @@ arches:
     name: zlib-devel
     evr: 1.2.11-40.el9
     sourcerpm: zlib-1.2.11-40.el9.src.rpm
-  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/baseos/os/Packages/a/acl-2.3.1-4.el9.x86_64.rpm
-    repoid: ubi-9-baseos-rpms
-    size: 77226
-    checksum: sha256:150d7232faa90f84a09268f8998ee32670eef59cba98612aeb996ab75c4dfcc4
-    name: acl
-    evr: 2.3.1-4.el9
-    sourcerpm: acl-2.3.1-4.el9.src.rpm
   - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/baseos/os/Packages/b/binutils-2.35.2-54.el9.x86_64.rpm
     repoid: ubi-9-baseos-rpms
     size: 4816328
@@ -851,48 +837,6 @@ arches:
     name: binutils-gold
     evr: 2.35.2-54.el9
     sourcerpm: binutils-2.35.2-54.el9.src.rpm
-  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/baseos/os/Packages/c/cracklib-2.9.6-27.el9.x86_64.rpm
-    repoid: ubi-9-baseos-rpms
-    size: 100903
-    checksum: sha256:8551b711718596fbfef6622bbf32f785864959af9d06a76da2545ec9f3a126e7
-    name: cracklib
-    evr: 2.9.6-27.el9
-    sourcerpm: cracklib-2.9.6-27.el9.src.rpm
-  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/baseos/os/Packages/c/cracklib-dicts-2.9.6-27.el9.x86_64.rpm
-    repoid: ubi-9-baseos-rpms
-    size: 3821230
-    checksum: sha256:ab4356c86bdc996dc9e55703a7ae936e3e46aec6ebf6d6f008e126ff06e83df2
-    name: cracklib-dicts
-    evr: 2.9.6-27.el9
-    sourcerpm: cracklib-2.9.6-27.el9.src.rpm
-  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/baseos/os/Packages/d/dbus-1.12.20-8.el9.x86_64.rpm
-    repoid: ubi-9-baseos-rpms
-    size: 8073
-    checksum: sha256:96b1daa4de0a635ab760a8431fb005022bb7cb48d2d1d3ec9a8adb1798c0e10e
-    name: dbus
-    evr: 1:1.12.20-8.el9
-    sourcerpm: dbus-1.12.20-8.el9.src.rpm
-  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/baseos/os/Packages/d/dbus-broker-28-7.el9.x86_64.rpm
-    repoid: ubi-9-baseos-rpms
-    size: 179634
-    checksum: sha256:de9869c08df7f6952787d0335b9bf1a09b328bea920556a59af07c8e085dd3cb
-    name: dbus-broker
-    evr: 28-7.el9
-    sourcerpm: dbus-broker-28-7.el9.src.rpm
-  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/baseos/os/Packages/d/dbus-common-1.12.20-8.el9.noarch.rpm
-    repoid: ubi-9-baseos-rpms
-    size: 18551
-    checksum: sha256:298f1cada3cbcef6713098b9925694a0e30e8566f7a5bdbd72384520cf6c8360
-    name: dbus-common
-    evr: 1:1.12.20-8.el9
-    sourcerpm: dbus-1.12.20-8.el9.src.rpm
-  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/baseos/os/Packages/d/diffutils-3.7-12.el9.x86_64.rpm
-    repoid: ubi-9-baseos-rpms
-    size: 411559
-    checksum: sha256:2d4c4fdfc10215af3c957c24995b79a26e27e6d76de4ed1f5198d25bf7ef9671
-    name: diffutils
-    evr: 3.7-12.el9
-    sourcerpm: diffutils-3.7-12.el9.src.rpm
   - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/baseos/os/Packages/e/elfutils-debuginfod-client-0.191-4.el9.x86_64.rpm
     repoid: ubi-9-baseos-rpms
     size: 39913
@@ -956,13 +900,6 @@ arches:
     name: groff-base
     evr: 1.22.4-10.el9
     sourcerpm: groff-1.22.4-10.el9.src.rpm
-  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/baseos/os/Packages/g/gzip-1.12-1.el9.x86_64.rpm
-    repoid: ubi-9-baseos-rpms
-    size: 171206
-    checksum: sha256:c8b3e0414d55b1eedb0185a564ac6cb2368bee2fd5f995447d045f6a714488ac
-    name: gzip
-    evr: 1.12-1.el9
-    sourcerpm: gzip-1.12-1.el9.src.rpm
   - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/baseos/os/Packages/k/kmod-28-10.el9.x86_64.rpm
     repoid: ubi-9-baseos-rpms
     size: 132888
@@ -970,27 +907,6 @@ arches:
     name: kmod
     evr: 28-10.el9
     sourcerpm: kmod-28-10.el9.src.rpm
-  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/baseos/os/Packages/k/kmod-libs-28-10.el9.x86_64.rpm
-    repoid: ubi-9-baseos-rpms
-    size: 66607
-    checksum: sha256:9ae0b89812908ee50ec654ba35f74dc478057e8981afd4a5cc8d2befd987b342
-    name: kmod-libs
-    evr: 28-10.el9
-    sourcerpm: kmod-28-10.el9.src.rpm
-  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/baseos/os/Packages/l/libdb-5.3.28-54.el9.x86_64.rpm
-    repoid: ubi-9-baseos-rpms
-    size: 754801
-    checksum: sha256:599dbc91894bde538297d859cd5efd64e95b5b06ffac2c0057b32b1be6c8d9ac
-    name: libdb
-    evr: 5.3.28-54.el9
-    sourcerpm: libdb-5.3.28-54.el9.src.rpm
-  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/baseos/os/Packages/l/libeconf-0.4.1-4.el9.x86_64.rpm
-    repoid: ubi-9-baseos-rpms
-    size: 30371
-    checksum: sha256:f7998382ca1be7836f6af05d42dc03f88799abcb10aa7a761e16f74058598012
-    name: libeconf
-    evr: 0.4.1-4.el9
-    sourcerpm: libeconf-0.4.1-4.el9.src.rpm
   - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/baseos/os/Packages/l/libedit-3.1-38.20210216cvs.el9.x86_64.rpm
     repoid: ubi-9-baseos-rpms
     size: 109330
@@ -998,13 +914,6 @@ arches:
     name: libedit
     evr: 3.1-38.20210216cvs.el9
     sourcerpm: libedit-3.1-38.20210216cvs.el9.src.rpm
-  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/baseos/os/Packages/l/libfdisk-2.37.4-20.el9.x86_64.rpm
-    repoid: ubi-9-baseos-rpms
-    size: 158733
-    checksum: sha256:f0c0fc67a144dffcef138044c0a563ac9cdb4fa7b00a8e7c4c77e48e9ca35487
-    name: libfdisk
-    evr: 2.37.4-20.el9
-    sourcerpm: util-linux-2.37.4-20.el9.src.rpm
   - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/baseos/os/Packages/l/libgomp-11.5.0-5.el9_5.x86_64.rpm
     repoid: ubi-9-baseos-rpms
     size: 269396
@@ -1026,13 +935,6 @@ arches:
     name: libpkgconf
     evr: 1.7.3-10.el9
     sourcerpm: pkgconf-1.7.3-10.el9.src.rpm
-  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/baseos/os/Packages/l/libpwquality-1.4.4-8.el9.x86_64.rpm
-    repoid: ubi-9-baseos-rpms
-    size: 126104
-    checksum: sha256:14b7ff2f7fdaf8ebec90261f4619ea7f7c3564c4de8483666de7ed4b1f49b66f
-    name: libpwquality
-    evr: 1.4.4-8.el9
-    sourcerpm: libpwquality-1.4.4-8.el9.src.rpm
   - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/baseos/os/Packages/l/libseccomp-2.5.2-2.el9.x86_64.rpm
     repoid: ubi-9-baseos-rpms
     size: 76200
@@ -1040,13 +942,6 @@ arches:
     name: libseccomp
     evr: 2.5.2-2.el9
     sourcerpm: libseccomp-2.5.2-2.el9.src.rpm
-  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/baseos/os/Packages/l/libselinux-utils-3.6-1.el9.x86_64.rpm
-    repoid: ubi-9-baseos-rpms
-    size: 198772
-    checksum: sha256:479229e7c3d8cb005dafd637b2973fbee0bb507cfed8e72f7076318513200abd
-    name: libselinux-utils
-    evr: 3.6-1.el9
-    sourcerpm: libselinux-3.6-1.el9.src.rpm
   - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/baseos/os/Packages/l/libtirpc-1.3.3-9.el9.x86_64.rpm
     repoid: ubi-9-baseos-rpms
     size: 98934
@@ -1054,13 +949,6 @@ arches:
     name: libtirpc
     evr: 1.3.3-9.el9
     sourcerpm: libtirpc-1.3.3-9.el9.src.rpm
-  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/baseos/os/Packages/l/libutempter-1.2.1-6.el9.x86_64.rpm
-    repoid: ubi-9-baseos-rpms
-    size: 30354
-    checksum: sha256:0f1df5e0d48c2ac9914bfffa7ed569cd58e42b17ba96bb3f7cf74d1e80de2597
-    name: libutempter
-    evr: 1.2.1-6.el9
-    sourcerpm: libutempter-1.2.1-6.el9.src.rpm
   - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/baseos/os/Packages/m/make-4.3-8.el9.x86_64.rpm
     repoid: ubi-9-baseos-rpms
     size: 553896
@@ -1075,13 +963,6 @@ arches:
     name: ncurses
     evr: 6.2-10.20210508.el9
     sourcerpm: ncurses-6.2-10.20210508.el9.src.rpm
-  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/baseos/os/Packages/p/pam-1.5.1-22.el9_5.x86_64.rpm
-    repoid: ubi-9-baseos-rpms
-    size: 647471
-    checksum: sha256:d0c495a13f0c6d0fdefc309086a81e64eb852255ce64a45b766187bd09de41d0
-    name: pam
-    evr: 1.5.1-22.el9_5
-    sourcerpm: pam-1.5.1-22.el9_5.src.rpm
   - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/baseos/os/Packages/p/pkgconf-1.7.3-10.el9.x86_64.rpm
     repoid: ubi-9-baseos-rpms
     size: 45675
@@ -1103,13 +984,6 @@ arches:
     name: pkgconf-pkg-config
     evr: 1.7.3-10.el9
     sourcerpm: pkgconf-1.7.3-10.el9.src.rpm
-  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/baseos/os/Packages/p/policycoreutils-3.6-2.1.el9.x86_64.rpm
-    repoid: ubi-9-baseos-rpms
-    size: 251967
-    checksum: sha256:8dcd39960d3103f7a4ad2b9f7a0e15469ebf4da98f6c215cddfffdb830dc12b5
-    name: policycoreutils
-    evr: 3.6-2.1.el9
-    sourcerpm: policycoreutils-3.6-2.1.el9.src.rpm
   - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/baseos/os/Packages/p/protobuf-c-1.3.3-13.el9.x86_64.rpm
     repoid: ubi-9-baseos-rpms
     size: 38224
@@ -1145,69 +1019,13 @@ arches:
     name: python3-setuptools-wheel
     evr: 53.0.0-13.el9
     sourcerpm: python-setuptools-53.0.0-13.el9.src.rpm
-  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/baseos/os/Packages/r/rpm-plugin-selinux-4.16.1.3-34.el9.x86_64.rpm
+  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/baseos/os/Packages/u/unzip-6.0-58.el9_5.x86_64.rpm
     repoid: ubi-9-baseos-rpms
-    size: 18220
-    checksum: sha256:add02cbf42634db0957eda097c5bcac643b19663885645355fd941b8cee175ac
-    name: rpm-plugin-selinux
-    evr: 4.16.1.3-34.el9
-    sourcerpm: rpm-4.16.1.3-34.el9.src.rpm
-  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/baseos/os/Packages/s/selinux-policy-38.1.45-3.el9_5.noarch.rpm
-    repoid: ubi-9-baseos-rpms
-    size: 52484
-    checksum: sha256:217d992f42cab6cae7b0236daeefe78d067f882481f20316198e0736f1325ab2
-    name: selinux-policy
-    evr: 38.1.45-3.el9_5
-    sourcerpm: selinux-policy-38.1.45-3.el9_5.src.rpm
-  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/baseos/os/Packages/s/selinux-policy-targeted-38.1.45-3.el9_5.noarch.rpm
-    repoid: ubi-9-baseos-rpms
-    size: 7225392
-    checksum: sha256:575305a4fc873ef9b1fcaf6005a6f04be6d3ff4a5887d6db8ed97cef23c501c5
-    name: selinux-policy-targeted
-    evr: 38.1.45-3.el9_5
-    sourcerpm: selinux-policy-38.1.45-3.el9_5.src.rpm
-  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/baseos/os/Packages/s/systemd-252-46.el9_5.2.x86_64.rpm
-    repoid: ubi-9-baseos-rpms
-    size: 4427820
-    checksum: sha256:616c315b74c798d12fa0299a0ae0bdaaef42b011af669923ba6c71e5796dfeb9
-    name: systemd
-    evr: 252-46.el9_5.2
-    sourcerpm: systemd-252-46.el9_5.2.src.rpm
-  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/baseos/os/Packages/s/systemd-pam-252-46.el9_5.2.x86_64.rpm
-    repoid: ubi-9-baseos-rpms
-    size: 293603
-    checksum: sha256:26c788e238d6ccbea0a6129129d2ca284fe578e38a59ecd21e740af8f2a788f4
-    name: systemd-pam
-    evr: 252-46.el9_5.2
-    sourcerpm: systemd-252-46.el9_5.2.src.rpm
-  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/baseos/os/Packages/s/systemd-rpm-macros-252-46.el9_5.2.noarch.rpm
-    repoid: ubi-9-baseos-rpms
-    size: 76871
-    checksum: sha256:e7805025edd419b440dfc3948201b0ef1dee7e2f51005000dfedb832d1e17cab
-    name: systemd-rpm-macros
-    evr: 252-46.el9_5.2
-    sourcerpm: systemd-252-46.el9_5.2.src.rpm
-  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/baseos/os/Packages/u/unzip-6.0-57.el9.x86_64.rpm
-    repoid: ubi-9-baseos-rpms
-    size: 190691
-    checksum: sha256:95bf43f66a297fc75b01dfb766d3720bb75f04f8cbd84aa0c1952a573a199e80
+    size: 190785
+    checksum: sha256:009698f3b4432b9df219fd2f894234aad1cee8c4e4e61384b4e293ef8e28e9c2
     name: unzip
-    evr: 6.0-57.el9
-    sourcerpm: unzip-6.0-57.el9.src.rpm
-  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/baseos/os/Packages/u/util-linux-2.37.4-20.el9.x86_64.rpm
-    repoid: ubi-9-baseos-rpms
-    size: 2396057
-    checksum: sha256:812b87a70ec6f88e493f15b66453112bc67f11576d4d7fa70ad85e914ead366a
-    name: util-linux
-    evr: 2.37.4-20.el9
-    sourcerpm: util-linux-2.37.4-20.el9.src.rpm
-  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/baseos/os/Packages/u/util-linux-core-2.37.4-20.el9.x86_64.rpm
-    repoid: ubi-9-baseos-rpms
-    size: 479544
-    checksum: sha256:28cef63cbaf5dedcb87404321027634bd4abcf0ee195879882240942260f60a6
-    name: util-linux-core
-    evr: 2.37.4-20.el9
-    sourcerpm: util-linux-2.37.4-20.el9.src.rpm
+    evr: 6.0-58.el9_5
+    sourcerpm: unzip-6.0-58.el9_5.src.rpm
   - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/baseos/os/Packages/v/vim-filesystem-8.2.2637-21.el9.noarch.rpm
     repoid: ubi-9-baseos-rpms
     size: 17783
@@ -1224,7 +1042,7 @@ arches:
     sourcerpm: zip-3.0-35.el9.src.rpm
   source: []
   module_metadata:
-  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/appstream/os/repodata/270fddcf838e721d9137bd1acd9b9f40715f7029dc84f395e33768e85b955669-modules.yaml.gz
+  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/appstream/os/repodata/2fda5695a81a818a2a7bfad66e13511810836c9d96a79697ac246b16152bc1bb-modules.yaml.gz
     repoid: ubi-9-appstream-rpms
     size: 6285
-    checksum: sha256:270fddcf838e721d9137bd1acd9b9f40715f7029dc84f395e33768e85b955669
+    checksum: sha256:2fda5695a81a818a2a7bfad66e13511810836c9d96a79697ac246b16152bc1bb
