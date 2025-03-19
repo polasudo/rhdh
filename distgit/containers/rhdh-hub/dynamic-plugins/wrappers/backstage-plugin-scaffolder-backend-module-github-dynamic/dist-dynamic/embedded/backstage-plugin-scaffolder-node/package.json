@@ -1,6 +1,6 @@
 {
   "name": "@backstage/plugin-scaffolder-node",
-  "version": "0.6.3+embedded",
+  "version": "0.7.0+embedded",
   "description": "The plugin-scaffolder-node module for @backstage/plugin-scaffolder-backend",
   "backstage": {
     "role": "node-library",
@@ -78,7 +78,7 @@
   "private": true,
   "peerDependencies": {
     "@backstage/backend-common": "^0.25.0",
-    "@backstage/backend-plugin-api": "^1.1.1",
+    "@backstage/backend-plugin-api": "^1.2.0",
     "@backstage/catalog-model": "^1.7.3",
     "@backstage/errors": "^1.2.7",
     "@backstage/integration": "^1.16.1",

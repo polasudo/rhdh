@@ -23,6 +23,7 @@ var SingleTenantServiceLocator = require('../service-locator/SingleTenantService
 var KubernetesFanOutHandler = require('./KubernetesFanOutHandler.cjs.js');
 var KubernetesFetcher = require('./KubernetesFetcher.cjs.js');
 var KubernetesProxy = require('./KubernetesProxy.cjs.js');
+var requirePermission = require('../auth/requirePermission.cjs.js');
 
 function _interopDefaultCompat (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }
 
@@ -240,6 +241,12 @@ class KubernetesBuilder {
       })
     );
     router.post("/services/:serviceId", async (req, res) => {
+      await requirePermission.requirePermission(
+        permissionApi,
+        pluginKubernetesCommon.kubernetesResourcesReadPermission,
+        httpAuth,
+        req
+      );
       const serviceId = req.params.serviceId;
       const requestBody = req.body;
       try {
@@ -259,6 +266,12 @@ class KubernetesBuilder {
       }
     });
     router.get("/clusters", async (req, res) => {
+      await requirePermission.requirePermission(
+        permissionApi,
+        pluginKubernetesCommon.kubernetesClustersReadPermission,
+        httpAuth,
+        req
+      );
       const credentials = await httpAuth.credentials(req);
       const clusterDetails = await this.fetchClusterDetails(clusterSupplier, {
         credentials
@@ -288,7 +301,8 @@ class KubernetesBuilder {
       catalogApi,
       objectsProvider,
       authService,
-      httpAuth
+      httpAuth,
+      permissionApi
     );
     return router;
   }
@@ -341,7 +355,7 @@ class KubernetesBuilder {
     );
     let objectTypesToFetch;
     if (objectTypesToFetchStrings) {
-      objectTypesToFetch = KubernetesFanOutHandler.DEFAULT_OBJECTS.filter(
+      objectTypesToFetch = KubernetesFanOutHandler.ALL_OBJECTS.filter(
         (obj) => objectTypesToFetchStrings.includes(obj.objectType)
       );
     }

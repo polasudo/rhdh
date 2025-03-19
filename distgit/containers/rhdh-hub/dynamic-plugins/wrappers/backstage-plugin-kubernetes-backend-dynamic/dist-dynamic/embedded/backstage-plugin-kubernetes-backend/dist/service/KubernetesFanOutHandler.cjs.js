@@ -80,6 +80,15 @@ const DEFAULT_OBJECTS = [
     objectType: "daemonsets"
   }
 ];
+const ALL_OBJECTS = [
+  {
+    group: "",
+    apiVersion: "v1",
+    plural: "secrets",
+    objectType: "secrets"
+  },
+  ...DEFAULT_OBJECTS
+];
 const isPodFetchResponse = (fr) => fr.type === "pods" || fr.type === "customresources" && fr.resources.length > 0 && fr.resources[0].apiVersion === "v1" && fr.resources[0].kind === "Pod";
 const isString = (str) => str !== void 0;
 const numberOrBigIntToNumberOrString = (value) => {
@@ -249,6 +258,7 @@ class KubernetesFanOutHandler {
   }
 }
 
+exports.ALL_OBJECTS = ALL_OBJECTS;
 exports.DEFAULT_OBJECTS = DEFAULT_OBJECTS;
 exports.KubernetesFanOutHandler = KubernetesFanOutHandler;
 //# sourceMappingURL=KubernetesFanOutHandler.cjs.js.map

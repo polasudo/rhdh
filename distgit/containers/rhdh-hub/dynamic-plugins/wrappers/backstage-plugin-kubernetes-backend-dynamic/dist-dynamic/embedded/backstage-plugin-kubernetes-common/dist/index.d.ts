@@ -1,5 +1,5 @@
 import { JsonValue, JsonObject } from '@backstage/types';
-import { V1Pod, V1Service, V1ConfigMap, V1Deployment, V1ReplicaSet, V1LimitRange, V1ResourceQuota, V2HorizontalPodAutoscaler, V1Job, V1CronJob, V1Ingress, V1StatefulSet, V1DaemonSet, PodStatus } from '@kubernetes/client-node';
+import { V1Pod, V1Service, V1ConfigMap, V1Deployment, V1ReplicaSet, V1LimitRange, V1ResourceQuota, V2HorizontalPodAutoscaler, V1Job, V1CronJob, V1Ingress, V1StatefulSet, V1DaemonSet, PodStatus, V1Secret } from '@kubernetes/client-node';
 import { Entity } from '@backstage/catalog-model';
 import * as _backstage_plugin_permission_common from '@backstage/plugin-permission-common';
 import { ObjectsByEntityResponse as ObjectsByEntityResponse$1, FetchResponse as FetchResponse$1 } from '@backstage/plugin-kubernetes-common';
@@ -86,7 +86,7 @@ interface ObjectsByEntityResponse {
 /** @public */
 type AuthProviderType = 'google' | 'serviceAccount' | 'aws' | 'azure';
 /** @public */
-type FetchResponse = PodFetchResponse | ServiceFetchResponse | ConfigMapFetchResponse | DeploymentFetchResponse | LimitRangeFetchResponse | ResourceQuotaFetchResponse | ReplicaSetsFetchResponse | HorizontalPodAutoscalersFetchResponse | JobsFetchResponse | CronJobsFetchResponse | IngressesFetchResponse | CustomResourceFetchResponse | StatefulSetsFetchResponse | DaemonSetsFetchResponse | PodStatusFetchResponse;
+type FetchResponse = PodFetchResponse | ServiceFetchResponse | ConfigMapFetchResponse | DeploymentFetchResponse | LimitRangeFetchResponse | ResourceQuotaFetchResponse | ReplicaSetsFetchResponse | HorizontalPodAutoscalersFetchResponse | JobsFetchResponse | CronJobsFetchResponse | IngressesFetchResponse | CustomResourceFetchResponse | StatefulSetsFetchResponse | DaemonSetsFetchResponse | PodStatusFetchResponse | SecretsFetchResponse;
 /** @public */
 interface PodFetchResponse {
     type: 'pods';
@@ -161,6 +161,11 @@ interface DaemonSetsFetchResponse {
 interface PodStatusFetchResponse {
     type: 'podstatus';
     resources: Array<PodStatus>;
+}
+/** @public */
+interface SecretsFetchResponse {
+    type: 'secrets';
+    resources: Array<V1Secret>;
 }
 /** @public */
 type KubernetesFetchError = StatusError | RawFetchError;
@@ -292,6 +297,14 @@ declare const ANNOTATION_KUBERNETES_AWS_EXTERNAL_ID = "kubernetes.io/aws-externa
  * @public
  */
 declare const kubernetesProxyPermission: _backstage_plugin_permission_common.BasicPermission;
+/** This permission is used to check access to the /resources and /services/:serviceId endpoints
+ * @public
+ */
+declare const kubernetesResourcesReadPermission: _backstage_plugin_permission_common.BasicPermission;
+/** This permission is used to check access to the /clusters endpoint
+ * @public
+ */
+declare const kubernetesClustersReadPermission: _backstage_plugin_permission_common.BasicPermission;
 /**
  * List of all Kubernetes permissions.
  * @public
@@ -373,4 +386,4 @@ declare const detectErrors: (objects: ObjectsByEntityResponse$1) => DetectedErro
 /** @public */
 declare const groupResponses: (fetchResponse: FetchResponse$1[]) => GroupedResponses;
 
-export { ANNOTATION_KUBERNETES_API_SERVER, ANNOTATION_KUBERNETES_API_SERVER_CA, ANNOTATION_KUBERNETES_AUTH_PROVIDER, ANNOTATION_KUBERNETES_AWS_ASSUME_ROLE, ANNOTATION_KUBERNETES_AWS_CLUSTER_ID, ANNOTATION_KUBERNETES_AWS_EXTERNAL_ID, ANNOTATION_KUBERNETES_DASHBOARD_APP, ANNOTATION_KUBERNETES_DASHBOARD_PARAMETERS, ANNOTATION_KUBERNETES_DASHBOARD_URL, ANNOTATION_KUBERNETES_OIDC_TOKEN_PROVIDER, ANNOTATION_KUBERNETES_SKIP_METRICS_LOOKUP, ANNOTATION_KUBERNETES_SKIP_TLS_VERIFY, type AuthProviderType, type ClientContainerStatus, type ClientCurrentResourceUsage, type ClientPodStatus, type ClusterAttributes, type ClusterObjects, type ConfigMapFetchResponse, type CronJobsFetchResponse, type CustomObjectsByEntityRequest, type CustomResourceFetchResponse, type CustomResourceMatcher, type DaemonSetsFetchResponse, type DeploymentFetchResponse, type DeploymentResources, type DetectedError, type DetectedErrorsByCluster, type DocsSolution, type ErrorMapper, type ErrorSeverity, type EventsSolution, type FetchResponse, type GroupedResponses, type HorizontalPodAutoscalersFetchResponse, type IngressesFetchResponse, type JobsFetchResponse, type KubernetesErrorTypes, type KubernetesFetchError, type KubernetesRequestAuth, type KubernetesRequestBody, type LimitRangeFetchResponse, type LogSolution, type ObjectsByEntityResponse, type PodFetchResponse, type PodStatusFetchResponse, type ProposedFix, type ProposedFixBase, type RawFetchError, type ReplicaSetsFetchResponse, type ResourceQuotaFetchResponse, type ResourceRef, type ServiceFetchResponse, type StatefulSetsFetchResponse, type StatusError, type WorkloadsByEntityRequest, detectErrors, groupResponses, kubernetesPermissions, kubernetesProxyPermission };
+export { ANNOTATION_KUBERNETES_API_SERVER, ANNOTATION_KUBERNETES_API_SERVER_CA, ANNOTATION_KUBERNETES_AUTH_PROVIDER, ANNOTATION_KUBERNETES_AWS_ASSUME_ROLE, ANNOTATION_KUBERNETES_AWS_CLUSTER_ID, ANNOTATION_KUBERNETES_AWS_EXTERNAL_ID, ANNOTATION_KUBERNETES_DASHBOARD_APP, ANNOTATION_KUBERNETES_DASHBOARD_PARAMETERS, ANNOTATION_KUBERNETES_DASHBOARD_URL, ANNOTATION_KUBERNETES_OIDC_TOKEN_PROVIDER, ANNOTATION_KUBERNETES_SKIP_METRICS_LOOKUP, ANNOTATION_KUBERNETES_SKIP_TLS_VERIFY, type AuthProviderType, type ClientContainerStatus, type ClientCurrentResourceUsage, type ClientPodStatus, type ClusterAttributes, type ClusterObjects, type ConfigMapFetchResponse, type CronJobsFetchResponse, type CustomObjectsByEntityRequest, type CustomResourceFetchResponse, type CustomResourceMatcher, type DaemonSetsFetchResponse, type DeploymentFetchResponse, type DeploymentResources, type DetectedError, type DetectedErrorsByCluster, type DocsSolution, type ErrorMapper, type ErrorSeverity, type EventsSolution, type FetchResponse, type GroupedResponses, type HorizontalPodAutoscalersFetchResponse, type IngressesFetchResponse, type JobsFetchResponse, type KubernetesErrorTypes, type KubernetesFetchError, type KubernetesRequestAuth, type KubernetesRequestBody, type LimitRangeFetchResponse, type LogSolution, type ObjectsByEntityResponse, type PodFetchResponse, type PodStatusFetchResponse, type ProposedFix, type ProposedFixBase, type RawFetchError, type ReplicaSetsFetchResponse, type ResourceQuotaFetchResponse, type ResourceRef, type SecretsFetchResponse, type ServiceFetchResponse, type StatefulSetsFetchResponse, type StatusError, type WorkloadsByEntityRequest, detectErrors, groupResponses, kubernetesClustersReadPermission, kubernetesPermissions, kubernetesProxyPermission, kubernetesResourcesReadPermission };

@@ -84,7 +84,10 @@ class GitLabClient {
   // https://docs.gitlab.com/ee/api/groups.html#list-group-details
   // id can either be group id or encoded full path
   async getGroupByPath(groupPath, options) {
-    return this.nonPagedRequest(`/groups/${groupPath}`, options);
+    return this.nonPagedRequest(
+      `/groups/${encodeURIComponent(groupPath)}`,
+      options
+    );
   }
   async listDescendantGroups(groupPath) {
     const items = [];

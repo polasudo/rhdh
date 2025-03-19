@@ -2,7 +2,7 @@
 
 var errors = require('@backstage/errors');
 var pluginScaffolderNode = require('@backstage/plugin-scaffolder-node');
-var helpers = require('./helpers.cjs.js');
+var util = require('../util.cjs.js');
 var octokit = require('octokit');
 var Sodium = require('libsodium-wrappers');
 var gitHubEnvironment_examples = require('./gitHubEnvironment.examples.cjs.js');
@@ -24,7 +24,7 @@ function createGithubEnvironmentAction(options) {
         properties: {
           repoUrl: {
             title: "Repository Location",
-            description: `Accepts the format 'github.com?repo=reponame&owner=owner' where 'reponame' is the new repository name and 'owner' is an organization or username`,
+            description: "Accepts the format `github.com?repo=reponame&owner=owner` where `reponame` is the new repository name and `owner` is an organization or username",
             type: "string"
           },
           name: {
@@ -34,18 +34,18 @@ function createGithubEnvironmentAction(options) {
           },
           deploymentBranchPolicy: {
             title: "Deployment Branch Policy",
-            description: `The type of deployment branch policy for this environment. To allow all branches to deploy, set to null.`,
+            description: "The type of deployment branch policy for this environment. To allow all branches to deploy, set to `null`.",
             type: "object",
             required: ["protected_branches", "custom_branch_policies"],
             properties: {
               protected_branches: {
                 title: "Protected Branches",
-                description: `Whether only branches with branch protection rules can deploy to this environment. If protected_branches is true, custom_branch_policies must be false; if protected_branches is false, custom_branch_policies must be true.`,
+                description: "Whether only branches with branch protection rules can deploy to this environment. If `protected_branches` is `true`, `custom_branch_policies` must be `false`; if `protected_branches` is `false`, `custom_branch_policies` must be `true`.",
                 type: "boolean"
               },
               custom_branch_policies: {
                 title: "Custom Branch Policies",
-                description: `Whether only branches that match the specified name patterns can deploy to this environment. If custom_branch_policies is true, protected_branches must be false; if custom_branch_policies is false, protected_branches must be true.`,
+                description: "Whether only branches that match the specified name patterns can deploy to this environment. If `custom_branch_policies` is `true`, `protected_branches` must be `false`; if `custom_branch_policies` is `false`, `protected_branches` must be `true`.",
                 type: "boolean"
               }
             }
@@ -54,7 +54,7 @@ function createGithubEnvironmentAction(options) {
             title: "Custom Branch Policy Name",
             description: `The name pattern that branches must match in order to deploy to the environment.
 
-            Wildcard characters will not match /. For example, to match branches that begin with release/ and contain an additional single slash, use release/*/*. For more information about pattern matching syntax, see the Ruby File.fnmatch documentation.`,
+Wildcard characters will not match \`/\`. For example, to match branches that begin with \`release/\` and contain an additional single slash, use \`release/*/*\`. For more information about pattern matching syntax, see the Ruby File.fnmatch documentation.`,
             type: "array",
             items: {
               type: "string"
@@ -64,7 +64,7 @@ function createGithubEnvironmentAction(options) {
             title: "Custom Tag Policy Name",
             description: `The name pattern that tags must match in order to deploy to the environment.
 
-            Wildcard characters will not match /. For example, to match tags that begin with release/ and contain an additional single slash, use release/*/*. For more information about pattern matching syntax, see the Ruby File.fnmatch documentation.`,
+Wildcard characters will not match \`/\`. For example, to match tags that begin with \`release/\` and contain an additional single slash, use \`release/*/*\`. For more information about pattern matching syntax, see the Ruby File.fnmatch documentation.`,
             type: "array",
             items: {
               type: "string"
@@ -125,15 +125,17 @@ function createGithubEnvironmentAction(options) {
         targetPluginId: "catalog"
       }) ?? { token: ctx.secrets?.backstageToken };
       await new Promise((resolve) => setTimeout(resolve, 2e3));
-      const octokitOptions = await helpers.getOctokitOptions({
-        integrations,
-        token: providedToken,
-        repoUrl
-      });
-      const { owner, repo } = pluginScaffolderNode.parseRepoUrl(repoUrl, integrations);
+      const { host, owner, repo } = pluginScaffolderNode.parseRepoUrl(repoUrl, integrations);
       if (!owner) {
         throw new errors.InputError(`No owner provided for repo ${repoUrl}`);
       }
+      const octokitOptions = await util.getOctokitOptions({
+        integrations,
+        token: providedToken,
+        host,
+        owner,
+        repo
+      });
       const client = new octokit.Octokit(octokitOptions);
       const repository = await client.rest.repos.get({
         owner,

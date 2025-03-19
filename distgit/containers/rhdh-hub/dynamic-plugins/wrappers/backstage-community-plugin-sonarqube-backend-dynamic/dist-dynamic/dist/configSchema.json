@@ -264,7 +264,8 @@
                   },
                   "connectionScope": {
                     "type": "string"
-                  }
+                  },
+                  "sessionDuration": {}
                 }
               }
             },
@@ -348,7 +349,8 @@
                         }
                       }
                     }
-                  }
+                  },
+                  "sessionDuration": {}
                 }
               }
             },
@@ -469,7 +471,8 @@
                         }
                       }
                     }
-                  }
+                  },
+                  "sessionDuration": {}
                 }
               }
             },
@@ -559,7 +562,8 @@
                         }
                       }
                     }
-                  }
+                  },
+                  "sessionDuration": {}
                 }
               }
             },
@@ -586,93 +590,8 @@
                   },
                   "callbackUrl": {
                     "type": "string"
-                  }
-                }
-              }
-            },
-            "gcpIap": {
-              "description": "Configuration for the Google Cloud Platform Identity-Aware Proxy (IAP) auth provider.",
-              "type": "object",
-              "required": [
-                "audience"
-              ],
-              "properties": {
-                "audience": {
-                  "description": "The audience to use when validating incoming JWT tokens.\nSee https://backstage.io/docs/auth/google/gcp-iap-auth",
-                  "type": "string"
-                },
-                "jwtHeader": {
-                  "description": "The name of the header to read the JWT token from, defaults to `'x-goog-iap-jwt-assertion'`.",
-                  "type": "string"
-                },
-                "signIn": {
-                  "type": "object",
-                  "required": [
-                    "resolvers"
-                  ],
-                  "properties": {
-                    "resolvers": {
-                      "type": "array",
-                      "items": {
-                        "anyOf": [
-                          {
-                            "type": "object",
-                            "properties": {
-                              "resolver": {
-                                "type": "string",
-                                "const": "emailMatchingUserEntityAnnotation"
-                              }
-                            },
-                            "required": [
-                              "resolver"
-                            ]
-                          },
-                          {
-                            "type": "object",
-                            "properties": {
-                              "resolver": {
-                                "type": "string",
-                                "const": "idMatchingUserEntityAnnotation"
-                              }
-                            },
-                            "required": [
-                              "resolver"
-                            ]
-                          },
-                          {
-                            "type": "object",
-                            "properties": {
-                              "resolver": {
-                                "type": "string",
-                                "const": "emailLocalPartMatchingUserEntityName"
-                              },
-                              "allowedDomains": {
-                                "type": "array",
-                                "items": {
-                                  "type": "string"
-                                }
-                              }
-                            },
-                            "required": [
-                              "resolver"
-                            ]
-                          },
-                          {
-                            "type": "object",
-                            "properties": {
-                              "resolver": {
-                                "type": "string",
-                                "const": "emailMatchingUserEntityProfileEmail"
-                              }
-                            },
-                            "required": [
-                              "resolver"
-                            ]
-                          }
-                        ]
-                      }
-                    }
-                  }
+                  },
+                  "sessionDuration": {}
                 }
               }
             },
@@ -756,6 +675,94 @@
                     }
                   }
                 }
+              }
+            },
+            "sessionDuration": {},
+            "gcpIap": {
+              "description": "Configuration for the Google Cloud Platform Identity-Aware Proxy (IAP) auth provider.",
+              "type": "object",
+              "required": [
+                "audience"
+              ],
+              "properties": {
+                "audience": {
+                  "description": "The audience to use when validating incoming JWT tokens.\nSee https://backstage.io/docs/auth/google/gcp-iap-auth",
+                  "type": "string"
+                },
+                "jwtHeader": {
+                  "description": "The name of the header to read the JWT token from, defaults to `'x-goog-iap-jwt-assertion'`.",
+                  "type": "string"
+                },
+                "signIn": {
+                  "type": "object",
+                  "required": [
+                    "resolvers"
+                  ],
+                  "properties": {
+                    "resolvers": {
+                      "type": "array",
+                      "items": {
+                        "anyOf": [
+                          {
+                            "type": "object",
+                            "properties": {
+                              "resolver": {
+                                "type": "string",
+                                "const": "emailMatchingUserEntityAnnotation"
+                              }
+                            },
+                            "required": [
+                              "resolver"
+                            ]
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "resolver": {
+                                "type": "string",
+                                "const": "idMatchingUserEntityAnnotation"
+                              }
+                            },
+                            "required": [
+                              "resolver"
+                            ]
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "resolver": {
+                                "type": "string",
+                                "const": "emailLocalPartMatchingUserEntityName"
+                              },
+                              "allowedDomains": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                }
+                              }
+                            },
+                            "required": [
+                              "resolver"
+                            ]
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "resolver": {
+                                "type": "string",
+                                "const": "emailMatchingUserEntityProfileEmail"
+                              }
+                            },
+                            "required": [
+                              "resolver"
+                            ]
+                          }
+                        ]
+                      }
+                    }
+                  }
+                },
+                "sessionDuration": {}
               }
             },
             "github": {
@@ -850,7 +857,8 @@
                         }
                       }
                     }
-                  }
+                  },
+                  "sessionDuration": {}
                 }
               }
             },
@@ -946,7 +954,8 @@
                         }
                       }
                     }
-                  }
+                  },
+                  "sessionDuration": {}
                 }
               }
             },
@@ -1039,7 +1048,8 @@
                         }
                       }
                     }
-                  }
+                  },
+                  "sessionDuration": {}
                 }
               }
             },
@@ -1142,7 +1152,8 @@
                         }
                       }
                     }
-                  }
+                  },
+                  "sessionDuration": {}
                 }
               }
             },
@@ -1250,7 +1261,8 @@
                         }
                       }
                     }
-                  }
+                  },
+                  "sessionDuration": {}
                 }
               }
             },
@@ -1344,7 +1356,8 @@
                         }
                       }
                     }
-                  }
+                  },
+                  "sessionDuration": {}
                 }
               }
             },
@@ -1446,7 +1459,8 @@
                         }
                       }
                     }
-                  }
+                  },
+                  "sessionDuration": {}
                 }
               }
             }

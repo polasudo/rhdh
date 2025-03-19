@@ -4,6 +4,7 @@ var errors = require('@backstage/errors');
 var octokit = require('octokit');
 var pluginScaffolderNode = require('@backstage/plugin-scaffolder-node');
 var helpers = require('./helpers.cjs.js');
+var util = require('../util.cjs.js');
 var inputProperties = require('./inputProperties.cjs.js');
 var outputProperties = require('./outputProperties.cjs.js');
 var githubRepoCreate_examples = require('./githubRepoCreate.examples.cjs.js');
@@ -87,17 +88,19 @@ function createGithubRepoCreateAction(options) {
         subscribe,
         token: providedToken
       } = ctx.input;
-      const octokitOptions = await helpers.getOctokitOptions({
-        integrations,
-        credentialsProvider: githubCredentialsProvider,
-        token: providedToken,
-        repoUrl
-      });
-      const client = new octokit.Octokit(octokitOptions);
-      const { owner, repo } = pluginScaffolderNode.parseRepoUrl(repoUrl, integrations);
+      const { host, owner, repo } = pluginScaffolderNode.parseRepoUrl(repoUrl, integrations);
       if (!owner) {
         throw new errors.InputError("Invalid repository owner provided in repoUrl");
       }
+      const octokitOptions = await util.getOctokitOptions({
+        integrations,
+        credentialsProvider: githubCredentialsProvider,
+        token: providedToken,
+        host,
+        owner,
+        repo
+      });
+      const client = new octokit.Octokit(octokitOptions);
       const newRepo = await helpers.createGithubRepoWithCollaboratorsAndTopics(
         client,
         repo,

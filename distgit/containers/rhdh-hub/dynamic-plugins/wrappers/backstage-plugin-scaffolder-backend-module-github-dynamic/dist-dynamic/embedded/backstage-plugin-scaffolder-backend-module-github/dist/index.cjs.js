@@ -14,8 +14,8 @@ var github = require('./actions/github.cjs.js');
 var githubAutolinks = require('./actions/githubAutolinks.cjs.js');
 var githubPagesEnable = require('./actions/githubPagesEnable.cjs.js');
 var githubBranchProtection = require('./actions/githubBranchProtection.cjs.js');
-var helpers = require('./actions/helpers.cjs.js');
 var module$1 = require('./module.cjs.js');
+var util = require('./util.cjs.js');
 
 
 
@@ -31,6 +31,6 @@ exports.createPublishGithubAction = github.createPublishGithubAction;
 exports.createGithubAutolinksAction = githubAutolinks.createGithubAutolinksAction;
 exports.createGithubPagesEnableAction = githubPagesEnable.createGithubPagesEnableAction;
 exports.createGithubBranchProtectionAction = githubBranchProtection.createGithubBranchProtectionAction;
-exports.getOctokitOptions = helpers.getOctokitOptions;
 exports.default = module$1.githubModule;
+exports.getOctokitOptions = util.getOctokitOptions;
 //# sourceMappingURL=index.cjs.js.map

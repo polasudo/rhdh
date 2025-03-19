@@ -6,10 +6,10 @@ __metadata:
   cacheKey: 8
 
 "@backstage/plugin-scaffolder-backend-module-gitlab@file:./embedded/backstage-plugin-scaffolder-backend-module-gitlab::locator=backstage-plugin-scaffolder-backend-module-gitlab-dynamic%40workspace%3A.":
-  version: 0.7.1+embedded
-  resolution: "@backstage/plugin-scaffolder-backend-module-gitlab@file:./embedded/backstage-plugin-scaffolder-backend-module-gitlab#./embedded/backstage-plugin-scaffolder-backend-module-gitlab::hash=f1be5d&locator=backstage-plugin-scaffolder-backend-module-gitlab-dynamic%40workspace%3A."
+  version: 0.8.0+embedded
+  resolution: "@backstage/plugin-scaffolder-backend-module-gitlab@file:./embedded/backstage-plugin-scaffolder-backend-module-gitlab#./embedded/backstage-plugin-scaffolder-backend-module-gitlab::hash=f7232e&locator=backstage-plugin-scaffolder-backend-module-gitlab-dynamic%40workspace%3A."
   dependencies:
-    "@backstage/plugin-scaffolder-node": ^0.6.3
+    "@backstage/plugin-scaffolder-node": ^0.7.0
     "@gitbeaker/rest": ^41.2.0
     luxon: ^3.0.0
     winston: ^3.2.1
@@ -17,11 +17,11 @@ __metadata:
     zod: ^3.22.4
   peerDependencies:
     "@backstage/backend-common": ^0.25.0
-    "@backstage/backend-plugin-api": ^1.1.1
+    "@backstage/backend-plugin-api": ^1.2.0
     "@backstage/config": ^1.3.2
     "@backstage/errors": ^1.2.7
     "@backstage/integration": ^1.16.1
-  checksum: cb27ebc67a1930c1231028dc26446d3cb40441d410873980560591f8643f6008ae7a6b8f4697aa2d6a1c542a1ab442babe08c2f0cebf1378408bd6ef08fb2eb6
+  checksum: 879c06bd7484138d8843ece1950829faa39288494cb214311ab87c2b5999bec55ed96e5d5579e7e30588a64331ace4fdaac19d3831949352a7b6bd3386cfc2aa
   languageName: node
   linkType: hard
 
@@ -37,8 +37,8 @@ __metadata:
   linkType: hard
 
 "@backstage/plugin-scaffolder-node@file:./embedded/backstage-plugin-scaffolder-node::locator=backstage-plugin-scaffolder-backend-module-gitlab-dynamic%40workspace%3A.":
-  version: 0.6.3+embedded
-  resolution: "@backstage/plugin-scaffolder-node@file:./embedded/backstage-plugin-scaffolder-node#./embedded/backstage-plugin-scaffolder-node::hash=eea0aa&locator=backstage-plugin-scaffolder-backend-module-gitlab-dynamic%40workspace%3A."
+  version: 0.7.0+embedded
+  resolution: "@backstage/plugin-scaffolder-node@file:./embedded/backstage-plugin-scaffolder-node#./embedded/backstage-plugin-scaffolder-node::hash=7e4638&locator=backstage-plugin-scaffolder-backend-module-gitlab-dynamic%40workspace%3A."
   dependencies:
     "@backstage/plugin-scaffolder-common": ^1.5.9
     concat-stream: ^2.0.0
@@ -53,12 +53,12 @@ __metadata:
     zod-to-json-schema: ^3.20.4
   peerDependencies:
     "@backstage/backend-common": ^0.25.0
-    "@backstage/backend-plugin-api": ^1.1.1
+    "@backstage/backend-plugin-api": ^1.2.0
     "@backstage/catalog-model": ^1.7.3
     "@backstage/errors": ^1.2.7
     "@backstage/integration": ^1.16.1
     "@backstage/types": ^1.2.1
-  checksum: b55e18c1a588897403af38012089cd18489ea7e0c1d95d0bb90e1b58825752a20e6c34e69708995117a206f5825bb453034761f29727020b5b117a542907e541
+  checksum: 204a06b44b23b8006db2264daa7ab81c8d044a335fc72f686ba8e4714d202361e2866eb7d811f207b391e7e0902e65cb6853f7e1f8afe206233cefc72231289a
   languageName: node
   linkType: hard
 
@@ -172,10 +172,10 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "backstage-plugin-scaffolder-backend-module-gitlab-dynamic@workspace:."
   dependencies:
-    "@backstage/plugin-scaffolder-backend-module-gitlab": 0.7.1
+    "@backstage/plugin-scaffolder-backend-module-gitlab": 0.8.0
   peerDependencies:
     "@backstage/backend-common": ^0.25.0
-    "@backstage/backend-plugin-api": ^1.1.1
+    "@backstage/backend-plugin-api": ^1.2.0
     "@backstage/catalog-model": ^1.7.3
     "@backstage/config": ^1.3.2
     "@backstage/errors": ^1.2.7

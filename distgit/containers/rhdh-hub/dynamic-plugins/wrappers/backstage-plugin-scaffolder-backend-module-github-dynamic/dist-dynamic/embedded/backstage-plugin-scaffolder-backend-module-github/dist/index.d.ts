@@ -280,6 +280,7 @@ declare const createPublishGithubPullRequestAction: (options: CreateGithubPullRe
     gitAuthorName?: string | undefined;
     gitAuthorEmail?: string | undefined;
     forceEmptyGitAuthor?: boolean | undefined;
+    createWhenEmpty?: boolean | undefined;
 }, _backstage_types.JsonObject>;
 
 /**
@@ -428,7 +429,13 @@ declare function createGithubBranchProtectionAction(options: {
 }, _backstage_types.JsonObject>;
 
 /**
- * Helper for generating octokit configuration options for given repoUrl.
+ * @public
+ * The GitHub Module for the Scaffolder Backend
+ */
+declare const githubModule: _backstage_backend_plugin_api.BackendFeature;
+
+/**
+ * Helper for generating octokit configuration options.
  * If no token is provided, it will attempt to get a token from the credentials provider.
  * @public
  */
@@ -436,13 +443,21 @@ declare function getOctokitOptions(options: {
     integrations: ScmIntegrationRegistry;
     credentialsProvider?: GithubCredentialsProvider;
     token?: string;
+    host: string;
+    owner?: string;
+    repo?: string;
+}): Promise<OctokitOptions>;
+/**
+ * Helper for generating octokit configuration options for given repoUrl.
+ * If no token is provided, it will attempt to get a token from the credentials provider.
+ * @public
+ * @deprecated Use options `host`, `owner` and `repo` instead of `repoUrl`.
+ */
+declare function getOctokitOptions(options: {
+    integrations: ScmIntegrationRegistry;
+    credentialsProvider?: GithubCredentialsProvider;
+    token?: string;
     repoUrl: string;
 }): Promise<OctokitOptions>;
-
-/**
- * @public
- * The GitHub Module for the Scaffolder Backend
- */
-declare const githubModule: _backstage_backend_plugin_api.BackendFeature;
 
 export { type CreateGithubPullRequestActionOptions, createGithubActionsDispatchAction, createGithubAutolinksAction, createGithubBranchProtectionAction, createGithubDeployKeyAction, createGithubEnvironmentAction, createGithubIssuesLabelAction, createGithubPagesEnableAction, createGithubRepoCreateAction, createGithubRepoPushAction, createGithubWebhookAction, createPublishGithubAction, createPublishGithubPullRequestAction, githubModule as default, getOctokitOptions };

@@ -180,6 +180,7 @@ type CatalogProcessorEntityResult = {
     type: 'entity';
     entity: Entity;
     location: LocationSpec$1;
+    locationKey?: string | null;
 };
 /** @public */
 type CatalogProcessorRelationResult = {
@@ -227,7 +228,14 @@ declare const processingResult: Readonly<{
     /**
      * Emits a child of the current entity, associated with a certain location.
      */
-    readonly entity: (atLocation: LocationSpec$1, newEntity: Entity) => CatalogProcessorResult;
+    readonly entity: (atLocation: LocationSpec$1, newEntity: Entity, options?: {
+        /**
+         * Sets the location key of the emitted entity, overriding the default one derived from the location.
+         *
+         * To set a `null` location key the value `null` must be used.
+         */
+        locationKey?: string | null;
+    }) => CatalogProcessorResult;
     /**
      * Emits a relation owned by the current entity. The relation does not have to
      * start or end at the current entity. The relation only lives for as long as

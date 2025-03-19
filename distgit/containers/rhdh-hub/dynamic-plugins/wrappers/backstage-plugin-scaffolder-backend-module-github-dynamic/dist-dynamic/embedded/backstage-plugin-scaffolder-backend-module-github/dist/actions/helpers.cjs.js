@@ -1,7 +1,6 @@
 'use strict';
 
 var errors = require('@backstage/errors');
-var integration = require('@backstage/integration');
 var pluginScaffolderNode = require('@backstage/plugin-scaffolder-node');
 var Sodium = require('libsodium-wrappers');
 var gitHelpers = require('./gitHelpers.cjs.js');
@@ -10,46 +9,6 @@ function _interopDefaultCompat (e) { return e && typeof e === 'object' && 'defau
 
 var Sodium__default = /*#__PURE__*/_interopDefaultCompat(Sodium);
 
-const DEFAULT_TIMEOUT_MS = 6e4;
-async function getOctokitOptions(options) {
-  const { integrations, credentialsProvider, repoUrl, token } = options;
-  const { owner, repo, host } = pluginScaffolderNode.parseRepoUrl(repoUrl, integrations);
-  const requestOptions = {
-    // set timeout to 60 seconds
-    timeout: DEFAULT_TIMEOUT_MS
-  };
-  if (!owner) {
-    throw new errors.InputError(`No owner provided for repo ${repoUrl}`);
-  }
-  const integrationConfig = integrations.github.byHost(host)?.config;
-  if (!integrationConfig) {
-    throw new errors.InputError(`No integration for host ${host}`);
-  }
-  if (token) {
-    return {
-      auth: token,
-      baseUrl: integrationConfig.apiBaseUrl,
-      previews: ["nebula-preview"],
-      request: requestOptions
-    };
-  }
-  const githubCredentialsProvider = credentialsProvider ?? integration.DefaultGithubCredentialsProvider.fromIntegrations(integrations);
-  const { token: credentialProviderToken } = await githubCredentialsProvider.getCredentials({
-    url: `https://${host}/${encodeURIComponent(owner)}/${encodeURIComponent(
-      repo
-    )}`
-  });
-  if (!credentialProviderToken) {
-    throw new errors.InputError(
-      `No token available for host: ${host}, with owner ${owner}, and repo ${repo}. Make sure GitHub auth is configured correctly. See https://backstage.io/docs/auth/github/provider for more details.`
-    );
-  }
-  return {
-    auth: credentialProviderToken,
-    baseUrl: integrationConfig.apiBaseUrl,
-    previews: ["nebula-preview"]
-  };
-}
 async function createGithubRepoWithCollaboratorsAndTopics(client, repo, owner, repoVisibility, description, homepage, deleteBranchOnMerge, allowMergeCommit, allowSquashMerge, squashMergeCommitTitle, squashMergeCommitMessage, allowRebaseMerge, allowAutoMerge, access, collaborators, hasProjects, hasWiki, hasIssues, topics, repoVariables, secrets, oidcCustomization, customProperties, subscribe, logger) {
   const user = await client.rest.users.getByUsername({
     username: owner
@@ -296,6 +255,5 @@ function getGitCommitMessage(gitCommitMessage, config) {
 
 exports.createGithubRepoWithCollaboratorsAndTopics = createGithubRepoWithCollaboratorsAndTopics;
 exports.getGitCommitMessage = getGitCommitMessage;
-exports.getOctokitOptions = getOctokitOptions;
 exports.initRepoPushAndProtect = initRepoPushAndProtect;
 //# sourceMappingURL=helpers.cjs.js.map

@@ -2,6 +2,8 @@
 
 var backendPluginApi = require('@backstage/backend-plugin-api');
 var serializer = require('./tasks/serializer.cjs.js');
+var createTemplateFilter = require('./alpha/filters/createTemplateFilter.cjs.js');
+var createTemplateGlobal = require('./alpha/globals/createTemplateGlobal.cjs.js');
 
 const scaffolderActionsExtensionPoint = backendPluginApi.createExtensionPoint({
   id: "scaffolder.actions"
@@ -21,6 +23,9 @@ const scaffolderWorkspaceProviderExtensionPoint = backendPluginApi.createExtensi
 
 exports.restoreWorkspace = serializer.restoreWorkspace;
 exports.serializeWorkspace = serializer.serializeWorkspace;
+exports.createTemplateFilter = createTemplateFilter.createTemplateFilter;
+exports.createTemplateGlobalFunction = createTemplateGlobal.createTemplateGlobalFunction;
+exports.createTemplateGlobalValue = createTemplateGlobal.createTemplateGlobalValue;
 exports.scaffolderActionsExtensionPoint = scaffolderActionsExtensionPoint;
 exports.scaffolderAutocompleteExtensionPoint = scaffolderAutocompleteExtensionPoint;
 exports.scaffolderTaskBrokerExtensionPoint = scaffolderTaskBrokerExtensionPoint;

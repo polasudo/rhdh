@@ -602,9 +602,9 @@ declare class MicrosoftGraphOrgEntityProvider implements EntityProvider {
         organizationTransformer?: OrganizationTransformer;
         providerConfigTransformer?: ProviderConfigTransformer;
     });
-    /** {@inheritdoc @backstage/plugin-catalog-backend#EntityProvider.getProviderName} */
+    /** {@inheritdoc @backstage/plugin-catalog-node#EntityProvider.getProviderName} */
     getProviderName(): string;
-    /** {@inheritdoc @backstage/plugin-catalog-backend#EntityProvider.connect} */
+    /** {@inheritdoc @backstage/plugin-catalog-node#EntityProvider.connect} */
     connect(connection: EntityProviderConnection): Promise<void>;
     /**
      * Runs one complete ingestion loop. Call this method regularly at some

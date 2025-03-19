@@ -244,9 +244,9 @@ declare class GithubEntityProvider implements EntityProvider, EventSubscriber {
         scheduler?: SchedulerService;
     }): GithubEntityProvider[];
     private constructor();
-    /** {@inheritdoc @backstage/plugin-catalog-backend#EntityProvider.getProviderName} */
+    /** {@inheritdoc @backstage/plugin-catalog-node#EntityProvider.getProviderName} */
     getProviderName(): string;
-    /** {@inheritdoc @backstage/plugin-catalog-backend#EntityProvider.connect} */
+    /** {@inheritdoc @backstage/plugin-catalog-node#EntityProvider.connect} */
     connect(connection: EntityProviderConnection): Promise<void>;
     private createScheduleFn;
     refresh(logger: LoggerService): Promise<void>;
@@ -414,9 +414,9 @@ declare class GithubMultiOrgEntityProvider implements EntityProvider {
         teamTransformer?: TeamTransformer;
         alwaysUseDefaultNamespace?: boolean;
     });
-    /** {@inheritdoc @backstage/plugin-catalog-backend#EntityProvider.getProviderName} */
+    /** {@inheritdoc @backstage/plugin-catalog-node#EntityProvider.getProviderName} */
     getProviderName(): string;
-    /** {@inheritdoc @backstage/plugin-catalog-backend#EntityProvider.connect} */
+    /** {@inheritdoc @backstage/plugin-catalog-node#EntityProvider.connect} */
     connect(connection: EntityProviderConnection): Promise<void>;
     /**
      * Runs one single complete ingestion. This is only necessary if you use
@@ -512,9 +512,9 @@ declare class GithubOrgEntityProvider implements EntityProvider {
         userTransformer?: UserTransformer;
         teamTransformer?: TeamTransformer;
     });
-    /** {@inheritdoc @backstage/plugin-catalog-backend#EntityProvider.getProviderName} */
+    /** {@inheritdoc @backstage/plugin-catalog-node#EntityProvider.getProviderName} */
     getProviderName(): string;
-    /** {@inheritdoc @backstage/plugin-catalog-backend#EntityProvider.connect} */
+    /** {@inheritdoc @backstage/plugin-catalog-node#EntityProvider.connect} */
     connect(connection: EntityProviderConnection): Promise<void>;
     /**
      * Runs one single complete ingestion. This is only necessary if you use

@@ -49,8 +49,13 @@ function createPublishGitlabAction(options) {
           },
           sourcePath: {
             title: "Source Path",
-            description: "Path within the workspace that will be used as the repository root. If omitted, the entire workspace will be published as the repository.",
-            type: "string"
+            description: "Path within the workspace that will be used as the repository root. If omitted or set to true, the entire workspace will be published as the repository. If set to false, the created repository will be empty.",
+            type: ["string", "boolean"]
+          },
+          skipExisting: {
+            title: "Skip if repository exists",
+            description: "Do not publish the repository if it already exists. The default value is false.",
+            type: ["boolean"]
           },
           token: {
             title: "Authentication Token",
@@ -234,6 +239,10 @@ function createPublishGitlabAction(options) {
           commitHash: {
             title: "The git commit hash of the initial commit",
             type: "string"
+          },
+          created: {
+            title: "Whether the repository was created or not",
+            type: "boolean"
           }
         }
       }
@@ -250,7 +259,8 @@ function createPublishGitlabAction(options) {
         topics = [],
         settings = {},
         branches = [],
-        projectVariables = []
+        projectVariables = [],
+        skipExisting = false
       } = ctx.input;
       const { owner, repo, host } = pluginScaffolderNode.parseRepoUrl(repoUrl, integrations);
       if (!owner) {
@@ -289,104 +299,136 @@ function createPublishGitlabAction(options) {
       if (!targetNamespaceId) {
         targetNamespaceId = userId;
       }
-      const { id: projectId, http_url_to_repo } = await client.Projects.create({
-        namespaceId: targetNamespaceId,
-        name: repo,
-        visibility: repoVisibility,
-        ...topics.length ? { topics } : {},
-        ...Object.keys(settings).length ? { ...settings } : {}
+      const existingProjects = await client.Groups.allProjects(owner, {
+        search: repo
       });
-      if (setUserAsOwner && integrationConfig.config.token) {
-        const adminClient = new rest.Gitlab({
-          host: integrationConfig.config.baseUrl,
-          token: integrationConfig.config.token
+      const existingProject = existingProjects.find(
+        (searchPathElem) => searchPathElem.path === repo
+      );
+      if (!skipExisting || skipExisting && !existingProject) {
+        ctx.logger.info(`Creating repo ${repo} in namespace ${owner}.`);
+        const { id: projectId, http_url_to_repo } = await client.Projects.create({
+          namespaceId: targetNamespaceId,
+          name: repo,
+          visibility: repoVisibility,
+          ...topics.length ? { topics } : {},
+          ...Object.keys(settings).length ? { ...settings } : {}
         });
-        await adminClient.ProjectMembers.add(projectId, userId, 50);
-      }
-      const remoteUrl = http_url_to_repo.replace(/\.git$/, "");
-      const repoContentsUrl = `${remoteUrl}/-/blob/${defaultBranch}`;
-      const gitAuthorInfo = {
-        name: gitAuthorName ? gitAuthorName : config.getOptionalString("scaffolder.defaultAuthor.name"),
-        email: gitAuthorEmail ? gitAuthorEmail : config.getOptionalString("scaffolder.defaultAuthor.email")
-      };
-      const commitResult = await pluginScaffolderNode.initRepoAndPush({
-        dir: pluginScaffolderNode.getRepoSourceDirectory(ctx.workspacePath, ctx.input.sourcePath),
-        remoteUrl: http_url_to_repo,
-        defaultBranch,
-        auth: {
-          username: "oauth2",
-          password: token
-        },
-        logger: ctx.logger,
-        commitMessage: gitCommitMessage ? gitCommitMessage : config.getOptionalString("scaffolder.defaultCommitMessage"),
-        gitAuthorInfo
-      });
-      if (branches) {
-        for (const branch of branches) {
-          const {
-            name,
-            protect = false,
-            create = false,
-            ref = "master"
-          } = branch;
-          if (create) {
-            try {
-              await client.Branches.create(projectId, name, ref);
-            } catch (e) {
-              throw new errors.InputError(
-                `Branch creation failed for ${name}. ${printGitlabError(e)}`
-              );
-            }
-            ctx.logger.info(
-              `Branch ${name} created for ${projectId} with ref ${ref}`
-            );
-          }
-          if (protect) {
-            try {
-              await client.ProtectedBranches.protect(projectId, name);
-            } catch (e) {
-              throw new errors.InputError(
-                `Branch protection failed for ${name}. ${printGitlabError(e)}`
-              );
-            }
-            ctx.logger.info(`Branch ${name} protected for ${projectId}`);
-          }
-        }
-      }
-      if (projectVariables) {
-        for (const variable of projectVariables) {
-          const variableWithDefaults = Object.assign(variable, {
-            variable_type: variable.variable_type ?? "env_var",
-            protected: variable.protected ?? false,
-            masked: variable.masked ?? false,
-            raw: variable.raw ?? false,
-            environment_scope: variable.environment_scope ?? "*"
+        if (setUserAsOwner && integrationConfig.config.token) {
+          const adminClient = new rest.Gitlab({
+            host: integrationConfig.config.baseUrl,
+            token: integrationConfig.config.token
           });
-          try {
-            await client.ProjectVariables.create(
-              projectId,
-              variableWithDefaults.key,
-              variableWithDefaults.value,
-              {
-                variableType: variableWithDefaults.variable_type,
-                protected: variableWithDefaults.protected,
-                masked: variableWithDefaults.masked,
-                environmentScope: variableWithDefaults.environment_scope,
-                description: variableWithDefaults.description,
-                raw: variableWithDefaults.raw
+          await adminClient.ProjectMembers.add(projectId, userId, 50);
+        }
+        const remoteUrl = http_url_to_repo.replace(/\.git$/, "");
+        const repoContentsUrl = `${remoteUrl}/-/blob/${defaultBranch}`;
+        const gitAuthorInfo = {
+          name: gitAuthorName ? gitAuthorName : config.getOptionalString("scaffolder.defaultAuthor.name"),
+          email: gitAuthorEmail ? gitAuthorEmail : config.getOptionalString("scaffolder.defaultAuthor.email")
+        };
+        const shouldSkipPublish = typeof ctx.input.sourcePath === "boolean" && !ctx.input.sourcePath;
+        if (!shouldSkipPublish) {
+          const commitResult = await pluginScaffolderNode.initRepoAndPush({
+            dir: typeof ctx.input.sourcePath === "boolean" ? ctx.workspacePath : pluginScaffolderNode.getRepoSourceDirectory(
+              ctx.workspacePath,
+              ctx.input.sourcePath
+            ),
+            remoteUrl: http_url_to_repo,
+            defaultBranch,
+            auth: {
+              username: "oauth2",
+              password: token
+            },
+            logger: ctx.logger,
+            commitMessage: gitCommitMessage ? gitCommitMessage : config.getOptionalString("scaffolder.defaultCommitMessage"),
+            gitAuthorInfo
+          });
+          if (branches) {
+            for (const branch of branches) {
+              const {
+                name,
+                protect = false,
+                create = false,
+                ref = "master"
+              } = branch;
+              if (create) {
+                try {
+                  await client.Branches.create(projectId, name, ref);
+                } catch (e) {
+                  throw new errors.InputError(
+                    `Branch creation failed for ${name}. ${printGitlabError(
+                      e
+                    )}`
+                  );
+                }
+                ctx.logger.info(
+                  `Branch ${name} created for ${projectId} with ref ${ref}`
+                );
               }
-            );
-          } catch (e) {
-            throw new errors.InputError(
-              `Environment variable creation failed for ${variableWithDefaults.key}. ${printGitlabError(e)}`
-            );
+              if (protect) {
+                try {
+                  await client.ProtectedBranches.protect(projectId, name);
+                } catch (e) {
+                  throw new errors.InputError(
+                    `Branch protection failed for ${name}. ${printGitlabError(
+                      e
+                    )}`
+                  );
+                }
+                ctx.logger.info(`Branch ${name} protected for ${projectId}`);
+              }
+            }
+          }
+          ctx.output("commitHash", commitResult?.commitHash);
+        }
+        if (projectVariables) {
+          for (const variable of projectVariables) {
+            const variableWithDefaults = Object.assign(variable, {
+              variable_type: variable.variable_type ?? "env_var",
+              protected: variable.protected ?? false,
+              masked: variable.masked ?? false,
+              raw: variable.raw ?? false,
+              environment_scope: variable.environment_scope ?? "*"
+            });
+            try {
+              await client.ProjectVariables.create(
+                projectId,
+                variableWithDefaults.key,
+                variableWithDefaults.value,
+                {
+                  variableType: variableWithDefaults.variable_type,
+                  protected: variableWithDefaults.protected,
+                  masked: variableWithDefaults.masked,
+                  environmentScope: variableWithDefaults.environment_scope,
+                  description: variableWithDefaults.description,
+                  raw: variableWithDefaults.raw
+                }
+              );
+            } catch (e) {
+              throw new errors.InputError(
+                `Environment variable creation failed for ${variableWithDefaults.key}. ${printGitlabError(e)}`
+              );
+            }
           }
         }
+        ctx.output("remoteUrl", remoteUrl);
+        ctx.output("repoContentsUrl", repoContentsUrl);
+        ctx.output("projectId", projectId);
+        ctx.output("created", true);
+      } else if (existingProject) {
+        ctx.logger.info(`Repo ${repo} already exists in namespace ${owner}.`);
+        const {
+          id: projectId,
+          http_url_to_repo,
+          default_branch
+        } = existingProject;
+        const remoteUrl = http_url_to_repo.replace(/\.git$/, "");
+        ctx.output("remoteUrl", remoteUrl);
+        ctx.output("repoContentsUrl", `${remoteUrl}/-/blob/${default_branch}`);
+        ctx.output("projectId", projectId);
+        ctx.output("created", false);
       }
-      ctx.output("commitHash", commitResult?.commitHash);
-      ctx.output("remoteUrl", remoteUrl);
-      ctx.output("repoContentsUrl", repoContentsUrl);
-      ctx.output("projectId", projectId);
     }
   });
 }

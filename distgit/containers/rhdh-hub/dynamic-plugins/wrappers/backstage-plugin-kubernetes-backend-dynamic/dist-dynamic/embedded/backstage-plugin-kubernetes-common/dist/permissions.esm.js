@@ -4,7 +4,23 @@ const kubernetesProxyPermission = createPermission({
   name: "kubernetes.proxy",
   attributes: {}
 });
-const kubernetesPermissions = [kubernetesProxyPermission];
+const kubernetesResourcesReadPermission = createPermission({
+  name: "kubernetes.resources.read",
+  attributes: {
+    action: "read"
+  }
+});
+const kubernetesClustersReadPermission = createPermission({
+  name: "kubernetes.clusters.read",
+  attributes: {
+    action: "read"
+  }
+});
+const kubernetesPermissions = [
+  kubernetesProxyPermission,
+  kubernetesResourcesReadPermission,
+  kubernetesClustersReadPermission
+];
 
-export { kubernetesPermissions, kubernetesProxyPermission };
+export { kubernetesClustersReadPermission, kubernetesPermissions, kubernetesProxyPermission, kubernetesResourcesReadPermission };
 //# sourceMappingURL=permissions.esm.js.map

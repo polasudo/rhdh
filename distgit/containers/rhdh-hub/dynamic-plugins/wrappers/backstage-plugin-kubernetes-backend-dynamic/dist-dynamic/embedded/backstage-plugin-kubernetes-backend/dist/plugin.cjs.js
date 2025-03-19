@@ -3,6 +3,7 @@
 var backendPluginApi = require('@backstage/backend-plugin-api');
 var alpha = require('@backstage/plugin-catalog-node/alpha');
 var KubernetesBuilder = require('./service/KubernetesBuilder.cjs.js');
+require('./service/KubernetesFanOutHandler.cjs.js');
 require('@backstage/errors');
 require('@backstage/plugin-kubernetes-common');
 require('@backstage/plugin-permission-common');

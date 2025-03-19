@@ -6,19 +6,19 @@ __metadata:
   cacheKey: 8
 
 "@backstage/plugin-catalog-backend-module-bitbucket-server@file:./embedded/backstage-plugin-catalog-backend-module-bitbucket-server::locator=backstage-plugin-catalog-backend-module-bitbucket-server-dynamic%40workspace%3A.":
-  version: 0.3.1+embedded
-  resolution: "@backstage/plugin-catalog-backend-module-bitbucket-server@file:./embedded/backstage-plugin-catalog-backend-module-bitbucket-server#./embedded/backstage-plugin-catalog-backend-module-bitbucket-server::hash=aefc91&locator=backstage-plugin-catalog-backend-module-bitbucket-server-dynamic%40workspace%3A."
+  version: 0.3.2+embedded
+  resolution: "@backstage/plugin-catalog-backend-module-bitbucket-server@file:./embedded/backstage-plugin-catalog-backend-module-bitbucket-server#./embedded/backstage-plugin-catalog-backend-module-bitbucket-server::hash=6f54ce&locator=backstage-plugin-catalog-backend-module-bitbucket-server-dynamic%40workspace%3A."
   dependencies:
-    "@backstage/plugin-catalog-node": ^1.15.1
+    "@backstage/plugin-catalog-node": ^1.16.0
     p-throttle: ^4.1.1
     uuid: ^11.0.0
   peerDependencies:
-    "@backstage/backend-plugin-api": ^1.1.1
+    "@backstage/backend-plugin-api": ^1.2.0
     "@backstage/catalog-model": ^1.7.3
     "@backstage/config": ^1.3.2
     "@backstage/errors": ^1.2.7
     "@backstage/integration": ^1.16.1
-  checksum: 00290c5ac368df2e33b3e91023caa6e926a87e49dc448c52f6989ee6b3de73bd92ed6e962c4d47b1356e30a44ef87ffe79b6e9d616a1475a9babf70ad14b3b37
+  checksum: 002369b3e3508ecfe71b706b9680a20ffcaa9d92e6a14c8eb17b85c01dc14c4809c4cc9c3283839e458029facf7f56780ed263067fee822e38f7a3512648c773
   languageName: node
   linkType: hard
 
@@ -34,19 +34,19 @@ __metadata:
   linkType: hard
 
 "@backstage/plugin-catalog-node@file:./embedded/backstage-plugin-catalog-node::locator=backstage-plugin-catalog-backend-module-bitbucket-server-dynamic%40workspace%3A.":
-  version: 1.15.1+embedded
-  resolution: "@backstage/plugin-catalog-node@file:./embedded/backstage-plugin-catalog-node#./embedded/backstage-plugin-catalog-node::hash=19a365&locator=backstage-plugin-catalog-backend-module-bitbucket-server-dynamic%40workspace%3A."
+  version: 1.16.0+embedded
+  resolution: "@backstage/plugin-catalog-node@file:./embedded/backstage-plugin-catalog-node#./embedded/backstage-plugin-catalog-node::hash=4ab86d&locator=backstage-plugin-catalog-backend-module-bitbucket-server-dynamic%40workspace%3A."
   dependencies:
     "@backstage/plugin-catalog-common": ^1.1.3
   peerDependencies:
-    "@backstage/backend-plugin-api": ^1.1.1
+    "@backstage/backend-plugin-api": ^1.2.0
     "@backstage/catalog-client": ^1.9.1
     "@backstage/catalog-model": ^1.7.3
     "@backstage/errors": ^1.2.7
     "@backstage/plugin-permission-common": ^0.8.4
-    "@backstage/plugin-permission-node": ^0.8.7
+    "@backstage/plugin-permission-node": ^0.8.8
     "@backstage/types": ^1.2.1
-  checksum: 1933af00375c269443b1ec725eafd528624d6ea5b325cf9820a96da2d63d341e4f4a28c9dade4db09ac1e7d85c15ee87df66972ebffe0751dc0fb7cddbe0e509
+  checksum: 70559bba9fb0da81142ec1fdb40e9fbce7ed4e1fafff47d46209752f5f82195cac2616b8850f59e87c419660ae02074ca29b9efbe85fa5dd1b763083fef2cc89
   languageName: node
   linkType: hard
 
@@ -54,16 +54,16 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "backstage-plugin-catalog-backend-module-bitbucket-server-dynamic@workspace:."
   dependencies:
-    "@backstage/plugin-catalog-backend-module-bitbucket-server": 0.3.1
+    "@backstage/plugin-catalog-backend-module-bitbucket-server": 0.3.2
   peerDependencies:
-    "@backstage/backend-plugin-api": ^1.1.1
+    "@backstage/backend-plugin-api": ^1.2.0
     "@backstage/catalog-client": ^1.9.1
     "@backstage/catalog-model": ^1.7.3
     "@backstage/config": ^1.3.2
     "@backstage/errors": ^1.2.7
     "@backstage/integration": ^1.16.1
     "@backstage/plugin-permission-common": ^0.8.4
-    "@backstage/plugin-permission-node": ^0.8.7
+    "@backstage/plugin-permission-node": ^0.8.8
     "@backstage/plugin-search-common": ^1.2.17
     "@backstage/types": ^1.2.1
   languageName: unknown

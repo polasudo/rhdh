@@ -2,8 +2,10 @@
 
 var catalogModel = require('@backstage/catalog-model');
 var errors = require('@backstage/errors');
+var requirePermission = require('../auth/requirePermission.cjs.js');
+var pluginKubernetesCommon = require('@backstage/plugin-kubernetes-common');
 
-const addResourceRoutesToRouter = (router, catalogApi, objectsProvider, auth, httpAuth) => {
+const addResourceRoutesToRouter = (router, catalogApi, objectsProvider, auth, httpAuth, permissionApi) => {
   const getEntityByReq = async (req) => {
     const rawEntityRef = req.body.entityRef;
     if (rawEntityRef && typeof rawEntityRef !== "string") {
@@ -30,6 +32,12 @@ const addResourceRoutesToRouter = (router, catalogApi, objectsProvider, auth, ht
     return entity;
   };
   router.post("/resources/workloads/query", async (req, res) => {
+    await requirePermission.requirePermission(
+      permissionApi,
+      pluginKubernetesCommon.kubernetesResourcesReadPermission,
+      httpAuth,
+      req
+    );
     const entity = await getEntityByReq(req);
     const response = await objectsProvider.getKubernetesObjectsByEntity(
       {
@@ -41,6 +49,12 @@ const addResourceRoutesToRouter = (router, catalogApi, objectsProvider, auth, ht
     res.json(response);
   });
   router.post("/resources/custom/query", async (req, res) => {
+    await requirePermission.requirePermission(
+      permissionApi,
+      pluginKubernetesCommon.kubernetesResourcesReadPermission,
+      httpAuth,
+      req
+    );
     const entity = await getEntityByReq(req);
     if (!req.body.customResources) {
       throw new errors.InputError("customResources is a required field");

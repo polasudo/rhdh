@@ -54,6 +54,10 @@ const createGitlabProjectMigrateAction = (options) => {
           importedRepoUrl: {
             title: "URL to the newly imported repo",
             type: "string"
+          },
+          migrationId: {
+            title: "Id of the migration that imports the project",
+            type: "number"
           }
         }
       }
@@ -94,17 +98,21 @@ const createGitlabProjectMigrateAction = (options) => {
         access_token: sourceAccessToken
       };
       try {
-        await api.Migrations.create(sourceConfig, migrationEntity);
+        const { id: migrationId } = await api.Migrations.create(
+          sourceConfig,
+          migrationEntity
+        );
+        ctx.output(
+          "importedRepoUrl",
+          `${destinationHost}/${destinationNamespace}/${destinationSlug}`
+        );
+        ctx.output("migrationId", migrationId);
       } catch (e) {
         throw new errors.InputError(
           `Failed to transfer repo ${sourceFullPath}. Make sure that ${sourceFullPath} exists in ${sourceUrl}, and token has enough rights.
 Error: ${e}`
         );
       }
-      ctx.output(
-        "importedRepoUrl",
-        `${destinationHost}/${destinationNamespace}/${destinationSlug}`
-      );
     }
   });
 };

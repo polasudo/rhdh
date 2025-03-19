@@ -117,11 +117,11 @@ class MicrosoftGraphOrgEntityProvider {
     }
     return result;
   }
-  /** {@inheritdoc @backstage/plugin-catalog-backend#EntityProvider.getProviderName} */
+  /** {@inheritdoc @backstage/plugin-catalog-node#EntityProvider.getProviderName} */
   getProviderName() {
     return `MicrosoftGraphOrgEntityProvider:${this.options.id}`;
   }
-  /** {@inheritdoc @backstage/plugin-catalog-backend#EntityProvider.connect} */
+  /** {@inheritdoc @backstage/plugin-catalog-node#EntityProvider.connect} */
   async connect(connection) {
     this.connection = connection;
     await this.scheduleFn?.();

@@ -14,11 +14,9 @@ var github = require('./actions/github.cjs.js');
 var githubAutolinks = require('./actions/githubAutolinks.cjs.js');
 var githubPagesEnable = require('./actions/githubPagesEnable.cjs.js');
 var githubBranchProtection = require('./actions/githubBranchProtection.cjs.js');
-require('@backstage/errors');
 var integration = require('@backstage/integration');
-require('@backstage/plugin-scaffolder-node');
-require('libsodium-wrappers');
 var catalogClient = require('@backstage/catalog-client');
+var autocomplete = require('./autocomplete/autocomplete.cjs.js');
 
 const githubModule = backendPluginApi.createBackendModule({
   pluginId: "scaffolder",
@@ -29,9 +27,10 @@ const githubModule = backendPluginApi.createBackendModule({
         scaffolder: alpha.scaffolderActionsExtensionPoint,
         config: backendPluginApi.coreServices.rootConfig,
         discovery: backendPluginApi.coreServices.discovery,
-        auth: backendPluginApi.coreServices.auth
+        auth: backendPluginApi.coreServices.auth,
+        autocomplete: alpha.scaffolderAutocompleteExtensionPoint
       },
-      async init({ scaffolder, config, discovery, auth }) {
+      async init({ scaffolder, config, discovery, auth, autocomplete: autocomplete$1 }) {
         const integrations = integration.ScmIntegrations.fromConfig(config);
         const githubCredentialsProvider = integration.DefaultGithubCredentialsProvider.fromIntegrations(integrations);
         const catalogClient$1 = new catalogClient.CatalogClient({
@@ -85,6 +84,10 @@ const githubModule = backendPluginApi.createBackendModule({
             integrations
           })
         );
+        autocomplete$1.addAutocompleteProvider({
+          id: "github",
+          handler: autocomplete.createHandleAutocompleteRequest({ integrations })
+        });
       }
     });
   }

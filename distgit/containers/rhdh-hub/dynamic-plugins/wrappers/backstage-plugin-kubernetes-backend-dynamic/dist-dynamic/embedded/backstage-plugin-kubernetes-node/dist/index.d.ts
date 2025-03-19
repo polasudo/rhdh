@@ -212,7 +212,7 @@ interface AuthenticationStrategy {
  *
  * @public
  */
-type KubernetesObjectTypes = 'pods' | 'services' | 'configmaps' | 'deployments' | 'limitranges' | 'resourcequotas' | 'replicasets' | 'horizontalpodautoscalers' | 'jobs' | 'cronjobs' | 'ingresses' | 'customresources' | 'statefulsets' | 'daemonsets';
+type KubernetesObjectTypes = 'pods' | 'services' | 'configmaps' | 'deployments' | 'limitranges' | 'resourcequotas' | 'replicasets' | 'horizontalpodautoscalers' | 'jobs' | 'cronjobs' | 'ingresses' | 'customresources' | 'statefulsets' | 'daemonsets' | 'secrets';
 /**
  *
  * @public

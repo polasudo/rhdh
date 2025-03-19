@@ -6,19 +6,19 @@ __metadata:
   cacheKey: 8
 
 "@backstage/plugin-scaffolder-backend-module-bitbucket-cloud@file:./embedded/backstage-plugin-scaffolder-backend-module-bitbucket-cloud::locator=backstage-plugin-scaffolder-backend-module-bitbucket-cloud-dynamic%40workspace%3A.":
-  version: 0.2.5+embedded
-  resolution: "@backstage/plugin-scaffolder-backend-module-bitbucket-cloud@file:./embedded/backstage-plugin-scaffolder-backend-module-bitbucket-cloud#./embedded/backstage-plugin-scaffolder-backend-module-bitbucket-cloud::hash=6cd211&locator=backstage-plugin-scaffolder-backend-module-bitbucket-cloud-dynamic%40workspace%3A."
+  version: 0.2.6+embedded
+  resolution: "@backstage/plugin-scaffolder-backend-module-bitbucket-cloud@file:./embedded/backstage-plugin-scaffolder-backend-module-bitbucket-cloud#./embedded/backstage-plugin-scaffolder-backend-module-bitbucket-cloud::hash=19735b&locator=backstage-plugin-scaffolder-backend-module-bitbucket-cloud-dynamic%40workspace%3A."
   dependencies:
-    "@backstage/plugin-scaffolder-node": ^0.6.3
+    "@backstage/plugin-scaffolder-node": ^0.7.0
     fs-extra: ^11.2.0
     yaml: ^2.0.0
   peerDependencies:
-    "@backstage/backend-plugin-api": ^1.1.1
+    "@backstage/backend-plugin-api": ^1.2.0
     "@backstage/config": ^1.3.2
     "@backstage/errors": ^1.2.7
     "@backstage/integration": ^1.16.1
     "@backstage/plugin-bitbucket-cloud-common": ^0.2.27
-  checksum: 3db21e58321412c84bbd2f17bc89dd0fa671f8ea2856d1af5524a4e9cc87ed1cf370abb438e27e4afe7742215121e13daefb737d96e6d7231955f729696aaeea
+  checksum: 54b3a80a17fdf6249774919695b2ac8a887271fd5a22a6c71a2781bf975cc10218799bebd5ce10cc9cee25ad47ce2da3b66db15193265a57531a53e3f9d40d84
   languageName: node
   linkType: hard
 
@@ -34,8 +34,8 @@ __metadata:
   linkType: hard
 
 "@backstage/plugin-scaffolder-node@file:./embedded/backstage-plugin-scaffolder-node::locator=backstage-plugin-scaffolder-backend-module-bitbucket-cloud-dynamic%40workspace%3A.":
-  version: 0.6.3+embedded
-  resolution: "@backstage/plugin-scaffolder-node@file:./embedded/backstage-plugin-scaffolder-node#./embedded/backstage-plugin-scaffolder-node::hash=eea0aa&locator=backstage-plugin-scaffolder-backend-module-bitbucket-cloud-dynamic%40workspace%3A."
+  version: 0.7.0+embedded
+  resolution: "@backstage/plugin-scaffolder-node@file:./embedded/backstage-plugin-scaffolder-node#./embedded/backstage-plugin-scaffolder-node::hash=7e4638&locator=backstage-plugin-scaffolder-backend-module-bitbucket-cloud-dynamic%40workspace%3A."
   dependencies:
     "@backstage/plugin-scaffolder-common": ^1.5.9
     concat-stream: ^2.0.0
@@ -50,12 +50,12 @@ __metadata:
     zod-to-json-schema: ^3.20.4
   peerDependencies:
     "@backstage/backend-common": ^0.25.0
-    "@backstage/backend-plugin-api": ^1.1.1
+    "@backstage/backend-plugin-api": ^1.2.0
     "@backstage/catalog-model": ^1.7.3
     "@backstage/errors": ^1.2.7
     "@backstage/integration": ^1.16.1
     "@backstage/types": ^1.2.1
-  checksum: b55e18c1a588897403af38012089cd18489ea7e0c1d95d0bb90e1b58825752a20e6c34e69708995117a206f5825bb453034761f29727020b5b117a542907e541
+  checksum: 204a06b44b23b8006db2264daa7ab81c8d044a335fc72f686ba8e4714d202361e2866eb7d811f207b391e7e0902e65cb6853f7e1f8afe206233cefc72231289a
   languageName: node
   linkType: hard
 
@@ -136,10 +136,10 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "backstage-plugin-scaffolder-backend-module-bitbucket-cloud-dynamic@workspace:."
   dependencies:
-    "@backstage/plugin-scaffolder-backend-module-bitbucket-cloud": 0.2.5
+    "@backstage/plugin-scaffolder-backend-module-bitbucket-cloud": 0.2.6
   peerDependencies:
     "@backstage/backend-common": ^0.25.0
-    "@backstage/backend-plugin-api": ^1.1.1
+    "@backstage/backend-plugin-api": ^1.2.0
     "@backstage/catalog-model": ^1.7.3
     "@backstage/config": ^1.3.2
     "@backstage/errors": ^1.2.7

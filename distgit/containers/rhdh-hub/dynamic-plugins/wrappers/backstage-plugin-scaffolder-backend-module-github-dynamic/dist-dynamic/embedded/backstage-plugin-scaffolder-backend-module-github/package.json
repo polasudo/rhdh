@@ -1,11 +1,14 @@
 {
   "name": "@backstage/plugin-scaffolder-backend-module-github",
-  "version": "0.5.5+embedded",
+  "version": "0.6.0+embedded",
   "description": "The github module for @backstage/plugin-scaffolder-backend",
   "backstage": {
     "role": "backend-plugin-module",
     "pluginId": "scaffolder",
-    "pluginPackage": "@backstage/plugin-scaffolder-backend"
+    "pluginPackage": "@backstage/plugin-scaffolder-backend",
+    "features": {
+      ".": "@backstage/BackendFeature"
+    }
   },
   "publishConfig": {
     "access": "public"
@@ -47,7 +50,7 @@
     "test": "backstage-cli package test"
   },
   "dependencies": {
-    "@backstage/plugin-scaffolder-node": "^0.6.3",
+    "@backstage/plugin-scaffolder-node": "^0.7.0",
     "@octokit/webhooks": "^10.9.2",
     "libsodium-wrappers": "^0.7.11",
     "octokit": "^3.0.0",
@@ -58,7 +61,7 @@
   "private": true,
   "peerDependencies": {
     "@backstage/backend-common": "^0.25.0",
-    "@backstage/backend-plugin-api": "^1.1.1",
+    "@backstage/backend-plugin-api": "^1.2.0",
     "@backstage/catalog-client": "^1.9.1",
     "@backstage/catalog-model": "^1.7.3",
     "@backstage/config": "^1.3.2",

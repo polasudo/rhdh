@@ -3,7 +3,7 @@
 Object.defineProperty(exports, '__esModule', { value: true });
 
 var name = "@backstage/plugin-kubernetes-backend";
-var version = "0.19.2";
+var version = "0.19.3";
 var description = "A Backstage backend plugin that integrates towards Kubernetes";
 var backstage = {
 	role: "backend-plugin",

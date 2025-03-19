@@ -84,16 +84,22 @@ const createGitlabIssueAction = (options) => {
         const { host } = util.parseRepoUrl(repoUrl, integrations);
         const api = util.getClient({ host, integrations, token });
         let isEpicScoped = false;
-        if (epicId) {
-          isEpicScoped = await util.checkEpicScope(api, projectId, epicId);
-          if (isEpicScoped) {
-            ctx.logger.info("Epic is within Project Scope");
-          } else {
-            ctx.logger.warn(
-              "Chosen epic is not within the Project Scope. The issue will be created without an associated epic."
-            );
+        isEpicScoped = await ctx.checkpoint({
+          key: `is.epic.scoped.${projectId}.${title}`,
+          fn: async () => {
+            if (epicId) {
+              isEpicScoped = await util.checkEpicScope(api, projectId, epicId);
+              if (isEpicScoped) {
+                ctx.logger.info("Epic is within Project Scope");
+              } else {
+                ctx.logger.warn(
+                  "Chosen epic is not within the Project Scope. The issue will be created without an associated epic."
+                );
+              }
+            }
+            return isEpicScoped;
           }
-        }
+        });
         const mappedCreatedAt = util.convertDate(
           String(createdAt),
           (/* @__PURE__ */ new Date()).toISOString()
@@ -113,11 +119,21 @@ const createGitlabIssueAction = (options) => {
           milestoneId,
           weight
         };
-        const response = await api.Issues.create(
-          projectId,
-          title,
-          issueOptions
-        );
+        const response = await ctx.checkpoint({
+          key: `issue.${projectId}.${title}`,
+          fn: async () => {
+            const issue = await api.Issues.create(
+              projectId,
+              title,
+              issueOptions
+            );
+            return {
+              id: issue.id,
+              web_url: issue.web_url,
+              iid: issue.iid
+            };
+          }
+        });
         ctx.output("issueId", response.id);
         ctx.output("issueUrl", response.web_url);
         ctx.output("issueIid", response.iid);

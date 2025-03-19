@@ -1,11 +1,14 @@
 {
   "name": "@backstage/plugin-catalog-backend-module-ldap",
-  "version": "0.11.1+embedded",
+  "version": "0.11.2+embedded",
   "description": "A Backstage catalog backend module that helps integrate towards LDAP",
   "backstage": {
     "role": "backend-plugin-module",
     "pluginId": "catalog",
-    "pluginPackage": "@backstage/plugin-catalog-backend"
+    "pluginPackage": "@backstage/plugin-catalog-backend",
+    "features": {
+      ".": "@backstage/BackendFeature"
+    }
   },
   "publishConfig": {
     "access": "public",
@@ -39,7 +42,7 @@
   },
   "dependencies": {
     "@backstage/plugin-catalog-common": "^1.1.3",
-    "@backstage/plugin-catalog-node": "^1.15.1",
+    "@backstage/plugin-catalog-node": "^1.16.0",
     "@types/ldapjs": "^2.2.5",
     "ldapjs": "^2.3.3",
     "lodash": "^4.17.21",
@@ -56,7 +59,7 @@
   },
   "private": true,
   "peerDependencies": {
-    "@backstage/backend-plugin-api": "^1.1.1",
+    "@backstage/backend-plugin-api": "^1.2.0",
     "@backstage/catalog-model": "^1.7.3",
     "@backstage/config": "^1.3.2",
     "@backstage/errors": "^1.2.7",

@@ -6,36 +6,36 @@ __metadata:
   cacheKey: 8
 
 "@backstage/plugin-catalog-backend-module-gitlab-org@file:./embedded/backstage-plugin-catalog-backend-module-gitlab-org::locator=backstage-plugin-catalog-backend-module-gitlab-org-dynamic%40workspace%3A.":
-  version: 0.2.5+embedded
-  resolution: "@backstage/plugin-catalog-backend-module-gitlab-org@file:./embedded/backstage-plugin-catalog-backend-module-gitlab-org#./embedded/backstage-plugin-catalog-backend-module-gitlab-org::hash=136182&locator=backstage-plugin-catalog-backend-module-gitlab-org-dynamic%40workspace%3A."
+  version: 0.2.6+embedded
+  resolution: "@backstage/plugin-catalog-backend-module-gitlab-org@file:./embedded/backstage-plugin-catalog-backend-module-gitlab-org#./embedded/backstage-plugin-catalog-backend-module-gitlab-org::hash=d400c2&locator=backstage-plugin-catalog-backend-module-gitlab-org-dynamic%40workspace%3A."
   dependencies:
-    "@backstage/plugin-catalog-backend-module-gitlab": ^0.6.2
-    "@backstage/plugin-catalog-node": ^1.15.1
+    "@backstage/plugin-catalog-backend-module-gitlab": ^0.6.3
+    "@backstage/plugin-catalog-node": ^1.16.0
   peerDependencies:
-    "@backstage/backend-plugin-api": ^1.1.1
-    "@backstage/plugin-events-node": ^0.4.7
-  checksum: 00b15a26a29e3a5d711f418a84cc5310601b1ab1e0ef7ca1f8f0bc4f2c1094d2877d2e86f06ad587215b075587edd2ddd43a7195eedcdc03ad1cb607cc4ec630
+    "@backstage/backend-plugin-api": ^1.2.0
+    "@backstage/plugin-events-node": ^0.4.8
+  checksum: d0241b52bfcffc70026336032bc6b63d253232e841ba2ac58c922245f982bcd33e5f5e25a2b5084e3f2a8eaa773358d2a9dd620eb2059d82e36004e838548040
   languageName: node
   linkType: hard
 
 "@backstage/plugin-catalog-backend-module-gitlab@file:./embedded/backstage-plugin-catalog-backend-module-gitlab::locator=backstage-plugin-catalog-backend-module-gitlab-org-dynamic%40workspace%3A.":
-  version: 0.6.2+embedded
-  resolution: "@backstage/plugin-catalog-backend-module-gitlab@file:./embedded/backstage-plugin-catalog-backend-module-gitlab#./embedded/backstage-plugin-catalog-backend-module-gitlab::hash=fec16b&locator=backstage-plugin-catalog-backend-module-gitlab-org-dynamic%40workspace%3A."
+  version: 0.6.3+embedded
+  resolution: "@backstage/plugin-catalog-backend-module-gitlab@file:./embedded/backstage-plugin-catalog-backend-module-gitlab#./embedded/backstage-plugin-catalog-backend-module-gitlab::hash=c321e0&locator=backstage-plugin-catalog-backend-module-gitlab-org-dynamic%40workspace%3A."
   dependencies:
     "@backstage/plugin-catalog-common": ^1.1.3
-    "@backstage/plugin-catalog-node": ^1.15.1
+    "@backstage/plugin-catalog-node": ^1.16.0
     "@gitbeaker/rest": ^40.0.3
     lodash: ^4.17.21
     node-fetch: ^2.7.0
     uuid: ^11.0.0
   peerDependencies:
-    "@backstage/backend-defaults": ^0.7.0
-    "@backstage/backend-plugin-api": ^1.1.1
+    "@backstage/backend-defaults": ^0.8.0
+    "@backstage/backend-plugin-api": ^1.2.0
     "@backstage/catalog-model": ^1.7.3
     "@backstage/config": ^1.3.2
     "@backstage/integration": ^1.16.1
-    "@backstage/plugin-events-node": ^0.4.7
-  checksum: 36e13bfb164b63d89722e17d280fe1e49da5ec4217b2b857e1c034f085c02e9977bd1472f2e7915f4b4779ac165d2d23b384f16567b19cbdfb27698ba14b62a9
+    "@backstage/plugin-events-node": ^0.4.8
+  checksum: 925f48a1b032d362ba583e86eac9d5f123603588f26ef1c926e1810bb15ca4c7ac5a1d5d0715dbb51e1825b13c2ec64a09f92d967fa72772bd428b2cfcc16e0c
   languageName: node
   linkType: hard
 
@@ -51,19 +51,19 @@ __metadata:
   linkType: hard
 
 "@backstage/plugin-catalog-node@file:./embedded/backstage-plugin-catalog-node::locator=backstage-plugin-catalog-backend-module-gitlab-org-dynamic%40workspace%3A.":
-  version: 1.15.1+embedded
-  resolution: "@backstage/plugin-catalog-node@file:./embedded/backstage-plugin-catalog-node#./embedded/backstage-plugin-catalog-node::hash=19a365&locator=backstage-plugin-catalog-backend-module-gitlab-org-dynamic%40workspace%3A."
+  version: 1.16.0+embedded
+  resolution: "@backstage/plugin-catalog-node@file:./embedded/backstage-plugin-catalog-node#./embedded/backstage-plugin-catalog-node::hash=4ab86d&locator=backstage-plugin-catalog-backend-module-gitlab-org-dynamic%40workspace%3A."
   dependencies:
     "@backstage/plugin-catalog-common": ^1.1.3
   peerDependencies:
-    "@backstage/backend-plugin-api": ^1.1.1
+    "@backstage/backend-plugin-api": ^1.2.0
     "@backstage/catalog-client": ^1.9.1
     "@backstage/catalog-model": ^1.7.3
     "@backstage/errors": ^1.2.7
     "@backstage/plugin-permission-common": ^0.8.4
-    "@backstage/plugin-permission-node": ^0.8.7
+    "@backstage/plugin-permission-node": ^0.8.8
     "@backstage/types": ^1.2.1
-  checksum: 1933af00375c269443b1ec725eafd528624d6ea5b325cf9820a96da2d63d341e4f4a28c9dade4db09ac1e7d85c15ee87df66972ebffe0751dc0fb7cddbe0e509
+  checksum: 70559bba9fb0da81142ec1fdb40e9fbce7ed4e1fafff47d46209752f5f82195cac2616b8850f59e87c419660ae02074ca29b9efbe85fa5dd1b763083fef2cc89
   languageName: node
   linkType: hard
 
@@ -104,19 +104,19 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "backstage-plugin-catalog-backend-module-gitlab-org-dynamic@workspace:."
   dependencies:
-    "@backstage/plugin-catalog-backend-module-gitlab": 0.6.2
-    "@backstage/plugin-catalog-backend-module-gitlab-org": 0.2.5
+    "@backstage/plugin-catalog-backend-module-gitlab": 0.6.3
+    "@backstage/plugin-catalog-backend-module-gitlab-org": 0.2.6
   peerDependencies:
-    "@backstage/backend-defaults": ^0.7.0
-    "@backstage/backend-plugin-api": ^1.1.1
+    "@backstage/backend-defaults": ^0.8.0
+    "@backstage/backend-plugin-api": ^1.2.0
     "@backstage/catalog-client": ^1.9.1
     "@backstage/catalog-model": ^1.7.3
     "@backstage/config": ^1.3.2
     "@backstage/errors": ^1.2.7
     "@backstage/integration": ^1.16.1
-    "@backstage/plugin-events-node": ^0.4.7
+    "@backstage/plugin-events-node": ^0.4.8
     "@backstage/plugin-permission-common": ^0.8.4
-    "@backstage/plugin-permission-node": ^0.8.7
+    "@backstage/plugin-permission-node": ^0.8.8
     "@backstage/plugin-search-common": ^1.2.17
     "@backstage/types": ^1.2.1
   languageName: unknown

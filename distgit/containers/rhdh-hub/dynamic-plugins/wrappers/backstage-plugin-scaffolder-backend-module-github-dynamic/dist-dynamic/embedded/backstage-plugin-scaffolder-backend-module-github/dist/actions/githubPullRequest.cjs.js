@@ -5,7 +5,7 @@ var pluginScaffolderNode = require('@backstage/plugin-scaffolder-node');
 var octokit = require('octokit');
 var errors = require('@backstage/errors');
 var octokitPluginCreatePullRequest = require('octokit-plugin-create-pull-request');
-var helpers = require('./helpers.cjs.js');
+var util = require('../util.cjs.js');
 var githubPullRequest_examples = require('./githubPullRequest.examples.cjs.js');
 var backendPluginApi = require('@backstage/backend-plugin-api');
 
@@ -23,13 +23,12 @@ const defaultClientFactory = async ({
   host = "github.com",
   token: providedToken
 }) => {
-  const [encodedHost, encodedOwner, encodedRepo] = [host, owner, repo].map(
-    encodeURIComponent
-  );
-  const octokitOptions = await helpers.getOctokitOptions({
+  const octokitOptions = await util.getOctokitOptions({
     integrations,
     credentialsProvider: githubCredentialsProvider,
-    repoUrl: `${encodedHost}?owner=${encodedOwner}&repo=${encodedRepo}`,
+    host,
+    owner,
+    repo,
     token: providedToken
   });
   const OctokitPR = octokit.Octokit.plugin(octokitPluginCreatePullRequest.createPullRequest);
@@ -56,7 +55,7 @@ const createPublishGithubPullRequestAction = (options) => {
         properties: {
           repoUrl: {
             title: "Repository Location",
-            description: `Accepts the format 'github.com?repo=reponame&owner=owner' where 'reponame' is the repository name and 'owner' is an organization or username`,
+            description: "Accepts the format `github.com?repo=reponame&owner=owner` where `reponame` is the repository name and `owner` is an organization or username",
             type: "string"
           },
           branchName: {
@@ -67,7 +66,7 @@ const createPublishGithubPullRequestAction = (options) => {
           targetBranchName: {
             type: "string",
             title: "Target Branch Name",
-            description: "The target branch name of the merge request"
+            description: "The target branch name of the pull request"
           },
           title: {
             type: "string",
@@ -133,22 +132,27 @@ const createPublishGithubPullRequestAction = (options) => {
           gitAuthorName: {
             type: "string",
             title: "Default Author Name",
-            description: "Sets the default author name for the commit. The default value is the authenticated user or 'Scaffolder'"
+            description: "Sets the default author name for the commit. The default value is the authenticated user or `Scaffolder`"
           },
           gitAuthorEmail: {
             type: "string",
             title: "Default Author Email",
-            description: "Sets the default author email for the commit. The default value is the authenticated user or 'scaffolder@backstage.io'"
+            description: "Sets the default author email for the commit. The default value is the authenticated user or `scaffolder@backstage.io`"
           },
           forceEmptyGitAuthor: {
             type: "boolean",
             title: "Force Empty Git Author",
             description: "Forces the author to be empty. This is useful when using a Github App, it permit the commit to be verified on Github"
+          },
+          createWhenEmpty: {
+            type: "boolean",
+            title: "Create When Empty",
+            description: "Set whether to create pull request when there are no changes to commit. The default value is true. If set to false, remoteUrl is no longer a required output."
           }
         }
       },
       output: {
-        required: ["remoteUrl"],
+        required: [],
         type: "object",
         properties: {
           targetBranchName: {
@@ -186,7 +190,8 @@ const createPublishGithubPullRequestAction = (options) => {
         forceFork,
         gitAuthorEmail,
         gitAuthorName,
-        forceEmptyGitAuthor
+        forceEmptyGitAuthor,
+        createWhenEmpty
       } = ctx.input;
       const { owner, repo, host } = pluginScaffolderNode.parseRepoUrl(repoUrl, integrations);
       if (!owner) {
@@ -254,7 +259,8 @@ const createPublishGithubPullRequestAction = (options) => {
           head: branchName,
           draft,
           update,
-          forceFork
+          forceFork,
+          createWhenEmpty
         };
         const gitAuthorInfo = {
           name: gitAuthorName ?? config?.getOptionalString("scaffolder.defaultAuthor.name"),
@@ -285,6 +291,10 @@ const createPublishGithubPullRequestAction = (options) => {
           createOptions.base = targetBranchName;
         }
         const response = await client.createPullRequest(createOptions);
+        if (createWhenEmpty === false && !response) {
+          ctx.logger.info("No changes to commit, pull request was not created");
+          return;
+        }
         if (!response) {
           throw new GithubResponseError("null response from Github");
         }

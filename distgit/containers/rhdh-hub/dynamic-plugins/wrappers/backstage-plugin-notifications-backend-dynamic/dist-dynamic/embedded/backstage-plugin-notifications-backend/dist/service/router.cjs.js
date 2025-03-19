@@ -151,22 +151,7 @@ async function createRouter(options) {
       throw new Error("Only HTTP/HTTPS links are allowed");
     }
   };
-  const router = Router__default.default();
-  router.use(express__default.default.json());
-  const listNotificationsHandler = async (req, res) => {
-    const user = await getUser(req);
-    const opts = {
-      user
-    };
-    if (req.query.offset) {
-      opts.offset = Number.parseInt(req.query.offset.toString(), 10);
-    }
-    if (req.query.limit) {
-      opts.limit = Number.parseInt(req.query.limit.toString(), 10);
-    }
-    if (req.query.orderField) {
-      opts.orderField = parseEntityOrderFieldParams.parseEntityOrderFieldParams(req.query);
-    }
+  const appendCommonOptions = (req, opts) => {
     if (req.query.search) {
       opts.search = req.query.search.toString();
     }
@@ -174,9 +159,6 @@ async function createRouter(options) {
       opts.read = true;
     } else if (req.query.read === "false") {
       opts.read = false;
-    }
-    if (req.query.topic) {
-      opts.topic = req.query.topic.toString();
     }
     if (req.query.saved === "true") {
       opts.saved = true;
@@ -195,6 +177,27 @@ async function createRouter(options) {
         req.query.minimumSeverity.toString()
       );
     }
+  };
+  const router = Router__default.default();
+  router.use(express__default.default.json());
+  const listNotificationsHandler = async (req, res) => {
+    const user = await getUser(req);
+    const opts = {
+      user
+    };
+    if (req.query.offset) {
+      opts.offset = Number.parseInt(req.query.offset.toString(), 10);
+    }
+    if (req.query.limit) {
+      opts.limit = Number.parseInt(req.query.limit.toString(), 10);
+    }
+    if (req.query.orderField) {
+      opts.orderField = parseEntityOrderFieldParams.parseEntityOrderFieldParams(req.query);
+    }
+    if (req.query.topic) {
+      opts.topic = req.query.topic.toString();
+    }
+    appendCommonOptions(req, opts);
     const [notifications, totalCount] = await Promise.all([
       store.getNotifications(opts),
       store.getNotificationsCount(opts)
@@ -246,6 +249,16 @@ async function createRouter(options) {
     }
     res.json(notifications[0]);
   };
+  const listTopicsHandler = async (req, res) => {
+    const user = await getUser(req);
+    const opts = {
+      user
+    };
+    appendCommonOptions(req, opts);
+    const topics = await store.getTopics(opts);
+    res.json(topics);
+  };
+  router.get("/topics", listTopicsHandler);
   router.get("/:id", getNotificationHandler);
   router.get("/notifications/:id", getNotificationHandler);
   const updateNotificationsHandler = async (req, res) => {

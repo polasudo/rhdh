@@ -71,11 +71,11 @@ class GithubEntityProvider {
     this.scheduleFn = this.createScheduleFn(taskRunner);
     this.githubCredentialsProvider = integration.SingleInstanceGithubCredentialsProvider.create(integration$1.config);
   }
-  /** {@inheritdoc @backstage/plugin-catalog-backend#EntityProvider.getProviderName} */
+  /** {@inheritdoc @backstage/plugin-catalog-node#EntityProvider.getProviderName} */
   getProviderName() {
     return `github-provider:${this.config.id}`;
   }
-  /** {@inheritdoc @backstage/plugin-catalog-backend#EntityProvider.connect} */
+  /** {@inheritdoc @backstage/plugin-catalog-node#EntityProvider.connect} */
   async connect(connection) {
     this.connection = connection;
     await this.events?.subscribe({

@@ -1,9 +1,10 @@
 import * as _backstage_backend_plugin_api from '@backstage/backend-plugin-api';
+import * as _backstage_plugin_permission_node from '@backstage/plugin-permission-node';
+import { PermissionRule } from '@backstage/plugin-permission-node';
 import { CatalogApi } from '@backstage/catalog-client';
 import { Entity, Validators } from '@backstage/catalog-model';
 import { CatalogProcessor, EntityProvider, PlaceholderResolver, CatalogProcessorParser, LocationAnalyzer, ScmLocationAnalyzer, EntitiesSearchFilter } from '@backstage/plugin-catalog-node';
 import { PermissionRuleParams, Permission } from '@backstage/plugin-permission-common';
-import { PermissionRule } from '@backstage/plugin-permission-node';
 
 /**
  * @alpha
@@ -82,10 +83,12 @@ declare const catalogAnalysisExtensionPoint: _backstage_backend_plugin_api.Exten
 declare const catalogModelExtensionPoint: _backstage_backend_plugin_api.ExtensionPoint<CatalogModelExtensionPoint>;
 /**
  * @alpha
+ * @deprecated Use the `coreServices.permissionsRegistry` instead.
  */
 type CatalogPermissionRuleInput<TParams extends PermissionRuleParams = PermissionRuleParams> = PermissionRule<Entity, EntitiesSearchFilter, 'catalog-entity', TParams>;
 /**
  * @alpha
+ * @deprecated Use the `coreServices.permissionsRegistry` instead.
  */
 interface CatalogPermissionExtensionPoint {
     addPermissions(...permissions: Array<Permission | Array<Permission>>): void;
@@ -93,13 +96,16 @@ interface CatalogPermissionExtensionPoint {
 }
 /**
  * @alpha
+ * @deprecated Use the `coreServices.permissionsRegistry` instead.
  */
 declare const catalogPermissionExtensionPoint: _backstage_backend_plugin_api.ExtensionPoint<CatalogPermissionExtensionPoint>;
 
+/** @alpha */
+declare const catalogEntityPermissionResourceRef: _backstage_plugin_permission_node.PermissionResourceRef<Entity, EntitiesSearchFilter, "catalog-entity", "catalog">;
 /**
  * @alpha
  * @deprecated Use {@link @backstage/plugin-catalog-node#catalogServiceRef} instead
  */
 declare const catalogServiceRef: _backstage_backend_plugin_api.ServiceRef<CatalogApi, "plugin", "singleton">;
 
-export { type CatalogAnalysisExtensionPoint, type CatalogLocationsExtensionPoint, type CatalogModelExtensionPoint, type CatalogPermissionExtensionPoint, type CatalogPermissionRuleInput, type CatalogProcessingExtensionPoint, catalogAnalysisExtensionPoint, catalogLocationsExtensionPoint, catalogModelExtensionPoint, catalogPermissionExtensionPoint, catalogProcessingExtensionPoint, catalogServiceRef };
+export { type CatalogAnalysisExtensionPoint, type CatalogLocationsExtensionPoint, type CatalogModelExtensionPoint, type CatalogPermissionExtensionPoint, type CatalogPermissionRuleInput, type CatalogProcessingExtensionPoint, catalogAnalysisExtensionPoint, catalogEntityPermissionResourceRef, catalogLocationsExtensionPoint, catalogModelExtensionPoint, catalogPermissionExtensionPoint, catalogProcessingExtensionPoint, catalogServiceRef };

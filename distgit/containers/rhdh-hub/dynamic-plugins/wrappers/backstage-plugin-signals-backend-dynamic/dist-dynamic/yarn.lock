@@ -6,10 +6,10 @@ __metadata:
   cacheKey: 8
 
 "@backstage/plugin-signals-backend@file:./embedded/backstage-plugin-signals-backend::locator=backstage-plugin-signals-backend-dynamic%40workspace%3A.":
-  version: 0.3.0+embedded
-  resolution: "@backstage/plugin-signals-backend@file:./embedded/backstage-plugin-signals-backend#./embedded/backstage-plugin-signals-backend::hash=8cede0&locator=backstage-plugin-signals-backend-dynamic%40workspace%3A."
+  version: 0.3.1+embedded
+  resolution: "@backstage/plugin-signals-backend@file:./embedded/backstage-plugin-signals-backend#./embedded/backstage-plugin-signals-backend::hash=c13b95&locator=backstage-plugin-signals-backend-dynamic%40workspace%3A."
   dependencies:
-    "@backstage/plugin-signals-node": ^0.1.16
+    "@backstage/plugin-signals-node": ^0.1.17
     express: ^4.17.1
     express-promise-router: ^4.1.0
     http-proxy-middleware: ^2.0.0
@@ -18,29 +18,29 @@ __metadata:
     ws: ^8.18.0
     yn: ^4.0.0
   peerDependencies:
-    "@backstage/backend-plugin-api": ^1.1.1
+    "@backstage/backend-plugin-api": ^1.2.0
     "@backstage/config": ^1.3.2
-    "@backstage/plugin-auth-node": ^0.5.6
-    "@backstage/plugin-events-node": ^0.4.7
+    "@backstage/plugin-auth-node": ^0.6.0
+    "@backstage/plugin-events-node": ^0.4.8
     "@backstage/types": ^1.2.1
-  checksum: 01f6b8b85ce079e88069f4e06e5608b0cf5217cdb95857d3d3065f1c79dd5c3cafba1c14f575efb332708d26920b80009d017e469908945cef132d6adf4d5c80
+  checksum: 86b149394fc6dcfb82bdb6b100efae5201b6fcdb8932cfe73ec92ed90643804b411ee683d701e2bf5e05f8a0df4d0e3b198fdd468a366c31cddb196d893d27fd
   languageName: node
   linkType: hard
 
 "@backstage/plugin-signals-node@file:./embedded/backstage-plugin-signals-node::locator=backstage-plugin-signals-backend-dynamic%40workspace%3A.":
-  version: 0.1.16+embedded
-  resolution: "@backstage/plugin-signals-node@file:./embedded/backstage-plugin-signals-node#./embedded/backstage-plugin-signals-node::hash=7f521a&locator=backstage-plugin-signals-backend-dynamic%40workspace%3A."
+  version: 0.1.17+embedded
+  resolution: "@backstage/plugin-signals-node@file:./embedded/backstage-plugin-signals-node#./embedded/backstage-plugin-signals-node::hash=b10bf9&locator=backstage-plugin-signals-backend-dynamic%40workspace%3A."
   dependencies:
     express: ^4.17.1
     uuid: ^11.0.0
     ws: ^8.18.0
   peerDependencies:
-    "@backstage/backend-plugin-api": ^1.1.1
+    "@backstage/backend-plugin-api": ^1.2.0
     "@backstage/config": ^1.3.2
-    "@backstage/plugin-auth-node": ^0.5.6
-    "@backstage/plugin-events-node": ^0.4.7
+    "@backstage/plugin-auth-node": ^0.6.0
+    "@backstage/plugin-events-node": ^0.4.8
     "@backstage/types": ^1.2.1
-  checksum: e5bebe0034b18d0fe0c2b53a7b7c6514ec68423bcc5c9c949c40cab0acb35c834cdb9ab21f6d11a48b94319d94722c98c123533590feac24c07b3f878c6bdfc7
+  checksum: 13c404fd89863c28d562aecac6d671e9563024d7d19bf20c26264938ce364426deee70ab6372a13b8b87e501602a7fceb667c473a740ae094e1e22440d310741
   languageName: node
   linkType: hard
 
@@ -72,11 +72,11 @@ __metadata:
   linkType: hard
 
 "@types/node@npm:*":
-  version: 22.7.9
-  resolution: "@types/node@npm:22.7.9"
+  version: 22.13.5
+  resolution: "@types/node@npm:22.13.5"
   dependencies:
-    undici-types: ~6.19.2
-  checksum: 02671449e61f3f7c9898da44e18af272056fee0afbbc98b11dcff7cd7c4ed6c8a45353cfdde413208d9f597e247ee68d908c83a72cae4cbdd763b0e3a45ac0cd
+    undici-types: ~6.20.0
+  checksum: 8789d9bc3efd212819fd03f7bbd429901b076703e9852ccf4950c8c7cd300d5d5a05f273d0936cbaf28194485d2bd0c265a1a25390720e353a53359526c28fb3
   languageName: node
   linkType: hard
 
@@ -115,12 +115,12 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "backstage-plugin-signals-backend-dynamic@workspace:."
   dependencies:
-    "@backstage/plugin-signals-backend": 0.3.0
+    "@backstage/plugin-signals-backend": 0.3.1
   peerDependencies:
-    "@backstage/backend-plugin-api": ^1.1.1
+    "@backstage/backend-plugin-api": ^1.2.0
     "@backstage/config": ^1.3.2
-    "@backstage/plugin-auth-node": ^0.5.6
-    "@backstage/plugin-events-node": ^0.4.7
+    "@backstage/plugin-auth-node": ^0.6.0
+    "@backstage/plugin-events-node": ^0.4.8
     "@backstage/types": ^1.2.1
   languageName: unknown
   linkType: soft
@@ -1057,10 +1057,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"undici-types@npm:~6.19.2":
-  version: 6.19.8
-  resolution: "undici-types@npm:6.19.8"
-  checksum: de51f1b447d22571cf155dfe14ff6d12c5bdaec237c765085b439c38ca8518fc360e88c70f99469162bf2e14188a7b0bcb06e1ed2dc031042b984b0bb9544017
+"undici-types@npm:~6.20.0":
+  version: 6.20.0
+  resolution: "undici-types@npm:6.20.0"
+  checksum: b7bc50f012dc6afbcce56c9fd62d7e86b20a62ff21f12b7b5cbf1973b9578d90f22a9c7fe50e638e96905d33893bf2f9f16d98929c4673c2480de05c6c96ea8b
   languageName: node
   linkType: hard
 

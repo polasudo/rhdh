@@ -15,12 +15,12 @@ __metadata:
   linkType: hard
 
 "@backstage/plugin-notifications-backend@file:./embedded/backstage-plugin-notifications-backend::locator=backstage-plugin-notifications-backend-dynamic%40workspace%3A.":
-  version: 0.5.1+embedded
-  resolution: "@backstage/plugin-notifications-backend@file:./embedded/backstage-plugin-notifications-backend#./embedded/backstage-plugin-notifications-backend::hash=df8769&locator=backstage-plugin-notifications-backend-dynamic%40workspace%3A."
+  version: 0.5.3+embedded
+  resolution: "@backstage/plugin-notifications-backend@file:./embedded/backstage-plugin-notifications-backend#./embedded/backstage-plugin-notifications-backend::hash=70a9d8&locator=backstage-plugin-notifications-backend-dynamic%40workspace%3A."
   dependencies:
     "@backstage/plugin-notifications-common": ^0.0.8
-    "@backstage/plugin-notifications-node": ^0.2.11
-    "@backstage/plugin-signals-node": ^0.1.16
+    "@backstage/plugin-notifications-node": ^0.2.12
+    "@backstage/plugin-signals-node": ^0.1.17
     express: ^4.17.1
     express-promise-router: ^4.1.0
     knex: ^3.0.0
@@ -28,15 +28,15 @@ __metadata:
     winston: ^3.2.1
     yn: ^4.0.0
   peerDependencies:
-    "@backstage/backend-plugin-api": ^1.1.1
+    "@backstage/backend-plugin-api": ^1.2.0
     "@backstage/catalog-client": ^1.9.1
     "@backstage/catalog-model": ^1.7.3
     "@backstage/config": ^1.3.2
     "@backstage/errors": ^1.2.7
-    "@backstage/plugin-auth-node": ^0.5.6
-    "@backstage/plugin-catalog-node": ^1.15.1
-    "@backstage/plugin-events-node": ^0.4.7
-  checksum: a4880015f936e688cc43c506251a103de08e9afff75dbcc1d9a684f8cb4e1cf3c52c34c5a6f465ef28fb8bcccad45b4b0757464656e02fdfa9a824ce85d92ca4
+    "@backstage/plugin-auth-node": ^0.6.0
+    "@backstage/plugin-catalog-node": ^1.16.0
+    "@backstage/plugin-events-node": ^0.4.8
+  checksum: ef3f3b2c92a43f4e0f21b57000df3d8595663c8d1df0aa4b5335664419aafbc4d5151c50d261c2ce9b3f27057f6e018d750dfaf0d37656962638cd1f8feca582
   languageName: node
   linkType: hard
 
@@ -52,35 +52,35 @@ __metadata:
   linkType: hard
 
 "@backstage/plugin-notifications-node@file:./embedded/backstage-plugin-notifications-node::locator=backstage-plugin-notifications-backend-dynamic%40workspace%3A.":
-  version: 0.2.11+embedded
-  resolution: "@backstage/plugin-notifications-node@file:./embedded/backstage-plugin-notifications-node#./embedded/backstage-plugin-notifications-node::hash=f5f815&locator=backstage-plugin-notifications-backend-dynamic%40workspace%3A."
+  version: 0.2.12+embedded
+  resolution: "@backstage/plugin-notifications-node@file:./embedded/backstage-plugin-notifications-node#./embedded/backstage-plugin-notifications-node::hash=00e18f&locator=backstage-plugin-notifications-backend-dynamic%40workspace%3A."
   dependencies:
     "@backstage/plugin-notifications-common": ^0.0.8
-    "@backstage/plugin-signals-node": ^0.1.16
+    "@backstage/plugin-signals-node": ^0.1.17
     knex: ^3.0.0
     uuid: ^11.0.0
   peerDependencies:
-    "@backstage/backend-plugin-api": ^1.1.1
+    "@backstage/backend-plugin-api": ^1.2.0
     "@backstage/catalog-client": ^1.9.1
     "@backstage/catalog-model": ^1.7.3
-  checksum: 9713a8d2b476b9eb8f343409c905328d355b2a2453a003dcbd545b125f43a0f456ecf0cf0b17b07c6255e01ddbcd38136d34eca11b2061d1de812322b0e1e7b5
+  checksum: 26d95d3c08f8faf17466db21ce0bc9499b11a5f6d23a251056c17235f9581a854e45266d3cce79f14ec298d3203408216feeafc344a3c3cdf142b2078b473802
   languageName: node
   linkType: hard
 
 "@backstage/plugin-signals-node@file:./embedded/backstage-plugin-signals-node::locator=backstage-plugin-notifications-backend-dynamic%40workspace%3A.":
-  version: 0.1.16+embedded
-  resolution: "@backstage/plugin-signals-node@file:./embedded/backstage-plugin-signals-node#./embedded/backstage-plugin-signals-node::hash=7f521a&locator=backstage-plugin-notifications-backend-dynamic%40workspace%3A."
+  version: 0.1.17+embedded
+  resolution: "@backstage/plugin-signals-node@file:./embedded/backstage-plugin-signals-node#./embedded/backstage-plugin-signals-node::hash=b10bf9&locator=backstage-plugin-notifications-backend-dynamic%40workspace%3A."
   dependencies:
     express: ^4.17.1
     uuid: ^11.0.0
     ws: ^8.18.0
   peerDependencies:
-    "@backstage/backend-plugin-api": ^1.1.1
+    "@backstage/backend-plugin-api": ^1.2.0
     "@backstage/config": ^1.3.2
-    "@backstage/plugin-auth-node": ^0.5.6
-    "@backstage/plugin-events-node": ^0.4.7
+    "@backstage/plugin-auth-node": ^0.6.0
+    "@backstage/plugin-events-node": ^0.4.8
     "@backstage/types": ^1.2.1
-  checksum: e5bebe0034b18d0fe0c2b53a7b7c6514ec68423bcc5c9c949c40cab0acb35c834cdb9ab21f6d11a48b94319d94722c98c123533590feac24c07b3f878c6bdfc7
+  checksum: 13c404fd89863c28d562aecac6d671e9563024d7d19bf20c26264938ce364426deee70ab6372a13b8b87e501602a7fceb667c473a740ae094e1e22440d310741
   languageName: node
   linkType: hard
 
@@ -154,17 +154,17 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "backstage-plugin-notifications-backend-dynamic@workspace:."
   dependencies:
-    "@backstage/plugin-notifications-backend": 0.5.1
-    "@backstage/plugin-signals-node": 0.1.16
+    "@backstage/plugin-notifications-backend": 0.5.3
+    "@backstage/plugin-signals-node": 0.1.17
   peerDependencies:
-    "@backstage/backend-plugin-api": ^1.1.1
+    "@backstage/backend-plugin-api": ^1.2.0
     "@backstage/catalog-client": ^1.9.1
     "@backstage/catalog-model": ^1.7.3
     "@backstage/config": ^1.3.2
     "@backstage/errors": ^1.2.7
-    "@backstage/plugin-auth-node": ^0.5.6
-    "@backstage/plugin-catalog-node": ^1.15.1
-    "@backstage/plugin-events-node": ^0.4.7
+    "@backstage/plugin-auth-node": ^0.6.0
+    "@backstage/plugin-catalog-node": ^1.16.0
+    "@backstage/plugin-events-node": ^0.4.8
     "@backstage/types": ^1.2.1
   languageName: unknown
   linkType: soft
@@ -659,7 +659,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"is-core-module@npm:^2.13.0":
+"is-core-module@npm:^2.16.0":
   version: 2.16.1
   resolution: "is-core-module@npm:2.16.1"
   dependencies:
@@ -963,28 +963,28 @@ __metadata:
   linkType: hard
 
 "resolve@npm:^1.20.0":
-  version: 1.22.8
-  resolution: "resolve@npm:1.22.8"
+  version: 1.22.10
+  resolution: "resolve@npm:1.22.10"
   dependencies:
-    is-core-module: ^2.13.0
+    is-core-module: ^2.16.0
     path-parse: ^1.0.7
     supports-preserve-symlinks-flag: ^1.0.0
   bin:
     resolve: bin/resolve
-  checksum: f8a26958aa572c9b064562750b52131a37c29d072478ea32e129063e2da7f83e31f7f11e7087a18225a8561cfe8d2f0df9dbea7c9d331a897571c0a2527dbb4c
+  checksum: ab7a32ff4046fcd7c6fdd525b24a7527847d03c3650c733b909b01b757f92eb23510afa9cc3e9bf3f26a3e073b48c88c706dfd4c1d2fb4a16a96b73b6328ddcf
   languageName: node
   linkType: hard
 
 "resolve@patch:resolve@^1.20.0#~builtin<compat/resolve>":
-  version: 1.22.8
-  resolution: "resolve@patch:resolve@npm%3A1.22.8#~builtin<compat/resolve>::version=1.22.8&hash=c3c19d"
+  version: 1.22.10
+  resolution: "resolve@patch:resolve@npm%3A1.22.10#~builtin<compat/resolve>::version=1.22.10&hash=c3c19d"
   dependencies:
-    is-core-module: ^2.13.0
+    is-core-module: ^2.16.0
     path-parse: ^1.0.7
     supports-preserve-symlinks-flag: ^1.0.0
   bin:
     resolve: bin/resolve
-  checksum: 5479b7d431cacd5185f8db64bfcb7286ae5e31eb299f4c4f404ad8aa6098b77599563ac4257cb2c37a42f59dfc06a1bec2bcf283bb448f319e37f0feb9a09847
+  checksum: 8aac1e4e4628bd00bf4b94b23de137dd3fe44097a8d528fd66db74484be929936e20c696e1a3edf4488f37e14180b73df6f600992baea3e089e8674291f16c9d
   languageName: node
   linkType: hard
 

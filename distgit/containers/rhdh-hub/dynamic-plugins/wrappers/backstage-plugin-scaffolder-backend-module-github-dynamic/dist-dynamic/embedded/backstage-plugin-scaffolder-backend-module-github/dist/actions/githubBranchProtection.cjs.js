@@ -4,7 +4,7 @@ var errors = require('@backstage/errors');
 var pluginScaffolderNode = require('@backstage/plugin-scaffolder-node');
 var githubBranchProtection_examples = require('./githubBranchProtection.examples.cjs.js');
 var inputProperties = require('./inputProperties.cjs.js');
-var helpers = require('./helpers.cjs.js');
+var util = require('../util.cjs.js');
 var octokit = require('octokit');
 var gitHelpers = require('./gitHelpers.cjs.js');
 
@@ -59,16 +59,18 @@ function createGithubBranchProtectionAction(options) {
         requiredLinearHistory = false,
         token: providedToken
       } = ctx.input;
-      const octokitOptions = await helpers.getOctokitOptions({
-        integrations,
-        token: providedToken,
-        repoUrl
-      });
-      const client = new octokit.Octokit(octokitOptions);
-      const { owner, repo } = pluginScaffolderNode.parseRepoUrl(repoUrl, integrations);
+      const { host, owner, repo } = pluginScaffolderNode.parseRepoUrl(repoUrl, integrations);
       if (!owner) {
         throw new errors.InputError(`No owner provided for repo ${repoUrl}`);
       }
+      const octokitOptions = await util.getOctokitOptions({
+        integrations,
+        token: providedToken,
+        host,
+        owner,
+        repo
+      });
+      const client = new octokit.Octokit(octokitOptions);
       const repository = await client.rest.repos.get({
         owner,
         repo

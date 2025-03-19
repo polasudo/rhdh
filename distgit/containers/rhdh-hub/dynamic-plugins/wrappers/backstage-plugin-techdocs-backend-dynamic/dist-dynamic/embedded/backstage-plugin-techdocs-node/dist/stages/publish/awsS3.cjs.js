@@ -86,12 +86,16 @@ class AwsS3Publish {
     const forcePathStyle = config.getOptionalBoolean(
       "techdocs.publisher.awsS3.s3ForcePathStyle"
     );
+    const maxAttempts = config.getOptionalNumber(
+      "techdocs.publisher.awsS3.maxAttempts"
+    );
     const storageClient = new clientS3.S3Client({
       customUserAgent: "backstage-aws-techdocs-s3-publisher",
       credentialDefaultProvider: () => sdkCredentialProvider,
       ...region && { region },
       ...endpoint && { endpoint },
       ...forcePathStyle && { forcePathStyle },
+      ...maxAttempts && { maxAttempts },
       ...httpsProxy && {
         requestHandler: new nodeHttpHandler.NodeHttpHandler({
           httpsAgent: new hpagent.HttpsProxyAgent({ proxy: httpsProxy })

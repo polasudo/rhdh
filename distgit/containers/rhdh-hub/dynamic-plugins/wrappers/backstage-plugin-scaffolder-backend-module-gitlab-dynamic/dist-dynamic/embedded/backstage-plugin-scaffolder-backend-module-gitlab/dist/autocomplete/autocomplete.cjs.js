@@ -57,7 +57,7 @@ function createHandleAutocompleteRequest(options) {
         return {
           results: response.map((project) => ({
             title: project.name.trim(),
-            id: project.id.toString()
+            id: project.path
           }))
         };
       }

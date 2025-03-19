@@ -9,6 +9,7 @@ import { Schema } from 'jsonschema';
 import { z } from 'zod';
 import { SpawnOptionsWithoutStdio } from 'child_process';
 import { ScmIntegrations, ScmIntegrationRegistry } from '@backstage/integration';
+export { T as TemplateFilter, a as TemplateGlobal } from './types/types.d-C0fXdKnD.js';
 
 /**
  * TaskSecrets
@@ -89,7 +90,7 @@ type TaskBrokerDispatchOptions = {
  * @public
  */
 interface TaskContext {
-    taskId: string;
+    taskId?: string;
     cancelSignal: AbortSignal;
     spec: TaskSpec;
     secrets?: TaskSecrets;
@@ -482,9 +483,4 @@ declare function serializeDirectoryContents(sourcePath: string, options?: {
  */
 declare function deserializeDirectoryContents(targetPath: string, files: SerializedFile[]): Promise<void>;
 
-/** @public */
-type TemplateFilter = (...args: JsonValue[]) => JsonValue | undefined;
-/** @public */
-type TemplateGlobal = ((...args: JsonValue[]) => JsonValue | undefined) | JsonValue;
-
-export { type ActionContext, type ExecuteShellCommandOptions, type SerializedFile, type SerializedTask, type SerializedTaskEvent, type TaskBroker, type TaskBrokerDispatchOptions, type TaskBrokerDispatchResult, type TaskCompletionState, type TaskContext, type TaskEventType, type TaskSecrets, type TaskStatus, type TemplateAction, type TemplateActionOptions, type TemplateExample, type TemplateFilter, type TemplateGlobal, addFiles, cloneRepo, commitAndPushBranch, commitAndPushRepo, createBranch, createTemplateAction, deserializeDirectoryContents, executeShellCommand, fetchContents, fetchFile, getRepoSourceDirectory, initRepoAndPush, parseRepoUrl, serializeDirectoryContents };
+export { type ActionContext, type ExecuteShellCommandOptions, type SerializedFile, type SerializedTask, type SerializedTaskEvent, type TaskBroker, type TaskBrokerDispatchOptions, type TaskBrokerDispatchResult, type TaskCompletionState, type TaskContext, type TaskEventType, type TaskSecrets, type TaskStatus, type TemplateAction, type TemplateActionOptions, type TemplateExample, addFiles, cloneRepo, commitAndPushBranch, commitAndPushRepo, createBranch, createTemplateAction, deserializeDirectoryContents, executeShellCommand, fetchContents, fetchFile, getRepoSourceDirectory, initRepoAndPush, parseRepoUrl, serializeDirectoryContents };

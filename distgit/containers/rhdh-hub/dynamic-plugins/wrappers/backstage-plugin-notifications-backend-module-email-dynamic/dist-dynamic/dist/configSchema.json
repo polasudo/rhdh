@@ -127,6 +127,28 @@
                       "required": [
                         "transport"
                       ]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "transport": {
+                          "type": "string",
+                          "const": "azure"
+                        },
+                        "endpoint": {
+                          "description": "Azure Communication Services endpoint",
+                          "type": "string"
+                        },
+                        "accessKey": {
+                          "description": "Optional Azure Communication Services access key",
+                          "visibility": "secret",
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "endpoint",
+                        "transport"
+                      ]
                     }
                   ]
                 },

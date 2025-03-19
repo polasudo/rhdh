@@ -414,9 +414,9 @@ declare class LdapOrgEntityProvider implements EntityProvider {
         userTransformer?: UserTransformer;
         groupTransformer?: GroupTransformer;
     });
-    /** {@inheritdoc @backstage/plugin-catalog-backend#EntityProvider.getProviderName} */
+    /** {@inheritdoc @backstage/plugin-catalog-node#EntityProvider.getProviderName} */
     getProviderName(): string;
-    /** {@inheritdoc @backstage/plugin-catalog-backend#EntityProvider.connect} */
+    /** {@inheritdoc @backstage/plugin-catalog-node#EntityProvider.connect} */
     connect(connection: EntityProviderConnection): Promise<void>;
     /**
      * Runs one single complete ingestion. This is only necessary if you use

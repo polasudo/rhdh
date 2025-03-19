@@ -99,15 +99,15 @@ class BitbucketCloudEntityProvider {
       });
     };
   }
-  /** {@inheritdoc @backstage/plugin-catalog-backend#EntityProvider.getProviderName} */
+  /** {@inheritdoc @backstage/plugin-catalog-node#EntityProvider.getProviderName} */
   getProviderName() {
     return `bitbucketCloud-provider:${this.config.id}`;
   }
-  /** {@inheritdoc @backstage/plugin-catalog-backend#EntityProvider.getTaskId} */
+  /** {@inheritdoc @backstage/plugin-catalog-node#EntityProvider.getTaskId} */
   getTaskId() {
     return `${this.getProviderName()}:refresh`;
   }
-  /** {@inheritdoc @backstage/plugin-catalog-backend#EntityProvider.connect} */
+  /** {@inheritdoc @backstage/plugin-catalog-node#EntityProvider.connect} */
   async connect(connection) {
     this.connection = connection;
     await this.scheduleFn();

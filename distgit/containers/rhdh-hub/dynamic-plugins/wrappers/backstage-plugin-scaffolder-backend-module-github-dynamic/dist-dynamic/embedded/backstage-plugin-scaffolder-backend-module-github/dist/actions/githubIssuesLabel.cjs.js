@@ -3,7 +3,7 @@
 var pluginScaffolderNode = require('@backstage/plugin-scaffolder-node');
 var errors = require('@backstage/errors');
 var octokit = require('octokit');
-var helpers = require('./helpers.cjs.js');
+var util = require('../util.cjs.js');
 var githubIssuesLabel_examples = require('./githubIssuesLabel.examples.cjs.js');
 
 function createGithubIssuesLabelAction(options) {
@@ -19,7 +19,7 @@ function createGithubIssuesLabelAction(options) {
         properties: {
           repoUrl: {
             title: "Repository Location",
-            description: `Accepts the format 'github.com?repo=reponame&owner=owner' where 'reponame' is the repository name and 'owner' is an organization or username`,
+            description: "Accepts the format `github.com?repo=reponame&owner=owner` where `reponame` is the repository name and `owner` is an organization or username",
             type: "string"
           },
           number: {
@@ -38,23 +38,25 @@ function createGithubIssuesLabelAction(options) {
           token: {
             title: "Authentication Token",
             type: "string",
-            description: "The GITHUB_TOKEN to use for authorization to GitHub"
+            description: "The `GITHUB_TOKEN` to use for authorization to GitHub"
           }
         }
       }
     },
     async handler(ctx) {
       const { repoUrl, number, labels, token: providedToken } = ctx.input;
-      const { owner, repo } = pluginScaffolderNode.parseRepoUrl(repoUrl, integrations);
+      const { host, owner, repo } = pluginScaffolderNode.parseRepoUrl(repoUrl, integrations);
       ctx.logger.info(`Adding labels to ${number} issue on repo ${repo}`);
       if (!owner) {
         throw new errors.InputError("Invalid repository owner provided in repoUrl");
       }
       const client = new octokit.Octokit(
-        await helpers.getOctokitOptions({
+        await util.getOctokitOptions({
           integrations,
           credentialsProvider: githubCredentialsProvider,
-          repoUrl,
+          host,
+          owner,
+          repo,
           token: providedToken
         })
       );

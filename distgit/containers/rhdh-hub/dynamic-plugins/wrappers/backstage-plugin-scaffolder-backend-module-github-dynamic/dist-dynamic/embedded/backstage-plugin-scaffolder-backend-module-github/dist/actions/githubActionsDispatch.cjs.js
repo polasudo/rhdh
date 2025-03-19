@@ -3,7 +3,7 @@
 var errors = require('@backstage/errors');
 var pluginScaffolderNode = require('@backstage/plugin-scaffolder-node');
 var octokit = require('octokit');
-var helpers = require('./helpers.cjs.js');
+var util = require('../util.cjs.js');
 var githubActionsDispatch_examples = require('./githubActionsDispatch.examples.cjs.js');
 
 function createGithubActionsDispatchAction(options) {
@@ -19,7 +19,7 @@ function createGithubActionsDispatchAction(options) {
         properties: {
           repoUrl: {
             title: "Repository Location",
-            description: `Accepts the format 'github.com?repo=reponame&owner=owner' where 'reponame' is the new repository name and 'owner' is an organization or username`,
+            description: "Accepts the format `github.com?repo=reponame&owner=owner` where `reponame` is the new repository name and `owner` is an organization or username",
             type: "string"
           },
           workflowId: {
@@ -40,7 +40,7 @@ function createGithubActionsDispatchAction(options) {
           token: {
             title: "Authentication Token",
             type: "string",
-            description: "The GITHUB_TOKEN to use for authorization to GitHub"
+            description: "The `GITHUB_TOKEN` to use for authorization to GitHub"
           }
         }
       }
@@ -56,14 +56,16 @@ function createGithubActionsDispatchAction(options) {
       ctx.logger.info(
         `Dispatching workflow ${workflowId} for repo ${repoUrl} on ${branchOrTagName}`
       );
-      const { owner, repo } = pluginScaffolderNode.parseRepoUrl(repoUrl, integrations);
+      const { host, owner, repo } = pluginScaffolderNode.parseRepoUrl(repoUrl, integrations);
       if (!owner) {
         throw new errors.InputError("Invalid repository owner provided in repoUrl");
       }
       const client = new octokit.Octokit(
-        await helpers.getOctokitOptions({
+        await util.getOctokitOptions({
           integrations,
-          repoUrl,
+          host,
+          owner,
+          repo,
           credentialsProvider: githubCredentialsProvider,
           token: providedToken
         })

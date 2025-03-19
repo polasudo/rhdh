@@ -8,6 +8,7 @@ var smtp = require('./transports/smtp.cjs.js');
 var ses = require('./transports/ses.cjs.js');
 var sendmail = require('./transports/sendmail.cjs.js');
 var stream = require('./transports/stream.cjs.js');
+var azure = require('./transports/azure.cjs.js');
 var lodash = require('lodash');
 var integrationAwsNode = require('@backstage/integration-aws-node');
 var pThrottle = require('p-throttle');
@@ -80,6 +81,8 @@ class NotificationsEmailProcessor {
       this.transporter = sendmail.createSendmailTransport(this.transportConfig);
     } else if (transport === "stream") {
       this.transporter = stream.createStreamTransport();
+    } else if (transport === "azure") {
+      this.transporter = azure.createAzureTransport(this.transportConfig);
     } else {
       throw new Error(`Unsupported transport: ${transport}`);
     }

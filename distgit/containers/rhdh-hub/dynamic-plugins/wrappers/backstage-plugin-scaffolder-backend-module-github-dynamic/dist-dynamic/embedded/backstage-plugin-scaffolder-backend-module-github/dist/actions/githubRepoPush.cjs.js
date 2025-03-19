@@ -4,6 +4,7 @@ var errors = require('@backstage/errors');
 var octokit = require('octokit');
 var pluginScaffolderNode = require('@backstage/plugin-scaffolder-node');
 var helpers = require('./helpers.cjs.js');
+var util = require('../util.cjs.js');
 var inputProperties = require('./inputProperties.cjs.js');
 var outputProperties = require('./outputProperties.cjs.js');
 var githubRepoPush_examples = require('./githubRepoPush.examples.cjs.js');
@@ -72,15 +73,17 @@ function createGithubRepoPushAction(options) {
         requiredCommitSigning = false,
         requiredLinearHistory = false
       } = ctx.input;
-      const { owner, repo } = pluginScaffolderNode.parseRepoUrl(repoUrl, integrations);
+      const { host, owner, repo } = pluginScaffolderNode.parseRepoUrl(repoUrl, integrations);
       if (!owner) {
         throw new errors.InputError("Invalid repository owner provided in repoUrl");
       }
-      const octokitOptions = await helpers.getOctokitOptions({
+      const octokitOptions = await util.getOctokitOptions({
         integrations,
         credentialsProvider: githubCredentialsProvider,
         token: providedToken,
-        repoUrl
+        host,
+        owner,
+        repo
       });
       const client = new octokit.Octokit(octokitOptions);
       const targetRepo = await client.rest.repos.get({ owner, repo });

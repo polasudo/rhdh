@@ -40,8 +40,13 @@ const processingResult = Object.freeze({
   /**
    * Emits a child of the current entity, associated with a certain location.
    */
-  entity(atLocation, newEntity) {
-    return { type: "entity", location: atLocation, entity: newEntity };
+  entity(atLocation, newEntity, options) {
+    return {
+      type: "entity",
+      location: atLocation,
+      entity: newEntity,
+      locationKey: options?.locationKey
+    };
   },
   /**
    * Emits a relation owned by the current entity. The relation does not have to

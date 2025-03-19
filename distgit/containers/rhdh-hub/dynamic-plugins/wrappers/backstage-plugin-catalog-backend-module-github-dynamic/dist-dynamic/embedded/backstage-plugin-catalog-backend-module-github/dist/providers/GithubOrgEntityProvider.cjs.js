@@ -68,11 +68,11 @@ class GithubOrgEntityProvider {
     provider.schedule(options.schedule);
     return provider;
   }
-  /** {@inheritdoc @backstage/plugin-catalog-backend#EntityProvider.getProviderName} */
+  /** {@inheritdoc @backstage/plugin-catalog-node#EntityProvider.getProviderName} */
   getProviderName() {
     return `GithubOrgEntityProvider:${this.options.id}`;
   }
-  /** {@inheritdoc @backstage/plugin-catalog-backend#EntityProvider.connect} */
+  /** {@inheritdoc @backstage/plugin-catalog-node#EntityProvider.connect} */
   async connect(connection) {
     this.connection = connection;
     await this.options.events?.subscribe({

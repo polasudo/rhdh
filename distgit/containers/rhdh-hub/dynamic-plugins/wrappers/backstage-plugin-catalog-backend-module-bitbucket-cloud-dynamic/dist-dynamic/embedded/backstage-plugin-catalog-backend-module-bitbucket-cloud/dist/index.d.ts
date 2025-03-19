@@ -38,11 +38,11 @@ declare class BitbucketCloudEntityProvider implements EntityProvider {
     }): BitbucketCloudEntityProvider[];
     private constructor();
     private createScheduleFn;
-    /** {@inheritdoc @backstage/plugin-catalog-backend#EntityProvider.getProviderName} */
+    /** {@inheritdoc @backstage/plugin-catalog-node#EntityProvider.getProviderName} */
     getProviderName(): string;
-    /** {@inheritdoc @backstage/plugin-catalog-backend#EntityProvider.getTaskId} */
+    /** {@inheritdoc @backstage/plugin-catalog-node#EntityProvider.getTaskId} */
     getTaskId(): string;
-    /** {@inheritdoc @backstage/plugin-catalog-backend#EntityProvider.connect} */
+    /** {@inheritdoc @backstage/plugin-catalog-node#EntityProvider.connect} */
     connect(connection: EntityProviderConnection): Promise<void>;
     refresh(logger: LoggerService): Promise<void>;
     private enhanceEvent;

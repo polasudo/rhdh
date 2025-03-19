@@ -4,7 +4,7 @@ var errors = require('@backstage/errors');
 var pluginScaffolderNode = require('@backstage/plugin-scaffolder-node');
 var octokit = require('octokit');
 var githubAutolinks_examples = require('./githubAutolinks.examples.cjs.js');
-var helpers = require('./helpers.cjs.js');
+var util = require('../util.cjs.js');
 
 function createGithubAutolinksAction(options) {
   const { integrations, githubCredentialsProvider } = options;
@@ -19,7 +19,7 @@ function createGithubAutolinksAction(options) {
         properties: {
           repoUrl: {
             title: "Repository Location",
-            description: `Accepts the format 'github.com?repo=reponame&owner=owner' where 'reponame' is the new repository name and 'owner' is an organization or username`,
+            description: "Accepts the format `github.com?repo=reponame&owner=owner` where `reponame` is the new repository name and `owner` is an organization or username",
             type: "string"
           },
           keyPrefix: {
@@ -29,13 +29,14 @@ function createGithubAutolinksAction(options) {
           },
           urlTemplate: {
             title: "URL Template",
-            description: "The URL must contain <num> for the reference number. <num> matches different characters depending on the value of isAlphanumeric.",
+            description: "The URL must contain `<num>` for the reference number. `<num>` matches different characters depending on the value of isAlphanumeric.",
             type: "string"
           },
           isAlphanumeric: {
             title: "Alphanumeric",
-            description: "Whether this autolink reference matches alphanumeric characters. If true, the <num> parameter of the url_template matches alphanumeric characters A-Z (case insensitive), 0-9, and -. If false, this autolink reference only matches numeric characters. Default: true",
-            type: "boolean"
+            description: "Whether this autolink reference matches alphanumeric characters. If `true`, the `<num>` parameter of the `url_template` matches alphanumeric characters `A-Z` (case insensitive), `0-9`, and `-`. If `false`, this autolink reference only matches numeric characters. Default: `true`",
+            type: "boolean",
+            default: true
           },
           token: {
             title: "Authentication Token",
@@ -48,14 +49,16 @@ function createGithubAutolinksAction(options) {
     async handler(ctx) {
       const { repoUrl, keyPrefix, urlTemplate, isAlphanumeric, token } = ctx.input;
       ctx.logger.info(`Creating autolink reference for repo ${repoUrl}`);
-      const { owner, repo } = pluginScaffolderNode.parseRepoUrl(repoUrl, integrations);
+      const { host, owner, repo } = pluginScaffolderNode.parseRepoUrl(repoUrl, integrations);
       if (!owner) {
         throw new errors.InputError("Invalid repository owner provided in repoUrl");
       }
       const client = new octokit.Octokit(
-        await helpers.getOctokitOptions({
+        await util.getOctokitOptions({
           integrations,
-          repoUrl,
+          host,
+          owner,
+          repo,
           credentialsProvider: githubCredentialsProvider,
           token
         })

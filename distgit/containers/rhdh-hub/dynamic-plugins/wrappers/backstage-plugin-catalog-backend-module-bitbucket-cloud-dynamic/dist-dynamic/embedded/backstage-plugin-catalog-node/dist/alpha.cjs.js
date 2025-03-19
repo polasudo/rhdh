@@ -2,8 +2,14 @@
 
 var backendPluginApi = require('@backstage/backend-plugin-api');
 var catalogClient = require('@backstage/catalog-client');
+var alpha = require('@backstage/plugin-catalog-common/alpha');
+var pluginPermissionNode = require('@backstage/plugin-permission-node');
 var extensions = require('./extensions.cjs.js');
 
+const catalogEntityPermissionResourceRef = pluginPermissionNode.createPermissionResourceRef().with({
+  pluginId: "catalog",
+  resourceType: alpha.RESOURCE_TYPE_CATALOG_ENTITY
+});
 const catalogServiceRef = backendPluginApi.createServiceRef({
   id: "catalog-client",
   defaultFactory: async (service) => backendPluginApi.createServiceFactory({
@@ -22,5 +28,6 @@ exports.catalogLocationsExtensionPoint = extensions.catalogLocationsExtensionPoi
 exports.catalogModelExtensionPoint = extensions.catalogModelExtensionPoint;
 exports.catalogPermissionExtensionPoint = extensions.catalogPermissionExtensionPoint;
 exports.catalogProcessingExtensionPoint = extensions.catalogProcessingExtensionPoint;
+exports.catalogEntityPermissionResourceRef = catalogEntityPermissionResourceRef;
 exports.catalogServiceRef = catalogServiceRef;
 //# sourceMappingURL=alpha.cjs.js.map
