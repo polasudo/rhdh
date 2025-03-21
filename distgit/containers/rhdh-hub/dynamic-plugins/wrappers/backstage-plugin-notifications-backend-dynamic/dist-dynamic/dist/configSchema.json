@@ -569,89 +569,6 @@
                 }
               }
             },
-            "cfaccess": {
-              "visibility": "frontend",
-              "type": "object",
-              "required": [
-                "teamName"
-              ],
-              "properties": {
-                "teamName": {
-                  "type": "string"
-                },
-                "serviceTokens": {
-                  "deepVisibility": "secret",
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "required": [
-                      "subject",
-                      "token"
-                    ],
-                    "properties": {
-                      "token": {
-                        "type": "string"
-                      },
-                      "subject": {
-                        "type": "string"
-                      }
-                    }
-                  }
-                },
-                "jwtHeaderName": {
-                  "type": "string"
-                },
-                "authorizationCookieName": {
-                  "type": "string"
-                },
-                "signIn": {
-                  "type": "object",
-                  "required": [
-                    "resolvers"
-                  ],
-                  "properties": {
-                    "resolvers": {
-                      "type": "array",
-                      "items": {
-                        "anyOf": [
-                          {
-                            "type": "object",
-                            "properties": {
-                              "resolver": {
-                                "type": "string",
-                                "const": "emailLocalPartMatchingUserEntityName"
-                              },
-                              "allowedDomains": {
-                                "type": "array",
-                                "items": {
-                                  "type": "string"
-                                }
-                              }
-                            },
-                            "required": [
-                              "resolver"
-                            ]
-                          },
-                          {
-                            "type": "object",
-                            "properties": {
-                              "resolver": {
-                                "type": "string",
-                                "const": "emailMatchingUserEntityProfileEmail"
-                              }
-                            },
-                            "required": [
-                              "resolver"
-                            ]
-                          }
-                        ]
-                      }
-                    }
-                  }
-                }
-              }
-            },
-            "sessionDuration": {},
             "gcpIap": {
               "description": "Configuration for the Google Cloud Platform Identity-Aware Proxy (IAP) auth provider.",
               "type": "object",
@@ -739,7 +656,90 @@
                 "sessionDuration": {}
               }
             },
-            "github": {
+            "cfaccess": {
+              "visibility": "frontend",
+              "type": "object",
+              "required": [
+                "teamName"
+              ],
+              "properties": {
+                "teamName": {
+                  "type": "string"
+                },
+                "serviceTokens": {
+                  "deepVisibility": "secret",
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "subject",
+                      "token"
+                    ],
+                    "properties": {
+                      "token": {
+                        "type": "string"
+                      },
+                      "subject": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                },
+                "jwtHeaderName": {
+                  "type": "string"
+                },
+                "authorizationCookieName": {
+                  "type": "string"
+                },
+                "signIn": {
+                  "type": "object",
+                  "required": [
+                    "resolvers"
+                  ],
+                  "properties": {
+                    "resolvers": {
+                      "type": "array",
+                      "items": {
+                        "anyOf": [
+                          {
+                            "type": "object",
+                            "properties": {
+                              "resolver": {
+                                "type": "string",
+                                "const": "emailLocalPartMatchingUserEntityName"
+                              },
+                              "allowedDomains": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                }
+                              }
+                            },
+                            "required": [
+                              "resolver"
+                            ]
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "resolver": {
+                                "type": "string",
+                                "const": "emailMatchingUserEntityProfileEmail"
+                              }
+                            },
+                            "required": [
+                              "resolver"
+                            ]
+                          }
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "sessionDuration": {},
+            "gitlab": {
               "visibility": "frontend",
               "type": "object",
               "additionalProperties": {
@@ -756,10 +756,10 @@
                     "visibility": "secret",
                     "type": "string"
                   },
-                  "callbackUrl": {
+                  "audience": {
                     "type": "string"
                   },
-                  "enterpriseInstanceUrl": {
+                  "callbackUrl": {
                     "type": "string"
                   },
                   "additionalScopes": {
@@ -836,7 +836,7 @@
                 }
               }
             },
-            "gitlab": {
+            "github": {
               "visibility": "frontend",
               "type": "object",
               "additionalProperties": {
@@ -853,10 +853,10 @@
                     "visibility": "secret",
                     "type": "string"
                   },
-                  "audience": {
+                  "callbackUrl": {
                     "type": "string"
                   },
-                  "callbackUrl": {
+                  "enterpriseInstanceUrl": {
                     "type": "string"
                   },
                   "additionalScopes": {
