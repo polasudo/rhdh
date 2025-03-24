@@ -29,12 +29,12 @@
     "export-dynamic:clean": "run export-dynamic --clean"
   },
   "dependencies": {
-    "@mui/material": "5.16.14",
+    "@mui/material": "5.17.1",
     "@red-hat-developer-hub/backstage-plugin-bulk-import": "1.11.0"
   },
   "devDependencies": {
     "@backstage/cli": "0.30.0",
-    "@janus-idp/cli": "3.3.0",
+    "@janus-idp/cli": "3.3.1",
     "typescript": "5.8.2"
   },
   "files": [

@@ -30,11 +30,11 @@
   },
   "dependencies": {
     "@backstage-community/plugin-quay": "1.18.1",
-    "@mui/material": "5.16.14"
+    "@mui/material": "5.17.1"
   },
   "devDependencies": {
     "@backstage/cli": "0.30.0",
-    "@janus-idp/cli": "3.3.0",
+    "@janus-idp/cli": "3.3.1",
     "typescript": "5.8.2"
   },
   "files": [
