@@ -159,6 +159,12 @@ The `--latest` flag is ONLY for the latest stable release, not for maintenance. 
 ```
 ./build/ci/sync-midstream.sh --bundleonly --force -b rhdh-1.4-rhel-9 [--latest]
 ```
++
+. You can also run builds (hub, operator, then bundle) using the triggerRespin.sh script
++
+```
+./build/scripts/triggerRespin.sh 1.5 hub,op,bun
+```
 + 
 ```
 [INFO] Transforming manifests/rhdh-operator.clusterserviceversion.yaml ...
