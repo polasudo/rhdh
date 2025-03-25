@@ -6,6 +6,8 @@ var jenkinsApi = require('./jenkinsApi.cjs.js');
 var pluginPermissionCommon = require('@backstage/plugin-permission-common');
 var catalogModel = require('@backstage/catalog-model');
 var errors = require('@backstage/errors');
+var pluginPermissionNode = require('@backstage/plugin-permission-node');
+var pluginJenkinsCommon = require('@backstage-community/plugin-jenkins-common');
 
 function _interopDefaultCompat (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }
 
@@ -56,6 +58,11 @@ class JenkinsBuilder {
     const jenkinsApi$1 = new jenkinsApi.JenkinsApiImpl(permissionEvaluator);
     const router = Router__default.default();
     router.use(express__default.default.json());
+    router.use(
+      pluginPermissionNode.createPermissionIntegrationRouter({
+        permissions: pluginJenkinsCommon.jenkinsPermissions
+      })
+    );
     router.get(
       "/v1/entity/:namespace/:kind/:name/projects",
       async (request, response) => {

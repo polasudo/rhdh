@@ -6,8 +6,8 @@ __metadata:
   cacheKey: 8
 
 "@backstage-community/plugin-catalog-backend-module-keycloak@file:./embedded/backstage-community-plugin-catalog-backend-module-keycloak::locator=backstage-community-plugin-catalog-backend-module-keycloak-dynamic%40workspace%3A.":
-  version: 3.7.0+embedded
-  resolution: "@backstage-community/plugin-catalog-backend-module-keycloak@file:./embedded/backstage-community-plugin-catalog-backend-module-keycloak#./embedded/backstage-community-plugin-catalog-backend-module-keycloak::hash=bfc0f3&locator=backstage-community-plugin-catalog-backend-module-keycloak-dynamic%40workspace%3A."
+  version: 3.8.0+embedded
+  resolution: "@backstage-community/plugin-catalog-backend-module-keycloak@file:./embedded/backstage-community-plugin-catalog-backend-module-keycloak#./embedded/backstage-community-plugin-catalog-backend-module-keycloak::hash=04cb63&locator=backstage-community-plugin-catalog-backend-module-keycloak-dynamic%40workspace%3A."
   dependencies:
     "@common.js/p-limit": ^6.1.0
     "@keycloak/keycloak-admin-client": 26.1.2
@@ -18,11 +18,11 @@ __metadata:
     pg-format: ^1.0.4
     uuid: ^9.0.1
   peerDependencies:
-    "@backstage/backend-plugin-api": ^1.1.1
+    "@backstage/backend-plugin-api": ^1.2.0
     "@backstage/catalog-model": ^1.7.3
     "@backstage/errors": ^1.2.7
-    "@backstage/plugin-catalog-node": ^1.15.1
-  checksum: e6c312f27eb7fc30e6f7d791817e712c232d7582caf605c300f17484f24aab80406e9d86c8812ff9f34781ee8ab4de2d7c74c720f6f463212fbab2b8f07b46ca
+    "@backstage/plugin-catalog-node": ^1.16.0
+  checksum: dd5d31a19f895134059425744a1bcf0a0e2cb0e9468b118c356156b812fd313fba66933cca1391363d847bb10e81ce60888a926ed71f77a0335e52fab5de8dfa
   languageName: node
   linkType: hard
 
@@ -57,12 +57,12 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "backstage-community-plugin-catalog-backend-module-keycloak-dynamic@workspace:."
   dependencies:
-    "@backstage-community/plugin-catalog-backend-module-keycloak": 3.7.0
+    "@backstage-community/plugin-catalog-backend-module-keycloak": 3.8.0
   peerDependencies:
-    "@backstage/backend-plugin-api": ^1.1.1
+    "@backstage/backend-plugin-api": ^1.2.0
     "@backstage/catalog-model": ^1.7.3
     "@backstage/errors": ^1.2.7
-    "@backstage/plugin-catalog-node": ^1.15.1
+    "@backstage/plugin-catalog-node": ^1.16.0
   languageName: unknown
   linkType: soft
 

@@ -85,7 +85,7 @@ function createQuayRepositoryAction() {
       isValueValid(repoKind, "repository kind", [
         "application",
         "image",
-        void 0
+        undefined
       ]);
       const params = {
         description,

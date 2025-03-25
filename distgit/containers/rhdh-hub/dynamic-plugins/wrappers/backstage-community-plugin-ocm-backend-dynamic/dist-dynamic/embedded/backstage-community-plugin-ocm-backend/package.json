@@ -1,6 +1,6 @@
 {
   "name": "@backstage-community/plugin-ocm-backend",
-  "version": "5.4.0+embedded",
+  "version": "5.5.0+embedded",
   "main": "./dist/index.cjs.js",
   "types": "./dist/index.d.ts",
   "license": "Apache-2.0",
@@ -15,7 +15,10 @@
       "@backstage-community/plugin-ocm",
       "@backstage-community/plugin-ocm-backend",
       "@backstage-community/plugin-ocm-common"
-    ]
+    ],
+    "features": {
+      ".": "@backstage/BackendFeature"
+    }
   },
   "exports": {
     ".": {
@@ -50,7 +53,7 @@
   },
   "configSchema": "config.d.ts",
   "dependencies": {
-    "@backstage-community/plugin-ocm-common": "^3.7.0",
+    "@backstage-community/plugin-ocm-common": "^3.8.0",
     "@kubernetes/client-node": "1.0.0-rc7",
     "express": "^4.18.2",
     "semver": "^7.5.4"
@@ -79,14 +82,14 @@
   "author": "Red Hat",
   "private": true,
   "peerDependencies": {
-    "@backstage/backend-defaults": "^0.7.0",
-    "@backstage/backend-openapi-utils": "^0.4.1",
-    "@backstage/backend-plugin-api": "^1.1.1",
+    "@backstage/backend-defaults": "^0.8.1",
+    "@backstage/backend-openapi-utils": "^0.5.0",
+    "@backstage/backend-plugin-api": "^1.2.0",
     "@backstage/catalog-model": "^1.7.3",
     "@backstage/errors": "^1.2.7",
-    "@backstage/plugin-catalog-node": "^1.15.1",
+    "@backstage/plugin-catalog-node": "^1.16.0",
     "@backstage/plugin-permission-common": "^0.8.4",
-    "@backstage/plugin-permission-node": "^0.8.7"
+    "@backstage/plugin-permission-node": "^0.8.8"
   },
   "overrides": {
     "@aws-sdk/util-utf8-browser": {

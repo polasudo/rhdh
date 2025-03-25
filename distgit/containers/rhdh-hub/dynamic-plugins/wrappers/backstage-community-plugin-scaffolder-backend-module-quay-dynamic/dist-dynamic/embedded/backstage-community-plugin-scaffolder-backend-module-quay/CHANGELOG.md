@@ -1,5 +1,21 @@
 ### Dependencies
 
+## 2.6.0
+
+### Minor Changes
+
+- 1f3ea2f: Backstage version bump to v1.36.1
+
+### Patch Changes
+
+- 973a5ef: remove prettier from devDevpendencies
+
+## 2.5.0
+
+### Minor Changes
+
+- e541edd: Adds a new quay-backend plugin and updates the frontend quay plugin to use this new backend.
+
 ## 2.4.0
 
 ### Minor Changes

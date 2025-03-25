@@ -6,14 +6,14 @@ __metadata:
   cacheKey: 8
 
 "@backstage-community/plugin-scaffolder-backend-module-quay@file:./embedded/backstage-community-plugin-scaffolder-backend-module-quay::locator=backstage-community-plugin-scaffolder-backend-module-quay-dynamic%40workspace%3A.":
-  version: 2.4.0+embedded
-  resolution: "@backstage-community/plugin-scaffolder-backend-module-quay@file:./embedded/backstage-community-plugin-scaffolder-backend-module-quay#./embedded/backstage-community-plugin-scaffolder-backend-module-quay::hash=404fe1&locator=backstage-community-plugin-scaffolder-backend-module-quay-dynamic%40workspace%3A."
+  version: 2.6.0+embedded
+  resolution: "@backstage-community/plugin-scaffolder-backend-module-quay@file:./embedded/backstage-community-plugin-scaffolder-backend-module-quay#./embedded/backstage-community-plugin-scaffolder-backend-module-quay::hash=215f22&locator=backstage-community-plugin-scaffolder-backend-module-quay-dynamic%40workspace%3A."
   dependencies:
     yaml: ^2.6.0
   peerDependencies:
-    "@backstage/backend-plugin-api": ^1.1.1
-    "@backstage/plugin-scaffolder-node": ^0.6.3
-  checksum: 0309799479c4c03be9eb3461b176b70b659739b5f36638874cbeeed32b15bf12805f0de9d3e26f5a70c7b07827e4a69aef5e19b7d4fea79c821b156f32f48d3a
+    "@backstage/backend-plugin-api": ^1.2.0
+    "@backstage/plugin-scaffolder-node": ^0.7.0
+  checksum: 32494137f5f93b23f72fccdc242dbdb0e8be54b7627099e4d7f26a32648c3258cd98e263e818c3e937cf865af022178808b8b14bafb6b4de203df7169b9512d7
   languageName: node
   linkType: hard
 
@@ -21,10 +21,10 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "backstage-community-plugin-scaffolder-backend-module-quay-dynamic@workspace:."
   dependencies:
-    "@backstage-community/plugin-scaffolder-backend-module-quay": 2.4.0
+    "@backstage-community/plugin-scaffolder-backend-module-quay": 2.6.0
   peerDependencies:
-    "@backstage/backend-plugin-api": ^1.1.1
-    "@backstage/plugin-scaffolder-node": ^0.6.3
+    "@backstage/backend-plugin-api": ^1.2.0
+    "@backstage/plugin-scaffolder-node": ^0.7.0
   languageName: unknown
   linkType: soft
 

@@ -1,7 +1,7 @@
 {
   "name": "@backstage-community/plugin-catalog-backend-module-scaffolder-relation-processor",
   "description": "The scaffolder-relation-processor backend module for the catalog plugin.",
-  "version": "2.2.0+embedded",
+  "version": "2.3.0+embedded",
   "main": "./dist/index.cjs.js",
   "types": "./dist/index.d.ts",
   "license": "Apache-2.0",
@@ -16,7 +16,10 @@
   "backstage": {
     "role": "backend-plugin-module",
     "pluginId": "scaffolder-relation-processor",
-    "pluginPackage": "@backstage-community/plugin-catalog-backend-module-scaffolder-relation-processor"
+    "pluginPackage": "@backstage-community/plugin-catalog-backend-module-scaffolder-relation-processor",
+    "features": {
+      ".": "@backstage/BackendFeature"
+    }
   },
   "exports": {
     ".": {
@@ -52,9 +55,9 @@
   ],
   "private": true,
   "peerDependencies": {
-    "@backstage/backend-plugin-api": "^1.1.1",
+    "@backstage/backend-plugin-api": "^1.2.0",
     "@backstage/catalog-model": "^1.7.3",
-    "@backstage/plugin-catalog-node": "^1.15.1"
+    "@backstage/plugin-catalog-node": "^1.16.0"
   },
   "overrides": {
     "@aws-sdk/util-utf8-browser": {

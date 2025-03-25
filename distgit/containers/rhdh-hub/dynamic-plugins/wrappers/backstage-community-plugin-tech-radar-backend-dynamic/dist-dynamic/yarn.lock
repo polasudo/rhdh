@@ -6,19 +6,19 @@ __metadata:
   cacheKey: 8
 
 "@backstage-community/plugin-tech-radar-backend@file:./embedded/backstage-community-plugin-tech-radar-backend::locator=backstage-community-plugin-tech-radar-backend-dynamic%40workspace%3A.":
-  version: 1.2.0+embedded
-  resolution: "@backstage-community/plugin-tech-radar-backend@file:./embedded/backstage-community-plugin-tech-radar-backend#./embedded/backstage-community-plugin-tech-radar-backend::hash=6385ae&locator=backstage-community-plugin-tech-radar-backend-dynamic%40workspace%3A."
+  version: 1.3.0+embedded
+  resolution: "@backstage-community/plugin-tech-radar-backend@file:./embedded/backstage-community-plugin-tech-radar-backend#./embedded/backstage-community-plugin-tech-radar-backend::hash=bf1f60&locator=backstage-community-plugin-tech-radar-backend-dynamic%40workspace%3A."
   dependencies:
-    "@backstage-community/plugin-tech-radar-common": ^1.2.0
+    "@backstage-community/plugin-tech-radar-common": ^1.3.0
     express: ^4.17.1
     express-promise-router: ^4.1.0
     node-fetch: ^2.6.7
     zod: ^3.20.0
   peerDependencies:
-    "@backstage/backend-defaults": ^0.7.0
-    "@backstage/backend-plugin-api": ^1.1.1
+    "@backstage/backend-defaults": ^0.8.1
+    "@backstage/backend-plugin-api": ^1.2.0
     "@backstage/config": ^1.3.2
-  checksum: 4cc1840d1c0a8bf4be1ccb26011054ef070be6d9532ac65c8856272d5f24811ed3d1d2969d377ad9022cb0a0096e013f3204d26eae75c5f2331c49bf041ca918
+  checksum: a635eb735766810ff857a7ac083e9514528fec4f13ca884d3c6c4c398142810d8a1ddc85b784e974f1d02804ae28ef059130608d859acfc09ea1f3cc8e727b29
   languageName: node
   linkType: hard
 
@@ -52,10 +52,10 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "backstage-community-plugin-tech-radar-backend-dynamic@workspace:."
   dependencies:
-    "@backstage-community/plugin-tech-radar-backend": 1.2.0
+    "@backstage-community/plugin-tech-radar-backend": 1.3.0
   peerDependencies:
-    "@backstage/backend-defaults": ^0.7.0
-    "@backstage/backend-plugin-api": ^1.1.1
+    "@backstage/backend-defaults": ^0.8.1
+    "@backstage/backend-plugin-api": ^1.2.0
     "@backstage/config": ^1.3.2
   languageName: unknown
   linkType: soft

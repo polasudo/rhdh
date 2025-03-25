@@ -6,15 +6,15 @@ __metadata:
   cacheKey: 8
 
 "@backstage-community/plugin-scaffolder-backend-module-regex@file:./embedded/backstage-community-plugin-scaffolder-backend-module-regex::locator=backstage-community-plugin-scaffolder-backend-module-regex-dynamic%40workspace%3A.":
-  version: 2.4.0+embedded
-  resolution: "@backstage-community/plugin-scaffolder-backend-module-regex@file:./embedded/backstage-community-plugin-scaffolder-backend-module-regex#./embedded/backstage-community-plugin-scaffolder-backend-module-regex::hash=fc6fc7&locator=backstage-community-plugin-scaffolder-backend-module-regex-dynamic%40workspace%3A."
+  version: 2.5.0+embedded
+  resolution: "@backstage-community/plugin-scaffolder-backend-module-regex@file:./embedded/backstage-community-plugin-scaffolder-backend-module-regex#./embedded/backstage-community-plugin-scaffolder-backend-module-regex::hash=a4f719&locator=backstage-community-plugin-scaffolder-backend-module-regex-dynamic%40workspace%3A."
   dependencies:
     yaml: ^2.3.3
     zod: ^3.22.4
   peerDependencies:
-    "@backstage/backend-plugin-api": ^1.1.1
-    "@backstage/plugin-scaffolder-node": ^0.6.3
-  checksum: 2f04ab2ffcaf51cb6e9d43e7e7bc1bbbd4132461a5d70290d5e9a851320f2fa1914825a2e816766759ddc4a5476c11419b60b88df65427c8f34870ab752e9376
+    "@backstage/backend-plugin-api": ^1.2.0
+    "@backstage/plugin-scaffolder-node": ^0.7.0
+  checksum: 4cbb514f672bfd457e763baae36fc93b396ba46310bd596bcf2db119502fe5f84f7bcb1e27aa96979e8038b27b273f2c98a574abab6a7d345be296880002dade
   languageName: node
   linkType: hard
 
@@ -22,10 +22,10 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "backstage-community-plugin-scaffolder-backend-module-regex-dynamic@workspace:."
   dependencies:
-    "@backstage-community/plugin-scaffolder-backend-module-regex": 2.4.0
+    "@backstage-community/plugin-scaffolder-backend-module-regex": 2.5.0
   peerDependencies:
-    "@backstage/backend-plugin-api": ^1.1.1
-    "@backstage/plugin-scaffolder-node": ^0.6.3
+    "@backstage/backend-plugin-api": ^1.2.0
+    "@backstage/plugin-scaffolder-node": ^0.7.0
   languageName: unknown
   linkType: soft
 

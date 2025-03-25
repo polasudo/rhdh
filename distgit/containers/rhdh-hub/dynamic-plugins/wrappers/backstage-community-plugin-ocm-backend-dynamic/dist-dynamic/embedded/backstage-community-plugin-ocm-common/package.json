@@ -1,7 +1,7 @@
 {
   "name": "@backstage-community/plugin-ocm-common",
   "description": "Common functionalities for the Open Cluster Management plugin",
-  "version": "3.7.0+embedded",
+  "version": "3.8.1+embedded",
   "main": "dist/index.cjs.js",
   "types": "dist/index.d.ts",
   "license": "Apache-2.0",

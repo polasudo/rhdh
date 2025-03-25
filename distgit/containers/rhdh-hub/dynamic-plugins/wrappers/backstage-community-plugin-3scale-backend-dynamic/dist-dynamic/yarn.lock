@@ -6,19 +6,19 @@ __metadata:
   cacheKey: 8
 
 "@backstage-community/plugin-3scale-backend@file:./embedded/backstage-community-plugin-3scale-backend::locator=backstage-community-plugin-3scale-backend-dynamic%40workspace%3A.":
-  version: 3.2.0+embedded
-  resolution: "@backstage-community/plugin-3scale-backend@file:./embedded/backstage-community-plugin-3scale-backend#./embedded/backstage-community-plugin-3scale-backend::hash=3aa742&locator=backstage-community-plugin-3scale-backend-dynamic%40workspace%3A."
+  version: 3.3.0+embedded
+  resolution: "@backstage-community/plugin-3scale-backend@file:./embedded/backstage-community-plugin-3scale-backend#./embedded/backstage-community-plugin-3scale-backend::hash=d2fd39&locator=backstage-community-plugin-3scale-backend-dynamic%40workspace%3A."
   dependencies:
     atlassian-openapi: ^1.0.19
     openapi-merge: ^1.3.3
     swagger-converter: 2.1.0
     swagger2openapi: ^7.0.4
   peerDependencies:
-    "@backstage/backend-plugin-api": ^1.1.1
+    "@backstage/backend-plugin-api": ^1.2.0
     "@backstage/catalog-model": ^1.7.3
     "@backstage/errors": ^1.2.7
-    "@backstage/plugin-catalog-node": ^1.15.1
-  checksum: 1fd4c906d04b97b021cbc4b3797913cf199ba85f08ee7c6e4e0f189bc9de4f7fe8dab208284c0ea15ca51944eca14d5791077822ea21ec10d8ce913697569a7d
+    "@backstage/plugin-catalog-node": ^1.16.0
+  checksum: 193848ea83ae52c28ba1947b2e73405a66c82dc9464d31ae26a601ef2898cc8d1d841c312ce9710328db4d76cc38342c5734b3e28036e1d91407c9837c9ef4e2
   languageName: node
   linkType: hard
 
@@ -59,12 +59,12 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "backstage-community-plugin-3scale-backend-dynamic@workspace:."
   dependencies:
-    "@backstage-community/plugin-3scale-backend": 3.2.0
+    "@backstage-community/plugin-3scale-backend": 3.3.0
   peerDependencies:
-    "@backstage/backend-plugin-api": ^1.1.1
+    "@backstage/backend-plugin-api": ^1.2.0
     "@backstage/catalog-model": ^1.7.3
     "@backstage/errors": ^1.2.7
-    "@backstage/plugin-catalog-node": ^1.15.1
+    "@backstage/plugin-catalog-node": ^1.16.0
   languageName: unknown
   linkType: soft
 

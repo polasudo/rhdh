@@ -6,13 +6,13 @@ __metadata:
   cacheKey: 8
 
 "@backstage-community/plugin-catalog-backend-module-scaffolder-relation-processor@file:./embedded/backstage-community-plugin-catalog-backend-module-scaffolder-relation-processor::locator=backstage-community-plugin-catalog-backend-module-scaffolder-relation-processor-dynamic%40workspace%3A.":
-  version: 2.2.0+embedded
-  resolution: "@backstage-community/plugin-catalog-backend-module-scaffolder-relation-processor@file:./embedded/backstage-community-plugin-catalog-backend-module-scaffolder-relation-processor#./embedded/backstage-community-plugin-catalog-backend-module-scaffolder-relation-processor::hash=2bc112&locator=backstage-community-plugin-catalog-backend-module-scaffolder-relation-processor-dynamic%40workspace%3A."
+  version: 2.3.0+embedded
+  resolution: "@backstage-community/plugin-catalog-backend-module-scaffolder-relation-processor@file:./embedded/backstage-community-plugin-catalog-backend-module-scaffolder-relation-processor#./embedded/backstage-community-plugin-catalog-backend-module-scaffolder-relation-processor::hash=a5fd82&locator=backstage-community-plugin-catalog-backend-module-scaffolder-relation-processor-dynamic%40workspace%3A."
   peerDependencies:
-    "@backstage/backend-plugin-api": ^1.1.1
+    "@backstage/backend-plugin-api": ^1.2.0
     "@backstage/catalog-model": ^1.7.3
-    "@backstage/plugin-catalog-node": ^1.15.1
-  checksum: 977d8cada773824179fbeffe87adbdb80a491f0e3b2e9c45c5b5ac7ff78bcee2def85695bcc9b5acc8dcc77aa9fb87f75b5ca735f0fc49acdae7c1e8b902c850
+    "@backstage/plugin-catalog-node": ^1.16.0
+  checksum: b35cb77cb152efa50898639b6ab38b2ee3b3e220a6b271976c444c70a414a98c3aff749f1de1e5f13ce18c5326cc350e18d0ba9b213323be1b2e0ae4568733b2
   languageName: node
   linkType: hard
 
@@ -20,10 +20,10 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "backstage-community-plugin-catalog-backend-module-scaffolder-relation-processor-dynamic@workspace:."
   dependencies:
-    "@backstage-community/plugin-catalog-backend-module-scaffolder-relation-processor": 2.2.0
+    "@backstage-community/plugin-catalog-backend-module-scaffolder-relation-processor": 2.3.0
   peerDependencies:
-    "@backstage/backend-plugin-api": ^1.1.1
+    "@backstage/backend-plugin-api": ^1.2.0
     "@backstage/catalog-model": ^1.7.3
-    "@backstage/plugin-catalog-node": ^1.15.1
+    "@backstage/plugin-catalog-node": ^1.16.0
   languageName: unknown
   linkType: soft

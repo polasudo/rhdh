@@ -6,32 +6,32 @@ __metadata:
   cacheKey: 8
 
 "@backstage-community/plugin-ocm-backend@file:./embedded/backstage-community-plugin-ocm-backend::locator=backstage-community-plugin-ocm-backend-dynamic%40workspace%3A.":
-  version: 5.4.0+embedded
-  resolution: "@backstage-community/plugin-ocm-backend@file:./embedded/backstage-community-plugin-ocm-backend#./embedded/backstage-community-plugin-ocm-backend::hash=90ccd7&locator=backstage-community-plugin-ocm-backend-dynamic%40workspace%3A."
+  version: 5.5.0+embedded
+  resolution: "@backstage-community/plugin-ocm-backend@file:./embedded/backstage-community-plugin-ocm-backend#./embedded/backstage-community-plugin-ocm-backend::hash=0b6c9d&locator=backstage-community-plugin-ocm-backend-dynamic%40workspace%3A."
   dependencies:
-    "@backstage-community/plugin-ocm-common": ^3.7.0
+    "@backstage-community/plugin-ocm-common": ^3.8.0
     "@kubernetes/client-node": 1.0.0-rc7
     express: ^4.18.2
     semver: ^7.5.4
   peerDependencies:
-    "@backstage/backend-defaults": ^0.7.0
-    "@backstage/backend-openapi-utils": ^0.4.1
-    "@backstage/backend-plugin-api": ^1.1.1
+    "@backstage/backend-defaults": ^0.8.1
+    "@backstage/backend-openapi-utils": ^0.5.0
+    "@backstage/backend-plugin-api": ^1.2.0
     "@backstage/catalog-model": ^1.7.3
     "@backstage/errors": ^1.2.7
-    "@backstage/plugin-catalog-node": ^1.15.1
+    "@backstage/plugin-catalog-node": ^1.16.0
     "@backstage/plugin-permission-common": ^0.8.4
-    "@backstage/plugin-permission-node": ^0.8.7
-  checksum: c1ea06dcd6a8a55205ed30df09247932e2da47b7b96a049b70997a15430130f3ac2e074c6076c6a7c0dbafb90d0d4bd21d1d433b240a091cf7140a06e8247d2e
+    "@backstage/plugin-permission-node": ^0.8.8
+  checksum: 491edb5d360bffafd4f419d3599eed2ddfa7411c0c1e3b4a394eea1f3571e278cc0b32fb7d1c66a5593a67b2330301a8dced3d0796ebcbfd3d3542602c990b9c
   languageName: node
   linkType: hard
 
 "@backstage-community/plugin-ocm-common@file:./embedded/backstage-community-plugin-ocm-common::locator=backstage-community-plugin-ocm-backend-dynamic%40workspace%3A.":
-  version: 3.7.0+embedded
-  resolution: "@backstage-community/plugin-ocm-common@file:./embedded/backstage-community-plugin-ocm-common#./embedded/backstage-community-plugin-ocm-common::hash=578ed5&locator=backstage-community-plugin-ocm-backend-dynamic%40workspace%3A."
+  version: 3.8.1+embedded
+  resolution: "@backstage-community/plugin-ocm-common@file:./embedded/backstage-community-plugin-ocm-common#./embedded/backstage-community-plugin-ocm-common::hash=a5b1f0&locator=backstage-community-plugin-ocm-backend-dynamic%40workspace%3A."
   peerDependencies:
     "@backstage/plugin-permission-common": ^0.8.4
-  checksum: 3b411e107bbaaf48d7728f21598704129c1ba87b965815314eb962ae64402696c4b7acf9c78161c4c210f5a6c2cbdd1ab8700bb10b91dc4123894744d7bc9375
+  checksum: 0e6e9e9623b8f645d01db4203225c88fd8cac5ab99a43504da6afd627cd63d775036581644b1f7391f55417c6d033faee41c2c8518f6531fba3c36debac08e09
   languageName: node
   linkType: hard
 
@@ -229,16 +229,16 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "backstage-community-plugin-ocm-backend-dynamic@workspace:."
   dependencies:
-    "@backstage-community/plugin-ocm-backend": 5.4.0
+    "@backstage-community/plugin-ocm-backend": 5.5.0
   peerDependencies:
-    "@backstage/backend-defaults": ^0.7.0
-    "@backstage/backend-openapi-utils": ^0.4.1
-    "@backstage/backend-plugin-api": ^1.1.1
+    "@backstage/backend-defaults": ^0.8.1
+    "@backstage/backend-openapi-utils": ^0.5.0
+    "@backstage/backend-plugin-api": ^1.2.0
     "@backstage/catalog-model": ^1.7.3
     "@backstage/errors": ^1.2.7
-    "@backstage/plugin-catalog-node": ^1.15.1
+    "@backstage/plugin-catalog-node": ^1.16.0
     "@backstage/plugin-permission-common": ^0.8.4
-    "@backstage/plugin-permission-node": ^0.8.7
+    "@backstage/plugin-permission-node": ^0.8.8
   languageName: unknown
   linkType: soft
 

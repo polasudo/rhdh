@@ -6,8 +6,8 @@ __metadata:
   cacheKey: 8
 
 "@backstage-community/plugin-scaffolder-backend-module-servicenow@file:./embedded/backstage-community-plugin-scaffolder-backend-module-servicenow::locator=backstage-community-plugin-scaffolder-backend-module-servicenow-dynamic%40workspace%3A.":
-  version: 2.4.0+embedded
-  resolution: "@backstage-community/plugin-scaffolder-backend-module-servicenow@file:./embedded/backstage-community-plugin-scaffolder-backend-module-servicenow#./embedded/backstage-community-plugin-scaffolder-backend-module-servicenow::hash=79d6c5&locator=backstage-community-plugin-scaffolder-backend-module-servicenow-dynamic%40workspace%3A."
+  version: 2.5.0+embedded
+  resolution: "@backstage-community/plugin-scaffolder-backend-module-servicenow@file:./embedded/backstage-community-plugin-scaffolder-backend-module-servicenow#./embedded/backstage-community-plugin-scaffolder-backend-module-servicenow::hash=9e3b95&locator=backstage-community-plugin-scaffolder-backend-module-servicenow-dynamic%40workspace%3A."
   dependencies:
     abort-controller: ^3.0.0
     axios: ^1.7.4
@@ -15,9 +15,9 @@ __metadata:
     yaml: ^2.3.3
     zod: ^3.22.4
   peerDependencies:
-    "@backstage/backend-plugin-api": ^1.1.1
-    "@backstage/plugin-scaffolder-node": ^0.6.3
-  checksum: 6485ffb87e69f069181cb33fb591a216ba1b297d2b830c43df8ac7213080e5871300f4377a444bbc081c99057e0be134fe490964ae4533cb460a846543f8817d
+    "@backstage/backend-plugin-api": ^1.2.0
+    "@backstage/plugin-scaffolder-node": ^0.7.0
+  checksum: 602e9177f88239dfaeb87a3841b6c3339200898d85598fddd509050ec45488dd9d16624e71fe57751781c04986cc50ee531db57f97b4d4cd4d3c4f75e20e332d
   languageName: node
   linkType: hard
 
@@ -52,10 +52,10 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "backstage-community-plugin-scaffolder-backend-module-servicenow-dynamic@workspace:."
   dependencies:
-    "@backstage-community/plugin-scaffolder-backend-module-servicenow": 2.4.0
+    "@backstage-community/plugin-scaffolder-backend-module-servicenow": 2.5.0
   peerDependencies:
-    "@backstage/backend-plugin-api": ^1.1.1
-    "@backstage/plugin-scaffolder-node": ^0.6.3
+    "@backstage/backend-plugin-api": ^1.2.0
+    "@backstage/plugin-scaffolder-node": ^0.7.0
   languageName: unknown
   linkType: soft
 
