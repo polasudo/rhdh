@@ -209,7 +209,16 @@ if [[ $CONTAINERS ]]; then
   echo -n "."
   sort -uV "/tmp/imagelist_bundle_latest_$RHDH_VERSION.txt" > "/tmp/imagelist_bundle_latest_$RHDH_VERSION.txt_"; mv "/tmp/imagelist_bundle_latest_$RHDH_VERSION.txt"{_,}
   echo -e ". done.${norm}"
-  if [[ "$(cat "/tmp/imagelist_bundle_latest_$RHDH_VERSION.txt")" != "$latest_images" ]]; then
+  # check for quay images in quay and csv refs to r.r.io
+  if [[ "$(sed -r -e "s@registry.redhat.io/rhdh/@quay.io/rhdh/@g" "/tmp/imagelist_bundle_latest_$RHDH_VERSION.txt")" != "$latest_images" ]]; then
+    echo
+    echo -e "${blue}[WARNING] Latest images (quay.io) == images in $latest_bundle (r.r.io) !${norm}"
+    echo -e "${blue}===================latest===================${norm}"
+    echo -e "$latest_images" | grep -v operator-bundle
+    echo -e "${blue}===================bundle===================${norm}"
+    grep -v operator-bundle "/tmp/imagelist_bundle_latest_$RHDH_VERSION.txt"
+    echo
+  elif [[ "$(cat "/tmp/imagelist_bundle_latest_$RHDH_VERSION.txt")" != "$latest_images" ]]; then
     echo
     echo -e "${red}[ERROR] Latest images != images in $latest_bundle !${norm}"
     echo -e "${red}===================latest===================${norm}"
@@ -312,7 +321,7 @@ for SNAPSHOT in $SNAPSHOTS; do
     echo
 
     # compare with the contents of the latest bundle's operands
-    if [[ "$(cat "/tmp/imagelist_bundle_latest_$RHDH_VERSION.txt")" != "$(cat "/tmp/imagelist_$SNAPSHOT.txt")" ]]; then
+    if [[ "$(sed -r -e "s@registry.redhat.io/rhdh/@quay.io/rhdh/@g" "/tmp/imagelist_bundle_latest_$RHDH_VERSION.txt" | sort -uV)" != "$(sort -uV "/tmp/imagelist_$SNAPSHOT.txt")" ]]; then
       echo -e "${red}[ERROR] Latest images != images in snapshot:${norm}"
       echo -e "${red}===================latest===================${norm}"
       cat "/tmp/imagelist_bundle_latest_$RHDH_VERSION.txt"
