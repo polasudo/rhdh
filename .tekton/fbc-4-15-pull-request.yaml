@@ -8,8 +8,7 @@ metadata:
     build.appstudio.redhat.com/target_branch: '{{target_branch}}'
     pipelinesascode.tekton.dev/max-keep-runs: "6"
     pipelinesascode.tekton.dev/on-cel-expression: event == "pull_request" && target_branch
-      == "rhdh-1-rhel-9" && ( "catalogs/v4.15/***".pathChanged() || ".tekton/fbc-4-15-pull-request.yaml".pathChanged()
-      )
+      == "rhdh-1-rhel-9" && ( "catalogs/v4.15/***".pathChanged() || ".tekton/fbc-4-15-pull-request.yaml".pathChanged())
   creationTimestamp: null
   labels:
     appstudio.openshift.io/application: fbc-4-15
@@ -336,24 +335,24 @@ spec:
         - "false"
     - name: fbc-fips-check
       params:
-        - name: image-url
-          value: $(tasks.build-image-index.results.IMAGE_URL)
-        - name: image-digest
-          value: $(tasks.build-image-index.results.IMAGE_DIGEST)
+      - name: image-url
+        value: $(tasks.build-image-index.results.IMAGE_URL)
+      - name: image-digest
+        value: $(tasks.build-image-index.results.IMAGE_DIGEST)
       runAfter:
-        - build-image-index
+      - build-image-index
       taskRef:
         params:
-          - name: name
-            value: fbc-fips-check
-          - name: bundle
-            value: quay.io/konflux-ci/tekton-catalog/task-fbc-fips-check:0.1@sha256:fbf89650913689883a0f5386eaee797005782ad6df028618235c871369a24f77
-          - name: kind
-            value: task
+        - name: name
+          value: fbc-fips-check
+        - name: bundle
+          value: quay.io/konflux-ci/tekton-catalog/task-fbc-fips-check:0.1@sha256:fbf89650913689883a0f5386eaee797005782ad6df028618235c871369a24f77
+        - name: kind
+          value: task
         resolver: bundles
       workspaces:
-        - name: workspace
-          workspace: workspace
+      - name: workspace
+        workspace: workspace
     workspaces:
     - name: workspace
     - name: git-auth
