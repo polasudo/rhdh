@@ -4,6 +4,7 @@ var gitUrlParse = require('git-url-parse');
 require('@backstage/errors');
 require('@backstage/plugin-permission-common');
 require('@red-hat-developer-hub/backstage-plugin-bulk-import-common');
+require('just-kebab-case');
 var loggingUtils = require('../../helpers/loggingUtils.cjs.js');
 var types = require('../types.cjs.js');
 var ghUtils = require('./ghUtils.cjs.js');

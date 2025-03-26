@@ -3,9 +3,9 @@
 var errors = require('@backstage/errors');
 var pluginPermissionCommon = require('@backstage/plugin-permission-common');
 var backstagePluginBulkImportCommon = require('@red-hat-developer-hub/backstage-plugin-bulk-import-common');
-var auditLogUtils = require('./auditLogUtils.cjs.js');
+var auditorUtils = require('./auditorUtils.cjs.js');
 
-async function permissionCheck(auditLogger, openApiOperationId, permissions, httpAuth, req) {
+async function permissionCheck(auditor, openApiOperationId, permissions, httpAuth, req) {
   const decision = (await permissions.authorize(
     [
       {
@@ -19,7 +19,12 @@ async function permissionCheck(auditLogger, openApiOperationId, permissions, htt
   ))[0];
   if (decision.result === pluginPermissionCommon.AuthorizeResult.DENY) {
     const err = new errors.NotAllowedError("Unauthorized");
-    auditLogUtils.auditLogAuthError(auditLogger, openApiOperationId, req, err);
+    const auditorEvent = await auditorUtils.auditCreateEvent(
+      auditor,
+      openApiOperationId,
+      req
+    );
+    await auditorEvent.fail({ error: err, meta: { responseStatus: 403 } });
     throw err;
   }
 }

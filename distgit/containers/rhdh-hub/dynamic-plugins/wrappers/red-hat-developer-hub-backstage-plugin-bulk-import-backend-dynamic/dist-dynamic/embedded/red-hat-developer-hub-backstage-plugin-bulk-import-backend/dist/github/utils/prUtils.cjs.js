@@ -4,6 +4,7 @@ var catalogUtils = require('../../catalog/catalogUtils.cjs.js');
 require('@backstage/errors');
 require('@backstage/plugin-permission-common');
 require('@red-hat-developer-hub/backstage-plugin-bulk-import-common');
+require('just-kebab-case');
 var loggingUtils = require('../../helpers/loggingUtils.cjs.js');
 
 async function findOpenPRForBranch(logger, config, octo, owner, repo, branchName, withCatalogInfoContent = false) {

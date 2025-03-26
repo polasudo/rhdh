@@ -2,7 +2,6 @@
 
 var rootHttpRouter = require('@backstage/backend-defaults/rootHttpRouter');
 var pluginPermissionNode = require('@backstage/plugin-permission-node');
-var backstagePluginAuditLogNode = require('@janus-idp/backstage-plugin-audit-log-node');
 var formats = require('ajv-formats/dist/formats');
 var express = require('express');
 var openapiBackend = require('openapi-backend');
@@ -17,7 +16,7 @@ require('luxon');
 var githubApiService = require('../github/githubApiService.cjs.js');
 var auth = require('../helpers/auth.cjs.js');
 require('@backstage/errors');
-var auditLogUtils = require('../helpers/auditLogUtils.cjs.js');
+var auditorUtils = require('../helpers/auditorUtils.cjs.js');
 var bulkImports = require('./handlers/import/bulkImports.cjs.js');
 var organizations = require('./handlers/organization/organizations.cjs.js');
 var ping = require('./handlers/ping/ping.cjs.js');
@@ -27,6 +26,17 @@ function _interopDefaultCompat (e) { return e && typeof e === 'object' && 'defau
 
 var express__default = /*#__PURE__*/_interopDefaultCompat(express);
 
+var Operations;
+((Operations2) => {
+  Operations2.PING = "ping";
+  Operations2.FIND_ALL_ORGANIZATIONS = "findAllOrganizations";
+  Operations2.FIND_ALL_REPOSITORIES = "findAllRepositories";
+  Operations2.FIND_REPOSITORIES_BY_ORGANIZATION = "findRepositoriesByOrganization";
+  Operations2.FIND_ALL_IMPORTS = "findAllImports";
+  Operations2.CREATE_IMPORT_JOBS = "createImportJobs";
+  Operations2.FIND_IMPORT_STATUS_BY_REPO = "findImportStatusByRepo";
+  Operations2.DELETE_IMPORT_BY_REPO = "deleteImportByRepo";
+})(Operations || (Operations = {}));
 async function createRouter(options) {
   const {
     logger,
@@ -36,13 +46,9 @@ async function createRouter(options) {
     config,
     cache,
     discovery,
-    catalogApi
+    catalogApi,
+    auditor
   } = options;
-  const auditLogger = new backstagePluginAuditLogNode.DefaultAuditLogger({
-    logger,
-    authService: auth$1,
-    httpAuthService: httpAuth
-  });
   const githubApiService$1 = new githubApiService.GithubApiService(logger, config, cache);
   const catalogHttpClient$1 = new catalogHttpClient.CatalogHttpClient({
     logger,
@@ -70,12 +76,15 @@ async function createRouter(options) {
     }
   });
   await api.init();
-  api.register("ping", async (_c, _req, res) => {
-    const result = await ping.ping(logger);
-    return res.status(result.statusCode).json(result.responseBody);
-  });
   api.register(
-    "findAllOrganizations",
+    Operations.PING,
+    async (_c, _req, res) => {
+      const result = await ping.ping(logger);
+      return res.status(result.statusCode).json(result.responseBody);
+    }
+  );
+  api.register(
+    Operations.FIND_ALL_ORGANIZATIONS,
     async (c, _req, res) => {
       const q = {
         ...c.request.query
@@ -99,7 +108,7 @@ async function createRouter(options) {
     }
   );
   api.register(
-    "findAllRepositories",
+    Operations.FIND_ALL_REPOSITORIES,
     async (c, _req, res) => {
       const q = {
         ...c.request.query
@@ -132,7 +141,7 @@ async function createRouter(options) {
     }
   );
   api.register(
-    "findRepositoriesByOrganization",
+    Operations.FIND_REPOSITORIES_BY_ORGANIZATION,
     async (c, _req, res) => {
       const q = {
         ...c.request.query
@@ -164,7 +173,7 @@ async function createRouter(options) {
     }
   );
   api.register(
-    "findAllImports",
+    Operations.FIND_ALL_IMPORTS,
     async (c, _req, res) => {
       const h = {
         ...c.request.headers
@@ -204,7 +213,7 @@ async function createRouter(options) {
     }
   );
   api.register(
-    "createImportJobs",
+    Operations.CREATE_IMPORT_JOBS,
     async (c, _req, res) => {
       const q = {
         ...c.request.query
@@ -229,7 +238,7 @@ async function createRouter(options) {
     }
   );
   api.register(
-    "findImportStatusByRepo",
+    Operations.FIND_IMPORT_STATUS_BY_REPO,
     async (c, _req, res) => {
       const q = {
         ...c.request.query
@@ -252,7 +261,7 @@ async function createRouter(options) {
     }
   );
   api.register(
-    "deleteImportByRepo",
+    Operations.DELETE_IMPORT_BY_REPO,
     async (c, _req, res) => {
       const q = {
         ...c.request.query
@@ -282,7 +291,7 @@ async function createRouter(options) {
   router.use(async (req, _res, next) => {
     if (req.path !== "/ping") {
       await auth.permissionCheck(
-        auditLogger,
+        auditor,
         api.matchOperation(req)?.operationId,
         permissions,
         httpAuth,
@@ -294,23 +303,81 @@ async function createRouter(options) {
   router.use(async (req, res, next) => {
     const reqCast = req;
     const operationId = api.matchOperation(reqCast)?.operationId;
+    const auditorEvent = await createAuditorEventByOperationId(
+      operationId,
+      req,
+      auditor
+    );
     try {
       const response = await api.handleRequest(reqCast, req, res);
-      auditLogUtils.auditLogRequestSuccess(
-        auditLogger,
-        operationId,
-        req,
-        response.statusCode
-      );
+      auditorEvent?.success({ meta: { responseStatus: response.statusCode } });
       next();
     } catch (err) {
-      auditLogUtils.auditLogRequestError(auditLogger, operationId, req, err);
+      auditorEvent?.fail({ error: err, meta: { responseStatus: 500 } });
       next(err);
     }
   });
   const middleware = rootHttpRouter.MiddlewareFactory.create({ logger, config });
   router.use(middleware.error());
   return router;
+}
+async function createAuditorEventByOperationId(operationId, req, auditor) {
+  let auditorEvent;
+  switch (operationId) {
+    case Operations.PING:
+      auditorEvent = await auditorUtils.auditCreateEvent(auditor, "ping", req);
+      break;
+    case Operations.FIND_ALL_ORGANIZATIONS:
+      auditorEvent = await auditorUtils.auditCreateEvent(auditor, "org-read", req, {
+        queryType: req.query.search ? "by-query" : "all",
+        search: req.query?.search
+      });
+      break;
+    case Operations.FIND_ALL_REPOSITORIES:
+      auditorEvent = await auditorUtils.auditCreateEvent(auditor, "repo-read", req, {
+        queryType: req.query.search ? "by-query" : "all",
+        search: req.query.search
+      });
+      break;
+    case Operations.FIND_REPOSITORIES_BY_ORGANIZATION: {
+      const organizationName = req.params.organizationName?.toString();
+      auditorEvent = await auditorUtils.auditCreateEvent(auditor, "repo-read", req, {
+        queryType: "by-org",
+        organizationName
+      });
+      break;
+    }
+    case Operations.FIND_ALL_IMPORTS:
+      auditorEvent = await auditorUtils.auditCreateEvent(auditor, "import-read", req, {
+        queryType: req.query.search ? "by-query" : "all",
+        search: req.query.search
+      });
+      break;
+    case Operations.CREATE_IMPORT_JOBS:
+      auditorEvent = await auditorUtils.auditCreateEvent(auditor, "import-write", req, {
+        actionType: "create",
+        dryRun: req.query.dryRun
+      });
+      break;
+    case Operations.FIND_IMPORT_STATUS_BY_REPO:
+      auditorEvent = await auditorUtils.auditCreateEvent(
+        auditor,
+        "import-status-read",
+        req,
+        { queryType: "by-query", repo: req.query.repo }
+      );
+      break;
+    case Operations.DELETE_IMPORT_BY_REPO:
+      auditorEvent = await auditorUtils.auditCreateEvent(auditor, "import-write", req, {
+        actionType: "delete",
+        repository: req.query.repo
+      });
+      break;
+    case undefined:
+      auditorEvent = await auditorUtils.auditCreateEvent(auditor, operationId, req);
+      break;
+  }
+  return auditorEvent;
 }
 function stringToNumber(s) {
   return s ? Number.parseInt(s.toString(), 10) : undefined;

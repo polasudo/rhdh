@@ -5,6 +5,7 @@ var handlers = require('../handlers.cjs.js');
 require('@backstage/errors');
 require('@backstage/plugin-permission-common');
 require('@red-hat-developer-hub/backstage-plugin-bulk-import-common');
+require('just-kebab-case');
 var importStatus = require('../import/importStatus.cjs.js');
 
 function _interopDefaultCompat (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }

@@ -6,6 +6,7 @@ var catalogUtils = require('../catalog/catalogUtils.cjs.js');
 require('@backstage/errors');
 require('@backstage/plugin-permission-common');
 require('@red-hat-developer-hub/backstage-plugin-bulk-import-common');
+require('just-kebab-case');
 var loggingUtils = require('../helpers/loggingUtils.cjs.js');
 var handlers = require('../service/handlers/handlers.cjs.js');
 var GithubAppManager = require('./GithubAppManager.cjs.js');

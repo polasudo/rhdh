@@ -5,6 +5,7 @@ var catalogUtils = require('../../../catalog/catalogUtils.cjs.js');
 require('@backstage/errors');
 require('@backstage/plugin-permission-common');
 require('@red-hat-developer-hub/backstage-plugin-bulk-import-common');
+require('just-kebab-case');
 var loggingUtils = require('../../../helpers/loggingUtils.cjs.js');
 var pagination = require('../../../helpers/pagination.cjs.js');
 var utils = require('../../../helpers/utils.cjs.js');

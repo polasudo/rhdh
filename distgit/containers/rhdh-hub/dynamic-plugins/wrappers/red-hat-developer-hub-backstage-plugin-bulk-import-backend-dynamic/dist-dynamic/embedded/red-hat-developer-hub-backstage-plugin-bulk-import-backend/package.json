@@ -1,6 +1,6 @@
 {
   "name": "@red-hat-developer-hub/backstage-plugin-bulk-import-backend",
-  "version": "5.4.0+embedded",
+  "version": "6.0.0+embedded",
   "main": "./dist/index.cjs.js",
   "types": "./dist/index.d.ts",
   "license": "Apache-2.0",
@@ -58,6 +58,7 @@
     "express": "^4.17.1",
     "git-url-parse": "^14.0.0",
     "js-yaml": "^4.1.0",
+    "just-kebab-case": "4.2.0",
     "luxon": "^3.4.4",
     "node-fetch": "^2.6.7",
     "openapi-backend": "^5.10.6"

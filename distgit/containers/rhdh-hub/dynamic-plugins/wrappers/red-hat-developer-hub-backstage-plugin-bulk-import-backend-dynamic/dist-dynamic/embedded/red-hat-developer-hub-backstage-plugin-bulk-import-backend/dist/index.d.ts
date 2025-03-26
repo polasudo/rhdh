@@ -1,5 +1,5 @@
 import * as _backstage_backend_plugin_api from '@backstage/backend-plugin-api';
-import { LoggerService, CacheService, DiscoveryService, HttpAuthService, AuthService } from '@backstage/backend-plugin-api';
+import { LoggerService, CacheService, DiscoveryService, HttpAuthService, AuthService, AuditorService } from '@backstage/backend-plugin-api';
 import { CatalogApi } from '@backstage/catalog-client';
 import { Config } from '@backstage/config';
 import { PermissionEvaluator } from '@backstage/plugin-permission-common';
@@ -24,6 +24,7 @@ interface RouterOptions {
     httpAuth: HttpAuthService;
     auth: AuthService;
     catalogApi: CatalogApi;
+    auditor: AuditorService;
 }
 /**
  * Router

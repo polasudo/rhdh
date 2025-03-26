@@ -227,8 +227,8 @@ __metadata:
   linkType: hard
 
 "@red-hat-developer-hub/backstage-plugin-bulk-import-backend@file:./embedded/red-hat-developer-hub-backstage-plugin-bulk-import-backend::locator=red-hat-developer-hub-backstage-plugin-bulk-import-backend-dynamic%40workspace%3A.":
-  version: 5.4.0+embedded
-  resolution: "@red-hat-developer-hub/backstage-plugin-bulk-import-backend@file:./embedded/red-hat-developer-hub-backstage-plugin-bulk-import-backend#./embedded/red-hat-developer-hub-backstage-plugin-bulk-import-backend::hash=6fce4e&locator=red-hat-developer-hub-backstage-plugin-bulk-import-backend-dynamic%40workspace%3A."
+  version: 6.0.0+embedded
+  resolution: "@red-hat-developer-hub/backstage-plugin-bulk-import-backend@file:./embedded/red-hat-developer-hub-backstage-plugin-bulk-import-backend#./embedded/red-hat-developer-hub-backstage-plugin-bulk-import-backend::hash=3a1656&locator=red-hat-developer-hub-backstage-plugin-bulk-import-backend-dynamic%40workspace%3A."
   dependencies:
     "@octokit/auth-app": ^6.0.3
     "@octokit/rest": ^20.0.2
@@ -237,6 +237,7 @@ __metadata:
     express: ^4.17.1
     git-url-parse: ^14.0.0
     js-yaml: ^4.1.0
+    just-kebab-case: 4.2.0
     luxon: ^3.4.4
     node-fetch: ^2.6.7
     openapi-backend: ^5.10.6
@@ -249,7 +250,7 @@ __metadata:
     "@backstage/plugin-permission-common": ^0.8.4
     "@backstage/plugin-permission-node": ^0.8.8
     "@janus-idp/backstage-plugin-audit-log-node": ^1.7.0
-  checksum: 509318cae13514ae4e1684af2d01bf41e1c05af38aaf9437f96eeaf8650dc5e1f844156fa9cea1a1e3415046847ba257bbd070c3f9bc64a7af89d68c58e5cdd6
+  checksum: f2dcf92453ef6f0bc78b00bcfe8e114430b922c48e7caefd3b8204c08de74d8f36b38c8210aeb22344109966f86ebeb826de27b45edbe7cb7964c86ba7db6d83
   languageName: node
   linkType: hard
 
@@ -825,6 +826,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"just-kebab-case@npm:4.2.0":
+  version: 4.2.0
+  resolution: "just-kebab-case@npm:4.2.0"
+  checksum: 3f8b1041a56bfb7dd9d789ba4da8c244fa10775c7ed900440eb6c9002292caa3dbb6c88792907c830fea328db85a92ba2c302c31dbd740a58d81fd364423db4c
+  languageName: node
+  linkType: hard
+
 "jwa@npm:^1.4.1":
   version: 1.4.1
   resolution: "jwa@npm:1.4.1"
@@ -1172,7 +1180,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "red-hat-developer-hub-backstage-plugin-bulk-import-backend-dynamic@workspace:."
   dependencies:
-    "@red-hat-developer-hub/backstage-plugin-bulk-import-backend": 5.4.0
+    "@red-hat-developer-hub/backstage-plugin-bulk-import-backend": 6.0.0
   peerDependencies:
     "@backstage/backend-defaults": ^0.8.1
     "@backstage/backend-plugin-api": ^1.2.0
