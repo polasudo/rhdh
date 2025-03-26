@@ -6,12 +6,11 @@ __metadata:
   cacheKey: 8
 
 "@backstage-community/plugin-catalog-backend-module-keycloak@file:./embedded/backstage-community-plugin-catalog-backend-module-keycloak::locator=backstage-community-plugin-catalog-backend-module-keycloak-dynamic%40workspace%3A.":
-  version: 3.8.0+embedded
-  resolution: "@backstage-community/plugin-catalog-backend-module-keycloak@file:./embedded/backstage-community-plugin-catalog-backend-module-keycloak#./embedded/backstage-community-plugin-catalog-backend-module-keycloak::hash=04cb63&locator=backstage-community-plugin-catalog-backend-module-keycloak-dynamic%40workspace%3A."
+  version: 3.10.0+embedded
+  resolution: "@backstage-community/plugin-catalog-backend-module-keycloak@file:./embedded/backstage-community-plugin-catalog-backend-module-keycloak#./embedded/backstage-community-plugin-catalog-backend-module-keycloak::hash=f939ae&locator=backstage-community-plugin-catalog-backend-module-keycloak-dynamic%40workspace%3A."
   dependencies:
-    "@common.js/p-limit": ^6.1.0
-    "@keycloak/keycloak-admin-client": 26.1.2
-    inclusion: ^1.0.1
+    "@keycloak/keycloak-admin-client": 26.1.4
+    "@opentelemetry/api": ^1.9.0
     jsonwebtoken: ^9.0.0
     lodash: ^4.17.21
     p-limit: ^6.1.0
@@ -22,34 +21,25 @@ __metadata:
     "@backstage/catalog-model": ^1.7.3
     "@backstage/errors": ^1.2.7
     "@backstage/plugin-catalog-node": ^1.16.0
-  checksum: dd5d31a19f895134059425744a1bcf0a0e2cb0e9468b118c356156b812fd313fba66933cca1391363d847bb10e81ce60888a926ed71f77a0335e52fab5de8dfa
+  checksum: 2f5774877b0cfbe5e1cf62fdd5633f84edcc8df087d0a715beae68110e0cc3f32c38f2d04a21c2612ef95f3eabe0fabf8eb443c2fbb16cc7c124c31d5c3407a3
   languageName: node
   linkType: hard
 
-"@common.js/p-limit@npm:^6.1.0":
-  version: 6.1.0
-  resolution: "@common.js/p-limit@npm:6.1.0"
-  dependencies:
-    "@common.js/yocto-queue": ^1.1.1
-  checksum: 6ebc19dffce939c9bd5ced0b1c0799a65d27d886f58fb0cf8ba571e5fec3949869337622587a4a9e4f491c47026c0a5d586ea6a2012a83ac75666dcf381af76c
-  languageName: node
-  linkType: hard
-
-"@common.js/yocto-queue@npm:^1.1.1":
-  version: 1.1.1
-  resolution: "@common.js/yocto-queue@npm:1.1.1"
-  checksum: 7987b2e5686b53794915503099a893f95b8ba9da97443a3f33e30fae6d5f75815d4bf4cbcbd96209a17de381b90b6238cb8250cb22d5bffc7cc0503639655a20
-  languageName: node
-  linkType: hard
-
-"@keycloak/keycloak-admin-client@npm:26.1.2":
-  version: 26.1.2
-  resolution: "@keycloak/keycloak-admin-client@npm:26.1.2"
+"@keycloak/keycloak-admin-client@npm:26.1.4":
+  version: 26.1.4
+  resolution: "@keycloak/keycloak-admin-client@npm:26.1.4"
   dependencies:
     camelize-ts: ^3.0.0
     url-join: ^5.0.0
     url-template: ^3.1.1
-  checksum: 550c8f457c9804710a5d34bdde9071d0fec46177d8dd62d11c28075f0bd8247c7b81e3ca3f92e17785b5f47a14c3639bcabce7199f78082d015f6e543305114d
+  checksum: ab88b9826fbf91969c94c6e801e8da966c19eb5855d1b3d8e982726c01f53b2ec98cf63cb78dd15438fce37a65e60d1ee6f5e657223cf8625ae4a35b086e3d23
+  languageName: node
+  linkType: hard
+
+"@opentelemetry/api@npm:^1.9.0":
+  version: 1.9.0
+  resolution: "@opentelemetry/api@npm:1.9.0"
+  checksum: 9e88e59d53ced668f3daaecfd721071c5b85a67dd386f1c6f051d1be54375d850016c881f656ffbe9a03bedae85f7e89c2f2b635313f9c9b195ad033cdc31020
   languageName: node
   linkType: hard
 
@@ -57,7 +47,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "backstage-community-plugin-catalog-backend-module-keycloak-dynamic@workspace:."
   dependencies:
-    "@backstage-community/plugin-catalog-backend-module-keycloak": 3.8.0
+    "@backstage-community/plugin-catalog-backend-module-keycloak": 3.10.0
   peerDependencies:
     "@backstage/backend-plugin-api": ^1.2.0
     "@backstage/catalog-model": ^1.7.3
@@ -70,13 +60,6 @@ __metadata:
   version: 1.0.1
   resolution: "buffer-equal-constant-time@npm:1.0.1"
   checksum: 80bb945f5d782a56f374b292770901065bad21420e34936ecbe949e57724b4a13874f735850dd1cc61f078773c4fb5493a41391e7bda40d1fa388d6bd80daaab
-  languageName: node
-  linkType: hard
-
-"callsites@npm:^3.1.0":
-  version: 3.1.0
-  resolution: "callsites@npm:3.1.0"
-  checksum: 072d17b6abb459c2ba96598918b55868af677154bec7e73d222ef95a8fdb9bbf7dae96a8421085cdad8cd190d86653b5b6dc55a4484f2e5b2e27d5e0c3fc15b3
   languageName: node
   linkType: hard
 
@@ -93,15 +76,6 @@ __metadata:
   dependencies:
     safe-buffer: ^5.0.1
   checksum: 207f9ab1c2669b8e65540bce29506134613dd5f122cccf1e6a560f4d63f2732d427d938f8481df175505aad94583bcb32c688737bb39a6df0625f903d6d93c03
-  languageName: node
-  linkType: hard
-
-"inclusion@npm:^1.0.1":
-  version: 1.0.1
-  resolution: "inclusion@npm:1.0.1"
-  dependencies:
-    parent-module: ^2.0.0
-  checksum: 1ee1d829d4f354797b3c7ccca2a5fb669e7d4dafb83aaa96837265bbb6041eb4f7a6cab075730ba77c6b7b78c2918124411ba48092fa1bd13ee18c4b408ef36c
   languageName: node
   linkType: hard
 
@@ -213,15 +187,6 @@ __metadata:
   dependencies:
     yocto-queue: ^1.1.1
   checksum: ea46ba4a3013daa3335833013156bdcdd8f5c67b49ad2f33b34832b0d528f003d29b55bf5beeedc39ba9d9ada3dab7b1f4b890db3ebc8260a044a011126c6fc9
-  languageName: node
-  linkType: hard
-
-"parent-module@npm:^2.0.0":
-  version: 2.0.0
-  resolution: "parent-module@npm:2.0.0"
-  dependencies:
-    callsites: ^3.1.0
-  checksum: f131f13d687a938556a01033561fb1b274b39921eb4425c7a691f0d91dcfbe9b19759c2b8d425a3ee7c8a46874e57fa418a690643880c3c7c56827aba12f78dd
   languageName: node
   linkType: hard
 

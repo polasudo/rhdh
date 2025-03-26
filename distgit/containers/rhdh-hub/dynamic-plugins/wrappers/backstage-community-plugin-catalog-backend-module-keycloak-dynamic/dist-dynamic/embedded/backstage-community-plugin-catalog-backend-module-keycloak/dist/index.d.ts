@@ -193,6 +193,8 @@ interface KeycloakOrgEntityProviderOptions {
 declare class KeycloakOrgEntityProvider implements EntityProvider {
     private options;
     private connection?;
+    private meter;
+    private counter;
     private scheduleFn?;
     /**
      * Static builder method to create multiple KeycloakOrgEntityProvider instances from a single config.
@@ -232,8 +234,9 @@ declare class KeycloakOrgEntityProvider implements EntityProvider {
      * Runs one complete ingestion loop. Call this method regularly at some
      * appropriate cadence.
      */
-    read(options?: {
+    read(options: {
         logger?: LoggerService;
+        taskInstanceId: string;
     }): Promise<void>;
     /**
      * Periodically schedules a task to read Keycloak user and group information, parse it, and provision it to the Backstage catalog.

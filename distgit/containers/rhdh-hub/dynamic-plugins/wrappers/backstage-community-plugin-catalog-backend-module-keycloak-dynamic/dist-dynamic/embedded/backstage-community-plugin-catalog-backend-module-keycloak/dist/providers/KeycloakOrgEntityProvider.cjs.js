@@ -2,15 +2,13 @@
 
 var catalogModel = require('@backstage/catalog-model');
 var errors = require('@backstage/errors');
-var inclusion = require('inclusion');
 var lodash = require('lodash');
 var uuid = require('uuid');
 var constants = require('../lib/constants.cjs.js');
 var config = require('../lib/config.cjs.js');
 var read = require('../lib/read.cjs.js');
 var authenticate = require('../lib/authenticate.cjs.js');
-
-function _interopDefaultCompat (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }
+var api = require('@opentelemetry/api');
 
 function _interopNamespaceCompat(e) {
   if (e && typeof e === 'object' && 'default' in e) return e;
@@ -30,7 +28,6 @@ function _interopNamespaceCompat(e) {
   return Object.freeze(n);
 }
 
-var inclusion__default = /*#__PURE__*/_interopDefaultCompat(inclusion);
 var uuid__namespace = /*#__PURE__*/_interopNamespaceCompat(uuid);
 
 const withLocations = (baseUrl, realm, entity) => {
@@ -51,9 +48,18 @@ const withLocations = (baseUrl, realm, entity) => {
 class KeycloakOrgEntityProvider {
   constructor(options) {
     this.options = options;
+    this.meter = api.metrics.getMeter("default");
+    this.counter = this.meter.createCounter(
+      "backend_keycloak.fetch.task.failure.count",
+      {
+        description: "Counts the number of failed Keycloak data fetch tasks. Each increment indicates a complete failure of a fetch task, meaning no data was provided to the Catalog API. However, data may still be fetched in subsequent tasks, depending on the nature of the error."
+      }
+    );
     this.schedule(options.taskRunner);
   }
   connection;
+  meter;
+  counter;
   scheduleFn;
   /**
    * Static builder method to create multiple KeycloakOrgEntityProvider instances from a single config.
@@ -112,24 +118,30 @@ class KeycloakOrgEntityProvider {
     const logger = options?.logger ?? this.options.logger;
     const provider = this.options.provider;
     const { markReadComplete } = trackProgress(logger);
-    const KeyCloakAdminClientModule = await inclusion__default.default(
-      "@keycloak/keycloak-admin-client"
-    );
+    const KeyCloakAdminClientModule = await import('@keycloak/keycloak-admin-client');
     const KeyCloakAdminClient = KeyCloakAdminClientModule.default;
     const kcAdminClient = new KeyCloakAdminClient({
       baseUrl: provider.baseUrl,
       realmName: provider.loginRealm
     });
     await authenticate.authenticate(kcAdminClient, provider, logger);
-    const pLimitCJSModule = await inclusion__default.default("p-limit");
+    const pLimitCJSModule = await import('p-limit');
     const limitFunc = pLimitCJSModule.default;
     const concurrency = provider.maxConcurrency ?? 20;
     const limit = limitFunc(concurrency);
+    const dataBatchFailureCounter = this.meter.createCounter(
+      "backend_keycloak.fetch.data.batch.failure.count",
+      {
+        description: "Keycloak data batch fetch failure counter. Incremented for each batch fetch failure. Each failure means that a part of the data was not fetched due to an error, and thus the corresponding data batch was skipped during the current fetch task."
+      }
+    );
     const { users, groups } = await read.readKeycloakRealm(
       kcAdminClient,
       provider,
       logger,
       limit,
+      options.taskInstanceId,
+      dataBatchFailureCounter,
       {
         userQuerySize: provider.userQuerySize,
         groupQuerySize: provider.groupQuerySize,
@@ -157,14 +169,16 @@ class KeycloakOrgEntityProvider {
       await taskRunner.run({
         id,
         fn: async () => {
+          const taskInstanceId = uuid__namespace.v4();
           const logger = this.options.logger.child({
             class: KeycloakOrgEntityProvider.prototype.constructor.name,
             taskId: id,
-            taskInstanceId: uuid__namespace.v4()
+            taskInstanceId
           });
           try {
-            await this.read({ logger });
+            await this.read({ logger, taskInstanceId });
           } catch (error) {
+            this.counter.add(1, { taskInstanceId });
             if (errors.isError(error)) {
               logger.error("Error while syncing Keycloak users and groups", {
                 // Default Error properties:

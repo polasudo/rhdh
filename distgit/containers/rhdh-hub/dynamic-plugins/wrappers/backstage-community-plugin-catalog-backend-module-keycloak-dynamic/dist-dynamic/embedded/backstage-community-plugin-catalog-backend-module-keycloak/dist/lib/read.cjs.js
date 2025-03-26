@@ -53,7 +53,7 @@ const parseUser = async (user, realm, keycloakGroups, groupIndex, userTransforme
   };
   return await transformer(entity, user, realm, keycloakGroups);
 };
-async function getEntities(getEntitiesFn, config, logger, limit, entityQuerySize = constants.KEYCLOAK_ENTITY_QUERY_SIZE) {
+async function getEntities(getEntitiesFn, config, logger, dataBatchFailureCounter, taskInstanceId, limit, entityQuerySize = constants.KEYCLOAK_ENTITY_QUERY_SIZE) {
   const entitiesAPI = await getEntitiesFn();
   const rawEntityCount = await entitiesAPI.count({ realm: config.realm });
   const entityCount = typeof rawEntityCount === "number" ? rawEntityCount : rawEntityCount.count;
@@ -74,7 +74,10 @@ async function getEntities(getEntitiesFn, config, logger, limit, entityQuerySize
           );
           return ents;
         }).catch((err) => {
-          logger.warn("Failed to retieve Keycloak entities.", err);
+          dataBatchFailureCounter.add(1, { taskInstanceId });
+          logger.warn(
+            `Failed to retieve Keycloak entities for taskInstanceId: ${taskInstanceId}. Error: ${err}`
+          );
           return [];
         });
       })
@@ -137,7 +140,7 @@ function* traverseGroups(group) {
     yield* traverseGroups(g);
   }
 }
-const readKeycloakRealm = async (client, config, logger, limit, options) => {
+const readKeycloakRealm = async (client, config, logger, limit, taskInstanceId, dataBatchFailureCounter, options) => {
   const kUsers = await getEntities(
     async () => {
       await authenticate.ensureTokenValid(client, config, logger);
@@ -145,6 +148,8 @@ const readKeycloakRealm = async (client, config, logger, limit, options) => {
     },
     config,
     logger,
+    dataBatchFailureCounter,
+    taskInstanceId,
     limit,
     options?.userQuerySize
   );
@@ -156,6 +161,8 @@ const readKeycloakRealm = async (client, config, logger, limit, options) => {
     },
     config,
     logger,
+    dataBatchFailureCounter,
+    taskInstanceId,
     limit,
     options?.groupQuerySize
   );
