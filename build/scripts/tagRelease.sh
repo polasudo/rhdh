@@ -59,7 +59,7 @@ To create tags (and push updates to release-1.yy branches):
 3. Run this
   $0 -v CSV_VERSION -t PROD_VERSION -gh GH_BRANCH -ghtoken GITHUB_TOKEN
 Example: 
-  $0 -v 1.4.1 -t 1.4 -gh release-1.4 --midstream-branch rhdh-1.4-rhel-9 --clean --force-update -tmpdir $TMPDIR --nobuild
+  $0 -v 1.5.1 -t 1.5 -gh release-1.5 --midstream-branch rhdh-1.5-rhel-9 --clean --force-update -tmpdir $TMPDIR --nobuild
 
 Options:
     --clean                   delete existing temp folders and do fresh checkouts
