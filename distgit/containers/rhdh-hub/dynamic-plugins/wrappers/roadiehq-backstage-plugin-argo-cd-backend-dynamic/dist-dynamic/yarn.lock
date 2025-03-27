@@ -24,21 +24,19 @@ __metadata:
   linkType: hard
 
 "@roadiehq/backstage-plugin-argo-cd-backend@file:./embedded/roadiehq-backstage-plugin-argo-cd-backend::locator=roadiehq-backstage-plugin-argo-cd-backend-dynamic%40workspace%3A.":
-  version: 3.2.3+embedded
-  resolution: "@roadiehq/backstage-plugin-argo-cd-backend@file:./embedded/roadiehq-backstage-plugin-argo-cd-backend#./embedded/roadiehq-backstage-plugin-argo-cd-backend::hash=67ba90&locator=roadiehq-backstage-plugin-argo-cd-backend-dynamic%40workspace%3A."
+  version: 4.2.0+embedded
+  resolution: "@roadiehq/backstage-plugin-argo-cd-backend@file:./embedded/roadiehq-backstage-plugin-argo-cd-backend#./embedded/roadiehq-backstage-plugin-argo-cd-backend::hash=3a0ad6&locator=roadiehq-backstage-plugin-argo-cd-backend-dynamic%40workspace%3A."
   dependencies:
     "@types/express": ^4.17.6
     cross-fetch: ^3.1.4
     express: ^4.17.1
     express-promise-router: ^4.1.0
     winston: ^3.2.1
-    yn: ^4.0.0
   peerDependencies:
-    "@backstage/backend-common": ^0.24.0
-    "@backstage/backend-plugin-api": ^0.8.0
-    "@backstage/catalog-client": ^1.6.6
-    "@backstage/config": ^1.2.0
-  checksum: 07781982e5b3e7d8560a9e484fbfa62c18df53459bbe24e38ed8089925ee3392b963cfd3646cf87beb5e1d9082fdf4aa279317db8363916ac989990165eb78d2
+    "@backstage/backend-common": ^0.25.0
+    "@backstage/backend-plugin-api": ^1.0.2
+    "@backstage/config": ^1.3.0
+  checksum: b3ca56a8017c21656ded513ef0e5c2b133ac1ce735fbaf6caacc071da5bb8c5f7cee740de4df145f8635be18e56cd5e9dd5a7f1ffd855142549a3006fb47c493
   languageName: node
   linkType: hard
 
@@ -834,12 +832,11 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "roadiehq-backstage-plugin-argo-cd-backend-dynamic@workspace:."
   dependencies:
-    "@roadiehq/backstage-plugin-argo-cd-backend": 3.2.3
+    "@roadiehq/backstage-plugin-argo-cd-backend": 4.2.0
   peerDependencies:
-    "@backstage/backend-common": ^0.24.0
-    "@backstage/backend-plugin-api": ^0.8.0
-    "@backstage/catalog-client": ^1.6.6
-    "@backstage/config": ^1.2.0
+    "@backstage/backend-common": ^0.25.0
+    "@backstage/backend-plugin-api": ^1.0.2
+    "@backstage/config": ^1.3.0
   languageName: unknown
   linkType: soft
 
@@ -1101,12 +1098,5 @@ __metadata:
     triple-beam: ^1.3.0
     winston-transport: ^4.7.0
   checksum: 2ae6f3a3359fadd90f69a4db20d78aba6901e18114648e48c8538e925511e4820f8d488f19b1c026096ece614732338aa138f4a0fa2c5e29e8fbc53029f55473
-  languageName: node
-  linkType: hard
-
-"yn@npm:^4.0.0":
-  version: 4.0.0
-  resolution: "yn@npm:4.0.0"
-  checksum: 2d60113b6f43f7c29a0a97719d8da4f626b755f5bb2fd19b00d1fe732db1900ad3f1785811a86d941cbe2800f02773af00d0ed99201333eeb3618db8502f7e96
   languageName: node
   linkType: hard

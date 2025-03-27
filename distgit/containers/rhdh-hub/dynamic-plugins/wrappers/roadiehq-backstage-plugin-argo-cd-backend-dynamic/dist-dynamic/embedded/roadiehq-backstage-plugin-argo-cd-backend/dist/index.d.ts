@@ -1,16 +1,8 @@
 import { Config } from '@backstage/config';
 import express from 'express';
+import * as _backstage_backend_plugin_api from '@backstage/backend-plugin-api';
+import { LoggerService } from '@backstage/backend-plugin-api';
 import { Logger } from 'winston';
-
-interface RouterOptions {
-    logger: Logger;
-    config: Config;
-}
-type Response = {
-    status: string;
-    message: string;
-};
-declare function createRouter({ logger, config, }: RouterOptions): Promise<express.Router>;
 
 type getRevisionDataResp = {
     author: string;
@@ -53,7 +45,7 @@ interface CreateArgoResourcesProps {
     sourceRepo: string;
     sourcePath: string;
     labelValue: string;
-    logger: Logger;
+    logger: Logger | LoggerService;
 }
 interface UpdateArgoProjectAndAppProps {
     instanceConfig: InstanceConfig;
@@ -114,10 +106,13 @@ interface ArgoServiceApi {
         username?: string;
         password?: string;
     }) => Promise<string>;
-    getArgoAppData: (baseUrl: string, argoInstanceName: string, argoToken: string, options: {
-        name: string;
-        selector: string;
-    }) => Promise<object>;
+    getArgoAppData: (baseUrl: string, argoInstanceName: string, argoToken: string, options?: {
+        name?: string;
+        selector?: string;
+        namespace?: string;
+    }) => Promise<{
+        items: any[];
+    }>;
     createArgoProject: (props: CreateArgoProjectProps) => Promise<object>;
     createArgoApplication: (props: CreateArgoApplicationProps) => Promise<object>;
     createArgoResources: (props: CreateArgoResourcesProps) => Promise<boolean>;
@@ -127,15 +122,22 @@ interface ArgoServiceApi {
     syncArgoApp: (props: SyncArgoApplicationProps) => Promise<SyncResponse>;
     resyncAppOnAllArgos: (props: {
         appSelector: string;
+        terminateOperation: boolean;
     }) => Promise<SyncResponse[][]>;
     findArgoApp: (options: {
         name?: string;
         selector?: string;
+        namespace?: string;
     }) => Promise<findArgoAppResp[]>;
     updateArgoProjectAndApp: (props: UpdateArgoProjectAndAppProps) => Promise<boolean>;
     getArgoProject: (props: GetArgoProjectProps) => Promise<GetArgoProjectResp>;
     getArgoApplicationInfo: (props: getArgoApplicationInfoProps) => Promise<GetArgoApplication>;
     terminateArgoAppOperation: (props: terminateArgoAppOperationProps) => Promise<DeleteResponse>;
+    getRevisionData: (baseUrl: string, options: {
+        name: string;
+        namespace?: string;
+        sourceIndex?: string;
+    }, argoToken: string, revisionID: string) => Promise<getRevisionDataResp>;
 }
 type InstanceConfig = {
     name: string;
@@ -181,6 +183,7 @@ type Metadata = {
     deletionTimestamp?: string;
     deletionGracePeriodSeconds?: number;
     resourceVersion?: string;
+    finalizers?: string[];
 };
 type getArgoApplicationInfoProps = {
     argoApplicationName: string;
@@ -199,18 +202,32 @@ type terminateArgoAppOperationProps = {
     argoToken: string;
 };
 
+interface RouterOptions {
+    logger: LoggerService;
+    config: Config;
+    argocdService: ArgoServiceApi;
+}
+type Response = {
+    status: string;
+    message: string;
+};
+declare function createRouter({ logger, argocdService, }: RouterOptions): Promise<express.Router>;
+
+declare const argocdServiceRef: _backstage_backend_plugin_api.ServiceRef<ArgoServiceApi, "plugin", "singleton">;
+
 declare class ArgoService implements ArgoServiceApi {
     private readonly username;
     private readonly password;
     private readonly config;
     private readonly logger;
     instanceConfigs: InstanceConfig[];
-    constructor(username: string, password: string, config: Config, logger: Logger);
+    constructor(username: string, password: string, config: Config, logger: LoggerService);
     getArgoInstanceArray(): InstanceConfig[];
     getAppArray(): Config[];
     getRevisionData(baseUrl: string, options: {
         name: string;
         namespace?: string;
+        sourceIndex?: string;
     }, argoToken: string, revisionID: string): Promise<getRevisionDataResp>;
     findArgoApp(options: {
         name?: string;
@@ -274,4 +291,4 @@ declare class ArgoService implements ArgoServiceApi {
     }>;
 }
 
-export { ArgoService, type Response, type RouterOptions, createRouter };
+export { ArgoService, type Response, type RouterOptions, argocdServiceRef, createRouter };

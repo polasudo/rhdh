@@ -1,13 +1,12 @@
 'use strict';
 
-var router = require('./cjs/router-BGCd_2TI.cjs.js');
-require('@backstage/backend-common');
-require('express');
-require('express-promise-router');
-require('cross-fetch');
+var router = require('./service/router.cjs.js');
+var argocdService_ref = require('./refs/argocdService.ref.cjs.js');
+var argocd_service = require('./service/argocd.service.cjs.js');
 
 
 
-exports.ArgoService = router.ArgoService;
 exports.createRouter = router.createRouter;
+exports.argocdServiceRef = argocdService_ref.argocdServiceRef;
+exports.ArgoService = argocd_service.ArgoService;
 //# sourceMappingURL=index.cjs.js.map

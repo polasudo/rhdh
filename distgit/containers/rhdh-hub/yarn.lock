@@ -29,9 +29,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@aonic-ui/pipelines@npm:^3.0.0":
-  version: 3.0.0
-  resolution: "@aonic-ui/pipelines@npm:3.0.0"
+"@aonic-ui/pipelines@npm:^3.1.0":
+  version: 3.1.1
+  resolution: "@aonic-ui/pipelines@npm:3.1.1"
   dependencies:
     "@patternfly/react-table": ^6.0.0
     js-yaml: ^4.1.0
@@ -42,7 +42,7 @@ __metadata:
     "@patternfly/react-tokens": ^6.0.0
     "@testing-library/jest-dom": ^6.2.0
     react: ^18.2.0
-  checksum: 979464b65b6b21da54f210d6e210e330b96ef56202aa9a102951f041f38a8f94a86130441e776b4d4b02140f7d99b199ed3d20d9874d6741862630a28797990b
+  checksum: 4e7a436b3e7c7c1236703787c326a388918fbf51be91b6c15c5328f8e724bd2894279dc50027b3ae4a8c5753c28942853bb3d4cc5ac250979afa053c9f3b4ae6
   languageName: node
   linkType: hard
 
@@ -3821,20 +3821,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@backstage-community/plugin-redhat-argocd-common@npm:^1.2.0":
-  version: 1.2.0
-  resolution: "@backstage-community/plugin-redhat-argocd-common@npm:1.2.0"
+"@backstage-community/plugin-redhat-argocd-common@npm:^1.3.0":
+  version: 1.3.0
+  resolution: "@backstage-community/plugin-redhat-argocd-common@npm:1.3.0"
   dependencies:
     "@backstage/plugin-permission-common": ^0.8.4
-  checksum: 82139e1c9c6553dabf2a372eea563c227a20351bdd3f7a715780e26cec3a92cf3c47d6f121ce48ecd4dd4463c160e7c9f857485d6dd6b5a8e90b87bb3500dd90
+    "@kubernetes/client-node": ^0.22.1
+  checksum: de40452456802b3707b2cdc3bec8fcad93c7ed77b6471fa56a081d2c5e19980ec90a8b38fd3bfd10acca194c728f2ac4f19f80dbedfb4f326be5a8812bde64c5
   languageName: node
   linkType: hard
 
-"@backstage-community/plugin-redhat-argocd@npm:1.14.0":
-  version: 1.14.0
-  resolution: "@backstage-community/plugin-redhat-argocd@npm:1.14.0"
+"@backstage-community/plugin-redhat-argocd@npm:1.17.0":
+  version: 1.17.0
+  resolution: "@backstage-community/plugin-redhat-argocd@npm:1.17.0"
   dependencies:
-    "@backstage-community/plugin-redhat-argocd-common": ^1.2.0
+    "@backstage-community/plugin-redhat-argocd-common": ^1.3.0
     "@backstage/catalog-model": ^1.7.3
     "@backstage/core-components": ^0.16.3
     "@backstage/core-plugin-api": ^1.10.3
@@ -3847,7 +3848,9 @@ __metadata:
     "@material-ui/core": ^4.9.13
     "@material-ui/icons": ^4.9.1
     "@material-ui/lab": ^4.0.0-alpha.61
+    "@material-ui/styles": ^4.11.5
     "@mui/icons-material": ^6.0.0
+    "@mui/material": ^5.15.16
     "@patternfly/patternfly": ^6.0.0
     "@patternfly/react-core": ^6.0.0
     "@patternfly/react-icons": ^6.0.0
@@ -3857,7 +3860,7 @@ __metadata:
   peerDependencies:
     react: ^16.13.1 || ^17.0.0 || ^18.0.0
     react-router-dom: ^6.3.0
-  checksum: 41df1cd0f61281bfe952cfdaea0f50b0f0fd44496cfe0810c162942f6643689a1c8ce2f2b19df10ecf6fb9b8466bfb287c169a34627a3fa01f0160c57508d5ed
+  checksum: e7ca7e48d068360f180ef76bdc352a801efffd01d1edb942740dd8d14dbffa2cb59c9299c987be21683965fc98dc94d3d035561d6c493c2d95e2dda1a3186a1c
   languageName: node
   linkType: hard
 
@@ -4042,28 +4045,28 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@backstage-community/plugin-tekton-common@npm:^1.5.0":
-  version: 1.5.0
-  resolution: "@backstage-community/plugin-tekton-common@npm:1.5.0"
+"@backstage-community/plugin-tekton-common@npm:^1.7.0":
+  version: 1.7.0
+  resolution: "@backstage-community/plugin-tekton-common@npm:1.7.0"
   peerDependencies:
     "@backstage/plugin-permission-common": ^0.8.4
-  checksum: 6e565c40a4bc382ce53fd55f6b6bf7c832ac7bacbb790716b94b538cdd24027e690786d9be6e99aaf2d496de3c95931e267a7681f6f5cfe16189c372ace01ae8
+  checksum: e054b90785761f4395ef34497684bfa6ca9a7b8dbc055b9cff8ed727090b93f685c12893dfbfc43091ca2d48b9538ddb546a7e699e82b8851c2d1e6ff4b3a924
   languageName: node
   linkType: hard
 
-"@backstage-community/plugin-tekton@npm:3.19.0":
-  version: 3.19.0
-  resolution: "@backstage-community/plugin-tekton@npm:3.19.0"
+"@backstage-community/plugin-tekton@npm:3.21.1":
+  version: 3.21.1
+  resolution: "@backstage-community/plugin-tekton@npm:3.21.1"
   dependencies:
-    "@aonic-ui/pipelines": ^3.0.0
-    "@backstage-community/plugin-tekton-common": ^1.5.0
+    "@aonic-ui/pipelines": ^3.1.0
+    "@backstage-community/plugin-tekton-common": ^1.7.0
     "@backstage/catalog-model": ^1.7.3
     "@backstage/core-components": ^0.16.3
     "@backstage/core-plugin-api": ^1.10.3
     "@backstage/plugin-catalog-react": ^1.15.1
-    "@backstage/plugin-kubernetes": ^0.12.3
-    "@backstage/plugin-kubernetes-common": ^0.9.2
-    "@backstage/plugin-kubernetes-react": ^0.5.3
+    "@backstage/plugin-kubernetes": ^0.12.4
+    "@backstage/plugin-kubernetes-common": ^0.9.3
+    "@backstage/plugin-kubernetes-react": ^0.5.4
     "@backstage/plugin-permission-react": ^0.4.30
     "@backstage/theme": ^0.6.3
     "@janus-idp/shared-react": ^2.16.0
@@ -4071,7 +4074,7 @@ __metadata:
     "@material-ui/core": ^4.9.13
     "@material-ui/icons": ^4.11.3
     "@material-ui/lab": ^4.0.0-alpha.45
-    "@mui/icons-material": 5.15.17
+    "@mui/icons-material": 5.16.14
     "@patternfly/patternfly": ^6.0.0
     "@patternfly/react-charts": ^7.1.1
     "@patternfly/react-core": ^6.0.0
@@ -4086,7 +4089,7 @@ __metadata:
     react: ^16.13.1 || ^17.0.0 || ^18.0.0
     react-dom: ^16.13.1 || ^17.0.0 || ^18.0.0
     react-router-dom: ^6.0.0
-  checksum: 48d8a44574e102354c3dffd770383fe90ffe8dc76621e5620548e54b082dc3781f35e8a632e9e61ed137c4d986056fb2f2e3e12b1b82f3627ee884b4ee09525a
+  checksum: d2520628fb24ee8aec5c3862d4d9bc2bed3aa1e5a4531c6cc13ada839229429431737b47e84dd0cd423d4e18768221eb811fa8dae14ee3c9784704cc93de242a
   languageName: node
   linkType: hard
 
@@ -4668,7 +4671,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@backstage/backend-common@npm:^0.24.0, @backstage/backend-common@npm:^0.24.1":
+"@backstage/backend-common@npm:^0.24.1":
   version: 0.24.1
   resolution: "@backstage/backend-common@npm:0.24.1"
   dependencies:
@@ -5266,7 +5269,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@backstage/backend-plugin-api@npm:^0.8.0, @backstage/backend-plugin-api@npm:^0.8.1":
+"@backstage/backend-plugin-api@npm:^0.8.1":
   version: 0.8.1
   resolution: "@backstage/backend-plugin-api@npm:0.8.1"
   dependencies:
@@ -5362,7 +5365,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@backstage/catalog-client@npm:1.9.1, @backstage/catalog-client@npm:^1.6.5, @backstage/catalog-client@npm:^1.6.6, @backstage/catalog-client@npm:^1.8.0, @backstage/catalog-client@npm:^1.9.1":
+"@backstage/catalog-client@npm:1.9.1, @backstage/catalog-client@npm:^1.6.5, @backstage/catalog-client@npm:^1.8.0, @backstage/catalog-client@npm:^1.9.1":
   version: 1.9.1
   resolution: "@backstage/catalog-client@npm:1.9.1"
   dependencies:
@@ -8076,7 +8079,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@backstage/plugin-kubernetes@npm:0.12.4, @backstage/plugin-kubernetes@npm:^0.12.3":
+"@backstage/plugin-kubernetes@npm:0.12.4":
   version: 0.12.4
   resolution: "@backstage/plugin-kubernetes@npm:0.12.4"
   dependencies:
@@ -13523,7 +13526,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mui/material@npm:5.16.14, @mui/material@npm:^5.12.2, @mui/material@npm:^5.14.18, @mui/material@npm:^5.15.17, @mui/material@npm:^5.15.19":
+"@mui/material@npm:5.16.14, @mui/material@npm:^5.12.2, @mui/material@npm:^5.14.18, @mui/material@npm:^5.15.16, @mui/material@npm:^5.15.17, @mui/material@npm:^5.15.19":
   version: 5.16.14
   resolution: "@mui/material@npm:5.16.14"
   dependencies:
@@ -17574,21 +17577,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@roadiehq/backstage-plugin-argo-cd-backend@npm:3.2.3":
-  version: 3.2.3
-  resolution: "@roadiehq/backstage-plugin-argo-cd-backend@npm:3.2.3"
+"@roadiehq/backstage-plugin-argo-cd-backend@npm:4.2.0":
+  version: 4.2.0
+  resolution: "@roadiehq/backstage-plugin-argo-cd-backend@npm:4.2.0"
   dependencies:
-    "@backstage/backend-common": ^0.24.0
-    "@backstage/backend-plugin-api": ^0.8.0
-    "@backstage/catalog-client": ^1.6.6
-    "@backstage/config": ^1.2.0
+    "@backstage/backend-common": ^0.25.0
+    "@backstage/backend-plugin-api": ^1.0.2
+    "@backstage/config": ^1.3.0
     "@types/express": ^4.17.6
     cross-fetch: ^3.1.4
     express: ^4.17.1
     express-promise-router: ^4.1.0
     winston: ^3.2.1
-    yn: ^4.0.0
-  checksum: 1892c39b81089a42e86e9885efd909af96ba65211456234b19e89e6e1d38120009de5dad642f46624481583ca45cc7e664bb7520c4e105e15d0786ecca607574
+  checksum: 3ccc831ecb5c70ca91f34c05d5106cb07712bcdd399a9db5dc4652ad736f7e7ca8241349ba34d03828ebfa97ed96e182077ecec99edfca135a43e6e13630b7ad
   languageName: node
   linkType: hard
 
@@ -24221,7 +24222,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "backstage-community-plugin-redhat-argocd@workspace:dynamic-plugins/wrappers/backstage-community-plugin-redhat-argocd"
   dependencies:
-    "@backstage-community/plugin-redhat-argocd": 1.14.0
+    "@backstage-community/plugin-redhat-argocd": 1.17.0
     "@backstage/cli": 0.30.0
     "@janus-idp/cli": 3.3.1
     "@mui/material": 5.17.1
@@ -24335,7 +24336,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "backstage-community-plugin-tekton@workspace:dynamic-plugins/wrappers/backstage-community-plugin-tekton"
   dependencies:
-    "@backstage-community/plugin-tekton": 3.19.0
+    "@backstage-community/plugin-tekton": 3.21.1
     "@backstage/cli": 0.30.0
     "@janus-idp/cli": 3.3.1
     "@mui/material": 5.17.1
@@ -42679,7 +42680,7 @@ __metadata:
   dependencies:
     "@backstage/cli": 0.30.0
     "@janus-idp/cli": 3.3.1
-    "@roadiehq/backstage-plugin-argo-cd-backend": 3.2.3
+    "@roadiehq/backstage-plugin-argo-cd-backend": 4.2.0
     typescript: 5.8.2
   languageName: unknown
   linkType: soft
