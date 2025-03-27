@@ -81,9 +81,8 @@ Examples:
     # 2. get the latest timestamp tag for the live GA container at https://catalog.redhat.com/software/containers/rhdh/rhdh-hub-rhel9/645bd4c15c00598369c31aba
     # 3. Run a manual release as the bot:
     $ export GITHUB_TOKEN=ghp_rhdh-bot-token-here
-    $ $0 --chart-version 1.5.0 --rhdh-version 1.5.0   --chart-branch release-1.5 --catalog git@github.com:rhdh-bot/openshift-helm-charts.git --publish
+    $ $0 --chart-version 1.5.1 --rhdh-version 1.5.1   --chart-branch release-1.5 --catalog git@github.com:rhdh-bot/openshift-helm-charts.git --publish
     $ $0 --chart-version 1.4.2 --rhdh-version 1.4.2   --chart-branch release-1.4 --catalog git@github.com:rhdh-bot/openshift-helm-charts.git --publish
-    $ $0 --chart-version 1.3.5 --rhdh-version 1.3-142 --chart-branch release-1.3 --catalog git@github.com:rhdh-bot/openshift-helm-charts.git --publish
     Chart version:       1.y.z
     Developer Hub image:  quay.io/rhdh/rhdh-hub-rhel9:1.y-zzz
 
@@ -137,7 +136,7 @@ done
 if [[ $DO_LATEST -eq 1 ]]; then
     if [[ ! $CHART_BRANCH ]] || [[ $CHART_BRANCH == "main" ]]; then usage; fi
     # get all tags but find the ones starting with 1.yy-, then sort those and return the most recent one
-    CHART_FILTER="${CHART_BRANCH/release-}" # for 1.3+
+    CHART_FILTER="${CHART_BRANCH/release-}" 
     next_tag=$(skopeo inspect docker://quay.io/rhdh/rhdh-hub-rhel9:next | jq -r '.RepoTags[]' | \
         grep -v -E "$EXCLUDES" | \
         grep -- "-" | grep "${CHART_FILTER}" | sort -uV  | tail -1 || true)
