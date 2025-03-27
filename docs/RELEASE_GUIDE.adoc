@@ -452,12 +452,11 @@ image::images/smoketest-rosa-helm_2.png[install the version just released,width=
 
 ### [SUPPORT] Comet updates
 
-. [ ] If this is a .0 release, remove the now-EOL image stream from Comet so we stop getting reminded about CVEs for EOL versions. For example with the release of 1.4, 1.2 will be EOL. See image metadata at https://comet.engineering.redhat.com/containers/repositories?view=myRepos&filter=repoPath:rhdh then click through on each image to edit them.
+. [ ] If this is a .0 release, remove the now-EOL image stream from Comet so we stop getting reminded about CVEs for EOL versions. For example with the release of 1.5, 1.3 is EOL; remove 1.3 and add 1.6 instead. 
++
+See image metadata at https://comet.engineering.redhat.com/containers/repositories?view=myRepos&filter=repoPath:rhdh then click through on each image to edit them.
 +
 image::images/comet-config.png[]
-image::images/comet-config-detail.png[]
-image::images/comet-config2.png[]
-image::images/comet-config-detail2.png[]
 
 ## Other considerations
 
