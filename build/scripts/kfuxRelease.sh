@@ -256,42 +256,45 @@ fi
 # collect array of processed images so we don't process duplicate snapshots
 declare -A processed_images
 
-# compute the container image SHA/tag - skopeo inspect
-if [[ $CONTAINER == "rhdh-operator-bundle:${RHDH_VERSION}-"* ]]; then # bundle version already specified
-  skopeo inspect "docker://quay.io/rhdh/${CONTAINER}" > /tmp/container_inspect.txt
-else
-  skopeo inspect "docker://quay.io/rhdh/${CONTAINER}:${RHDH_VERSION}" > /tmp/container_inspect.txt
+# for container pushes, not FBCs
+if [[ $CONTAINER ]]; then 
+  # compute the container image SHA/tag - skopeo inspect
+  if [[ $CONTAINER == "rhdh-operator-bundle:${RHDH_VERSION}-"* ]]; then # bundle version already specified
+    skopeo inspect "docker://quay.io/rhdh/${CONTAINER}" > /tmp/container_inspect.txt
+  else
+    skopeo inspect "docker://quay.io/rhdh/${CONTAINER}:${RHDH_VERSION}" > /tmp/container_inspect.txt
+  fi
+  CONTAINER="${CONTAINER%:*}" # trim off the trailing 1.y-zzz tag if present
+  tagXYZ=$(jq -r '.Labels.version+"-"+.Labels.release' /tmp/container_inspect.txt)
+  digest=$(jq -r '.Digest' /tmp/container_inspect.txt)
+  echo -e "${blue} * $CONTAINER:${tagXYZ}@${digest}\n * built on $(jq -r '.Labels."build-date"' /tmp/container_inspect.txt)\n * from $(jq -r '.Env[]|select(.|contains("UPSTREAM_REPO"))' /tmp/container_inspect.txt)${norm}"
+
+  processed_images["${CONTAINER}:${tagXYZ}"]+="${CONTAINER}@${digest}"
+
+  # TODO: should we compute the midstream commit SHA based on $latest_bundle, not the RHDH_VERSION (want 1.4-166, not 1.4) ? 
+  # if the floating tag points to an older build (because of a build glitch) the next step will fail because 1.4 != 1.4-166)
+
+  MID_SHA=$(jq -r '.Labels."vcs-ref"' /tmp/container_inspect.txt)
+  MID_SHA=${MID_SHA/sha256:/}
+
+  # using midstream commit SHA and the container image, find Snapshot(s_)
+  if [[ $DEBUG -eq 1 ]]; then set -x; fi
+  SNAPSHOT=$(oc -n rhdh-tenant get Snapshots --sort-by=.metadata.creationTimestamp \
+    --selector='pac.test.appstudio.openshift.io/original-prname='"${CONTAINER/-rhel9/}"'-'"${RHDH_VERSION/./-}"'-on-push,pac.test.appstudio.openshift.io/sha='"${MID_SHA}"| \
+    sed -r -e '/NAME +AGE/d' -e "s/([a-z0-9-]+)\ +([0-9smhdy]+)/\1/g")
+  if [[ $DEBUG -eq 1 ]]; then set +x; fi
+
+  if [[ ! $SNAPSHOT ]]; then
+    echo -e "${red}[ERROR] No Snapshots found for ${CONTAINER/-rhel9/}-${RHDH_VERSION/./-}-on-push and sha=${MID_SHA}! ${norm}"
+    exit 1
+  fi
+
+  echo; echo -e "${blue}[INFO] For midstream SHA = $MID_SHA, found these snapshot(s):${norm}\n$SNAPSHOT"
+  # TODO fail if we find more than one snapshot for this image; exit 1
+  SNAPSHOTS="${SNAPSHOTS} ${SNAPSHOT}"
+  rm -f /tmp/container_inspect.txt
+  echo 
 fi
-CONTAINER="${CONTAINER%:*}" # trim off the trailing 1.y-zzz tag if present
-tagXYZ=$(jq -r '.Labels.version+"-"+.Labels.release' /tmp/container_inspect.txt)
-digest=$(jq -r '.Digest' /tmp/container_inspect.txt)
-echo -e "${blue} * $CONTAINER:${tagXYZ}@${digest}\n * built on $(jq -r '.Labels."build-date"' /tmp/container_inspect.txt)\n * from $(jq -r '.Env[]|select(.|contains("UPSTREAM_REPO"))' /tmp/container_inspect.txt)${norm}"
-
-processed_images["${CONTAINER}:${tagXYZ}"]+="${CONTAINER}@${digest}"
-
-# TODO: should we compute the midstream commit SHA based on $latest_bundle, not the RHDH_VERSION (want 1.4-166, not 1.4) ? 
-# if the floating tag points to an older build (because of a build glitch) the next step will fail because 1.4 != 1.4-166)
-
-MID_SHA=$(jq -r '.Labels."vcs-ref"' /tmp/container_inspect.txt)
-MID_SHA=${MID_SHA/sha256:/}
-
-# using midstream commit SHA and the container image, find Snapshot(s_)
-if [[ $DEBUG -eq 1 ]]; then set -x; fi
-SNAPSHOT=$(oc -n rhdh-tenant get Snapshots --sort-by=.metadata.creationTimestamp \
-  --selector='pac.test.appstudio.openshift.io/original-prname='"${CONTAINER/-rhel9/}"'-'"${RHDH_VERSION/./-}"'-on-push,pac.test.appstudio.openshift.io/sha='"${MID_SHA}"| \
-  sed -r -e '/NAME +AGE/d' -e "s/([a-z0-9-]+)\ +([0-9smhdy]+)/\1/g")
-if [[ $DEBUG -eq 1 ]]; then set +x; fi
-
-if [[ ! $SNAPSHOT ]]; then
-  echo -e "${red}[ERROR] No Snapshots found for ${CONTAINER/-rhel9/}-${RHDH_VERSION/./-}-on-push and sha=${MID_SHA}! ${norm}"
-  exit 1
-fi
-
-echo; echo -e "${blue}[INFO] For midstream SHA = $MID_SHA, found these snapshot(s):${norm}\n$SNAPSHOT"
-# TODO fail if we find more than one snapshot for this image; exit 1
-SNAPSHOTS="${SNAPSHOTS} ${SNAPSHOT}"
-rm -f /tmp/container_inspect.txt
-echo 
 
 # get the list of CVE by ID and container reference
 cves_yaml=""

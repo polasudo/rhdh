@@ -54,6 +54,7 @@ done
 
 if [[ ! $accessToken ]]; then 
   echo "[ERROR] You must export your quay API access token to run this script"; 
+  echo "[ERROR] To create a new token, go to https://quay.io/organization/rhdh/application/RRFWLY26BL7VCM6WQAK9?tab=gen-token then:"
   echo "export accessToken=..."
   echo
   usage
@@ -78,11 +79,12 @@ for repo in $REPOS; do
       epoch_xmo_ago=$(date -d "$DELETE_AGE" +"%s")
       if [[ $epoch_xmo_ago -ge $epoch_tag_date ]]; then
         tag_name=$(jq -r ".tags[$index].name" "$json")
-        CMD="curl -sS -H Authorization: Bearer ${accessToken} -X DELETE https://quay.io/api/v1/repository/rhdh/${repo}/tag/${tag_name}"
+        # shellcheck disable=SC2089
+        CMD=(curl -sS -H "Authorization: Bearer ${accessToken}" -X DELETE "https://quay.io/api/v1/repository/rhdh/${repo}/tag/${tag_name}")
         if [[ $DRYRUN -eq 1 ]]; then
-          echo "  [$index / $page] $CMD (updated ${tag_date})" # > /tmp/log
+          echo "  [$index / $page]" "${CMD[@]}" "(updated ${tag_date})" # > /tmp/log
         else
-          $CMD
+          "${CMD[@]}"
           echo "  [$index / $page] Deleted ${tag_name} from ${repo} (updated ${tag_date})"
         fi
         totaldeleted=$(( totaldeleted + 1 ))
