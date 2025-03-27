@@ -17,16 +17,16 @@ usage() {
   Then click on your username and select 'Copy login command' then 'Display token'
   
   Usage:
-    $0 [OPTIONS]
+    $0 --version <version> --slack-webhook <webhook> [OPTIONS]
   
   Options:
     --release-state <release-state> : Release State (RC or GA) to be mentioned in the slack message. It is RC by default.
-    --bundle-tag <bundle-tag> : Tag of the operator bundle to use. If not provided, the latest opertor bundle avialable of the given RHDH version will be used.
-    --version <version> : RHDH version of the RC/GA build required.
+    --bundle-tag <bundle-tag> : Tag of the operator bundle to use. If not provided, the latest operator-bundle image for the RHDH version will be used.
+    --version <version> : RHDH version (1.y) of the RC/GA build. Required.
     --slack-webhook <webhook> : Webhook to post a message to a given channel (For webhook for #forum-rhdh-releases, see bitwarden)
 
   Example:
-    $0 --bundle-tag 1.5-155 --version 1.5 --slack-webhook https://hooks.slack.com/services/...
+    $0 --version 1.5 --bundle-tag 1.5-187 --slack-webhook https://hooks.slack.com/services/...
 "
 }
 
