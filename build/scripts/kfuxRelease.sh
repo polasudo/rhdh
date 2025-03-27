@@ -12,9 +12,9 @@ SCRIPT_DIR=$(cd "$(dirname "$0")" || exit; pwd)
 DEBUG=0 # quieter
 AUTORELEASE=0
 
-RHDH_FULL_VERSION_INPUT="1.4.2"
+RHDH_FULL_VERSION_INPUT="1.5.2"
 
-CONTAINERS=""
+CONTAINER=""
 DEST=""
 # ARCHES="x86_64"  # TODO add arch64/arm64
 OCP_VERSIONS="4.14 4.15 4.16 4.17 4.18"
@@ -59,14 +59,15 @@ Usage - for container snapshots:
 
 3. Pass that .csv file to this script:
 
-$0 --stage -c rhdh-operator-bundle -v $RHDH_FULL_VERSION_INPUT --cve /tmp/RHDH\ CVE\ Management\ -\ 1.4.2.csv --debug 
-$0 --prod  -c rhdh-operator-bundle -v 1.5.0 --cve /tmp/RHDH\ CVE\ Management\ -\ 1.5.0.csv
+$0 --stage -c rhdh-operator-bundle -v $RHDH_FULL_VERSION_INPUT --cve /tmp/RHDH\ CVE\ Management\ -\ $RHDH_FULL_VERSION_INPUT.csv --debug 
+$0 --prod  -c rhdh-operator-bundle:1.5-187 -v 1.5.1 --cve /tmp/RHDH\ CVE\ Management\ -\ 1.5.1.csv
 
 Options:
   --cve              Full path to the CVE list file to use for the container Release, eg., /tmp/RHDH\ CVE\ Management\ -\ 1.y.z.csv
   --stage, --prod    Push to the stage or prod version of the RH Ecosystem Catalog
   -c                 Space-separated list of containers to release
-                     use \"rhdh-operator-bundle\" to release the bundle and its included operands (hub + operator)
+                     use \"rhdh-operator-bundle:1.y-zzz\" to release a specific bundle and its operands (hub + operator); or,
+                     use \"rhdh-operator-bundle\" to calculate the latest bundle and release that + its operands
   -v                 RHDH version x.y.z to release
   
 Releases can be found at:
@@ -151,7 +152,7 @@ while [[ "$#" -gt 0 ]]; do
     '--fbc') BUNDLE_TAG_OR_SHA=$2; shift 1;;
     '--snapshot') SNAPSHOT_OVERRIDE=$2; shift 1;;
     '--commit')   midstreamCommitSHA="$2"; shift 1;;
-    '-c') CONTAINERS="$CONTAINERS $2"; shift 1;;
+    '-c') CONTAINER="$2"; shift 1;;
     '--cve') CVEListFile="$2"; shift 1;;
     *) usage; usageContainers; usageFBCs; echo; echo -e "${red}[ERROR] Unknown flag ${1}${norm}"; exit 1;;
   esac
@@ -159,7 +160,7 @@ while [[ "$#" -gt 0 ]]; do
 done
 
 # disable autorelease until we fix https://issues.redhat.com/browse/RHIDP-5840 and can automatically pull in a list of CVEs to include in the release
-if [[ $CONTAINERS ]]; then AUTORELEASE=0; fi
+if [[ $CONTAINER ]]; then AUTORELEASE=0; fi
 
 # compute numbder of OCP versions and fail if we're trying to run a specific snapshot from multiple OCP versions
 num_ocp_versions=0
@@ -171,20 +172,20 @@ if [[ $SNAPSHOT_OVERRIDE ]] && [[ $num_ocp_versions -gt 1 ]]; then
   usage; usageFBCs; echo; echo -e "${red}[ERROR] Can only specify a snapshot for a single OCP version! Use '-o 4.18' to set the OCP version for the specified snapshot $SNAPSHOT_OVERRIDE !${norm}"; exit 1
 fi
 
-if [[ ! $CONTAINERS ]] && [[ ! $BUNDLE_TAG_OR_SHA ]]; then 
+if [[ ! $CONTAINER ]] && [[ ! $BUNDLE_TAG_OR_SHA ]]; then 
   usage; usageContainers; usageFBCs; echo; echo -e "${red}[ERROR] Must specify '-c rhdh-operator-bundle', or for FBCs, use a bundle image tag with --fbc :1.y-zzz to perfom a release!${norm}"; exit 1
 fi
 
 if [[ ! $RHDH_FULL_VERSION ]]; then 
   usage; 
-  if [[ $CONTAINERS ]] || [[ -f $CVEListFile ]]; then usageContainers; fi
+  if [[ $CONTAINER ]] || [[ -f $CVEListFile ]]; then usageContainers; fi
   if [[ $BUNDLE_TAG_OR_SHA ]]; then usageFBCs; fi;
   echo; echo -e "${red}[ERROR] Must specify full RHDH version with -v x.y.z to perfom a release!${norm}"; exit 1
 fi
 
 if [[ ! $DEST ]]; then 
   usage; 
-  if [[ $CONTAINERS ]]; then usageContainers; fi
+  if [[ $CONTAINER ]]; then usageContainers; fi
   if [[ $BUNDLE_TAG_OR_SHA ]]; then usageFBCs; fi;
   echo; echo -e "${red}[ERROR] Must specify --stage or --prod to perfom a release!${norm}"; exit 1
 fi
@@ -196,18 +197,27 @@ RHDH_FULL_VERSION=${RHDH_FULL_VERSION//./-}
 
 TS=$(date +'%Y%m%d-%H%M%S' -u) # unique timestamp 
 
-if [[ $CONTAINERS ]]; then
+if [[ $CONTAINER ]]; then
   echo
-  echo -n -e "${blue}[INFO] Collect bundle and related images from quay.io/rhdh/rhdh-operator-bundle:$RHDH_VERSION " 
-
+  echo -n -e "${blue}[INFO] Collect bundle and related images from $CONTAINER " 
   rm -f "/tmp/imagelist_bundle_latest_$RHDH_VERSION.txt"
-  latest_images=$("${SCRIPT_DIR}/getLatestImageTags.sh" -b "rhdh-${RHDH_VERSION}-rhel-9" --quay | sort -uV)
-  latest_bundle=$(echo -e "$latest_images" | grep operator-bundle)
+
+  if [[ $CONTAINER == "rhdh-operator-bundle:${RHDH_VERSION}-"* ]]; then # bundle version already specified
+    latest_bundle="quay.io/rhdh/$CONTAINER"
+  else
+    latest_images=$("${SCRIPT_DIR}/getLatestImageTags.sh" -b "rhdh-${RHDH_VERSION}-rhel-9" --quay | sort -uV)
+    latest_bundle=$(echo -e "$latest_images" | grep operator-bundle)
+  fi
   echo -n "."
+
   echo "$latest_bundle" >> "/tmp/imagelist_bundle_latest_$RHDH_VERSION.txt"
   "${SCRIPT_DIR}/checkImagesInCSV.sh" -q -y "$latest_bundle" -i 'hub|operator' >> "/tmp/imagelist_bundle_latest_$RHDH_VERSION.txt"
-  echo -n "."
   sort -uV "/tmp/imagelist_bundle_latest_$RHDH_VERSION.txt" > "/tmp/imagelist_bundle_latest_$RHDH_VERSION.txt_"; mv "/tmp/imagelist_bundle_latest_$RHDH_VERSION.txt"{_,}
+
+  # if we passed in a specific bundle, no need to check if it refers to the latest
+  if [[ $CONTAINER == "rhdh-operator-bundle:${RHDH_VERSION}-"* ]]; then # bundle version already specified
+    latest_images="$(cat "/tmp/imagelist_bundle_latest_$RHDH_VERSION.txt")"
+  fi
   echo -e ". done.${norm}"
   if [[ "$(cat "/tmp/imagelist_bundle_latest_$RHDH_VERSION.txt")" != "$latest_images" ]]; then
     echo
@@ -235,38 +245,41 @@ fi
 # collect array of processed images so we don't process duplicate snapshots
 declare -A processed_images
 
-for CONTAINER in $CONTAINERS; do
-  # compute the container image SHA/tag - skopeo inspect
+# compute the container image SHA/tag - skopeo inspect
+if [[ $CONTAINER == "rhdh-operator-bundle:${RHDH_VERSION}-"* ]]; then # bundle version already specified
+  skopeo inspect "docker://quay.io/rhdh/${CONTAINER}" > /tmp/container_inspect.txt
+else
   skopeo inspect "docker://quay.io/rhdh/${CONTAINER}:${RHDH_VERSION}" > /tmp/container_inspect.txt
-  tagXYZ=$(jq -r '.Labels.version+"-"+.Labels.release' /tmp/container_inspect.txt)
-  digest=$(jq -r '.Digest' /tmp/container_inspect.txt)
-  echo -e "${blue} * $CONTAINER:${tagXYZ}@${digest}\n * built on $(jq -r '.Labels."build-date"' /tmp/container_inspect.txt)\n * from $(jq -r '.Env[]|select(.|contains("UPSTREAM_REPO"))' /tmp/container_inspect.txt)${norm}"
+fi
+CONTAINER="${CONTAINER%:*}" # trim off the trailing 1.y-zzz tag if present
+tagXYZ=$(jq -r '.Labels.version+"-"+.Labels.release' /tmp/container_inspect.txt)
+digest=$(jq -r '.Digest' /tmp/container_inspect.txt)
+echo -e "${blue} * $CONTAINER:${tagXYZ}@${digest}\n * built on $(jq -r '.Labels."build-date"' /tmp/container_inspect.txt)\n * from $(jq -r '.Env[]|select(.|contains("UPSTREAM_REPO"))' /tmp/container_inspect.txt)${norm}"
 
-  processed_images["${CONTAINER}:${tagXYZ}"]+="${CONTAINER}@${digest}"
+processed_images["${CONTAINER}:${tagXYZ}"]+="${CONTAINER}@${digest}"
 
-  # TODO: should we compute the midstream commit SHA based on $latest_bundle, not the RHDH_VERSION (want 1.4-166, not 1.4) ? 
-  # if the floating tag points to an older build (because of a build glitch) the next step will fail because 1.4 != 1.4-166)
+# TODO: should we compute the midstream commit SHA based on $latest_bundle, not the RHDH_VERSION (want 1.4-166, not 1.4) ? 
+# if the floating tag points to an older build (because of a build glitch) the next step will fail because 1.4 != 1.4-166)
 
-  MID_SHA=$(jq -r '.Labels."vcs-ref"' /tmp/container_inspect.txt)
-  MID_SHA=${MID_SHA/sha256:/}
+MID_SHA=$(jq -r '.Labels."vcs-ref"' /tmp/container_inspect.txt)
+MID_SHA=${MID_SHA/sha256:/}
 
-  # using midstream commit SHA and the container image, find Snapshot(s_)
-  if [[ $DEBUG -eq 1 ]]; then set -x; fi
-  SNAPSHOT=$(oc -n rhdh-tenant get Snapshots --sort-by=.metadata.creationTimestamp \
-    --selector='pac.test.appstudio.openshift.io/original-prname='"${CONTAINER/-rhel9/}"'-'"${RHDH_VERSION/./-}"'-on-push,pac.test.appstudio.openshift.io/sha='"${MID_SHA}"| \
-    sed -r -e '/NAME +AGE/d' -e "s/([a-z0-9-]+)\ +([0-9smhdy]+)/\1/g")
-  if [[ $DEBUG -eq 1 ]]; then set +x; fi
+# using midstream commit SHA and the container image, find Snapshot(s_)
+if [[ $DEBUG -eq 1 ]]; then set -x; fi
+SNAPSHOT=$(oc -n rhdh-tenant get Snapshots --sort-by=.metadata.creationTimestamp \
+  --selector='pac.test.appstudio.openshift.io/original-prname='"${CONTAINER/-rhel9/}"'-'"${RHDH_VERSION/./-}"'-on-push,pac.test.appstudio.openshift.io/sha='"${MID_SHA}"| \
+  sed -r -e '/NAME +AGE/d' -e "s/([a-z0-9-]+)\ +([0-9smhdy]+)/\1/g")
+if [[ $DEBUG -eq 1 ]]; then set +x; fi
 
-  if [[ ! $SNAPSHOT ]]; then
-    echo -e "${red}[ERROR] No Snapshots found for ${CONTAINER/-rhel9/}-${RHDH_VERSION/./-}-on-push and sha=${MID_SHA}! ${norm}"
-    exit 1
-  fi
+if [[ ! $SNAPSHOT ]]; then
+  echo -e "${red}[ERROR] No Snapshots found for ${CONTAINER/-rhel9/}-${RHDH_VERSION/./-}-on-push and sha=${MID_SHA}! ${norm}"
+  exit 1
+fi
 
-  echo; echo -e "${blue}[INFO] For midstream SHA = $MID_SHA, found these snapshot(s):${norm}\n$SNAPSHOT"
-  # TODO fail if we find more than one snapshot for this image; exit 1
-  SNAPSHOTS="${SNAPSHOTS} ${SNAPSHOT}"
-  rm -f /tmp/container_inspect.txt
-done
+echo; echo -e "${blue}[INFO] For midstream SHA = $MID_SHA, found these snapshot(s):${norm}\n$SNAPSHOT"
+# TODO fail if we find more than one snapshot for this image; exit 1
+SNAPSHOTS="${SNAPSHOTS} ${SNAPSHOT}"
+rm -f /tmp/container_inspect.txt
 echo 
 
 # get the list of CVE by ID and container reference
