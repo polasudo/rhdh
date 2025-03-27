@@ -10,7 +10,8 @@
 SCRIPT_DIR=$(cd "$(dirname "$0")" || exit; pwd)
 
 DEBUG=0 # quieter
-AUTORELEASE=0
+AUTORELEASE=0 # for FBCs only, automatically release once yaml is generated; for container releases, must apply yaml manually (so you can verify the CVE list is correct!)
+FORCE=0 # normally, don't do a release if images already exist on reg.rh.io -- they should ONLY be on quay.io. This will create a second RHSA advisory for the same images, so talk to @rogue before using this option
 
 RHDH_FULL_VERSION_INPUT="1.5.2"
 
@@ -149,6 +150,7 @@ while [[ "$#" -gt 0 ]]; do
     '-o') OCP_VERSIONS="$2"; shift 1;;
     '--stage'|'--prod') DEST=${1/--/};;
     '--auto') AUTORELEASE=1;;
+    '--force') FORCE=1;;
     '--fbc') BUNDLE_TAG_OR_SHA=$2; shift 1;;
     '--snapshot') SNAPSHOT_OVERRIDE=$2; shift 1;;
     '--commit')   midstreamCommitSHA="$2"; shift 1;;
@@ -219,7 +221,16 @@ if [[ $CONTAINER ]]; then
     latest_images="$(cat "/tmp/imagelist_bundle_latest_$RHDH_VERSION.txt")"
   fi
   echo -e ". done.${norm}"
-  if [[ "$(cat "/tmp/imagelist_bundle_latest_$RHDH_VERSION.txt")" != "$latest_images" ]]; then
+  # check for quay images in quay and csv refs to r.r.io
+  if [[ $FORCE -eq 1 ]] && [[ "$(sed -r -e "s@registry.redhat.io/rhdh/@quay.io/rhdh/@g" "/tmp/imagelist_bundle_latest_$RHDH_VERSION.txt")" == "$latest_images" ]]; then
+    echo
+    echo -e "${blue}[WARNING] Latest images (quay.io) == images in $latest_bundle (r.r.io) !${norm}"
+    echo -e "${blue}===================latest===================${norm}"
+    echo -e "$latest_images" | grep -v operator-bundle
+    echo -e "${blue}===================bundle===================${norm}"
+    grep -v operator-bundle "/tmp/imagelist_bundle_latest_$RHDH_VERSION.txt"
+    echo
+  elif [[ "$(cat "/tmp/imagelist_bundle_latest_$RHDH_VERSION.txt")" != "$latest_images" ]]; then
     echo
     echo -e "${red}[ERROR] Latest images != images in $latest_bundle !${norm}"
     echo -e "${red}===================latest===================${norm}"
@@ -304,7 +315,7 @@ getCVElist () {
         - key: $CVE_ID
           component: $component"
       references_yaml="$references_yaml
-        - https://access.redhat.com/security/cve/$CVE_ID"
+        - \"https://access.redhat.com/security/cve/$CVE_ID\""
     fi
   done
 }
