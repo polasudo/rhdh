@@ -2,25 +2,55 @@
 
 Some quickstart tips for building RHDH 1.0 wih Gitlab pipelines:
 
-## How to release a plugin from the release-1.yy stable branch (not main):
+## [DEPRECATED] How to release a plugin from the release-1.yy stable branch (not main):
 
 If you need to release a plugin manually from the stable branch (not main) see https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1-rhel-9/build/scripts/releasePlugin.sh[build/scripts/releasePlugin.sh]
 
-## How to respin for upstream or midstream changes
+## How to respin
+
+### How to respin for upstream or midstream changes
 
 You can force a respin using this script: https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1-rhel-9/build/scripts/triggerRespin.sh[build/scripts/triggerRespin.sh]
 
 See link:RHDH-gitlab.adoc[RHDH-gitlab.adoc]
 
-## How to force a respin without an upstream change
+### How to force a respin without an upstream change
 
 You can force a respin using this script: https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1-rhel-9/build/scripts/triggerRespin.sh[build/scripts/triggerRespin.sh]
 
 See link:RHDH-gitlab.adoc[RHDH-gitlab.adoc]
 
-## How to disable/skip steps
+### How to force a build in Konflux only without any upstream or midstream changes
 
-See link:RHDH-gitlab.adoc[RHDH-gitlab.adoc]
+You can force a Konflux build respin by editing one of the .tekton/ pipeline files. For example, change the `max-keep-runs` value from 6 to 7 or 7 to 6:
+
+```
+$➔ git diff HEAD~1
+diff --git a/.tekton/rhdh-operator-1-5-push.yaml b/.tekton/rhdh-operator-1-5-push.yaml
+index 3faad8a25..b4cdf2f40 100644
+--- a/.tekton/rhdh-operator-1-5-push.yaml
++++ b/.tekton/rhdh-operator-1-5-push.yaml
+@@ -5,7 +5,7 @@ metadata:
+     build.appstudio.openshift.io/repo: https://gitlab.cee.redhat.com/rhidp/rhdh/-/tree/{{revision}}
+     build.appstudio.redhat.com/commit_sha: '{{revision}}'
+     build.appstudio.redhat.com/target_branch: '{{target_branch}}'
+-    pipelinesascode.tekton.dev/max-keep-runs: "7"
++    pipelinesascode.tekton.dev/max-keep-runs: "6"
+```
+
+Commit your change to the midstream gitlab repo, using the keyword `[ci skip]` at the START of the commit message.
+
+This will skip gitlab pipeline processing and only trigger a Konflux pipeline against the midstream.
+
+### How to disable/skip pipelines
+
+To skip the Gitlab pipeline:
+
+Commit your change to the midstream gitlab repo, using the keyword `[ci skip]` at the START of the commit message to skip gitlab pipeline processing.
+
+To skip BOTH the Gitlab and Konflux pipelines:
+
+Commit your change to the midstream gitlab repo, using the keyword `[ci skip]` at the END of the commit message to skip both gitlab and Konflux pipeline processing.
 
 ## How to install the latest Helm Chart
 

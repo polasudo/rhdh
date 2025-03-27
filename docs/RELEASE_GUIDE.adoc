@@ -73,22 +73,24 @@ Submit PR (or just merge change) to fix version reference in `upstream_repos.yml
 
 ### Trigger respins, 1.4 and newer (RH Internal Konflux)
 
-. This process is still evolving but the overview is that you need a set of tekton pipelines, a Release, Release Plan, and Release Plan Admission for each new 1.y version of RHDH that will be released to the RHEC as a GA build.
+To manually re-trigger builds without changes to the upstream see: link:../RHDH-FAQ.adoc[FAQ] - How to respin.
 
-Existing applications:
+. You need a set of link:../.tekton/[tekton pipelines (2 per container, 2 per supported OCP version)], link:https://gitlab.cee.redhat.com/releng/konflux-release-data/-/tree/main/tenants-config/cluster/stone-prod-p02/tenants/rhdh-tenant[Components], link:https://gitlab.cee.redhat.com/releng/konflux-release-data/-/tree/main/tenants-config/cluster/stone-prod-p02/tenants/rhdh-tenant/release-plans[Release Plans], link:https://gitlab.cee.redhat.com/releng/konflux-release-data/-/tree/main/config/stone-prod-p02.hjvn.p1/product/ReleasePlanAdmission/rhdh[Release Plan Admissions], and an link:https://gitlab.cee.redhat.com/releng/konflux-release-data/-/blob/main/config/stone-prod-p02.hjvn.p1/product/EnterpriseContractPolicy/registry-rhdh-prod.yaml[Enterprise Contract Policy] for each new 1.y version of RHDH that will be released to the RHEC as a GA build. Creating all this is handled by the link:../build/scripts/tagRelease.sh[tagRelease.sh] script. 
+
+Applications:
 
 * https://konflux.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/application-pipeline/workspaces/rhdh/applications/rhdh-1/activity (for CI builds only, cannot be released as GA)
-* https://konflux.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/application-pipeline/workspaces/rhdh/applications/rhdh-1-4/activity (for 1.4.z builds)
+* https://konflux.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/application-pipeline/workspaces/rhdh/applications/rhdh-1-5/activity (for 1.5.z builds)
 
-Existing tekton pipelines for builds and FBCs: 
+Tekton pipelines for container and FBC builds: 
 
 * link:../.tekton/README.adoc[.tekton/README.adoc]
 * link:../.tekton[.tekton]
 
-Existing FBC catalog content:
+FBC catalog content:
 
 * link:../catalogs[catalogs]
-* link:../build/scripts/renderCatalogs.sh[renderCatalogs] (replacement for link:../build/scripts/copyIIBsToQuay.sh[copyIIBsToQuay], used for OSBS IIB builds)
+* link:../build/scripts/renderCatalogs.sh[renderCatalogs] (replacement for DEPRECATED link:../build/scripts/copyIIBsToQuay.sh[copyIIBsToQuay], used for OSBS IIB builds)
 
 See also link:RHDH-Konflux-overview-onboarding.adoc[RHDH-Konflux-overview-onboarding.adoc]
 
@@ -121,9 +123,9 @@ You can now attempt to install from an FBC using the link:https://github.com/red
 
 ====
 +
-. Verify that after moving to 1.5 in main, we have:
-.. 1.4 == latest
-.. 1.5 == next
+. Verify that after moving to 1.6 in main, we have:
+.. 1.5 == latest
+.. 1.6 == next
 
 ... [ ] https://quay.io/repository/rhdh/rhdh-hub-rhel9?tab=tags
 ... [ ] https://quay.io/repository/rhdh/rhdh-rhel9-operator?tab=tags

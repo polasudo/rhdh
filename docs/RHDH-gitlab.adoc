@@ -55,9 +55,13 @@ The link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/tree/rhdh-1-rhel-9/build/ci[
 For example:
 +
 ```
-./triggerRespin.sh 1.1 hub,bun # respin showcase/hub and bundle
-./triggerRespin.sh 1.1 op,bun # respin operator and bundle
-./triggerRespin.sh 1 hub,op,bun # respin 3 containers
+./build/scripts/triggerRespin.sh 1.5 hub # respin hub
+./build/scripts/triggerRespin.sh 1.5 hub,op # respin hub and operator
+./build/scripts/triggerRespin.sh 1.5 op # respin operator
+
+# then once the above build(s) are done
+
+./build/ci/sync-midstream.sh --bundleonly --force [--nopush] [--latest,--next] -b rhdh-1.y-rhel-9 # respin operator-bundle
 ```
 +
 . Note that the `link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1-rhel-9/build/ci/copy-to-quay.yml[copy-to-quay]` stage will likely take >90 mins as the CVP testing for new bundle builds requires creating an OCP cluster, which is slow.
