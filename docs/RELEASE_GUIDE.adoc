@@ -90,7 +90,7 @@ Tekton pipelines for container and FBC builds:
 FBC catalog content:
 
 * link:../catalogs[catalogs]
-* link:../build/scripts/renderCatalogs.sh[renderCatalogs] (replacement for DEPRECATED link:../build/scripts/copyIIBsToQuay.sh[copyIIBsToQuay], used for OSBS IIB builds)
+* link:../build/scripts/renderCatalogs.sh[renderCatalogs]
 
 See also link:RHDH-Konflux-overview-onboarding.adoc[RHDH-Konflux-overview-onboarding.adoc]
 
@@ -109,11 +109,9 @@ Run the link:../build/scripts/renderCatalogs.sh[renderCatalogs] script to get us
 
 You may need to adjust the catalog template to replace any invalid values or replacements tht don't make sense. 
 
-For example if releasing 1.3.4 after 1.4.0, the script output may attempt to make 1.3.4 a replacement for 1.4.0 instead of the other way around. 
+For example if releasing 1.4.3 after 1.5.1, the script output may attempt to make the lower version a replacement for higher version, instead of the other way around. 
 
 This is easily rectified in the catalog-template.json, and you can then run the script again using the --template flag to USE a template instead of generating one. 
-
-**TODO: FIX THIS known bug**
 
 You should see new tags added here:
 
@@ -280,18 +278,17 @@ Christophe Fargette <jfargett@redhat.com>
 ... https://github.com/redhat-developer/red-hat-developers-documentation-rhdh/blob/main/modules/dynamic-plugins/rhdh-supported-plugins.sh
 ... https://github.com/redhat-developer/red-hat-developers-documentation-rhdh/blob/main/modules/release-notes/single-source-fixed-security-issues.sh
 ... https://github.com/redhat-developer/red-hat-developers-documentation-rhdh/blob/main/modules/release-notes/single-source-release-notes.py
-.. If changes are found, submit PR (s) or update existing in-progress PRs. Examples:
-... https://github.com/redhat-developer/red-hat-developers-documentation-rhdh/pull/592 (1.2.5 RN + plugin version updates)
-... https://github.com/redhat-developer/red-hat-developers-documentation-rhdh/pull/643 (1.3.1 RN + plugin version updates)
+.. If changes are found, create a PR with updates. To update only the dynamic plugins table, use this action:
+... https://github.com/redhat-developer/red-hat-developers-documentation-rhdh/actions/workflows/generate-supported-plugins-pr.yml
 
 . For a .0 GA release, collect GO/NO-GO votes from stakeholders
 ..  _TODO_: Collect list of owners from various stakeholders (Linda's Go/No-Go list)
 .. For .z updates, this is generally not needed. 
 
-. **Remind QE** to announce when they're done testing and have approved the release for production.
+. **Remind QE** to announce when they're done testing and have approved the release for production. This might be as little as JIRA updates or a slack message. 
 .. GA push will then be pushed manually using link:../build/scripts/kfuxRelease.sh[kfuxRelease.sh].
 
-. **Remind PM** to update https://developers.redhat.com/rhdh/plugins with latest plugin lists and link to the docs (https://docs.redhat.com/en/documentation/red_hat_developer_hub/1.4)
+. **Remind PM** to update https://developers.redhat.com/rhdh/plugins with latest plugin lists and link to the docs (https://docs.redhat.com/en/documentation/red_hat_developer_hub/1.5)
 
 ## On GA Day
 
@@ -302,7 +299,7 @@ Christophe Fargette <jfargett@redhat.com>
 
 ### [BEGIN] Start the _container image_ release (15-20 mins)
 
-. [ ] Export the link:https://docs.google.com/spreadsheets/d/1JZVTc03wirx-bTpjn3muWed8cGyFTRTNe6x3Gr02hys/edit?gid=973768917#gid=973768917[RHDH CVE Management tracker] from the correct sheet for the release you're about to do (eg., 1.3.6, 1.4.3, 1.5.0) using File > Download > Comma Separated Values (.csv). Save to a file such as `"/tmp/RHDH CVE Management - 1.4.2.csv"`
+. [ ] Export the link:https://docs.google.com/spreadsheets/d/1JZVTc03wirx-bTpjn3muWed8cGyFTRTNe6x3Gr02hys/edit?gid=973768917#gid=973768917[RHDH CVE Management tracker] from the correct sheet for the release you're about to do (eg., 1.4.3, 1.5.2) using File > Download > Comma Separated Values (.csv). Save to a file such as `"/tmp/RHDH CVE Management - 1.5.2.csv"`
 
 image::images/cve-list-export.png[File > Download > Comma Separated Values (.csv)]
 
@@ -352,8 +349,6 @@ done
 1.4.2
 ```
 +
-.. NOTE: Starting with 1.4.2, the tag will be 1.4.2 instead of 1.3-zzz.
-+
 . [ ] link:../build/helm/prepare.sh[Push the helm chart].
 +
 ```
@@ -396,7 +391,6 @@ https://github.com/openshift-helm-charts/charts/pull/1743
 1.4.2
 ```
 +
-.. NOTE: Starting with 1.4.2, the tag will be 1.4.2 instead of 1.3-zzz
 . [ ] Release the FBCs (once re-rendering is complete above)
 +
 ```
@@ -452,7 +446,7 @@ image::images/smoketest-rosa-helm_2.png[install the version just released,width=
 
 ### [SUPPORT] Comet updates
 
-. [ ] If this is a .0 release, remove the now-EOL image stream from Comet so we stop getting reminded about CVEs for EOL versions. For example with the release of 1.5, 1.3 is EOL; remove 1.3 and add 1.6 instead. 
+. [ ] If this is a .0 release, remove the now-EOL image stream from Comet so we stop getting reminded about CVEs for EOL versions. For example with the release of 1.6, 1.4 is EOL; remove 1.4 and add 1.7 to the list. 
 +
 See image metadata at https://comet.engineering.redhat.com/containers/repositories?view=myRepos&filter=repoPath:rhdh then click through on each image to edit them.
 +
@@ -463,7 +457,7 @@ image::images/comet-config.png[]
 Ongoing through the quarter, remember to:
 
 . Update the link:../build/dockerfiles/[gitlab pipeline runner images] at least once every quarter
-. Monitor GH-GL syncs and pipelines, as things can fail unexpectedly in OSBS or on gitlab runners
+. Monitor GH-GL syncs and pipelines, as things can fail unexpectedly on gitlab runners
 . Monitor quay image updates to ensure everything is kept current and fresh relative to upstream branches
 . Monitor new OCP release dates - add a new Application and Component for the new FBC in Konflux - see link:RHDH-Konflux-overview-onboarding.adoc[RHDH-Konflux-overview-onboarding]
 . Monitor OCP EOL dates - delete old FBC Applications from Konflux to stop building for that OCP version - see link:RHDH-Konflux-overview-onboarding.adoc[RHDH-Konflux-overview-onboarding]

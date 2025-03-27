@@ -70,15 +70,9 @@ A new bundle will appear on https://quay.io/repository/rhdh/rhdh-operator-bundle
 
 . If there was a change to hub then there should also be a NEW helm chart created in https://github.com/rhdh-bot/openshift-helm-charts/branches.
 +
-The `rhdh-1-rhel-9` branch is updated for each 1.2 chart, and the `rhdh-1.1-rhel-9` branch is updated for each 1.1 chart, as well as creating a new branch for each chart version.
+The `rhdh-1-rhel-9` branch is updated for each 1.6 chart, and the `rhdh-1.5-rhel-9` branch is updated for each 1.5 chart, as well as creating a new branch for each chart version.
 +
-(Once we have branched for 1.2, then `rhdh-1-rhel-9` will be for 1.3, and `rhdh-1.2-rhel-9` will be for 1.2.)
-
-## How to disable/skip steps
-
-Need to temporarily skip some stages? 
-
-* Comment out any of the `stages` lines https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1.1-rhel-9/.gitlab-ci.yml#L21-26 to skip those steps. 
+(Once we have branched for 1.6, then `rhdh-1-rhel-9` will be for 1.7, and `rhdh-1.6-rhel-9` will be for 1.6.)
 
 ## Retry a failed build
 
