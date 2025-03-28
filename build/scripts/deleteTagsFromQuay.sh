@@ -29,7 +29,8 @@ Examples:
 Options:
     -p PAGE             start searching for old tags on specified page; default $PAGE
     -r REPOS            space-separated list of repos to process; default \"$REPOS\"
-    --filter FILTER     search only for tags matching some pattern, like 1.1-
+    --filter FILTER     search only for tags matching some pattern, like 1.3-
+    --age AGE           delete tags older than some number of months; default: 8 months
     --all               default (slowest) operation: no filter, starting on page $PAGE
     --dry-run           show commands but do not delete any tags
     --debug             more verbose console output
@@ -42,6 +43,7 @@ while [[ "$#" -gt 0 ]]; do
   case $1 in
     '-p') PAGE="$2"; shift 1;; # 1.y 
     '-r') REPOS="$2"; shift 1;;
+    '--age') DELETE_AGE="-${2}"; shift 1;;
     '--filter') FILTER="$2"; FILTER="&filter_tag_name=like:${FILTER}"; shift 1;; # 1.y 
     '--all') FILTER=""; PAGE=1;;
     '--dry-run') DRYRUN=1;;
