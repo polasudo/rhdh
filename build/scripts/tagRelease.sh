@@ -51,7 +51,7 @@ usage() {
 To create or update existing branches:
   $0 --branchfrom SOURCE_GH_BRANCH -gh TARGET_GH_BRANCH -ghtoken GITHUB_TOKEN
 Example: 
-  $0 --branchfrom main -gh release-1.5 --clean -ghtoken \$GITHUB_TOKEN
+  $0 --branchfrom main -gh release-1.6 --clean -ghtoken \$GITHUB_TOKEN
 
 To create tags (and push updates to release-1.yy branches):
 1. You should have a valid GITHUB_TOKEN for your user (for upstream PRs).
@@ -59,7 +59,7 @@ To create tags (and push updates to release-1.yy branches):
 3. Run this
   $0 -v CSV_VERSION -t PROD_VERSION -gh GH_BRANCH -ghtoken GITHUB_TOKEN
 Example: 
-  $0 -v 1.5.1 -t 1.5 -gh release-1.5 --midstream-branch rhdh-1.5-rhel-9 --clean --force-update -tmpdir $TMPDIR --nobuild
+  $0 -v 1.5.2 -t 1.5 -gh release-1.5 --midstream-branch rhdh-1.5-rhel-9 --clean --force-update -tmpdir $TMPDIR --nobuild
 
 Options:
     --clean                   delete existing temp folders and do fresh checkouts
@@ -984,7 +984,7 @@ fi
 if [[ $SKIP_GL -eq 0 ]] && [[ "${MIDSTM_BRANCH}" ]]; then
 	# midstream build sources
 	for repo in \
-		rhdh \
+		rhdh rhdh-plugin-catalog \
 		; do
 		pushTagGL $repo
 		# updates to 1.x branch after branching
