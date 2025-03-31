@@ -7,7 +7,7 @@ sync-midstream:
     - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH =~ /rhdh-[0-9.]+-rhel-9/
     # see https://gitlab.cee.redhat.com/rhidp/rhdh/-/pipeline_schedules/1043/edit
     # for scheduled runs, check env var
-    - if: $CI_PIPELINE_SOURCE == "schedule" && $DO_SYNC_MIDSTREAM == "True"
+    - if: $CI_PIPELINE_SOURCE == "schedule"
   script:
     - |
       echo "Pipeline triggered by $CI_PIPELINE_SOURCE event"; echo
