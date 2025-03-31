@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This repo seeks to document how to productize the following products:
+This repo seeks to document how to productize RHDH:
 
 * link:RHDH.adoc[Red Hat Developer Hub (RHDH) - container image, operator+bundle, and helm chart]
 ** link:RHDH-FAQ.adoc[Red Hat Developer Hub (RHDH) - FAQ]
@@ -11,8 +11,12 @@ This repo seeks to document how to productize the following products:
 ** link:.gitlab-ci.yml[gitlab CI script] + link:build/ci[ci script] - used sync from up to mid, mid to down, build container image, copy builds to Quay, and publish a helm chart
 *** link:build/dockerfiles[dockerfiles used by CI processes]
 
-* link:RHPIB.adoc[Red Hat Plug-ins for Backstage (RHPIB) - npm packages] - deprecated, 2.0 will be the last release.
-** link:build/scripts/stage-rhidp.sh[stage RHPIB]
+There are also a number of guides related to the build + release processes:
+
+* link:RHDH-Konflux-overview-onboarding.adoc[How to set up Konflux]
+* link:RHDH-gitlab.adoc[Building with Gitlab]
+* link:RHDH-Konflux-user-guide.adoc[User Guide - for triggering builds]
+* link:RELEASE_GUIDE.adoc[Release Guide - for releasing builds]
 
 ## Reference material
 
