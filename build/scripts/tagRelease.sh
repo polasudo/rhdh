@@ -259,7 +259,7 @@ function updatePluginVersions() {
 	if [[ -x ${SCRIPT_DIR}/checkPluginVersions.sh ]]; then
 		CPV=${SCRIPT_DIR}/checkPluginVersions.sh
 	else
-		if [[ $VERBOSE -eq 1 ]]; then echo "Downloading checkPluginVersions.sh script from Github"; fi
+		if [[ $VERBOSE -eq 1 ]]; then echo "[DEBUG] Downloading checkPluginVersions.sh script from Github"; fi
 		pushd /tmp >/dev/null || exit
 		curl -sSLO "https://gitlab.cee.redhat.com/rhidp/rhdh/-/raw/${MIDSTM_BRANCH}/build/scripts/checkPluginVersions.sh" && chmod +x checkPluginVersions.sh
 		CPV=/tmp/checkPluginVersions.sh
@@ -503,6 +503,11 @@ pushBranchAndOrTagGH () {
 		d="${orgAndRepo/\//__}"
 		echo; 
 		if [[ $SOURCE_BRANCH ]]; then
+			if [[ "$MIDSTM_BRANCH" == "$DWNSTM_TARGET_BRANCH" ]]; then 
+				echo "[ERROR] Cannot branch if MIDSTM_BRANCH=$MIDSTM_BRANCH equals DWNSTM_TARGET_BRANCH=$DWNSTM_TARGET_BRANCH ! "
+				echo "[ERROR] Always run this script from the rhdh-1-rhel-9 branch when creating branches"
+				exit 1
+			fi
 			echo "== $orgAndRepo :: branch from $SOURCE_BRANCH to $TARGET_BRANCH =="
 		elif [[ $CSV_VERSION ]]; then
 			echo "== $orgAndRepo :: tag $CSV_VERSION from $TARGET_BRANCH =="
@@ -608,6 +613,11 @@ pushTagGL ()
 		DWNSTM_TARGET_BRANCH=rhdh-${TARGET_BRANCH/release-/}-rhel-9
 		echo;
 		if [[ $SOURCE_BRANCH ]]; then
+			if [[ "$MIDSTM_BRANCH" == "$DWNSTM_TARGET_BRANCH" ]]; then 
+				echo "[ERROR] Cannot branch if MIDSTM_BRANCH=$MIDSTM_BRANCH equals DWNSTM_TARGET_BRANCH=$DWNSTM_TARGET_BRANCH ! "
+				echo "[ERROR] Always run this script from the rhdh-1-rhel-9 branch when creating branches"
+				exit 1
+			fi
 			echo "== $d :: branch from $MIDSTM_BRANCH to $DWNSTM_TARGET_BRANCH =="
 		elif [[ $CSV_VERSION ]]; then
 			echo "== $d :: tag $CSV_VERSION from $DWNSTM_TARGET_BRANCH =="
@@ -637,11 +647,18 @@ pushTagGL ()
 						git push origin "${DWNSTM_TARGET_BRANCH}" 1>/dev/null || true
 					fi
 
+					if [[ $VERBOSE -eq 1 ]]; then echo "[DEBUG] For SOURCE_BRANCH=$SOURCE_BRANCH, working in $TMPDIR/gitlab_${d} branch DWNSTM_TARGET_BRANCH=$DWNSTM_TARGET_BRANCH"; fi
+
 					# changes to apply to new midstream rhdh-1.yy-rhel-9 branch
+					CHANGES=0
 					if [[ $d == "rhdh" ]]; then # for rhidp/rhdh
 						pushd "$TMPDIR/gitlab_${d}/.tekton" >/dev/null || exit 1
 							generateNewTektonPipelines "${TARGET_BRANCH/release-/}" "$DWNSTM_TARGET_BRANCH" # 1.y rhdh-1.y-rhel-9 
 						popd >/dev/null || exit 1
+						if [[ $(git diff --name-only -- .tekton/) != "" ]]; then 
+							(( CHANGES = CHANGES + 1 ))
+							git add .tekton/* || true
+						fi
 
 						# in new 1.y branch, switch from next tags to latest tags
 						# TODO how do we remove latest tags 3mo later for older streams?
@@ -651,12 +668,15 @@ pushTagGL ()
 								echo " > $c"
 								sed -i "$c" -r -e "s@next-v4@latest-v4@g"
 							done
-							COMMITMSG="chore: tagRelease.sh: update FBCs in $DWNSTM_TARGET_BRANCH to latest"						
+							if [[ $(git diff --name-only -- catalogs/) != "" ]]; then (( CHANGES = CHANGES + 1 )); fi
+							COMMITMSG="chore: tagRelease.sh: update FBCs in $DWNSTM_TARGET_BRANCH to latest"					
 							git commit --no-gpg-sign -s -m "${COMMITMSG}" . || echo "nothing to commit, working tree clean (4)"
+
 						popd >/dev/null || exit 1
 
-						if [[ $(git diff --name-only) != "" ]]; then 
-							sed -i upstream_repos.yml -r -e "s|- main|- ${TARGET_BRANCH}|g"
+						sed -i upstream_repos.yml -r -e "s|- main|- ${TARGET_BRANCH}|g"
+						if [[ $(git diff --name-only -- upstream_repos.yml) != "" ]]; then (( CHANGES = CHANGES + 1 )); fi
+						if [[ $CHANGES -gt 0 ]]; then 
 							rm -f sync/*
 						fi
 						COMMITMSG="chore: tagRelease.sh: use $TARGET_BRANCH in upstream_repos.yml; trigger full build"
@@ -664,7 +684,7 @@ pushTagGL ()
 					fi
 
 					if [[ $DO_PUSH -eq 1 ]]; then
-						if [[ $(git diff --name-only) != "" ]]; then 
+						if [[ $CHANGES -gt 0 ]]; then 
 							git push origin "${DWNSTM_TARGET_BRANCH}" 1>/dev/null 2>&1  || true
 							doPush "${DWNSTM_TARGET_BRANCH}"
 						fi
@@ -737,13 +757,13 @@ generateNewProdsecDefinitions ()
 	pushd "$TMPDIR" >/dev/null || exit 1
 	# fetch repo
 	if [[ ! -d "${repo}" ]]; then 
-		if [[ $VERBOSE -eq 1 ]]; then echo "Clone prodsec/$repo ..."; fi
+		if [[ $VERBOSE -eq 1 ]]; then echo "[DEBUG] Clone prodsec/$repo ..."; fi
 		git clone -q -b master "git@gitlab.cee.redhat.com:prodsec/${repo}.git" "${repo}"
 	fi
 	if [[ -d "$TMPDIR/${repo}" ]]; then
 		echo
 		pushd "$TMPDIR/${repo}" >/dev/null || exit 1
-			if [[ $VERBOSE -eq 1 ]]; then echo "Working dir: $(pwd)" ;fi
+			if [[ $VERBOSE -eq 1 ]]; then echo "[DEBUG] Working dir: $(pwd)" ;fi
 
 			NEW_STREAM='{ "pp_label": "rhdh-rhdh-'"${PROD_VERSION}"'", "version": "'"${PROD_VERSION}"'", "cpe": [ "cpe:/a:redhat:rhdh:'"${PROD_VERSION}"'::el9" ] }'
 			NEW_KEY="rhdh-${PROD_VERSION}"       # new key,    1.6
@@ -806,13 +826,13 @@ generateNewKonfluxReleaseDataYamls ()
 	pushd "$TMPDIR" >/dev/null || exit 1
 	# fetch repo
 	if [[ ! -d "${repo}" ]]; then 
-		if [[ $VERBOSE -eq 1 ]]; then echo "Clone releng/$repo ..."; fi
+		if [[ $VERBOSE -eq 1 ]]; then echo "[DEBUG] Clone releng/$repo ..."; fi
 		git clone -q --depth 1 -b main "git@gitlab.cee.redhat.com:releng/${repo}.git" "${repo}"
 	fi
 	if [[ -d "$TMPDIR/${repo}" ]]; then
 		echo
 		pushd "$TMPDIR/${repo}" >/dev/null || exit 1
-			if [[ $VERBOSE -eq 1 ]]; then echo "Working dir: $(pwd)" ;fi
+			if [[ $VERBOSE -eq 1 ]]; then echo "[DEBUG] Working dir: $(pwd)" ;fi
 
 			# 1. create content in config and tenants-config folders, including three kustomization.yaml files
 			for d in \
