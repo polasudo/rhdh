@@ -765,7 +765,7 @@ generateNewProdsecDefinitions ()
 		pushd "$TMPDIR/${repo}" >/dev/null || exit 1
 			if [[ $VERBOSE -eq 1 ]]; then echo "[DEBUG] Working dir: $(pwd)" ;fi
 
-			NEW_STREAM='{ "pp_label": "rhdh-rhdh-'"${PROD_VERSION}"'", "version": "'"${PROD_VERSION}"'", "cpe": [ "cpe:/a:redhat:rhdh:'"${PROD_VERSION}"'::el9" ] }'
+			NEW_STREAM='{ "pp_label": "rhdh-rhdh-'"${PROD_VERSION}"'", "version": "'"${PROD_VERSION}.0"'", "cpe": [ "cpe:/a:redhat:rhdh:'"${PROD_VERSION}"'::el9" ] }'
 			NEW_KEY="rhdh-${PROD_VERSION}"       # new key,    1.6
 			UPD_KEY="rhdh-${PROD_VERSION_PREV}"  # update key, 1.5
 			DEL_KEY="rhdh-${PROD_VERSION_PREV2}" # delete key, 1.3
