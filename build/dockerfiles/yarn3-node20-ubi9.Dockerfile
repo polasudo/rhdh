@@ -13,18 +13,12 @@ RUN \
     pip3 install --no-cache-dir -q yq
 # hadolint ignore=SC3037,DL4006,DL3016
 RUN \
-    # latest npm is 10 but build needs 9; yarn v1 assumes node-gyp is installed globally (RHIDP-694)
-    time npm install --network-timeout=600000 --global npm@9 yarn@1; \
-    yarn config set network-timeout 600000 -g; \
-    yarn config set registry $(npm config get registry) -g; \
-    time yarn global add  husky node-gyp@9 prettier turbo @janus-idp/cli; 
-# hadolint ignore=SC3037,DL4006,DL3016
-RUN \
-    # install node-gyp 9 and update if the build requires something newer
-    nodegyp_to_install=$(grep node-gyp /tmp/package.json | tr -d ",\" " | sed -r -e "s/:/@^/"); \
-    time yarn global add  "${nodegyp_to_install}";
-# hadolint ignore=SC3037,DL4006,DL3016
-RUN \
+    time npm install --network-timeout=600000 --global npm corepack husky node-gyp prettier turbo @janus-idp/cli; \
+    corepack enable; \
+    yarn set version 3.8.7; \
+    yarn install; \
+    yarn config set httpTimeout 600000; \
+    yarn config set npmRegistryServer $(npm config get registry); \
     # list installed binaries and default locations
     for r in jq node node-gyp npm prettier turbo yq janus-cli; do echo -n "$(which $r) : "; "$r" --version; done; \
     echo -n "husky : "; husky -v

@@ -2,26 +2,26 @@
 
 The Dockerfiles in this folder are used to create images that are then used for gitlab runners.
 
-To build and publish a new image for the main Yarn 3 runner: 
+For 1.5+ using node22:
 
 ```
 TODAY=$(date +%Y%m%d-%H%M)
 podman rmi registry.redhat.io/ubi9:latest -f
-podman build . --no-cache -f build/dockerfiles/yarn3-ubi9.Dockerfile --label quay.expires-after=99d \
-    -t quay.io/rhdh/gitlab-runner:yarn3-$TODAY \
-    -t quay.io/rhdh/gitlab-runner:yarn3-latest 
-podman push quay.io/rhdh/gitlab-runner:yarn3-$TODAY
-podman push quay.io/rhdh/gitlab-runner:yarn3-latest
+podman build . --no-cache -f build/dockerfiles/yarn3-node22-ubi9.Dockerfile --label quay.expires-after=99d \
+    -t quay.io/rhdh/gitlab-runner:yarn3-node22-$TODAY \
+    -t quay.io/rhdh/gitlab-runner:yarn3-node22-latest 
+podman push quay.io/rhdh/gitlab-runner:yarn3-node22-$TODAY
+podman push quay.io/rhdh/gitlab-runner:yarn3-node22-latest
 ```
 
-For the deprecated runner using Yarn 1, for the RHDH 1.3 hub container image:
+For 1.4 and node20:
 
 ```
 TODAY=$(date +%Y%m%d-%H%M)
 podman rmi registry.redhat.io/ubi9:latest -f
-podman build . --no-cache -f build/dockerfiles/builder-ubi9.Dockerfile --label quay.expires-after=99d \
-    -t quay.io/rhdh/gitlab-runner:builder-$TODAY \
-    -t quay.io/rhdh/gitlab-runner:builder-latest 
-podman push quay.io/rhdh/gitlab-runner:builder-$TODAY
-podman push quay.io/rhdh/gitlab-runner:builder-latest
+podman build . --no-cache -f build/dockerfiles/yarn3-node20-ubi9.Dockerfile --label quay.expires-after=99d \
+    -t quay.io/rhdh/gitlab-runner:yarn3-node20-$TODAY \
+    -t quay.io/rhdh/gitlab-runner:yarn3-node20-latest 
+podman push quay.io/rhdh/gitlab-runner:yarn3-node20-$TODAY
+podman push quay.io/rhdh/gitlab-runner:yarn3-node20-latest
 ```

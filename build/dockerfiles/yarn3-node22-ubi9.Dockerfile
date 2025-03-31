@@ -7,7 +7,7 @@ COPY distgit/containers/rhdh-hub/package.json /tmp/
 # hadolint ignore=DL3013,DL3041
 RUN \
     dnf -y -q update && \
-    dnf module enable nodejs:20 -y && \
+    dnf module enable nodejs:22 -y && \
     dnf -y -q install brotli-devel cmake gcc gcc-c++ git jq make nodejs npm openssl openssl-devel gettext \
         python3-pip rsync skopeo sudo zlib-devel && dnf clean all && \
     pip3 install --no-cache-dir -q yq
@@ -15,7 +15,7 @@ RUN \
 RUN \
     time npm install --network-timeout=600000 --global npm corepack husky node-gyp prettier turbo @janus-idp/cli; \
     corepack enable; \
-    yarn set version 3.8.6; \
+    yarn set version 3.8.7; \
     yarn install; \
     yarn config set httpTimeout 600000; \
     yarn config set npmRegistryServer $(npm config get registry); \
