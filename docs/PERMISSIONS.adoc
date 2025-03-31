@@ -1,72 +1,9 @@
 # Requesting access to systems
 
 
-## devel group
+## Secrets used by GH, GL, and Konflux 
 
-To be able to build container builds locally and run `brew` or `rhpkg` commands, you need to be in the LDAP `*devel*` group.
-
-Request that here: link:https://redhat.service-now.com/help?id=sc_cat_item&sys_id=efc26a27053142004c7104229f8248df[Add User to POSIX LDAP Group]
-
-Example: https://redhat.service-now.com/help?id=rh_ticket&table=sc_req_item&sys_id=9597deb8471f6d9014ff1e8dd46d4328
-
-### Installing RPMs
-
-You will need a system running Fedora or RHEL. If your primary OS is MacOS or Windows, please set up a guest VM. 
-
-#### Fedora/RHEL Helpful Links
-
-* link:https://redhat.service-now.com/help?id=kb_article_view&sysparm_article=KB0005424[How to configure the Network Manager for the Red Hat VPN]
-* link:https://source.redhat.com/personal_blogs/setting_up_vpnldapkerberos_sso_on_a_fresh_fedora_33_install#configure-openvpn-profiles-with-your-kerberos-id[How to setup the VPN/LDAP/Kerberos (SSO) on Fedora]
-
-The above rpms can be found at link:https://download.devel.redhat.com/rel-eng/RCMTOOLS/latest-RCMTOOLS-2-F-38/compose/Everything/x86_64/os/[latest-RCMTOOLS-2-F-38] or link:https://download.hosts.prod.upshift.rdu2.redhat.com/rel-eng/RCMTOOLS/latest-RCMTOOLS-2-RHEL-8/compose/BaseOS/x86_64/os/[latest-RCMTOOLS-2-RHEL-8] - add the appropriate content set as a `rcmtools.repo` file under `/etc/yum.repos.d/` 
-
-**Fedora**
-
-
-```
-[latest-RCMTOOLS-2-F-38]
-name=latest-RCMTOOLS-2-F-38
-baseurl=http://download.devel.redhat.com/rel-eng/RCMTOOLS/latest-RCMTOOLS-2-F-38/compose/Everything/$basearch/os/
-enabled=1
-gpgcheck=0
-skip_if_unavailable=True
-```
-
-NOTE: Replace `38` with your version of Fedora
-
-**RHEL**
-
-```
-[latest-RCMTOOLS-2-RHEL-8]
-name=latest-RCMTOOLS-2-RHEL-8
-baseurl=http://download.devel.redhat.com/rel-eng/RCMTOOLS/latest-RCMTOOLS-2-RHEL-8/compose/BaseOS/$basearch/os/
-enabled=1
-gpgcheck=0
-skip_if_unavailable=True
-```
-
-then do
-
-```
-dnf install -y rhpkg brewkoji-stage 
-```
-
-You might need to also install some certs. See https://docs.engineering.redhat.com/display/KB/Troubleshooting+Tips#TroubleshootingTips-SSLerrortroubleshooting and https://mojo.redhat.com/docs/DOC-999615#jive_content_id_Certificates
-
-
-
-## spmm-util-users 
-
-To be able to stage npm files to link:https://spmm.pages.redhat.com/util-ansible[spmm-util], you need to request access to the `*spmm-util-users*` role.
-
-Example: https://issues.redhat.com/browse/SPMM-13576
-
-
-## Secret / secure files in this repo
-
-This repo contains a folder called secrets/ which is encrypted with git-crypt. 
-
-Secrets have been removed and are now located in link:https://vault.bitwarden.com/[BitWarden] under the link:https://rover.redhat.com/groups/group/rhdh-prod[Rhdh Prod] rover group.
+Secrets are located in link:https://vault.bitwarden.com/[BitWarden] under the link:https://rover.redhat.com/groups/group/rhdh-prod[Rhdh Prod] rover group.
 
 Current authorized users include (but are not limited to):
 

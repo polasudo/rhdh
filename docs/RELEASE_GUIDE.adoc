@@ -337,7 +337,6 @@ for OCP_VERSION in 4.14 4.15 4.16 4.17 4.18; do \
   time ./build/scripts/renderCatalogs.sh --rhec --versions "${OCP_VERSION}" -v "${RHDH_VERSION}" [--latest] \
     --template "catalogs/v${OCP_VERSION}/catalog-template.json"; sleep 30s; \
 done
-
 ```
 
 ### Chart release (15 mins)
@@ -498,7 +497,7 @@ This script creates link:https://github.com/redhat-developer/rhdh/branches/all?q
 
 Once everything is merged, link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/pipeline_schedules[create a new GL pipeline] for the new stable branch.  | Release Engineering
 
-| **3. Build & Test** | Tekton Pipelines for builds are triggered automatically when commits happen in the upstream GH repos. File Based Catalog fragments (FBCs) must be built by hand at intervals (see link:https://issues.redhat.com/browse/RHIDP-5888[RHIDP-5888]). Update link:../.tekton/[Tekton pipelines] regularly. | QE, Engineering, Release Engineering
+| **3. Build & Test** | Tekton Pipelines for builds are triggered automatically when commits happen in the upstream GH repos. File Based Catalog fragments (FBCs) must be built by hand at intervals (see link:https://issues.redhat.com/browse/RHIDP-5888[RHIDP-5888] and link:https://issues.redhat.com/browse/RHIDP-6305[RHIDP-6305]). Update link:../.tekton/[Tekton pipelines] regularly. | QE, Engineering, Release Engineering
 
 | **4. Release Candidate (RC)** | 
 1. **Disable scheduled pipelines** to prevent unapproved changes:  

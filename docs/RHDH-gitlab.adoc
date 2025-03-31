@@ -1,10 +1,10 @@
 # How to build with Gitlab
 
-## How to release a plugin from the release-1.yy branch
+## [DEPRECATED] How to release a plugin from the release-1.yy branch
 
 If you need to release a plugin manually from the stable branch (not main) see https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1-rhel-9/build/scripts/releasePlugin.sh[build/scripts/releasePlugin.sh].
 
-Once released, you can then update the redhat-developer/rhdh package.json files, which will in turn trigger an update in midstream/downstream.
+Once released, you can then update the redhat-developer/rhdh package.json files, which will in turn trigger an update to the midstream repo.
 
 See also https://issues.redhat.com/browse/RHIDP-2525
 
@@ -26,34 +26,31 @@ image::images/pipeline-schedules.png[Pipeline Schedules]
 
 ## Pipelines
 
-Watch https://gitlab.cee.redhat.com/rhidp/rhdh/-/pipelines[Pipeline results]
+Watch the following places:
 
-* You can look at console logs and artifacts between stages to see what happened
-* If all stages run successfully, the build will show successful overall.
-* Should a stage be deemed unnecessary, because no change was recorded in midstream or downstream, the pipeline will show failure for one stage and skips for subsequent stages. 
+* link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/pipelines[Gitlab pipelines]
+* link:https://konflux.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/application-pipeline/workspaces/rhdh/applications[Konflux pipelines]
 
-### Pipeline Stages
+### Gitlab Pipeline Stages
 
 The link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/tree/rhdh-1-rhel-9/build/ci[stages in the Gitlab pipeline] are as follows:
 
 . sync upstream repos to midstream
 ** this will also run a yarn build in the rhdh-hub folder to regenerate dynamic plugin content and package.json files
-. sync midstream repos to downstream (three parallel runs)
-** this is essentially a pure rsync copy
-. build downstream containers in OSBS with `brew container-build` 
-. copy new container images to quay, including new IIB image
-. publish helm chart to https://github.com/rhdh-bot/openshift-helm-charts/tree/rhdh-1.1-rhel-9/installation
-. review the preceding stages for success/failure
+. commit changes, which triggers Konflux pipelines
+
+### Konflux Pipeline Stages
+
+If any of the files in the `on-cel-expression` of a link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1-rhel-9/.tekton/rhdh-hub-1-push.yaml#L10[.tekton/*.yaml] file are changed, an `on-push` build will run. 
+
+For merge requests against the midstream GL repos, ANY change within the PR (adding a commit, replacing a commit) will re-trigger an `on-pull` build. 
 
 ### What to watch out for
 
-. Check the build log from the `sync-midstream` phase -- you should see something committed to the gitlab.cee repo if there was a change found and synced
-. Check the build logs from the 3 `sync-downstream` jobs in that phase -- again, should see something committed, but this time to `pkgs.devel.redhat.com` repo (if a change was found to build)
-. Check the `Build Plan` in the log for the build-downstream phase (the third one in the 6-phase process) - should show that it's building the hub (if a change there), operator (if a change there) and always a new bundle image
-. If it DID NOT rebuild hub and bundle (and you know a respin is needed) then you can FORCE a respin with the link:../build/scripts/triggerRespin.sh[triggerRespin.sh], which deletes files in the `link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/tree/rhdh-1-rhel-9/sync[sync/]` folder of the midstream repo, to convince the `link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1-rhel-9/build/ci/sync-midstream.sh[sync-midstream.sh]` script to see a change that needs building.
+. Check the build log from the `sync-midstream` phase -- you should see something committed to the gitlab.cee repo if there was a change found and synced, or a merge conflict which will require triggering the build again
+
+. If manually triggering a build you need to first rebuild the hub, operator, or both; then once done, trigger a bundle build: 
 + 
-For example:
-+
 ```
 ./build/scripts/triggerRespin.sh 1.5 hub # respin hub
 ./build/scripts/triggerRespin.sh 1.5 hub,op # respin hub and operator
@@ -61,18 +58,25 @@ For example:
 
 # then once the above build(s) are done
 
-./build/ci/sync-midstream.sh --bundleonly --force [--nopush] [--latest,--next] -b rhdh-1.y-rhel-9 # respin operator-bundle
+./build/ci/sync-midstream.sh --bundleonly --force [--nopush] [--latest,--next] -b rhdh-1.5-rhel-9 # respin operator-bundle
+```
+
+. Once a new bundle appears on https://quay.io/repository/rhdh/rhdh-operator-bundle?tab=tags, you must **MANUALLY re-render the FBC catalogs** with link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1-rhel-9/build/scripts/renderCatalogs.sh#L66[`renderCatalogs.sh`]. This should take about 2 mins per OCP version, and the builds in Konflux should take 5-10 mins total. Whole step should be under 20 mins. 
++
+TODO: automate this -- see link:https://issues.redhat.com/browse/RHIDP-5888[RHIDP-5888] and link:https://issues.redhat.com/browse/RHIDP-6305[RHIDP-6305].
++
+```
+oc login --token=... # log into the https://console-openshift-console.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/k8s/cluster/projects/rhdh-tenant cluster
+
+git checkout rhdh-1.4-rhel-9
+RHDH_VERSION="1.4.2"
+for OCP_VERSION in 4.14 4.15 4.16 4.17 4.18; do \
+  time ./build/scripts/renderCatalogs.sh --versions "${OCP_VERSION}" -v "${RHDH_VERSION}" [--latest, --next] \
+    --template "catalogs/v${OCP_VERSION}/catalog-template.json"; sleep 30s; \
+done
 ```
 +
-. Note that the `link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1-rhel-9/build/ci/copy-to-quay.yml[copy-to-quay]` stage will likely take >90 mins as the CVP testing for new bundle builds requires creating an OCP cluster, which is slow.
-+
-A new bundle will appear on https://quay.io/repository/rhdh/rhdh-operator-bundle?tab=tags and then 90+ mins later a new set of IIBs will appear on https://quay.io/repository/devspaces/iib?tab=tags for the latest (1.1) or next (1.2) tags
-
-. If there was a change to hub then there should also be a NEW helm chart created in https://github.com/rhdh-bot/openshift-helm-charts/branches.
-+
-The `rhdh-1-rhel-9` branch is updated for each 1.6 chart, and the `rhdh-1.5-rhel-9` branch is updated for each 1.5 chart, as well as creating a new branch for each chart version.
-+
-(Once we have branched for 1.6, then `rhdh-1-rhel-9` will be for 1.7, and `rhdh-1.6-rhel-9` will be for 1.6.)
+. If there was a change to hub then there should also be a new link:https://quay.io/repository/rhdh/chart?tab=tags[helm chart created], using the same image tag.
 
 ## Retry a failed build
 
@@ -83,4 +87,3 @@ image::images/pipeline-retry-one-stage.png[retrigger from the pipelines page]
 Once retried, the list of builds for a given stage will identify the retried build:
 
 image::images/pipeline-stage-retried.png[UI shows builds that were retried]
-
