@@ -51,7 +51,7 @@ usage() {
 To create or update existing branches:
   $0 --branchfrom SOURCE_GH_BRANCH -gh TARGET_GH_BRANCH -ghtoken GITHUB_TOKEN
 Example: 
-  $0 --branchfrom main -gh release-1.5 -ghtoken \$GITHUB_TOKEN
+  $0 --branchfrom main -gh release-1.5 --clean -ghtoken \$GITHUB_TOKEN
 
 To create tags (and push updates to release-1.yy branches):
 1. You should have a valid GITHUB_TOKEN for your user (for upstream PRs).
@@ -163,12 +163,11 @@ createPr() {
 				fi
 			else # not github; assume gitlab
 				PR_URL=$(git push origin "${headBranch}" 2>&1 | grep "${headBranch}" | grep "https://" | sed -r -e "s/remote:   //" | tr -d " ")
-				# didn't work for this MR https://gitlab.cee.redhat.com/prodsec/product-definitions/-/merge_requests/3267
-				# if [[ ! $PR_URL ]]; then
-				# 	# try again using the current user's fork
-				# 	git remote add "$(whoami)" "git@gitlab.cee.redhat.com:$(whoami)/prodsec-product-definitions.git"
-				# 	PR_URL=$(git push -f "$(whoami)" "${headBranch}" 2>&1 | grep "${headBranch}" | grep "https://" | sed -r -e "s/remote:   //" | tr -d " ")
-				# fi
+				if [[ ! $PR_URL ]]; then
+					# try again using the current user's fork
+					git remote add "$(whoami)" "git@gitlab.cee.redhat.com:$(whoami)/prodsec-product-definitions.git"
+					PR_URL=$(git push -f "$(whoami)" "${headBranch}" 2>&1 | grep "${headBranch}" | grep "https://" | sed -r -e "s/remote:   //" | tr -d " ")
+				fi
 				if [[ ! $PR_URL ]]; then 
 					echo "[ERROR] Cannot create a PR for your changes. Please create a PR manually from sources in $(pwd) !"
 					exit 1
@@ -723,12 +722,14 @@ generateNewProdsecDefinitions ()
 {
 	repo=product-definitions
 
-	# if adding 1.5, then delete 1.2
+	# if adding 1.6, then delete 1.3 and replace moderate_ps_update_streams with 1.5
 	if [[ $PROD_VERSION =~ ^([0-9]+)\.([0-9]+) ]]; then # decrease the y digit by 3
 		XX=${BASH_REMATCH[1]}
-		YY=${BASH_REMATCH[2]}
-		(( YY=YY-3 ))
-		PROD_VERSION_PREV2="$XX.$YY"
+		YY=${BASH_REMATCH[2]} # 6
+		(( YY=YY-1 ))
+		PROD_VERSION_PREV="$XX.$YY" # 1.5
+		(( YY=YY-2 ))
+		PROD_VERSION_PREV2="$XX.$YY" # 1.3
 	fi
 
 	echo; echo "== $repo :: generate Prod Sec yaml for RHDH $PROD_VERSION; remove $PROD_VERSION_PREV2 config =="
@@ -745,26 +746,29 @@ generateNewProdsecDefinitions ()
 			if [[ $VERBOSE -eq 1 ]]; then echo "Working dir: $(pwd)" ;fi
 
 			NEW_STREAM='{ "pp_label": "rhdh-rhdh-'"${PROD_VERSION}"'", "version": "'"${PROD_VERSION}"'", "cpe": [ "cpe:/a:redhat:rhdh:'"${PROD_VERSION}"'::el9" ] }'
-			NEW_KEY="rhdh-${PROD_VERSION}"
-			DEL_KEY="rhdh-${PROD_VERSION_PREV2}"
+			NEW_KEY="rhdh-${PROD_VERSION}"       # new key,    1.6
+			UPD_KEY="rhdh-${PROD_VERSION_PREV}"  # update key, 1.5
+			DEL_KEY="rhdh-${PROD_VERSION_PREV2}" # delete key, 1.3
 
 		    # set -x
 			jq --arg NEW_KEY "${NEW_KEY}" --arg NEW_STREAM "${NEW_STREAM}" '.ps_update_streams."'"$NEW_KEY"'" += '"$NEW_STREAM" \
 				data/developer/ps_update_streams/rhdh.json > data/developer/ps_update_streams/rhdh.json_; mv data/developer/ps_update_streams/rhdh.json{_,}
-			# if in future we want to remove old streams, here's how
-			# jq --arg DEL_KEY "${DEL_KEY}" 'del(.ps_update_streams."'"$DEL_KEY"'")' \
-			# 	data/developer/ps_update_streams/rhdh.json > data/developer/ps_update_streams/rhdh.json_; mv data/developer/ps_update_streams/rhdh.json{_,}
 
 			for ARR_KEY in ps_update_streams active_ps_update_streams default_ps_update_streams; do 
 				jq --arg ARR_KEY "${ARR_KEY}" --arg NEW_KEY "${NEW_KEY}" '."ps_modules"."rhdh-1".'"$ARR_KEY"' |= . + ["'"$NEW_KEY"'"]' \
 					data/developer/ps_modules.json > data/developer/ps_modules.json_; mv data/developer/ps_modules.json{_,}
-				# if in future we want to remove old streams, here's how
 				# remove keys from the active and default arrays only
 				if [[ $ARR_KEY != "ps_update_streams" ]]; then
 					jq --arg ARR_KEY "${ARR_KEY}" --arg DEL_KEY "${DEL_KEY}" 'del(."ps_modules"."rhdh-1".'"$ARR_KEY"'[]|select(.=="'"$DEL_KEY"'"))' \
 						data/developer/ps_modules.json > data/developer/ps_modules.json_; mv data/developer/ps_modules.json{_,}
 				fi
 			done
+
+			# replace moderate_ps_update_streams with previous GA
+			ARR_KEY="moderate_ps_update_streams"
+			jq --arg ARR_KEY "${ARR_KEY}" --arg NEW_KEY "${NEW_KEY}" '."ps_modules"."rhdh-1".'"$ARR_KEY"' = ["'"$UPD_KEY"'"]' \
+				data/developer/ps_modules.json > data/developer/ps_modules.json_; mv data/developer/ps_modules.json{_,}
+
 		    # set +x
 			git add data/developer/
 
@@ -854,6 +858,8 @@ generateNewKonfluxReleaseDataYamls ()
 		popd >/dev/null || exit 1
 	fi
 	popd >/dev/null || exit 1
+
+	echo; echo "== $repo :: MR generated for Konflux $KFUX_VERSION yaml for RHDH $PROD_VERSION. NOTE: new CPE MR for prodsec/product-definitions MUST BE MERGED or this MR will fail!  =="
 }
 
 # create new pipelines based on the rhdh-1 versions; rename and do sed replacements
