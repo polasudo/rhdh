@@ -1,0 +1,75 @@
+{
+  "name": "backstage-plugin-catalog-backend-module-github-org-dynamic",
+  "version": "0.3.7",
+  "main": "./dist/index.cjs.js",
+  "types": "./dist/index.d.ts",
+  "license": "Apache-2.0",
+  "private": true,
+  "publishConfig": {
+    "access": "public"
+  },
+  "backstage": {
+    "role": "backend-plugin-module",
+    "supported-versions": "1.36.1",
+    "pluginId": "catalog",
+    "pluginPackage": "@backstage/plugin-catalog-backend"
+  },
+  "exports": {
+    ".": {
+      "require": "./dist/index.cjs.js",
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.cjs.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "dependencies": {
+    "@backstage/plugin-catalog-backend-module-github": "0.7.10",
+    "@backstage/plugin-catalog-backend-module-github-org": "0.3.7"
+  },
+  "files": [
+    "dist"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/redhat-developer/rhdh",
+    "directory": "dynamic-plugins/wrappers/backstage-plugin-catalog-backend-module-github-org-dynamic"
+  },
+  "maintainers": [
+    "@janus-idp/maintainers-showcase"
+  ],
+  "author": "Red Hat",
+  "homepage": "https://red.ht/rhdh",
+  "bugs": "https://issues.redhat.com/browse/RHIDP",
+  "keywords": [
+    "support:production",
+    "lifecycle:active"
+  ],
+  "bundleDependencies": true,
+  "overrides": {
+    "@aws-sdk/util-utf8-browser": {
+      "@smithy/util-utf8": "^2.0.0"
+    }
+  },
+  "resolutions": {
+    "@aws-sdk/util-utf8-browser": "npm:@smithy/util-utf8@~2",
+    "@backstage/plugin-catalog-backend-module-github": "file:./embedded/backstage-plugin-catalog-backend-module-github",
+    "@backstage/plugin-catalog-common": "file:./embedded/backstage-plugin-catalog-common",
+    "@backstage/plugin-catalog-node": "file:./embedded/backstage-plugin-catalog-node",
+    "@backstage/plugin-catalog-backend-module-github-org": "file:./embedded/backstage-plugin-catalog-backend-module-github-org"
+  },
+  "peerDependencies": {
+    "@backstage/backend-common": "^0.25.0",
+    "@backstage/backend-plugin-api": "^1.2.0",
+    "@backstage/catalog-client": "^1.9.1",
+    "@backstage/catalog-model": "^1.7.3",
+    "@backstage/config": "^1.3.2",
+    "@backstage/errors": "^1.2.7",
+    "@backstage/integration": "^1.16.1",
+    "@backstage/plugin-catalog-backend": "^1.31.0",
+    "@backstage/plugin-events-node": "^0.4.8",
+    "@backstage/plugin-permission-common": "^0.8.4",
+    "@backstage/plugin-permission-node": "^0.8.8",
+    "@backstage/plugin-search-common": "^1.2.17",
+    "@backstage/types": "^1.2.1"
+  }
+}

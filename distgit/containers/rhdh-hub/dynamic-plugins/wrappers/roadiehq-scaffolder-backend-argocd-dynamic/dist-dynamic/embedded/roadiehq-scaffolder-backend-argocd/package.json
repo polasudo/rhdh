@@ -1,0 +1,76 @@
+{
+  "name": "@roadiehq/scaffolder-backend-argocd",
+  "version": "1.5.0+embedded",
+  "main": "dist/index.cjs.js",
+  "types": "dist/index.d.ts",
+  "license": "Apache-2.0",
+  "publishConfig": {
+    "access": "public",
+    "main": "dist/index.cjs.js",
+    "types": "dist/index.d.ts"
+  },
+  "backstage": {
+    "role": "backend-plugin-module",
+    "pluginId": "scaffolder-backend-argocd",
+    "pluginPackage": "@backstage/plugin-scaffolder-backend"
+  },
+  "exports": {
+    ".": {
+      "backstage": "@backstage/BackendFeature",
+      "require": "./dist/index.cjs.js",
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.cjs.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "typesVersions": {
+    "*": {
+      "index": [
+        "dist/index.d.ts"
+      ]
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "github:RoadieHQ/roadie-backstage-plugins",
+    "directory": "plugins/scaffolder-actions/scaffolder-backend-argocd"
+  },
+  "bugs": {
+    "url": "https://github.com/RoadieHQ/roadie-backstage-plugins/issues",
+    "email": "support@roadie.io"
+  },
+  "scripts": {
+    "start": "backstage-cli package start",
+    "build": "backstage-cli package build",
+    "lint": "backstage-cli package lint",
+    "test": "backstage-cli package test",
+    "prepack": "backstage-cli package prepack",
+    "postpack": "backstage-cli package postpack",
+    "clean": "backstage-cli clean"
+  },
+  "dependencies": {
+    "@roadiehq/backstage-plugin-argo-cd-backend": "^3.3.0",
+    "winston": "^3.2.1"
+  },
+  "devDependencies": {},
+  "files": [
+    "dist"
+  ],
+  "gitHead": "9a0b512b73a67ff211d65da6bb5ed37881590377",
+  "private": true,
+  "peerDependencies": {
+    "@backstage/backend-common": "^0.25.0",
+    "@backstage/backend-plugin-api": "^1.0.2",
+    "@backstage/backend-test-utils": "^1.1.0",
+    "@backstage/config": "^1.3.0",
+    "@backstage/plugin-scaffolder-node": "^0.6.2"
+  },
+  "overrides": {
+    "@aws-sdk/util-utf8-browser": {
+      "@smithy/util-utf8": "^2.0.0"
+    }
+  },
+  "resolutions": {
+    "@aws-sdk/util-utf8-browser": "npm:@smithy/util-utf8@~2"
+  }
+}

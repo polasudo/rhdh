@@ -1,0 +1,33 @@
+{
+  "type": "object",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "properties": {
+    "gitlab": {
+      "description": "Configurations for the Gitlab plugin",
+      "type": "object",
+      "properties": {
+        "allowedKinds": {
+          "description": "This parameter work with Gitlab Processor, which automatically discovers the GitLab project-id for the kinds that you specify.",
+          "default": "['Component']",
+          "visibility": "backend",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "proxySecure": {
+          "description": "This parameter controls SSL Certs verification",
+          "default": true,
+          "visibility": "backend",
+          "type": "boolean"
+        },
+        "useOAuth": {
+          "description": "Activate Oauth/OIDC",
+          "default": "false",
+          "visibility": "backend",
+          "type": "boolean"
+        }
+      }
+    }
+  }
+}
