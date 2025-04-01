@@ -54,9 +54,14 @@
           "skipRange": "<1.4.2"
         },
         {
-          "name": "rhdh-operator.v1.6.0",
+          "name": "rhdh-operator.v1.5.1",
           "replaces": "rhdh-operator.v1.4.2",
-          "skipRange": "<1.6.0"
+          "skipRange": "<1.5.1"
+        },
+        {
+          "name": "rhdh-operator.v1.7.0",
+          "replaces": "rhdh-operator.v1.5.1",
+          "skipRange": "<1.7.0"
         }
       ],
       "name": "fast",
@@ -169,6 +174,18 @@
       "schema": "olm.channel"
     },
     {
+      "entries": [
+        {
+          "name": "rhdh-operator.v1.5.1",
+          "replaces": "rhdh-operator.v1.4.2",
+          "skipRange": "<1.5.1"
+        }
+      ],
+      "name": "fast-1.5",
+      "package": "rhdh",
+      "schema": "olm.channel"
+    },
+    {
       "schema": "olm.bundle",
       "image": "registry.redhat.io/rhdh/rhdh-operator-bundle@sha256:2abaeacfa8fd744579e44e4b320086a8678094dd92eb24825c05f43617384529"
     },
@@ -225,20 +242,24 @@
       "image": "registry.redhat.io/rhdh/rhdh-operator-bundle@sha256:c3fcfee584652ee840c655ac4dd141743bafd5043865f20dd78116bc33e9e850"
     },
     {
+      "schema": "olm.bundle",
+      "image": "registry.redhat.io/rhdh/rhdh-operator-bundle@sha256:c870eb3d17807a9d04011df5244ea39db66af76aefd0af68244c95ed8322d8b5"
+    },
+    {
       "entries": [
         {
-          "name": "rhdh-operator.v1.6.0",
-          "replaces": "rhdh-operator.v1.4.2",
-          "skipRange": "<1.6.0"
+          "name": "rhdh-operator.v1.7.0",
+          "replaces": "rhdh-operator.v1.5.1",
+          "skipRange": "<1.7.0"
         }
       ],
-      "name": "fast-1.6",
+      "name": "fast-1.7",
       "package": "rhdh",
       "schema": "olm.channel"
     },
     {
       "schema": "olm.bundle",
-      "image": "quay.io/rhdh/rhdh-operator-bundle@sha256:984725f7e9174f227218a50ef2294f1c8ca4b90b68f49117772e133a69226036"
+      "image": "quay.io/rhdh/rhdh-operator-bundle@sha256:f4835ab487fee6987ffb0b16e5f4c9953fc73bb3079b89b10841f2ebafd84c11"
     }
   ]
 }
