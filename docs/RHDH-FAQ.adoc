@@ -65,3 +65,34 @@ See also link:RELEASE_GUIDE.adoc[RELEASE_GUIDE.adoc] - `Trigger respins`.
 ## For more info: 
 
 See link:RHDH.adoc[RHDH.adoc]
+
+## How can I see build or pull request logs after they're garbage collected?
+
+Best answer is to collect them WHILE they're running and store them offline, since they'll be garabage collected. Known issue: https://issues.redhat.com/browse/KONFLUX-6454
+
+First, install opc from https://docs.openshift.com/pipelines/latest/tkn_cli/installing-tkn.html
+
+```
+pr=abcde # some hash code for the specific pull request PipelineRun (pr)
+
+# for a build pipeline
+opc pr logs -n rhdh-tenant rhdh-hub-1-on-push-${pr} -f | tee /tmp/rhdh-hub-1-on-push-${pr}.log.txt &
+
+# for a pull request
+opc pr logs -n rhdh-tenant rhdh-hub-1-on-pull-request-${pr} -f | tee ~/tmp/rhdh-hub-1-on-pull-request-${pr}.log.txt &
+```
+
+## How can I see managed pipeline logs (for releases)?
+
+Best answer is to collect them WHILE they're running and store them offline, since they'll be garabage collected. Known issue: https://issues.redhat.com/browse/KONFLUX-6454
+
+To store a log offline, first install opc from https://docs.openshift.com/pipelines/latest/tkn_cli/installing-tkn.html
+
+
+Then:
+```
+opc pr logs -n rhtap-releng-tenant managed-9k68t -f | tee /tmp/rhtap-releng-tenant managed-9k68t.log.txt
+```
+
+Or, get link:PERMISSIONS.adoc[access to Splunk], and then query for logs. Here's a sample query for the link:https://rhcorporate.splunkcloud.com/en-US/app/search/search?q=search%20index%3Drh_rhtap_production_app%20kubernetes.namespace_name%3Dstonesoup-int-srvc%20message%3D%22*rhdh*%22%20%7C%20table%20_time%20kubernetes.labels.tekton_dev_pipeline%20kubernetes.labels.tekton_dev_pipelineRun%20message&display.page.search.mode=verbose&dispatch.sample_ratio=1&workload_pool=&earliest=1743097020&latest=1743543783&display.page.search.tab=statistics&display.general.type=statistics&sid=1743543985.101261_F6CDC41C-C652-4126-9275-482481A969D1[events related to the 1.5.1 release]. 
+
