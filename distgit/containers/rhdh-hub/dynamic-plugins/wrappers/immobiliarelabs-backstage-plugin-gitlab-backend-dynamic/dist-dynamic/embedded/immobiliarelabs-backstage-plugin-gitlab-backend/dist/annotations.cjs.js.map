@@ -1,1 +1,0 @@
-{"version":3,"file":"annotations.cjs.js","sources":["../src/annotations.ts"],"sourcesContent":["export const GITLAB_PROJECT_SLUG = 'gitlab.com/project-slug';\nexport const GITLAB_PROJECT_ID = 'gitlab.com/project-id';\nexport const GITLAB_INSTANCE = 'gitlab.com/instance';\n"],"names":[],"mappings":";;AAAO,MAAM,mBAAsB,GAAA;AAC5B,MAAM,iBAAoB,GAAA;AAC1B,MAAM,eAAkB,GAAA;;;;;;"}
