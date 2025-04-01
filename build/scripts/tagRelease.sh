@@ -722,6 +722,8 @@ updateKonfluxReleasePlanAdmissionYamls ()
 		#### The python yq wrapper for jq does not preserve comments (because json has no comments)
 		for f in "rhdh-${KFUX_VERSION}-prod.yaml" "rhdh-${KFUX_VERSION}-stage.yaml"; do
 			"${SCRIPT_DIR}/../helm/yq_mf" '.spec.data.mapping.defaults.tags[1]|="'"$CSV_VERSION_Z"'"' "$f" > "$f"_; mv "$f"{_,}
+			# also add a timestamped tag for prod sec - RHIDP-6721
+			"${SCRIPT_DIR}/../helm/yq_mf" '.spec.data.mapping.defaults.tags[2]|="'"$CSV_VERSION_Z"'-{{ timestamp }}"' "$f" > "$f"_; mv "$f"{_,}
 		done
 		COMMITMSG="chore: update rhdh-$KFUX_VERSION-*.yaml RPAs for upcoming release $CSV_VERSION_Z"
 		if [[ ${DO_PUSH} -eq 1 ]]; then
