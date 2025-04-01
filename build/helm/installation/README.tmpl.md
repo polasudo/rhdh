@@ -1,7 +1,9 @@
 ## DEPRECATION ANNOUNCEMENT
 
-This repository is being deprecated and there will be no more updates in Github after March 31st.
-Our new CI Helm charts will be accessible at quay.io/rhdh/chart. The scripted installation has been updated to reflect this change.
+This repository now no longer houses the latest RHDH helm charts.
+Our new CI Helm charts can be accessed at quay.io/rhdh/chart. The scripted installation has been updated to reflect this change.
+
+Soon the installation instructions and script will also no longer be accessible in this repository. More information will be shared at a later date.
 
 ## Scripted installation
 
