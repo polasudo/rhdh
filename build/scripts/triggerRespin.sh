@@ -41,7 +41,8 @@ if [[ ! $1 ]] && [[ ! $2 ]]; then
     exit 1
 fi
 
-MIDSTM_BRANCH=rhdh-${1}-rhel-9
+BRANCH=${1}
+MIDSTM_BRANCH=rhdh-${BRANCH}-rhel-9
 targets="$2"
 
 if [[ $targets == "bun" ]]; then
@@ -55,6 +56,7 @@ if [[ $targets == "bun" ]]; then
         fi
     fi
     "${SCRIPT_DIR}/../ci/sync-midstream.sh" --bundleonly --force $latestNext -b "${MIDSTM_BRANCH}"
+    google-chrome https://konflux.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/application-pipeline/workspaces/rhdh/applications/rhdh-${BRANCH/./-}/activity/pipelineruns
 else
     if [[ $targets == *","* ]]; then
         commitMsg="trigger ${MIDSTM_BRANCH} builds: $targets"
@@ -93,6 +95,5 @@ else
 
     # cleanup
     if [[ -d /tmp/rhdh-tmp ]]; then rm -fr /tmp/rhdh-tmp; fi
+    google-chrome https://gitlab.cee.redhat.com/rhidp/rhdh/-/pipelines
 fi
-
-google-chrome https://gitlab.cee.redhat.com/rhidp/rhdh/-/pipelines
