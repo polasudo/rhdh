@@ -67,6 +67,7 @@ totaldeleted=0
 for repo in $REPOS; do
   thisdeleted=0
   json=$(mktemp)
+  echo "Time to read tags from quay.io/rhdh/$repo
   if [[ $VERBOSE -eq 1 ]]; then echo -e "Clean up tags from quay.io/rhdh/$repo using tmp file $json"; fi
   page=$PAGE
   echo "Read https://quay.io/api/v1/repository/rhdh/${repo}/tag/?limit=100&onlyActiveTags=true${FILTER}&page=${page} "
