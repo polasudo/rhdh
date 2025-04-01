@@ -56,7 +56,7 @@ if [[ $targets == "bun" ]]; then
         fi
     fi
     "${SCRIPT_DIR}/../ci/sync-midstream.sh" --bundleonly --force $latestNext -b "${MIDSTM_BRANCH}"
-    google-chrome https://konflux.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/application-pipeline/workspaces/rhdh/applications/rhdh-${BRANCH/./-}/activity/pipelineruns
+    google-chrome "https://konflux.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/application-pipeline/workspaces/rhdh/applications/rhdh-${BRANCH/./-}/activity/pipelineruns?name=bundle"
 else
     if [[ $targets == *","* ]]; then
         commitMsg="trigger ${MIDSTM_BRANCH} builds: $targets"
