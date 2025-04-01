@@ -18,3 +18,13 @@ If you need to add a new authorized user, ask one of the existing authorized use
 When changing any secret values in BitWarden that are used in Gitlab pipelines in this repo, you MUST upload a NEW FILE as secure file
 to https://gitlab.cee.redhat.com/rhidp/rhdh/-/settings/ci_cd -> Secure Files
 ====
+
+## Access to Splunk (for archived build logs)
+
+Ask "please add me to the `production-rhtap-application-logs`` and `staging-rhtap-application-logs` rover groups?" in link:https://app.slack.com/client/E030G10V24F/C04FDFTF8EB[#forum-konflux-o11y]
+
+See also link:https://gitlab.cee.redhat.com/konflux/docs/sop/-/blob/main/release-service/accessing-internal-services-pipeline-logs-in-splunk.md#accessing-the-release-service-internal-services-pipelinerun-logs-from-splunk[Accessing the Release Service Internal Services PipelineRun logs from Splunk]
+
+Then search for logs:
+
+* https://rhcorporate.splunkcloud.com/en-US/app/search/search?q=search%20index%3Drh_rhtap_production_app%20kubernetes.namespace_name%3Drhtap-releng-tenant%20message%3D%22*%22%20%7C%20table%20_time%20kubernetes.labels.tekton_dev_pipeline%20kubernetes.labels.tekton_dev_pipelineRun%20message&earliest=-2w%40w&latest=now&display.page.search.mode=smart&dispatch.sample_ratio=1&workload_pool=&display.page.search.tab=statistics&display.general.type=statistics&sid=1743538386.104229_D162B515-B94D-46EF-84E1-BFAE58DB8F3F
