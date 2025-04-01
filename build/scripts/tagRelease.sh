@@ -989,7 +989,6 @@ if [[ $SKIP_GH -eq 0 ]]; then
 		updateOperatorVersions "$SOURCE_BRANCH" "$newver" "$newverOp"
 		updateShowcaseVersions "$SOURCE_BRANCH" "$newver"
 		updateChartVersions "$SOURCE_BRANCH" "$newver"
-
 		## CCS has requested that we not bump the version in main branch, as they prefer manual steps to automation.
 		## updateDocVersions "$SOURCE_BRANCH" "$newver"
 	fi
@@ -998,6 +997,44 @@ fi
 # ############
 # MIDSTREAM 
 # ############
+
+# for operator, bump to specified version
+function removeOperatorBundleLatestTags() {
+	if [[ $PROD_VERSION =~ ^([0-9]+)\.([0-9]+) ]]; then # decrease the y digit
+		XX=${BASH_REMATCH[1]}
+		YY=${BASH_REMATCH[2]}
+		(( YY=YY-1 ))
+		PROD_VERSION_PREV="$XX.$YY"
+	fi
+	MIDSTM_BRANCH_PREV="rhdh-${PROD_VERSION_PREV}-rhel-9"
+	echo "= remove latest tags from Containerfiles in ${MIDSTM_BRANCH_PREV} branch"
+	d="rhdh"
+	if [[ -d "$TMPDIR/gitlab_${d}" ]]; then rm -fr "$TMPDIR/gitlab_${d}"; fi
+	git clone -q --depth 1 -b "${MIDSTM_BRANCH_PREV}" "git@gitlab.cee.redhat.com:rhidp/${d}.git" "gitlab_${d}" || \
+		{ echo "ERROR: Branch $MIDSTM_BRANCH_PREV doesn't exist: fail!"; exit 1; }
+	pushd "$TMPDIR/gitlab_${d}" >/dev/null || exit 1
+		git checkout --track origin/"${MIDSTM_BRANCH_PREV}" -q 2>/dev/null || true
+		git pull -q 2>/dev/null || true
+		pushd "$TMPDIR/gitlab_${d}/distgit/containers/" >/dev/null || exit 1
+			for c in */Containerfile; do 
+				echo " > $c"
+				sed -i "$c" -r -e "/konflux.additional-tags/ s/latest, //"
+			done
+			COMMITMSG="chore: tagRelease.sh: remove latest tags from Containerfiles in ${MIDSTM_BRANCH_PREV} branch"
+			git commit --no-gpg-sign -s -m "${COMMITMSG}" . || echo "nothing to commit, working tree clean (7)"
+			if [[ $DO_PUSH -eq 1 ]]; then
+				if [[ $(git diff --name-only HEAD~1 2>/dev/null || true) ]]; then 
+					git push origin "${MIDSTM_BRANCH_PREV}" 1>/dev/null 2>&1  || true
+					doPush "${MIDSTM_BRANCH_PREV}"
+				else 
+					echo "nothing to commit, working tree clean (8)"
+				fi
+			else
+				echo "Updated files are in $TMPDIR/gitlab_${d}/ -- commit and push them manually"
+			fi
+		popd >/dev/null || exit 1
+	popd >/dev/null || exit 1
+}
 
 # echo "SKIPS: $SKIP_GL"
 # branch or tag GL repo(s)
@@ -1011,6 +1048,7 @@ if [[ $SKIP_GL -eq 0 ]] && [[ "${MIDSTM_BRANCH}" ]]; then
 		if [[ ! $CSV_VERSION ]] && [[ $repo == "rhdh" ]]; then
 			echo "Update existing branch $MIDSTM_BRANCH" 
 			updateFBCVersions
+			removeOperatorBundleLatestTags 
 		fi
 	done
 fi
