@@ -48,10 +48,10 @@ targets="$2"
 if [[ $targets == "bun" ]]; then
     latestStableBranch="$(curl -sSLk --url "https://gitlab.cee.redhat.com/api/v4/projects/rhidp%2Frhdh/repository/branches?per_page=200&regex=^rhdh-1..*-rhel-9$" | jq -r '.[].name' | sort -uV | tail -1)"; # echo $latestStableBranch
     latestNext=""
-    if [[ ${DWNSTM_BRANCH} == "rhdh-"*"-rhel-"* ]]; then 
-        if [[ $DWNSTM_BRANCH == "rhdh-1-rhel-9" ]]; then
+    if [[ ${MIDSTM_BRANCH} == "rhdh-"*"-rhel-"* ]]; then 
+        if [[ $MIDSTM_BRANCH == "rhdh-1-rhel-9" ]]; then
             latestNext="--next"
-        elif [[ "$DWNSTM_BRANCH" == "${latestStableBranch}" ]]; then # latest stable branch
+        elif [[ "$MIDSTM_BRANCH" == "${latestStableBranch}" ]]; then # latest stable branch
             latestNext="--latest"
         fi
     fi
