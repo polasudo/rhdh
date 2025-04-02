@@ -12,24 +12,44 @@
 VERBOSE=0
 PAGE=1 # start on page 1 by default -- might be more efficient to skip to page 90 or so
 DELETE_AGE="-8 months" # age at which to delete tags
-REPOS="rhdh-rhel9-operator rhdh-operator-bundle rhdh-hub-rhel9 iib"
+REPOS="rhdh-hub-rhel9 rhdh-rhel9-operator rhdh-operator-bundle iib"
 FILTER="" 
 DRYRUN=0 # don't actually do anything
 
 usage() {
-	echo "Usage:
+if [[ ! $accessToken ]]; then 
+  echo "
+You must export your Quay API access token to run this script. To create a new token, go to 
+  https://quay.io/organization/rhdh/application/RRFWLY26BL7VCM6WQAK9?tab=gen-token
 
-  $0 [-p START_PAGE] [-r REPOS] [--filter pattern] [--all] [--dry-run] [--debug]
+Then:
+  export accessToken=..."
+fi
+echo "
+Usage:
+  $0 [-p START_PAGE] [-r REPOS] [--filter PATTERN] [--age AGE] [--dry-run] [--debug]
 
 Examples:
 
-  $0 -p 44 --dry-run --debug
-  $0 --filter 1.1- --dry-run --debug
+  # start on page 44
+  $0 -p 44 --dry-run --debug 
+
+  # remove 1.3- tags
+  $0 --filter 1.3- --dry-run --debug 
+
+  # remove on-pr and on-push tags, which duplicate the numbered ones 1.y-zzz
+  $0 --filter on- --age '10 days'
+
+  # remove old konflux-generated tags for .sbom, .src, .att, etc. 
+  $0 --filter sha256- --age '4 months'
+
+  # remove helm chart CI tags
+  $0 -r chart --filter CI --age '14 days'
 
 Options:
     -p PAGE             start searching for old tags on specified page; default $PAGE
-    -r REPOS            space-separated list of repos to process; default \"$REPOS\"
-    --filter FILTER     search only for tags matching some pattern, like 1.3-
+    -r REPOS            space-separated list of repos to process; default '$REPOS'
+    --filter FILTER     search only for tags matching some pattern, like 1.3-, on-, or sha256-
     --age AGE           delete tags older than some number of months; default: 8 months
     --all               default (slowest) operation: no filter, starting on page $PAGE
     --dry-run           show commands but do not delete any tags
@@ -37,6 +57,8 @@ Options:
     -h, --help          this help
 "
 }
+
+if [[ "$#" -lt 2 ]] || [[ ! $accessToken ]]; then usage; exit 1; fi
 
 # commandline args
 while [[ "$#" -gt 0 ]]; do
@@ -54,20 +76,12 @@ while [[ "$#" -gt 0 ]]; do
   shift 1
 done
 
-if [[ ! $accessToken ]]; then 
-  echo "[ERROR] You must export your quay API access token to run this script"; 
-  echo "[ERROR] To create a new token, go to https://quay.io/organization/rhdh/application/RRFWLY26BL7VCM6WQAK9?tab=gen-token then:"
-  echo "export accessToken=..."
-  echo
-  usage
-  exit 1
-fi
-
 totaldeleted=0
 for repo in $REPOS; do
   thisdeleted=0
   json=$(mktemp)
-  echo "Time to read tags from quay.io/rhdh/$repo
+  echo -e -n "\nTags read from $repo : "; time skopeo inspect "docker://quay.io/rhdh/${repo}" | jq .RepoTags | wc -l
+
   if [[ $VERBOSE -eq 1 ]]; then echo -e "Clean up tags from quay.io/rhdh/$repo using tmp file $json"; fi
   page=$PAGE
   echo "Read https://quay.io/api/v1/repository/rhdh/${repo}/tag/?limit=100&onlyActiveTags=true${FILTER}&page=${page} "
