@@ -13,6 +13,7 @@ SCRIPT=$(readlink -f "$0")
 ROOTPATH=$(dirname "$SCRIPT")
 PR_BRANCH="pr-update-base-images-$(date +%s)"
 DO_MINOR="false"
+REGEX="*yaml"
 QUIET=1
 docommit=1 # by default DO commit the change
 dopush=1 # by default DO push the change
@@ -31,6 +32,7 @@ Options:
                     NOTE: this may cause migration issues! Mintmaker might be better for handling this
                           as it will provide migration instructions
                     Implies --no-push
+  --regex           file pattern to search for; default: '$REGEX'
   --no-commit, -n   do not commit changes
   --no-push, -p     do not push changes
   --debug           show debug steps
@@ -47,6 +49,7 @@ if [[ $# -lt 1 ]]; then usage; exit; fi
 
 while [[ "$#" -gt 0 ]]; do
   case $1 in
+    '--regex') REGEX="$1"; shift ;;
 	'--digest-only') DO_MINOR="false"; shift 0;;
 	'--minor') DO_MINOR="true"; dopush=0; shift 0;;
 	'-n'|'--nocommit'|'--no-commit') docommit=0; dopush=0; shift 0;;
@@ -70,12 +73,13 @@ declare -A digests
 # file counters: tf, cf
 tf=0; cf=0
 
-for file in $(find "$ROOTPATH" -name "*yaml"); do 
+# shellcheck disable=SC2044
+for file in $(find "$ROOTPATH" -name "${REGEX}"); do 
     (( tf = tf + 1 ))
 done
 
 mkfifo mypipe 2>/dev/null || true
-for file in $(find "$ROOTPATH" -name "*yaml" | sort -V); do 
+for file in $(find "$ROOTPATH" -name "${REGEX}" | sort -V); do 
     (( cf = cf + 1 ))
     # line counters: tl, cl
     tl=0; cl=0
