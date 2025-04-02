@@ -1,0 +1,19 @@
+---
+metadata: 
+  version: "1.0"
+# files are available at /cachi2/output/deps/generic/ in the container
+# compute new digests with:
+#   for f in $(cat distgit/containers/rhdh-hub/artifacts.lock.yaml | yq -r '.artifacts[].download_url'); do curl -sSLo /tmp/${f##*/} $f; sha256sum /tmp/${f##*/}; done
+artifacts:
+  - download_url: "https://nodejs.org/download/release/v22.13.1/node-v22.13.1-headers.tar.gz"
+    checksum: "sha256:f9cde9ace585c3979f1b4ee247914f35fae6e7b7eabc6a40961f89ad39e78964"
+  - download_url: "https://cdn.playwright.dev/dbazure/download/playwright/builds/chromium/1155/chromium-linux.zip"
+    checksum: "sha256:cadb84ee9dd3b3a5ce435175c2e39c585c90457292358534acf6e6f2f1fa248d"
+  - download_url: "https://cdn.playwright.dev/dbazure/download/playwright/builds/chromium/1155/chromium-headless-shell-linux.zip"
+    checksum: "sha256:3536f44d07d251389a57be819cdb2ea724c5c9b6b1eb0eddd8a37c547cc05234"
+  - download_url: "https://playwright.azureedge.net/builds/ffmpeg/1011/ffmpeg-linux.zip"
+    checksum: "sha256:ebc74fc5b94830176a3c2914ae96bd8bc7f6a91f4f33890230f84a172ee61ccc"
+  # - download_url: "https://playwright.azureedge.net/builds/firefox/1471/firefox-ubuntu-20.04.zip"
+  #   checksum: "sha256:10113c986a9e0452f02e39ebacfca4777ba8740eecd909bcdc81c6f6740ce79a"
+  # - download_url: "https://cdn.playwright.dev/dbazure/download/playwright/builds/webkit/2092/webkit-ubuntu-20.04.zip"
+  #   checksum: "sha256:e1d1db96e964c578958958fc22b87acf3ab53ec54245f8e07925a90c7999fb44"

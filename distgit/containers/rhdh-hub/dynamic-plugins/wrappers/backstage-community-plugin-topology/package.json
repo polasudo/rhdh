@@ -32,7 +32,7 @@
     "tsc": "tsc",
     "build": "backstage-cli package build",
     "clean": "backstage-cli package clean",
-    "export-dynamic": "janus-cli package export-dynamic-plugin --in-place",
+    "export-dynamic": "janus-cli package export-dynamic-plugin --no-install --in-place",
     "lint:check": "backstage-cli package lint",
     "test": "backstage-cli package test --passWithNoTests --coverage",
     "clean-dynamic-sources": "yarn clean && rm -Rf node_modules",

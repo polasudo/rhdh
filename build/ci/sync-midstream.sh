@@ -435,6 +435,32 @@ for ((i = START_REPO; i < NUM_REPOS; i++)); do # echo $i
     # if processing the upstream showcase/hub, also make some changes to the hub folder dowstream
     if [[ $destination_folder == *"rhdh-hub"* ]]; then
       rsync -azq $TMPDIR/repo${i}/.rhdh/docker/* "${ROOTPATH}/${destination_folder%/}/docker/" --exclude=.git ${excludesFlags}
+
+      pushd "${ROOTPATH}/${destination_folder%/}" >/dev/null || exit 1
+
+        # Konflux performance workaround
+        # set concurrency for turbo commands so that builds don't run our of file handles / disk space / memory (instead of default 10)
+        # concurrency=6 crashes the build, so use 4
+        # +    "export-dynamic": "turbo run export-dynamic --concurrency=z",
+        # +    "export-dynamic:clean": "turbo run export-dynamic:clean --concurrency=z",
+        # as of 1.5, use concurrency=1 to try to work around dependency collisions caused by parallel threading
+        if [[ -f package.json ]]; then
+          sed -i package.json -r -e 's| --concurrency=[0-9]+||g' -e 's|("export-dynamic.+)",|\1 --concurrency=1",|'
+        fi
+
+        # RHIDP-4014 konflux needs to pass env vars to every yarn install command, 
+        # so we can't call it from within janus-idp/cli's export-dynamic command; instead do a 
+        # --no--install here, then a yarn install from the dynamic-plugins/wrappers/*/dist-dynamic/ folders
+        # shellcheck disable=SC2044
+        for f in $(find dynamic-plugins/wrappers -maxdepth 2 -name package.json); do
+          # echo "Adjust $f to add --no-install flag"
+          sed -i "$f" -r -e 's|("export-dynamic": "janus-cli package export-dynamic-plugin)|\1 --no-install|g'
+        done
+
+        # RHIDP-4014 konflux - remove postinstall step that reinstall browsers (already prefetched by cachi2 via artifacts.lock.yaml)
+        sed -i e2e-tests/package.json -r -e '/"postinstall":.+/d'; grep postinstall ./e2e-tests/package.json || true
+
+      popd >/dev/null || exit 1
     fi
 
     ##################################### rhdh-operator-bundle #####################################
@@ -905,6 +931,7 @@ else
     distgit/containers/rhdh-hub/dynamic-plugins-root/* \
     distgit/containers/rhdh-hub/dynamic-plugins/dist/ \
     distgit/containers/rhdh-hub/dynamic-plugins/wrappers/*/dist-dynamic/src \
+    distgit/containers/rhdh-hub/dynamic-plugins/wrappers/*/dist-dynamic/yarn.lock \
     distgit/containers/rhdh-hub/dynamic-plugins/*/dist-dynamic/src
   touch distgit/containers/rhdh-hub/dynamic-plugins-root/.gitkeep
 
@@ -1082,8 +1109,7 @@ for d in $these_dirs; do
 
     ## generate Containerfile for Konflux
     if [[ $d == "distgit/containers/rhdh-hub" ]] && [[ " ${SKIPPED_CONTAINERS[*]} " != *"rhdh-hub/"* ]]; then
-      # TODO: RHIDP-4041 switch to Cachi2'd version (Dockerfile) instead of pure upstream Dockerfile for hub
-      cp -f "$TMPDIR/repo0/docker/Dockerfile" Containerfile
+      cp -f "Dockerfile" Containerfile
     elif [[ $d == "distgit/containers/rhdh-operator" ]] && [[ " ${SKIPPED_CONTAINERS[*]} " != *"rhdh-operator/"* ]]; then
       # for operator use the transformed Dockerfile.in with the correct LABEL and ENV  values
       cp -f Dockerfile Containerfile

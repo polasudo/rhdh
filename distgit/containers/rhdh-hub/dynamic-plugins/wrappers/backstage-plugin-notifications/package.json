@@ -25,7 +25,7 @@
     "clean": "backstage-cli package clean",
     "lint:check": "backstage-cli package lint",
     "test": "backstage-cli package test --passWithNoTests --coverage",
-    "export-dynamic": "janus-cli package export-dynamic-plugin --in-place",
+    "export-dynamic": "janus-cli package export-dynamic-plugin --no-install --in-place",
     "export-dynamic:clean": "run export-dynamic --clean"
   },
   "dependencies": {

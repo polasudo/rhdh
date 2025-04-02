@@ -25,10 +25,12 @@
     },
     "./package.json": "./package.json"
   },
+  "scripts": {},
   "dependencies": {
     "@backstage/plugin-search-backend-module-techdocs": "0.3.6",
     "@backstage/plugin-techdocs-backend": "1.11.6"
   },
+  "devDependencies": {},
   "files": [
     "dist"
   ],
@@ -49,19 +51,19 @@
   ],
   "bundleDependencies": true,
   "peerDependencies": {
-    "@backstage/backend-common": "^0.25.0",
     "@backstage/backend-plugin-api": "1.2.0",
+    "@backstage/backend-common": "^0.25.0",
     "@backstage/catalog-client": "^1.9.1",
     "@backstage/catalog-model": "^1.7.3",
     "@backstage/config": "^1.3.2",
-    "@backstage/errors": "^1.2.7",
-    "@backstage/integration": "^1.16.1",
-    "@backstage/integration-aws-node": "^0.1.15",
     "@backstage/plugin-catalog-common": "^1.1.3",
     "@backstage/plugin-catalog-node": "^1.16.0",
     "@backstage/plugin-permission-common": "^0.8.4",
     "@backstage/plugin-search-backend-node": "^1.3.8",
-    "@backstage/types": "^1.2.1"
+    "@backstage/types": "^1.2.1",
+    "@backstage/errors": "^1.2.7",
+    "@backstage/integration": "^1.16.1",
+    "@backstage/integration-aws-node": "^0.1.15"
   },
   "overrides": {
     "@aws-sdk/util-utf8-browser": {

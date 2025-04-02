@@ -22,6 +22,7 @@
     },
     "./package.json": "./package.json"
   },
+  "scripts": {},
   "dependencies": {
     "@backstage-community/plugin-scaffolder-backend-module-servicenow": "2.5.0"
   },
@@ -43,6 +44,7 @@
     "support:tech-preview",
     "lifecycle:active"
   ],
+  "devDependencies": {},
   "bundleDependencies": true,
   "overrides": {
     "@aws-sdk/util-utf8-browser": {

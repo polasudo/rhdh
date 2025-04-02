@@ -26,10 +26,12 @@
     },
     "./package.json": "./package.json"
   },
+  "scripts": {},
   "dependencies": {
     "@backstage/plugin-notifications-backend": "0.5.3",
     "@backstage/plugin-signals-node": "0.1.17"
   },
+  "devDependencies": {},
   "files": [
     "dist",
     "migrations/**/*.{js,d.ts}"
