@@ -350,64 +350,63 @@ if [[ $PUBLISH -eq 1 ]]; then
         # create a PR against the openshift-helm-charts/charts repo, containing ONLY the tarball,
         # none of the installation instructions/scripts/chart repo
         pushd /tmp >/dev/null || exit 1
-        rm -fr "/tmp/rhdh-bot-${CHART_VERSION}" /tmp/openshift-helm-charts-main
-        git clone git@github.com:rhdh-bot/openshift-helm-charts.git -q --depth=1 -b "redhat-developer-hub-${CHART_VERSION}" "rhdh-bot-${CHART_VERSION}"
-        git clone git@github.com:openshift-helm-charts/charts.git   -q --depth=1 -b "main" "openshift-helm-charts-main"
+            rm -fr "/tmp/rhdh-bot-${CHART_VERSION}" /tmp/openshift-helm-charts-main
+            git clone git@github.com:rhdh-bot/openshift-helm-charts.git -q --depth=1 -b "redhat-developer-hub-${CHART_VERSION}" "rhdh-bot-${CHART_VERSION}"
+            git clone git@github.com:openshift-helm-charts/charts.git   -q --depth=1 -b "main" "openshift-helm-charts-main"
         popd >/dev/null || exit 1
 
         # copy new tarball into other fork (excluding install instructions)
         pushd /tmp >/dev/null || exit 1
-        rsync -aqrz \
-            "rhdh-bot-${CHART_VERSION}/charts/redhat/redhat/redhat-developer-hub/${CHART_VERSION}/redhat-developer-hub-${CHART_VERSION}.tgz" \
-            "openshift-helm-charts-main/charts/redhat/redhat/redhat-developer-hub/${CHART_VERSION}/"
+            rsync -aqrz \
+                "rhdh-bot-${CHART_VERSION}/charts/redhat/redhat/redhat-developer-hub/${CHART_VERSION}/redhat-developer-hub-${CHART_VERSION}.tgz" \
+                "openshift-helm-charts-main/charts/redhat/redhat/redhat-developer-hub/${CHART_VERSION}/"
+            # create PR
+            pushd openshift-helm-charts-main/charts/redhat/redhat/redhat-developer-hub/ >/dev/null || exit 1
+                git checkout main
+                git pull origin main
+                git pull origin
+                git remote add rhdh-bot git@github.com:rhdh-bot/openshift-helm-charts.git
+                git checkout origin/main -b "release-${CHART_VERSION}" || true
+                git checkout "release-${CHART_VERSION}" || true
+                git add "${CHART_VERSION}"
+                COMMIT_MSG="chore: chart: add Red Hat Developer Hub ${CHART_VERSION} for registry.redhat.io/rhdh/rhdh-hub-rhel9:${RHDH_VERSION}"
+                git commit --no-gpg-sign -s -m "${COMMIT_MSG}" "${CHART_VERSION}" .
+                # delete branch (if exists)
+                if [[ $(git ls-remote --heads git@github.com:rhdh-bot/openshift-helm-charts.git "refs/heads/release-${CHART_VERSION}") ]]; then 
+                    git push rhdh-bot :release-"${CHART_VERSION}" || true
+                fi
+                # create new branch
+                git push rhdh-bot release-"${CHART_VERSION}"
 
-        # create PR
-        pushd openshift-helm-charts-main/charts/redhat/redhat/redhat-developer-hub/ >/dev/null || exit 1
-        git checkout main
-        git pull origin main
-        git pull origin
-        git remote add rhdh-bot git@github.com:rhdh-bot/openshift-helm-charts.git
-        git checkout origin/main -b "release-${CHART_VERSION}" || true
-        git checkout "release-${CHART_VERSION}" || true
-        git add "${CHART_VERSION}"
-        COMMIT_MSG="chore: chart: add Red Hat Developer Hub ${CHART_VERSION} for registry.redhat.io/rhdh/rhdh-hub-rhel9:${RHDH_VERSION}"
-        git commit --no-gpg-sign -s -m "${COMMIT_MSG}" "${CHART_VERSION}" .
-        # delete branch (if exists)
-        if [[ $(git ls-remote --heads git@github.com:rhdh-bot/openshift-helm-charts.git "refs/heads/release-${CHART_VERSION}") ]]; then 
-            git push rhdh-bot :release-"${CHART_VERSION}" || true
-        fi
-        # create new branch
-        git push rhdh-bot release-"${CHART_VERSION}"
+                # Option 1: open the PR creation page
+                echo "Creating PR https://github.com/openshift-helm-charts/charts/compare/main...rhdh-bot:openshift-helm-charts:release-${CHART_VERSION}?expand=1 ..."
 
-        # Option 1: open the PR creation page
-        echo "Creating PR https://github.com/openshift-helm-charts/charts/compare/main...rhdh-bot:openshift-helm-charts:release-${CHART_VERSION}?expand=1 ..."
-
-        # Option 2: create the PR automatically
-        gh repo set-default openshift-helm-charts/charts
-        gh pr create -t "${COMMIT_MSG}" -b "${COMMIT_MSG}" --base main --head rhdh-bot:openshift-helm-charts:release-"${CHART_VERSION}"
-        # open new PR in a browser
-        URL=$(gh pr view rhdh-bot:release-"${CHART_VERSION}" --json 'url' | jq -r '.url')
-        google-chrome --incognito "$URL" || true
-
-        popd >/dev/null || exit 1
-        rm -fr "/tmp/rhdh-bot-${CHART_VERSION}" /tmp/openshift-helm-charts-main
+                # Option 2: create the PR automatically
+                gh repo set-default openshift-helm-charts/charts
+                gh pr create -t "${COMMIT_MSG}" -b "${COMMIT_MSG}" --base main --head rhdh-bot:openshift-helm-charts:release-"${CHART_VERSION}"
+                # open new PR in a browser
+                URL=$(gh pr view rhdh-bot:release-"${CHART_VERSION}" --json 'url' | jq -r '.url')
+                google-chrome --incognito "$URL" || true
+            popd >/dev/null || exit 1
+            rm -fr "/tmp/rhdh-bot-${CHART_VERSION}" /tmp/openshift-helm-charts-main
         popd >/dev/null || exit 1
     elif [[ $EXTRA_BRANCH ]]; then # include installation folder only for CI builds (not for GA)
-        git clone --filter=blob:none --no-checkout --depth=1 -q "${CATALOG_FORK}" "${CATALOG_DIR}-2" && pushd "${CATALOG_DIR}-2" >/dev/null || exit 1
-        git sparse-checkout init --cone
-        git read-tree -mu HEAD
-        git -C "${CATALOG_DIR}-2" checkout -q -b "${EXTRA_BRANCH}" 1>/dev/null 2>&1 || true
-        git -C "${CATALOG_DIR}-2" pull $QUIET origin "${EXTRA_BRANCH}" 1>/dev/null 2>&1 || true
-        rsync -arzq "${CATALOG_DIR}/installation" "${CATALOG_DIR}-2/"
-        git -C "${CATALOG_DIR}-2" add installation --sparse
-        CHANGED=1
-        git -C "${CATALOG_DIR}-2" commit -q --no-verify --no-gpg-sign -s -m "chore: add redhat-developer-hub-${CHART_VERSION}" || CHANGED=0
-        if [[ $CHANGED -eq 1 ]]; then 
-            git -C "${CATALOG_DIR}-2" push $QUIET origin "${EXTRA_BRANCH}" -f 2>/dev/null || \
-            { echo "[ERROR] Could not push to branch redhat-developer-hub-${CHART_VERSION}: must exit!"; exit 45; }
-        else 
-            echo "nothing to commit, working tree clean"
-        fi
+        git clone --filter=blob:none --no-checkout --depth=1 -q "${CATALOG_FORK}" "${CATALOG_DIR}-2" && \
+        pushd "${CATALOG_DIR}-2" >/dev/null || exit 1
+            git sparse-checkout init --cone
+            git read-tree -mu HEAD
+            git -C "${CATALOG_DIR}-2" checkout -q -b "${EXTRA_BRANCH}" 1>/dev/null 2>&1 || true
+            git -C "${CATALOG_DIR}-2" pull $QUIET origin "${EXTRA_BRANCH}" 1>/dev/null 2>&1 || true
+            rsync -arzq "${CATALOG_DIR}/installation" "${CATALOG_DIR}-2/"
+            git -C "${CATALOG_DIR}-2" add installation --sparse
+            CHANGED=1
+            git -C "${CATALOG_DIR}-2" commit -q --no-verify --no-gpg-sign -s -m "chore: add redhat-developer-hub-${CHART_VERSION}" || CHANGED=0
+            if [[ $CHANGED -eq 1 ]]; then 
+                git -C "${CATALOG_DIR}-2" push $QUIET origin "${EXTRA_BRANCH}" -f 2>/dev/null || \
+                { echo "[ERROR] Could not push to branch redhat-developer-hub-${CHART_VERSION}: must exit!"; exit 45; }
+            else 
+                echo "nothing to commit, working tree clean"
+            fi
         popd >/dev/null || exit 1
         echo; echo "Helm chart published. To install, see:
     https://github.com/rhdh-bot/openshift-helm-charts/tree/${EXTRA_BRANCH}/installation"
@@ -443,24 +442,16 @@ To install this chart, run the following commands against your OCP cluster:
     oc new-project $HELM_PROJECT
 
     pushd $CATALOG_DIR/charts/redhat/redhat/redhat-developer-hub/${CHART_VERSION}/ >/dev/null; \\
-    tar xzf redhat-developer-hub-${CHART_VERSION}.tgz && \\
-    helm upgrade redhat-developer-hub -i -n $HELM_PROJECT redhat-developer-hub/; \\
-    PASSWORD=\$(kubectl get secret redhat-developer-hub-postgresql -o jsonpath=\"{.data.password}\" | base64 -d); \\
-    CLUSTER_ROUTER_BASE=\$(oc get route console -n openshift-console -o=jsonpath='{.spec.host}' | sed 's/^[^.]*\.//'); \\
-    helm upgrade redhat-developer-hub -n $HELM_PROJECT \\
-      --set global.clusterRouterBase=\"\${CLUSTER_ROUTER_BASE}\" \\
-      --set global.postgresql.auth.password=\"\$PASSWORD\" redhat-developer-hub/; \\
+        tar xzf redhat-developer-hub-${CHART_VERSION}.tgz && \\
+        helm upgrade redhat-developer-hub -i -n $HELM_PROJECT redhat-developer-hub/; \\
+        PASSWORD=\$(kubectl get secret redhat-developer-hub-postgresql -o jsonpath=\"{.data.password}\" | base64 -d); \\
+        CLUSTER_ROUTER_BASE=\$(oc get route console -n openshift-console -o=jsonpath='{.spec.host}' | sed 's/^[^.]*\.//'); \\
+        helm upgrade redhat-developer-hub -n $HELM_PROJECT \\
+        --set global.clusterRouterBase=\"\${CLUSTER_ROUTER_BASE}\" \\
+        --set global.postgresql.auth.password=\"\$PASSWORD\" redhat-developer-hub/; \\
     popd >/dev/null
 "
 fi
-
-# repo cleanup
-if [[ $DEBUG -eq 1 ]]; then
-    echo;echo "Delete old folders from $EXTRA_BRANCH (except for $CHART_VERSION):"
-fi
-cd /tmp
-
-git clone --filter=blob:none -q "${CATALOG_FORK}" -b "redhat-developer-hub-${CHART_VERSION}" "${CATALOG_DIR}-3" 1>/dev/null 2>&1 && pushd "${CATALOG_DIR}-3" >/dev/null || exit 1
 
 deleteDirs() {
     BRANCH="$1"
@@ -468,7 +459,7 @@ deleteDirs() {
         echo "Clean up ${CATALOG_DIR}-3/charts/redhat/redhat/redhat-developer-hub/ in $BRANCH branch"
     fi
     # shellcheck disable=SC2044
-    for olddir in $(find "${CATALOG_DIR}-3"/charts/redhat/redhat/redhat-developer-hub/ -maxdepth 1 -name "0.*" -o -name "*-CI"); do # echo $olddir
+    for olddir in $(find "${CATALOG_DIR}-3"/charts/redhat/redhat/redhat-developer-hub/ -maxdepth 1 -name "*-CI" || true); do # echo $olddir
         if [[ $olddir != *"/${CHART_VERSION}" ]]; then
             git -C "${CATALOG_DIR}-3" rm -fr "$olddir" 1>/dev/null 2>&1 || true
             # echo "  Folder ${olddir##*redhat/redhat/} deleted"
@@ -479,11 +470,21 @@ deleteDirs() {
     # find "${CATALOG_DIR}-3"/charts/redhat/redhat/redhat-developer-hub/ -maxdepth 1
 }
 
-if [[ $EXTRA_BRANCH ]]; then
-    git -C "${CATALOG_DIR}-3" checkout "$EXTRA_BRANCH" 1>/dev/null 2>&1 || true
-    deleteDirs "$EXTRA_BRANCH"
-fi
+set -x
 
+# repo cleanup
+if [[ $DEBUG -eq 1 ]]; then
+    echo;echo "Delete old folders from $EXTRA_BRANCH (except for $CHART_VERSION):"
+fi
+cd /tmp
+
+git clone --filter=blob:none -q "${CATALOG_FORK}" -b "${EXTRA_BRANCH}" "${CATALOG_DIR}-3" 1>/dev/null 2>&1 && \
+pushd "${CATALOG_DIR}-3" >/dev/null || exit 1
+    if [[ $EXTRA_BRANCH ]]; then
+        git -C "${CATALOG_DIR}-3" checkout "$EXTRA_BRANCH" 1>/dev/null 2>&1 || true
+        deleteDirs "$EXTRA_BRANCH"
+    fi
 popd >/dev/null || exit 1
 
+# delete temp folders
 rm -fr "${HELM_DIR}" "${CATALOG_DIR}" "${CATALOG_DIR}-2" "${CATALOG_DIR}-3"

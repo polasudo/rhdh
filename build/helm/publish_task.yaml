@@ -77,4 +77,4 @@ spec:
         fi
         
         echo "[DEBUG] publishing chart version ${IMAGE}-CI from ${chart_branch} to ${target_branch}..."
-        ./build/helm/prepare.sh --chart-version ${TAG}-CI --rhdh-version ${TAG} --chart-branch ${chart_branch} --publish --extra-branch ${target_branch} --catalog "https://rhdh-bot:${GITHUB_TOKEN}@github.com/rhdh-bot/openshift-helm-charts.git" --quay-registry-config '/var/workdir/registry_auth.json'
+        ./build/helm/prepare.sh --debug --chart-version ${TAG}-CI --rhdh-version ${TAG} --chart-branch ${chart_branch} --publish --extra-branch ${target_branch} --catalog "https://rhdh-bot:${GITHUB_TOKEN}@github.com/rhdh-bot/openshift-helm-charts.git" --quay-registry-config '/var/workdir/registry_auth.json'
