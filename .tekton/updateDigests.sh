@@ -14,6 +14,7 @@ ROOTPATH=$(dirname "$SCRIPT")
 PR_BRANCH="pr-update-base-images-$(date +%s)"
 DO_MINOR="false"
 REGEX="*yaml"
+TRIGGER="false"
 QUIET=1
 docommit=1 # by default DO commit the change
 dopush=1 # by default DO push the change
@@ -33,6 +34,7 @@ Options:
                           as it will provide migration instructions
                     Implies --no-push
   --regex           file pattern to search for; default: '$REGEX'
+  --trigger         trigger konflux builds for this update: default: false
   --no-commit, -n   do not commit changes
   --no-push, -p     do not push changes
   --debug           show debug steps
@@ -48,18 +50,19 @@ Examples:
 if [[ $# -lt 1 ]]; then usage; exit; fi
 
 while [[ "$#" -gt 0 ]]; do
-  case $1 in
-    '--regex') REGEX="$1"; shift ;;
-	'--digest-only') DO_MINOR="false"; shift 0;;
-	'--minor') DO_MINOR="true"; dopush=0; shift 0;;
-	'-n'|'--nocommit'|'--no-commit') docommit=0; dopush=0; shift 0;;
-	'-p'|'--nopush'|'--no-push') dopush=0; shift 0;;
-	'--debug') QUIET=0; shift 0;;
-	'-q'|'--quiet') QUIET=1; shift 0;;
-	'--help'|'-h') usage; exit;;
-	*) echo "Invalid commandline argument: $1"; exit;; 
-  esac
-  shift 1
+	case $1 in
+		'--regex') REGEX="$2"; shift 1;;
+		'--trigger') TRIGGER="true"; shift 0;;
+		'--digest-only') DO_MINOR="false"; shift 0;;
+		'--minor') DO_MINOR="true"; dopush=0; shift 0;;
+		'-n'|'--nocommit'|'--no-commit') docommit=0; dopush=0; shift 0;;
+		'-p'|'--nopush'|'--no-push') dopush=0; shift 0;;
+		'--debug') QUIET=0; shift 0;;
+		'-q'|'--quiet') QUIET=1; shift 0;;
+		'--help'|'-h') usage; exit;;
+		*) echo "Invalid commandline argument: $1"; exit;; 
+	esac
+	shift 1
 done
 
 norm="\033[0;39m"
@@ -74,6 +77,7 @@ declare -A digests
 tf=0; cf=0
 
 # shellcheck disable=SC2044
+echo "Searching for $REGEX ..."
 for file in $(find "$ROOTPATH" -name "${REGEX}"); do 
     (( tf = tf + 1 ))
 done
@@ -163,7 +167,13 @@ createPr() {
 
 if [[ ${docommit} -eq 1 ]]; then 
     git add "$ROOTPATH/*.yaml" "$ROOTPATH/*.sh" || true
-    git commit -s -m "chore: Update .tekton folder to latest task versions [ci skip]" "$ROOTPATH/"
+    if [[ $TRIGGER == "true" ]]; then
+        # konflux trigger, skips gitlab
+        git commit -s -m "[ci skip] chore: Update .tekton folder to latest task versions" "$ROOTPATH/" 
+    else
+        # no konflux or gitlab trigger
+        git commit -s -m "chore: [ci skip] [skip ci] Update .tekton folder to latest task versions" "$ROOTPATH/" 
+    fi
     if [[ ${dopush} -eq 1 ]]; then
         git pull origin "${MIDSTM_BRANCH}"
         PUSH_TRY="$(git push origin "${MIDSTM_BRANCH}" 2>&1 || true)"
