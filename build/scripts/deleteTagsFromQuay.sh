@@ -80,7 +80,14 @@ totaldeleted=0
 for repo in $REPOS; do
   thisdeleted=0
   json=$(mktemp)
-  echo -e -n "\nTags read from $repo : "; time skopeo inspect "docker://quay.io/rhdh/${repo}" | jq .RepoTags | wc -l
+
+  if [[ $repo != "chart" ]]; then # can't inspect helm charts, only containers
+    repoAndTag="${repo}:next"
+    if [[ $repo == "iib" ]]; then 
+      repoAndTag="${repo}:next-v4.18-x86_64" # no latest tag in this repo
+    fi
+    echo -e -n "\nTags read from $repo : "; time skopeo inspect "docker://quay.io/rhdh/${repoAndTag}" | jq .RepoTags | wc -l
+  fi
 
   if [[ $VERBOSE -eq 1 ]]; then echo -e "Clean up tags from quay.io/rhdh/$repo using tmp file $json"; fi
   page=$PAGE
