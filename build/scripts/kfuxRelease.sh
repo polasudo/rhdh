@@ -72,7 +72,7 @@ Options:
   -v                 RHDH version x.y.z to release
   
 Releases can be found at:
-https://konflux.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/application-pipeline/workspaces/rhdh/applications/rhdh-${RHDH_VERSION_INPUT}/releases/"
+https://konflux-ui.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/ns/rhdh-tenant/applications/rhdh-${RHDH_VERSION_INPUT}/releases/"
 }
 
 usageFBCs () {
@@ -100,7 +100,7 @@ for v in 4.14 4.15 4.16 4.17 4.18; do
  echo 'Sleep 1 min to avoid Konflux tag collisions'; sleep 60s; echo; 
 done
 
-# 2. review FBC build completion at https://konflux.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/application-pipeline/workspaces/rhdh/applications/fbc-4-17/activity/pipelineruns (and fbc-4-16, etc.)
+# 2. review FBC build completion at https://konflux-ui.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/ns/rhdh-tenant/applications/fbc-4-17/activity/pipelineruns (and fbc-4-16, etc.)
 
 # 3. For a stage push, get the chosen RHDH Operator Bundle tag or SHA from https://quay.io/repository/rhdh/rhdh-operator-bundle?tab=tags
 
@@ -401,12 +401,12 @@ EOT
       # for release-rhdh-1-4-4p59p-stage-20250115-210603, get rhtap-releng-tenant/managed-cc5zr
       managedPipeline=$(oc -n rhdh-tenant get Releases --sort-by=.metadata.creationTimestamp -o yaml | yq -r '.items[]|select(.metadata.name|startswith("'"release-${RHDH_FULL_VERSION}-${SNAPSHOT}-${DEST}-${TS}"'"))' | grep pipelineRun | sed -r -e "s|.+rhtap-releng-tenant/(.+)\",|\1|")
       if [[ $managedPipeline ]]; then
-        managedPipelineURL="https://konflux.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/application-pipeline/workspaces/rhtap-releng/applications/rhdh-${RHDH_VERSION/./-}/pipelineruns/${managedPipeline}/taskruns"
+        managedPipelineURL="https://konflux-ui.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/ns/rhtap-releng-tenant/applications/rhdh-${RHDH_VERSION/./-}/pipelineruns/${managedPipeline}/taskruns"
         echo -e -n "${green}[INFO] Run in $managedPipelineURL\n       and "
       else 
         echo -e -n "${blue}[INFO] Run in "
       fi
-      RELEASE_URL="https://konflux.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/application-pipeline/workspaces/rhdh/applications/rhdh-${RHDH_VERSION/./-}/releases/release-${RHDH_FULL_VERSION}-${SNAPSHOT}-${DEST}-${TS}"
+      RELEASE_URL="https://konflux-ui.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/ns/rhdh-tenant/applications/rhdh-${RHDH_VERSION/./-}/releases/release-${RHDH_FULL_VERSION}-${SNAPSHOT}-${DEST}-${TS}"
       echo -e "$RELEASE_URL${norm}"
 
       # open a browser to watch the release
@@ -418,7 +418,7 @@ EOT
     else
       collected_commands="${collected_commands}\n  oc apply -f /tmp/release-${SNAPSHOT}-${DEST}-${TS}.yaml"
       echo -e "Run this:\n   oc apply -f /tmp/release-${SNAPSHOT}-${DEST}-${TS}.yaml"; echo 
-      releasesURL="https://konflux.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/application-pipeline/workspaces/rhdh/applications/rhdh-${RHDH_VERSION/./-}/releases/"
+      releasesURL="https://konflux-ui.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/ns/rhdh-tenant/applications/rhdh-${RHDH_VERSION/./-}/releases/"
       echo -e "Then watch Release at\n   ${green}${releasesURL}${norm}"
       if [[ $(command -v google-chrome) == *"google-chrome"* ]] || [[ $(which google-chrome) != *"which: no google-chrome"* ]]; then 
         google-chrome "$releasesURL" >/dev/null 2>&1; 
@@ -509,11 +509,11 @@ if [[ $BUNDLE_TAG_OR_SHA ]]; then
       echo -e "${red}[ERROR] Could not find a snapshot! Try different values for the --fbc, --snapshot, and/or --commit flags.${norm}"; exit 1
     fi
 
-    # pipelinerun: https://konflux.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/application-pipeline/workspaces/rhdh/applications/fbc-4-14/pipelineruns/fbc-4-14-on-push-g9fpp
-    # snapshot:    https://konflux.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/application-pipeline/workspaces/rhdh/applications/fbc-4-14/snapshots/fbc-4-14-d766t
+    # pipelinerun: https://konflux-ui.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/ns/rhdh-tenant/applications/fbc-4-14/pipelineruns/fbc-4-14-on-push-g9fpp
+    # snapshot:    https://konflux-ui.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/ns/rhdh-tenant/applications/fbc-4-14/snapshots/fbc-4-14-d766t
     echo -e "${green}For $OCP_VERSION, found snapshot (completed $pipelinerunfinishtime):"
     echo -e " * Commit:   https://gitlab.cee.redhat.com/rhidp/rhdh/-/commit/$(tail -1 "/tmp/fbc-snapshots-${OCP_VERSION}.csv" | sed -r -e "s@.+\t([^\t]+)@\1@")"
-    echo -e " * Snapshot: https://konflux.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/application-pipeline/workspaces/rhdh/applications/fbc-${OCP_VERSION}/snapshots/$SNAPSHOT${norm}\n"
+    echo -e " * Snapshot: https://konflux-ui.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/ns/rhdh-tenant/applications/fbc-${OCP_VERSION}/snapshots/$SNAPSHOT${norm}\n"
 
     # for each SNAPSHOT, find the iib bundle, extract its contents, and pick the last bundle reference; check if that matches the value above
     oc -n rhdh-tenant get Snapshot "${SNAPSHOT}" -o yaml > "/tmp/${SNAPSHOT}.yaml"
@@ -562,7 +562,7 @@ EOT
           if [[ $AUTORELEASE -eq 1 ]]; then
             oc apply -f "/tmp/release-rhdh-${RHDH_FULL_VERSION}-fbc-${OCP_VERSION}-${DEST}-${TS}.yaml"
             echo
-            RELEASE_URL="https://konflux.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/application-pipeline/workspaces/rhdh/applications/fbc-${OCP_VERSION}/releases/release-rhdh-${RHDH_FULL_VERSION}-fbc-${OCP_VERSION}-${DEST}-${TS}"
+            RELEASE_URL="https://konflux-ui.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/ns/rhdh-tenant/applications/fbc-${OCP_VERSION}/releases/release-rhdh-${RHDH_FULL_VERSION}-fbc-${OCP_VERSION}-${DEST}-${TS}"
             echo "Run in $RELEASE_URL"
             # open a browser to watch the release
             if [[ $(command -v google-chrome) == *"google-chrome"* ]] || [[ $(which google-chrome) != *"which: no google-chrome"* ]]; then google-chrome "$RELEASE_URL"; fi
@@ -630,7 +630,7 @@ EOT
     echo -e "${green}Found these managed pipeline releases:${norm}"
     for k in "${!managedPipeline_mapping[@]}"; do 
       for managedPipeline in ${managedPipeline_mapping[$k]}; do
-        echo -e "${green}  https://konflux.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/application-pipeline/workspaces/rhtap-releng/applications/fbc-$k/pipelineruns/${managedPipeline}/taskruns${norm}"
+        echo -e "${green}  https://konflux-ui.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/ns/rhtap-releng-tenant/applications/fbc-$k/pipelineruns/${managedPipeline}/taskruns${norm}"
       done
     done
   fi

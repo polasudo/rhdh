@@ -335,7 +335,7 @@ EOF
       PIPELINE_URL="$pipelinerun"
       echo -e "\n${green}Running in $PIPELINE_URL${norm}"
     else
-      PIPELINE_URL="https://konflux.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/application-pipeline/workspaces/rhdh/applications/fbc-${OCP_VERSION/./-}/activity/pipelineruns"
+      PIPELINE_URL="https://konflux-ui.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/ns/rhdh-tenant/applications/fbc-${OCP_VERSION/./-}/activity/pipelineruns"
       echo -e "\n${blue}Pipelinerun not found for branch = $DWNSTM_BRANCH - see running pipelineruns at $PIPELINE_URL${norm}"
     fi
     # open a browser to watch the release
