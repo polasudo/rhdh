@@ -353,10 +353,10 @@ function updateShowcaseVersions() {
 
 # for operator, bump to specified version
 function updateOperatorVersions() {
-	# echo "[DEBUG] the_branch=$the_branch, the_version=$the_version, the_version_op=$the_version_op"
 	the_branch="$1"
 	the_version="$2"
 	the_version_op="$3"
+	echo "[DEBUG] the_branch=$the_branch, the_version=$the_version, the_version_op=$the_version_op"
 	orgAndRepo="redhat-developer/rhdh-operator"
 	d="${orgAndRepo/\//__}"
 	rm -fr "$TMPDIR/projects_${d}_2" && git clone -q --depth 1 -b "${the_branch}" "git@github.com:${orgAndRepo}" "$TMPDIR/projects_${d}_2" || echo "Branch $clone_branch doesn't exist: skip!"
@@ -372,28 +372,48 @@ function updateOperatorVersions() {
 	# update Makefile
 	sed -i Makefile -r -e "s/(VERSION \?= )[0-9.]+/\1$the_version_op/" # 0.y.0
 
+	# upstream we don't change this
+	# -e "s|quay.io/fedora/postgresql-15:latest|registry.redhat.io/rhel9/postgresql-15:latest|" \
+
 	# update *.clusterserviceversion.yaml
-	for y in config/manifests/rhdh/bases/backstage-operator.clusterserviceversion.yaml bundle/rhdh/manifests/backstage-operator.clusterserviceversion.yaml; do 
-		sed -i $y -r \
-			` # update the tags in the CSV to the latest 1.y version` \
-			-e "s|(/rhdh/rhdh-.+:)([0-9.]+)|\1${the_version%.*}|g" \
-			` # update refs to the latest x.y.0 or x.y.z version` \
-			-e "s/(skipRange: '>=1.0.0 <)[0-9.]+'/\1$the_version'/" \
-			-e "s/(name: rhdh-operator.v)[0-9.]+/\1$the_version/" \
-			-e "s/(^  version: )[0-9.]+/\1$the_version/" \
-			-e "s/(^  replaces: rhdh-operator.v)[0-9.]+/\1${PROD_VERSION}.0/" \
-			-e "s/(rhdh-rhdh-hub-rhel9:|rhdh-rhdh-rhel9-operator:)[0-9.]+/\1${the_version%.*}/" \
-			-e "s|(.*https://access.redhat.com/documentation/en-us/red_hat_developer_hub/)([0-9.]+)(/html-single/administration_guide_for_red_hat_developer_hub/index#assembly-rhdh-telemetry_admin-rhdh.*)|\1${the_version%.*}\3|g" \
-			` # replace upstream refs to quay images with RHEC ones` \
-			-e "s|quay.io/fedora/postgresql-15:latest|registry.redhat.io/rhel9/postgresql-15:latest|" \
-			-e "s|quay.io/rhdh/rhdh-hub-rhel9:next|registry.redhat.io/rhdh/rhdh-hub-rhel9:${the_version%.*}|"
-		# NOTE: downstream we need to rename this file from backstage-operator.clusterserviceversion.yaml to rhdh-operator.clusterserviceversion.yaml
+	for y in .rhdh/bundle/manifests/rhdh-operator.clusterserviceversion.yaml config/manifests/rhdh/bases/backstage-operator.clusterserviceversion.yaml bundle/rhdh/manifests/backstage-operator.clusterserviceversion.yaml; do
+		if [[ -f $y ]]; then
+			echo "Update $y ..."
+			sed -i $y -r \
+				` # update the tags in the CSV to the latest 1.y version` \
+				-e "s|(/rhdh/rhdh-.+:)([0-9.]+)|\1${the_version%.*}|g" \
+				` # update refs to the latest x.y.0 or x.y.z version` \
+				-e "s/(skipRange: '>=1.0.0 <)[0-9.]+'/\1$the_version'/" \
+				-e "s/(name: rhdh-operator.v)[0-9.]+/\1$the_version/" \
+				-e "s/(^  version: )[0-9.]+/\1$the_version/" \
+				-e "s/(^  replaces: rhdh-operator.v)[0-9.]+/\1${PROD_VERSION}.0/" \
+				-e "s/(rhdh-rhdh-hub-rhel9:|rhdh-rhdh-rhel9-operator:)[0-9.]+/\1${the_version%.*}/" \
+				-e "s|(.*https://access.redhat.com/documentation/en-us/red_hat_developer_hub/)([0-9.]+)(/html-single/administration_guide_for_red_hat_developer_hub/index#assembly-rhdh-telemetry_admin-rhdh.*)|\1${the_version%.*}\3|g" \
+				` # replace upstream refs to quay images with RHEC ones` \
+				-e "s|quay.io/rhdh/rhdh-hub-rhel9:next|registry.redhat.io/rhdh/rhdh-hub-rhel9:${the_version%.*}|"
+			# NOTE: downstream we need to rename this file from backstage-operator.clusterserviceversion.yaml to rhdh-operator.clusterserviceversion.yaml
+		fi
 	done
 
 	# update config/manager/kustomization.yaml
 	# shellcheck disable=SC2044
-	for d in $(find . -name kustomization.yaml); do sed -i "$d" -r \
-		-e "s/(^  newTag:  )[0-9.]+/\1$the_version_op/" # 0.y.0
+	for d in $(find . -name kustomization.yaml) bundle/backstage.io/manifests/backstage-operator.clusterserviceversion.yaml; do 
+		if [[ -f $d ]]; then
+			echo "Update $d ..."
+			sed -i "$d" -r \
+			-e "s/(^  newTag:  )[0-9.]+/\1$the_version_op/" \
+			-e "s/(^  version: )[0-9.]+/\1$the_version_op/" # 0.y.0
+		fi
+	done
+
+	# remove old refs to reg-proxy
+	for d in config/manifests/rhdh/bases/csv.yaml bundle/rhdh/manifests/backstage-operator.clusterserviceversion.yaml; do
+		if [[ -f $d ]]; then
+			echo "Update $d ..."
+			sed -i "$d" -r \
+			-e "s|registry-proxy.engineering.redhat.com/rh-osbs/rhdh-rhdh|quay.io/rhdh/rhdh|" \
+			-e "s|(containerImage: quay.io/rhdh/rhdh-rhel9-operator:)[0-9.]+|\1$PROD_VERSION|"
+		fi
 	done
 
 	echo -n "updateOperatorVersions: "; pwd; git diff || true
