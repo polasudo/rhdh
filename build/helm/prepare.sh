@@ -470,8 +470,6 @@ deleteDirs() {
     # find "${CATALOG_DIR}-3"/charts/redhat/redhat/redhat-developer-hub/ -maxdepth 1
 }
 
-set -x
-
 # repo cleanup
 if [[ $DEBUG -eq 1 ]]; then
     echo;echo "Delete old folders from $EXTRA_BRANCH (except for $CHART_VERSION):"
