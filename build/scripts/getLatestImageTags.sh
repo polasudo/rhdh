@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (c) 2023 Red Hat, Inc.
+# Copyright (c) Red Hat, Inc.
 # This program and the accompanying materials are made
 # available under the terms of the Eclipse Public License 2.0
 # which is available at https://www.eclipse.org/legal/epl-2.0/
@@ -10,7 +10,6 @@
 
 # script to query latest tags for a given list of imags in RHEC
 # REQUIRES: 
-#    * brew for OSBS queries, 
 #    * skopeo >=1.1 (for authenticated registry queries, and to use --override-arch for s390x images)
 #    * jq to do json queries
 #    * yq to do yaml queries (install the python3 wrapper for jq using pip)
@@ -21,10 +20,6 @@
 # see exclude list in getLatestImageTags.sh and updateBaseImages.sh
 EXCLUDES="latest|-source|next|nightly|-tmp-|-ci-|-gh-|.att|.git|.src|.sig|.sbom|.prefetch|on-pull-|on-push-|on-pr-|sha256-|-container"
 EXCLUDES_FRESHMAKER="[0-9]+\.[0-9]+-[0-9]*\.[0-9]{10}" # if set, exclude x.yy-zz.freshmakertimestamp tags; if 1; include them
-
-# TODO: compute default errata num to use with --errata flag
-DEFAULT_ERRATA_NUM="138575"
-DEFAULT_ERRATA_PV="RHDH-1.3-RHEL-9"
 
 # try to compute branches from currently checked out branch; else fall back to hard coded value
 DWNSTM_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "rhdh-1-rhel-9")
@@ -75,14 +70,11 @@ rhdh/rhdh-operator-bundle \
 
 QUIET=1 	# less output - omit container tag URLs
 VERBOSE=0	# more output
-ERRATA_NUM=""  # if set, update errata with latest NVRs
 HIDE_MISSING=0 # if 0, show repo/org/image:??? for missing tags; if 1, don't show anything if tag missing
 ARCHES=0	# show architectures
 NUMTAGS=1 	# by default show only the latest tag for each container; or show n latest ones
-TAGONLY=0 	# by default show the whole image or NVR; if true, show ONLY tags
+TAGONLY=0 	# by default show the whole image; if true, show ONLY tags
 SHOWHISTORY=0 # compute the base images defined in the Dockerfile's FROM statement(s): NOTE: requires that the image be pulled first 
-SHOWNVR=0 	# show NVR format instead of repo/container:tag format
-SHOWLOG=0 	# show URL of the console log
 PUSHTOQUAY=0 # utility method to pull then push to quay
 PUSHTOQUAYTAGS="" # utility method to pull then push to quay (extra tags to push)
 PUSHTOQUAYFORCE=0 # normally, don't repush a tag if it's already in the registry (to avoid re-timestamping it and updating tag history)
@@ -99,27 +91,20 @@ usage () {
 	getDHVersion
 	echo "
 Usage: 
-  $0 -b ${DWNSTM_BRANCH} --nvr --log                       | check images in brew; output NVRs can be copied to Errata; show Brew builds/logs
-  $0 -b ${DWNSTM_BRANCH} --errata $DEFAULT_ERRATA_NUM                   | check images in brew; output NVRs; push builds to Errata (implies --nvr --hide)
-
   $0 -b ${DWNSTM_BRANCH} --quay --tag \"${DH_VERSION}-\" --hide        | use default quay.io/rhdh images, for tag ${DH_VERSION}-; show nothing if unmatched tag
-  $0 -b ${DWNSTM_BRANCH} --osbs                            | check images in OSBS ( registry-proxy.engineering.redhat.com/rh-osbs )
-  $0 -b ${DWNSTM_BRANCH} --osbs --pushtoquay='${DH_VERSION} ${latestNext}'  | pull images from OSBS, push ${DH_VERSION}-z tag + 2 extras to quay
   $0 -b ${DWNSTM_BRANCH} --stage --sort                    | use default list of DH images in RHEC Stage, sorted alphabetically
   $0 -b ${DWNSTM_BRANCH} --arches                          | use default list of DH images in RHEC Prod; show arches
   $0 -c rhdh/iib --quay -o v4.14 --tag ${DH_VERSION}-v4.14          | search for latest IIBs in quay for a given OCP version
 
   $0 -c rhdh/rhdh-hub-rhel9 --quay                        | check latest tag for specific Quay image(s), with branch = ${DWNSTM_BRANCH}
-  $0 -c rhdh-rhdh-rhel9-operator --osbs                   | check an image from OSBS
-  $0 -c rhdh-rhdh-operator-bundle --nvr                   | check an NVR from OSBS
-  $0 -c ubi9-minimal -c ubi9-micro --osbs -n 3 --tag .    | check OSBS registry; show all tags; show 3 tags per container
+  $0 -c ubi9-minimal -c ubi9-micro -n 3 --tag .           | check RHEC prod registry; show all tags; show 3 tags per container
   $0 -c 'ubi9/go-toolset' --tag 1.1*                      | check RHEC prod registry; show 1.1* tags (exclude latest and -sources)
   $0 -c pivotaldata/centos --docker --dockerfile          | check docker registry; show Dockerfile contents (requires dfimage)
 "
 }
 if [[ $# -lt 1 ]]; then usage; cleanup_temp; exit 1; fi
 
-REGISTRY="https://registry.redhat.io" # or http://brew-pulp-docker01.web.prod.ext.phx2.redhat.com:8888 or https://registry-1.docker.io or https://registry.access.redhat.com
+REGISTRY="https://registry.redhat.io" # or https://registry-1.docker.io or https://registry.access.redhat.com
 CONTAINERS=""
 while [[ "$#" -gt 0 ]]; do
   case $1 in
@@ -131,13 +116,10 @@ while [[ "$#" -gt 0 ]]; do
     '-q') QUIET=1;;
     '-v') QUIET=0; VERBOSE=1;;
     '--hide') HIDE_MISSING=1;;
-    '--freshmaker') EXCLUDES_FRESHMAKER="";; # CRW-2499 by default, exclude freshmaker-built images
     '-a'|'--arches') ARCHES=1;;
     '-r') REGISTRY="$2"; shift 1;;
     '--rhec'|'--rhcc') REGISTRY="http://registry.redhat.io";;
-    '--stage') REGISTRY="http://registry.stage.redhat.io";;
-    '--pulp-old') REGISTRY="http://brew-pulp-docker01.web.prod.ext.phx2.redhat.com:8888"; EXCLUDES="latest|candidate|guest|containers|sha256-.+.sbom";;
-    '-p'|'--osbs') REGISTRY="http://registry-proxy.engineering.redhat.com/rh-osbs"; EXCLUDES="latest|candidate|guest|containers|sha256-.+.sbom";;
+    '--stage') REGISTRY="http://registry.stage.redhat.io";; # does this still work and provide value?
     '-d'|'--docker') REGISTRY="http://docker.io";;
     '--quay') REGISTRY="http://quay.io";;
     '--pushtoquay') PUSHTOQUAY=1; PUSHTOQUAYTAGS="";;
@@ -156,10 +138,7 @@ while [[ "$#" -gt 0 ]]; do
     '--dockerfile') SHOWHISTORY=1;;
     '--tag') BASETAG="$2"; shift 1;;
     '--candidatetag') candidateTag="$2"; shift 1;;
-    '--nvr')    if [[ ! $CONTAINERS ]]; then CONTAINERS="${DH_CONTAINERS}"; fi; SHOWNVR=1;;
-    '--errata') if [[ ! $CONTAINERS ]]; then CONTAINERS="${DH_CONTAINERS}"; fi; SHOWNVR=1; ERRATA_NUM="$2"; HIDE_MISSING=1; shift 1;;
     '--tagonly') TAGONLY=1;;
-    '--log') SHOWLOG=1;;
     '--sort') SORTED=1;;
     '-h'|'--help') usage; cleanup_temp; exit 1;;
   esac
@@ -172,7 +151,7 @@ if [[ $CONTAINERS == *"rhdh/iib"* ]]; then
 	fi
 fi
 
-# null for osbs and others; only need this for quay repo when we might not have a :latest tag (but do have a :next one)
+# need this for quay repo when we might not have a :latest tag (but do have a :next one)
 searchTag=""
 
 # echo "DWNSTM_BRANCH = $DWNSTM_BRANCH"
@@ -240,72 +219,6 @@ if [[ ${CONTAINERS} == "" ]]; then usage; cleanup_temp; exit 5; fi
 
 # sort the container list
 if [[ $SORTED -eq 1 ]]; then CONTAINERS=$(tr ' ' '\n' <<< "${CONTAINERS}" | sort | uniq); fi
-
-# special case!
-if [[ ${SHOWNVR} -eq 1 ]]; then 
-	# install errata-tool python lib
-	if [[ $ERRATA_NUM ]]; then
-		pip install errata-tool -q || true
-	fi
-	if [[ ! -x /usr/bin/brew ]]; then 
-		echo "Brew is required. Please install brewkoji rpm from one of these repos:";
-		echo " * http://download.devel.redhat.com/rel-eng/RCMTOOLS/latest-RCMTOOLS-2-F-27/compose/Everything/x86_64/os/"
-		echo " * http://download.devel.redhat.com/rel-eng/RCMTOOLS/latest-RCMTOOLS-2-rhel-9/compose/BaseOS/\$basearch/os/"
-		exit 1
-	fi
-
-	c=0 # containers total
-	n=0 # containers found
-	for containername in ${CONTAINERS}; do
-		(( c = c + 1 ))
-		# rhdh/rhdh-rhel9-operator  -> rhdh-operator-container-1.0-1
-		# rhdh/rhdh-operator-bundle -> rhdh-operator-bundle-container-1.0-1
-		# rhdh/rhdh-hub-rhel9       -> rhdh-hub-container-1.0-2
-		containername="${containername/-rhel9/}"
-		containername="${containername/rhdh-/}"
-		if [[ ${VERBOSE} -eq 1 ]]; then
-			# shellcheck disable=SC2028
-			if [[ $EXCLUDES_FRESHMAKER ]]; then
-				echo "brew list-tagged ${candidateTag} | grep \"${containername/\//-}-container\" | grep -E -v \"${EXCLUDES_FRESHMAKER}\" | sort -V | tail -${NUMTAGS} | sed -e \"s#[\ \t]\+${candidateTag}.\+##\""
-			else
-				echo "brew list-tagged ${candidateTag} | grep \"${containername/\//-}-container\" | sort -V | tail -${NUMTAGS} | sed -e \"s#[\ \t]\+${candidateTag}.\+##\""
-			fi
-		fi
-		result="$(brew list-tagged ${candidateTag} | grep "${containername/\//-}-container" | sort -V)"
-		if [[ $EXCLUDES_FRESHMAKER ]]; then
-			result="$(echo "$result" | grep -E -v "${EXCLUDES_FRESHMAKER}")"
-		fi
-		if [[ ${SHOWLOG} -eq 1 ]]; then
-			result=$(echo "$result" | tail -${NUMTAGS} | sed -E -e "s#[\ \t]+${candidateTag}.+##" | \
-				sed -E -e "s#(.+)-container-([0-9.]+)-([0-9]+)#\0 - http://download.eng.bos.redhat.com/brewroot/packages/\1-container/\2/\3/data/logs/x86_64.log#")
-		elif [[ ${TAGONLY} -eq 1 ]]; then
-			result=$(echo "$result" | tail -${NUMTAGS} | sed -E -e "s#[\ \t]+${candidateTag}.+##" -e "s@.+-container-@@g")
-		else
-			result=$(echo "$result" | tail -${NUMTAGS} | sed -E -e "s#[\ \t]+${candidateTag}.+##")
-		fi
-		if [[ $result ]]; then
-			echo $result
-			(( n = n + 1 ))
-			if [[ $ERRATA_NUM ]]; then
-				# see API info in https://github.com/red-hat-storage/errata-tool/tree/master/errata_tool
-				cat <<EOT >> /tmp/errata-container-update-$result
-from errata_tool import Erratum
-e = Erratum(errata_id=$ERRATA_NUM)
-e.setState('NEW_FILES')
-e.commit()
-e.addBuilds('$result', release='$DEFAULT_ERRATA_PV', file_types={'$result': ['tar']})
-# print (e.errata_builds)
-EOT
-				python /tmp/errata-container-update-$result
-				rm -f /tmp/errata-container-update-$result
-			fi
-		elif [[ $HIDE_MISSING -eq 0 ]]; then
-			echo "${containername/\//-}-container-???"
-		fi
-	done
-	if [[ $c -gt 4 ]] && [[ $c -gt $n ]] && [[ $HIDE_MISSING -eq 0 ]]; then echo; echo "Found $n of $c containers"; fi
-	exit
-fi
 
 c=0 # containers total
 n=0 # containers found
@@ -384,15 +297,6 @@ for URLfrag in $CONTAINERS; do
 				fi
 				for arch in $arches; do arch_string="${arch_string} ${arch}"; done
 				echo "${REGISTRYPRE}${URLfrag%%:*}:${LATESTTAG} ::${arch_string}"
-			elif [[ ${SHOWNVR} -eq 1 ]]; then
-				ufrag=${URLfrag%%:*}; ufrag=${ufrag/\//-}
-				if [[ ${SHOWLOG} -eq 1 ]]; then
-					echo "${ufrag}-container-${LATESTTAG} - http://download.eng.bos.redhat.com/brewroot/packages/${ufrag}-container-${LATESTTAG//-//}/data/logs/x86_64.log"
-				elif [[ ${TAGONLY} -eq 1 ]]; then
-					echo "${LATESTTAG}"
-				else
-					echo "${ufrag}-container-${LATESTTAG}"
-				fi
 			elif [[ ${TAGONLY} -eq 1 ]]; then
 				echo "${LATESTTAG}"
 			elif [[ $QUIET -eq 1 ]]; then
