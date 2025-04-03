@@ -41,7 +41,7 @@ Usage:
 
 Options:
   -t <product tag>     Use getLatestImageTags.sh to fetch latest IIB's contained bundle image, 
-  -o <OCP version>     and check that bundle's CSV; BOTH these are required.
+  -o <OCP version>     and check that bundle's CSV; BOTH these are required; default: $OCP_VER
 
   -y, --quay           If image not resolved from RH Ecosystem Catalog, check equivalent image on quay.io
   --brew               If image not resolved from RH Ecosystem Catalog, check equivalent image on brew.registry.redhat.io
@@ -93,7 +93,6 @@ if [[ $PROD_VER ]] && [[ $PROD_VER != "1.yy" ]] && [[ ! $IMAGES ]]; then # compu
   if [[ $QUIET -lt 2 ]]; then
     echo "Checking for IIB for ${PROD_VER}, OCP = $OCP_VER"
   fi
-  # use getLatestImageTags.sh instead of getLatestImageTags.sh as it's more reliable when resultsdb-api.engineering.redhat.com content is unavailable
   GLIT=${SCRIPTPATH}/getLatestImageTags.sh
   IMAGES=$(${GLIT} --quay -c rhdh/rhdh-operator-bundle --tag "${PROD_VER}-")
   if [[ $QUIET -lt 2 ]]; then
