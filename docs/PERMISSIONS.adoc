@@ -1,17 +1,34 @@
 # Requesting access to systems
 
+## Access to internal Konflux
 
-## Secrets used by GH, GL, and Konflux 
+If you cannot access https://konflux-ui.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/ns/rhdh-tenant/applications then click the "join the waitlist" button, refresh your browser, and ping one of the existing admins to be added to the rhdh-tenant namespace.
 
-Secrets are located in link:https://vault.bitwarden.com/[BitWarden] under the link:https://rover.redhat.com/groups/group/rhdh-prod[Rhdh Prod] rover group.
+* cdaley, ktsao, nboldt, tkral
+
+## Access to the managed tenant namespace
+
+If you will be running releases, you'll need access to this namespace too. See instructions at https://konflux.pages.redhat.com/docs/users/releasing/preparing-for-release.html#get-access-to-the-rhtap-releng-managed-namespace
+
+## Access to Comet
+
+In order to ensure we only get Prod Sec JIRAs for the versions of RHDH which are in active maintenance, you'll need access to Comet if you'll be performing a .0 release.
+
+Ping one of the existing members of the link:https://comet.engineering.redhat.com/containers/teams/6423d6e67d139e5ada2e4f8d[RHDH Comet team] to get access to the link:https://comet.engineering.redhat.com/containers/products/6426ef70e0b297f96d6ad6e9[RHDH product listing]. 
+
+* nboldt, psrna, joskim, jchui
+
+## Access to Bitwarden
+
+Secrets used by GH, GL, and Konflux are located in link:https://vault.bitwarden.com/[BitWarden].
+
+If you need access, ping one of the existing users in the link:https://rover.redhat.com/groups/group/rhdh-prod[Rhdh Prod] rover group to add you to that group.
 
 Current authorized users include (but are not limited to):
 
 * Nick Boldt <nboldt@redhat.com>
 * Tomas Kral <tkral@redhat.com>
 * Corey Daley <cdaley@redhat.com>
-
-If you need to add a new authorized user, ask one of the existing authorized users in the link:https://rover.redhat.com/groups/group/rhdh-prod[Rhdh Prod] rover group to add you to that group.
 
 [IMPORTANT]
 ====
@@ -25,6 +42,9 @@ Ask "please add me to the `production-rhtap-application-logs`` and `staging-rhta
 
 See also link:https://gitlab.cee.redhat.com/konflux/docs/sop/-/blob/main/release-service/accessing-internal-services-pipeline-logs-in-splunk.md#accessing-the-release-service-internal-services-pipelinerun-logs-from-splunk[Accessing the Release Service Internal Services PipelineRun logs from Splunk]
 
-Then search for logs:
+Then search for logs using queries such as:
 
-* https://rhcorporate.splunkcloud.com/en-US/app/search/search?q=search%20index%3Drh_rhtap_production_app%20kubernetes.namespace_name%3Drhtap-releng-tenant%20message%3D%22*%22%20%7C%20table%20_time%20kubernetes.labels.tekton_dev_pipeline%20kubernetes.labels.tekton_dev_pipelineRun%20message&earliest=-2w%40w&latest=now&display.page.search.mode=smart&dispatch.sample_ratio=1&workload_pool=&display.page.search.tab=statistics&display.general.type=statistics&sid=1743538386.104229_D162B515-B94D-46EF-84E1-BFAE58DB8F3F
+* https://rhcorporate.splunkcloud.com/en-US/app/search/search?q=search%20index%3Drh_rhtap_production_app%20kubernetes.namespace_name%3Drhtap-releng-tenant%20message%3D%22*%22%20%7C%20table%20_time%20kubernetes.labels.tekton_dev_pipeline%20kubernetes.labels.tekton_dev_pipelineRun%20message&earliest=-2w%40w&latest=now&display.page.search.mode=smart&dispatch.sample_ratio=1&workload_pool=&display.page.search.tab=statistics&display.general.type=statistics&sid=1743538386.104229_D162B515-B94D-46EF-84E1-BFAE58DB8F3F `index=rh_rhtap_production_app kubernetes.namespace_name=rhtap-releng-tenant message="*" | table _time kubernetes.labels.tekton_dev_pipeline kubernetes.labels.tekton_dev_pipelineRun message`
+
+* https://rhcorporate.splunkcloud.com/en-US/app/search/search?q=search%20index%3Drh_rhtap_production_app%20kubernetes.namespace_name%3Drhdh-tenant%20kubernetes.labels.tekton_dev_taskRun%3D%22rhdh-hub-1-on-pull-request-tgdrz-build*%22%20message%3D%22*sbom*%22%20%7C%20table%20_time%20kubernetes.labels.tekton_dev_pipeline%20kubernetes.labels.tekton_dev_taskRun%20message&earliest=-2w%40w&latest=now&display.page.search.mode=smart&dispatch.sample_ratio=1&workload_pool=&display.page.search.tab=statistics&display.general.type=statistics&display.prefs.statistics.count=100&display.statistics.rowNumbers=1&display.statistics.totalsRow=1&display.statistics.percentagesRow=1&sid=1743607150.108005_F6CDC41C-C652-4126-9275-482481A969D1 `index=rh_rhtap_production_app kubernetes.namespace_name=rhdh-tenant kubernetes.labels.tekton_dev_taskRun="rhdh-hub-1-on-pull-request-tgdrz-build*" message="\*sbom*" | table _time kubernetes.labels.tekton_dev_pipeline kubernetes.labels.tekton_dev_taskRun message`
+
