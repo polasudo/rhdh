@@ -219,19 +219,15 @@ RUN "$YARN" config set httpTimeout 600000
 #   export YARN_GLOBAL_FOLDER=/cachi2/output/deps/yarn
 # RUN cat /cachi2/cachi2.env; echo; ls -la /cachi2/output/deps/yarn/*
 
-RUN echo "=== YARN INSTALL ==="; "$YARN" install --immutable
+# create library symlinks to build: isolated-vm node-gyp better-sqlite cpu-features
+RUN for l in libbrotlidec.so.1 libbrotlienc.so.1 libbrotlicommon.so.1 libc.so.6 ld-linux-x86-64.so.2 libcrypto.so.3 libk5crypto.so.3 libz.so.1 libssl.so.3; do \
+      ln -s /usr/lib64/$l /usr/lib64/${l%.*} || true; \
+    done
+
+  RUN echo "=== YARN INSTALL ==="; "$YARN" install --immutable
 # debug
 #  | tee /tmp/yarn.install.log.txt 2>&1; \
 #   for d in /tmp/xfs-*; do if [[ -f ${d}/build.log ]]; then echo; echo $d; echo "======"; cat ${d}/build.log; fi; done
-
-# experimental solution to make isolated-vm happy?
-RUN pushd /usr/lib64/ >2&1 >/dev/null; \
-    for l in libbrotlidec.so.1 libbrotlienc.so.1 libbrotlicommon.so.1 libc.so.6 ld-linux-x86-64.so.2 libcrypto.so.3 libk5crypto.so.3 libz.so.1 libssl.so.3; do ln -s $l ${l%.*} || true; done
-  popd >2&1 >/dev/null; \
-  pushd /opt/app-root/src/ >2&1 >/dev/null; \
-    .yarn/releases/yarn-3.8.7.cjs add isolated-vm@npm:5.0.1 node-gyp@npm:10.3.1 node-gyp@npm:10.2.0; \
-    ls -lh node_modules/isolated-vm/out/; \
-  popd >2&1 >/dev/null
 
 # Stage 3 - Build packages
 FROM deps AS build
