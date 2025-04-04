@@ -329,7 +329,10 @@ function updateShowcaseVersions() {
 		jq -r --arg the_version "$the_version" '.version|=$the_version' $d > "${d}1"; mv -f "${d}1" "${d}"
 	done
 	sed -i packages/app/src/build-metadata.json -r \
-		-e "s/(\"RHDH Version: )[0-9.]+\"/\1$the_version\"/"
+		`# up to RHDH 1.5` \
+		-e "s/(\"RHDH Version: )[0-9.]+\"/\1$the_version\"/" \
+		`# RHDH 1.6+` \
+		-e "s/(\"RHDH Version\": \")[0-9.]+\"/\1$the_version\"/"
 
 	echo -n "updateShowcaseVersions: "; pwd; git diff || true
 	if [[ ${DO_PUSH} -eq 1 ]]; then
