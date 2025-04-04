@@ -141,6 +141,8 @@ while [[ "$#" -gt 0 ]]; do
   shift 1
 done
 
+if [[ $PROD_FULL_VERSION == "" ]] || [[ $OCP_VERSIONS == "" ]]; then usage; fi
+
 # break if opm 1.47.0 or newer not installed
 opmversion=$(opm version | sed -r -e "s@.+OpmVersion:\"([0-9a-fv.]+)\".+@\1@" | tr -d "v")
 if [[ $opmversion != *"."* ]]; then echo -e "\n${red}[ERROR] OPM version $opmversion is too old. You must install opm v1.47.0 or newer from https://github.com/operator-framework/operator-registry/releases/tag/v1.47.0 to continue.${norm}\n"; usage; fi
