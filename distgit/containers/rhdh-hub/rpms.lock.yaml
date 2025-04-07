@@ -2279,27 +2279,27 @@ arches:
     name: python3-pip
     evr: 21.3.1-1.el9
     sourcerpm: python-pip-21.3.1-1.el9.src.rpm
-  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/appstream/os/Packages/p/python3.11-3.11.9-7.el9_5.2.x86_64.rpm
+  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/appstream/os/Packages/p/python3.11-3.11.9-7.el9_5.3.x86_64.rpm
     repoid: ubi-9-appstream-rpms
-    size: 30525
-    checksum: sha256:3791dbf6ab5a10ad6504852bd1c8c5afb1247e527555bc7e2fcffbcff5bff17c
+    size: 28320
+    checksum: sha256:c8be086341ca561871a4c96a0bcd2f20b6797ccb59d7f0994d5e056efe1e35c0
     name: python3.11
-    evr: 3.11.9-7.el9_5.2
-    sourcerpm: python3.11-3.11.9-7.el9_5.2.src.rpm
-  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/appstream/os/Packages/p/python3.11-devel-3.11.9-7.el9_5.2.x86_64.rpm
+    evr: 3.11.9-7.el9_5.3
+    sourcerpm: python3.11-3.11.9-7.el9_5.3.src.rpm
+  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/appstream/os/Packages/p/python3.11-devel-3.11.9-7.el9_5.3.x86_64.rpm
     repoid: ubi-9-appstream-rpms
-    size: 289425
-    checksum: sha256:76ef39af1f34db22c5c5c8597ec899d4c51b37aef7e85d36c6ac628e1ef8ecf5
+    size: 287250
+    checksum: sha256:1c24cf4e0bbb58f70a6beb0b01935c81ca607f6768f71d667e860aadfeba8658
     name: python3.11-devel
-    evr: 3.11.9-7.el9_5.2
-    sourcerpm: python3.11-3.11.9-7.el9_5.2.src.rpm
-  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/appstream/os/Packages/p/python3.11-libs-3.11.9-7.el9_5.2.x86_64.rpm
+    evr: 3.11.9-7.el9_5.3
+    sourcerpm: python3.11-3.11.9-7.el9_5.3.src.rpm
+  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/appstream/os/Packages/p/python3.11-libs-3.11.9-7.el9_5.3.x86_64.rpm
     repoid: ubi-9-appstream-rpms
-    size: 10721348
-    checksum: sha256:9280ee7526222782dade6efdcdd559d77446bff4f39b9b41f11371974e0ddf74
+    size: 10714150
+    checksum: sha256:4d144e01b7c09954fcba601885c9184ef666e794a6141204ffe5cf8d066905d7
     name: python3.11-libs
-    evr: 3.11.9-7.el9_5.2
-    sourcerpm: python3.11-3.11.9-7.el9_5.2.src.rpm
+    evr: 3.11.9-7.el9_5.3
+    sourcerpm: python3.11-3.11.9-7.el9_5.3.src.rpm
   - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/appstream/os/Packages/p/python3.11-pip-22.3.1-5.el9.noarch.rpm
     repoid: ubi-9-appstream-rpms
     size: 3358530
@@ -4409,12 +4409,12 @@ arches:
     checksum: sha256:b48fc9a942da394ad4cefd19dd2ebf4c5839d0267a41c797fb04dc6173b5f296
     name: python-rpm-macros
     evr: 3.9-54.el9
-  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/appstream/source/SRPMS/Packages/p/python3.11-3.11.9-7.el9_5.2.src.rpm
+  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/appstream/source/SRPMS/Packages/p/python3.11-3.11.9-7.el9_5.3.src.rpm
     repoid: ubi-9-appstream-source-rpms
-    size: 20267754
-    checksum: sha256:96fa77f800432d6d833e9993259693ce19e631276eca1f1e485117a14988fe21
+    size: 20267306
+    checksum: sha256:729cbf54d2d16e930203d5af19cf64ca1a9e947c1e1bedc1bda35c16eb3dd3ed
     name: python3.11
-    evr: 3.11.9-7.el9_5.2
+    evr: 3.11.9-7.el9_5.3
   - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/appstream/source/SRPMS/Packages/p/python3.11-pip-22.3.1-5.el9.src.rpm
     repoid: ubi-9-appstream-source-rpms
     size: 9344698
@@ -5112,7 +5112,7 @@ arches:
     name: zlib
     evr: 1.2.11-40.el9
   module_metadata:
-  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/appstream/os/repodata/d7341c1b6224a327a2430e29e7dfbf0189a62661bc796da5ca3998ffa6108e00-modules.yaml.gz
+  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/appstream/os/repodata/10bef70097edc5664cdb3aa6af43b85228252f379a9d40031f4556f94284cde5-modules.yaml.gz
     repoid: ubi-9-appstream-rpms
     size: 6137
-    checksum: sha256:d7341c1b6224a327a2430e29e7dfbf0189a62661bc796da5ca3998ffa6108e00
+    checksum: sha256:10bef70097edc5664cdb3aa6af43b85228252f379a9d40031f4556f94284cde5
