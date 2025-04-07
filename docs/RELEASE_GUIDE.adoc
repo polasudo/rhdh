@@ -179,6 +179,15 @@ The `--latest` flag is ONLY for the latest stable release, not for maintenance. 
 https://quay.io/repository/rhdh/rhdh-operator-bundle?tab=tags&tag=1.4-150
 ```
 +
+[IMPORTANT]
+====
+Make sure that there is an link:https://issues.redhat.com/browse/RHIDP-6564[.sbom tag matching each of your containers]. It will have the same SHA in its name as the SHA of your tagged image.
+
+For example if the SHA for `quay.io/rhdh/rhdh-hub-rhel9:1.5-182` starts with `8519350b69c6` search for that digest to find a matching `sha256-8519350b69c677fcbc0068b9bfbccfa4a827c85dc4d3b3619250b74db0ab3c67.sbom` tag:
+
+image::images/sbom-check.png[quay.io view filtered for a specific digest]
+====
++
 . Publish new FBCs to quay.io/rhdh/iib using link:../build/scripts/renderCatalogs.sh[renderCatalogs] script
 +
 ```
