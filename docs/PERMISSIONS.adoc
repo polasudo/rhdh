@@ -34,6 +34,10 @@ Current authorized users include (but are not limited to):
 ====
 When changing any secret values in BitWarden that are used in Gitlab pipelines in this repo, you MUST upload a NEW FILE as secure file
 to https://gitlab.cee.redhat.com/rhidp/rhdh/-/settings/ci_cd -> Secure Files
+
+Similarly, updated secrets used by Konflux should be uploaded to https://konflux-ui.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/ns/rhdh-tenant/secrets
+
+Note that pullsecrets for quay.io should be restricted to using a SINGLE organization. See discussions in https://issues.redhat.com/browse/KONFLUX-7298 and https://issues.redhat.com/browse/KONFLUX-7297
 ====
 
 ## Access to Splunk (for archived build logs)
