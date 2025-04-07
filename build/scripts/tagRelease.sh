@@ -378,8 +378,16 @@ function updateOperatorVersions() {
 	# upstream we don't change this
 	# -e "s|quay.io/fedora/postgresql-15:latest|registry.redhat.io/rhel9/postgresql-15:latest|" \
 
+	# TODO: once 1.4 is EOL, can remove these
+	#  .rhdh/bundle/manifests/rhdh-operator.clusterserviceversion.yaml \
+	#  config/manifests/rhdh/bases/csv.yaml
+
 	# update *.clusterserviceversion.yaml
-	for y in .rhdh/bundle/manifests/rhdh-operator.clusterserviceversion.yaml config/manifests/rhdh/bases/backstage-operator.clusterserviceversion.yaml bundle/rhdh/manifests/backstage-operator.clusterserviceversion.yaml; do
+	for y in \
+		.rhdh/bundle/manifests/rhdh-operator.clusterserviceversion.yaml \
+		config/manifests/rhdh/bases/csv.yaml \
+		config/manifests/rhdh/bases/backstage-operator.clusterserviceversion.yaml \
+		bundle/rhdh/manifests/backstage-operator.clusterserviceversion.yaml; do
 		if [[ -f $y ]]; then
 			echo "Update $y ..."
 			sed -i $y -r \
@@ -400,7 +408,9 @@ function updateOperatorVersions() {
 
 	# update config/manager/kustomization.yaml
 	# shellcheck disable=SC2044
-	for d in $(find . -name kustomization.yaml) bundle/backstage.io/manifests/backstage-operator.clusterserviceversion.yaml; do 
+	for d in \
+		$(find . -name kustomization.yaml) \
+		bundle/backstage.io/manifests/backstage-operator.clusterserviceversion.yaml; do 
 		if [[ -f $d ]]; then
 			echo "Update $d ..."
 			sed -i "$d" -r \
@@ -409,8 +419,13 @@ function updateOperatorVersions() {
 		fi
 	done
 
+	# TODO: once 1.4 is EOL, can remove this
+	#  config/manifests/rhdh/bases/csv.yaml
+
 	# remove old refs to reg-proxy
-	for d in config/manifests/rhdh/bases/csv.yaml bundle/rhdh/manifests/backstage-operator.clusterserviceversion.yaml; do
+	for d in \
+		config/manifests/rhdh/bases/csv.yaml \
+		bundle/rhdh/manifests/backstage-operator.clusterserviceversion.yaml; do
 		if [[ -f $d ]]; then
 			echo "Update $d ..."
 			sed -i "$d" -r \
