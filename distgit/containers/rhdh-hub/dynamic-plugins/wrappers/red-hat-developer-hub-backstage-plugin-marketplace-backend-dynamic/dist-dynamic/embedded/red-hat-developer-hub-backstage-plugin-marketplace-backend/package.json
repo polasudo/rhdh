@@ -1,6 +1,6 @@
 {
   "name": "@red-hat-developer-hub/backstage-plugin-marketplace-backend",
-  "version": "0.2.0+embedded",
+  "version": "0.3.1+embedded",
   "main": "dist/index.cjs.js",
   "types": "dist/index.d.ts",
   "license": "Apache-2.0",
@@ -21,7 +21,10 @@
       "@red-hat-developer-hub/backstage-plugin-marketplace",
       "@red-hat-developer-hub/backstage-plugin-marketplace-backend",
       "@red-hat-developer-hub/backstage-plugin-marketplace-common"
-    ]
+    ],
+    "features": {
+      ".": "@backstage/BackendFeature"
+    }
   },
   "scripts": {
     "start": "backstage-cli package start",
@@ -33,7 +36,7 @@
     "postpack": "backstage-cli package postpack"
   },
   "dependencies": {
-    "@red-hat-developer-hub/backstage-plugin-marketplace-common": "^0.2.0",
+    "@red-hat-developer-hub/backstage-plugin-marketplace-common": "^0.3.0",
     "express": "^4.17.1",
     "express-promise-router": "^4.1.0"
   },
@@ -50,11 +53,12 @@
   },
   "private": true,
   "peerDependencies": {
-    "@backstage/backend-defaults": "^0.7.0",
-    "@backstage/backend-plugin-api": "^1.1.1",
+    "@backstage/backend-defaults": "^0.8.1",
+    "@backstage/backend-plugin-api": "^1.2.0",
     "@backstage/catalog-client": "^1.9.1",
+    "@backstage/catalog-model": "^1.7.3",
     "@backstage/errors": "^1.2.7",
-    "@backstage/plugin-catalog-node": "^1.15.1"
+    "@backstage/plugin-catalog-node": "^1.16.0"
   },
   "overrides": {
     "@aws-sdk/util-utf8-browser": {

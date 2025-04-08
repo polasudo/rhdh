@@ -25,6 +25,9 @@ class MarketplacePluginProcessor {
   }
   async postProcessEntity(entity, _location, emit) {
     if (backstagePluginMarketplaceCommon.isMarketplacePlugin(entity)) {
+      if (!entity.metadata.title) {
+        entity.metadata.title = entity.metadata.name;
+      }
       if (!entity.metadata.annotations?.[backstagePluginMarketplaceCommon.MarketplaceAnnotation.PRE_INSTALLED]) {
         entity.metadata.annotations = {
           ...entity.metadata.annotations,

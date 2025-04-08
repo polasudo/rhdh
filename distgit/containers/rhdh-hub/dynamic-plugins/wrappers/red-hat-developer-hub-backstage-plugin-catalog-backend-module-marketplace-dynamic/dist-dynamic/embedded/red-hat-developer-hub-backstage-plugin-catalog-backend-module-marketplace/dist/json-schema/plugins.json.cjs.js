@@ -72,9 +72,7 @@ var $defs = {
 			}
 		},
 		required: [
-			"name",
-			"title",
-			"description"
+			"name"
 		]
 	},
 	EntityMetadataLink: {
