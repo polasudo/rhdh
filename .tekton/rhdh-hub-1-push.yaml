@@ -609,7 +609,7 @@ spec:
         values:
         - "true"
       runAfter:
-      - build-image-index
+      - apply-tags
       taskRef:
         resolver: git
         params:
