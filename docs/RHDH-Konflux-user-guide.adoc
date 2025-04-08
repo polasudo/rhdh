@@ -14,57 +14,30 @@
 ./build/scripts/checkImagesInCSV.sh quay.io/rhdh/rhdh-operator-bundle:1.4-83 -qq -y
 ```
 
-. If not, you can trigger a new bundle build using link:../build/ci/sync-midstream.sh[sync-midstream.sh], which will skip rebuilding the hub and operator content (with `--nobuild`), but will refresh the CSV:
+. Use the link:../build/scripts/triggerRespin.sh[triggerRespin.sh] script to pull the latest from upstream into the GL midstream repo.
 +
 ```
-./build/ci/sync-midstream.sh --nobuild --nopush --nocommit --force --next -b rhdh-1-rhel-9
-
-# revert changes to the hub and operator imgages, keeping only the bundle updates
-git checkout distgit/containers/rhdh-hub/ distgit/containers/rhdh-operator sync/upstream_SHA_rhdh-hub sync/upstream_SHA_rhdh-operator
+./build/scripts/triggerRespin.sh 1 bun
+./build/scripts/triggerRespin.sh 1.6 bun
 ```
 
-. Once the changes a created locally, commit them to trigger a Konflux build. Only files should have changed:
-+
-```
-distgit/containers/rhdh-operator-bundle/Containerfile
-distgit/containers/rhdh-operator-bundle/manifests/rhdh-operator.clusterserviceversion.yaml
-```
-
-### Triggering FBC builds (replaces IIBs)
+### Triggering FBC builds
 
 * Run link:../build/scripts/renderCatalogs.sh[build/scripts/renderCatalogs.sh] to create new File Base Catalog (FBC) fragments, then commit the changes.
 
 * Or, push a change to the files in .tekton/fbc-* to trigger new FBC builds. 
 
-* New FBCs will be published to link:https://quay.io/rhdh/iib[quay.io/rhdh/iib] and can be installed the same way as IIBs. 
+* New FBCs will be published to link:https://quay.io/rhdh/iib[quay.io/rhdh/iib] and can be link:https://github.com/redhat-developer/rhdh-operator/blob/main/.rhdh/docs/installing-ci-builds.adoc[installed] using the following script:
 
-For more on installation, see:
-
-* link:https://github.com/redhat-developer/rhdh-operator/blob/main/.rhdh/docs/installing-ci-builds.adoc[installing-ci-builds.adoc] and 
 * link:https://github.com/redhat-developer/rhdh-operator/blob/main/.rhdh/scripts/install-rhdh-catalog-source.sh[install-rhdh-catalog-source.sh]
 
 ### Triggering helm chart updates
 
-Starting with 1.5, helm charts are automatically pushed to GitHub as part of the Konflux pipeline. See link:https://issues.redhat.com/browse/RHIDP-4452[RHIDP-4452]
+Starting with 1.4, helm charts are automatically published for every new rhdh-hub-rhel9 container build.
 
-Charts are here:
+For 1.4, CI charts are published to https://github.com/rhdh-bot/openshift-helm-charts/tree/rhdh-1.4-rhel-9. To install, see https://github.com/rhdh-bot/openshift-helm-charts/tree/rhdh-1.4-rhel-9/installation
 
-* https://github.com/rhdh-bot/openshift-helm-charts
-
----
-
-NOTE: In future we plan to publish as OCI artifacts instead. See link:https://issues.redhat.com/browse/RHIDP-5267[RHIDP-5267].
-
----
-
-From 1.4 and earlier, the same gitlab pipeline that syncs content from upstream github to midstream gitlab will also fetch build a new helm chart for the latest rhdh-hub container.
-
-However this might not happen as fast as you'd like, so you can run link:../build/helm/prepare.sh[build/helm/prepare.sh]:
-
-```
-export GITHUB_TOKEN=ghp_rhdh-bot-token-here # see BitWarden for this token
-./build/helm/prepare.sh --latest --chart-branch release-1.4 --publish --extra-branch rhdh-1.4-rhel-9
-```
+As of 1.5, CI charts are published as OCI artifacts to https://quay.io/rhdh/chart. To install, see https://github.com/rhdh-bot/openshift-helm-charts/tree/rhdh-1-rhel-9/installation
 
 ## Watching builds
 

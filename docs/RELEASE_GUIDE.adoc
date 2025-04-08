@@ -102,7 +102,7 @@ Since the midstream transformation still requires a GL pipeline to trigger Konfl
 
 [IMPORTANT]
 ====
-Once the above build is done, you will need to update the **Catalog Sources** (also known as index bundles or IIBs) published on Quay if you want to use the simple catalog source installation scripts.
+Once the above build is done, you will need to update the **Catalog Sources** on Quay if you want to use the link:https://github.com/redhat-developer/rhdh-operator/blob/main/.rhdh/scripts/install-rhdh-catalog-source.sh[catalog source installation script].
 
 Run the link:../build/scripts/renderCatalogs.sh[renderCatalogs] script to get usage instructions
 
@@ -130,8 +130,8 @@ You can now install from an FBC using link:https://github.com/redhat-developer/r
 ... [ ] https://quay.io/repository/rhdh/iib?tab=tags
 
 . Perform install smoke tests
-.. helm chart from https://github.com/rhdh-bot/openshift-helm-charts/tree/rhdh-1-rhel-9/installation#installation and https://github.com/rhdh-bot/openshift-helm-charts/tree/rhdh-1.4-rhel-9/installation#installation
-.. operator install from https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1-rhel-9/build/scripts/installCatalogSourceFromIIB.sh for `--latest` and `--next`
+.. helm chart from https://github.com/rhdh-bot/openshift-helm-charts/tree/rhdh-1-rhel-9/installation#installation 
+.. operator install from https://github.com/redhat-developer/rhdh-operator/blob/main/.rhdh/scripts/install-rhdh-catalog-source.sh for `-v 1.4` or `--latest` or `--next`
 +
 [WARNING]
 ====
@@ -207,7 +207,7 @@ done
 ```
 
 +
-** verify the FBC content is correct - check that the IIB/FBC image contains the SAME images as the latest ones; also use the list of branches/commits to verify that all expected commits have been built:
+** verify the FBC content is correct - check that the image contains the SAME images as the latest ones; also use the list of branches/commits to verify that all expected commits have been built:
 +
 ```
 STREAM=1.6 # or 1.4, 1.5, etc.
