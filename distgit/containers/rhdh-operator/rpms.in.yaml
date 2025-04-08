@@ -1,10 +1,8 @@
 # after editing, run:
 #   rpm-lockfile-prototype -f Containerfile rpms.in.yaml 
 # to regen rpms.lock.yaml
-
 # Note that the repoid values are special, and must be from here: 
 # https://github.com/release-engineering/rhtap-ec-policy/blob/main/data/known_rpm_repositories.yml
-
 allowerasing: true
 contentOrigin:
   repos:
@@ -16,10 +14,10 @@ contentOrigin:
       baseurl: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/$basearch/baseos/os/
     - repoid: ubi-9-for-$basearch-baseos-source-rpms
       baseurl: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/$basearch/baseos/source/SRPMS
-    # - repoid: ubi-9-for-$basearch-codeready-builder
+    # - repoid: codeready-builder-for-ubi-9-$basearch-rpms
     #   baseurl: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/$basearch/codeready-builder/os/
     #   # gpgcheck: 0
-    # - repoid: ubi-9-for-$basearch-codeready-builder-source-rpms
+    # - repoid: codeready-builder-for-ubi-9-$basearch-source-rpms
     #   baseurl: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/$basearch/codeready-builder/source/SRPMS
     #   # gpgcheck: 0
 
