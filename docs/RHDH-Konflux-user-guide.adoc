@@ -93,3 +93,54 @@ So, if you want to test an upstream change in Konflux, here are the steps:
 4. Commit your changes to a topic branch, and create a gitlab Merge Request
 5. Watch it building in Konflux at https://konflux.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/application-pipeline/workspaces/rhdh/applications/rhdh-1/activity/pipelineruns?name=pull
 
+## Collecting build logs offline
+
+Konflux will trash your build and release pipeline logs after only a few days. However, you can collect them offline WHILE they're running.
+
+. First, install opc from https://docs.openshift.com/pipelines/latest/tkn_cli/installing-tkn.html
+
+. Then once a pipeline is running, collect the log:
+
+* pipeline run log (pull request)
++
+```
+pr=abcde # hash code for the specific pipeline
+opc pr logs -n rhdh-tenant rhdh-hub-1-on-pull-request-${pr} -f | tee ~/tmp/rhdh-hub-1-on-pull-request-${pr}.log.txt &
+```
+
+* pipeline run log (push)
++
+```
+pr=abcde # hash code for the specific pipeline
+opc pr logs -n rhdh-tenant rhdh-hub-1-on-push-${pr} -f | tee /tmp/rhdh-hub-1-on-push-${pr}.log.txt &
+```
+
+* managed pipeline (pushing containers or FBCs, to stage or prod)
++
+```
+pr=9k68t # hash code for the specific managed pipeline
+opc pr logs -n rhtap-releng-tenant managed-${pr} -f | tee ~/tmp/release-pipeline-managed-${pr}.log.txt
+```
+
+## Searching for old build logs in Splunk
+
+If you don't have an offline cache of the build log you need, you can search for it in Splunk.
+
+. First, get access to Splunk. See link:PERMISSIONS.adoc[Permissions guide].
+
+. Then, search Splunk for a recent managed pipeline push (for a Konflux Release). For example, to find the 1.5.z release pushes:
++
+```
+index=rh_rhtap_production_app kubernetes.namespace_name=rhtap-releng-tenant kubernetes.labels.tekton_dev_taskRun="managed-*" message="*quay.io/redhat-pending/rhdh----rhdh-hub-rhel9:1.5.*-source*" | table _time kubernetes.labels.tekton_dev_pipeline kubernetes.labels.tekton_dev_taskRun message
+```
+
+. Results for the above sample query: 
+
+* For the 1.5.0 release: `managed-n7v8z`
+* For the 1.5.1 release: `managed-cc58n`
+
+. You can then search the full managed pipeline's logs. For example:
+
+```
+index=rh_rhtap_production_app kubernetes.namespace_name=rhtap-releng-tenant kubernetes.labels.tekton_dev_taskRun="managed-n7v8z*" message="*" | table _time kubernetes.labels.tekton_dev_pipeline kubernetes.labels.tekton_dev_taskRun message
+```
