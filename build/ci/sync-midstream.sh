@@ -457,8 +457,8 @@ for ((i = START_REPO; i < NUM_REPOS; i++)); do # echo $i
           sed -i "$f" -r -e 's|("export-dynamic": "janus-cli package export-dynamic-plugin)|\1 --no-install|g'
         done
 
-        # RHIDP-4014 konflux - remove postinstall step that reinstall browsers (already prefetched by cachi2 via artifacts.lock.yaml)
-        sed -i e2e-tests/package.json -r -e '/"postinstall":.+/d'; grep postinstall ./e2e-tests/package.json || true
+        # RHIDP-4014 konflux - remove e2e-tests folder entirely 
+        rm -fr e2e-tests
 
       popd >/dev/null || exit 1
     fi
@@ -596,6 +596,9 @@ for ((i = START_REPO; i < NUM_REPOS; i++)); do # echo $i
     # apply branding changes
     # shellcheck disable=SC2016
     if [[ $destination_folder == *"rhdh-hub"* ]]; then
+
+      sed -i Containerfile -r -e "/e2e-tests/d"
+
       # transform app.title in app-config*.yaml to "Red Hat Developer Hub"
       # adds RHDH theming and logos
       # shellcheck disable=SC2044,SC2016
@@ -627,7 +630,6 @@ for ((i = START_REPO; i < NUM_REPOS; i++)); do # echo $i
       # set MIDSTREAM_REPO env var in Konflux Containerfile
       sed -i Containerfile -r -e "s|(MIDSTREAM_REPO=)\".+\"|\1\"${midstream_repo_and_SHA}\"|"
       now="$(date -u +%FT%TZ)";
-
       # set build-metadata.json info, using upstream info: ${ROOTPATH}/sync/upstream_SHA_rhdh-hub ==> redhat-developer/rhdh main @ 2ff35695
       sed -i packages/app/src/build-metadata.json -r \
         -e 's|"Last Commit": "(.+)"|"Upstream": "'"$upstream_repo_hub"'", "Midstream": "'"$midstream_repo_and_SHA"'", "Build Time": "'"$now"'"|'
