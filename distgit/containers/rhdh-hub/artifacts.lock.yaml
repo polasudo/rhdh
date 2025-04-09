@@ -1,9 +1,0 @@
----
-metadata: 
-  version: "1.0"
-# files are available at /cachi2/output/deps/generic/ in the container
-# compute new digests with:
-#   for f in $(cat distgit/containers/rhdh-hub/artifacts.lock.yaml | yq -r '.artifacts[].download_url'); do curl -sSLo /tmp/${f##*/} $f; sha256sum /tmp/${f##*/}; done
-artifacts:
-  - download_url: "https://nodejs.org/download/release/v22.13.1/node-v22.13.1-headers.tar.gz"
-    checksum: "sha256:f9cde9ace585c3979f1b4ee247914f35fae6e7b7eabc6a40961f89ad39e78964"
