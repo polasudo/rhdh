@@ -1,0 +1,76 @@
+{
+  "type": "object",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "properties": {
+    "argocd": {
+      "description": "Optional configurations for the ArgoCD plugin",
+      "type": "object",
+      "properties": {
+        "username": {
+          "visibility": "secret",
+          "type": "string"
+        },
+        "password": {
+          "visibility": "secret",
+          "type": "string"
+        },
+        "baseUrl": {
+          "description": "The base url of the ArgoCD instance.",
+          "visibility": "frontend",
+          "type": "string"
+        },
+        "appLocatorMethods": {
+          "description": "The base url of the ArgoCD instance.",
+          "visibility": "frontend",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "instances",
+              "type"
+            ],
+            "properties": {
+              "type": {
+                "description": "The base url of the ArgoCD instance.",
+                "visibility": "frontend",
+                "type": "string"
+              },
+              "instances": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "name",
+                    "url"
+                  ],
+                  "properties": {
+                    "name": {
+                      "visibility": "frontend",
+                      "type": "string"
+                    },
+                    "url": {
+                      "visibility": "frontend",
+                      "type": "string"
+                    },
+                    "token": {
+                      "visibility": "secret",
+                      "type": "string"
+                    },
+                    "username": {
+                      "visibility": "secret",
+                      "type": "string"
+                    },
+                    "password": {
+                      "visibility": "secret",
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
