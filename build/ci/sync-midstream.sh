@@ -437,17 +437,6 @@ for ((i = START_REPO; i < NUM_REPOS; i++)); do # echo $i
       rsync -azq $TMPDIR/repo${i}/.rhdh/docker/* "${ROOTPATH}/${destination_folder%/}/docker/" --exclude=.git ${excludesFlags}
 
       pushd "${ROOTPATH}/${destination_folder%/}" >/dev/null || exit 1
-
-        # Konflux performance workaround
-        # set concurrency for turbo commands so that builds don't run our of file handles / disk space / memory (instead of default 10)
-        # concurrency=6 crashes the build, so use 4
-        # +    "export-dynamic": "turbo run export-dynamic --concurrency=z",
-        # +    "export-dynamic:clean": "turbo run export-dynamic:clean --concurrency=z",
-        # as of 1.5, use concurrency=1 to try to work around dependency collisions caused by parallel threading
-        if [[ -f package.json ]]; then
-          sed -i package.json -r -e 's| --concurrency=[0-9]+||g' -e 's|("export-dynamic.+)",|\1 --concurrency=1",|'
-        fi
-
         # RHIDP-4014 konflux needs to pass env vars to every yarn install command, 
         # so we can't call it from within janus-idp/cli's export-dynamic command; instead do a 
         # --no--install here, then a yarn install from the dynamic-plugins/wrappers/*/dist-dynamic/ folders
@@ -459,7 +448,6 @@ for ((i = START_REPO; i < NUM_REPOS; i++)); do # echo $i
 
         # RHIDP-4014 konflux - remove e2e-tests folder entirely 
         rm -fr e2e-tests
-
       popd >/dev/null || exit 1
     fi
 
@@ -1197,6 +1185,8 @@ if [[ $CONTAINER_NUDGE != "true" ]]; then
   else
     if [[ $DO_BUILD -eq 0 ]]; then
       for d in \
+        distgit/containers/rhdh-hub/.nvm/ \
+        distgit/containers/rhdh-hub/python/ \
         distgit/containers/rhdh-hub/dynamic-plugins/ \
         distgit/containers/rhdh-hub/e2e-tests/ \
         distgit/containers/rhdh-hub/packages/app/public/ \
