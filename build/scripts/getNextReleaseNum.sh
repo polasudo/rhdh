@@ -40,7 +40,6 @@ while [[ "$#" -gt 0 ]]; do
     '-b') MIDSTM_BRANCH="$2"; shift 1;;
     '--tag') TAG="$2"; shift 1;;
     '-c') CONTAINERS="${CONTAINERS} $2"; shift 1;;
-    '--check-nvr') CHECK_NVR="true";;
     '-q') QUIET=1;;
     '-h'|'--help') usage; exit 1;;
   esac
@@ -66,10 +65,6 @@ for c in $CONTAINERS; do
     if [[ $QUIET -eq 0 ]]; then echo -n "$c: ${TAG}-"; fi
     # set -x
     latestQuay=$("${SCRIPTPATH}"/getLatestImageTags.sh -b "${MIDSTM_BRANCH}" -c "$c" --quay --tag "${TAG}-" 2>&1 | sed -r -e "s|.+:([0-9.]+)-([0-9]+)|\2|")
-    latestNVR=""
-    if [[ $CHECK_NVR ]]; then # obsolete as of 1.4+
-        latestNVR=$("${SCRIPTPATH}"/getLatestImageTags.sh -b "${MIDSTM_BRANCH}" -c "$c" --nvr 2>&1               | sed -r -e "s|.+container-([0-9.]+)-([0-9]+)|\2|")
-    fi
     # set +x
     # echo "* [$latestQuay] ?? [$latestNVR]"
     # for first build on the new release stream
