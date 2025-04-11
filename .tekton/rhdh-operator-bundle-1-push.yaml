@@ -353,7 +353,7 @@ spec:
     # - name: ecosystem-cert-preflight-checks
     # DO NOT INCLUDE THIS CHECK for operator-bundles for two reasons
     # 1. it's pointless as it's checking for things that don't apply to an operator-bundle;
-    # 2 if you include it, the task itself will realize it's pointless, and exit as skipped, and then your ECP will fail with 
+    # 2 if you include it, the task itself will realize it's pointless, and exit as skipped, and then your ECP will fail with
     # ✕ [Violation] test.no_skipped_tests
     # Reason: The Task "ecosystem-cert-preflight-checks" from the build Pipeline reports a test was skipped
     - name: sast-snyk-check

@@ -353,7 +353,7 @@ spec:
     # - name: ecosystem-cert-preflight-checks
     # DO NOT INCLUDE THIS CHECK for operator-bundles for two reasons
     # 1. it's pointless as it's checking for things that don't apply to an operator-bundle;
-    # 2 if you include it, the task itself will realize it's pointless, and exit as skipped, and then your ECP will fail with 
+    # 2 if you include it, the task itself will realize it's pointless, and exit as skipped, and then your ECP will fail with
     # ✕ [Violation] test.no_skipped_tests
     # Reason: The Task "ecosystem-cert-preflight-checks" from the build Pipeline reports a test was skipped
     - name: sast-snyk-check
@@ -363,7 +363,7 @@ spec:
       - name: image-url
         value: $(tasks.build-image-index.results.IMAGE_URL)
       # - name: ARGS
-      #   value: "--project-name=Internal-Konflux-RHDH-Snyk-Reports --report --org=3640be2c-1549-4d4c-bc0b-46b24799e4b6"
+      #   value: "--severity-threshold=medium --project-name=konflux-rhdh-operator-bundle-1-next --report --org=3640be2c-1549-4d4c-bc0b-46b24799e4b6"
       runAfter:
       - build-image-index
       taskRef:
