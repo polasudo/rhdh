@@ -11,7 +11,6 @@ sync-midstream:
   script:
     - |
       echo "Pipeline triggered by $CI_PIPELINE_SOURCE event"; echo
-      dnf -y -q install git
       echo; git log --graph --pretty=format:'%Cred%h%Creset%C(yellow)%d%Creset :: %s @ %cN <%cE> (%cD - %cr)' --name-only -4; echo
 
       # sync, build and commit changes
