@@ -16,30 +16,6 @@ set -e
 # CI_PROJECT_NAMESPACE = $CI_PROJECT_NAMESPACE
 # CI_PROJECT_NAME = $CI_PROJECT_NAME"
 
-cd /tmp
-# find latest at https://coprbe.devel.redhat.com/results/@endpoint-systems-sysadmins/unsupported-fedora-packages/epel-9-x86_64/
-curl -sSLkO https://coprbe.devel.redhat.com/results/@endpoint-systems-sysadmins/unsupported-fedora-packages/epel-9-x86_64/00118133-redhat-internal-cert-install/redhat-internal-cert-install-0.2-2.el9.noarch.rpm
-# add repo to resolve helm
-dnf config-manager --add-repo https://rhsm-pulp.corp.redhat.com/content/dist/layered/rhel8/x86_64/ocp-tools/4.12/os/ -q
-# add repo to resolve brewkoji, and ignore gpg check
-# http://download.devel.redhat.com/rel-eng/RCMTOOLS/latest-RCMTOOLS-2-RHEL-9/compose/BaseOS/x86_64/os/
-# https://download.hosts.prod.upshift.rdu2.redhat.com/rel-eng/RCMTOOLS/latest-RCMTOOLS-2-RHEL-9/compose/BaseOS/x86_64/os/
-
-# dnf config-manager --save --setopt=latest-RCMTOOLS-2-RHEL-9.sslverify=false
-cat <<EOL >> /etc/yum.repos.d/latest-RCMTOOLS-2-RHEL-9.repo
-[latest-RCMTOOLS-2-RHEL-9]
-name=latest-RCMTOOLS-2-RHEL-9
-baseurl=https://download.hosts.prod.upshift.rdu2.redhat.com/rel-eng/RCMTOOLS/latest-RCMTOOLS-2-RHEL-9/compose/BaseOS/x86_64/os/
-enabled=1
-gpgcheck=0
-sslverify=0
-skip_if_unavailable=False
-EOL
-dnf clean all; dnf update -y -q
-dnf -y -q install helm redhat-internal-cert-install*.rpm krb5-workstation
-dnf -y -q install brewkoji koji-containerbuild 
-rm -f redhat-internal-cert-install*.rpm
-
 # add ~/.ssh/known_hosts entry for gitlab.cee.redhat.com and pkgs.devel.redhat.com
 mkdir -p ~/.ssh && chmod 700 ~/.ssh
 cat << EOT >> ~/.ssh/known_hosts
@@ -75,8 +51,7 @@ git checkout "${CI_COMMIT_BRANCH}" || exit 1
 git rev-parse --abbrev-ref HEAD
 
 # build and install download-secure-files from sources
-DSF_TAG="v0.1.11"
-dnf -y -q install golang make cmake openssl openssl-devel gcc gcc-c++ git
+DSF_TAG="v0.1.12"
 pushd /tmp >/dev/null || exit 1
 # Redirect console output and errors to a log file to make this log shorter
 exec 3>&1 4>&2 1>> /tmp/gitlab-ci-env-setup.sh.build.log.txt 2>> /tmp/gitlab-ci-env-setup.sh.build.log.txt
