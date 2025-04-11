@@ -31,11 +31,7 @@ sync-midstream:
         # distgit/containers/rhdh-hub/yarn.lock
         # etc.
 
-      # add bash -x to debug why we're seeing this error (RHIDP-6968):
-      #   Error: Failed to download metadata for repo 'rhel-9-for-x86_64-baseos-rpms': Cannot download repomd.xml: Cannot download repodata/repomd.xml: All mirrors were tried
-      yum repolist
-      for r in /etc/yum.repos.d/*; do echo "==== $r ====>"; cat $r; echo "<==== $r ===="; done
-      bash -x ./build/ci/sync-midstream.sh $latestNext -b "$CI_COMMIT_REF_NAME" --gitlab-pipeline-push || exit 15
+      ./build/ci/sync-midstream.sh $latestNext -b "$CI_COMMIT_REF_NAME" --gitlab-pipeline-push || exit 15
 
       # gitlab version of component nudging (RHIDP-4451) for operator-bundle
       # disabled because this triggers a build that points to the n-1 versions of hub and operator, so it's a waste of time
