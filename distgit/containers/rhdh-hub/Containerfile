@@ -205,7 +205,8 @@ RUN \
   -e "s/(\"Last Commit\": \"(.+)\")/\1, \"Build Time\": \"$now\"/" && \
   cat packages/app/src/build-metadata.json; echo
 
-RUN echo "=== YARN BUILD ==="; "$YARN" build --filter=backend
+# suppress git warnings about dubious ownership in repository at '/opt/app-root/src' when building the backend app
+RUN echo "=== YARN BUILD BACKEND ==="; git config --global --add safe.directory /opt/app-root/src; "$YARN" build --filter=backend
 
 RUN echo "=== EXPORT DYNAMIC PLUGINS (with --no-install) ==="; FAILED=0; "$YARN" export-dynamic --filter=./dynamic-plugins/wrappers/* || true; \
 for d in /tmp/xfs-*; do if [[ -f ${d}/build.log ]]; then \
@@ -381,7 +382,7 @@ ENTRYPOINT ["node", "--require", "./instrumentation.js", "packages/backend", "--
 # append Brew metadata here
 ENV SUMMARY="Red Hat Developer Hub container" \
     DESCRIPTION="Red Hat Developer Hub container" \
-    UPSTREAM_REPO="https://github.com/redhat-developer/rhdh/tree/main @ 5f26696c" \
+    UPSTREAM_REPO="https://github.com/redhat-developer/rhdh/tree/main @ a265d913" \
     MIDSTREAM_REPO="https://gitlab.cee.redhat.com/rhidp/rhdh/-/commits/rhdh-1-rhel-9" \
     PRODNAME="rhdh" \
     COMPNAME="hub"
@@ -394,12 +395,12 @@ LABEL summary="$SUMMARY" \
       com.redhat.component="$PRODNAME-$COMPNAME-container" \
       name="$PRODNAME/$PRODNAME-$COMPNAME-rhel9" \
       version="1.7" \
-      release="20" \
+      release="21" \
       license="ASLv2" \
       maintainer="RHDH Team <rhdh-bot@redhat.com>" \
       vendor="Red Hat, Inc." \
       io.openshift.expose-services="" \
       usage="" \
-      konflux.additional-tags="next, 1.7, 1.7-20" \
+      konflux.additional-tags="next, 1.7, 1.7-21" \
       distribution-scope="public" \
       url="https://red.ht/rhdh"
