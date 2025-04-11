@@ -9,5 +9,5 @@
 # maintaining this file and the format and examples
 ---
 x86_64:
-  - rhel-9-for-x86_64-baseos-rpms
-  - rhel-9-for-x86_64-appstream-rpms
+  - ubi-9-for-x86_64-baseos-rpms
+  - ubi-9-for-x86_64-appstream-rpms
