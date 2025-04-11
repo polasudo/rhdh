@@ -9,10 +9,10 @@ RUN \
     dnf -y -q update && \
     dnf module enable nodejs:20 -y && \
     dnf -y -q install brotli-devel cmake gcc gcc-c++ git jq make nodejs npm openssl openssl-devel gettext \
-        python3-pip rsync skopeo sudo zlib-devel && dnf clean all && \
-    pip3 install --no-cache-dir -q yq
-# hadolint ignore=SC3037,DL4006,DL3016
-RUN \
+        python3 python3-pip python3-dnf rsync skopeo sudo zlib-devel && dnf clean all && \
+        pip3 install --no-cache-dir -q yq; \
+        pip3 install --no-cache-dir -q --user https://github.com/konflux-ci/rpm-lockfile-prototype/archive/refs/heads/main.zip; \
+        mv ~/.local/bin/* /usr/local/bin/; \
     time npm install --network-timeout=600000 --global npm corepack husky node-gyp prettier turbo @janus-idp/cli; \
     corepack enable; \
     yarn set version 3.8.7; \
@@ -20,5 +20,4 @@ RUN \
     yarn config set httpTimeout 600000; \
     yarn config set npmRegistryServer $(npm config get registry); \
     # list installed binaries and default locations
-    for r in jq node node-gyp npm prettier turbo yq janus-cli; do echo -n "$(which $r) : "; "$r" --version; done; \
-    echo -n "husky : "; husky -v
+    for r in jq node node-gyp npm prettier yq janus-cli rpm-lockfile-prototype turbo; do echo -n "$(which $r) : "; "$r" --version || true; done
