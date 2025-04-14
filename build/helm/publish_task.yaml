@@ -68,13 +68,24 @@ spec:
 
         # Fetch the Github token from secret added to Konflux
         export GITHUB_TOKEN=$(cat /etc/secrets/${GITHUB_TOKEN_KEY})
-        
-        # Check the target branch to see if to use the main chart branch, otherwise, use the stable build branches
+
+        # Determine TAG and chart branch
         if [[ ${target_branch} == *-1-* ]]; then
           chart_branch="main"
         else
           chart_branch="release-$(echo ${TAG} | cut -d '-' -f1)"
         fi
-        
-        echo "[INFO] publish chart version ${IMAGE}-CI from ${chart_branch} to ${target_branch}..."
-        ./build/helm/prepare.sh --chart-version ${TAG}-CI --rhdh-version ${TAG} --chart-branch ${chart_branch} --publish --extra-branch ${target_branch} --catalog "https://rhdh-bot:${GITHUB_TOKEN}@github.com/rhdh-bot/openshift-helm-charts.git" --quay-registry-config '/var/workdir/registry_auth.json'
+
+        chart_name="all"
+
+        ./build/helm/prepare.sh \
+          --debug \
+          --chart-version ${TAG}-CI \
+          --rhdh-version ${TAG} \
+          --chart-name ${chart_name} \
+          --chart-branch ${chart_branch} \
+          --publish \
+          --extra-branch ${target_branch} \
+          --catalog "https://rhdh-bot:${GITHUB_TOKEN}@github.com/rhdh-bot/openshift-helm-charts.git" \
+          --quay-registry-config '/var/workdir/registry_auth.json'
+
