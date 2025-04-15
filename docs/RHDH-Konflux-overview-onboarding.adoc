@@ -22,13 +22,22 @@ Once these exist, a new Application, with 3 (or more) components can then be add
 
 To trigger a build of the FBCs when a new operator-bundle image has been published, link:https://konflux-ci.dev/docs/how-tos/configuring/component-nudges/#in-the-ui[component nudging] is required. This should be configured so that for any new build of the rhdh-hub or rhdh-operator containers, a new rhdh-operator-bundle is theen built; once that is built, the bundle should nudge the FBC applications to update those with fresher digests. 
 
-TODO: RHIDP-4223 - this doesn't work!. Need to do manual nudging of the FBCs each time a new bundle is pushed (or generate a new bundle for every new hub or operator).
+TODO: RHIDP-4223 - this doesn't work! Therefore, must do manual builds of new bundles for every new hub or operator, then manually build new FBCs for that new bundle.
+
+See:
+
+* link:../build/scripts/triggerRespin.sh[triggerRespin.sh] for the bundle rebuild
+* link:../build/scripts/renderCatalogs.sh[renderCatalogs.sh] for the FBC rebuilds
 
 ## File Based Catalogs (FBCs)
 
 FBCs replace IIBs (index bundles) in RHDH 1.4+.
 
-### Add a new Application and Component to build FBCs for a new OCP version
+### Building a new FBC or set of FBCs
+
+See link:../build/scripts/renderCatalogs.sh[renderCatalogs.sh].
+
+### Adding a new Application and Component to build FBCs for a new OCP version
 
 This should only be done once every 6mo or so, when a new OCP version is released and a new version of registry.redhat.io/openshift4/ose-operator-registry-rhel9 becomes available.
 
@@ -40,7 +49,7 @@ This should only be done once every 6mo or so, when a new OCP version is release
 
 image::images/new-application-fbc-component.png[New Application and Component]
 
-### Remove support for EOL OCP versions
+### Removing support for EOL OCP versions
 
 When support for an older version of OCP is to be dropped, FBC publishing for that old version can be stopped.
 
@@ -48,35 +57,24 @@ When support for an older version of OCP is to be dropped, FBC publishing for th
 
 2. Update lifecycle docs & official product docs, release notes, etc. 
 
-3. Update defaults in link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1-rhel-9/build/scripts/renderCatalogs.sh[build/scripts/renderCatalogs.sh]
+3. Update defaults in link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1-rhel-9/build/scripts/renderCatalogs.sh[build/scripts/renderCatalogs.sh] (and cherrypick to other branches if applicable)
 
 ## Installation
 
-### Helm
+### via Helm
 
 Helm charts for GA releases are manually created. See https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1-rhel-9/build/helm/prepare.sh
 
-Each CI build produces a helm chart pointing back to that new build. 
+Each CI build produces a helm chart pointing back to that new build. As of 1.5, charts are here: https://quay.io/rhdh/chart
 
-See the following JIRAs:
-* https://issues.redhat.com/browse/RHIDP-4452 (completed, github publishing)
-* https://issues.redhat.com/browse/RHIDP-5267 (in progress, OCI artifact publishing)
-
-### Operator
+### via Operator
 
 See link:RHDH-Konflux-user.adoc[RHDH-Konflux-user-guide.adoc].
 
-TODO: RHIDP-4223 write this / script this / apply this to the https://github.com/redhat-developer/rhdh-operator/blob/main/.rhdh/scripts/install-rhdh-catalog-source.sh so it uses IDMS instead of ICSP
+See installation advice and scripts at https://github.com/redhat-developer/rhdh-operator/blob/main/.rhdh/
 
 * install an IDMS/ICSP to resolve container image references
 * install the latest FBC as a CatalogSource
-
-See also:
-
-* https://issues.redhat.com/browse/RHIDP-4223?focusedId=25765411&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-25765411
-* https://konflux.pages.redhat.com/docs/users/getting-started/building-olm-products.html#testing-a-fbc-graph
-* https://github.com/redhat-developer/rhdh-operator/blob/main/.rhdh/scripts/install-rhdh-catalog-source.sh (needs revision)
-
 
 ## GA Releases
 
@@ -99,7 +97,7 @@ Note that RPs must reference their associated RPAs or else we're not allowed to 
 
 ### How do I release?
 
-Simply put, to release containers and FBCs, use this script:
+Simply put, to release containers and then FBCs, use this script:
 
 * link:../build/scripts/kfuxRelease.sh[kfuxRelease.sh]
 
