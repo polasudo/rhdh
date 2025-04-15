@@ -972,21 +972,28 @@
                 }
               }
             },
-            "google": {
+            "microsoft": {
               "visibility": "frontend",
               "type": "object",
               "additionalProperties": {
                 "type": "object",
                 "required": [
                   "clientId",
-                  "clientSecret"
+                  "clientSecret",
+                  "tenantId"
                 ],
                 "properties": {
                   "clientId": {
                     "type": "string"
                   },
+                  "tenantId": {
+                    "type": "string"
+                  },
                   "clientSecret": {
                     "visibility": "secret",
+                    "type": "string"
+                  },
+                  "domainHint": {
                     "type": "string"
                   },
                   "callbackUrl": {
@@ -1004,6 +1011,9 @@
                         "type": "string"
                       }
                     ]
+                  },
+                  "skipUserProfile": {
+                    "type": "boolean"
                   },
                   "signIn": {
                     "type": "object",
@@ -1066,28 +1076,21 @@
                 }
               }
             },
-            "microsoft": {
+            "google": {
               "visibility": "frontend",
               "type": "object",
               "additionalProperties": {
                 "type": "object",
                 "required": [
                   "clientId",
-                  "clientSecret",
-                  "tenantId"
+                  "clientSecret"
                 ],
                 "properties": {
                   "clientId": {
                     "type": "string"
                   },
-                  "tenantId": {
-                    "type": "string"
-                  },
                   "clientSecret": {
                     "visibility": "secret",
-                    "type": "string"
-                  },
-                  "domainHint": {
                     "type": "string"
                   },
                   "callbackUrl": {
@@ -1105,9 +1108,6 @@
                         "type": "string"
                       }
                     ]
-                  },
-                  "skipUserProfile": {
-                    "type": "boolean"
                   },
                   "signIn": {
                     "type": "object",
