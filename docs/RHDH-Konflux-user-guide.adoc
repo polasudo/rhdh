@@ -1,3 +1,18 @@
+## Building locally
+
+Upstream, you can build the Dockerfile in https://github.com/redhat-developer/rhdh/tree/main/.rhdh/docker a number of ways. See link:https://github.com/redhat-developer/rhdh/tree/main/.rhdh/docker/README.adoc[README] for details.
+
+In this repo, you can create a merge request against link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1-rhel-9/distgit/containers/rhdh-hub/Containerfile[distgit/containers/rhdh-hub/Containerfile] and watch as Konflux attempts to build your changes.
+
+If you need access to the internal RH Konflux instance at https://konflux-ui.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/ns/rhdh-tenant/applications/rhdh-1/activity/pipelineruns see link:PERMISSIONS.adoc[PERMISSIONS.adoc].
+
+Note that changes done directly to the Containerfile may be undone when link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1-rhel-9/build/ci/sync-midstream.sh[sync-midstream.sh] runs to fetch the latest content from https://github.com/redhat-developer/rhdh/, so it's important to remember to:
+
+* apply your changes upstream too
+* run the sync script locally (with `--nocommit` or `--nopush`) to validate your desired changes downstream have not been overwritten by upstream changes.
+* adjust the sync script regularly to adapt to changes upstream
+
+
 ## Triggering builds
 
 ### Triggering hub and operator builds

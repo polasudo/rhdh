@@ -62,10 +62,6 @@ See link:PROCESSES.adoc[PROCESSES.adoc] - `Blockers found after code freeze`.
 
 See also link:RELEASE_GUIDE.adoc[RELEASE_GUIDE.adoc] - `Trigger respins`.
 
-## For more info: 
-
-See link:RHDH.adoc[RHDH.adoc]
-
 ## How can I see build or pull request logs after they're garbage collected?
 
 Best answer is to collect them WHILE they're running and store them offline, since they'll be garabage collected. Known issue: https://issues.redhat.com/browse/KONFLUX-6454
