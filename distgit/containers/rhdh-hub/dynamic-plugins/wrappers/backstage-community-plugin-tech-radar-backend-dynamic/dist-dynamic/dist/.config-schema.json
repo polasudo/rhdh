@@ -527,6 +527,34 @@
                 }
               }
             },
+            "bitbucketServer": {
+              "visibility": "frontend",
+              "type": "object",
+              "additionalProperties": {
+                "type": "object",
+                "required": [
+                  "clientId",
+                  "clientSecret",
+                  "host"
+                ],
+                "properties": {
+                  "clientId": {
+                    "type": "string"
+                  },
+                  "clientSecret": {
+                    "visibility": "secret",
+                    "type": "string"
+                  },
+                  "host": {
+                    "type": "string"
+                  },
+                  "callbackUrl": {
+                    "type": "string"
+                  },
+                  "sessionDuration": {}
+                }
+              }
+            },
             "cfaccess": {
               "visibility": "frontend",
               "type": "object",
@@ -610,34 +638,6 @@
               }
             },
             "sessionDuration": {},
-            "bitbucketServer": {
-              "visibility": "frontend",
-              "type": "object",
-              "additionalProperties": {
-                "type": "object",
-                "required": [
-                  "clientId",
-                  "clientSecret",
-                  "host"
-                ],
-                "properties": {
-                  "clientId": {
-                    "type": "string"
-                  },
-                  "clientSecret": {
-                    "visibility": "secret",
-                    "type": "string"
-                  },
-                  "host": {
-                    "type": "string"
-                  },
-                  "callbackUrl": {
-                    "type": "string"
-                  },
-                  "sessionDuration": {}
-                }
-              }
-            },
             "gcpIap": {
               "description": "Configuration for the Google Cloud Platform Identity-Aware Proxy (IAP) auth provider.",
               "type": "object",
