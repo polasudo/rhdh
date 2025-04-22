@@ -397,6 +397,41 @@ This chart's folder:  /tmp/tmp.QqY6kY8oou/charts/redhat/redhat/redhat-developer-
 https://github.com/openshift-helm-charts/charts/pull/1743
 ```
 
+. [ ] link:../build/helm/prepare.sh[Publish the Orchestrator Infra chart]
++
+The link:https://github.com/redhat-developer/rhdh-chart/tree/main/charts/orchestrator-infra[Orchestrator Infra Helm Chart] is a standalone chart that deploys the required OpenShift infrastructure to support the Orchestrator flavor of RHDH. Specifically, it installs the OpenShift Serverless Operator and Serverless Logic Operator, and applies required Knative CRDs. These components are necessary for enabling orchestration features in Red Hat Developer Hub.
++
+
+This chart is versioned alongside the main RHDH chart and must be published when:
+  - A new **CI** tag of RHDH is available, or
+  - A new **GA** version of RHDH is released, or
+  - Updates are made to the chart in `charts/orchestrator-infra/`
+
+  ./build/helm/prepare.sh \
+    --chart-version 1.6.0-CI \  # or 1.6.0 for GA
+    --chart-name redhat-developer-hub-orchestrator-infra \
+    --chart-dir charts/orchestrator-infra \
+    --chart-branch release-1.6 \
+    --catalog git@github.com:rhdh-bot/openshift-helm-charts.git \
+    --publish \
+    --debug
+
++
+You should see something like this:
+    
+    Full repo folder:     /tmp/tmp.KeyDhOkGFk
+    This chart's folder:  /tmp/tmp.KeyDhOkGFk/charts/redhat/redhat/redhat-developer-hub-orchestrator-infra/1.6.0-CI
+    [INFO] Pushing Helm chart to quay.io/rhdh/chart ...
+    ✓ Uploaded  /tmp/tmp.KeyDhOkGFk/charts/redhat/redhat/redhat-developer-hub-orchestrator-infra/1.6.0-CI/redhat-devel. 38.2/38.2 kB 100.00%     2s
+      └─ sha256:c24e01642a4a8acd487cc82cc26a271a3259ea97b26e382ccbb3a76c3948e6cf
+    ✓ Uploaded  application/vnd.cncf.helm.config.v1+json                                                                  901/901  B 100.00%     1s
+      └─ sha256:e1c9f99ac38b6645be1527fe17c288adf2c0c47c1a385328ad1a2955244b4a54
+    ✓ Uploaded  application/vnd.oci.image.manifest.v1+json                                                                679/679  B 100.00%  285ms
+      └─ sha256:91f710a6258eaaaac28c880a7ccb718911e4d8d9cbe036b0791aca72b7d5e57f
+    Pushed [registry] quay.io/rhdh/orchestrator-infra-chart:1.6.0-CI
+    ArtifactType: application/vnd.cncf.helm.config.v1+json
+    Digest: sha256:91f710a6258eaaaac28c880a7ccb718911e4d8d9cbe036b0791aca72b7d5e57f
+    
 #### FBC release (30 mins)
 
 . [ ] Find the latest operator bundle tag from https://catalog.redhat.com/software/containers/rhdh/rhdh-operator-bundle/64bfdcd740aa90644e579cc6, eg., `1.4.3` or `1.5.1`
