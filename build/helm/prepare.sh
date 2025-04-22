@@ -416,7 +416,12 @@ if [[ $PUBLISH -eq 1 ]]; then
     echo "[INFO] Pushing Helm chart to quay.io/rhdh/chart ..."
     helm_config=$(mktemp)
     helm show chart "${PACKAGE_DEST}/${CHART_NAME}-${CHART_VERSION}.tgz" | $YQ -p yaml -o json >"$helm_config"
-    oras push "quay.io/rhdh/${CHART_NAME}:${CHART_VERSION}" \
+    if [[ "$CHART_NAME" == "redhat-developer-hub-orchestrator-infra" ]]; then
+        TARGET_REPO="orchestrator-infra-chart"
+    else
+        TARGET_REPO="${CHART_NAME}"
+    fi
+    oras push "quay.io/rhdh/${TARGET_REPO}:${CHART_VERSION}" \
         "${PACKAGE_DEST}/${CHART_NAME}-${CHART_VERSION}.tgz:application/vnd.cncf.helm.chart.content.v1.tar+gzip" \
         --disable-path-validation --config "$helm_config:application/vnd.cncf.helm.config.v1+json" $QUAY_REGISTRY_CONFIG
 
