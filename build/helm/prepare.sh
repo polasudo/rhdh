@@ -413,14 +413,17 @@ Full repo folder:     $CATALOG_DIR
 echo "This chart's folder:  $PACKAGE_DEST"
 
 if [[ $PUBLISH -eq 1 ]]; then
-    echo "[INFO] Pushing Helm chart to quay.io/rhdh/chart ..."
     helm_config=$(mktemp)
     helm show chart "${PACKAGE_DEST}/${CHART_NAME}-${CHART_VERSION}.tgz" | $YQ -p yaml -o json >"$helm_config"
-    if [[ "$CHART_NAME" == "redhat-developer-hub-orchestrator-infra" ]]; then
+    # we push to either quay.io/rhdh/chart or quay.io/rhdh/orchestrator-infra-chart
+	if [[ "$CHART_NAME" == "redhat-developer-hub-orchestrator-infra" ]]; then
         TARGET_REPO="orchestrator-infra-chart"
+    elif [[ "${CHART_NAME}" == "redhat-developer-hub" ]]; then 
+        TARGET_REPO="chart"
     else
         TARGET_REPO="${CHART_NAME}"
     fi
+    echo "[INFO] Pushing Helm chart to quay.io/rhdh/${TARGET_REPO}:${CHART_VERSION} ..."
     oras push "quay.io/rhdh/${TARGET_REPO}:${CHART_VERSION}" \
         "${PACKAGE_DEST}/${CHART_NAME}-${CHART_VERSION}.tgz:application/vnd.cncf.helm.chart.content.v1.tar+gzip" \
         --disable-path-validation --config "$helm_config:application/vnd.cncf.helm.config.v1+json" $QUAY_REGISTRY_CONFIG
