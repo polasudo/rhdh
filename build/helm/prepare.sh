@@ -92,10 +92,10 @@ Examples:
 
     # NOTE that the PR may not be created correctly; you may have to manually create a PR from the release-x.y.z branch.
 
-    # Example of usage for publishing the orchestrator-infra-chart
+    # Example of usage for publishing the redhat-developer-hub-orchestrator-infra
     $0 \
         --chart-version 1.6.0-CI \
-        --chart-name orchestrator-infra-chart \
+        --chart-name redhat-developer-hub-orchestrator-infra \
         --chart-dir charts/orchestrator-infra \
         --chart-branch release-1.6 \
         --catalog git@github.com:rhdh-bot/openshift-helm-charts.git \
@@ -185,7 +185,7 @@ if [[ $DO_LATEST -eq 1 ]]; then
 fi
 
 # only need RHDH_VERSION for a RHDH chart release; not required for orch infra chart
-if [[ ! $RHDH_VERSION ]] && [[ "${CHART_NAME}" != "orchestrator-infra-chart" ]]; then
+if [[ ! $RHDH_VERSION ]] && [[ "${CHART_NAME}" != "redhat-developer-hub-orchestrator-infra" ]]; then
     usage
 fi
 
@@ -301,29 +301,24 @@ fi
 # TODO revise these to use jq wrapper version of yq (not mikefarah)
 CHART_PATH="${HELM_DIR}/${CHART_DIR}/Chart.yaml"
 VALUES_PATH="${HELM_DIR}/${CHART_DIR}/values.yaml"
-if [[ $CHART_VERSION == *"CI"* ]]; then
-    if [[ $DEBUG -eq 1 ]]; then
-        echo "Apply (CI Build) suffix to chart name"
-    fi
-    $YQ -i "
-        . *= load(\"${SCRIPT_DIR}/Chart_patch.yaml\") |
-        .version=\"${CHART_VERSION}\" |
-        .appVersion=\"${RHDH_VERSION}\" |
-        .annotations.\"charts.openshift.io/name\"=\"Red Hat Developer Hub (CI Build)\" |
-        .description=\"A Helm chart for deploying Red Hat Developer Hub (CI Build)\"
-    " "$CHART_PATH"
-    # Ensure Helm tarball matches chart name override
-    $YQ -i ".name = \"${CHART_NAME}\"" "$CHART_PATH"
-
-else
-    $YQ -i "
-        . *= load(\"${SCRIPT_DIR}/Chart_patch.yaml\") |
-        .version=\"${CHART_VERSION}\" |
-        .appVersion=\"${RHDH_VERSION}\"
-    " "$CHART_PATH"
-    # Ensure Helm tarball matches chart name override
-    $YQ -i ".name = \"${CHART_NAME}\"" "$CHART_PATH"
-
+CHART_ACTUAL_NAME=$($YQ '.name' "$CHART_PATH" | tr -d '"')
+if [[ "$CHART_ACTUAL_NAME" == "redhat-developer-hub-orchestrator-infra" ]]; then
+  echo "[INFO] Detected Orchestrator Infra chart"
+  echo "[INFO] Preserving all upstream metadata and updating only version to ${CHART_VERSION}"
+  # Extract raw description as plain string
+  RAW_DESC=$($YQ eval -o=json '.description' "$CHART_PATH" | jq -r '.')
+  # Escape single quotes for YAML (YAML requires '' inside '...')
+  ESCAPED_DESC=$(echo "$RAW_DESC" | sed "s/'/''/g")
+  # Strip .description, rebuild Chart.yaml with new content
+  TMP_CHART=$(mktemp)
+  $YQ 'del(.description)' "$CHART_PATH" > "$TMP_CHART"
+  # Append description safely as a single-quoted YAML string
+  echo "description: '$ESCAPED_DESC'" >> "$TMP_CHART"
+  # Set .version and .name
+  $YQ eval ".version = \"$CHART_VERSION\"" --inplace "$TMP_CHART"
+  $YQ eval ".name = \"redhat-developer-hub-orchestrator-infra\"" --inplace "$TMP_CHART"
+  # Overwrite the original Chart.yaml
+  mv "$TMP_CHART" "$CHART_PATH"
 fi
 
 if [[ "${CHART_NAME}" == "redhat-developer-hub" ]]; then
