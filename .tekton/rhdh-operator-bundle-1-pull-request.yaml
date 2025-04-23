@@ -25,10 +25,14 @@ spec:
     value: '{{revision}}'
   - name: output-image
     value: quay.io/rhdh/rhdh-operator-bundle:on-pr-{{revision}}
+  - name: sealights-output-image
+    value: quay.io/rhdh/rhdh-operator-bundle-sealights:on-pr-{{revision}}
   - name: image-expires-after
     value: 2w
   - name: dockerfile
     value: Containerfile
+  - name: dockerfile-sealights
+    value: Containerfile.sealights
   - name: path-context
     value: distgit/containers/rhdh-operator-bundle
   pipelineSpec:
@@ -216,6 +220,46 @@ spec:
         value: $(params.output-image)
       - name: DOCKERFILE
         value: $(params.dockerfile)
+      - name: CONTEXT
+        value: $(params.path-context)
+      - name: HERMETIC
+        value: $(params.hermetic)
+      - name: PREFETCH_INPUT
+        value: $(params.prefetch-input)
+      - name: IMAGE_EXPIRES_AFTER
+        value: $(params.image-expires-after)
+      - name: COMMIT_SHA
+        value: $(tasks.clone-repository.results.commit)
+      - name: BUILD_ARGS
+        value:
+        - $(params.build-args[*])
+      - name: BUILD_ARGS_FILE
+        value: $(params.build-args-file)
+      runAfter:
+      - prefetch-dependencies
+      taskRef:
+        params:
+        - name: name
+          value: buildah
+        - name: bundle
+          value: quay.io/konflux-ci/tekton-catalog/task-buildah:0.4@sha256:3c036c4f4ea243c9d186a96a34b880e334571739180ab80e4653cb7b1779cbe8
+        - name: kind
+          value: task
+        resolver: bundles
+      when:
+      - input: $(tasks.init.results.build)
+        operator: in
+        values:
+        - "true"
+      workspaces:
+      - name: source
+        workspace: workspace
+    - name: build-sealights-bundles
+      params:
+      - name: IMAGE
+        value: $(params.sealights-output-image)
+      - name: DOCKERFILE
+        value: $(params.dockerfile-sealights)
       - name: CONTEXT
         value: $(params.path-context)
       - name: HERMETIC

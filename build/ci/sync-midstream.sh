@@ -784,7 +784,7 @@ EOT
 fi
 
 if [[ $BUNDLEONLY -eq 1 ]]; then
-  for c in distgit/containers/rhdh-operator-bundle/Dockerfile.in distgit/containers/rhdh-operator-bundle/Dockerfile distgit/containers/rhdh-operator-bundle/Containerfile; do
+  for c in distgit/containers/rhdh-operator-bundle/Dockerfile.in distgit/containers/rhdh-operator-bundle/Dockerfile distgit/containers/rhdh-operator-bundle/Containerfile distgit/containers/rhdh-operator-bundle/Containerfile.sealights; do
     if [[ -f $c ]]; then 
       echo "Adjust $c to add downstream metadata"
       sed -i '/# append Brew metadata here/q' $c
