@@ -784,7 +784,11 @@ EOT
 fi
 
 if [[ $BUNDLEONLY -eq 1 ]]; then
-  for c in distgit/containers/rhdh-operator-bundle/Dockerfile.in distgit/containers/rhdh-operator-bundle/Dockerfile distgit/containers/rhdh-operator-bundle/Containerfile distgit/containers/rhdh-operator-bundle/Containerfile.sealights; do
+  for c in \
+      distgit/containers/rhdh-operator-bundle/Dockerfile.in \
+      distgit/containers/rhdh-operator-bundle/Dockerfile \
+      distgit/containers/rhdh-operator-bundle/Containerfile \
+      distgit/containers/rhdh-operator-bundle/Containerfile.sealights; do
     if [[ -f $c ]]; then 
       echo "Adjust $c to add downstream metadata"
       sed -i '/# append Brew metadata here/q' $c
@@ -1107,11 +1111,17 @@ for d in $these_dirs; do
       # for bundle use the downstream OSBS Dockerfile with the correct LABEL and ENV  values
       cp -f Dockerfile Containerfile
     fi
+
     if [[ -f "$TMPDIR/${d##*rhdh-}.Dockerfile.foot" ]]; then
-      sed -i '/# append Brew metadata here/q' Containerfile
-    
-      cat "$TMPDIR/${d##*rhdh-}.Dockerfile.foot" >> Containerfile
-      sed -r -e 's|\$\{CI_X_VERSION\}\.\$\{CI_Y_VERSION\}|'"$DH_VERSION"'|g' -i "Containerfile"
+      for CONTAINERFILE in Containerfile Containerfile.sealights; do
+        if [[ -f $CONTAINERFILE ]]; then
+          echo "[INFO] Append metadata to $CONTAINERFILE ..."
+          sed -i '/# append Brew metadata here/q' $CONTAINERFILE
+        
+          cat "$TMPDIR/${d##*rhdh-}.Dockerfile.foot" >> $CONTAINERFILE
+          sed -r -e 's|\$\{CI_X_VERSION\}\.\$\{CI_Y_VERSION\}|'"$DH_VERSION"'|g' -i "$CONTAINERFILE"
+        fi
+      done
     fi
     # set +x
 
