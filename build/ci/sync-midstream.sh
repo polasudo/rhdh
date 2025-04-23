@@ -1145,7 +1145,9 @@ for d in $these_dirs; do
     # when bootstrapping the first builds for a new 1.yy stream, use just 1.yy-1
     if [[ $nextReleaseNum -eq 0 ]]; then nextReleaseNum=1; fi
     echo "Set image version and release: $image:$DH_VERSION-$nextReleaseNum"
-    sed -r -e 's|\$\{RELEASE_NUMBER\}|'"$nextReleaseNum"'|' -i Containerfile
+    for CONTAINERFILE in Containerfile Containerfile.sealights; do
+      sed -r -e 's|\$\{RELEASE_NUMBER\}|'"$nextReleaseNum"'|' -i $CONTAINERFILE
+    done
     set +x
     ##################################### set NVR values for Konflux #####################################
 
