@@ -214,8 +214,6 @@ spec:
           value: '{{ repo_url }}'
         - name: test-event
           value: '{{ event_type }}'
-        - name: pull-request-number
-          value: '{{ pull_request_number }}'
         - name: target-branch
           value: '{{ target_branch }}'
         - name: workspace-path
