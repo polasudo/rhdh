@@ -29,10 +29,16 @@ spec:
     value: '[{"type": "rpm", "path": "distgit/containers/rhdh-hub"},{"type": "yarn","path": "distgit/containers/rhdh-hub"},{"type": "pip","path": "distgit/containers/rhdh-hub/python", "allow_binary": "false"}]'
   - name: output-image
     value: quay.io/rhdh/rhdh-hub-rhel9:{{revision}}
+  - name: sealights-output-image
+    value: quay.io/rhdh/rhdh-hub-rhel9-sealights:on-pr-{{revision}}
   - name: image-expires-after
     value: ''
+  - name: sealights-image-expires-after
+    value: '8w'
   - name: dockerfile
     value: Containerfile
+  - name: sealights-dockerfile
+    value: Containerfile.sealights
   - name: path-context
     value: distgit/containers/rhdh-hub
   pipelineSpec:
@@ -65,6 +71,13 @@ spec:
     - description: Fully Qualified Output Image
       name: output-image
       type: string
+    - description: Private output image reference used for Sealights artifacts
+      name: sealights-output-image
+      type: string
+    - description: If you have a dedicated Dockerfile for Sealights instrumented image,
+        use this parameter to point to that file
+      name: sealights-dockerfile
+      type: string
     - default: .
       description: Path to the source code of an application's component from where
         to build image.
@@ -96,6 +109,10 @@ spec:
       description: Image tag expiration time, time values could be something like
         1h, 2d, 3w for hours, days, and weeks, respectively.
       name: image-expires-after
+    - default: ""
+      description: Sealights image tag expiration time, time values could be something like
+        1h, 2d, 3w for hours, days, and weeks, respectively.
+      name: sealights-image-expires-after
     - default: "true"
       description: Build a source image.
       name: build-source-image
@@ -172,6 +189,39 @@ spec:
       workspaces:
       - name: basic-auth
         workspace: git-auth
+    - name: sealights-instrumentation
+      runAfter:
+        - clone-repository
+      taskRef:
+        params:
+        - name: name
+          value: sealights-nodejs-oci-ta
+        - name: bundle
+          value: quay.io/konflux-ci/tekton-catalog/task-sealights-nodejs-oci-ta:0.1@sha256:06ee493e52459684346f0e48412e2f80c37f4611671f26ea7892d069a3c4d877
+        - name: kind
+          value: task
+        resolver: bundles
+      params:
+        - name: SOURCE_ARTIFACT
+          value: $(tasks.clone-repository.results.SOURCE_ARTIFACT)
+        - name: component
+          value: 'rhdh-hub-rhel9'
+        - name: branch
+          value: '{{ source_branch }}'
+        - name: revision
+          value: '{{ revision }}'
+        - name: repository-url
+          value: '{{ repo_url }}'
+        - name: test-event
+          value: '{{ event_type }}'
+        - name: pull-request-number
+          value: '{{ pull_request_number }}'
+        - name: target-branch
+          value: '{{ target_branch }}'
+        - name: workspace-path
+          value: "distgit/containers/rhdh-hub"
+        - name: is-frontend
+          value: "true"
     - name: prefetch-dependencies
       params:
       - name: config-file-content
@@ -238,6 +288,55 @@ spec:
         value: spdx
       runAfter:
       - prefetch-dependencies
+      taskRef:
+        params:
+        - name: name
+          value: buildah-oci-ta
+        - name: bundle
+          value: quay.io/konflux-ci/tekton-catalog/task-buildah-oci-ta:0.4@sha256:d36bc6d707401cce95185272e1157bc716c22ea65379fed1d00af3e00afa8e17
+        - name: kind
+          value: task
+        resolver: bundles
+      timeout: 2h
+      when:
+      - input: $(tasks.init.results.build)
+        operator: in
+        values:
+        - "true"
+    - name: build-container-sealights
+      params:
+      - name: ADDITIONAL_SECRET
+        value: sealights-credentials
+      - name: IMAGE
+        value: $(params.sealights-output-image)
+      - name: DOCKERFILE
+        value: $(params.sealights-dockerfile)
+      - name: CONTEXT
+        value: $(params.path-context)
+      - name: HERMETIC
+        value: "false"
+      - name: PREFETCH_INPUT
+        value: $(params.prefetch-input)
+      - name: IMAGE_EXPIRES_AFTER
+        value: $(params.sealights-image-expires-after)
+      - name: COMMIT_SHA
+        value: $(tasks.clone-repository.results.commit)
+      - name: BUILD_ARGS
+        value:
+        - $(params.build-args[*])
+        - "BSID=$(tasks.sealights-instrumentation.results.sealights-bsid)"
+        - "AGENT_VERSION=$(tasks.sealights-instrumentation.results.sealights-agent-version)"
+      - name: BUILD_ARGS_FILE
+        value: $(params.build-args-file)
+      - name: SOURCE_ARTIFACT
+        value: $(tasks.prefetch-dependencies.results.SOURCE_ARTIFACT)
+      - name: CACHI2_ARTIFACT
+        value: $(tasks.prefetch-dependencies.results.CACHI2_ARTIFACT)
+      - name: SBOM_TYPE
+        value: spdx
+      runAfter:
+      - prefetch-dependencies
+      - sealights-instrumentation
       taskRef:
         params:
         - name: name
