@@ -324,6 +324,7 @@ spec:
         - $(params.build-args[*])
         - "BSID=$(tasks.sealights-instrumentation.results.sealights-bsid)"
         - "AGENT_VERSION=$(tasks.sealights-instrumentation.results.sealights-agent-version)"
+        - "PRISTINE_IMAGE=$(tasks.build-container.results.IMAGE_URL)"
       - name: BUILD_ARGS_FILE
         value: $(params.build-args-file)
       - name: SOURCE_ARTIFACT
@@ -333,8 +334,7 @@ spec:
       - name: SBOM_TYPE
         value: spdx
       runAfter:
-      - prefetch-dependencies
-      - sealights-instrumentation
+      - build-container
       taskRef:
         params:
         - name: name
