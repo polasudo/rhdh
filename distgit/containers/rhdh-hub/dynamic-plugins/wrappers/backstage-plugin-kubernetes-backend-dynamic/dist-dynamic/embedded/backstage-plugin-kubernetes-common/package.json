@@ -1,6 +1,6 @@
 {
   "name": "@backstage/plugin-kubernetes-common",
-  "version": "0.9.4+embedded",
+  "version": "0.9.3+embedded",
   "description": "Common functionalities for kubernetes, to be shared between kubernetes and kubernetes-backend plugin",
   "backstage": {
     "role": "common-library",
@@ -58,6 +58,13 @@
     "luxon": "^3.0.0"
   },
   "devDependencies": {},
+  "typesVersions": {
+    "*": {
+      "index": [
+        "dist/index.d.ts"
+      ]
+    }
+  },
   "module": "dist/index.esm.js",
   "private": true,
   "peerDependencies": {
