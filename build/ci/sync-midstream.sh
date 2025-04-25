@@ -437,15 +437,6 @@ for ((i = START_REPO; i < NUM_REPOS; i++)); do # echo $i
       rsync -azq $TMPDIR/repo${i}/.rhdh/docker/* "${ROOTPATH}/${destination_folder%/}/docker/" --exclude=.git ${excludesFlags}
 
       pushd "${ROOTPATH}/${destination_folder%/}" >/dev/null || exit 1
-        # RHIDP-4014 konflux needs to pass env vars to every yarn install command, 
-        # so we can't call it from within janus-idp/cli's export-dynamic command; instead do a 
-        # --no--install here, then a yarn install from the dynamic-plugins/wrappers/*/dist-dynamic/ folders
-        # shellcheck disable=SC2044
-        for f in $(find dynamic-plugins/wrappers -maxdepth 2 -name package.json); do
-          # echo "Adjust $f to add --no-install flag"
-          sed -i "$f" -r -e 's|("export-dynamic": "janus-cli package export-dynamic-plugin)|\1 --no-install|g'
-        done
-
         # RHIDP-4014 konflux - remove e2e-tests folder entirely 
         rm -fr e2e-tests
       popd >/dev/null || exit 1
