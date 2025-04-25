@@ -732,15 +732,6 @@ spec:
         limits:
           cpu: '8'
           memory: 12Gi
-    - pipelineTaskName: build-container-sealights
-      stepSpecs:
-      computeResources:
-        requests:
-          cpu: '8'
-          memory: 12Gi
-        limits:
-          cpu: '8'
-          memory: 12Gi
     - pipelineTaskName: prefetch-dependencies
       computeResources:
         requests:
