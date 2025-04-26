@@ -713,7 +713,7 @@ spec:
           - name: url
             value: https://gitlab.cee.redhat.com/rhidp/rhdh
           - name: revision
-            value: a099056282efdc0641254ea1ca64814b4c2ff8ad
+            value: 324a608ad383e36e7801cec5b56c5fa5edd94d2f
           - name: pathInRepo
             value: build/helm/publish_task.yaml
     workspaces:
