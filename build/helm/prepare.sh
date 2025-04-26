@@ -14,7 +14,7 @@ DO_LATEST=0 # if we want to generate a chart for the :latest, we need to set a -
 DEBUG=0
 QUIET="-q"
 
-EXCLUDES="next|latest|candidate|guest|containers|-source|-pr-|-tmp-|-ci-|-gh-|sha256-|on-push|build-container"
+EXCLUDES="next|latest|candidate|guest|containers|-source|-pr-|-tmp-|-ci-|-gh-|sha256-|on-push|on-pull|build-container|build-image-index"
 
 # TODO switch to jq wrapper version of yq (not mikefarah)
 mikefarahyq_version="4.35.2"
@@ -383,8 +383,10 @@ helm package "${HELM_DIR}/${CHART_DIR}" -d "$PACKAGE_DEST" 1>/dev/null
 ls -lh "${PACKAGE_DEST}"
 echo "Packaging chart to ${PACKAGE_DEST}"
 helm package "${HELM_DIR}/${CHART_DIR}" -d "$PACKAGE_DEST"
-echo "Contents of ${HELM_DIR}/${CHART_DIR}:"
-ls -lh "${HELM_DIR}/${CHART_DIR}"
+if [[ $DEBUG -eq 1 ]]; then
+    echo "Contents of ${HELM_DIR}/${CHART_DIR}:"
+    ls -lh "${HELM_DIR}/${CHART_DIR}"
+fi
 
 git config --global user.email "rhdh-bot@redhat.com"
 git config --global user.name "RHDH Build (rhdh-bot)"
@@ -406,14 +408,17 @@ else
     echo "Developer Hub image:  quay.io/rhdh/rhdh-hub-rhel9:${RHDH_VERSION}
 "
 fi
-echo "
-Full repo folder:     $CATALOG_DIR
-"
-
+echo "Full repo folder:     $CATALOG_DIR"; echo
 echo "This chart's folder:  $PACKAGE_DEST"
 
 if [[ $PUBLISH -eq 1 ]]; then
     helm_config=$(mktemp)
+    actual_chart=$(find "${PACKAGE_DEST}/" -name "*.tgz")
+    mv -f "$actual_chart" "${PACKAGE_DEST}/${CHART_NAME}-${CHART_VERSION}.tgz"
+    if [[ ! -f "${PACKAGE_DEST}/${CHART_NAME}-${CHART_VERSION}.tgz" ]]; then 
+        echo "[ERROR] Could not find chart in ${PACKAGE_DEST}/ called ${CHART_NAME}-${CHART_VERSION}.tgz ! Cannot continue - must exit!"; exit 1
+    fi
+
     helm show chart "${PACKAGE_DEST}/${CHART_NAME}-${CHART_VERSION}.tgz" | $YQ -p yaml -o json >"$helm_config"
     # we push to either quay.io/rhdh/chart or quay.io/rhdh/orchestrator-infra-chart
 	if [[ "$CHART_NAME" == "redhat-developer-hub-orchestrator-infra" ]]; then
@@ -459,12 +464,12 @@ if [[ $PUBLISH -eq 1 ]]; then
         "openshift-helm-charts-main/charts/redhat/redhat/${CHART_NAME}/${CHART_VERSION}/"
         # create PR
         pushd "openshift-helm-charts-main/charts/redhat/redhat/${CHART_NAME}/" >/dev/null || exit 1
-        git checkout main
-        git pull origin main
-        git pull origin
+        git checkout main >/dev/null 2>&1 
+        git pull origin main >/dev/null 2>&1 
+        git pull origin >/dev/null 2>&1 
         git remote add rhdh-bot git@github.com:rhdh-bot/openshift-helm-charts.git
-        git checkout origin/main -b "release-${CHART_VERSION}" || true
-        git checkout "release-${CHART_VERSION}" || true
+        git checkout origin/main -b "release-${CHART_VERSION}" >/dev/null 2>&1 || true
+        git checkout "release-${CHART_VERSION}" >/dev/null 2>&1 || true
         git add "${CHART_VERSION}"
         COMMIT_MSG="chore: chart: add Red Hat Developer Hub ${CHART_VERSION} for registry.redhat.io/rhdh/rhdh-hub-rhel9:${RHDH_VERSION}"
         git commit --no-gpg-sign -s -m "${COMMIT_MSG}" "${CHART_VERSION}" .
@@ -492,8 +497,8 @@ if [[ $PUBLISH -eq 1 ]]; then
             pushd "${CATALOG_DIR}-2" >/dev/null || exit 1
         git sparse-checkout init --cone
         git read-tree -mu HEAD
-        git -C "${CATALOG_DIR}-2" checkout -q -b "${EXTRA_BRANCH}" 1>/dev/null 2>&1 || true
-        git -C "${CATALOG_DIR}-2" pull $QUIET origin "${EXTRA_BRANCH}" 1>/dev/null 2>&1 || true
+        git -C "${CATALOG_DIR}-2" checkout -q -b "${EXTRA_BRANCH}" >/dev/null 2>&1 || true
+        git -C "${CATALOG_DIR}-2" pull $QUIET origin "${EXTRA_BRANCH}" >/dev/null 2>&1 || true
         rsync -arzq "${CATALOG_DIR}/installation" "${CATALOG_DIR}-2/"
         git -C "${CATALOG_DIR}-2" add installation --sparse
         CHANGED=1
@@ -505,7 +510,8 @@ if [[ $PUBLISH -eq 1 ]]; then
                     exit 45
                 }
         else
-            echo "nothing to commit, working tree clean"
+            # echo "nothing to commit, working tree clean"
+            true
         fi
         popd >/dev/null || exit 1
         echo
@@ -516,17 +522,17 @@ if [[ $PUBLISH -eq 1 ]]; then
     if [[ $CHART_VERSION != *"CI"* ]] && [[ $DELETE_OLD_BRANCHES -eq 1 ]]; then
         # purge old CI branches, but keep the most recent one (sort -V | head -n -1)
         rm -fr "${CATALOG_DIR}"
-        git clone -q "${CATALOG_FORK}" "${CATALOG_DIR}"
+        git clone -q "${CATALOG_FORK}" "${CATALOG_DIR}" >/dev/null 2>&1
         pushd "${CATALOG_DIR}" >/dev/null || exit 1
         # git remote -v
         # new branch name after April 9 2024
         for d in $(git branch -a | grep -E "remotes/.*/redhat-developer-hub" | grep "redhat-developer-hub-${RHDH_VERSION%-*}-" | grep CI | sed -r -e "s#.*remotes/[^/]+/##" | sort -V | head -n -1); do
-            git push origin ":${d}" 2>/dev/null
+            git push origin ":${d}" >/dev/null 2>&1
             echo "Branch $d deleted"
         done
         # old branch name up to April 9 2024
         for d in $(git branch -a | grep -E "remotes/.*/developer-hub" | grep "developer-hub-${RHDH_VERSION%-*}-" | grep CI | sed -r -e "s#.*remotes/[^/]+/##" | sort -V | head -n -1); do
-            git push origin ":${d}" 2>/dev/null
+            git push origin ":${d}" >/dev/null 2>&1
             echo "Branch $d deleted"
         done
         popd >/dev/null || exit 1
@@ -566,12 +572,12 @@ deleteDirs() {
         find "${CATALOG_DIR}-3"/charts/redhat/redhat/redhat-developer-hub/ -maxdepth 1 -name "*-CI" || true
     ); do # echo $olddir
         if [[ $olddir != *"/${CHART_VERSION}" ]]; then
-            git -C "${CATALOG_DIR}-3" rm -fr "$olddir" 1>/dev/null 2>&1 || true
+            git -C "${CATALOG_DIR}-3" rm -fr "$olddir" >/dev/null 2>&1 || true
             # echo "  Folder ${olddir##*redhat/redhat/} deleted"
         fi
     done
-    git -C "${CATALOG_DIR}-3" commit -q --no-verify --no-gpg-sign -s -m "chore: clean redhat-developer-hub-${CHART_VERSION}" 1>/dev/null 2>&1 || true
-    git -C "${CATALOG_DIR}-3" push $QUIET origin "$BRANCH" -f 1>/dev/null 2>&1 || true
+    git -C "${CATALOG_DIR}-3" commit -q --no-verify --no-gpg-sign -s -m "chore: clean redhat-developer-hub-${CHART_VERSION}" >/dev/null 2>&1 || true
+    git -C "${CATALOG_DIR}-3" push $QUIET origin "$BRANCH" -f >/dev/null 2>&1 || true
     # find "${CATALOG_DIR}-3"/charts/redhat/redhat/redhat-developer-hub/ -maxdepth 1
 }
 
@@ -582,10 +588,10 @@ if [[ $DEBUG -eq 1 ]]; then
 fi
 cd /tmp
 
-git clone --filter=blob:none -q "${CATALOG_FORK}" -b "${EXTRA_BRANCH}" "${CATALOG_DIR}-3" 1>/dev/null 2>&1 && \
+git clone --filter=blob:none -q "${CATALOG_FORK}" -b "${EXTRA_BRANCH}" "${CATALOG_DIR}-3" >/dev/null 2>&1 && \
     pushd "${CATALOG_DIR}-3" >/dev/null || exit 1
 if [[ $EXTRA_BRANCH ]]; then
-    git -C "${CATALOG_DIR}-3" checkout "$EXTRA_BRANCH" 1>/dev/null 2>&1 || true
+    git -C "${CATALOG_DIR}-3" checkout "$EXTRA_BRANCH" >/dev/null 2>&1 || true
     deleteDirs "$EXTRA_BRANCH"
 fi
 popd >/dev/null || exit 1
