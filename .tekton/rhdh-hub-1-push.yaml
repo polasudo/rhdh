@@ -724,10 +724,10 @@ spec:
       computeResources:
         requests:
           cpu: '8'
-          memory: 16Gi
+          memory: 20Gi
         limits:
           cpu: '8'
-          memory: 16Gi
+          memory: 20Gi
     - pipelineTaskName: prefetch-dependencies
       computeResources:
         requests:
