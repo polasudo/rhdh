@@ -295,7 +295,7 @@ spec:
         - name: kind
           value: task
         resolver: bundles
-      timeout: 4h
+      timeout: 2h
       when:
       - input: $(tasks.init.results.build)
         operator: in
@@ -739,7 +739,7 @@ spec:
   taskRunTemplate: {}
   timeouts:
     # See https://tekton.dev/docs/pipelines/pipelineruns/#configuring-a-failure-timeout
-      pipeline: 5h
+      pipeline: 3h
   workspaces:
   - name: workspace
     volumeClaimTemplate:
