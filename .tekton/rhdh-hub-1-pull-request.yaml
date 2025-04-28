@@ -31,8 +31,6 @@ spec:
     value: quay.io/rhdh/rhdh-hub-rhel9:on-pr-{{revision}}
   - name: sealights-output-image
     value: quay.io/rhdh/rhdh-hub-rhel9-sealights:on-pr-{{revision}}
-  - name: hermetic
-    value: "false"
   - name: image-expires-after
     value: 2w
   - name: dockerfile
