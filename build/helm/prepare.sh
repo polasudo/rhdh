@@ -16,6 +16,8 @@ QUIET="-q"
 
 EXCLUDES="next|latest|candidate|guest|containers|-source|-pr-|-tmp-|-ci-|-gh-|sha256-|on-push|on-pull|build-container|build-image-index"
 
+THIS_SCRIPT="$0"
+
 # TODO switch to jq wrapper version of yq (not mikefarah)
 mikefarahyq_version="4.35.2"
 helmdocs_version="v1.11.3"
@@ -190,11 +192,11 @@ if [[ ! $RHDH_VERSION ]] && [[ "${CHART_NAME}" != "redhat-developer-hub-orchestr
 fi
 
 if [[ "$CHART_NAME" == "all" ]]; then
-    echo "[INFO] Multi-chart mode: will publish all charts in ./charts/*"
-    for chart_path in "${SCRIPT_DIR}/../charts/"*; do
+    echo "[INFO] Multi-chart mode: will publish all charts in https://github.com/redhat-developer/rhdh-chart/tree/$CHART_BRANCH/charts"
+    for chart_path in $(cd "${HELM_DIR}"; find charts/ -mindepth 1 -maxdepth 1 -type d); do # want charts/backstage and charts/orchestrator-infra 
         name=$(basename "$chart_path")
-        echo "[INFO] Publishing chart: $name"
-        "$0" \
+        echo "[INFO] Publishing chart: $name from $chart_path"
+        "$THIS_SCRIPT" \
             --chart-name "${name}-chart" \
             --chart-dir "charts/${name}" \
             --chart-version "$CHART_VERSION" \
@@ -242,35 +244,35 @@ HELM_DOCS_LOG_LEVEL="fatal"
 if ! command -v gh &>/dev/null; then
     ghclirepo=https://cli.github.com/packages/rpm/gh-cli.repo
     echo "Intalling gh from $ghclirepo ..."
-    sudo dnf config-manager --add-repo $ghclirepo -q && sudo dnf -y -q install gh
+    sudo dnf config-manager --add-repo $ghclirepo -q && sudo dnf -y -q install gh >/dev/null 2>&1
 fi
 if ! command -v helm &>/dev/null; then
     helmrpmrepo="https://rhsm-pulp.corp.redhat.com/content/dist/layered/rhel8/x86_64/ocp-tools/4.12/os/"
     echo "Installing helm from $helmrpmrepo ..."
-    sudo dnf config-manager --add-repo $helmrpmrepo -q && sudo dnf -y -q install helm
+    sudo dnf config-manager --add-repo $helmrpmrepo -q && sudo dnf -y -q install helm >/dev/null 2>&1
 fi
 if ! command -v helm-docs &>/dev/null; then
     helmdocrepo=github.com/norwoodj/helm-docs/cmd/helm-docs@${helmdocs_version}
     echo "Installing $helmdocrepo to ${HOME}/go/bin/helm-docs ..."
-    sudo dnf -y -q install brotli-devel cmake gcc gcc-c++ git golang
+    sudo dnf -y -q install brotli-devel cmake gcc gcc-c++ git golang >/dev/null 2>&1
     GO111MODULE=on go install $helmdocrepo
     export PATH="$PATH:${HOME}/go/bin"
 fi
 if ! command -v oc &>/dev/null; then
     ocrpmrepo="https://rhsm-pulp.corp.redhat.com/content/dist/layered/rhel8/x86_64/rhocp/4.12/os/"
     echo "Installing oc from $ocrpmrepo ..."
-    sudo dnf config-manager --add-repo $ocrpmrepo -q && sudo dnf -y -q install openshift-clients
+    sudo dnf config-manager --add-repo $ocrpmrepo -q && sudo dnf -y -q install openshift-clients >/dev/null 2>&1
 fi
 if ! command -v podman &>/dev/null; then
     ocrpmrepo="https://rhsm-pulp.corp.redhat.com/content/dist/layered/rhel8/x86_64/rhocp/4.12/os/"
     echo "Installing podman from $ocrpmrepo ..."
-    sudo dnf config-manager --add-repo $ocrpmrepo -q && sudo dnf -y -q install podman
+    sudo dnf config-manager --add-repo $ocrpmrepo -q && sudo dnf -y -q install podman >/dev/null 2>&1
 fi
 if ! command -v oras &>/dev/null; then
     orasrepo="https://github.com/oras-project/oras/releases/download/v${oras_version}/"
     orastar="oras_${oras_version}_linux_amd64.tar.gz"
     echo "Installing oras from $orasrepo ..."
-    curl -LO "${orasrepo}${orastar}"
+    curl -sSLO "${orasrepo}${orastar}"
     sudo tar -zxf $orastar -C /usr/local/bin/ oras
     rm -rf $orastar oras-install/
 fi
