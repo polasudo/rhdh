@@ -708,14 +708,10 @@ spec:
       runAfter:
       - apply-tags
       taskRef:
-        resolver: git
+        resolver: http
         params:
           - name: url
-            value: https://gitlab.cee.redhat.com/rhidp/rhdh
-          - name: revision
-            value: 324a608ad383e36e7801cec5b56c5fa5edd94d2f
-          - name: pathInRepo
-            value: build/helm/publish_task.yaml
+            value: https://gitlab.cee.redhat.com/rhidp/rhdh/-/raw/{{revision}}/build/helm/publish_task.yaml
     workspaces:
     - name: workspace
     - name: git-auth
