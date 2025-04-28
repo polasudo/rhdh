@@ -1245,11 +1245,11 @@ done
 
 # Konflux performance workaround
 # set concurrency for turbo commands so that builds don't run our of file handles / disk space / memory (instead of default 10)
-# concurrency=6 crashes the build, so use 4
+# concurrency=4 crashes the build, so use 1? maybe 2 will also work?
 # +    "export-dynamic": "turbo run export-dynamic --concurrency=z",
 # +    "export-dynamic:clean": "turbo run export-dynamic:clean --concurrency=z",
 if [[ -f distgit/containers/rhdh-hub/package.json ]]; then
-  sed -i distgit/containers/rhdh-hub/package.json -r -e 's| --concurrency=[0-9]+||g' -e 's|("export-dynamic.+)",|\1 --concurrency=4",|'
+  sed -i distgit/containers/rhdh-hub/package.json -r -e 's| --concurrency=[0-9]+||g' -e 's|("export-dynamic.+)",|\1 --concurrency=1",|'
 fi
 
 echo
