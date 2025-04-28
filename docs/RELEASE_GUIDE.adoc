@@ -151,7 +151,7 @@ Once the code freeze is achieved and all the last minute changes have stopped, y
 . To rebuild the hub and operator images, you can use the triggerRespin.sh script; however, this will only work if there are changes applied to the midstream. If nothing has changed, then no Konflux build will be triggered. You should monitor Konflux and Quay to verify new builds are created correctly. See also link:RHDH-FAQ.adoc#user-content-how-to-respin[FAQ - How to respin].
 +
 ```
-./build/scripts/triggerRespin.sh 1.6 hub,op
+./build/scripts/triggerRespin.sh -v 1.6 hub,op
 ```
 +
 . To create a new operator-bundle, use this

@@ -32,8 +32,8 @@ Note that changes done directly to the Containerfile may be undone when link:htt
 . Use the link:../build/scripts/triggerRespin.sh[triggerRespin.sh] script to pull the latest from upstream into the GL midstream repo.
 +
 ```
-./build/scripts/triggerRespin.sh 1 bun
-./build/scripts/triggerRespin.sh 1.6 bun
+./build/scripts/triggerRespin.sh -v 1 bun
+./build/scripts/triggerRespin.sh -v 1.6 bun
 ```
 
 ### Triggering FBC builds

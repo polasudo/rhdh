@@ -52,9 +52,9 @@ For merge requests against the midstream GL repos, ANY change within the PR (add
 . If manually triggering a build you need to first rebuild the hub, operator, or both; then once done, trigger a bundle build: 
 + 
 ```
-./build/scripts/triggerRespin.sh 1.5 hub # respin hub
-./build/scripts/triggerRespin.sh 1.5 hub,op # respin hub and operator
-./build/scripts/triggerRespin.sh 1.5 op # respin operator
+./build/scripts/triggerRespin.sh -v 1.6 hub # respin hub
+./build/scripts/triggerRespin.sh -v 1.6 hub,op # respin hub and operator
+./build/scripts/triggerRespin.sh -v 1.6 op # respin operator
 
 # then once the above build(s) are done
 
