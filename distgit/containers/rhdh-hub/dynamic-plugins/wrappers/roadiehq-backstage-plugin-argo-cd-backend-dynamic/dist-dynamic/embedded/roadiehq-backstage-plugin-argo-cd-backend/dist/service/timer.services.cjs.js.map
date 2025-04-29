@@ -1,1 +1,0 @@
-{"version":3,"file":"timer.services.cjs.js","sources":["../../src/service/timer.services.ts"],"sourcesContent":["export function timer(ms: number) {\n  return new Promise(resolve => setTimeout(resolve, ms));\n}\n"],"names":[],"mappings":";;AAAO,SAAS,MAAM,EAAY,EAAA;AAChC,EAAA,OAAO,IAAI,OAAQ,CAAA,CAAA,OAAA,KAAW,UAAW,CAAA,OAAA,EAAS,EAAE,CAAC,CAAA;AACvD;;;;"}
