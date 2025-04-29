@@ -169,10 +169,10 @@ if [[ ${docommit} -eq 1 ]]; then
     git add "$ROOTPATH/*.yaml" "$ROOTPATH/*.sh" || true
     if [[ $TRIGGER == "true" ]]; then
         # konflux trigger, skips gitlab
-        git commit -s -m "[ci skip] chore: Update .tekton folder to latest task versions" "$ROOTPATH/" 
+        git commit -s -m "chore: Update .tekton folder to latest task versions [ci skip]" "$ROOTPATH/" 
     else
         # no konflux or gitlab trigger
-        git commit -s -m "chore: [ci skip] [skip ci] Update .tekton folder to latest task versions" "$ROOTPATH/" 
+        git commit -s -m "[ci skip] chore: Update .tekton folder to latest task versions [ci skip]" "$ROOTPATH/" 
     fi
     if [[ ${dopush} -eq 1 ]]; then
         git pull origin "${MIDSTM_BRANCH}"
