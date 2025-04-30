@@ -65,3 +65,8 @@ dynamic-plugins/*/dist-dynamic/src
 #dev caches
 .webpack-cache
 .vscode/
+
+# hermeto cache for local builds
+hermeto-cache/
+**.hermeto-source-copy
+**/Containerfile.hermeto

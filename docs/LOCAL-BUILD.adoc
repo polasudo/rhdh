@@ -1,0 +1,47 @@
+# Local RHDH hermetic build
+
+`build/scripts/localBuild.sh` can be used to debug hermetic builds locally using Podman.
+It tries to somewhat simulate the Konflux build process.
+This script is designed to be run from the root of the RHDH repository.
+
+## Build
+
+### Cache Dependencies
+To cache dependencies, run the following command:
+
+```
+$ ./build/scripts/localBuild.sh cache <directory>
+```
+
+Replace `<directory>` with the path to the component directory, such as `distgit/containers/rhdh-hub`.
+
+This will:
+- Use the Hermeto tool to fetch dependencies for the specified component.
+- Store the dependencies in the local cache directory (./hermeto-cache/<component>)
+
+### Build Image
+To build an image, run the following command:
+
+```
+$ ./build/scripts/localBuild.sh image <directory> <image>
+```
+
+Replace `<directory>` with the path to the component directory, such as `distgit/containers/rhdh-hub`, and `<image>` with the name of the container image to build, such as `quay.io/example/image:tag`.
+
+This will:
+- Ensure the local cache directory exists.
+- Transform the `Containerfile` to simulate a Konflux build by injecting necessary configurations.
+- Build the image using Podman without network with the transformed `Containerfile` and the local cache directory.
+
+## Troubleshooting
+
+### Package not found in the cache
+If you encounter an error like this:
+```
+➤ YN0080: │ undici-types@npm:6.20.0: Request to 'https://registry.yarnpkg.com/undici-types/-/undici-types-6.20.0.tgz' has been blocked because of your configuration settings
+```
+
+Check the local cache directory for in `hermeto-cache/rhdh-hub/output/deps/yarn/` for the given package.
+If you see a this package in the cache but it is a different version than check that you don't have 
+a local `yarn.lock` file in the dynamic plugin wrapper directory (`find distgit/containers/rhdh-hub/dynamic-plugins/wrappers -name yarn.lock`) and delete those.
+
