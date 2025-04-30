@@ -67,10 +67,10 @@ spec:
         export GITHUB_TOKEN=$(cat /etc/secrets/${GITHUB_TOKEN_KEY})
 
         # To test this locally:
-        # 1. set IMAGE=quay.io/rhdh/rhdh-hub-rhel9:1.7-38
-        # 2. set target_branch=rhdh-1-rhel-9 or rhdh-1.y-rhel-9 as appropriate
-        # 3. export your GITHUB_TOKEN_KEY
-        # 3. run everything below EXCEPT the --quay-registry-config flag
+        # 1. export IMAGE=quay.io/rhdh/rhdh-hub-rhel9:1.7-38
+        # 2. export target_branch=rhdh-1-rhel-9 or rhdh-1.y-rhel-9 as appropriate
+        # 3. export GITHUB_TOKEN=<your-token-here>
+        # 4. run everything below EXCEPT the --quay-registry-config flag
         TAGS_FROM_IMAGE_LABEL=$(skopeo inspect --format '{{ index .Labels "konflux.additional-tags" }}' docker://$IMAGE)
         TAG=$(echo -n ${TAGS_FROM_IMAGE_LABEL} | awk '{print $NF}')
 
