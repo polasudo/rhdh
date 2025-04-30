@@ -270,7 +270,7 @@ if [[ $DEBUG -eq 1 ]]; then
     echo "[DEBUG] Clone https://github.com/redhat-developer/rhdh-chart/tree/${CHART_BRANCH}/charts to $HELM_DIR"
 fi
 # skip binaries with --filter=blob:none
-git clone --depth=1 -q --branch="${CHART_BRANCH}" https://github.com/redhat-developer/rhdh-chart.git "${HELM_DIR}"
+git clone --depth=1 -q --branch="${CHART_BRANCH}" https://github.com/redhat-developer/rhdh-chart.git "${HELM_DIR}" >/dev/null 2>&1
 
 if [[ "$CHART_NAME" == "all" ]]; then
     echo "[INFO] Multi-chart mode: will publish all charts in https://github.com/redhat-developer/rhdh-chart/tree/$CHART_BRANCH/charts"
@@ -279,6 +279,8 @@ if [[ "$CHART_NAME" == "all" ]]; then
     for chart_path in $chart_paths; do # want charts/backstage and charts/orchestrator-infra 
         name=$(basename "$chart_path"); 
         echo -e "\n===========================\n[INFO] Publishing chart $name from $chart_path\n===========================\n"
+        if [[ $DEBUG -eq 1 ]]; then DEBUGFLAG="--debug"; else DEBUGFLAG=""; fi
+        # shellcheck disable=SC2086
         "$THIS_SCRIPT" \
             --chart-name "${name}" \
             --chart-dir "${chart_path}" \
@@ -288,8 +290,7 @@ if [[ "$CHART_NAME" == "all" ]]; then
             --publish \
             --extra-branch "$EXTRA_BRANCH" \
             --catalog "$CATALOG_FORK" \
-            "$QUAY_REGISTRY_CONFIG" \
-            ${DEBUG:+--debug}
+            ${QUAY_REGISTRY_CONFIG} ${DEBUGFLAG}
         rc=$?
         if [[ $rc -ne 0 ]]; then
             echo "[ERROR] Failed to publish chart: $name (exit code $rc)"
@@ -297,7 +298,7 @@ if [[ "$CHART_NAME" == "all" ]]; then
         fi
         echo -e "\n===========================\n[INFO] Chart $name published\n===========================\n"
     done
-    echo; echo "[INFO] All charts published successfully."
+    echo "[INFO] All charts published successfully."
     rm -fr "${HELM_DIR}"
     exit 0
 fi
@@ -330,7 +331,7 @@ if [[ "$CHART_ACTUAL_NAME" == "redhat-developer-hub-orchestrator-infra" ]]; then
 fi
 
 if [[ "${CHART_NAME}" == "redhat-developer-hub" ]] || [[ "${CHART_NAME}" == "backstage" ]]; then
-    echo "Set image digests in ${VALUES_PATH}:
+    echo "[INFO] Set image digests in ${VALUES_PATH}:
 * RHDH_DIGEST = $RHDH_DIGEST,
 * POSTGRESQL_DIGEST = $POSTGRESQL_DIGEST"
 
@@ -349,14 +350,14 @@ if [[ "${CHART_NAME}" == "redhat-developer-hub" ]] || [[ "${CHART_NAME}" == "bac
         " "$VALUES_PATH"
     fi
 else
-    echo "[INFO] No patch to $VALUES_PATH required for ${CHART_NAME} - skip."
+    echo "[WARN] No patch to $VALUES_PATH required for ${CHART_NAME} - skip."
 fi
 
 TEST_TEMPLATE="${HELM_DIR}/${CHART_DIR}/templates/tests/test-connection.yaml"
 if [[ -f "$TEST_TEMPLATE" ]]; then
     sed -e "s%quay.io/curl/curl:latest%registry.redhat.io/ubi9:latest%" -i "$TEST_TEMPLATE"
 else
-    echo "[INFO] No test-connection.yaml found for ${CHART_NAME}, skipping patch."
+    echo "[WARN] No test-connection.yaml found for ${CHART_NAME}, skipping patch."
 fi
 
 # yq '.upstream.backstage.image , .upstream.postgresql.image' "${HELM_DIR}"/charts/backstage/values.yaml
@@ -381,18 +382,18 @@ if [[ $DEBUG -eq 1 ]]; then
     echo "[DEBUG] Fetching Helm catalog into ${CATALOG_DIR} ..."
 fi
 git clone --filter=blob:none --no-checkout --depth=1 -q "${CATALOG_FORK}" "${CATALOG_DIR}" && cd "${CATALOG_DIR}"
-git sparse-checkout init --cone
-git read-tree -mu HEAD
+git sparse-checkout init --cone >/dev/null
+git read-tree -mu HEAD >/dev/null
 
 rm -f "${CATALOG_DIR}/charts/redhat/redhat/${CHART_NAME}/${CHART_VERSION}/${CHART_NAME}-${CHART_VERSION}.tgz"
 PACKAGE_DEST="${CATALOG_DIR}/charts/redhat/redhat/${CHART_NAME}/${CHART_VERSION}"
 mkdir -p "$PACKAGE_DEST"
 helm package "${HELM_DIR}/${CHART_DIR}" -d "$PACKAGE_DEST" 1>/dev/null
 ls -lh "${PACKAGE_DEST}"
-echo "Packaging chart to ${PACKAGE_DEST}"
+echo "[INFO] Packaging chart to ${PACKAGE_DEST}"
 helm package "${HELM_DIR}/${CHART_DIR}" -d "$PACKAGE_DEST"
 if [[ $DEBUG -eq 1 ]]; then
-    echo "Contents of ${HELM_DIR}/${CHART_DIR}:"
+    echo "[DEBUG] Contents of ${HELM_DIR}/${CHART_DIR}:"
     ls -lh "${HELM_DIR}/${CHART_DIR}"
 fi
 
@@ -406,15 +407,14 @@ mkdir "${CATALOG_DIR}"/installation -p
 # Clean up remnants from old helm chart system used
 rm -f "${CATALOG_DIR}"/installation/index.yaml
 
-echo "
-Chart version:        ${CHART_VERSION}"
+echo "[INFO] Chart version:        ${CHART_VERSION}"
 if [[ $PUBLISH -eq 1 ]] && [[ $CHART_VERSION != *"CI"* ]]; then # include installation folder only for CI builds (not for GA)
-    echo "Developer Hub image:  registry.redhat.io/rhdh/rhdh-hub-rhel9:${RHDH_VERSION}"
+    echo "[INFO] Developer Hub image:  registry.redhat.io/rhdh/rhdh-hub-rhel9:${RHDH_VERSION}"
 else
-    echo "Developer Hub image:  quay.io/rhdh/rhdh-hub-rhel9:${RHDH_VERSION}"
+    echo "[INFO] Developer Hub image:  quay.io/rhdh/rhdh-hub-rhel9:${RHDH_VERSION}"
 fi
-echo "Full repo folder:     $CATALOG_DIR"
-echo "This chart's folder:  $PACKAGE_DEST"
+echo "[INFO] Full repo folder:     $CATALOG_DIR"
+echo "[INFO] This chart's folder:  $PACKAGE_DEST"
 
 if [[ $PUBLISH -eq 1 ]]; then
     helm_config="${PACKAGE_DEST}/chart_dump.json"
@@ -441,6 +441,7 @@ if [[ $PUBLISH -eq 1 ]]; then
 
     # remove any leftover tarballs from a previous run
     cd /tmp
+    # shellcheck disable=SC2035
     rm -fr *eveloper-hub-*.tgz
 
     # update installation/README.md and installation/rhdh-next-ci-repo.yaml, expanding variables
@@ -459,8 +460,8 @@ if [[ $PUBLISH -eq 1 ]]; then
         # none of the installation instructions/scripts/chart repo
         pushd /tmp >/dev/null || exit 1
         rm -fr "/tmp/rhdh-bot-${CHART_VERSION}" /tmp/openshift-helm-charts-main
-        git clone git@github.com:rhdh-bot/openshift-helm-charts.git -q --depth=1 -b "redhat-developer-hub-${CHART_VERSION}" "rhdh-bot-${CHART_VERSION}"
-        git clone git@github.com:openshift-helm-charts/charts.git -q --depth=1 -b "main" "openshift-helm-charts-main"
+        git clone git@github.com:rhdh-bot/openshift-helm-charts.git -q --depth=1 -b "redhat-developer-hub-${CHART_VERSION}" "rhdh-bot-${CHART_VERSION}"  >/dev/null 2>&1
+        git clone git@github.com:openshift-helm-charts/charts.git -q --depth=1 -b "main" "openshift-helm-charts-main"  >/dev/null 2>&1
         popd >/dev/null || exit 1
 
         # copy new tarball into other fork (excluding install instructions)
@@ -481,13 +482,13 @@ if [[ $PUBLISH -eq 1 ]]; then
         git commit --no-gpg-sign -s -m "${COMMIT_MSG}" "${CHART_VERSION}" .
         # delete branch (if exists)
         if [[ $(git ls-remote --heads git@github.com:rhdh-bot/openshift-helm-charts.git "refs/heads/release-${CHART_VERSION}") ]]; then
-            git push rhdh-bot :release-"${CHART_VERSION}" || true
+            git push rhdh-bot :release-"${CHART_VERSION}" >/dev/null 2>&1 || true
         fi
         # create new branch
-        git push rhdh-bot release-"${CHART_VERSION}"
+        git push rhdh-bot release-"${CHART_VERSION}" >/dev/null 2>&1
 
         # Option 1: open the PR creation page
-        echo "Creating PR https://github.com/openshift-helm-charts/charts/compare/main...rhdh-bot:openshift-helm-charts:release-${CHART_VERSION}?expand=1 ..."
+        echo "[INFO] Create PR https://github.com/openshift-helm-charts/charts/compare/main...rhdh-bot:openshift-helm-charts:release-${CHART_VERSION}?expand=1 ..."
 
         # Option 2: create the PR automatically
         gh repo set-default openshift-helm-charts/charts
@@ -499,18 +500,18 @@ if [[ $PUBLISH -eq 1 ]]; then
         rm -fr "/tmp/rhdh-bot-${CHART_VERSION}" /tmp/openshift-helm-charts-main
         popd >/dev/null || exit 1
     elif [[ $EXTRA_BRANCH ]]; then # include installation folder only for CI builds (not for GA)
-        git clone --filter=blob:none --no-checkout --depth=1 -q "${CATALOG_FORK}" "${CATALOG_DIR}-2" && \
+        git clone --filter=blob:none --no-checkout --depth=1 -q "${CATALOG_FORK}" "${CATALOG_DIR}-2" >/dev/null 2>&1 && \
             pushd "${CATALOG_DIR}-2" >/dev/null || exit 1
-        git sparse-checkout init --cone
-        git read-tree -mu HEAD
+        git sparse-checkout init --cone >/dev/null
+        git read-tree -mu HEAD >/dev/null
         git -C "${CATALOG_DIR}-2" checkout -q -b "${EXTRA_BRANCH}" >/dev/null 2>&1 || true
         git -C "${CATALOG_DIR}-2" pull $QUIET origin "${EXTRA_BRANCH}" >/dev/null 2>&1 || true
         rsync -arzq "${CATALOG_DIR}/installation" "${CATALOG_DIR}-2/"
-        git -C "${CATALOG_DIR}-2" add installation --sparse
+        git -C "${CATALOG_DIR}-2" add installation --sparse >/dev/null 2>&1
         CHANGED=1
         git -C "${CATALOG_DIR}-2" commit -q --no-verify --no-gpg-sign -s -m "chore: add redhat-developer-hub-${CHART_VERSION}" || CHANGED=0
         if [[ $CHANGED -eq 1 ]]; then
-            git -C "${CATALOG_DIR}-2" push $QUIET origin "${EXTRA_BRANCH}" -f 2>/dev/null || \
+            git -C "${CATALOG_DIR}-2" push $QUIET origin "${EXTRA_BRANCH}" -f >/dev/null 2>&1 || \
                 {
                     echo "[ERROR] Could not push to branch redhat-developer-hub-${CHART_VERSION}: must exit!"
                     exit 45
@@ -520,9 +521,10 @@ if [[ $PUBLISH -eq 1 ]]; then
             true
         fi
         popd >/dev/null || exit 1
-        echo
-        echo "Helm chart published. To install, see:
-    https://github.com/rhdh-bot/openshift-helm-charts/tree/${EXTRA_BRANCH}/installation"
+        if [[ "${CHART_NAME}" == "redhat-developer-hub" ]] || [[ "${CHART_NAME}" == "backstage" ]]; then
+            echo
+            echo "Helm chart published. To install, see: https://github.com/rhdh-bot/openshift-helm-charts/tree/${EXTRA_BRANCH}/installation"
+        fi
     fi
 
     if [[ $CHART_VERSION != *"CI"* ]] && [[ $DELETE_OLD_BRANCHES -eq 1 ]]; then
