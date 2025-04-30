@@ -1,0 +1,74 @@
+'use strict';
+
+var pluginCatalogNode = require('@backstage/plugin-catalog-node');
+var catalogModel = require('@backstage/catalog-model');
+var backstagePluginMarketplaceCommon = require('@red-hat-developer-hub/backstage-plugin-marketplace-common');
+var collections = require('../json-schema/collections.json.cjs.js');
+
+class MarketplaceCollectionProcessor {
+  validators = [
+    catalogModel.entityKindSchemaValidator(collections.default)
+  ];
+  // validateEntityKind is responsible for signaling to the catalog processing
+  // engine that this entity is valid and should therefore be submitted for
+  // further processing.
+  async validateEntityKind(entity) {
+    if (backstagePluginMarketplaceCommon.isMarketplaceCollection(entity)) {
+      for (const validator of this.validators) {
+        if (validator(entity)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+  getProcessorName() {
+    return "MarketplaceCollectionProcessor";
+  }
+  async postProcessEntity(entity, _location, emit) {
+    if (backstagePluginMarketplaceCommon.isMarketplaceCollection(entity)) {
+      const thisEntityRef = catalogModel.getCompoundEntityRef(entity);
+      if (entity?.spec?.owner) {
+        const ownerRef = catalogModel.parseEntityRef(entity?.spec?.owner, {
+          defaultKind: "Group",
+          defaultNamespace: entity.metadata.namespace
+        });
+        emit(
+          pluginCatalogNode.processingResult.relation({
+            type: catalogModel.RELATION_OWNED_BY,
+            source: thisEntityRef,
+            target: ownerRef
+          })
+        );
+      }
+      if (entity.spec?.plugins && entity.spec.plugins.length > 0) {
+        entity.spec.plugins.forEach((plugin) => {
+          const pluginRef = catalogModel.parseEntityRef(plugin, {
+            defaultKind: backstagePluginMarketplaceCommon.MarketplaceKind.Plugin,
+            defaultNamespace: entity.metadata.namespace
+          });
+          if (pluginRef) {
+            emit(
+              pluginCatalogNode.processingResult.relation({
+                type: catalogModel.RELATION_PART_OF,
+                source: thisEntityRef,
+                target: pluginRef
+              })
+            );
+            emit(
+              pluginCatalogNode.processingResult.relation({
+                type: catalogModel.RELATION_HAS_PART,
+                source: pluginRef,
+                target: thisEntityRef
+              })
+            );
+          }
+        });
+      }
+    }
+    return entity;
+  }
+}
+
+exports.MarketplaceCollectionProcessor = MarketplaceCollectionProcessor;
+//# sourceMappingURL=MarketplaceCollectionProcessor.cjs.js.map
