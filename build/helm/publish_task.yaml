@@ -63,11 +63,16 @@ spec:
         # Install required libraries
         dnf install -y -q skopeo jq sudo gettext rsync
 
-        TAGS_FROM_IMAGE_LABEL=$(skopeo inspect --format '{{ index .Labels "konflux.additional-tags" }}' docker://$IMAGE)
-        TAG=$(echo -n ${TAGS_FROM_IMAGE_LABEL} | awk '{print $NF}')
-
         # Fetch the Github token from secret added to Konflux
         export GITHUB_TOKEN=$(cat /etc/secrets/${GITHUB_TOKEN_KEY})
+
+        # To test this locally:
+        # 1. set IMAGE=quay.io/rhdh/rhdh-hub-rhel9:1.7-38
+        # 2. set target_branch=rhdh-1-rhel-9 or rhdh-1.y-rhel-9 as appropriate
+        # 3. export your GITHUB_TOKEN_KEY
+        # 3. run everything below EXCEPT the --quay-registry-config flag
+        TAGS_FROM_IMAGE_LABEL=$(skopeo inspect --format '{{ index .Labels "konflux.additional-tags" }}' docker://$IMAGE)
+        TAG=$(echo -n ${TAGS_FROM_IMAGE_LABEL} | awk '{print $NF}')
 
         # Determine TAG and chart branch
         if [[ ${target_branch} == *-1-* ]]; then
@@ -87,5 +92,5 @@ spec:
           --publish \
           --extra-branch ${target_branch} \
           --catalog "https://rhdh-bot:${GITHUB_TOKEN}@github.com/rhdh-bot/openshift-helm-charts.git" \
-          --quay-registry-config '/var/workdir/registry_auth.json'
+          --registry-config '/var/workdir/registry_auth.json'
 

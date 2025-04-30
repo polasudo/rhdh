@@ -127,7 +127,7 @@ while [[ "$#" -gt 0 ]]; do
     '--rhdh-version') RHDH_VERSION="$2";
         if [[ ! $CHART_VERSION ]]; then usage; fi
 
-        if [[ "${CHART_NAME}" == "redhat-developer-hub" ]]; then
+        if [[ "${CHART_NAME}" == "redhat-developer-hub" ]] || [[ "${CHART_NAME}" == "backstage" ]]; then
             if [[ $CHART_VERSION == *"CI"* ]]; then
                 RHDH_DIGEST=$(skopeo inspect docker://quay.io/rhdh/rhdh-hub-rhel9:"${RHDH_VERSION}" | jq -r '.Digest')
                 if [[ ! $RHDH_DIGEST ]]; then
@@ -150,7 +150,7 @@ while [[ "$#" -gt 0 ]]; do
         shift 1
         ;;
     '--delete-old-branches') DELETE_OLD_BRANCHES=1 ;;
-    '--quay-registry-config')
+    '--registry-config')
         QUAY_REGISTRY_CONFIG="--registry-config ${2}"
         shift 1
         ;;
@@ -191,38 +191,14 @@ if [[ ! $RHDH_VERSION ]] && [[ "${CHART_NAME}" != "redhat-developer-hub-orchestr
     usage
 fi
 
-if [[ "$CHART_NAME" == "all" ]]; then
-    echo "[INFO] Multi-chart mode: will publish all charts in https://github.com/redhat-developer/rhdh-chart/tree/$CHART_BRANCH/charts"
-    for chart_path in $(cd "${HELM_DIR}"; find charts/ -mindepth 1 -maxdepth 1 -type d); do # want charts/backstage and charts/orchestrator-infra 
-        name=$(basename "$chart_path")
-        echo "[INFO] Publishing chart: $name from $chart_path"
-        "$THIS_SCRIPT" \
-            --chart-name "${name}-chart" \
-            --chart-dir "charts/${name}" \
-            --chart-version "$CHART_VERSION" \
-            --rhdh-version "$RHDH_VERSION" \
-            --chart-branch "$CHART_BRANCH" \
-            --publish \
-            --extra-branch "$EXTRA_BRANCH" \
-            --catalog "$CATALOG_FORK" \
-            --quay-registry-config "$QUAY_REGISTRY_CONFIG" \
-            ${DEBUG:+--debug}
-        rc=$?
-        if [[ $rc -ne 0 ]]; then
-            echo "[ERROR] Failed to publish chart: $name (exit code $rc)"
-            exit $rc
-        fi
-    done
-    echo "[INFO] All charts published successfully."
-    exit 0
+if [[ $CHART_NAME == "redhat-developer-hub" ]]; then
+    POSTGRESQL_DIGEST=$(skopeo inspect docker://registry.redhat.io/rhel9/postgresql-15:latest | jq -r '.Digest')
+
+    # trim the sha256: prefix off, since we're treating this like a tag
+    # image.repository already ends in @sha256
+    POSTGRESQL_DIGEST="${POSTGRESQL_DIGEST//sha256:/}"
+    RHDH_DIGEST="${RHDH_DIGEST//sha256:/}"
 fi
-
-POSTGRESQL_DIGEST=$(skopeo inspect docker://registry.redhat.io/rhel9/postgresql-15:latest | jq -r '.Digest')
-
-# trim the sha256: prefix off, since we're treating this like a tag
-# image.repository already ends in @sha256
-POSTGRESQL_DIGEST="${POSTGRESQL_DIGEST//sha256:/}"
-RHDH_DIGEST="${RHDH_DIGEST//sha256:/}"
 
 HELM_DIR=$(mktemp -d)
 if [[ $DEBUG -eq 1 ]]; then echo "Running in HELM_DIR = $HELM_DIR"; fi
@@ -291,13 +267,43 @@ done
 
 if [[ $DEBUG -eq 1 ]]; then
     HELM_DOCS_LOG_LEVEL="warning"
-    echo "Fetching Janus-IDP chart..."
+    echo "[DEBUG] Clone https://github.com/redhat-developer/rhdh-chart/tree/${CHART_BRANCH}/charts to $HELM_DIR"
 fi
 # skip binaries with --filter=blob:none
 git clone --depth=1 -q --branch="${CHART_BRANCH}" https://github.com/redhat-developer/rhdh-chart.git "${HELM_DIR}"
 
+if [[ "$CHART_NAME" == "all" ]]; then
+    echo "[INFO] Multi-chart mode: will publish all charts in https://github.com/redhat-developer/rhdh-chart/tree/$CHART_BRANCH/charts"
+    # echo "Working dir: $HELM_DIR ..." 
+    chart_paths="$(cd "${HELM_DIR}"; find charts/ -mindepth 1 -maxdepth 1 -type d | sort)"
+    for chart_path in $chart_paths; do # want charts/backstage and charts/orchestrator-infra 
+        name=$(basename "$chart_path"); 
+        echo -e "\n===========================\n[INFO] Publishing chart $name from $chart_path\n===========================\n"
+        "$THIS_SCRIPT" \
+            --chart-name "${name}" \
+            --chart-dir "${chart_path}" \
+            --chart-version "$CHART_VERSION" \
+            --rhdh-version "$RHDH_VERSION" \
+            --chart-branch "$CHART_BRANCH" \
+            --publish \
+            --extra-branch "$EXTRA_BRANCH" \
+            --catalog "$CATALOG_FORK" \
+            "$QUAY_REGISTRY_CONFIG" \
+            ${DEBUG:+--debug}
+        rc=$?
+        if [[ $rc -ne 0 ]]; then
+            echo "[ERROR] Failed to publish chart: $name (exit code $rc)"
+            exit $rc
+        fi
+        echo -e "\n===========================\n[INFO] Chart $name published\n===========================\n"
+    done
+    echo; echo "[INFO] All charts published successfully."
+    rm -fr "${HELM_DIR}"
+    exit 0
+fi
+
 if [[ $DEBUG -eq 1 ]]; then
-    echo "Patching 'Chart.yaml', 'values.yaml', 'README.md.gotmpl' from branch ${CHART_BRANCH} ..."
+    echo "[DEBUG] Patching 'Chart.yaml', 'values.yaml', 'README.md.gotmpl' from branch ${CHART_BRANCH} ..."
 fi
 
 # TODO revise these to use jq wrapper version of yq (not mikefarah)
@@ -310,7 +316,7 @@ if [[ "$CHART_ACTUAL_NAME" == "redhat-developer-hub-orchestrator-infra" ]]; then
   # Extract raw description as plain string
   RAW_DESC=$($YQ eval -o=json '.description' "$CHART_PATH" | jq -r '.')
   # Escape single quotes for YAML (YAML requires '' inside '...')
-  ESCAPED_DESC=$(echo "$RAW_DESC" | sed "s/'/''/g")
+  ESCAPED_DESC="${RAW_DESC/\'/\'\'}"
   # Strip .description, rebuild Chart.yaml with new content
   TMP_CHART=$(mktemp)
   $YQ 'del(.description)' "$CHART_PATH" > "$TMP_CHART"
@@ -323,7 +329,7 @@ if [[ "$CHART_ACTUAL_NAME" == "redhat-developer-hub-orchestrator-infra" ]]; then
   mv "$TMP_CHART" "$CHART_PATH"
 fi
 
-if [[ "${CHART_NAME}" == "redhat-developer-hub" ]]; then
+if [[ "${CHART_NAME}" == "redhat-developer-hub" ]] || [[ "${CHART_NAME}" == "backstage" ]]; then
     echo "Set image digests in ${VALUES_PATH}:
 * RHDH_DIGEST = $RHDH_DIGEST,
 * POSTGRESQL_DIGEST = $POSTGRESQL_DIGEST"
@@ -355,24 +361,24 @@ fi
 
 # yq '.upstream.backstage.image , .upstream.postgresql.image' "${HELM_DIR}"/charts/backstage/values.yaml
 
-if [[ "${CHART_NAME}" == "redhat-developer-hub" ]]; then
+if [[ "${CHART_NAME}" == "redhat-developer-hub" ]] || [[ "${CHART_NAME}" == "backstage" ]]; then
     cp "${SCRIPT_DIR}/README.md.gotmpl" "${HELM_DIR}/${CHART_DIR}/README.md.gotmpl"
 fi
 helm-docs --chart-search-root="${HELM_DIR}"/charts --template-files=./_templates.gotmpl --template-files=README.md.gotmpl --log-level="$HELM_DOCS_LOG_LEVEL"
 
 if [[ $DEBUG -eq 1 ]]; then
-    echo "Building dependencies..."
+    echo "[DEBUG] Building dependencies..."
 fi
 helm repo add --force-update bitnami https://charts.bitnami.com/bitnami 1>/dev/null
 helm repo add --force-update backstage https://backstage.github.io/charts 1>/dev/null
 
 if [[ $DEBUG -eq 1 ]]; then
-    echo "Building helm deps in ${HELM_DIR}/${CHART_DIR} ..."
+    echo "[DEBUG] Building helm deps in ${HELM_DIR}/${CHART_DIR} ..."
 fi
 helm dependency build "${HELM_DIR}/${CHART_DIR}" 1>/dev/null
 
 if [[ $DEBUG -eq 1 ]]; then
-    echo "Fetching Helm catalog into ${CATALOG_DIR} ..."
+    echo "[DEBUG] Fetching Helm catalog into ${CATALOG_DIR} ..."
 fi
 git clone --filter=blob:none --no-checkout --depth=1 -q "${CATALOG_FORK}" "${CATALOG_DIR}" && cd "${CATALOG_DIR}"
 git sparse-checkout init --cone
@@ -401,39 +407,37 @@ mkdir "${CATALOG_DIR}"/installation -p
 rm -f "${CATALOG_DIR}"/installation/index.yaml
 
 echo "
-Chart version:        ${CHART_VERSION}
-"
+Chart version:        ${CHART_VERSION}"
 if [[ $PUBLISH -eq 1 ]] && [[ $CHART_VERSION != *"CI"* ]]; then # include installation folder only for CI builds (not for GA)
-    echo "Developer Hub image:  registry.redhat.io/rhdh/rhdh-hub-rhel9:${RHDH_VERSION}
-"
+    echo "Developer Hub image:  registry.redhat.io/rhdh/rhdh-hub-rhel9:${RHDH_VERSION}"
 else
-    echo "Developer Hub image:  quay.io/rhdh/rhdh-hub-rhel9:${RHDH_VERSION}
-"
+    echo "Developer Hub image:  quay.io/rhdh/rhdh-hub-rhel9:${RHDH_VERSION}"
 fi
-echo "Full repo folder:     $CATALOG_DIR"; echo
+echo "Full repo folder:     $CATALOG_DIR"
 echo "This chart's folder:  $PACKAGE_DEST"
 
 if [[ $PUBLISH -eq 1 ]]; then
-    helm_config=$(mktemp)
+    helm_config="${PACKAGE_DEST}/chart_dump.json"
     actual_chart=$(find "${PACKAGE_DEST}/" -name "*.tgz")
     mv -f "$actual_chart" "${PACKAGE_DEST}/${CHART_NAME}-${CHART_VERSION}.tgz"
     if [[ ! -f "${PACKAGE_DEST}/${CHART_NAME}-${CHART_VERSION}.tgz" ]]; then 
         echo "[ERROR] Could not find chart in ${PACKAGE_DEST}/ called ${CHART_NAME}-${CHART_VERSION}.tgz ! Cannot continue - must exit!"; exit 1
     fi
 
-    helm show chart "${PACKAGE_DEST}/${CHART_NAME}-${CHART_VERSION}.tgz" | $YQ -p yaml -o json >"$helm_config"
+    helm show chart "${PACKAGE_DEST}/${CHART_NAME}-${CHART_VERSION}.tgz" | $YQ -p yaml -o json > "${helm_config}"; # cat "${helm_config}"
     # we push to either quay.io/rhdh/chart or quay.io/rhdh/orchestrator-infra-chart
-	if [[ "$CHART_NAME" == "redhat-developer-hub-orchestrator-infra" ]]; then
+	if [[ "$CHART_NAME" == "redhat-developer-hub-orchestrator-infra" ]] || [[ "$CHART_NAME" == "orchestrator-infra" ]]; then
         TARGET_REPO="orchestrator-infra-chart"
-    elif [[ "${CHART_NAME}" == "redhat-developer-hub" ]]; then 
+    elif [[ "${CHART_NAME}" == "redhat-developer-hub" ]] || [[ "${CHART_NAME}" == "backstage" ]]; then
         TARGET_REPO="chart"
     else
         TARGET_REPO="${CHART_NAME}"
     fi
-    echo "[INFO] Pushing Helm chart to quay.io/rhdh/${TARGET_REPO}:${CHART_VERSION} ..."
+    # set -x 
+    echo "[INFO] Publish Helm chart to quay.io/rhdh/${TARGET_REPO}:${CHART_VERSION} ..."
     oras push "quay.io/rhdh/${TARGET_REPO}:${CHART_VERSION}" \
         "${PACKAGE_DEST}/${CHART_NAME}-${CHART_VERSION}.tgz:application/vnd.cncf.helm.chart.content.v1.tar+gzip" \
-        --disable-path-validation --config "$helm_config:application/vnd.cncf.helm.config.v1+json" $QUAY_REGISTRY_CONFIG
+        --disable-path-validation --config "${helm_config}:application/vnd.cncf.helm.config.v1+json" $QUAY_REGISTRY_CONFIG
 
     # remove any leftover tarballs from a previous run
     cd /tmp
@@ -590,13 +594,14 @@ if [[ $DEBUG -eq 1 ]]; then
 fi
 cd /tmp
 
-git clone --filter=blob:none -q "${CATALOG_FORK}" -b "${EXTRA_BRANCH}" "${CATALOG_DIR}-3" >/dev/null 2>&1 && \
-    pushd "${CATALOG_DIR}-3" >/dev/null || exit 1
-if [[ $EXTRA_BRANCH ]]; then
-    git -C "${CATALOG_DIR}-3" checkout "$EXTRA_BRANCH" >/dev/null 2>&1 || true
-    deleteDirs "$EXTRA_BRANCH"
-fi
-popd >/dev/null || exit 1
+# no need to do dir deletion in github repo now
+# if [[ $EXTRA_BRANCH ]]; then
+#     git clone --filter=blob:none -q "${CATALOG_FORK}" -b "${EXTRA_BRANCH}" "${CATALOG_DIR}-3" >/dev/null 2>&1
+#     pushd "${CATALOG_DIR}-3" >/dev/null || exit 1
+#         git -C "${CATALOG_DIR}-3" checkout "$EXTRA_BRANCH" >/dev/null 2>&1 || true
+#         deleteDirs "$EXTRA_BRANCH"
+#     popd >/dev/null || exit 1
+# fi
 
 # delete temp folders
-rm -fr "${HELM_DIR}" "${CATALOG_DIR}" "${CATALOG_DIR}-2" "${CATALOG_DIR}-3"
+rm -fr "${HELM_DIR}" "${CATALOG_DIR}" "${CATALOG_DIR}-2" # "${CATALOG_DIR}-3"
