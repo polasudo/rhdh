@@ -201,7 +201,7 @@ if [[ $CHART_NAME == "redhat-developer-hub" ]]; then
 fi
 
 HELM_DIR=$(mktemp -d)
-if [[ $DEBUG -eq 1 ]]; then echo "Running in HELM_DIR = $HELM_DIR"; fi
+if [[ $DEBUG -eq 1 ]]; then echo "[DEBUG] Running in HELM_DIR = $HELM_DIR"; fi
 CATALOG_DIR=$(mktemp -d)
 SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)
 # TODO switch to jq wrapper version of yq (not mikefarah)
@@ -568,40 +568,5 @@ To install this chart, run the following commands against your OCP cluster:
 "
 fi
 
-deleteDirs() {
-    BRANCH="$1"
-    if [[ $DEBUG -eq 1 ]]; then
-        echo "Clean up ${CATALOG_DIR}-3/charts/redhat/redhat/redhat-developer-hub/ in $BRANCH branch"
-    fi
-    # shellcheck disable=SC2044
-    for olddir in $(
-        find "${CATALOG_DIR}-3"/charts/redhat/redhat/redhat-developer-hub/ -maxdepth 1 -name "*-CI" || true
-    ); do # echo $olddir
-        if [[ $olddir != *"/${CHART_VERSION}" ]]; then
-            git -C "${CATALOG_DIR}-3" rm -fr "$olddir" >/dev/null 2>&1 || true
-            # echo "  Folder ${olddir##*redhat/redhat/} deleted"
-        fi
-    done
-    git -C "${CATALOG_DIR}-3" commit -q --no-verify --no-gpg-sign -s -m "chore: clean redhat-developer-hub-${CHART_VERSION}" >/dev/null 2>&1 || true
-    git -C "${CATALOG_DIR}-3" push $QUIET origin "$BRANCH" -f >/dev/null 2>&1 || true
-    # find "${CATALOG_DIR}-3"/charts/redhat/redhat/redhat-developer-hub/ -maxdepth 1
-}
-
-# repo cleanup
-if [[ $DEBUG -eq 1 ]]; then
-    echo
-    echo "Delete old folders from $EXTRA_BRANCH (except for $CHART_VERSION):"
-fi
-cd /tmp
-
-# no need to do dir deletion in github repo now
-# if [[ $EXTRA_BRANCH ]]; then
-#     git clone --filter=blob:none -q "${CATALOG_FORK}" -b "${EXTRA_BRANCH}" "${CATALOG_DIR}-3" >/dev/null 2>&1
-#     pushd "${CATALOG_DIR}-3" >/dev/null || exit 1
-#         git -C "${CATALOG_DIR}-3" checkout "$EXTRA_BRANCH" >/dev/null 2>&1 || true
-#         deleteDirs "$EXTRA_BRANCH"
-#     popd >/dev/null || exit 1
-# fi
-
 # delete temp folders
-rm -fr "${HELM_DIR}" "${CATALOG_DIR}" "${CATALOG_DIR}-2" # "${CATALOG_DIR}-3"
+rm -fr "${HELM_DIR}" "${CATALOG_DIR}" "${CATALOG_DIR}-2" 
