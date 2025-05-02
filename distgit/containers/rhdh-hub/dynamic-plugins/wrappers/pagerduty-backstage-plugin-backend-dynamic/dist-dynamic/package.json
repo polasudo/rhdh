@@ -31,7 +31,7 @@
   "resolutions": {
     "@aws-sdk/util-utf8-browser": "npm:@smithy/util-utf8@~2",
     "@types/react": "18.3.20",
-    "@types/react-dom": "18.3.6",
+    "@types/react-dom": "18.3.7",
     "@pagerduty/backstage-plugin-backend": "file:./embedded/pagerduty-backstage-plugin-backend",
     "@pagerduty/backstage-plugin-common": "file:./embedded/pagerduty-backstage-plugin-common"
   },
