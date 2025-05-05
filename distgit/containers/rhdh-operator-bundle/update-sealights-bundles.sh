@@ -80,18 +80,15 @@ resolve_final_image() {
     return
   fi
 
-  local SL_SOURCE_ARTIFACT
-  SL_SOURCE_ARTIFACT=$(jq -r '
-    .payload | @base64d | fromjson | .predicate.buildConfig.tasks[] |
-    select(.invocation.environment.labels."konflux-ci/sealights" == "true") |
-    .results[] | select(.name == "SOURCE_ARTIFACT") | .value' "$COSIGN_FILE")
-
   local SL_CONTAINER_IMAGE
-  SL_CONTAINER_IMAGE=$(jq -r --arg sl_source_artifact "$SL_SOURCE_ARTIFACT" '
-    .payload | @base64d | fromjson | .predicate.buildConfig.tasks[] |
-    select(.invocation.parameters.SOURCE_ARTIFACT == $sl_source_artifact) |
-    select(.ref.params[].value == "buildah-oci-ta") |
-    .results[] | select(.name == "IMAGE_REF") | .value' "$COSIGN_FILE")
+  SL_CONTAINER_IMAGE=$(jq -r '
+    .payload
+    | @base64d
+    | fromjson
+    | .predicate.buildConfig.tasks[]
+    | select(.invocation.parameters.IMAGE? // "" | test("sealights"))
+    | .invocation.parameters.IMAGE
+  ' "$COSIGN_FILE")
 
   if [ -z "$SL_CONTAINER_IMAGE" ] || [ "$SL_CONTAINER_IMAGE" == "null" ]; then
     echo "[WARN] SL_CONTAINER_IMAGE not found — using fallback $COSIGN_IMAGE" >&2
