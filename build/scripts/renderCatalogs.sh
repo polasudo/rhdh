@@ -18,6 +18,7 @@ operator_name="rhdh-operator"
 bundle_image="quay.io/rhdh/rhdh-operator-bundle"
 maintainers="RHDH Team <rhdh-bot@redhat.com>"
 templateFileInput=""
+ENABLE_SEALIGHTS="false"
 
 # eg., rhdh-1.5-rhel-9
 latestStableBranch="$(curl -sSLk --url "https://gitlab.cee.redhat.com/api/v4/projects/rhidp%2Frhdh/repository/branches?per_page=200&regex=^rhdh-1..*-rhel-9$" | jq -r '.[].name' | sort -uV | tail -1)"; # echo $latestStableBranch
@@ -68,16 +69,18 @@ Options:
   -v                     product version x.y.z,                                        eg., $RHDH_VERSION
   --latest, --next       also publish a :latest-v4.yy or :next-v4.yy tag; default: publish only x.y-v4.yy tag
 
-  --package-name         olm package name,                                             eg., rhdh
-  --prod-path            path under configs/<prod-path>/,                              eg., rhdh
-  --prod-url             url to use as LABEL url=... in Containerfile,                 eg., https://red.ht/rhdh
-  --operator-name        could be the same as your olm package or end with -operator,  eg., rhdh-operator
-  --bundle-image         operator bundle image to add to the catalog,                  eg., quay.io/rhdh/rhdh-operator-bundle
-  --maintainers          one or more comma-separated email addresses,                  eg., RHDH Team <rhdh-bot@redhat.com>
+  --package-name         olm package name,                                                             eg., rhdh
+  --prod-path            path under configs/<prod-path>/,                                              eg., rhdh
+  --prod-url             url to use as LABEL url=... in Containerfile,                                 eg., https://red.ht/rhdh
+  --operator-name        could be the same as your olm package or end with -operator,                  eg., rhdh-operator
+  --bundle-image         operator bundle image to add to the catalog,                                  eg., quay.io/rhdh/rhdh-operator-bundle
+  --maintainers          one or more comma-separated email addresses,                                  eg., RHDH Team <rhdh-bot@redhat.com>
 
-  --versions             space-separated list of OCP versions to render;               
+  --sealights            in addition to pristine catalogs, will also render Sealights versions
+
+  --versions             space-separated list of OCP versions to render;
                          default: $OCP_VERSIONS
-  
+
   --template             instead of generating a template, use some other local file
   --rhec                 switch any quay.io/rhdh/ image refs to registry.redhat.io/rhdh/ (RH Ecosystem Catalog)
 
@@ -89,8 +92,11 @@ Options:
 Examples:
     oc login --token=<your-token-here> --server=https://api.<your-cluster-here>.openshiftapps.com:6443
 
-    # If all your templates are the same - that is, the same versions of operator-bundles exist on all OCP versions), 
-    # you can render one template from the public index, and then copy it for the other OCP versions
+    # If all your templates are the same - that is, the same versions of operator-bundles exist on all OCP versions),
+    # you can render one template from the public index, and then copy it for the other OCP versions. This script enables the integration
+    # of fbc catalogs with Sealight. When using the flag --sealights, there must be a matching -sealights image for the operator-bundle image, 
+    # For example, must previously have created quay.io/rhdh/rhdh-operator-bundle-sealights for the quay.io/rhdh/rhdh-operator-bundle image, and
+    # that bundle must refer to any related sealights-enabled operator and operand images. 
 
     RHDH_VERSION="$RHDH_VERSION"
     OCP_VERSION=4.14
@@ -128,6 +134,7 @@ while [[ "$#" -gt 0 ]]; do
     '--prod-url') prod_url="$2"; shift 1;; 
     '--operator-name') operator_name="$2"; shift 1;; 
     '--bundle-image') bundle_image="$2"; shift 1;; 
+    '--sealights') ENABLE_SEALIGHTS="true";;
     '--maintainers') maintainers="$2"; shift 1;; 
     '--template') templateFileInput="$2"; shift 1;;
     '--rhec') USE_RHEC="1";;
@@ -154,126 +161,146 @@ else
 fi
 
 if [[ $templateFileInput ]] && [[ ! -f $templateFileInput ]]; then
-  echo -e "${red}[ERROR] Could not find template file $templateFileInput !${norm}"; echo; usage 
+  echo -e "${red}[ERROR] Could not find template file $templateFileInput !${norm}"; echo; usage
 fi
 
 PROD_VERSION=${PROD_FULL_VERSION%.*} # x.y
 
+if  [[ "${ENABLE_SEALIGHTS}" == "true" ]]; then
+  CATALOGS=(catalogs catalogs-sealights)
+else
+  CATALOGS=(catalogs)
+fi
+
 for OCP_VERSION in ${OCP_VERSIONS}; do
-  # create folder for the rendered catalog.json
-  mkdir -p "catalogs/v${OCP_VERSION}/configs/${prod_path}/"
+  for CATALOG_DIR in "${CATALOGS[@]}"; do
+    echo "[INFO] Render catalog from file ${CATALOG_DIR}, openshift version: ${OCP_VERSION}"
 
-  if [[ ! $templateFileInput ]] || [[ ! -f $templateFileInput ]]; then
-    # extract content from the public registry
-    if [[ ! -d ./v${OCP_VERSION}-catalog-migrate ]] || [[ $CLEAN -eq 1 ]]; then 
-      rm -fr "./v${OCP_VERSION}-catalog-migrate"
-      time opm migrate registry.redhat.io/redhat/redhat-operator-index:v${OCP_VERSION} ./v${OCP_VERSION}-catalog-migrate
+    if [[ "${CATALOG_DIR}" == *"sealights"* ]] && [[ "${ENABLE_SEALIGHTS}" == "false" ]]; then
+      echo "[INFO] Sealights catalog rendering is disabled. Skipping..."
+      continue
+    elif [[ "${CATALOG_DIR}" == *"sealights"* ]] && [[ "${ENABLE_SEALIGHTS}" == "true" ]]; then
+      if [[ "${bundle_image}" != *"-sealights" ]]; then
+        bundle_image="${bundle_image}-sealights"
+      fi
+    else
+      # Remove -sealights if it was added previously
+      bundle_image="${bundle_image%-sealights}"
     fi
 
-    templateFile="catalogs/v${OCP_VERSION}/catalog-template.json"
+    # create folder for the rendered catalog.json
+    mkdir -p "${CATALOG_DIR}/v${OCP_VERSION}/configs/${prod_path}/"
 
-    # create template from the existing content
-    opm alpha convert-template basic "./v${OCP_VERSION}-catalog-migrate/${prod_path}/catalog.json" > "${templateFile}"
-    # debug with # cp "${templateFile}" "${templateFile}.orig"
+    if [[ ! $templateFileInput ]] || [[ ! -f $templateFileInput ]]; then
+      # extract content from the public registry
+      if [[ ! -d ./v${OCP_VERSION}-catalog-migrate ]] || [[ $CLEAN -eq 1 ]]; then 
+        rm -fr "./v${OCP_VERSION}-catalog-migrate"
+        time opm migrate registry.redhat.io/redhat/redhat-operator-index:v${OCP_VERSION} ./v${OCP_VERSION}-catalog-migrate
+      fi
 
-    # eg., for 1.4.0 want to replace 1.3.1 (last released item on the fast channel)
-    # but for 1.3.4, want to replace 1.3.3 (not 1.4.0) so filter by PROD_VERSION
-    PROD_PREV_VERSION=$(jq -r '.entries[]|select(.name=="fast")|.entries[]|select(.name|contains("'"$PROD_VERSION"'"))|.name' "${templateFile}" | tail -1)
-    echo -e "${blue}[DEBUG] Got last PROD_PREV_VERSION of $PROD_VERSION in fast channel = ${PROD_PREV_VERSION}${norm}" # last released 1.3.z version in fast channel = 1.3.3
-    if [[ $PROD_PREV_VERSION ]] && [[ $PROD_PREV_VERSION != "null" ]]; then 
-      # update "replaces": "rhdh-operator.v1.3.3" ==> "replaces": "rhdh-operator.v1.3.4"
-      sed -r -e 's@"replaces": "'"$PROD_PREV_VERSION"'"@"replaces": "'"${operator_name}"'.v'"${PROD_FULL_VERSION}"'"@' -i "${templateFile}"
-    else 
-      PROD_LAST_VERSION=$(jq -r '.entries[]|select(.name=="fast")|.entries[].name' "${templateFile}" | sort -uV | tail -1)
-      echo -e "${blue}[DEBUG] Got last PROD_LAST_VERSION in fast channel = ${PROD_LAST_VERSION}${norm}" # last released version in fast channel = 1.4.0
-      PROD_PREV_VERSION="${PROD_LAST_VERSION}"
+      templateFile="${CATALOG_DIR}/v${OCP_VERSION}/catalog-template.json"
+
+      # create template from the existing content
+      opm alpha convert-template basic "./v${OCP_VERSION}-catalog-migrate/${prod_path}/catalog.json" > "${templateFile}"
+      # debug with # cp "${templateFile}" "${templateFile}.orig"
+
+      # eg., for 1.4.0 want to replace 1.3.1 (last released item on the fast channel)
+      # but for 1.3.4, want to replace 1.3.3 (not 1.4.0) so filter by PROD_VERSION
+      PROD_PREV_VERSION=$(jq -r '.entries[]|select(.name=="fast")|.entries[]|select(.name|contains("'"$PROD_VERSION"'"))|.name' "${templateFile}" | tail -1)
+      echo -e "${blue}[DEBUG] Got last PROD_PREV_VERSION of $PROD_VERSION in fast channel = ${PROD_PREV_VERSION}${norm}" # last released 1.3.z version in fast channel = 1.3.3
+      if [[ $PROD_PREV_VERSION ]] && [[ $PROD_PREV_VERSION != "null" ]]; then 
+        # update "replaces": "rhdh-operator.v1.3.3" ==> "replaces": "rhdh-operator.v1.3.4"
+        sed -r -e 's@"replaces": "'"$PROD_PREV_VERSION"'"@"replaces": "'"${operator_name}"'.v'"${PROD_FULL_VERSION}"'"@' -i "${templateFile}"
+      else
+        PROD_LAST_VERSION=$(jq -r '.entries[]|select(.name=="fast")|.entries[].name' "${templateFile}" | sort -uV | tail -1)
+        echo -e "${blue}[DEBUG] Got last PROD_LAST_VERSION in fast channel = ${PROD_LAST_VERSION}${norm}" # last released version in fast channel = 1.4.0
+        PROD_PREV_VERSION="${PROD_LAST_VERSION}"
+      fi
+
+      NEW_ENTRY='[{
+            "name": "'"${operator_name}"'.v'"${PROD_FULL_VERSION}"'",
+            "replaces": "'"${PROD_PREV_VERSION}"'",
+            "skipRange": "\u003c'"${PROD_FULL_VERSION}"'"
+      }]'
+
+      JSON='{
+        "entries": '"${NEW_ENTRY}"',
+        "name": "fast-'"${PROD_VERSION}"'",
+        "package": "'"${package_name}"'",
+        "schema": "olm.channel"
+      }'
+
+      # inject new entry into default channel
+      jq --arg NEW_ENTRY "${NEW_ENTRY}" \
+        '.entries[1].entries += '"$NEW_ENTRY" \
+        "${templateFile}" > "${templateFile}_"
+
+      # if fast-1.y channel already exists
+      if [[ $(jq --arg PROD_VERSION "${PROD_VERSION}" '.entries[]|select(.name=="fast-'"$PROD_VERSION"'")' "${templateFile}_") ]]; then
+        # add new entry to existing fast-1.y channel
+        JSON=$(jq --arg NEW_ENTRY "${NEW_ENTRY}" --arg PROD_VERSION "${PROD_VERSION}" \
+          '.entries[]|select(.name=="fast-'"$PROD_VERSION"'")|.entries += '"$NEW_ENTRY" \
+          "${templateFile}_")
+        # remove old fast-1.y entry 
+        jq --arg NEW_JQ "${NEW_JQ}" 'del(.entries[]|select(.name=="fast-'"$PROD_VERSION"'"))' "${templateFile}_" > "${templateFile}__"
+        mv -f "${templateFile}__" "${templateFile}_"
+      fi
+      # inject new/updated fast-1.y channel
+      jq --arg JSON "${JSON}" '.entries[.entries|length] |= . + '"$JSON" \
+        "${templateFile}_" > "${templateFile}" 
+
+      # latest CI build
+      bundle_digest=$(skopeo inspect "docker://${bundle_image}:$PROD_VERSION" | jq -r '.Digest')
+      echo -e "${green}Got $bundle_image@$bundle_digest${norm}"
+      ./build/scripts/getTagForSHA.sh "$bundle_image@$bundle_digest" -y -q
+
+      # inject new bundle
+      jq --arg bundle_digest "${bundle_digest}" --arg bundle_image "${bundle_image}" \
+        '.entries[.entries|length] |= . +  {"schema":"olm.bundle", "image": "'"${bundle_image}"'@'"$bundle_digest"'"}' \
+        "${templateFile}" > "${templateFile}_"
+
+      # rename
+      mv "${templateFile}"{_,}
+
+      grep "quay.io/rhdh/rhdh-operator-bundle" "${templateFile}" || true
+    else
+      templateFile="${templateFileInput}"
     fi
 
-    NEW_ENTRY='[{
-          "name": "'"${operator_name}"'.v'"${PROD_FULL_VERSION}"'",
-          "replaces": "'"${PROD_PREV_VERSION}"'",
-          "skipRange": "\u003c'"${PROD_FULL_VERSION}"'"
-    }]'
+    ############################################## template created from production index, or passed in ##############################################
 
-    JSON='{
-      "entries": '"${NEW_ENTRY}"',
-      "name": "fast-'"${PROD_VERSION}"'",
-      "package": "'"${package_name}"'",
-      "schema": "olm.channel"
-    }'
-
-
-    # inject new entry into default channel
-    jq --arg NEW_ENTRY "${NEW_ENTRY}" \
-      '.entries[1].entries += '"$NEW_ENTRY" \
-      "${templateFile}" > "${templateFile}_"
-
-    # if fast-1.y channel already exists
-    if [[ $(jq --arg PROD_VERSION "${PROD_VERSION}" '.entries[]|select(.name=="fast-'"$PROD_VERSION"'")' "${templateFile}_") ]]; then
-      # add new entry to existing fast-1.y channel
-      JSON=$(jq --arg NEW_ENTRY "${NEW_ENTRY}" --arg PROD_VERSION "${PROD_VERSION}" \
-        '.entries[]|select(.name=="fast-'"$PROD_VERSION"'")|.entries += '"$NEW_ENTRY" \
-        "${templateFile}_")
-      # remove old fast-1.y entry 
-      jq --arg NEW_JQ "${NEW_JQ}" 'del(.entries[]|select(.name=="fast-'"$PROD_VERSION"'"))' "${templateFile}_" > "${templateFile}__"
-      mv -f "${templateFile}__" "${templateFile}_"
+    # switch quay.io/rhdh references that will fail in a push to production Release
+    if [[ $USE_RHEC -eq 1 ]]; then 
+      sed -i "${CATALOG_DIR}/v${OCP_VERSION}/catalog-template.json" -r -e "s|quay.io/rhdh|registry.redhat.io/rhdh|g"
     fi
-    # inject new/updated fast-1.y channel
-    jq --arg JSON "${JSON}" '.entries[.entries|length] |= . + '"$JSON" \
-      "${templateFile}_" > "${templateFile}" 
 
-    # latest CI build
-    bundle_digest=$(skopeo inspect "docker://${bundle_image}:$PROD_VERSION" | jq -r '.Digest')
-    echo -e "${green}Got $bundle_image@$bundle_digest${norm}"
-    ./build/scripts/getTagForSHA.sh "$bundle_image@$bundle_digest" -y -q
+    ############################################## render catalog content from the template ##############################################
 
-    # inject new bundle
-    jq --arg bundle_digest "${bundle_digest}" --arg bundle_image "${bundle_image}" \
-      '.entries[.entries|length] |= . +  {"schema":"olm.bundle", "image": "'"${bundle_image}"'@'"$bundle_digest"'"}' \
-      "${templateFile}" > "${templateFile}_"
+    rm -f "${CATALOG_DIR}/v${OCP_VERSION}/configs/${prod_path}/catalog.json"
+    # for 4.17+, migrate bundles' "olm.bundle.object" to "olm.csv.metadata"
+    vergte "${OCP_VERSION}" "4.17" && migrateLevel="--migrate-level=bundle-object-to-csv-metadata" || migrateLevel=""
+    set -x
+    # shellcheck disable=SC2086
+    time opm alpha render-template basic "${templateFile}" $migrateLevel > "${CATALOG_DIR}/v${OCP_VERSION}/configs/${prod_path}/catalog.json"
+    set +x
 
-    # rename
-    mv "${templateFile}"{_,}
+    # for 4.15+, use the rhel9 image
+    vergte "${OCP_VERSION}" "4.15" && registry="registry.redhat.io/openshift4/ose-operator-registry-rhel9:v${OCP_VERSION}" || registry="registry.redhat.io/openshift4/ose-operator-registry:v${OCP_VERSION}"
 
-    grep "quay.io/rhdh/rhdh-operator-bundle" "${templateFile}" || true
-  else
-    templateFile="${templateFileInput}"
-  fi
+    # hackaround for unreleased version of OCP
+    # TODO change this after 06-02-2025 when 4.19 is live
+    vergte "${OCP_VERSION}" "4.19" && registry="brew.registry.redhat.io/rh-osbs/openshift-ose-operator-registry-rhel9:v4.19"
 
-  ############################################## template created from production index, or passed in ##############################################
+    fastYChannel=""; if [[ $PROD_VERSION ]]; then fastYChannel=",fast-${PROD_VERSION}"; fi
 
-  # switch quay.io/rhdh references that will fail in a push to production Release
-  if [[ $USE_RHEC -eq 1 ]]; then 
-    sed -i "catalogs/v${OCP_VERSION}/catalog-template.json" -r -e "s|quay.io/rhdh|registry.redhat.io/rhdh|g"
-  fi
+    # if using build-image-index=false in .tekton push pipeline, append the arch to the tags (like in OSBS)
+    # set to "" and re-render if switching back to build-image-index=true
+    arch="-$(uname -m)"
 
-  ############################################## render catalog content from the template ##############################################
+    # echo "[INFO] Render catalogs/v${OCP_VERSION}/Containerfile for channels=fast${fastYChannel}"
+    latestNextTag=""; if [[ $latestNext ]]; then latestNextTag=",${latestNext}-v${OCP_VERSION}${arch}"; fi
 
-  rm -f "catalogs/v${OCP_VERSION}/configs/${prod_path}/catalog.json"
-  # for 4.17+, migrate bundles' "olm.bundle.object" to "olm.csv.metadata"
-  vergte "${OCP_VERSION}" "4.17" && migrateLevel="--migrate-level=bundle-object-to-csv-metadata" || migrateLevel=""
-  set -x
-  # shellcheck disable=SC2086
-  time opm alpha render-template basic "${templateFile}" $migrateLevel > "catalogs/v${OCP_VERSION}/configs/${prod_path}/catalog.json"
-  set +x
-
-  # for 4.15+, use the rhel9 image
-  vergte "${OCP_VERSION}" "4.15" && registry="registry.redhat.io/openshift4/ose-operator-registry-rhel9:v${OCP_VERSION}" || registry="registry.redhat.io/openshift4/ose-operator-registry:v${OCP_VERSION}"
-  
-  # hackaround for unreleased version of OCP
-  # TODO change this after 06-02-2025 when 4.19 is live
-  vergte "${OCP_VERSION}" "4.19" && registry="brew.registry.redhat.io/rh-osbs/openshift-ose-operator-registry-rhel9:v4.19"
-
-  fastYChannel=""; if [[ $PROD_VERSION ]]; then fastYChannel=",fast-${PROD_VERSION}"; fi
-
-  # if using build-image-index=false in .tekton push pipeline, append the arch to the tags (like in OSBS)
-  # set to "" and re-render if switching back to build-image-index=true
-  arch="-$(uname -m)"
-
-  # echo "[INFO] Render catalogs/v${OCP_VERSION}/Containerfile for channels=fast${fastYChannel}"
-  latestNextTag=""; if [[ $latestNext ]]; then latestNextTag=",${latestNext}-v${OCP_VERSION}${arch}"; fi
-
-  cat <<EOF > "catalogs/v${OCP_VERSION}/Containerfile"
+    cat <<EOF > "${CATALOG_DIR}/v${OCP_VERSION}/Containerfile"
   # The base image is expected to contain /bin/opm (with a serve subcommand) and /bin/grpc_health_probe
 FROM ${registry}
 
@@ -305,10 +332,11 @@ LABEL \\
       url="$prod_url"
 EOF
 
-  # cleanup rendered catalogs
-  if [[ -d ./v${OCP_VERSION}-catalog-migrate ]] && [[ $CLEAN -eq 1 ]]; then 
-    rm -fr "./v${OCP_VERSION}-catalog-migrate"
-  fi
+    # cleanup rendered catalogs
+    if [[ -d ./v${OCP_VERSION}-catalog-migrate ]] && [[ $CLEAN -eq 1 ]]; then 
+      rm -fr "./v${OCP_VERSION}-catalog-migrate"
+    fi
+  done
 
   if [[ $DO_COMMIT -eq 1 ]]; then
     # echo "[INFO] Commit changes to catalogs/v${OCP_VERSION}/"
@@ -347,4 +375,3 @@ EOF
     rm -f "/tmp/fbc-pipelineruns-${OCP_VERSION}.yaml"
   fi
 done
-

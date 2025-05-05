@@ -23,12 +23,16 @@ spec:
     value: '{{revision}}'
   - name: output-image
     value: quay.io/rhdh/iib:fbc-4-17-on-push-for-rhdh-1-rhel-9-from-{{revision}}
+  - name: sealights-output-image
+    value: quay.io/rhdh/iib-sealights:fbc-4-17-on-push-for-rhdh-1-rhel-9-from-{{revision}}
   - name: image-expires-after
     value: ''
   - name: dockerfile
     value: Containerfile
   - name: path-context
     value: catalogs/v4.17
+  - name: sealights-path-context
+    value: catalogs-sealights/v4.17
   pipelineSpec:
     description: |
       This pipeline is ideal for building and verifying [file-based catalogs](https://konflux.pages.redhat.com/docs/users/advanced-how-tos/building-olm.html#_building_the_file_based_catalog).
@@ -200,6 +204,39 @@ spec:
           value: buildah
         - name: bundle
           value: quay.io/konflux-ci/tekton-catalog/task-buildah:0.4@sha256:ccba366d559baed0904c9e615b7c365d17c83a8278aa3918ad7825074ce3c9c2
+        - name: kind
+          value: task
+        resolver: bundles
+      when:
+      - input: $(tasks.init.results.build)
+        operator: in
+        values:
+        - "true"
+      workspaces:
+      - name: source
+        workspace: workspace
+    - name: build-sealights-container
+      params:
+      - name: IMAGE
+        value: $(params.sealights-output-image)
+      - name: DOCKERFILE
+        value: $(params.dockerfile)
+      - name: CONTEXT
+        value: $(params.sealights-path-context)
+      - name: HERMETIC
+        value: $(params.hermetic)
+      - name: IMAGE_EXPIRES_AFTER
+        value: $(params.image-expires-after)
+      - name: COMMIT_SHA
+        value: $(tasks.clone-repository.results.commit)
+      runAfter:
+      - clone-repository
+      taskRef:
+        params:
+        - name: name
+          value: buildah
+        - name: bundle
+          value: quay.io/konflux-ci/tekton-catalog/task-buildah:0.4@sha256:3c036c4f4ea243c9d186a96a34b880e334571739180ab80e4653cb7b1779cbe8
         - name: kind
           value: task
         resolver: bundles
