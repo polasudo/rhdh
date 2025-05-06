@@ -273,7 +273,7 @@
     },
     {
       "schema": "olm.bundle",
-      "image": "quay.io/rhdh/rhdh-operator-bundle@sha256:4f80206455e935d35c31168a35e8f574f01047921fc2a2db1abaff6b97648c4b"
+      "image": "quay.io/rhdh/rhdh-operator-bundle-sealights@sha256:de2777f8b29a0fe37e42cc6ca26671dec139a46ed1647ed663cc1d0190d2e1ee"
     }
   ]
 }
