@@ -346,12 +346,16 @@ EOF
     # echo "[INFO] Commit changes to catalogs/v${OCP_VERSION}/"
     git add -f "catalogs/v${OCP_VERSION}/" build/scripts/renderCatalogs.sh || true
     if [[ $ENABLE_SEALIGHTS == "true" ]]; then
-      git add -f "catalogs-sealights/v${OCP_VERSION}/"|| true
+      git add -f "catalogs-sealights/v${OCP_VERSION}/" || true
     fi
     # don't trigger gitlab pipelines [ci skip], only tekton ones
     commitMsg="renderCatalogs.sh from catalogs/v${OCP_VERSION}/, in channel(s) fast${fastYChannel}, for ${PROD_VERSION}-v${OCP_VERSION}${arch}${latestNextTag}; add $PROD_FULL_VERSION"
     if [[ $USE_RHEC -eq 1 ]]; then commitMsg=":: GA PUSH :: ${commitMsg}"; fi
-    git commit -s -m "[ci skip] $commitMsg" "catalogs/v${OCP_VERSION}/" build/scripts/renderCatalogs.sh || true
+    if [[ $ENABLE_SEALIGHTS == "true" ]]; then
+      git commit -s -m "[ci skip] $commitMsg" "catalogs/v${OCP_VERSION}/" "catalogs-sealights/v${OCP_VERSION}/" build/scripts/renderCatalogs.sh || true
+    else
+      git commit -s -m "[ci skip] $commitMsg" "catalogs/v${OCP_VERSION}/" build/scripts/renderCatalogs.sh || true
+    fi
   fi
   if [[ ${DO_PUSH} -eq 1 ]]; then
     git pull origin "${DWNSTM_BRANCH}" >/dev/null 2>&1 || true
