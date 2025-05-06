@@ -328,7 +328,7 @@ NOTE: To get access to the rhtap-releng namespace to watch managed pipelines, se
 
 ====
 [NOTE]
-The `--latest` flag is ONLY for the latest stable release, not for maintenance. For example if `main` branch is currently at version `1.6.0`, then the `release-1.5` branch (eg., `1.5.0`, `1.5.1`) is the "latest" branch. If releasing a `1.4.z` update, DO NOT use `--latest`. This alignment changes every quarter when a new release-1.y branch is created, aligning to a NEW set of `latest` tags. 
+The `--latest` flag is ONLY for the latest stable release, not for maintenance. For example if `main` branch is currently at version `1.7.0`, then the `release-1.6` branch (eg., `1.6.0`, `1.6.1`) is the "latest" branch. If releasing a `1.5.z` update, DO NOT use `--latest`. This alignment changes every quarter when a new release-1.y branch is created, aligning to a NEW set of `latest` tags. 
 ====
 
 . [ ] Re-render the FBC catalogs with link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1-rhel-9/build/scripts/renderCatalogs.sh#L66[`renderCatalogs.sh --rhec`], to switch to registry.redhat.io/rhdh instead of quay.io/rhdh image references. This should take about 2 mins per OCP version, and the builds in Konflux should take 5-10 mins total. Whole step should be under 15 mins. 
@@ -337,13 +337,27 @@ The `--latest` flag is ONLY for the latest stable release, not for maintenance. 
 oc login --token=... # log into the https://console-openshift-console.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/k8s/cluster/projects/rhdh-tenant cluster
 
 # choose the correct branch
-git checkout rhdh-1.4-rhel-9
+git checkout rhdh-1.6-rhel-9
 
-RHDH_VERSION="1.4.3"
-for OCP_VERSION in 4.14 4.15 4.16 4.17 4.18; do \
-  time ./build/scripts/renderCatalogs.sh --rhec --versions "${OCP_VERSION}" -v "${RHDH_VERSION}" [--latest] \
-    --template "catalogs/v${OCP_VERSION}/catalog-template.json"; sleep 30s; \
-done
+# for <=1.6, with support up to OCP 4.18
+
+  RHDH_VERSION="1.6.0"
+  OCP_VERSION=4.14
+  ./build/scripts/renderCatalogs.sh [--latest] --clean --versions "${OCP_VERSION}" -v "${RHDH_VERSION}"; sleep 30s; echo
+  alias cp=cp
+  for OCP_VERSION in 4.15 4.16 4.17 4.18; do \
+    cp -f catalogs/v{4.14,${OCP_VERSION}}/catalog-template.json; ./build/scripts/renderCatalogs.sh [--latest] --clean --versions "${OCP_VERSION}" -v "${RHDH_VERSION}" --template "catalogs/v${OCP_VERSION}/catalog-template.json"; sleep 30s; \
+  done
+
+# or for >=1.7, with support for OCP 4.19 (4.15 removed) + sealights
+
+  RHDH_VERSION="1.7.0"
+  OCP_VERSION=4.14
+  /home/nboldt/4/4-rhdh/build/scripts/renderCatalogs.sh [--next] --clean --versions "${OCP_VERSION}" -v "${RHDH_VERSION}" --sealights; sleep 30s; echo
+  alias cp=cp
+  for OCP_VERSION in 4.16 4.17 4.18 4.19; do \
+    cp -f catalogs/v{4.14,${OCP_VERSION}}/catalog-template.json; ./build/scripts/renderCatalogs.sh [--next] --clean --versions "${OCP_VERSION}" -v "${RHDH_VERSION}" --sealights --template "catalogs/v${OCP_VERSION}/catalog-template.json"; sleep 30s; \
+  done
 ```
 
 ### Chart release (15 mins)
