@@ -47,7 +47,8 @@ else
   RHDH_VERSION="1.y.z"
 fi
 
-OCP_VERSIONS="4.14 4.16 4.17 4.18 4.19"
+OCP_VERSION_BASE="4.14" # version from which to render catalogs
+OCP_VERSIONS="4.16 4.17 4.18 4.19" # versions to just copy verbatim from the above
 
 DO_COMMIT=1 # by default, commit change
 DO_PUSH=1   # push the commit
@@ -79,7 +80,7 @@ Options:
   --sealights            in addition to pristine catalogs, will also render Sealights versions
 
   --versions             space-separated list of OCP versions to render;
-                         default: $OCP_VERSIONS
+                         default: $OCP_VERSION_BASE $OCP_VERSIONS
 
   --template             instead of generating a template, use some other local file
   --rhec                 switch any quay.io/rhdh/ image refs to registry.redhat.io/rhdh/ (RH Ecosystem Catalog)
@@ -99,11 +100,11 @@ Examples:
     # that bundle must refer to any related sealights-enabled operator and operand images. 
 
     RHDH_VERSION="$RHDH_VERSION"
-    OCP_VERSION=4.14
-    $0 $latestNextExample --clean --versions "\${OCP_VERSION}" -v "\${RHDH_VERSION}"; sleep 30s; echo
+    OCP_VERSION=$OCP_VERSION_BASE
+    $0 $latestNextExample --clean --versions "\${OCP_VERSION}" -v "\${RHDH_VERSION}" --sealights; sleep 30s; echo
     alias cp=cp
-    for OCP_VERSION in 4.15 4.16 4.17 4.18; do \\
-      cp -f catalogs/v{4.14,\${OCP_VERSION}}/catalog-template.json; ./build/scripts/renderCatalogs.sh $latestNextExample --clean --versions "\${OCP_VERSION}" -v "\${RHDH_VERSION}" --template "catalogs/v\${OCP_VERSION}/catalog-template.json"; sleep 30s; \\
+    for OCP_VERSION in $OCP_VERSIONS; do \\
+      cp -f catalogs/v{4.14,\${OCP_VERSION}}/catalog-template.json; ./build/scripts/renderCatalogs.sh $latestNextExample --clean --versions "\${OCP_VERSION}" -v "\${RHDH_VERSION}" --sealights --template "catalogs/v\${OCP_VERSION}/catalog-template.json"; sleep 30s; \\
     done
 EOF
 exit
@@ -124,6 +125,9 @@ vergte() {
 }
 
 if [[ $# -lt 1 ]]; then usage; fi
+
+# render all versions by default, base + copied ones
+OCP_VERSIONS="$OCP_VERSION_BASE $OCP_VERSIONS"
 
 while [[ "$#" -gt 0 ]]; do
   case $1 in
