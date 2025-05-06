@@ -4,17 +4,16 @@ metadata:
   annotations:
     build.appstudio.openshift.io/repo: https://gitlab.cee.redhat.com/rhidp/rhdh/-/tree/{{revision}}
     build.appstudio.redhat.com/commit_sha: '{{revision}}'
-    build.appstudio.redhat.com/pull_request_number: '{{pull_request_number}}'
     build.appstudio.redhat.com/target_branch: '{{target_branch}}'
-    pipelinesascode.tekton.dev/max-keep-runs: "6"
-    pipelinesascode.tekton.dev/on-cel-expression: event == "pull_request" && target_branch
-      == "rhdh-1-rhel-9" && ( "catalogs/v4.15/***".pathChanged() || ".tekton/fbc-4-15-pull-request.yaml".pathChanged())
+    pipelinesascode.tekton.dev/max-keep-runs: "7"
+    pipelinesascode.tekton.dev/on-cel-expression: event == "push" && target_branch
+      == "rhdh-1-rhel-9" && ( "catalogs/v4.19/***".pathChanged() || ".tekton/fbc-4-19-push.yaml".pathChanged())
   creationTimestamp: null
   labels:
-    appstudio.openshift.io/application: fbc-4-15
-    appstudio.openshift.io/component: fbc-4-15
+    appstudio.openshift.io/application: fbc-4-19
+    appstudio.openshift.io/component: fbc-4-19
     pipelines.appstudio.openshift.io/type: build
-  name: fbc-4-15-on-pull-request
+  name: fbc-4-19-on-push
   namespace: rhdh-tenant
 spec:
   params:
@@ -23,13 +22,17 @@ spec:
   - name: revision
     value: '{{revision}}'
   - name: output-image
-    value: quay.io/rhdh/iib:on-pr-{{revision}}
+    value: quay.io/rhdh/iib:fbc-4-19-on-push-for-rhdh-1-rhel-9-from-{{revision}}
+  - name: sealights-output-image
+    value: quay.io/rhdh/iib-sealights:fbc-4-19-on-push-for-rhdh-1-rhel-9-from-{{revision}}
   - name: image-expires-after
-    value: 5d
+    value: ''
   - name: dockerfile
     value: Containerfile
   - name: path-context
-    value: catalogs/v4.15
+    value: catalogs/v4.19
+  - name: sealights-path-context
+    value: catalogs-sealights/v4.19
   pipelineSpec:
     description: |
       This pipeline is ideal for building and verifying [file-based catalogs](https://konflux.pages.redhat.com/docs/users/advanced-how-tos/building-olm.html#_building_the_file_based_catalog).
@@ -109,7 +112,7 @@ spec:
       description: Build dependencies to be prefetched by Cachi2
       name: prefetch-input
       type: string
-    - default: "5d"
+    - default: ""
       description: Image tag expiration time, time values could be something like
         1h, 2d, 3w for hours, days, and weeks, respectively.
       name: image-expires-after
@@ -212,6 +215,39 @@ spec:
       workspaces:
       - name: source
         workspace: workspace
+    - name: build-sealights-container
+      params:
+      - name: IMAGE
+        value: $(params.sealights-output-image)
+      - name: DOCKERFILE
+        value: $(params.dockerfile)
+      - name: CONTEXT
+        value: $(params.sealights-path-context)
+      - name: HERMETIC
+        value: $(params.hermetic)
+      - name: IMAGE_EXPIRES_AFTER
+        value: $(params.image-expires-after)
+      - name: COMMIT_SHA
+        value: $(tasks.clone-repository.results.commit)
+      runAfter:
+      - clone-repository
+      taskRef:
+        params:
+        - name: name
+          value: buildah
+        - name: bundle
+          value: quay.io/konflux-ci/tekton-catalog/task-buildah:0.4@sha256:3c036c4f4ea243c9d186a96a34b880e334571739180ab80e4653cb7b1779cbe8
+        - name: kind
+          value: task
+        resolver: bundles
+      when:
+      - input: $(tasks.init.results.build)
+        operator: in
+        values:
+        - "true"
+      workspaces:
+      - name: source
+        workspace: workspace
     - name: build-image-index
       params:
       - name: IMAGE
@@ -263,6 +299,21 @@ spec:
         operator: in
         values:
         - "false"
+    - name: apply-tags
+      params:
+      - name: IMAGE
+        value: $(tasks.build-image-index.results.IMAGE_URL)
+      runAfter:
+      - build-image-index
+      taskRef:
+        params:
+        - name: name
+          value: apply-tags
+        - name: bundle
+          value: quay.io/konflux-ci/tekton-catalog/task-apply-tags:0.1@sha256:4973fa42a8f06238613447fbdb3d0c55eb2d718fd16f2f2591a577c29c1edb17
+        - name: kind
+          value: task
+        resolver: bundles
     - name: rpms-signature-scan
       params:
       - name: image-url

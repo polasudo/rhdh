@@ -47,7 +47,7 @@ else
   RHDH_VERSION="1.y.z"
 fi
 
-OCP_VERSIONS="4.14 4.15 4.16 4.17 4.18"
+OCP_VERSIONS="4.14 4.16 4.17 4.18 4.19"
 
 DO_COMMIT=1 # by default, commit change
 DO_PUSH=1   # push the commit
