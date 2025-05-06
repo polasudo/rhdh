@@ -536,13 +536,6 @@ arches:
     name: mpdecimal
     evr: 2.5.1-3.el9
     sourcerpm: mpdecimal-2.5.1-3.el9.src.rpm
-  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/appstream/os/Packages/n/nodejs-22.13.1-2.module+el9.5.0+22902+21169374.x86_64.rpm
-    repoid: ubi-9-for-x86_64-appstream-rpms
-    size: 2561359
-    checksum: sha256:1482cdf2b4b2dcc1e8cf74ad4dfd437b4067b623c47c82ed2403e8949cc208f7
-    name: nodejs
-    evr: 1:22.13.1-2.module+el9.5.0+22902+21169374
-    sourcerpm: nodejs-22.13.1-2.module+el9.5.0+22902+21169374.src.rpm
   - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/appstream/os/Packages/n/nodejs-devel-22.13.1-2.module+el9.5.0+22902+21169374.x86_64.rpm
     repoid: ubi-9-for-x86_64-appstream-rpms
     size: 282381
@@ -557,20 +550,6 @@ arches:
     name: nodejs-docs
     evr: 1:22.13.1-2.module+el9.5.0+22902+21169374
     sourcerpm: nodejs-22.13.1-2.module+el9.5.0+22902+21169374.src.rpm
-  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/appstream/os/Packages/n/nodejs-full-i18n-22.13.1-2.module+el9.5.0+22902+21169374.x86_64.rpm
-    repoid: ubi-9-for-x86_64-appstream-rpms
-    size: 9014424
-    checksum: sha256:6ff282a45b614d016f82ae68a50d92225e3e93374df75b29835bc59b5356b215
-    name: nodejs-full-i18n
-    evr: 1:22.13.1-2.module+el9.5.0+22902+21169374
-    sourcerpm: nodejs-22.13.1-2.module+el9.5.0+22902+21169374.src.rpm
-  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/appstream/os/Packages/n/nodejs-libs-22.13.1-2.module+el9.5.0+22902+21169374.x86_64.rpm
-    repoid: ubi-9-for-x86_64-appstream-rpms
-    size: 20878062
-    checksum: sha256:f7141e97c13e53fc1d225007e3ee05ec4953c6549ea7b597bbd50d13c29a1df7
-    name: nodejs-libs
-    evr: 1:22.13.1-2.module+el9.5.0+22902+21169374
-    sourcerpm: nodejs-22.13.1-2.module+el9.5.0+22902+21169374.src.rpm
   - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/appstream/os/Packages/n/nodejs-packaging-2021.06-4.module+el9.5.0+22763+17233acb.noarch.rpm
     repoid: ubi-9-for-x86_64-appstream-rpms
     size: 23903
@@ -578,13 +557,6 @@ arches:
     name: nodejs-packaging
     evr: 2021.06-4.module+el9.5.0+22763+17233acb
     sourcerpm: nodejs-packaging-2021.06-4.module+el9.5.0+22763+17233acb.src.rpm
-  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/appstream/os/Packages/n/npm-10.9.2-1.22.13.1.2.module+el9.5.0+22902+21169374.x86_64.rpm
-    repoid: ubi-9-for-x86_64-appstream-rpms
-    size: 2778324
-    checksum: sha256:cef3ac37ed132a49f8a2a2a5ad00bb7da182f7b1b8fd380637762edebbe5307a
-    name: npm
-    evr: 1:10.9.2-1.22.13.1.2.module+el9.5.0+22902+21169374
-    sourcerpm: nodejs-22.13.1-2.module+el9.5.0+22902+21169374.src.rpm
   - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/appstream/os/Packages/n/nspr-4.35.0-17.el9_2.x86_64.rpm
     repoid: ubi-9-for-x86_64-appstream-rpms
     size: 140607
