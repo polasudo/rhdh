@@ -34,7 +34,9 @@ index 3faad8a25..b4cdf2f40 100644
 +    pipelinesascode.tekton.dev/max-keep-runs: "6"
 ```
 
-Commit your change to the midstream gitlab repo, using the keyword `[ci skip]` at the START of the commit message.
+This can also be done with link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1-rhel-9/build/scripts/triggerRespin.sh#L38[triggerRespin.sh -k].
+
+Commit your change to the midstream gitlab repo, using the keyword `[ci skip]` at the END of the commit message.
 
 This will skip gitlab pipeline processing and only trigger a Konflux pipeline against the midstream.
 
@@ -42,11 +44,11 @@ This will skip gitlab pipeline processing and only trigger a Konflux pipeline ag
 
 To skip the Gitlab pipeline:
 
-Commit your change to the midstream gitlab repo, using the keyword `[ci skip]` at the START of the commit message to skip gitlab pipeline processing.
+Commit your change to the midstream gitlab repo, using the keyword `[ci skip]` at the END of the commit message.
 
 To skip BOTH the Gitlab and Konflux pipelines:
 
-Commit your change to the midstream gitlab repo, using the keyword `[ci skip]` at the END of the commit message to skip both gitlab and Konflux pipeline processing.
+Commit your change to the midstream gitlab repo, using the keyword `[ci skip]` at the START of the commit message.
 
 ## How to install the latest Helm Chart
 
