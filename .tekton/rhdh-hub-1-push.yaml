@@ -30,7 +30,7 @@ spec:
   - name: output-image
     value: quay.io/rhdh/rhdh-hub-rhel9:{{revision}}
   - name: sealights-output-image
-    value: quay.io/rhdh/rhdh-hub-rhel9-sealights:on-pr-{{revision}}
+    value: quay.io/rhdh/rhdh-hub-rhel9-sealights:{{revision}}
   - name: image-expires-after
     value: ''
   - name: sealights-image-expires-after
