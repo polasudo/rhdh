@@ -324,7 +324,11 @@ for OCP_VERSION in ${OCP_VERSIONS}; do
 
       grep "quay.io/rhdh/rhdh-operator-bundle" "${templateFile}" || true
     else
-      templateFile="${templateFileInput}"
+      if [[ "${CATALOG_DIR}" == *"sealights"* ]] && [[ "${ENABLE_SEALIGHTS}" == "true" ]]; then
+        templateFile="${templateFileInput/catalogs/catalogs-sealights}"
+      else
+        templateFile="${templateFileInput}"
+      fi
     fi
 
     ############################################## template created from production index, or passed in ##############################################
