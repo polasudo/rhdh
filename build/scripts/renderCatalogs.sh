@@ -20,6 +20,10 @@ maintainers="RHDH Team <rhdh-bot@redhat.com>"
 templateFileInput=""
 ENABLE_SEALIGHTS="false"
 
+# shortcut to running the recommended for loop
+DO_DEFAULT=0
+DO_DEFAULT_SEALIGHTS=0
+
 # eg., rhdh-1.5-rhel-9
 latestStableBranch="$(curl -sSLk --url "https://gitlab.cee.redhat.com/api/v4/projects/rhidp%2Frhdh/repository/branches?per_page=200&regex=^rhdh-1..*-rhel-9$" | jq -r '.[].name' | sort -uV | tail -1)"; # echo $latestStableBranch
 
@@ -88,6 +92,8 @@ Options:
   --nocommit             do not commit or push local changes
   --nopush               do not push local changes
   --clean                if catalog render folder exists on disk, delete and create a new one; also delete when done
+  --default              run the example below excluding sealights
+  --default-sealights    run the example below including sealights
   -h, --help             show this help
 
 Examples:
@@ -99,24 +105,38 @@ Examples:
     # For example, must previously have created quay.io/rhdh/rhdh-operator-bundle-sealights for the quay.io/rhdh/rhdh-operator-bundle image, and
     # that bundle must refer to any related sealights-enabled operator and operand images. 
 
+    # without sealights rendering (--default)
     RHDH_VERSION="$RHDH_VERSION"
     OCP_VERSION=$OCP_VERSION_BASE
-    $0 $latestNextExample --clean --versions "\${OCP_VERSION}" -v "\${RHDH_VERSION}" --sealights; sleep 30s; echo
+    $0 $latestNextExample --clean --versions "\${OCP_VERSION}" -v "\${RHDH_VERSION}"
     alias cp=cp
     for OCP_VERSION in $OCP_VERSIONS; do \\
-      cp -f catalogs/v{4.14,\${OCP_VERSION}}/catalog-template.json; ./build/scripts/renderCatalogs.sh $latestNextExample --clean --versions "\${OCP_VERSION}" -v "\${RHDH_VERSION}" --sealights --template "catalogs/v\${OCP_VERSION}/catalog-template.json"; sleep 30s; \\
+      sleep 30s; \\
+      cp -f catalogs/v{\$OCP_VERSION_BASE,\$OCP_VERSION}/catalog-template.json; \\
+      $0 $latestNextExample --clean --versions "\${OCP_VERSION}" -v "\${RHDH_VERSION}" --template "catalogs/v\${OCP_VERSION}/catalog-template.json" \\
     done
+
+    # or with sealights rendering (--default-sealights)
+    RHDH_VERSION="$RHDH_VERSION"
+    OCP_VERSION=$OCP_VERSION_BASE
+    $0 $latestNextExample --clean --versions "\${OCP_VERSION}" -v "\${RHDH_VERSION}" --sealights
+    alias cp=cp
+    for OCP_VERSION in $OCP_VERSIONS; do \\
+      sleep 30s; \\
+      cp -f catalogs/v{\$OCP_VERSION_BASE,\$OCP_VERSION}/catalog-template.json; \\
+      cp -f catalogs-sealights/v{\$OCP_VERSION_BASE,\${OCP_VERSION}}/catalog-template.json; \\
+      $0 $latestNextExample --clean --versions "\${OCP_VERSION}" -v "\${RHDH_VERSION}" --sealights --template "catalogs/v\${OCP_VERSION}/catalog-template.json"; \\
+    done
+
 EOF
-exit
 }
 
 # break if not logged in
 if [[ $(oc whoami 2>&1 || true) == *"You must be logged in"* ]] || [[ $(oc whoami 2>&1 || true) == *"cannot get resource"* ]]; then 
-  echo; echo -e "${red}[ERROR] You must be logged into the konflux console!${norm}"; echo
-  usage
+  usage; echo; echo -e "${red}[ERROR] You must be logged into the konflux console at https://console-openshift-console.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/k8s/cluster/projects/rhdh-tenant !${norm}"; echo; exit 1; 
 else
-  oc project rhdh-tenant >/dev/null 2>&1 || { echo -e "${red}[ERROR] You must have access to the rhdh-tenant namespace!${norm}"; echo; usage; }
-  oc -n rhdh-tenant get PipelineRuns >/dev/null 2>&1 || { echo -e "${red}[ERROR] Cannot load PipelineRuns from rhdh-tenant namespace. Are you logged into the correct konflux console?${norm}"; echo; usage; }
+  oc project rhdh-tenant >/dev/null 2>&1 || { usage; echo; echo -e "${red}[ERROR] You must have access to the rhdh-tenant namespace! Are you logged in at https://console-openshift-console.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/k8s/cluster/projects/rhdh-tenant ?${norm}"; echo; exit 1; }
+  oc -n rhdh-tenant get PipelineRuns >/dev/null 2>&1 || { usage; echo; echo -e "${red}[ERROR] Cannot load PipelineRuns from rhdh-tenant namespace. Are you logged into the correct konflux console at https://console-openshift-console.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/k8s/cluster/projects/rhdh-tenant ?${norm}"; echo; exit 1; }
 fi
 
 # check if $1 is greater than or equal to $2
@@ -124,7 +144,7 @@ vergte() {
     [  "$1" = "$(echo -e "$1\n$2" | sort -Vr | head -n1)" ]
 }
 
-if [[ $# -lt 1 ]]; then usage; fi
+if [[ $# -lt 1 ]]; then usage; exit 1; fi
 
 # render all versions by default, base + copied ones
 OCP_VERSIONS="$OCP_VERSION_BASE $OCP_VERSIONS"
@@ -146,26 +166,43 @@ while [[ "$#" -gt 0 ]]; do
     '--clean') CLEAN=1;;
     '--nocommit') DO_COMMIT=0; DO_PUSH=0;;
     '--nopush')   DO_PUSH=0;;
-    '-h'|'--help') usage;;
-    *) echo "Unknown parameter used: $1."; usage;;
+    '--default')             DO_DEFAULT=1;;
+    '--default-sealights')   DO_DEFAULT_SEALIGHTS=1;;
+    '-h'|'--help') usage; exit 0;;
+    *) usage; echo; echo -e "\n${red}[ERROR] Unknown parameter used: $1 ${norm}"; exit 1;;
   esac
   shift 1
 done
 
-if [[ $PROD_FULL_VERSION == "" ]] || [[ $OCP_VERSIONS == "" ]]; then usage; fi
+if [[ $DO_DEFAULT -eq 1 ]] || [[ $DO_DEFAULT_SEALIGHTS -eq 1 ]]; then
+  SEALIGHTS_FLAG=""; 
+  if [[ $DO_DEFAULT_SEALIGHTS -eq 1 ]]; then SEALIGHTS_FLAG="--sealights"; fi
+    $0 $latestNextExample --clean --versions "${OCP_VERSION}" -v "${RHDH_VERSION}" $SEALIGHTS_FLAG
+    for OCP_VERSION in $OCP_VERSIONS; do \
+      sleep 30s
+      cp -f "catalogs/v$OCP_VERSION_BASE/catalog-template.json" "catalogs/v$OCP_VERSION/catalog-template.json"
+      if [[ $DO_DEFAULT_SEALIGHTS -eq 1 ]]; then 
+        cp -f "catalogs-sealights/v$OCP_VERSION_BASE/catalog-template.json" "catalogs-sealights/v$OCP_VERSION/catalog-template.json"
+      fi
+      $0 $latestNextExample --clean --versions "${OCP_VERSION}" -v "${RHDH_VERSION}" --template "catalogs/v${OCP_VERSION}/catalog-template.json" $SEALIGHTS_FLAG
+    done
+  exit 0
+fi
+
+if [[ $PROD_FULL_VERSION == "" ]] || [[ $OCP_VERSIONS == "" ]]; then usage; exit 1; fi
 
 # break if opm 1.47.0 or newer not installed
 opmversion=$(opm version | sed -r -e "s@.+OpmVersion:\"([0-9a-fv.]+)\".+@\1@" | tr -d "v")
-if [[ $opmversion != *"."* ]]; then echo -e "\n${red}[ERROR] OPM version $opmversion is too old. You must install opm v1.47.0 or newer from https://github.com/operator-framework/operator-registry/releases/tag/v1.47.0 to continue.${norm}\n"; usage; fi
+if [[ $opmversion != *"."* ]]; then echo -e "\n${red}[ERROR] OPM version $opmversion is too old. You must install opm v1.47.0 or newer from https://github.com/operator-framework/operator-registry/releases/tag/v1.47.0 to continue.${norm}\n"; usage; exit 1; fi
 if vergte "${opmversion}" "1.47.0"; then
   # echo "opm version $opmversion found"
   true
 else
-  echo -e "\n${red}[ERROR] OPM version $opmversion is too old. You must install opm 1.47.0 or newer from https://github.com/operator-framework/operator-registry/releases/tag/v1.47.0 to continue.${norm}\n"; usage;
+  echo -e "\n${red}[ERROR] OPM version $opmversion is too old. You must install opm 1.47.0 or newer from https://github.com/operator-framework/operator-registry/releases/tag/v1.47.0 to continue.${norm}\n"; usage; exit 1
 fi
 
 if [[ $templateFileInput ]] && [[ ! -f $templateFileInput ]]; then
-  echo -e "${red}[ERROR] Could not find template file $templateFileInput !${norm}"; echo; usage
+  echo -e "${red}[ERROR] Could not find template file $templateFileInput !${norm}"; echo; usage; exit 1
 fi
 
 PROD_VERSION=${PROD_FULL_VERSION%.*} # x.y
