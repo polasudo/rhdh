@@ -191,15 +191,6 @@ if [[ ! $RHDH_VERSION ]] && [[ "${CHART_NAME}" != "redhat-developer-hub-orchestr
     usage
 fi
 
-if [[ $CHART_NAME == "redhat-developer-hub" ]]; then
-    POSTGRESQL_DIGEST=$(skopeo inspect docker://registry.redhat.io/rhel9/postgresql-15:latest | jq -r '.Digest')
-
-    # trim the sha256: prefix off, since we're treating this like a tag
-    # image.repository already ends in @sha256
-    POSTGRESQL_DIGEST="${POSTGRESQL_DIGEST//sha256:/}"
-    RHDH_DIGEST="${RHDH_DIGEST//sha256:/}"
-fi
-
 HELM_DIR=$(mktemp -d)
 if [[ $DEBUG -eq 1 ]]; then echo "[DEBUG] Running in HELM_DIR = $HELM_DIR"; fi
 CATALOG_DIR=$(mktemp -d)
@@ -331,10 +322,20 @@ if [[ "$CHART_ACTUAL_NAME" == "redhat-developer-hub-orchestrator-infra" ]]; then
 fi
 
 if [[ "${CHART_NAME}" == "redhat-developer-hub" ]] || [[ "${CHART_NAME}" == "backstage" ]]; then
-    echo "[INFO] Set image digests in ${VALUES_PATH}:
+    POSTGRESQL_DIGEST=$(skopeo inspect docker://registry.redhat.io/rhel9/postgresql-15:latest | jq -r '.Digest')
+    # trim the sha256: prefix off, since we're treating this like a tag
+    # image.repository already ends in @sha256
+    POSTGRESQL_DIGEST="${POSTGRESQL_DIGEST//sha256:/}"
+    RHDH_DIGEST="${RHDH_DIGEST//sha256:/}"
+    if [[ ! "$RHDH_DIGEST" ]] || [[ ! "$POSTGRESQL_DIGEST" ]]; then
+        echo "[ERROR] Could not compute image digests for ${VALUES_PATH} - must exit!
+* RHDH_DIGEST = $RHDH_DIGEST,
+* POSTGRESQL_DIGEST = $POSTGRESQL_DIGEST"; exit 1
+    else
+        echo "[INFO] Set image digests in ${VALUES_PATH}:
 * RHDH_DIGEST = $RHDH_DIGEST,
 * POSTGRESQL_DIGEST = $POSTGRESQL_DIGEST"
-
+    fi
     if [[ $CHART_VERSION == *"CI"* ]]; then 
         $YQ -i "
         . *= load(\"${SCRIPT_DIR}/values_patch.yaml\") |
