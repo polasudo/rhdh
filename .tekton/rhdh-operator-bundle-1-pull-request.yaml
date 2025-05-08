@@ -254,7 +254,7 @@ spec:
       workspaces:
       - name: source
         workspace: workspace
-    - name: build-sealights-bundles
+    - name: build-container-sealights
       params:
       - name: IMAGE
         value: $(params.sealights-output-image)
@@ -309,12 +309,42 @@ spec:
         - $(tasks.build-container.results.IMAGE_URL)@$(tasks.build-container.results.IMAGE_DIGEST)
       runAfter:
       - build-container
+      - build-container-sealights
       taskRef:
         params:
         - name: name
           value: build-image-index
         - name: bundle
           value: quay.io/konflux-ci/tekton-catalog/task-build-image-index:0.1@sha256:462ecbf94ec44a8b770d6ef8838955f91f57ee79795e5c18bdc0fcb0df593742
+        - name: kind
+          value: task
+        resolver: bundles
+      when:
+      - input: $(tasks.init.results.build)
+        operator: in
+        values:
+        - "true"
+    - name: build-image-index-sealights
+      params:
+      - name: IMAGE
+        value: $(params.output-image)
+      - name: COMMIT_SHA
+        value: $(tasks.clone-repository.results.commit)
+      - name: IMAGE_EXPIRES_AFTER
+        value: $(params.image-expires-after)
+      - name: ALWAYS_BUILD_INDEX
+        value: $(params.build-image-index)
+      - name: IMAGES
+        value:
+        - $(tasks.build-container-sealights.results.IMAGE_URL)@$(tasks.build-container-sealights.results.IMAGE_DIGEST)
+      runAfter:
+      - build-container-sealights
+      taskRef:
+        params:
+        - name: name
+          value: build-image-index
+        - name: bundle
+          value: quay.io/konflux-ci/tekton-catalog/task-build-image-index:0.1@sha256:4d5ab47286c1c7ac525786c9a4d0cce9fc73f22635cd623f1d2d12ebc76d83e5
         - name: kind
           value: task
         resolver: bundles

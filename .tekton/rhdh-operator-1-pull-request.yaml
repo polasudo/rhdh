@@ -267,7 +267,7 @@ spec:
         operator: in
         values:
         - "true"
-    - name: build-sealights-container
+    - name: build-container-sealights
       params:
       - name: IMAGE
         value: $(params.sealights-output-image)
@@ -323,6 +323,7 @@ spec:
         - $(tasks.build-container.results.IMAGE_URL)@$(tasks.build-container.results.IMAGE_DIGEST)
       runAfter:
       - build-container
+      - build-container-sealights
       taskRef:
         params:
         - name: name

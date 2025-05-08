@@ -254,7 +254,7 @@ spec:
       workspaces:
       - name: source
         workspace: workspace
-    - name: build-sealights-bundles
+    - name: build-container-sealights
       params:
       - name: IMAGE
         value: $(params.sealights-output-image)
@@ -309,6 +309,7 @@ spec:
         - $(tasks.build-container.results.IMAGE_URL)@$(tasks.build-container.results.IMAGE_DIGEST)
       runAfter:
       - build-container
+      - build-container-sealights
       taskRef:
         params:
         - name: name
@@ -335,9 +336,9 @@ spec:
         value: $(params.build-image-index)
       - name: IMAGES
         value:
-        - $(tasks.build-sealights-bundles.results.IMAGE_URL)@$(tasks.build-sealights-bundles.results.IMAGE_DIGEST)
+        - $(tasks.build-container-sealights.results.IMAGE_URL)@$(tasks.build-container-sealights.results.IMAGE_DIGEST)
       runAfter:
-      - build-sealights-bundles
+      - build-container-sealights
       taskRef:
         params:
         - name: name

@@ -361,6 +361,7 @@ spec:
         - $(tasks.build-container.results.IMAGE_URL)@$(tasks.build-container.results.IMAGE_DIGEST)
       runAfter:
       - build-container
+      - build-container-sealights
       taskRef:
         params:
         - name: name
