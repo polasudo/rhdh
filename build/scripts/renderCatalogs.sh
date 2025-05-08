@@ -23,6 +23,7 @@ ENABLE_SEALIGHTS="false"
 # shortcut to running the recommended for loop
 DO_DEFAULT=0
 DO_DEFAULT_SEALIGHTS=0
+DRYRUN=""
 
 # eg., rhdh-1.5-rhel-9
 latestStableBranch="$(curl -sSLk --url "https://gitlab.cee.redhat.com/api/v4/projects/rhidp%2Frhdh/repository/branches?per_page=200&regex=^rhdh-1..*-rhel-9$" | jq -r '.[].name' | sort -uV | tail -1)"; # echo $latestStableBranch
@@ -94,6 +95,7 @@ Options:
   --clean                if catalog render folder exists on disk, delete and create a new one; also delete when done
   --default              run the example below excluding sealights
   --default-sealights    run the example below including sealights
+  --dryrun               show commands to run but do not execute them
   -h, --help             show this help
 
 Examples:
@@ -168,6 +170,7 @@ while [[ "$#" -gt 0 ]]; do
     '--nopush')   DO_PUSH=0;;
     '--default')             DO_DEFAULT=1;;
     '--default-sealights')   DO_DEFAULT_SEALIGHTS=1;;
+    '--dryrun')              DRYRUN="$1";;
     '-h'|'--help') usage; exit 0;;
     *) usage; echo; echo -e "\n${red}[ERROR] Unknown parameter used: $1 ${norm}"; exit 1;;
   esac
@@ -176,15 +179,26 @@ done
 
 recurse () {
   SEALIGHTS_FLAG=""; 
+  # shellcheck disable=SC2086
   if [[ $DO_DEFAULT_SEALIGHTS -eq 1 ]]; then SEALIGHTS_FLAG="--sealights"; fi
-    $0 $latestNextExample --clean --versions "${OCP_VERSION_BASE}" -v "${RHDH_VERSION}" $SEALIGHTS_FLAG
-    for OCP_VERSION in $OCP_VERSIONS; do \
-      sleep 30s
+    echo "$0 $latestNextExample --clean --versions ${OCP_VERSION_BASE} -v ${RHDH_VERSION} $SEALIGHTS_FLAG $DRYRUN"
+    if [[ ! $DRYRUN ]]; then 
+      # shellcheck disable=SC2086
+      $0 $latestNextExample --clean --versions "${OCP_VERSION_BASE}" -v "${RHDH_VERSION}" $SEALIGHTS_FLAG $DRYRUN
+    fi
+    for OCP_VERSION in ${OCP_VERSIONS//${OCP_VERSION_BASE} }; do \
+      if [[ ! $DRYRUN ]]; then 
+        sleep 30s
+      fi
       cp -f "catalogs/v$OCP_VERSION_BASE/catalog-template.json" "catalogs/v$OCP_VERSION/catalog-template.json"
       if [[ $DO_DEFAULT_SEALIGHTS -eq 1 ]]; then 
         cp -f "catalogs-sealights/v$OCP_VERSION_BASE/catalog-template.json" "catalogs-sealights/v$OCP_VERSION/catalog-template.json"
       fi
-      $0 $latestNextExample --clean --versions "${OCP_VERSION}" -v "${RHDH_VERSION}" --template "catalogs/v${OCP_VERSION}/catalog-template.json" $SEALIGHTS_FLAG
+      echo "$0 $latestNextExample --clean --versions ${OCP_VERSION} -v ${RHDH_VERSION} --template catalogs/v${OCP_VERSION}/catalog-template.json $SEALIGHTS_FLAG $DRYRUN"
+      if [[ ! $DRYRUN ]]; then 
+        # shellcheck disable=SC2086
+        $0 $latestNextExample --clean --versions "${OCP_VERSION}" -v "${RHDH_VERSION}" --template "catalogs/v${OCP_VERSION}/catalog-template.json" $SEALIGHTS_FLAG $DRYRUN
+      fi
     done
 }
 
