@@ -174,10 +174,10 @@ while [[ "$#" -gt 0 ]]; do
   shift 1
 done
 
-if [[ $DO_DEFAULT -eq 1 ]] || [[ $DO_DEFAULT_SEALIGHTS -eq 1 ]]; then
+recurse () {
   SEALIGHTS_FLAG=""; 
   if [[ $DO_DEFAULT_SEALIGHTS -eq 1 ]]; then SEALIGHTS_FLAG="--sealights"; fi
-    $0 $latestNextExample --clean --versions "${OCP_VERSION}" -v "${RHDH_VERSION}" $SEALIGHTS_FLAG
+    $0 $latestNextExample --clean --versions "${OCP_VERSION_BASE}" -v "${RHDH_VERSION}" $SEALIGHTS_FLAG
     for OCP_VERSION in $OCP_VERSIONS; do \
       sleep 30s
       cp -f "catalogs/v$OCP_VERSION_BASE/catalog-template.json" "catalogs/v$OCP_VERSION/catalog-template.json"
@@ -186,10 +186,15 @@ if [[ $DO_DEFAULT -eq 1 ]] || [[ $DO_DEFAULT_SEALIGHTS -eq 1 ]]; then
       fi
       $0 $latestNextExample --clean --versions "${OCP_VERSION}" -v "${RHDH_VERSION}" --template "catalogs/v${OCP_VERSION}/catalog-template.json" $SEALIGHTS_FLAG
     done
-  exit 0
-fi
+}
 
-if [[ $PROD_FULL_VERSION == "" ]] || [[ $OCP_VERSIONS == "" ]]; then usage; exit 1; fi
+if [[ $DO_DEFAULT -eq 1 ]] || [[ $DO_DEFAULT_SEALIGHTS -eq 1 ]]; then
+  recurse; exit 0
+else
+  if [[ $PROD_FULL_VERSION == "" ]] || [[ $OCP_VERSIONS == "" ]]; then 
+    usage; echo; echo -e "${red}[ERROR] product and OCP versions not set with -v $PROD_FULL_VERSION --versions '$OCP_VERSION_BASE $OCP_VERSIONS' ! ${norm}"; exit 1
+  fi
+fi
 
 # break if opm 1.47.0 or newer not installed
 opmversion=$(opm version | sed -r -e "s@.+OpmVersion:\"([0-9a-fv.]+)\".+@\1@" | tr -d "v")
