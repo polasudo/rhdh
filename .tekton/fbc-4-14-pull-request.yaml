@@ -8,7 +8,7 @@ metadata:
     build.appstudio.redhat.com/target_branch: '{{target_branch}}'
     pipelinesascode.tekton.dev/max-keep-runs: "6"
     pipelinesascode.tekton.dev/on-cel-expression: event == "pull_request" && target_branch
-      == "rhdh-1-rhel-9" && ( "catalogs/v4.14/***".pathChanged() || ".tekton/fbc-4-14-pull-request.yaml".pathChanged())
+      == "rhdh-1-rhel-9" && ( "catalogs*/v4.14/***".pathChanged() || ".tekton/fbc-4-14-pull-request.yaml".pathChanged())
   creationTimestamp: null
   labels:
     appstudio.openshift.io/application: fbc-4-14
