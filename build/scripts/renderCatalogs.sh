@@ -181,7 +181,7 @@ recurse () {
   SEALIGHTS_FLAG=""; 
   # shellcheck disable=SC2086
   if [[ $DO_DEFAULT_SEALIGHTS -eq 1 ]]; then SEALIGHTS_FLAG="--sealights"; fi
-    echo "$0 $latestNextExample --clean --versions ${OCP_VERSION_BASE} -v ${RHDH_VERSION} $SEALIGHTS_FLAG $DRYRUN"
+    echo -e "\n${blue} >> $0 $latestNextExample --clean --versions ${OCP_VERSION_BASE} -v ${RHDH_VERSION} $SEALIGHTS_FLAG $DRYRUN ${norm}\n"
     if [[ ! $DRYRUN ]]; then 
       # shellcheck disable=SC2086
       $0 $latestNextExample --clean --versions "${OCP_VERSION_BASE}" -v "${RHDH_VERSION}" $SEALIGHTS_FLAG $DRYRUN
@@ -194,7 +194,7 @@ recurse () {
       if [[ $DO_DEFAULT_SEALIGHTS -eq 1 ]]; then 
         cp -f "catalogs-sealights/v$OCP_VERSION_BASE/catalog-template.json" "catalogs-sealights/v$OCP_VERSION/catalog-template.json"
       fi
-      echo "$0 $latestNextExample --clean --versions ${OCP_VERSION} -v ${RHDH_VERSION} --template catalogs/v${OCP_VERSION}/catalog-template.json $SEALIGHTS_FLAG $DRYRUN"
+      echo -e "\n${blue} >> $0 $latestNextExample --clean --versions ${OCP_VERSION} -v ${RHDH_VERSION} --template catalogs/v${OCP_VERSION}/catalog-template.json $SEALIGHTS_FLAG $DRYRUN ${norm}\n"
       if [[ ! $DRYRUN ]]; then 
         # shellcheck disable=SC2086
         $0 $latestNextExample --clean --versions "${OCP_VERSION}" -v "${RHDH_VERSION}" --template "catalogs/v${OCP_VERSION}/catalog-template.json" $SEALIGHTS_FLAG $DRYRUN
