@@ -24,7 +24,7 @@ spec:
   - name: output-image
     value: quay.io/rhdh/iib:fbc-4-14-on-push-for-rhdh-1-rhel-9-from-{{revision}}
   - name: sealights-output-image
-    value: quay.io/repository/rhdh/iib-sealights:fbc-4-14-on-push-for-rhdh-1-rhel-9-from-{{revision}}
+    value: quay.io/rhdh/iib-sealights:fbc-4-14-on-push-for-rhdh-1-rhel-9-from-{{revision}}
   - name: image-expires-after
     value: ''
   - name: dockerfile
