@@ -535,7 +535,7 @@ if [[ $PUBLISH -eq 1 ]]; then
         popd >/dev/null || exit 1
         if [[ "${CHART_NAME}" == "redhat-developer-hub" ]] || [[ "${CHART_NAME}" == "backstage" ]]; then
             echo
-            echo "Helm chart published. To install, see: https://github.com/rhdh-bot/openshift-helm-charts/tree/${EXTRA_BRANCH}/installation"
+            echo "Helm chart published. To install, see: https://github.com/redhat-developer/rhdh-chart/blob/${CHART_BRANCH}/.rhdh/docs/installing-ci-charts.adoc"
         fi
     fi
 
