@@ -67,9 +67,12 @@ This script requires following binaries to be present on the system:
 Examples:
     Prepare and push a release to git@github.com:[your-github-fork]/openshift-helm-charts.git:
 
-    # Published on every build in gitlab via the rhdh-bot user - see RHIDP-33
-    $ TAG=1.y-zzz; $0 --chart-version \${TAG}-CI --rhdh-version \${TAG} --extra-branch rhdh-1.y-rhel-9 \\
-        --chart-branch release-1.y --catalog git@github.com:rhdh-bot/openshift-helm-charts.git --publish
+    # Published on every build in konflux
+    $ TAG=1.y-zzz; $0 --chart-version \${TAG}-CI --rhdh-version \${TAG} --extra-branch rhdh-\${TAG%-*}-rhel-9 \\
+        --chart-branch release-\${TAG%-*} --publish
+                OR
+    $ TAG=1.y-zzz; $0 --chart-version \${TAG}-CI --rhdh-version \${TAG} --extra-branch rhdh-1-rhel-9 \\
+        --chart-branch main --publish
     Chart version:        1.y-zzz-CI
     Developer Hub image:  quay.io/rhdh/rhdh-hub-rhel9:1.y-zzz
 
@@ -261,7 +264,7 @@ if [[ $DEBUG -eq 1 ]]; then
     echo "[DEBUG] Clone https://github.com/redhat-developer/rhdh-chart/tree/${CHART_BRANCH}/charts to $HELM_DIR"
 fi
 # skip binaries with --filter=blob:none
-git clone --depth=1 -q --branch="${CHART_BRANCH}" https://github.com/redhat-developer/rhdh-chart.git "${HELM_DIR}" >/dev/null 2>&1
+git clone --depth=1 -q --branch="${CHART_BRANCH}" https://github.com/redhat-developer/rhdh-chart.git "${HELM_DIR}" >/dev/null
 
 if [[ "$CHART_NAME" == "all" ]]; then
     echo "[INFO] Multi-chart mode: will publish all charts in https://github.com/redhat-developer/rhdh-chart/tree/$CHART_BRANCH/charts"
@@ -322,6 +325,18 @@ if [[ "$CHART_ACTUAL_NAME" == "redhat-developer-hub-orchestrator-infra" ]]; then
 fi
 
 if [[ "${CHART_NAME}" == "redhat-developer-hub" ]] || [[ "${CHART_NAME}" == "backstage" ]]; then
+    sed -i "$CHART_PATH" -r \
+    `# change .name from backstage to redhat-developer-hub` \
+    -e "s/^name: backstage/name: redhat-developer-hub/" \
+    `# change version to 1.7-46-CI; add appVersion 1.7-46` \
+    -e "s/^version: (.+)/version: $CHART_VERSION\nappVersion: ${CHART_VERSION/-CI}/"
+
+    if [[ $CHART_VERSION == *"CI"* ]]; then
+        sed -i "$CHART_PATH" -r \
+        `# append (CI Build) on name and description` \
+        -e "s@(charts.openshift.io/name: Red Hat Developer Hub|A Helm chart for deploying Red Hat Developer Hub)@\1 \(CI Build)@"
+    fi
+
     POSTGRESQL_DIGEST=$(skopeo inspect docker://registry.redhat.io/rhel9/postgresql-15:latest | jq -r '.Digest')
     # trim the sha256: prefix off, since we're treating this like a tag
     # image.repository already ends in @sha256
@@ -378,7 +393,6 @@ if [[ $DEBUG -eq 1 ]]; then
     echo "[DEBUG] Building helm deps in ${HELM_DIR}/${CHART_DIR} ..."
 fi
 helm dependency build "${HELM_DIR}/${CHART_DIR}" 1>/dev/null
-
 if [[ $DEBUG -eq 1 ]]; then
     echo "[DEBUG] Fetching Helm catalog into ${CATALOG_DIR} ..."
 fi
@@ -419,8 +433,6 @@ echo "[INFO] This chart's folder:  $PACKAGE_DEST"
 
 if [[ $PUBLISH -eq 1 ]]; then
     helm_config="${PACKAGE_DEST}/chart_dump.json"
-    actual_chart=$(find "${PACKAGE_DEST}/" -name "*.tgz")
-    mv -f "$actual_chart" "${PACKAGE_DEST}/${CHART_NAME}-${CHART_VERSION}.tgz"
     if [[ ! -f "${PACKAGE_DEST}/${CHART_NAME}-${CHART_VERSION}.tgz" ]]; then 
         echo "[ERROR] Could not find chart in ${PACKAGE_DEST}/ called ${CHART_NAME}-${CHART_VERSION}.tgz ! Cannot continue - must exit!"; exit 1
     fi
@@ -455,7 +467,6 @@ if [[ $PUBLISH -eq 1 ]]; then
     sed -r -e "s|x.y-zzz-CI|${CHART_VERSION}|" "${SCRIPT_DIR}/install.sh" >"${CATALOG_DIR}"/installation/install.sh
 
     # force push new files to the developer-hub-"${CHART_VERSION}" branch
-
     if [[ $CHART_VERSION != *"CI"* ]]; then # If it's a GA build
         # create a PR against the openshift-helm-charts/charts repo, containing ONLY the tarball,
         # none of the installation instructions/scripts/chart repo
