@@ -215,7 +215,7 @@ spec:
       workspaces:
       - name: source
         workspace: workspace
-    - name: build-sealights-container
+    - name: build-container-sealights
       params:
       - name: IMAGE
         value: $(params.sealights-output-image)
