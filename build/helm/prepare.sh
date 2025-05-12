@@ -2,7 +2,8 @@
 
 RHDH_VERSION=""                                                                               # Chart release version (used as 'version' in Chart.yaml)
 CHART_VERSION=""                                                                              # Developer Hub version (used as 'appVersion' in Chart.yaml and as image tag)
-CATALOG_FORK="https://rhdh-bot:${GITHUB_TOKEN}@github.com/rhdh-bot/openshift-helm-charts.git" # Fork of "git@github.com:openshift-helm-charts/charts.git where you can push to
+CATALOG_FORK="git@github.com:rhdh-bot/openshift-helm-charts.git"                              # Fork of "git@github.com:openshift-helm-charts/charts.git where you can push to
+# or https://rhdh-bot:${GITHUB_TOKEN}@github.com/rhdh-bot/openshift-helm-charts.git" 
 PUBLISH=0                                                                                     # Set to True to push to CATALOG_FORK
 CHART_BRANCH="main"                                                                           # can also be release-1.4, etc.
 CHART_NAME="redhat-developer-hub"
@@ -65,48 +66,46 @@ This script requires following binaries to be present on the system:
     yq         $mikefarahyq_version             https://github.com/mikefarah/yq/
 
 Examples:
-    Prepare and push a release to git@github.com:[your-github-fork]/openshift-helm-charts.git:
+    ##### 1. Prepare and push a release to quay.io/rhdh/chart:
 
     # Published on every build in konflux
-    $ TAG=1.y-zzz; $0 --chart-version \${TAG}-CI --rhdh-version \${TAG} --extra-branch rhdh-\${TAG%-*}-rhel-9 \\
-        --chart-branch release-\${TAG%-*} --publish
+    $ TAG=1.y-zzz; $0 --chart-version \${TAG}-CI --rhdh-version \${TAG} \\
+        --extra-branch rhdh-\${TAG%-*}-rhel-9 --chart-branch release-\${TAG%-*} --publish
                 OR
-    $ TAG=1.y-zzz; $0 --chart-version \${TAG}-CI --rhdh-version \${TAG} --extra-branch rhdh-1-rhel-9 \\
-        --chart-branch main --publish
+    $ TAG=1.y-zzz; $0 --chart-version \${TAG}-CI --rhdh-version \${TAG} \\
+        --extra-branch rhdh-1-rhel-9 --chart-branch main --publish
     Chart version:        1.y-zzz-CI
     Developer Hub image:  quay.io/rhdh/rhdh-hub-rhel9:1.y-zzz
 
-     # Or, log into the quay.io and registry.redhat.io to be able to pull container metadata, then compute the latest 1.5-zz or next 1.6-zzz tag
+    # Or, log into the quay.io and registry.redhat.io to be able to pull container metadata, then compute the latest 1.y-zz or next 1.yy-zzz
     $ export GITHUB_TOKEN=ghp_rhdh-bot-token-here
-    $ $0 --latest --chart-branch release-1.5 --publish --extra-branch rhdh-1.5-rhel-9
+    $ $0 --latest --chart-branch release-1.6 --publish --extra-branch rhdh-1.6-rhel-9
     $ $0 --next   --chart-branch main        --publish --extra-branch rhdh-1-rhel-9
     Chart version:        1.next-zzz-CI
     Developer Hub image:  quay.io/rhdh/rhdh-hub-rhel9:1.next-zzz
 
-    # Run this manually on GA release day
+    ##### 2. Prepare and push a release to quay.io/rhdh/orchestrator-infra-chart:
+
+    TAG=1.y-zzz; $0 --chart-version \${TAG}-CI 
+        --chart-name redhat-developer-hub-orchestrator-infra --chart-dir charts/orchestrator-infra \
+        --extra-branch rhdh-\${TAG%-*}-rhel-9 --chart-branch release-\${TAG%-*} --publish
+
+    ##### 3. Prepare and push a RHDH chart release to https://github.com/openshift-helm-charts/charts:
+
+    # To release the RHDH chart on GA day (container must already be LIVE in reg.rh.io!)
     # 1. use gh to log in as the bot (not using exported github token) - can use incognito browser so you don't have to log out as yourself
     $ export GITHUB_TOKEN=
     $ gh auth login -h github.com
-    # 2. get the latest timestamp tag for the live GA container at https://catalog.redhat.com/software/containers/rhdh/rhdh-hub-rhel9/645bd4c15c00598369c31aba
-    # 3. Run a manual release as the bot:
+    # 2. Run a manual release as the bot:
     $ export GITHUB_TOKEN=ghp_rhdh-bot-token-here
-    $ $0 --chart-version 1.5.1 --rhdh-version 1.5.1   --chart-branch release-1.5 --catalog git@github.com:rhdh-bot/openshift-helm-charts.git --publish
-    $ $0 --chart-version 1.4.2 --rhdh-version 1.4.2   --chart-branch release-1.4 --catalog git@github.com:rhdh-bot/openshift-helm-charts.git --publish
+    $ $0 --chart-version 1.6.0 --rhdh-version 1.6.0   --chart-branch release-1.6 --publish 
+    $ $0 --chart-version 1.5.2 --rhdh-version 1.5.2   --chart-branch release-1.5 --publish 
     Chart version:       1.y.z
-    Developer Hub image:  quay.io/rhdh/rhdh-hub-rhel9:1.y-zzz
+    Developer Hub image:  registry.redhat.io/rhdh/rhdh-hub-rhel9:1.y.z
+    # !! NOTE !! If the PR is not created correctly, you may have to manually create it from the release-x.y.z branch.
 
-    # NOTE that the PR may not be created correctly; you may have to manually create a PR from the release-x.y.z branch.
-
-    # Example of usage for publishing the redhat-developer-hub-orchestrator-infra
-    $0 \
-        --chart-version 1.6.0-CI \
-        --chart-name redhat-developer-hub-orchestrator-infra \
-        --chart-dir charts/orchestrator-infra \
-        --chart-branch release-1.6 \
-        --catalog git@github.com:rhdh-bot/openshift-helm-charts.git \
-        --publish \
-        --debug
-
+    ##### 4. Prepare and push a Orchestrator Infra chart release to https://github.com/openshift-helm-charts/charts:
+    # TODO write this - see publish_task.yaml
 "
     exit
 }
@@ -247,6 +246,7 @@ if ! command -v oras &>/dev/null; then
     rm -rf $orastar oras-install/
 fi
 # TODO switch to jq wrapper version of yq (not mikefarah)
+# shellcheck disable=SC2086
 if ! command -v $YQ &>/dev/null; then
     echo "Installing mikefarah yq version $mikefarahyq_version ..."
     curl -sSLo $YQ https://github.com/mikefarah/yq/releases/download/v${mikefarahyq_version}/yq_linux_amd64 && chmod +x "$YQ"
@@ -434,15 +434,11 @@ echo "[INFO] This chart's folder:  $PACKAGE_DEST"
 if [[ $PUBLISH -eq 1 ]]; then
     helm_config="${PACKAGE_DEST}/chart_dump.json"
     actual_chart=$(find "${PACKAGE_DEST}/" -name "*.tgz")
-    # for the all-in-one mode where we have "backstage" instead of "redhat-developer-hub"
-    if [[ "$actual_chart" != "${PACKAGE_DEST}/${CHART_NAME}-${CHART_VERSION}.tgz" ]]; then
-        mv -f "$actual_chart" "${PACKAGE_DEST}/${CHART_NAME}-${CHART_VERSION}.tgz"
-    fi
-    if [[ ! -f "${PACKAGE_DEST}/${CHART_NAME}-${CHART_VERSION}.tgz" ]]; then 
-        echo "[ERROR] Could not find chart in ${PACKAGE_DEST}/ called ${CHART_NAME}-${CHART_VERSION}.tgz ! Cannot continue - must exit!"; exit 1
+    if [[ ! "${actual_chart}" ]] || [[ ! -f "${actual_chart}" ]]; then 
+        echo "[ERROR] Could not find chart in ${PACKAGE_DEST} - must exit!"; exit 1
     fi
 
-    helm show chart "${PACKAGE_DEST}/${CHART_NAME}-${CHART_VERSION}.tgz" | $YQ -p yaml -o json > "${helm_config}"; # cat "${helm_config}"
+    helm show chart "${actual_chart}" | $YQ -p yaml -o json > "${helm_config}"; # cat "${helm_config}"
     # we push to either quay.io/rhdh/chart or quay.io/rhdh/orchestrator-infra-chart
 	if [[ "$CHART_NAME" == "redhat-developer-hub-orchestrator-infra" ]] || [[ "$CHART_NAME" == "orchestrator-infra" ]]; then
         TARGET_REPO="orchestrator-infra-chart"
@@ -453,8 +449,9 @@ if [[ $PUBLISH -eq 1 ]]; then
     fi
     # set -x 
     echo "[INFO] Publish Helm chart to quay.io/rhdh/${TARGET_REPO}:${CHART_VERSION} ..."
+    # shellcheck disable=SC2086
     oras push "quay.io/rhdh/${TARGET_REPO}:${CHART_VERSION}" \
-        "${PACKAGE_DEST}/${CHART_NAME}-${CHART_VERSION}.tgz:application/vnd.cncf.helm.chart.content.v1.tar+gzip" \
+        "${actual_chart}:application/vnd.cncf.helm.chart.content.v1.tar+gzip" \
         --disable-path-validation --config "${helm_config}:application/vnd.cncf.helm.config.v1+json" $QUAY_REGISTRY_CONFIG
 
     # remove any leftover tarballs from a previous run
