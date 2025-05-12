@@ -489,6 +489,21 @@ spec:
         - name: kind
           value: task
         resolver: bundles
+    - name: apply-tags-sealights
+      params:
+      - name: IMAGE
+        value: $(tasks.build-container-sealights.results.IMAGE_URL)
+      runAfter:
+      - build-container-sealights
+      taskRef:
+        params:
+        - name: name
+          value: apply-tags
+        - name: bundle
+          value: quay.io/konflux-ci/tekton-catalog/task-apply-tags:0.1@sha256:4973fa42a8f06238613447fbdb3d0c55eb2d718fd16f2f2591a577c29c1edb17
+        - name: kind
+          value: task
+        resolver: bundles
     # - name: sast-coverity-check
     #   params:
     #   - name: image-url
