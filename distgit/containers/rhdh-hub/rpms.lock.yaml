@@ -151,13 +151,13 @@ arches:
     name: efi-srpm-macros
     evr: 6-2.el9_0
     sourcerpm: efi-rpm-macros-6-2.el9_0.src.rpm
-  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/appstream/os/Packages/e/emacs-filesystem-27.2-11.el9_5.1.noarch.rpm
+  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/appstream/os/Packages/e/emacs-filesystem-27.2-11.el9_5.2.noarch.rpm
     repoid: ubi-9-for-x86_64-appstream-rpms
-    size: 9756
-    checksum: sha256:0c0a41c8f61f7509326ccba340211fcd5638397df397d942fb486f1c37966d13
+    size: 8893
+    checksum: sha256:5c52135ae0f4ca0c46188cbb635a4d455c7648ccea179ce7a1f9e3c2be100302
     name: emacs-filesystem
-    evr: 1:27.2-11.el9_5.1
-    sourcerpm: emacs-27.2-11.el9_5.1.src.rpm
+    evr: 1:27.2-11.el9_5.2
+    sourcerpm: emacs-27.2-11.el9_5.2.src.rpm
   - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/appstream/os/Packages/f/fontconfig-2.14.0-2.el9_1.x86_64.rpm
     repoid: ubi-9-for-x86_64-appstream-rpms
     size: 307951
@@ -3395,12 +3395,12 @@ arches:
     checksum: sha256:7565e0aed6cfb90c2c4be4ae2b33536fc4cf9b1b05a6a07da940ec564475580f
     name: dwz
     evr: 0.14-3.el9
-  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/appstream/source/SRPMS/Packages/e/emacs-27.2-11.el9_5.1.src.rpm
+  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/appstream/source/SRPMS/Packages/e/emacs-27.2-11.el9_5.2.src.rpm
     repoid: ubi-9-for-x86_64-appstream-source-rpms
-    size: 44822831
-    checksum: sha256:38c5fde02ec16d0b2a9a2a85637e591e9776726e71dcf2b2913a5260855e01b9
+    size: 44823907
+    checksum: sha256:f64cf992f5b549dae6920d6215a438a953d36936faeb5ecb4a37a049fd4d4c95
     name: emacs
-    evr: 1:27.2-11.el9_5.1
+    evr: 1:27.2-11.el9_5.2
   - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/appstream/source/SRPMS/Packages/f/fontconfig-2.14.0-2.el9_1.src.rpm
     repoid: ubi-9-for-x86_64-appstream-source-rpms
     size: 1460194
@@ -5112,7 +5112,7 @@ arches:
     name: zlib
     evr: 1.2.11-40.el9
   module_metadata:
-  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/appstream/os/repodata/dad795eb65260fc97177049908f2a27230ee36b4aa7b1393cb2ab5fe0cf5d0ce-modules.yaml.gz
+  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/appstream/os/repodata/7dd4c79734d474e8593a46c7ed7d341cab2fd15cde59e16c6446c98b40cbe160-modules.yaml.gz
     repoid: ubi-9-for-x86_64-appstream-rpms
     size: 5929
-    checksum: sha256:dad795eb65260fc97177049908f2a27230ee36b4aa7b1393cb2ab5fe0cf5d0ce
+    checksum: sha256:7dd4c79734d474e8593a46c7ed7d341cab2fd15cde59e16c6446c98b40cbe160
