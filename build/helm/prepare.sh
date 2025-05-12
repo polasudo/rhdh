@@ -422,7 +422,8 @@ mkdir "${CATALOG_DIR}"/installation -p
 # Clean up remnants from old helm chart system used
 rm -f "${CATALOG_DIR}"/installation/index.yaml
 
-echo "[INFO] Chart version:        ${CHART_VERSION}"
+echo "[INFO] Chart name:    ${CHART_NAME}"
+echo "[INFO] Chart version: ${CHART_VERSION}"
 if [[ $PUBLISH -eq 1 ]] && [[ $CHART_VERSION != *"CI"* ]]; then # include installation folder only for CI builds (not for GA)
     echo "[INFO] Developer Hub image:  registry.redhat.io/rhdh/rhdh-hub-rhel9:${RHDH_VERSION}"
 else
