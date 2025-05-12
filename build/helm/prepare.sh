@@ -224,7 +224,7 @@ if ! command -v helm-docs &>/dev/null; then
     helmdocrepo=github.com/norwoodj/helm-docs/cmd/helm-docs@${helmdocs_version}
     echo "Installing $helmdocrepo to ${HOME}/go/bin/helm-docs ..."
     sudo dnf -y -q install brotli-devel cmake gcc gcc-c++ git golang >/dev/null 2>&1
-    GO111MODULE=on go install $helmdocrepo
+    GO111MODULE=on go install $helmdocrepo >/dev/null 2>&1
     export PATH="$PATH:${HOME}/go/bin"
 fi
 if ! command -v oc &>/dev/null; then
