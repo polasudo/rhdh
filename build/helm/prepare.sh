@@ -433,6 +433,11 @@ echo "[INFO] This chart's folder:  $PACKAGE_DEST"
 
 if [[ $PUBLISH -eq 1 ]]; then
     helm_config="${PACKAGE_DEST}/chart_dump.json"
+    actual_chart=$(find "${PACKAGE_DEST}/" -name "*.tgz")
+    # for the all-in-one mode where we have "backstage" instead of "redhat-developer-hub"
+    if [[ "$actual_chart" != "${PACKAGE_DEST}/${CHART_NAME}-${CHART_VERSION}.tgz" ]]; then
+        mv -f "$actual_chart" "${PACKAGE_DEST}/${CHART_NAME}-${CHART_VERSION}.tgz"
+    fi
     if [[ ! -f "${PACKAGE_DEST}/${CHART_NAME}-${CHART_VERSION}.tgz" ]]; then 
         echo "[ERROR] Could not find chart in ${PACKAGE_DEST}/ called ${CHART_NAME}-${CHART_VERSION}.tgz ! Cannot continue - must exit!"; exit 1
     fi
