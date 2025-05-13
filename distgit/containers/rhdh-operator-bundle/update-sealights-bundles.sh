@@ -130,8 +130,7 @@ replace_image_in_files() {
 
   for FILE in "${TARGET_FILES[@]}"; do
     echo -e "[INFO] Replace $FILE: 
-   > $ORIGINAL → 
-   > $CLEANED_REPLACEMENT"
+   → $CLEANED_REPLACEMENT"
     sed -i "s|$ORIGINAL|$ESCAPED_REPLACEMENT|g" "$FILE"
   done
 }
