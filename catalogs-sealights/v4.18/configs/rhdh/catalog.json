@@ -2815,7 +2815,7 @@
     "schema": "olm.bundle",
     "name": "rhdh-operator.v1.7.0",
     "package": "rhdh",
-    "image": "quay.io/rhdh/rhdh-operator-bundle-sealights@sha256:9edf7481ba4961ab85b48248c25d2a8807a487f8d4d96bd893378aabe784ed39",
+    "image": "quay.io/rhdh/rhdh-operator-bundle-sealights@sha256:1b7fc6581f001569645ea2f43d900662cd6cbddf028a911b0085f37307581ca4",
     "properties": [
         {
             "type": "olm.gvk",
@@ -2856,7 +2856,7 @@
                     "capabilities": "Seamless Upgrades",
                     "categories": "Developer Tools",
                     "certified": "true",
-                    "containerImage": "quay.io/rhdh/rhdh-rhel9-operator-sealights:fe0a39584b9cde3b9c3299b941fece64db91d648",
+                    "containerImage": "quay.io/rhdh/rhdh-rhel9-operator-sealights@sha256:6b31fed5c68b1ed1dd6a23b3bf0b6ed4bd719089ea79b07d69b460f19d069e30",
                     "createdAt": "2025-04-25T07:39:52Z",
                     "description": "Red Hat Developer Hub is a Red Hat supported version of Backstage. It comes with pre-built plug-ins and configuration settings, supports use of an external database, and can help streamline the process of setting up a self-managed internal developer portal for adopters who are just starting out.",
                     "features.operators.openshift.io/cnf": "false",
@@ -2970,19 +2970,19 @@
     "relatedImages": [
         {
             "name": "backstage",
-            "image": "quay.io/rhdh/rhdh-hub-rhel9-sealights:fe0a39584b9cde3b9c3299b941fece64db91d648"
+            "image": "quay.io/rhdh/rhdh-hub-rhel9-sealights@sha256:1656b75a03294699918b1f97a3e475194f36280d219f578c133d6e51d0e02fe1"
         },
         {
             "name": "",
-            "image": "quay.io/rhdh/rhdh-operator-bundle-sealights@sha256:9edf7481ba4961ab85b48248c25d2a8807a487f8d4d96bd893378aabe784ed39"
+            "image": "quay.io/rhdh/rhdh-operator-bundle-sealights@sha256:1b7fc6581f001569645ea2f43d900662cd6cbddf028a911b0085f37307581ca4"
         },
         {
             "name": "",
-            "image": "quay.io/rhdh/rhdh-rhel9-operator-sealights:fe0a39584b9cde3b9c3299b941fece64db91d648"
+            "image": "quay.io/rhdh/rhdh-rhel9-operator-sealights@sha256:6b31fed5c68b1ed1dd6a23b3bf0b6ed4bd719089ea79b07d69b460f19d069e30"
         },
         {
             "name": "postgresql",
-            "image": "registry.redhat.io/rhel9/postgresql-15@sha256:e776cae7d62baab3525be7e2596f45007affd44244379a8be53a431e3a794f34"
+            "image": "registry.redhat.io/rhel9/postgresql-15@sha256:7d9e3e155744cb1d6dad73a0b54b4e403fd2979733b206e2870d9c9544122f64"
         }
     ]
 }
