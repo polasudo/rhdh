@@ -25,7 +25,7 @@
 #     5. Replaces the original image strings in both target YAML files.
 #
 # Requirements:
-#   - yq
+#   - yq (mikefarah or jq wrapper version)
 #   - jq
 #   - cosign (for downloading attestations)
 #
@@ -51,10 +51,15 @@ TARGET_FILES=(
   "$CONTEXT/manifests/rhdh-default-config_v1_configmap.yaml"
 )
 
-# Extract RHDH hub and operator images
-RHDH_OPERATOR_IMAGE=$(yq '.metadata.annotations.containerImage' "$OPERATOR_FILE")
+# Extract RHDH hub and operator images 
+# note: trimming quotes off should allow using BOTH mikefarah and jq-wrapper versions of yq, rather than the -r flag to suppress them
+RHDH_OPERATOR_IMAGE=$(yq '.metadata.annotations.containerImage' "$OPERATOR_FILE" | tr -d '"')
 RHDH_HUB_IMAGE=$(yq '.spec.install.spec.deployments[].spec.template.spec.containers[].env[]
-  | select(.name == "RELATED_IMAGE_backstage") | .value' "$OPERATOR_FILE")
+  | select(.name == "RELATED_IMAGE_backstage") | .value' "$OPERATOR_FILE" | tr -d '"')
+
+echo "[INFO] Got the following images:
+  * RHDH_OPERATOR_IMAGE = $RHDH_OPERATOR_IMAGE
+  * RHDH_HUB_IMAGE = $RHDH_HUB_IMAGE"
 
 # Swap registry.redhat.io -> quay.io
 swap_registry_if_needed() {
@@ -80,15 +85,25 @@ resolve_final_image() {
     return
   fi
 
+  # "results": [{
+  #     "name": "IMAGE_REF",
+  #     "type": "string",
+  #     "value": "quay.io/rhdh/rhdh-rhel9-operator-sealights:ef5ed85c15509905a6f9616986feba80fce05cec@sha256:6b31fed5c68b1ed1dd6a23b3bf0b6ed4bd719089ea79b07d69b460f19d069e30"
+  #   }, ...
   local SL_CONTAINER_IMAGE
   SL_CONTAINER_IMAGE=$(jq -r '
     .payload
     | @base64d
     | fromjson
     | .predicate.buildConfig.tasks[]
-    | select(.invocation.parameters.IMAGE? // "" | test("sealights"))
-    | .invocation.parameters.IMAGE
+    | .results[]? // ""
+    | select(.name? // "" | . == "IMAGE_REF")
+    | select(.value? // "" | test("-sealights:"))
+    | .value
   ' "$COSIGN_FILE")
+
+    # delete temp file
+  rm -f "$COSIGN_FILE"
 
   if [ -z "$SL_CONTAINER_IMAGE" ] || [ "$SL_CONTAINER_IMAGE" == "null" ]; then
     echo "[WARN] SL_CONTAINER_IMAGE not found — using fallback $COSIGN_IMAGE" >&2
@@ -102,32 +117,41 @@ resolve_final_image() {
 replace_image_in_files() {
   local ORIGINAL="$1"
   local REPLACEMENT="$2"
-
   local CLEANED_REPLACEMENT
-  CLEANED_REPLACEMENT=$(echo "$REPLACEMENT" | tr -d '\n')
   local ESCAPED_REPLACEMENT
+
+  # dedupe with uniq sort, as this might return multiple values; choose the first one
+  CLEANED_REPLACEMENT=$(echo "$REPLACEMENT" | sort -u | head -1) 
+
+  # from repo/org/image:tag@sha256:digest -> repo/org/image@sha256:digest
+  CLEANED_REPLACEMENT="${CLEANED_REPLACEMENT%%:*}@sha256:${CLEANED_REPLACEMENT#*@sha256:}"
+  
   ESCAPED_REPLACEMENT=$(printf '%s' "$CLEANED_REPLACEMENT" | sed 's/[\/&]/\\&/g')
 
   for FILE in "${TARGET_FILES[@]}"; do
-    echo "[INFO] Replacing in $FILE: $ORIGINAL → $CLEANED_REPLACEMENT"
+    echo -e "[INFO] Replace $FILE: 
+   > $ORIGINAL → 
+   > $CLEANED_REPLACEMENT"
     sed -i "s|$ORIGINAL|$ESCAPED_REPLACEMENT|g" "$FILE"
   done
 }
 
 # Process operator image
 if [ -n "$RHDH_OPERATOR_IMAGE" ] && [ "$RHDH_OPERATOR_IMAGE" != "null" ]; then
+  echo
   FINAL_OPERATOR_IMAGE=$(resolve_final_image "$RHDH_OPERATOR_IMAGE")
   replace_image_in_files "$RHDH_OPERATOR_IMAGE" "$FINAL_OPERATOR_IMAGE"
 else
   echo "[WARN] RHDH_OPERATOR_IMAGE not found"
 fi
 
-# Process RHDH hub image
+# Process hub image
 if [ -n "$RHDH_HUB_IMAGE" ] && [ "$RHDH_HUB_IMAGE" != "null" ]; then
+  echo
   FINAL_HUB_IMAGE=$(resolve_final_image "$RHDH_HUB_IMAGE")
   replace_image_in_files "$RHDH_HUB_IMAGE" "$FINAL_HUB_IMAGE"
 else
   echo "[WARN] RHDH_HUB_IMAGE not found"
 fi
 
-echo "[INFO] All image replacements complete."
+echo; echo "[INFO] All image replacements complete."
