@@ -480,8 +480,10 @@ if [[ $PUBLISH -eq 1 ]]; then
         pushd "openshift-helm-charts-main/charts/redhat/redhat/${CHART_NAME}/" >/dev/null || exit 1
         rsync -aqrz "${actual_chart}" "${CHART_VERSION}/"
         git checkout main >/dev/null 2>&1 
-        git pull origin main >/dev/null 2>&1 
-        git pull origin >/dev/null 2>&1 
+        echo "[INFO] The following step will fail if there's an existing chart $CHART_VERSION at https://github.com/openshift-helm-charts"
+        echo "[INFO] You need to bump the chart version or the PR will fail validation with error: Helm chart release already exists in the index."
+        git pull origin main >/dev/null
+        git pull origin >/dev/null
         git remote add rhdh-bot git@github.com:rhdh-bot/openshift-helm-charts.git
         git checkout origin/main -b "release-${CHART_VERSION}" >/dev/null 2>&1 || true
         git checkout "release-${CHART_VERSION}" >/dev/null 2>&1 || true
