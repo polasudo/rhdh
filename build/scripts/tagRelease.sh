@@ -312,7 +312,7 @@ function updatePluginsRootVersion() {
 }
 
 # for redhat-developer/rhdh, bump to specified version
-function updateShowcaseVersions() {
+function updateRHDHVersions() {
 	the_branch="$1"
 	the_version="$2"
 	# TODO move to red-hat-developer-hub
@@ -322,11 +322,13 @@ function updateShowcaseVersions() {
 	pushd "$TMPDIR/projects_${d}_2" >/dev/null || exit 1
 
 	################
-	# update 3 files
+	# update 3+ files
 	################
 
-	for d in package.json e2e-tests/package.json; do
-		jq -r --arg the_version "$the_version" '.version|=$the_version' $d > "${d}1"; mv -f "${d}1" "${d}"
+	for d in package.json e2e-tests/package.json dynamic-plugins/package.json; do # dynamic-plugins/package.json is new for 1.7+
+		if [[ -f $d ]]; then
+			jq -r --arg the_version "$the_version" '.version|=$the_version' $d > "${d}1"; mv -f "${d}1" "${d}"
+		fi
 	done
 	sed -i packages/app/src/build-metadata.json -r \
 		`# up to RHDH 1.5` \
@@ -334,7 +336,7 @@ function updateShowcaseVersions() {
 		`# RHDH 1.6+` \
 		-e "s/(\"RHDH Version\": \")[0-9.]+\"/\1$the_version\"/"
 
-	echo -n "updateShowcaseVersions: "; pwd; git diff || true
+	echo -n "updateRHDHVersions: "; pwd; git diff || true
 	if [[ ${DO_PUSH} -eq 1 ]]; then
 		COMMITMSG="chore: tagRelease.sh: bump to $the_version in $the_branch branch"
 		if [[ $DO_BUILD -eq 1 ]]; then
@@ -614,7 +616,7 @@ pushBranchAndOrTagGH () {
 					# echo "[INFO] Next CSV version is $CSV_VERSION_Z / $CSV_VERSION_Z_OPERATOR"
 					if [[ $d == "redhat-developer__rhdh" ]]; then
 						echo "[INFO] Bump $d to $CSV_VERSION_Z" 
-						updateShowcaseVersions "$TARGET_BRANCH" "$CSV_VERSION_Z"
+						updateRHDHVersions "$TARGET_BRANCH" "$CSV_VERSION_Z"
 					elif [[ $d == "redhat-developer__rhdh-operator" ]]; then
 						echo "[INFO] Bump $d to $CSV_VERSION_Z / $CSV_VERSION_Z_OPERATOR" 
 						updateOperatorVersions "$TARGET_BRANCH" "$CSV_VERSION_Z" "$CSV_VERSION_Z_OPERATOR"
@@ -1027,7 +1029,7 @@ if [[ $SKIP_GH -eq 0 ]]; then
 		# still needed for 1.4's janus plugins
 		updatePluginVersions 
 		updateOperatorVersions "$SOURCE_BRANCH" "$newver" "$newverOp"
-		updateShowcaseVersions "$SOURCE_BRANCH" "$newver"
+		updateRHDHVersions "$SOURCE_BRANCH" "$newver"
 		updateChartVersions "$SOURCE_BRANCH" "$newver"
 		## CCS has requested that we not bump the version in main branch, as they prefer manual steps to automation.
 		## updateDocVersions "$SOURCE_BRANCH" "$newver"
