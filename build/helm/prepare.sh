@@ -457,8 +457,6 @@ if [[ $PUBLISH -eq 1 ]]; then
 
     # remove any leftover tarballs from a previous run
     cd /tmp
-    # shellcheck disable=SC2035
-    rm -fr *eveloper-hub-*.tgz
 
     # update installation/README.md and installation/rhdh-next-ci-repo.yaml, expanding variables
     export CHART_VERSION="${CHART_VERSION}"
@@ -474,18 +472,13 @@ if [[ $PUBLISH -eq 1 ]]; then
         # create a PR against the openshift-helm-charts/charts repo, containing ONLY the tarball,
         # none of the installation instructions/scripts/chart repo
         pushd /tmp >/dev/null || exit 1
-        rm -fr "/tmp/rhdh-bot-${CHART_VERSION}" /tmp/openshift-helm-charts-main
-        git clone git@github.com:rhdh-bot/openshift-helm-charts.git -q --depth=1 -b "redhat-developer-hub-${CHART_VERSION}" "rhdh-bot-${CHART_VERSION}"  >/dev/null 2>&1
-        git clone git@github.com:openshift-helm-charts/charts.git -q --depth=1 -b "main" "openshift-helm-charts-main"  >/dev/null 2>&1
+        rm -fr /tmp/openshift-helm-charts-main
+        git clone git@github.com:openshift-helm-charts/charts.git -q --depth=1 -b "main" "openshift-helm-charts-main"  >/dev/null 
         popd >/dev/null || exit 1
 
-        # copy new tarball into other fork (excluding install instructions)
-        pushd /tmp >/dev/null || exit 1
-        rsync -aqrz \
-        "rhdh-bot-${CHART_VERSION}/charts/redhat/redhat/${CHART_NAME}/${CHART_VERSION}/${CHART_NAME}-${CHART_VERSION}.tgz" \
-        "openshift-helm-charts-main/charts/redhat/redhat/${CHART_NAME}/${CHART_VERSION}/"
-        # create PR
+        # create PR including new tarball
         pushd "openshift-helm-charts-main/charts/redhat/redhat/${CHART_NAME}/" >/dev/null || exit 1
+        rsync -aqrz "${actual_chart}" "${CHART_VERSION}/"
         git checkout main >/dev/null 2>&1 
         git pull origin main >/dev/null 2>&1 
         git pull origin >/dev/null 2>&1 
@@ -512,8 +505,7 @@ if [[ $PUBLISH -eq 1 ]]; then
         URL=$(gh pr view rhdh-bot:release-"${CHART_VERSION}" --json 'url' | jq -r '.url')
         google-chrome --incognito "$URL" || true
         popd >/dev/null || exit 1
-        rm -fr "/tmp/rhdh-bot-${CHART_VERSION}" /tmp/openshift-helm-charts-main
-        popd >/dev/null || exit 1
+        rm -fr /tmp/openshift-helm-charts-main
     elif [[ $EXTRA_BRANCH ]]; then # include installation folder only for CI builds (not for GA)
         git clone --filter=blob:none --no-checkout --depth=1 -q "${CATALOG_FORK}" "${CATALOG_DIR}-2" >/dev/null 2>&1 && \
             pushd "${CATALOG_DIR}-2" >/dev/null || exit 1
@@ -560,6 +552,9 @@ if [[ $PUBLISH -eq 1 ]]; then
         done
         popd >/dev/null || exit 1
     fi
+
+    # shellcheck disable=SC2035
+    rm -fr *eveloper-hub-*.tgz
 else
     HELM_PROJECT="rhdh-${CHART_VERSION,,}"
     HELM_PROJECT="${HELM_PROJECT//./-}"
