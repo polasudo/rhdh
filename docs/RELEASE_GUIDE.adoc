@@ -343,26 +343,21 @@ git checkout rhdh-1.6-rhel-9
 
   RHDH_VERSION="1.6.0"
   OCP_VERSION=4.14
-  ./build/scripts/renderCatalogs.sh [--latest] --clean --versions "${OCP_VERSION}" -v "${RHDH_VERSION}"; sleep 30s; echo
+  ./build/scripts/renderCatalogs.sh --rhec [--latest] --clean --versions "${OCP_VERSION}" -v "${RHDH_VERSION}"; sleep 30s; echo
   alias cp=cp
   for OCP_VERSION in 4.15 4.16 4.17 4.18; do \
-    cp -f catalogs/v{4.14,${OCP_VERSION}}/catalog-template.json; ./build/scripts/renderCatalogs.sh [--latest] --clean --versions "${OCP_VERSION}" -v "${RHDH_VERSION}" --template "catalogs/v${OCP_VERSION}/catalog-template.json"; sleep 30s; \
+    cp -f catalogs/v{4.14,${OCP_VERSION}}/catalog-template.json; 
+    ./build/scripts/renderCatalogs.sh --rhec [--latest] --clean --versions "${OCP_VERSION}" -v "${RHDH_VERSION}" --template "catalogs/v${OCP_VERSION}/catalog-template.json"; sleep 30s; \
   done
 
 # or for >=1.7, with support for OCP 4.19 (4.15 removed) + sealights
 
-  RHDH_VERSION="1.7.0"
-  OCP_VERSION=4.14
-  /home/nboldt/4/4-rhdh/build/scripts/renderCatalogs.sh [--next] --clean --versions "${OCP_VERSION}" -v "${RHDH_VERSION}" --sealights; sleep 30s; echo
-  alias cp=cp
-  for OCP_VERSION in 4.16 4.17 4.18 4.19; do \
-    cp -f catalogs/v{4.14,${OCP_VERSION}}/catalog-template.json; ./build/scripts/renderCatalogs.sh [--next] --clean --versions "${OCP_VERSION}" -v "${RHDH_VERSION}" --sealights --template "catalogs/v${OCP_VERSION}/catalog-template.json"; sleep 30s; \
-  done
+  /home/nboldt/4/4-rhdh/build/scripts/renderCatalogs.sh --rhec --default-sealights
 ```
 
 ### Chart release (15 mins)
 
-. [ ] Find the latest rhdh-hub tag from https://catalog.redhat.com/software/containers/rhdh/rhdh-hub-rhel9/645bd4c15c00598369c31aba, eg., `1.4.3` or `1.5.1`
+. [ ] Find the latest rhdh-hub tag from https://catalog.redhat.com/software/containers/rhdh/rhdh-hub-rhel9/645bd4c15c00598369c31aba, eg., `1.5.1`
 +
 . [ ] link:../build/helm/prepare.sh[Push the helm chart].
 +
@@ -377,65 +372,41 @@ gh auth status
 git checkout rhdh-1.4-rhel-9
 
 # create pull request
-./build/helm/prepare.sh --chart-version 1.4.3 --rhdh-version 1.4.3 --chart-branch release-1.4 --catalog git@github.com:rhdh-bot/openshift-helm-charts.git --publish
+./build/helm/prepare.sh --chart-version 1.6.0 --rhdh-version 1.6.0 --chart-branch release-1.6 --publish
 ```
 +
 You should see something like this:
 +
 ```
-Create chart for 1.4.3 (1.4.3)
+Create chart for 1.6.0 (1.6.0)
 Set image digests in charts/backstage/values.yaml: 
 * RHDH_DIGEST = 5eb109362246ccddd564febe6387bc6015d47555df00c36aa88c2247099851b7, 
 * POSTGRESQL_DIGEST = b5f1af9950aee7306f5063229aad0da08f885c4cf4bf39ba74b11b4e58e8d40b
 ...
-Chart version:        1.4.3
-
-Developer Hub image:  registry.redhat.io/rhdh/rhdh-hub-rhel9:1.4.3
-
-Branch:               https://github.com/rhdh-bot/openshift-helm-charts/tree/redhat-developer-hub-1.4.3
-Full repo folder:     /tmp/tmp.QqY6kY8oou
-This chart's folder:  /tmp/tmp.QqY6kY8oou/charts/redhat/redhat/redhat-developer-hub/1.4.3/
+Chart version:        1.6.0
+Developer Hub image:  registry.redhat.io/rhdh/rhdh-hub-rhel9:1.6.0
 ...
-[release-1.4.3 2cfbc91] chore: chart: add Red Hat Developer Hub 1.4.3 for registry.redhat.io/rhdh/rhdh-hub-rhel9:1.4.3
+[release-1.6.0 2cfbc91] chore: chart: add Red Hat Developer Hub 1.6.0 for registry.redhat.io/rhdh/rhdh-hub-rhel9:1.6.0
 ...
-https://github.com/openshift-helm-charts/charts/pull/1743
+https://github.com/openshift-helm-charts/charts/pull/1843
 ```
 
 . [ ] link:../build/helm/prepare.sh[Publish the Orchestrator Infra chart]
 +
+**TODO: ensure this works https://issues.redhat.com/browse/RHIDP-7489**
++
 The link:https://github.com/redhat-developer/rhdh-chart/tree/main/charts/orchestrator-infra[Orchestrator Infra Helm Chart] is a standalone chart that deploys the required OpenShift infrastructure to support the Orchestrator flavor of RHDH. Specifically, it installs the OpenShift Serverless Operator and Serverless Logic Operator, and applies required Knative CRDs. These components are necessary for enabling orchestration features in Red Hat Developer Hub.
 +
-
-This chart is versioned alongside the main RHDH chart and must be published when:
-  - A new **CI** tag of RHDH is available, or
-  - A new **GA** version of RHDH is released, or
-  - Updates are made to the chart in `charts/orchestrator-infra/`
-
+This chart follows the same version of the main RHDH chart, starting from 1.7.0. 
+```
   ./build/helm/prepare.sh \
-    --chart-version 1.6.0-CI \  # or 1.6.0 for GA
+    --chart-version 1.7.0
     --chart-name redhat-developer-hub-orchestrator-infra \
     --chart-dir charts/orchestrator-infra \
-    --chart-branch release-1.6 \
-    --catalog git@github.com:rhdh-bot/openshift-helm-charts.git \
-    --publish \
-    --debug
+    --chart-branch release-1.7 \
+    --publish
+```
 
-+
-You should see something like this:
-    
-    Full repo folder:     /tmp/tmp.KeyDhOkGFk
-    This chart's folder:  /tmp/tmp.KeyDhOkGFk/charts/redhat/redhat/redhat-developer-hub-orchestrator-infra/1.6.0-CI
-    [INFO] Pushing Helm chart to quay.io/rhdh/chart ...
-    ✓ Uploaded  /tmp/tmp.KeyDhOkGFk/charts/redhat/redhat/redhat-developer-hub-orchestrator-infra/1.6.0-CI/redhat-devel. 38.2/38.2 kB 100.00%     2s
-      └─ sha256:c24e01642a4a8acd487cc82cc26a271a3259ea97b26e382ccbb3a76c3948e6cf
-    ✓ Uploaded  application/vnd.cncf.helm.config.v1+json                                                                  901/901  B 100.00%     1s
-      └─ sha256:e1c9f99ac38b6645be1527fe17c288adf2c0c47c1a385328ad1a2955244b4a54
-    ✓ Uploaded  application/vnd.oci.image.manifest.v1+json                                                                679/679  B 100.00%  285ms
-      └─ sha256:91f710a6258eaaaac28c880a7ccb718911e4d8d9cbe036b0791aca72b7d5e57f
-    Pushed [registry] quay.io/rhdh/orchestrator-infra-chart:1.6.0-CI
-    ArtifactType: application/vnd.cncf.helm.config.v1+json
-    Digest: sha256:91f710a6258eaaaac28c880a7ccb718911e4d8d9cbe036b0791aca72b7d5e57f
-    
 #### FBC release (30 mins)
 
 . [ ] Find the latest operator bundle tag from https://catalog.redhat.com/software/containers/rhdh/rhdh-operator-bundle/64bfdcd740aa90644e579cc6, eg., `1.4.3` or `1.5.1`
@@ -598,7 +569,7 @@ export GITHUB_TOKEN=rhdh-bot-token-goes-here
 ./build/scripts/tagRelease.sh -v 1.4.3 -t 1.4 -gh release-1.4 --midstream-branch rhdh-1.4-rhel-9 --clean --force-update --nobuild
 ``` | Release Engineering
 
-| **7. Post-Release** | For a .0 releaase, **Delete EOL versions** from Comet: link:https://comet.engineering.redhat.com/containers/repositories?view=myRepos&filter=repoPath:rhdh[Comet].
+| **7. Post-Release** | For a .0 release, **Delete EOL versions** from Comet: link:https://comet.engineering.redhat.com/containers/repositories?view=myRepos&filter=repoPath:rhdh[Comet].
 
 Monitor Quay image updates.
 
