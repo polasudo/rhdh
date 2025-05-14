@@ -27,6 +27,8 @@ spec:
     value: quay.io/rhdh/iib-sealights:fbc-4-19-on-push-for-rhdh-1-rhel-9-from-{{revision}}
   - name: image-expires-after
     value: ''
+  - name: sealights-image-expires-after
+    value: '2w'
   - name: dockerfile
     value: Containerfile
   - name: path-context
@@ -116,6 +118,10 @@ spec:
       description: Image tag expiration time, time values could be something like
         1h, 2d, 3w for hours, days, and weeks, respectively.
       name: image-expires-after
+    - default: ""
+      description: Sealights image tag expiration time, time values could be something like
+        1h, 2d, 3w for hours, days, and weeks, respectively.
+      name: sealights-image-expires-after
     - default: "false"
       description: Build a source image.
       name: build-source-image
@@ -226,7 +232,7 @@ spec:
       - name: HERMETIC
         value: $(params.hermetic)
       - name: IMAGE_EXPIRES_AFTER
-        value: $(params.image-expires-after)
+        value: $(params.sealights-image-expires-after)
       - name: COMMIT_SHA
         value: $(tasks.clone-repository.results.commit)
       runAfter:
