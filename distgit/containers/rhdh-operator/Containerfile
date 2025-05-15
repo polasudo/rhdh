@@ -51,10 +51,11 @@ RUN cat /cachi2/cachi2.env
 
 RUN microdnf install -y openssl; microdnf clean -y all
 
+ENV EXTERNAL_SOURCE=.
+ENV CONTAINER_SOURCE=/opt/app-root/src
+
 # RHIDP-4220 - make Konflux preflight and EC checks happy - [check-container] Create a directory named /licenses and include all relevant licensing
 COPY $EXTERNAL_SOURCE/LICENSE /licenses/
-
-ENV CONTAINER_SOURCE=/opt/app-root/src
 
 ENV HOME=/ \
     USER_NAME=backstage \
@@ -72,7 +73,7 @@ WORKDIR ${HOME}
 ENTRYPOINT ["/manager"]
 ENV SUMMARY="Red Hat Developer Hub operator" \
     DESCRIPTION="Red Hat Developer Hub operator" \
-    UPSTREAM_REPO="https://github.com/redhat-developer/rhdh-operator/tree/main @ ab395c29" \
+    UPSTREAM_REPO="https://github.com/redhat-developer/rhdh-operator/tree/main @ ac6ab4e0" \
     MIDSTREAM_REPO="https://gitlab.cee.redhat.com/rhidp/rhdh/-/commits/rhdh-1-rhel-9" \
     PRODNAME="rhdh" \
     COMPNAME="operator"
@@ -85,12 +86,12 @@ LABEL summary="$SUMMARY" \
       com.redhat.component="$PRODNAME-$COMPNAME-container" \
       name="$PRODNAME/$PRODNAME-rhel9-$COMPNAME" \
       version="1.7" \
-      release="19" \
+      release="20" \
       license="ASLv2" \
       maintainer="RHDH Team <rhdh-bot@redhat.com>" \
       vendor="Red Hat, Inc." \
       io.openshift.expose-services="" \
       usage="" \
-      konflux.additional-tags="next, 1.7, 1.7-19" \
+      konflux.additional-tags="next, 1.7, 1.7-20" \
       distribution-scope="public" \
       url="https://red.ht/rhdh"
