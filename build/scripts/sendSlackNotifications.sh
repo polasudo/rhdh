@@ -4,6 +4,7 @@ PWD="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 RELEASE_STATE='RC'
 BUNDLE_TAG=''
 RHDH_VERSION=''
+RHDH_FULL_VERSION=''
 WEBHOOK_URL=''
 
 usage() {
@@ -17,16 +18,16 @@ usage() {
   Then click on your username and select 'Copy login command' then 'Display token'
   
   Usage:
-    $0 --version <version> --slack-webhook <webhook> [OPTIONS]
+    $0 --version <x.y.z version> --slack-webhook <webhook> [OPTIONS]
   
   Options:
     --release-state <release-state> : Release State (RC or GA) to be mentioned in the slack message. It is RC by default.
     --bundle-tag <bundle-tag> : Tag of the operator bundle to use. If not provided, the latest operator-bundle image for the RHDH version will be used.
-    --version <version> : RHDH version (1.y) of the RC/GA build. Required.
+    --version <x.y.z version> : version of the RHDH RC or GA build. Required.
     --slack-webhook <webhook> : Webhook to post a message to a given channel (For webhook for #forum-rhdh-releases, see bitwarden)
 
   Example:
-    $0 --version 1.5 --bundle-tag 1.5-187 --slack-webhook https://hooks.slack.com/services/...
+    $0 --version 1.5.2 --bundle-tag 1.5-200 --slack-webhook https://hooks.slack.com/services/...
 "
 }
 
@@ -45,8 +46,8 @@ send_slack_message() {
 }
 
 create_payload() {
-  CHART_LINK="https://github.com/rhdh-bot/openshift-helm-charts/tree/rhdh-$(echo "$RHDH_VERSION" | cut -d '.' -f 1,2)-rhel-9"
-  HEADING="$RELEASE_STATE $RHDH_VERSION UPDATE"
+  CHART_LINK="https://github.com/rhdh-bot/openshift-helm-charts/tree/rhdh-$RHDH_VERSION-rhel-9"
+  HEADING="$RELEASE_STATE $RHDH_FULL_VERSION UPDATE"
   BUNDLE_IMAGE="quay.io/rhdh/rhdh-operator-bundle:$BUNDLE_TAG"
   FBC_LINK="https://quay.io/repository/rhdh/iib?tab=tags"
 
@@ -103,7 +104,7 @@ EOF
 
 get_images() {
   if [ -z "$BUNDLE_TAG" ]; then
-    BUNDLE_IMAGE=$("${PWD}/getLatestImageTags.sh" --quay --tag "$(echo "$RHDH_VERSION" | cut -d '.' -f 1,2)-" -c rhdh/rhdh-operator-bundle)
+    BUNDLE_IMAGE=$("${PWD}/getLatestImageTags.sh" --quay --tag "${RHDH_VERSION}-" -c rhdh/rhdh-operator-bundle)
   else
     BUNDLE_IMAGE="quay.io/rhdh/rhdh-operator-bundle:$BUNDLE_TAG"
   fi
@@ -124,7 +125,7 @@ get_images() {
 
   # given a bundle and its SHA get the snapshot
   SNAPSHOT=$(oc -n rhdh-tenant get Snapshots --sort-by=.metadata.creationTimestamp \
-    --selector="pac.test.appstudio.openshift.io/original-prname=rhdh-operator-bundle-$(echo "$RHDH_VERSION" | cut -d '.' -f 1,2 | tr '.' '-')-on-push,pac.test.appstudio.openshift.io/sha=${MID_SHA}" |
+    --selector="pac.test.appstudio.openshift.io/original-prname=rhdh-operator-bundle-$(echo "$RHDH_VERSION" | tr '.' '-')-on-push,pac.test.appstudio.openshift.io/sha=${MID_SHA}" |
     sed -r -e '/NAME +AGE/d' -e "s/([a-z0-9-]+)\ +([0-9smhdy]+)/\1/g")
 
   rm -f "${TMPDIR}"/container_inspect.txt
@@ -176,7 +177,7 @@ while [ $# -gt 0 ]; do
     shift
     ;;
   --version)
-    RHDH_VERSION="$2"
+    RHDH_FULL_VERSION="$2"
     shift
     ;;
   --slack-webhook)
@@ -191,10 +192,12 @@ while [ $# -gt 0 ]; do
   shift
 done
 
-if [ -z "$RHDH_VERSION" ]; then
-  echo "[ERROR] RHDH version is required."
+if [[ -z "$RHDH_FULL_VERSION" ]] || [[ ! "$RHDH_FULL_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+  echo "[ERROR] RHDH version x.y.z is required (e.g., 1.5.2)."
   usage
   exit 1
+else
+  RHDH_VERSION=${RHDH_FULL_VERSION%.*}
 fi
 
 if [ -z "$WEBHOOK_URL" ]; then
