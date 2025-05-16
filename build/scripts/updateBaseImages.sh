@@ -18,6 +18,7 @@
 
 # see exclude list in getLatestImageTags.sh and updateBaseImages.sh
 EXCLUDES="latest|-source|next|nightly|-tmp-|-ci-|-gh-|.att|.git|.src|.sig|.sbom|.prefetch|on-pull-|on-push-|on-pr-|sha256-|-container"
+PATH_EXCLUDES=".git/|node_modules/"
 
 command -v jq >/dev/null 2>&1 || { echo "jq is not installed. Aborting."; exit 1; }
 command -v skopeo >/dev/null 2>&1 || { echo "skopeo is not installed. Aborting."; exit 1; }
@@ -202,7 +203,7 @@ createPr() {
 	fi
 }
 pushedIn=0
-for d in $(find "${WORKDIR}/" -maxdepth "${MAXDEPTH}" -name "${DOCKERFILE}" | sort -r); do
+for d in $(find "${WORKDIR}/" -maxdepth "${MAXDEPTH}" -name "${DOCKERFILE}" | sort -r | grep -E -v "${PATH_EXCLUDES}"); do
 	if [[ -f ${d} ]]; then
 		echo ""
 		echo "# Checking ${d} ..."
