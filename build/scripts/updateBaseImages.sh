@@ -18,7 +18,7 @@
 
 # see exclude list in getLatestImageTags.sh and updateBaseImages.sh
 EXCLUDES="latest|-source|next|nightly|-tmp-|-ci-|-gh-|.att|.git|.src|.sig|.sbom|.prefetch|on-pull-|on-push-|on-pr-|sha256-|-container"
-PATH_EXCLUDES=".git/|node_modules/"
+PATH_EXCLUDES="/\.git/|/node_modules/"
 
 command -v jq >/dev/null 2>&1 || { echo "jq is not installed. Aborting."; exit 1; }
 command -v skopeo >/dev/null 2>&1 || { echo "skopeo is not installed. Aborting."; exit 1; }
@@ -52,7 +52,6 @@ SCRIPT_DIR=$(cd "$(dirname "$0")" || exit; pwd)
 DOCKERFILE="Dockerfile"
 MAXDEPTH=2
 PR_BRANCH="pr-update-base-images-$(date +%s)"
-OPENBROWSERFLAG="" # if a PR is generated, open it in a browser
 docommit=1 # by default DO commit the change
 dopush=1 # by default DO push the change
 dopronly=0 # by default, attempt to push directly; create a PR only if necessary
@@ -80,20 +79,20 @@ usage () {
 	echo "Usage:   $0 -b [BRANCH] [-w WORKDIR] [-f DOCKERFILE] [-maxdepth MAXDEPTH]"
 	echo "Examples:
 	
-  $0 -w \$(pwd) -f Containerfile\* -maxdepth 5 -o -b ${SOURCES_BRANCH}
-  $0 -w \$(pwd) -f \*ockerfile\*   -maxdepth 5 -o -b $WORK_BRANCH
+  $0 -w \$(pwd) -f Containerfile\* -maxdepth 5 -px catalogs\*/ -b ${SOURCES_BRANCH}
+  $0 -w \$(pwd) -f \*ockerfile\*   -maxdepth 5 -b $WORK_BRANCH
 "
 	echo "Options: 
-	--sources-branch, -b  set sources branch (project to update), eg., release-1.y
-	--scripts-branch, -sb set scripts branch (project with helper scripts), eg., rhdh-1.y-rhel-9
-	--no-commit, -n	do not commit to BRANCH
-	--no-push, -p	do not push to BRANCH
+	--sources-branch, -b	set sources branch (project to update), eg., release-1.y
+	--scripts-branch, -sb	set scripts branch (project with helper scripts), eg., rhdh-1.y-rhel-9
+	--no-commit, -n		do not commit to BRANCH
+	--no-push, -p		do not push to BRANCH
 	--tag			regex match to restrict results, eg., '1\.22|9\.[0-9]-' to find golang 1.22 (not 1.24) and any ubi 9-x- tag
 	--pr			do not attempt to push directly; generate PR against BRANCH
 	-prb			set a PR_BRANCH; default: pr-new-base-images-(timestamp)
-	-o				open browser if PR generated
+	-px 			additional paths to exclude; default: $PATH_EXCLUDES
 	-q, -v			quiet, verbose output
-	--sha           include SHA digest suffix (for Konflux)
+	--sha			include SHA digest suffix (for Konflux)
 	--help, -h		help
 	--check-recent-updates-only   
 		don't poll for new base images; just report on 
@@ -114,6 +113,7 @@ while [[ "$#" -gt 0 ]]; do
 	'-sb'|'--scripts-branch') SCRIPTS_BRANCH="$2"; shift 1;;
 	'--tag') BASETAG="$2"; shift 1;; # rather than fetching latest tag, grab latest tag matching a pattern like "1.13"
 	'-x') EXCLUDES="$2"; shift 1;;
+	'-px') PATH_EXCLUDES="$PATH_EXCLUDES|$2"; shift 1;;
 	'-f') DOCKERFILE="$2"; shift 1;;
 	'-maxdepth') MAXDEPTH="$2"; shift 1;;
 	'-c') buildCommand="rhpkg container-build"; shift 0;; # NOTE: will trigger a new build for each commit, rather than for each change set (eg., Dockefiles with more than one FROM)
@@ -122,7 +122,6 @@ while [[ "$#" -gt 0 ]]; do
 	'-p'|'--nopush'|'--no-push') dopush=0; shift 0;;
 	'--pr') dopronly=1; dopush=0; shift 0;;
 	'-prb') PR_BRANCH="$2"; shift 1;;
-	'-o') OPENBROWSERFLAG="-o"; shift 0;;
 	'-q') QUIET=1; shift 0;;
 	'-v') QUIET=0; VERBOSE=1; shift 0;;
 	'--check-recent-updates-only') QUIET=0; VERBOSE=1; checkrecentupdates; shift 0; exit;;
