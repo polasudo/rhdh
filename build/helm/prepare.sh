@@ -33,7 +33,6 @@ NOTE: This must be run using the GITHUB_TOKEN of rhdh-bot@redhat.com in order to
 
 Options:
     --chart-name               Override the chart name (default: $CHART_NAME). Use 'all' to iterate and publish all charts in ./charts/
-
     --chart-dir                Relative path to the chart directory (default: $CHART_DIR)
 
     --latest --chart-branch release-1.yy   Compute the most recent 1.y-zzz tag (by semver sort rules) in quay.io/rhdh/rhdh-hub-rhel9, and use that tag in chart
@@ -41,8 +40,6 @@ Options:
 
     --publish                 Push the changes to branch developer-hub-\${CHART_VERSION} of the repository specified by --catalog
     --extra-branch            Push changes to an extra branch, such as rhdh-1.4-rhel-9
-    --create-report           Create a report via https://github.com/redhat-certification/chart-verifier.
-                              [IMPORTANT!] Requires local user to be logged into an OCP cluster
     --catalog                 If publish is set, this needs to point to a fork of
                               git@github.com:openshift-helm-charts/charts.git with write access
     --chart-version           Chart release version (used as 'version' in Chart.yaml)
@@ -98,7 +95,7 @@ Examples:
     $ gh auth login -h github.com
     # 2. Run a manual release as the bot:
     $ export GITHUB_TOKEN=ghp_rhdh-bot-token-here
-    $ $0 --chart-version 1.6.0 --rhdh-version 1.6.0   --chart-branch release-1.6 --publish 
+    $ $0 --chart-version 1.6.1 --rhdh-version 1.6.1   --chart-branch release-1.6 --publish 
     $ $0 --chart-version 1.5.2 --rhdh-version 1.5.2   --chart-branch release-1.5 --publish 
     Chart version:       1.y.z
     Developer Hub image:  registry.redhat.io/rhdh/rhdh-hub-rhel9:1.y.z
@@ -216,7 +213,7 @@ if ! command -v gh &>/dev/null; then
     sudo dnf config-manager --add-repo $ghclirepo -q && sudo dnf -y -q install gh >/dev/null 2>&1
 fi
 if ! command -v helm &>/dev/null; then
-    helmrpmrepo="https://rhsm-pulp.corp.redhat.com/content/dist/layered/rhel8/x86_64/ocp-tools/4.12/os/"
+    helmrpmrepo="https://rhsm-pulp.corp.redhat.com/content/dist/layered/rhel8/x86_64/ocp-tools/4.14/os/"
     echo "Installing helm from $helmrpmrepo ..."
     sudo dnf config-manager --add-repo $helmrpmrepo -q && sudo dnf -y -q install helm >/dev/null 2>&1
 fi
@@ -228,12 +225,12 @@ if ! command -v helm-docs &>/dev/null; then
     export PATH="$PATH:${HOME}/go/bin"
 fi
 if ! command -v oc &>/dev/null; then
-    ocrpmrepo="https://rhsm-pulp.corp.redhat.com/content/dist/layered/rhel8/x86_64/rhocp/4.12/os/"
+    ocrpmrepo="https://rhsm-pulp.corp.redhat.com/content/dist/layered/rhel8/x86_64/rhocp/4.14/os/"
     echo "Installing oc from $ocrpmrepo ..."
     sudo dnf config-manager --add-repo $ocrpmrepo -q && sudo dnf -y -q install openshift-clients >/dev/null 2>&1
 fi
 if ! command -v podman &>/dev/null; then
-    ocrpmrepo="https://rhsm-pulp.corp.redhat.com/content/dist/layered/rhel8/x86_64/rhocp/4.12/os/"
+    ocrpmrepo="https://rhsm-pulp.corp.redhat.com/content/dist/layered/rhel8/x86_64/rhocp/4.14/os/"
     echo "Installing podman from $ocrpmrepo ..."
     sudo dnf config-manager --add-repo $ocrpmrepo -q && sudo dnf -y -q install podman >/dev/null 2>&1
 fi
@@ -306,8 +303,9 @@ CHART_PATH="${HELM_DIR}/${CHART_DIR}/Chart.yaml"
 VALUES_PATH="${HELM_DIR}/${CHART_DIR}/values.yaml"
 CHART_ACTUAL_NAME=$($YQ '.name' "$CHART_PATH" | tr -d '"')
 if [[ "$CHART_ACTUAL_NAME" == "redhat-developer-hub-orchestrator-infra" ]]; then
-  echo "[INFO] Detected Orchestrator Infra chart"
-  echo "[INFO] Preserving all upstream metadata and updating only version to ${CHART_VERSION}"
+  echo "[INFO] Set Orchestrator Infra chart version to ${CHART_VERSION}"
+
+  # TODO why do we extract, escape, then set description using the same information?
   # Extract raw description as plain string
   RAW_DESC=$($YQ eval -o=json '.description' "$CHART_PATH" | jq -r '.')
   # Escape single quotes for YAML (YAML requires '' inside '...')
@@ -317,7 +315,9 @@ if [[ "$CHART_ACTUAL_NAME" == "redhat-developer-hub-orchestrator-infra" ]]; then
   $YQ 'del(.description)' "$CHART_PATH" > "$TMP_CHART"
   # Append description safely as a single-quoted YAML string
   echo "description: '$ESCAPED_DESC'" >> "$TMP_CHART"
+
   # Set .version and .name
+  # TODO: why use --inplace with a separate file when we can transform in place?
   $YQ eval ".version = \"$CHART_VERSION\"" --inplace "$TMP_CHART"
   $YQ eval ".name = \"redhat-developer-hub-orchestrator-infra\"" --inplace "$TMP_CHART"
   # Overwrite the original Chart.yaml
@@ -325,6 +325,30 @@ if [[ "$CHART_ACTUAL_NAME" == "redhat-developer-hub-orchestrator-infra" ]]; then
 fi
 
 if [[ "${CHART_NAME}" == "redhat-developer-hub" ]] || [[ "${CHART_NAME}" == "backstage" ]]; then
+
+    #####> removed in 1.7 as values were pushed upstream into rhdh-chart - RHIDP-1477, RHIDP-7529
+	if [[ -f "${SCRIPT_DIR}/Chart_patch.yaml" ]]; then 
+	    if [[ $CHART_VERSION == *"CI"* ]]; then
+	        if [[ $DEBUG -eq 1 ]]; then
+	            echo "Apply (CI Build) suffix to chart name"
+	        fi
+	        $YQ -i "
+	            . *= load(\"${SCRIPT_DIR}/Chart_patch.yaml\") |
+	            .version=\"${CHART_VERSION}\" |
+	            .appVersion=\"${RHDH_VERSION}\" |
+	            .annotations.\"charts.openshift.io/name\"=\"Red Hat Developer Hub (CI Build)\" |
+	            .description=\"A Helm chart for deploying Red Hat Developer Hub (CI Build)\"
+	        " "${CHART_PATH}"
+	    else
+	        $YQ -i "
+	            . *= load(\"${SCRIPT_DIR}/Chart_patch.yaml\") |
+	            .version=\"${CHART_VERSION}\" |
+	            .appVersion=\"${RHDH_VERSION}\"
+	        " "${CHART_PATH}"
+	    fi
+	fi
+    #####< removed in 1.7 as values were pushed upstream into rhdh-chart - RHIDP-1477, RHIDP-7529)
+
     sed -i "$CHART_PATH" -r \
     `# change .name from backstage to redhat-developer-hub` \
     -e "s/^name: backstage/name: redhat-developer-hub/" \
@@ -351,6 +375,7 @@ if [[ "${CHART_NAME}" == "redhat-developer-hub" ]] || [[ "${CHART_NAME}" == "bac
 * RHDH_DIGEST = $RHDH_DIGEST,
 * POSTGRESQL_DIGEST = $POSTGRESQL_DIGEST"
     fi
+
     if [[ $CHART_VERSION == *"CI"* ]]; then 
         $YQ -i "
         . *= load(\"${SCRIPT_DIR}/values_patch.yaml\") |
@@ -518,11 +543,11 @@ if [[ $PUBLISH -eq 1 ]]; then
         rsync -arzq "${CATALOG_DIR}/installation" "${CATALOG_DIR}-2/"
         git -C "${CATALOG_DIR}-2" add installation --sparse >/dev/null 2>&1
         CHANGED=1
-        git -C "${CATALOG_DIR}-2" commit -q --no-verify --no-gpg-sign -s -m "chore: add redhat-developer-hub-${CHART_VERSION}" || CHANGED=0
+        git -C "${CATALOG_DIR}-2" commit -q --no-verify --no-gpg-sign -s -m "chore: add ${CHART_NAME}-${CHART_VERSION}" || CHANGED=0
         if [[ $CHANGED -eq 1 ]]; then
             git -C "${CATALOG_DIR}-2" push $QUIET origin "${EXTRA_BRANCH}" -f >/dev/null 2>&1 || \
                 {
-                    echo "[ERROR] Could not push to branch redhat-developer-hub-${CHART_VERSION}: must exit!"
+                    echo "[ERROR] Could not push to branch ${CHART_NAME}-${CHART_VERSION}: must exit!"
                     exit 45
                 }
         else
@@ -543,7 +568,7 @@ if [[ $PUBLISH -eq 1 ]]; then
         pushd "${CATALOG_DIR}" >/dev/null || exit 1
         # git remote -v
         # new branch name after April 9 2024
-        for d in $(git branch -a | grep -E "remotes/.*/redhat-developer-hub" | grep "redhat-developer-hub-${RHDH_VERSION%-*}-" | grep CI | sed -r -e "s#.*remotes/[^/]+/##" | sort -V | head -n -1); do
+        for d in $(git branch -a | grep -E "remotes/.*/redhat-developer-hub" | grep "${CHART_NAME}-${RHDH_VERSION%-*}-" | grep CI | sed -r -e "s#.*remotes/[^/]+/##" | sort -V | head -n -1); do
             git push origin ":${d}" >/dev/null 2>&1
             echo "Branch $d deleted"
         done
@@ -570,10 +595,10 @@ To install this chart, run the following commands against your OCP cluster:
 
     oc new-project $HELM_PROJECT
 
-    pushd $CATALOG_DIR/charts/redhat/redhat/redhat-developer-hub/${CHART_VERSION}/ >/dev/null; \\
+    pushd ${PACKAGE_DEST}/ >/dev/null; \\
         tar xzf ${CHART_NAME}-${CHART_VERSION}.tgz && \\
         helm upgrade redhat-developer-hub -i -n $HELM_PROJECT redhat-developer-hub/; \\
-        PASSWORD=\$(kubectl get secret redhat-developer-hub-postgresql -o jsonpath=\"{.data.password}\" | base64 -d); \\
+        PASSWORD=\$(kubectl get secret ${CHART_NAME}-postgresql -o jsonpath=\"{.data.password}\" | base64 -d); \\
         CLUSTER_ROUTER_BASE=\$(oc get route console -n openshift-console -o=jsonpath='{.spec.host}' | sed 's/^[^.]*\.//'); \\
         helm upgrade redhat-developer-hub -n $HELM_PROJECT \\
         --set global.clusterRouterBase=\"\${CLUSTER_ROUTER_BASE}\" \\
