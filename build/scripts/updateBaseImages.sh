@@ -43,7 +43,7 @@ SCRIPTS_BRANCH="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || true)"
 if [[ $SCRIPTS_BRANCH != "rhdh-1."*"-rhel-9" ]]; then
 	SCRIPTS_BRANCH="rhdh-1-rhel-9"
 fi
-# where to find source branch to update, rhdh-1.y-rhel-9, 7.yy.x, etc.
+# where to find source branch to update, rhdh-1.y-rhel-9, release-1.y, etc.
 SOURCES_BRANCH=${SCRIPTS_BRANCH}
 
 SCRIPT_DIR=$(cd "$(dirname "$0")" || exit; pwd)
@@ -73,19 +73,21 @@ checkrecentupdates () {
 	# set -e
 }
 
+WORK_BRANCH="$(cd $(pwd); git rev-parse --abbrev-ref HEAD 2>/dev/null || true)"
+
 usage () {
 	echo "Usage:   $0 -b [BRANCH] [-w WORKDIR] [-f DOCKERFILE] [-maxdepth MAXDEPTH]"
-	echo "Downstream Example: $0 -b ${SOURCES_BRANCH} -w \$(pwd) -f rhel.Dockerfile -maxdepth 2"
-	echo "Upstream Examples:
-
-$0 -b 7.yy.x -w \$(pwd) -f \*ockerfile -maxdepth 5 -o 
+	echo "Examples:
+	
+  $0 -w \$(pwd) -f Containerfile\* -maxdepth 5 -o -b ${SOURCES_BRANCH}
+  $0 -w \$(pwd) -f \*ockerfile\*   -maxdepth 5 -o -b $WORK_BRANCH
 "
 	echo "Options: 
-	--sources-branch, -b  set sources branch (project to update), eg., 7.yy.x
+	--sources-branch, -b  set sources branch (project to update), eg., release-1.y
 	--scripts-branch, -sb set scripts branch (project with helper scripts), eg., rhdh-1.y-rhel-9
 	--no-commit, -n	do not commit to BRANCH
 	--no-push, -p	do not push to BRANCH
-	--tag			regex match to restrict results, eg., '1\.13|8\.[0-9]-' to find golang 1.13 (not 1.14) and any ubi 8-x- tag
+	--tag			regex match to restrict results, eg., '1\.22|9\.[0-9]-' to find golang 1.22 (not 1.24) and any ubi 9-x- tag
 	--pr			do not attempt to push directly; generate PR against BRANCH
 	-prb			set a PR_BRANCH; default: pr-new-base-images-(timestamp)
 	-o				open browser if PR generated
