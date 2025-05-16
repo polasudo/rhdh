@@ -357,7 +357,7 @@ git checkout rhdh-1.6-rhel-9
 
 ### Chart release (15 mins)
 
-. [ ] Find the latest rhdh-hub tag from https://catalog.redhat.com/software/containers/rhdh/rhdh-hub-rhel9/645bd4c15c00598369c31aba, eg., `1.5.1`
+. [ ] Find the latest rhdh-hub tag from https://catalog.redhat.com/software/containers/rhdh/rhdh-hub-rhel9/645bd4c15c00598369c31aba, eg., `1.6.1`
 +
 . [ ] link:../build/helm/prepare.sh[Push the helm chart].
 +
@@ -368,11 +368,11 @@ git config --global user.email "rhdh-bot@redhat.com"
 export GITHUB_TOKEN=ghp_***** 
 gh auth status
 
-# choose the correct branch
-git checkout rhdh-1.4-rhel-9
+# choose the correct branch: rhdh-1 branch may have changes that are not compatible with maintenance releases!
+git checkout rhdh-1.6-rhel-9
 
 # create pull request
-./build/helm/prepare.sh --chart-version 1.6.0 --rhdh-version 1.6.0 --chart-branch release-1.6 --publish
+./build/helm/prepare.sh --chart-version 1.6.1 --rhdh-version 1.6.1 --chart-branch release-1.6 --publish
 ```
 +
 You should see something like this:
@@ -393,7 +393,7 @@ https://github.com/openshift-helm-charts/charts/pull/1843
 
 . [ ] link:../build/helm/prepare.sh[Publish the Orchestrator Infra chart]
 +
-**TODO: ensure this works https://issues.redhat.com/browse/RHIDP-7489**
+**TODO: starting from 1.7.0, ensure this works https://issues.redhat.com/browse/RHIDP-7489**
 +
 The link:https://github.com/redhat-developer/rhdh-chart/tree/main/charts/orchestrator-infra[Orchestrator Infra Helm Chart] is a standalone chart that deploys the required OpenShift infrastructure to support the Orchestrator flavor of RHDH. Specifically, it installs the OpenShift Serverless Operator and Serverless Logic Operator, and applies required Knative CRDs. These components are necessary for enabling orchestration features in Red Hat Developer Hub.
 +
