@@ -33,7 +33,7 @@ ENTRYPOINT ["/bin/sh", "-c", "slnodejs run --buildsessionid ${BSID} --workspacep
 # append Brew metadata here
 ENV SUMMARY="Red Hat Developer Hub container" \
     DESCRIPTION="Red Hat Developer Hub container" \
-    UPSTREAM_REPO="https://github.com/redhat-developer/rhdh/tree/main @ 0012223d" \
+    UPSTREAM_REPO="https://github.com/redhat-developer/rhdh/tree/main @ fd769706" \
     MIDSTREAM_REPO="https://gitlab.cee.redhat.com/rhidp/rhdh/-/commits/rhdh-1-rhel-9" \
     PRODNAME="rhdh" \
     COMPNAME="hub"
