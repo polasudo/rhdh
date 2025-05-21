@@ -18,16 +18,17 @@ usage() {
   Then click on your username and select 'Copy login command' then 'Display token'
   
   Usage:
-    $0 --version <x.y.z version> --slack-webhook <webhook> [OPTIONS]
+    $0 --version <x.y.z version> --bundle-tag x.y-zzz --slack-webhook https://hooks.slack.com/services/... [OPTIONS]
   
   Options:
-    --release-state <release-state> : Release State (RC or GA) to be mentioned in the slack message. It is RC by default.
-    --bundle-tag <bundle-tag> : Tag of the operator bundle to use. If not provided, the latest operator-bundle image for the RHDH version will be used.
     --version <x.y.z version> : version of the RHDH RC or GA build. Required.
+    --bundle-tag <bundle-tag> : Operator-bundle tag to use. If not provided, will search for the the latest operator-bundle image for the RHDH version.
     --slack-webhook <webhook> : Webhook to post a message to a given channel (For webhook for #forum-rhdh-releases, see bitwarden)
+    --release-state <release-state> : Release State (RC or GA) to be mentioned in the slack message; default: RC.
 
   Example:
-    $0 --version 1.5.2 --bundle-tag 1.5-200 --slack-webhook https://hooks.slack.com/services/...
+    export SLACK_WEBHOOK=https://hooks.slack.com/services/...
+    $0 --version 1.6.1 --bundle-tag 1.6-140 --slack-webhook \$SLACK_WEBHOOK
 "
 }
 
@@ -46,10 +47,10 @@ send_slack_message() {
 }
 
 create_payload() {
-  CHART_LINK="https://github.com/rhdh-bot/openshift-helm-charts/tree/rhdh-$RHDH_VERSION-rhel-9"
-  HEADING="$RELEASE_STATE $RHDH_FULL_VERSION UPDATE"
+  HELM_INSTALL="cd /tmp; curl -sSLO https://raw.githubusercontent.com/redhat-developer/rhdh-chart/refs/heads/release-${RHDH_VERSION}/.rhdh/scripts/install.sh; chmod +x install.sh;\n./install.sh ${BUNDLE_TAG}-CI --namespace rhdh-${RHDH_FULL_VERSION//./-}-${RELEASE_STATE,,}"
+  HEADING=":announcement: $RELEASE_STATE $RHDH_FULL_VERSION is available + ready for testing :announcement:"
   BUNDLE_IMAGE="quay.io/rhdh/rhdh-operator-bundle:$BUNDLE_TAG"
-  FBC_LINK="https://quay.io/repository/rhdh/iib?tab=tags"
+  FBC_LINK="quay.io/rhdh/iib"
 
   # Create Slack payload in Block Kit format
   # See https://api.slack.com/reference/surfaces/formatting#mentioning-groups on how to mention groups and retrieve slack group IDs.
@@ -63,28 +64,28 @@ create_payload() {
 			"type": "section",
 			"text": {
 				"type": "mrkdwn",
-				"text": ":announcement: *${HEADING}*"
+				"text": "*${HEADING}*"
 			}
 		},
 		{
 			"type": "section",
 			"text": {
 				"type": "mrkdwn",
-				"text": "*Images:*\`\`\` ${IMAGE_LIST} \`\`\`"
+				"text": ":quay: *Quay Images:*\`\`\`${IMAGE_LIST}\`\`\`"
 			}
 		},
 		{
 			"type": "section",
 			"text": {
 				"type": "mrkdwn",
-				"text": ":link: *FBCs:*\n${FBC_LINK}"
+				"text": ":helm-3707: *Helm Chart Installation:*\`\`\`${HELM_INSTALL}\`\`\`"
 			}
 		},
 		{
 			"type": "section",
 			"text": {
 				"type": "mrkdwn",
-				"text": ":package: *Helm Chart Installation:*\n${CHART_LINK}"
+				"text": ":operator: *Operator Installation:* https://github.com/redhat-developer/rhdh-operator/blob/release-${RHDH_VERSION}/.rhdh/docs/installing-ci-builds.adoc (from ${FBC_LINK})"
 			}
 		},
 		{
@@ -100,6 +101,9 @@ EOF
   )
 
   echo "[INFO] PAYLOAD created"
+  # echo "==============="
+  # echo "$PAYLOAD" | jq
+  # echo "==============="
 }
 
 get_images() {
