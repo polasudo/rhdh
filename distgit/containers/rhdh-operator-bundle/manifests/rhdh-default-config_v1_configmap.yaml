@@ -87,7 +87,7 @@ data:
                   value: /var/lib/pgsql/data
                 - name: PGDATA
                   value: /var/lib/pgsql/data/userdata
-              image: registry.redhat.io/rhel9/postgresql-15@sha256:7d9e3e155744cb1d6dad73a0b54b4e403fd2979733b206e2870d9c9544122f64
+              image: registry.redhat.io/rhel9/postgresql-15@sha256:ddf4827c9093a0ec93b5b4f4fd31b009c7811c38a406187400ab448579036c6c
               imagePullPolicy: IfNotPresent
               securityContext:
                 # runAsUser:26 does not work for Openshift but looks work for AKS/EKS
@@ -224,7 +224,7 @@ data:
                 - ./install-dynamic-plugins.sh
                 - /dynamic-plugins-root
               # image will be replaced by the value of the `RELATED_IMAGE_backstage` env var, if set
-              image: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:32282691495fd9d8327f61ecf578ef1ec8c2ce2b2e3d4b3d1ff104f8bfb1add5
+              image: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:ba9958750b4ab6f5cde6d0b0f0a5e421659270576ae302be7a142f2915ba7d28
               imagePullPolicy: IfNotPresent
               securityContext:
                 readOnlyRootFilesystem: true
@@ -238,6 +238,8 @@ data:
               env:
                 - name: NPM_CONFIG_USERCONFIG
                   value: /opt/app-root/src/.npmrc.dynamic-plugins
+                - name: MAX_ENTRY_SIZE
+                  value: "30000000"
               volumeMounts:
                 - mountPath: /dynamic-plugins-root
                   name: dynamic-plugins-root
@@ -264,7 +266,7 @@ data:
           containers:
             - name: backstage-backend
               # image will be replaced by the value of the `RELATED_IMAGE_backstage` env var, if set
-              image: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:32282691495fd9d8327f61ecf578ef1ec8c2ce2b2e3d4b3d1ff104f8bfb1add5
+              image: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:ba9958750b4ab6f5cde6d0b0f0a5e421659270576ae302be7a142f2915ba7d28
               imagePullPolicy: IfNotPresent
               args:
                 - "--config"
@@ -348,28 +350,72 @@ data:
           securityContext:
             # any group id
             fsGroup: 1001
-  dynamic-plugins.yaml: |-
+  dynamic-plugins.yaml: |
+    #apiVersion: v1
+    #kind: ConfigMap
+    #metadata:
+    #  name: default-dynamic-plugins #  must be the same as (deployment.yaml).spec.template.spec.volumes.name.dynamic-plugins-conf.configMap.name
+    #data:
+    #  "dynamic-plugins.yaml": |
+    #    ###########################################################################################################
+    #    # /!\ WARNING
+    #    #
+    #    # This is the default dynamic plugins configuration file created and managed by the Operator for your CR.
+    #    # Do NOT edit this manually in the Cluster, as your changes will be overridden by the Operator upon the
+    #    # next reconciliation.
+    #    # If you want to customize the dynamic plugins, you should create your own dynamic-plugins ConfigMap
+    #    # and reference it in your CR.
+    #    # See https://docs.redhat.com/en/documentation/red_hat_developer_hub/1.4/html/installing_and_viewing_plugins_in_red_hat_developer_hub/rhdh-installing-rhdh-plugins_title-plugins-rhdh-about#proc-config-dynamic-plugins-rhdh-operator_rhdh-installing-rhdh-plugins
+    #    # for more details or https://github.com/redhat-developer/rhdh-operator/blob/main/examples/rhdh-cr.yaml
+    #    # for an example.
+    #    ###########################################################################################################
+    #    includes:
+    #      - dynamic-plugins.default.yaml
+    #    plugins: []
+    #---
     apiVersion: v1
     kind: ConfigMap
     metadata:
-      name: default-dynamic-plugins #  must be the same as (deployment.yaml).spec.template.spec.volumes.name.dynamic-plugins-conf.configMap.name
+      name: default-dynamic-plugins
     data:
-      "dynamic-plugins.yaml": |
-        ###########################################################################################################
-        # /!\ WARNING
-        #
-        # This is the default dynamic plugins configuration file created and managed by the Operator for your CR.
-        # Do NOT edit this manually in the Cluster, as your changes will be overridden by the Operator upon the
-        # next reconciliation.
-        # If you want to customize the dynamic plugins, you should create your own dynamic-plugins ConfigMap
-        # and reference it in your CR.
-        # See https://docs.redhat.com/en/documentation/red_hat_developer_hub/1.4/html/installing_and_viewing_plugins_in_red_hat_developer_hub/rhdh-installing-rhdh-plugins_title-plugins-rhdh-about#proc-config-dynamic-plugins-rhdh-operator_rhdh-installing-rhdh-plugins
-        # for more details or https://github.com/redhat-developer/rhdh-operator/blob/main/examples/rhdh-cr.yaml
-        # for an example.
-        ###########################################################################################################
+      dynamic-plugins.yaml: |
         includes:
           - dynamic-plugins.default.yaml
-        plugins: []
+        plugins:
+          - disabled: true
+            package: "https://github.com/rhdhorchestrator/orchestrator-plugins-internal-release/releases/download/v1.5.1/backstage-plugin-orchestrator-1.5.1.tgz"
+            integrity: sha512-7VOe+XGTUzrdO/av0DNHbydOjB3Lo+XdCs6fj3JVODLP7Ypd3GXHf/nssYxG5ZYC9F1t9MNeguE2bZOB6ckqTA==
+            pluginConfig:
+              dynamicPlugins:
+                  frontend:
+                    red-hat-developer-hub.backstage-plugin-orchestrator:
+                      appIcons:
+                        - importName: OrchestratorIcon
+                          module: OrchestratorPlugin
+                          name: orchestratorIcon
+                      dynamicRoutes:
+                        - importName: OrchestratorPage
+                          menuItem:
+                            icon: orchestratorIcon
+                            text: Orchestrator
+                          module: OrchestratorPlugin
+                          path: /orchestrator
+          - disabled: true
+            package: "https://github.com/rhdhorchestrator/orchestrator-plugins-internal-release/releases/download/v1.5.1/backstage-plugin-orchestrator-backend-dynamic-1.5.1.tgz"
+            integrity: sha512-VIenFStdq9QvvmgmEMG8O7b2wqIebvEcqNeJ9SWZ8jen9t+efTK6D3Rde74LQ1no1QaHLx8RoxNCOuTUEF8O/g==
+            pluginConfig:
+              orchestrator:
+                dataIndexService:
+                  url: http://sonataflow-platform-data-index-service
+            dependencies:
+              - ref: sonataflow
+          - disabled: true
+            package: "https://github.com/rhdhorchestrator/orchestrator-plugins-internal-release/releases/download/v1.5.1/backstage-plugin-scaffolder-backend-module-orchestrator-dynamic-1.5.1.tgz"
+            integrity: sha512-bnVQjVsUZ470Vgm2kd5Lo/bVa2fF0q4GufBDc/8oTQsnP3zZJQqKFvFElBTCjY76RqkECydlvZ1UFybSzvockQ==
+            pluginConfig:
+              orchestrator:
+                dataIndexService:
+                  url: http://sonataflow-platform-data-index-service
   route.yaml: |-
     apiVersion: route.openshift.io/v1
     kind: Route
@@ -385,15 +431,6 @@ data:
       to:
         kind: Service
         name:  # placeholder for 'backstage-<cr-name>'
-  secret-envs.yaml: |
-    apiVersion: v1
-    kind: Secret
-    metadata:
-      name: backend-auth-secret
-    stringData:
-      # generated with the command below (from https://janus-idp.io/docs/auth/service-to-service-auth/#setup):
-      # node -p 'require("crypto").randomBytes(24).toString("base64")'
-      BACKEND_SECRET: "R2FxRVNrcmwzYzhhN3l0V1VRcnQ3L1pLT09WaVhDNUEK" # notsecret
   service.yaml: |-
     apiVersion: v1
     kind: Service

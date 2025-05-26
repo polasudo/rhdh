@@ -38,8 +38,8 @@ metadata:
     capabilities: Seamless Upgrades
     categories: Developer Tools
     certified: "true"
-    containerImage: registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:01f3b3a248f2b902ceeba23e464bbb3b6d355f9e19e67e445cf2d196ec2cf7c9
-    createdAt: "2025-04-25T07:39:52Z"
+    containerImage: registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:e703d34f39cf79679503ad0e8f4ed13bdc79560478ad1cd360d2e0e4e7a7e6d0
+    createdAt: "2025-05-21T20:27:25Z"
     description: Red Hat Developer Hub is a Red Hat supported version of Backstage.
       It comes with pre-built plug-ins and configuration settings, supports use of
       an external database, and can help streamline the process of setting up a self-managed
@@ -200,6 +200,44 @@ spec:
           - update
           - watch
         - apiGroups:
+          - sonataflow.org
+          resources:
+          - sonataflowplatforms
+          - sonataflows
+          verbs:
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
+          - watch
+        - apiGroups:
+          - networking.k8s.io
+          resources:
+          - networkpolicies
+          verbs:
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
+          - watch
+        - apiGroups:
+          - operator.knative.dev
+          resources:
+          - knativeeventings
+          - knativeservings
+          verbs:
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
+          - watch
+        - apiGroups:
           - authentication.k8s.io
           resources:
           - tokenreviews
@@ -263,10 +301,10 @@ spec:
                     fieldRef:
                       fieldPath: metadata.name
                 - name: RELATED_IMAGE_postgresql
-                  value: registry.redhat.io/rhel9/postgresql-15@sha256:7d9e3e155744cb1d6dad73a0b54b4e403fd2979733b206e2870d9c9544122f64
+                  value: registry.redhat.io/rhel9/postgresql-15@sha256:ddf4827c9093a0ec93b5b4f4fd31b009c7811c38a406187400ab448579036c6c
                 - name: RELATED_IMAGE_backstage
-                  value: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:32282691495fd9d8327f61ecf578ef1ec8c2ce2b2e3d4b3d1ff104f8bfb1add5
-                image: registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:01f3b3a248f2b902ceeba23e464bbb3b6d355f9e19e67e445cf2d196ec2cf7c9
+                  value: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:ba9958750b4ab6f5cde6d0b0f0a5e421659270576ae302be7a142f2915ba7d28
+                image: registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:e703d34f39cf79679503ad0e8f4ed13bdc79560478ad1cd360d2e0e4e7a7e6d0
                 livenessProbe:
                   httpGet:
                     path: /healthz
@@ -302,6 +340,8 @@ spec:
                 volumeMounts:
                 - mountPath: /default-config
                   name: default-config
+                - mountPath: /plugin-deps
+                  name: plugin-deps
               securityContext:
                 runAsNonRoot: true
               serviceAccountName: rhdh-controller-manager
@@ -310,6 +350,10 @@ spec:
               - configMap:
                   name: rhdh-default-config
                 name: default-config
+              - configMap:
+                  name: rhdh-plugin-deps
+                  optional: true
+                name: plugin-deps
       permissions:
       - rules:
         - apiGroups:
@@ -377,9 +421,9 @@ spec:
     name: Red Hat Inc.
     url: https://www.redhat.com/
   relatedImages:
-  - image: registry.redhat.io/rhel9/postgresql-15@sha256:7d9e3e155744cb1d6dad73a0b54b4e403fd2979733b206e2870d9c9544122f64
+  - image: registry.redhat.io/rhel9/postgresql-15@sha256:ddf4827c9093a0ec93b5b4f4fd31b009c7811c38a406187400ab448579036c6c
     name: postgresql
-  - image: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:32282691495fd9d8327f61ecf578ef1ec8c2ce2b2e3d4b3d1ff104f8bfb1add5
+  - image: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:ba9958750b4ab6f5cde6d0b0f0a5e421659270576ae302be7a142f2915ba7d28
     name: backstage
   replaces: rhdh-operator.v1.6.0
   version: 1.7.0
