@@ -64,8 +64,13 @@
           "skipRange": "<1.4.3"
         },
         {
-          "name": "rhdh-operator.v1.7.0",
+          "name": "rhdh-operator.v1.6.0",
           "replaces": "rhdh-operator.v1.5.1",
+          "skipRange": "<1.6.0"
+        },
+        {
+          "name": "rhdh-operator.v1.7.0",
+          "replaces": "rhdh-operator.v1.6.0",
           "skipRange": "<1.7.0"
         }
       ],
@@ -196,6 +201,18 @@
       "schema": "olm.channel"
     },
     {
+      "entries": [
+        {
+          "name": "rhdh-operator.v1.6.0",
+          "replaces": "rhdh-operator.v1.5.1",
+          "skipRange": "<1.6.0"
+        }
+      ],
+      "name": "fast-1.6",
+      "package": "rhdh",
+      "schema": "olm.channel"
+    },
+    {
       "schema": "olm.bundle",
       "image": "registry.redhat.io/rhdh/rhdh-operator-bundle@sha256:2abaeacfa8fd744579e44e4b320086a8678094dd92eb24825c05f43617384529"
     },
@@ -260,10 +277,14 @@
       "image": "registry.redhat.io/rhdh/rhdh-operator-bundle@sha256:c870eb3d17807a9d04011df5244ea39db66af76aefd0af68244c95ed8322d8b5"
     },
     {
+      "schema": "olm.bundle",
+      "image": "registry.redhat.io/rhdh/rhdh-operator-bundle@sha256:3da4799b9a79f688ca55ec85d0b3e28348dbc2661e82110aedbf27dfa97f49e1"
+    },
+    {
       "entries": [
         {
           "name": "rhdh-operator.v1.7.0",
-          "replaces": "rhdh-operator.v1.5.1",
+          "replaces": "rhdh-operator.v1.6.0",
           "skipRange": "<1.7.0"
         }
       ],
@@ -273,7 +294,7 @@
     },
     {
       "schema": "olm.bundle",
-      "image": "quay.io/rhdh/rhdh-operator-bundle-sealights@sha256:1b7fc6581f001569645ea2f43d900662cd6cbddf028a911b0085f37307581ca4"
+      "image": "quay.io/rhdh/rhdh-operator-bundle-sealights@sha256:ae65e2832395ae9ddea2833147f115307bfe8cef84fea852f813a00cc91eddd6"
     }
   ]
 }
