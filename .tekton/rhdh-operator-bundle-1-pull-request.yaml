@@ -642,7 +642,8 @@ spec:
       optional: true
     - name: netrc
       optional: true
-  taskRunTemplate: {}
+  taskRunTemplate::
+    build-pipeline-rhdh-operator-bundle-1
   workspaces:
   - name: workspace
     volumeClaimTemplate:
