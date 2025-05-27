@@ -23,6 +23,8 @@ BUNDLE_TAG_OR_SHA=""
 SNAPSHOT_OVERRIDE=""
 midstreamCommitSHA=""
 CVEListFile="" # full path to a .csv file containing CVE ids and container references
+advisoryType=""
+RHBA_JIRA=""
 
 norm="\033[0;39m"
 green="\033[1;32m"
@@ -62,9 +64,12 @@ Usage - for container snapshots:
 
 $0 --stage -c rhdh-operator-bundle -v $RHDH_FULL_VERSION_INPUT --cve /tmp/RHDH\ CVE\ Management\ -\ $RHDH_FULL_VERSION_INPUT.csv --debug 
 $0 --prod  -c rhdh-operator-bundle:1.5-187 -v 1.5.1 --cve /tmp/RHDH\ CVE\ Management\ -\ 1.5.1.csv
+$0 --prod  -c rhdh-operator-bundle:1.6-140 -v 1.6.1 --rhba RHIDP-7413
 
 Options:
   --cve              Full path to the CVE list file to use for the container Release, eg., /tmp/RHDH\ CVE\ Management\ -\ 1.y.z.csv
+  --rhba             If there are no CVEs fixed in this release, use this flag instead with the JIRA for the release
+
   --stage, --prod    Push to the stage or prod version of the RH Ecosystem Catalog
   -c                 Space-separated list of containers to release
                      use \"rhdh-operator-bundle:1.y-zzz\" to release a specific bundle and its operands (hub + operator); or,
@@ -156,6 +161,7 @@ while [[ "$#" -gt 0 ]]; do
     '--commit')   midstreamCommitSHA="$2"; shift 1;;
     '-c') CONTAINER="$2"; shift 1;;
     '--cve') CVEListFile="$2"; shift 1;;
+    '--rhba') advisoryType="RHBA"; RHBA_JIRA="$2"; shift 1;;
     *) usage; usageContainers; usageFBCs; echo; echo -e "${red}[ERROR] Unknown flag ${1}${norm}"; exit 1;;
   esac
   shift 1
@@ -190,6 +196,11 @@ if [[ ! $DEST ]]; then
   if [[ $CONTAINER ]]; then usageContainers; fi
   if [[ $BUNDLE_TAG_OR_SHA ]]; then usageFBCs; fi;
   echo; echo -e "${red}[ERROR] Must specify --stage or --prod to perfom a release!${norm}"; exit 1
+fi
+
+if [[ $CVEListFile ]] && [[ ! -f $CVEListFile ]]; then
+  usageContainers
+  echo; echo -e "${red}[ERROR] Could not find file --cve $CVEListFile${norm}"; exit 1
 fi
 
 ######################################################################################################################
@@ -357,9 +368,42 @@ for SNAPSHOT in $SNAPSHOTS; do
     fi
     rm -f "/tmp/imagelist_$SNAPSHOT.txt" "/tmp/imagelist_bundle_latest_$RHDH_VERSION.txt"
 
-    # compute $cves_yaml and $references_yaml
-    getCVElist "$CVEListFile"
-    
+    # by default assume we're doing a RHSA, unless the --rhba flag is set
+    if [[ $CVEListFile ]] && [[ ! $advisoryType ]]; then
+      # compute $cves_yaml and $references_yaml
+      getCVElist "$CVEListFile"
+      if [[ $cves_yaml != "" ]] || [[ $references_yaml != "" ]]; then
+        refs_cnt=0
+        for ref in $references_yaml; do 
+          if [[ $ref != "-" ]]; then (( refs_cnt = refs_cnt + 1 )); fi 
+        done
+        echo -e "${green}\n[INFO] Found $refs_cnt CVEs to include in this release${norm}"
+        if [[ $DEBUG -eq 1 ]]; then
+          for ref in $references_yaml; do
+            if [[ $ref != "-" ]]; then echo "        > ${ref//\"}"; fi
+          done
+        fi
+        advisoryType="RHSA"
+        # prepend section header only for RHSA as an empty .cves section will confuse conforma
+        cves_yaml="      cves:
+$cves_yaml"
+      else
+        echo -e "${red}\n[ERROR] Could not find CVEs in $CVEListFile to include in this release. If this is expected, omit the --cve flag and run this script again with the --rhba filag.${norm}"
+        exit 1
+      fi
+    else
+      if [[ $advisoryType == "RHBA" ]]; then
+        echo -e "${green}\n[INFO] Advisory set to RHBA with fixed issue $RHBA_JIRA${norm}"
+        references_yaml="$references_yaml
+        - \"https://issues.redhat.com/browse/$RHBA_JIRA\""
+        advisoryType="${advisoryType}
+      issues:
+        fixed:
+          - id: $RHBA_JIRA
+            source: issues.redhat.com"
+      fi
+    fi
+
     echo
     cat << EOT > "/tmp/release-${SNAPSHOT}-${DEST}-${TS}.yaml"
 apiVersion: appstudio.redhat.com/v1alpha1
@@ -376,20 +420,13 @@ spec:
     releaseNotes:
       synopsis: Red Hat Developer Hub ${RHDH_FULL_VERSION//-/.} release.
       topic: Red Hat Developer Hub ${RHDH_FULL_VERSION//-/.} has been released.
-      type: RHSA
+      type: $advisoryType
       references: 
         - "https://developers.redhat.com/rhdh/overview"
         - "https://docs.redhat.com/en/documentation/red_hat_developer_hub"
         - "https://catalog.redhat.com/search?gs&searchType=containers&q=rhdh"
-        # add CVE links here
-        # - https://access.redhat.com/security/cve/CVE-2024-12345
-        # - https://access.redhat.com/security/cve/CVE-2024-23456 $references_yaml
-      cves:
-      # add CVEs here
-      #   - key: CVE-2024-12345
-      #     component: rhdh-hub-1-y
-      #  - key: CVE-2024-23456
-      #    component: rhdh-operator-1-y $cves_yaml
+$references_yaml
+$cves_yaml
 EOT
     # if [[ $DEBUG -eq 1 ]]; then cat "/tmp/release-${SNAPSHOT}-${DEST}-${TS}.yaml"; fi
     if [[ $AUTORELEASE -eq 1 ]]; then
