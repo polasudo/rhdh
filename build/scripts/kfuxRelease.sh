@@ -13,7 +13,7 @@ DEBUG=0 # quieter
 AUTORELEASE=0 # for FBCs only, automatically release once yaml is generated; for container releases, must apply yaml manually (so you can verify the CVE list is correct!)
 FORCE=0 # normally, don't do a release if images already exist on reg.rh.io -- they should ONLY be on quay.io. This will create a second RHSA advisory for the same images, so talk to @rogue before using this option
 
-RHDH_FULL_VERSION_INPUT="1.5.2"
+RHDH_FULL_VERSION_INPUT="1.7.0"
 
 CONTAINER=""
 DEST=""
@@ -95,36 +95,17 @@ Usage - for IIB / FBC updates:
 
 oc login ...
 
-# 1. render new catalogs
-LATEST_CSV=$RHDH_FULL_VERSION_INPUT
-for v in 4.14 4.15 4.16 4.17 4.18; do
-  # while using quay.io/rhdh is fine for CI and stage builds, must switch to GA image
-  # reference to avoid warning-failures from blocking the release with '--rhec' flag
-  ./build/scripts/renderCatalogs.sh --latest --clean -v \${LATEST_CSV} --versions \$v \\
-    --template catalogs/v\${v}/catalog-template.json --rhec
- echo 'Sleep 1 min to avoid Konflux tag collisions'; sleep 60s; echo; 
-done
+# 1. render new catalogs using the --rhec flag
+./build/scripts/renderCatalogs.sh -v $RHDH_FULL_VERSION_INPUT --default-sealights --rhec
 
-# 2. review FBC build completion at https://konflux-ui.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/ns/rhdh-tenant/applications/fbc-4-17/activity/pipelineruns (and fbc-4-16, etc.)
+# 2. once fully rendered at https://konflux-ui.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/ns/rhdh-tenant/applications/fbc-4-18/activity/pipelineruns 
+#    (and other supported versions), you can run this script!
 
-# 3. For a stage push, get the chosen RHDH Operator Bundle tag or SHA from https://quay.io/repository/rhdh/rhdh-operator-bundle?tab=tags
+# 3a. for releasing FBCs after containers are already live
+$0 --prod   --fbc :1.7.0 --debug --auto
 
-# 4. For a production push, get the latest RHDH Operator Bundle tag or SHA from https://catalog.redhat.com/software/containers/rhdh/rhdh-operator-bundle/64bfdcd740aa90644e579cc6
-
-# 5. Now you're ready to run this script!
-
-$0 --stage  --fbc :1.3-133 -v 1.3.4 -o \"4.14 4.15 ...\" --auto --debug
-$0 --prod   --fbc :1.3-133 -v 1.3.4 -o \"4.14 4.15 ...\"
-
-# for an unreleased RC build
-$0 --stage  --fbc :1.4-191 -v 1.4.2 --debug
-
-# for releasing FBCs after containers are already live
-$0 --stage  --fbc :1.4.2   -v 1.4.2 --debug
-$0 --prod   --fbc :1.4.2   -v 1.4.2 --debug
-
-# or use SHA
-$0 --prod   --fbc @sha256:2981d2470951ea1e26eb968aefc39ab48ab7d9634a520cf2bbd8c5fef313db15 -v $RHDH_FULL_VERSION_INPUT
+# 3b. or use SHA
+$0 --prod   --fbc @sha256:2981d2470951ea1e26eb968aefc39ab48ab7d9634a520cf2bbd8c5fef313db15 -v 1.7.0 --auto
 
 
 Options:
@@ -184,11 +165,17 @@ if [[ ! $CONTAINER ]] && [[ ! $BUNDLE_TAG_OR_SHA ]]; then
   usage; usageContainers; usageFBCs; echo; echo -e "${red}[ERROR] Must specify '-c rhdh-operator-bundle', or for FBCs, use a bundle image tag with --fbc :1.y-zzz to perfom a release!${norm}"; exit 1
 fi
 
-if [[ ! $RHDH_FULL_VERSION ]]; then 
-  usage; 
-  if [[ $CONTAINER ]] || [[ -f $CVEListFile ]]; then usageContainers; fi
-  if [[ $BUNDLE_TAG_OR_SHA ]]; then usageFBCs; fi;
-  echo; echo -e "${red}[ERROR] Must specify full RHDH version with -v x.y.z to perfom a release!${norm}"; exit 1
+if [[ ! $RHDH_FULL_VERSION ]]; then
+  # if --fbc flag used and NOT using the @digest form, we can deduce the RHDH_FULL_VERSION from that to save typing
+  if [[ $BUNDLE_TAG_OR_SHA ]] && [[ $BUNDLE_TAG_OR_SHA != "@sha256:"* ]]; then 
+    RHDH_FULL_VERSION=${BUNDLE_TAG_OR_SHA/:}
+    echo -e "\n${blue}[WARNING] Using RHDH version = $RHDH_FULL_VERSION\n[WARNING] If this is incorrect, hit CTRL-C to cancel, and set an override with the -v flag.\n${norm}"
+  else
+    usage; 
+    if [[ $CONTAINER ]] || [[ -f $CVEListFile ]]; then usageContainers; fi
+    if [[ $BUNDLE_TAG_OR_SHA ]]; then usageFBCs; fi
+    echo; echo -e "${red}[ERROR] Must specify full RHDH version with -v x.y.z (or --fbc :x.v.z) to perfom a release!${norm}"; exit 1
+  fi
 fi
 
 if [[ ! $DEST ]]; then 
