@@ -1,34 +1,37 @@
 ARG PRISTINE_IMAGE
 FROM $PRISTINE_IMAGE AS sealights
 
-# hadolint ignore=DL3002
-USER 0
-
 ARG BSID AGENT_VERSION
 
-ENV BSID=${BSID} AGENT_VERSION=${AGENT_VERSION} \
-    SEALIGHTS_TOKEN_FILE=/opt/app-root/src/sl-token NODE_DEBUG=sl FRONTEND_BUILD_DIR=dist SL_FRONTEND_BUILD_DIR=sl_dist
+ENV SL_buildSessionId=${BSID} AGENT_VERSION=${AGENT_VERSION} \
+    SL_tokenFile=/opt/app-root/src/sltoken.txt NODE_DEBUG=sl FRONTEND_BUILD_DIR=dist SL_FRONTEND_BUILD_DIR=sl_dist
 
 RUN npm install -g slnodejs@${AGENT_VERSION}
 
 USER root
-RUN --mount=type=secret,id=sealights-credentials/token cp /run/secrets/sealights-credentials/token $SEALIGHTS_TOKEN_FILE
-RUN chmod +r ${SEALIGHTS_TOKEN_FILE}
+RUN --mount=type=secret,id=sealights-credentials/token cp /run/secrets/sealights-credentials/token $SL_tokenFile
+RUN chmod +r ${SL_tokenFile}
+RUN chown 1001 ${SL_tokenFile}
 USER 1001
 
-RUN slnodejs scan --tokenfile $SEALIGHTS_TOKEN_FILE --buildsessionid $BSID --scm none --instrumentForBrowsers \
+RUN slnodejs scan --tokenfile $SL_tokenFile --buildsessionid $SL_buildSessionId --scm none --instrumentForBrowsers \
     --projectroot "$CONTAINER_SOURCE" --excludedpaths webpack --workspacepath "$CONTAINER_SOURCE/packages/app/${FRONTEND_BUILD_DIR}" \
     --outputpath "$CONTAINER_SOURCE/packages/app/${SL_FRONTEND_BUILD_DIR}" --uniqueModuleId frontend
 
-RUN slnodejs scan --tokenfile $SEALIGHTS_TOKEN_FILE --buildsessionid $BSID --scm none \
+RUN slnodejs scan --tokenfile $SL_tokenFile --buildsessionid $SL_buildSessionId --scm none \
     --projectroot "$CONTAINER_SOURCE" --workspacepath "$CONTAINER_SOURCE/packages/backend" --uniqueModuleId backend
 
-RUN slnodejs buildend --buildsessionid $BSID --tokenfile $SEALIGHTS_TOKEN_FILE --ok
+RUN slnodejs buildend --buildsessionid $SL_buildSessionId --tokenfile $SL_tokenFile --ok
 
 RUN rm -rf "$CONTAINER_SOURCE/packages/app/${FRONTEND_BUILD_DIR}" && \
     mv "$CONTAINER_SOURCE/packages/app/${SL_FRONTEND_BUILD_DIR}" "$CONTAINER_SOURCE/packages/app/${FRONTEND_BUILD_DIR}"
 
-ENTRYPOINT ["/bin/sh", "-c", "slnodejs run --buildsessionid ${BSID} --workspacepath . --useinitialcolor true --tokenfile ${SEALIGHTS_TOKEN_FILE} -- --require ./instrumentation.js packages/backend --config app-config.yaml --config app-config.example.yaml --config app-config.example.production.yaml"]
+RUN echo ${SL_buildSessionId} > buildSessionId
+
+ENV NODE_OPTIONS="${NODE_OPTIONS} --require /opt/app-root/src/.npm-global/lib/node_modules/slnodejs/lib/preload.js" \
+    SL_workspacepath="." \
+    SL_useinitialcolor="true" \
+    SL_buildSessionIdFile="/opt/app-root/src/buildSessionId"
 
 # append Brew metadata here
 ENV SUMMARY="Red Hat Developer Hub container" \

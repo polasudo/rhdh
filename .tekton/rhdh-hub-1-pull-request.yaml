@@ -340,7 +340,7 @@ spec:
         - name: kind
           value: task
         resolver: bundles
-      timeout: 15m
+      timeout: 30m
       when:
       - input: $(tasks.init.results.build)
         operator: in
