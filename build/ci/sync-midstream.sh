@@ -1138,7 +1138,6 @@ for d in $these_dirs; do
     set +x
     ##################################### set NVR values for Konflux #####################################
 
-
     ##################################### fix SEGMENT_WRITE_KEY for rhdh-1.y branches ONLY ##################################### 
     if [[ $d == "distgit/containers/rhdh-hub" ]] && [[ $DWNSTM_BRANCH == "rhdh-1."*"-rhel-9" ]]; then
         sed -i Containerfile -r -e "s|(.*SEGMENT_WRITE_KEY=).*|\1$SEGMENT_WRITE_KEY|g"
@@ -1308,6 +1307,34 @@ echo "$gitdiff" > "/tmp/sync-midstream.sh.diff.txt"
     # RHIDP-4220 konflux preflight check 
     rsync -Azq licenses/* distgit/containers/${d}/licenses/
   done
+
+  ##################################################################
+  # pre-commit tests for content validity -- add more here as needed
+  ##################################################################
+  
+  # RHIDP-7644 verify segment key is correct based on branch
+  c="distgit/containers/rhdh-hub/Containerfile"
+  if [[ -f "$c" ]]; then
+    # for stable branches rhdh-1.y, want the above PROD segment key
+    if [[ $DWNSTM_BRANCH == "rhdh-1."*"-rhel-9" ]] && [[ $(grep -c "SEGMENT_WRITE_KEY=$SEGMENT_WRITE_KEY" "$c") -lt 1 ]]; then 
+      # prod key not found, must exit
+      echo "[ERROR] Could not find SEGMENT_WRITE_KEY=$SEGMENT_WRITE_KEY in distgit/containers/rhdh-hub/Containerfile for branch $DWNSTM_BRANCH - must exit."
+      echo "[ERROR] Please ensure the prod key is used in stable 1.y branch builds, not the dev key!"
+      exit 4
+    elif [[ $DWNSTM_BRANCH == "rhdh-1-rhel-9" ]] && [[ $(grep -c "SEGMENT_WRITE_KEY=gGVM6sYRK0D0ndVX22BOtS7NRcxPej8t" "$c") -lt 1 ]]; then 
+      # dev key not found, must exit
+      echo "[ERROR] Could not find SEGMENT_WRITE_KEY=gGVM6sYRK0D0ndVX22BOtS7NRcxPej8t in distgit/containers/rhdh-hub/Containerfile for branch $DWNSTM_BRANCH - must exit."
+      echo "[ERROR] Please ensure the dev key is used in 1.next CI branch builds, not the prod key!"
+      exit 5
+    elif [[ $DWNSTM_BRANCH == "rhdh-1-rhel-9" ]] && [[ $(grep -c "SEGMENT_WRITE_KEY=$SEGMENT_WRITE_KEY" "$c") -eq 1 ]]; then 
+      # dev key not found, must exit
+      echo "[ERROR] Prod key SEGMENT_WRITE_KEY=$SEGMENT_WRITE_KEY not allowed in distgit/containers/rhdh-hub/Containerfile for branch $DWNSTM_BRANCH - must exit."
+      echo "[ERROR] Please ensure the dev key gGVM6sYRK0D0ndVX22BOtS7NRcxPej8t is used in 1.next CI branch builds, not the prod key!"
+      exit 6
+    else
+      echo "[INFO] Correctly set SEGMENT_WRITE_KEY in $c for branch $DWNSTM_BRANCH: $(grep "SEGMENT_WRITE_KEY=$SEGMENT_WRITE_KEY" "$c")"
+    fi
+  fi
 
   #################################################################
   # first commit: update any changed files, plus sync/upstream_SHA*
