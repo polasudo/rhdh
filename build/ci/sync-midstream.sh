@@ -30,6 +30,9 @@ TMPDIR=/tmp
 # Ignore husky warnings
 HUSKY=0; export HUSKY
 
+# RH production key, to use only in rhdh-1.yy-rhel-9 stable branches; otherwise use the devel key for main
+SEGMENT_WRITE_KEY="mUr49Tkld5bj1lFFPxxqHrAzkQMRINvF"
+
 # branding configuration
 APPTITLE="Red Hat Developer Hub"
 APPDESCRIPTION="A Red Hat supported version of Backstage, available as container image. Includes pre-built plug-ins, settings, and deployment details, to help streamline setting up a self-managed internal developer portal for new adopters"
@@ -1085,7 +1088,7 @@ for d in $these_dirs; do
 
     ## generate Containerfile for Konflux
     if [[ $d == "distgit/containers/rhdh-hub" ]] && [[ " ${SKIPPED_CONTAINERS[*]} " != *"rhdh-hub/"* ]]; then
-      cp -f "Dockerfile" Containerfile
+      cp -f Dockerfile Containerfile
     elif [[ $d == "distgit/containers/rhdh-operator" ]] && [[ " ${SKIPPED_CONTAINERS[*]} " != *"rhdh-operator/"* ]]; then
       # for operator use the transformed Dockerfile.in with the correct LABEL and ENV  values
       cp -f Dockerfile Containerfile
@@ -1126,7 +1129,7 @@ for d in $these_dirs; do
     fi
     # when bootstrapping the first builds for a new 1.yy stream, use just 1.yy-1
     if [[ $nextReleaseNum -eq 0 ]]; then nextReleaseNum=1; fi
-    echo "Set image version and release: $image:$DH_VERSION-$nextReleaseNum"
+    echo "[INFO] Set image version and release: $image:$DH_VERSION-$nextReleaseNum"
     for CONTAINERFILE in Containerfile Containerfile.sealights; do
       if [[ -f $CONTAINERFILE ]]; then
         sed -r -e 's|\$\{RELEASE_NUMBER\}|'"$nextReleaseNum"'|' -i $CONTAINERFILE
@@ -1134,6 +1137,14 @@ for d in $these_dirs; do
     done
     set +x
     ##################################### set NVR values for Konflux #####################################
+
+
+    ##################################### fix SEGMENT_WRITE_KEY for rhdh-1.y branches ONLY ##################################### 
+    if [[ $d == "distgit/containers/rhdh-hub" ]] && [[ $DWNSTM_BRANCH == "rhdh-1."*"-rhel-9" ]]; then
+        sed -i Containerfile -r -e "s|(.*SEGMENT_WRITE_KEY=).*|\1$SEGMENT_WRITE_KEY|g"
+        echo "[INFO] Use SEGMENT_WRITE_KEY = $SEGMENT_WRITE_KEY for branch $DWNSTM_BRANCH"
+    fi
+    ##################################### fix SEGMENT_WRITE_KEY for rhdh-1.y branches ONLY ##################################### 
 
     ##################################### update the RPM lock files to make Cachi2 and ECP happy ##################################### 
     if [[ $d == "distgit/containers/rhdh-hub" ]] || [[ $d == "distgit/containers/rhdh-operator" ]]; then
