@@ -1332,7 +1332,7 @@ echo "$gitdiff" > "/tmp/sync-midstream.sh.diff.txt"
       echo "[ERROR] Please ensure the dev key gGVM6sYRK0D0ndVX22BOtS7NRcxPej8t is used in 1.next CI branch builds, not the prod key!"
       exit 6
     else
-      echo "[INFO] Correctly set SEGMENT_WRITE_KEY in $c for branch $DWNSTM_BRANCH: $(grep "SEGMENT_WRITE_KEY=$SEGMENT_WRITE_KEY" "$c")"
+      echo "[INFO] Correctly set SEGMENT_WRITE_KEY in $c for branch $DWNSTM_BRANCH: $(grep "SEGMENT_WRITE_KEY=" "$c")"
     fi
   fi
 
