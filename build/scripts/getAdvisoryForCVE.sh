@@ -30,6 +30,7 @@ Examples:
 Options:
   -v               RHDH version x.y
   -f               file containing csv formatted exported list of CVEs
+                   NOTE: only CVEs with Status = Done will be processed; CVEs with Status = 'Won't Do' or 'Not a Bug' will be skipped
   --all            if CVE file contains more than one CVE, process all; default is to only process the first one (as they should all be the same)
   -q               quieter output
   -h, --help       this help
