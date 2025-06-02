@@ -7,4 +7,7 @@ spec:
   - mirrors:
     - quay.io/rhdh
     source: registry.redhat.io/rhdh
+  - mirrors:
+    - quay.io/rhdh
+    source: registry.stage.redhat.io/rhdh
   mirrorSourcePolicy: AllowContactingSource
