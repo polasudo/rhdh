@@ -235,8 +235,6 @@ MIDSTREAM_REPO=https://gitlab.cee.redhat.com/rhidp/rhdh/-/commits/rhdh-1.6-rhel-
 ====
 **NOTE**:
 
-. **Container images** pushed to RHEC Stage will throw 2 known `olm.unmapped_references` violations due to the fact that references to unreleased registry.redhat.io/rhdh images can't be resolved in the operator-bundle. See link:https://issues.redhat.com/browse/RHIDP-6434?focusedId=26799935&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-26799935[this issue] and link:https://redhat-internal.slack.com/archives/D08BWQ66FM5/p1742246906645529[this discussion].
-
 . **FBCs** are not supported on the RHEC Stage instance link:https://gitlab.cee.redhat.com/releng/konflux-release-data/-/merge_requests/3947[if the production policy is in effect]. See link:https://redhat-internal.slack.com/archives/C06RBUP0M2Q/p1737051256060019[this thread]. Because of this, there is no value in trying to push FBCs to stage prior to GA day. 
 ====
 +
