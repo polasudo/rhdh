@@ -284,13 +284,13 @@ arches:
     name: go-srpm-macros
     evr: 3.6.0-10.el9_6
     sourcerpm: go-rpm-macros-3.6.0-10.el9_6.src.rpm
-  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/appstream/os/Packages/k/kernel-headers-5.14.0-570.18.1.el9_6.x86_64.rpm
+  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/appstream/os/Packages/k/kernel-headers-5.14.0-570.19.1.el9_6.x86_64.rpm
     repoid: ubi-9-for-x86_64-appstream-rpms
-    size: 3681841
-    checksum: sha256:67dd8cdd0ad69f0fff631da9cbd14c3de0a92d1c1f42c9bd65b0ae9cc2659f7a
+    size: 3682689
+    checksum: sha256:a677047d2800f2eb29d8187f2a7a2876d41068c4ae66500ad258dadbdbafbe9d
     name: kernel-headers
-    evr: 5.14.0-570.18.1.el9_6
-    sourcerpm: kernel-5.14.0-570.18.1.el9_6.src.rpm
+    evr: 5.14.0-570.19.1.el9_6
+    sourcerpm: kernel-5.14.0-570.19.1.el9_6.src.rpm
   - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/appstream/os/Packages/k/kernel-srpm-macros-1.0-13.el9.noarch.rpm
     repoid: ubi-9-for-x86_64-appstream-rpms
     size: 17792
@@ -543,20 +543,20 @@ arches:
     name: mpdecimal
     evr: 2.5.1-3.el9
     sourcerpm: mpdecimal-2.5.1-3.el9.src.rpm
-  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/appstream/os/Packages/n/nodejs-devel-22.15.0-1.module+el9.6.0+23062+9e7801b9.x86_64.rpm
+  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/appstream/os/Packages/n/nodejs-devel-22.16.0-1.module+el9.6.0+23151+b1496e9d.x86_64.rpm
     repoid: ubi-9-for-x86_64-appstream-rpms
-    size: 278937
-    checksum: sha256:e249aeb56e877c9462d52f072958dd894c76e40b6a9fdb813a4bc4429497d029
+    size: 279067
+    checksum: sha256:bd66a7dfa89f0610769b7365800c738c7e0607209cb270280d6ea1243c126fc1
     name: nodejs-devel
-    evr: 1:22.15.0-1.module+el9.6.0+23062+9e7801b9
-    sourcerpm: nodejs-22.15.0-1.module+el9.6.0+23062+9e7801b9.src.rpm
-  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/appstream/os/Packages/n/nodejs-docs-22.15.0-1.module+el9.6.0+23062+9e7801b9.noarch.rpm
+    evr: 1:22.16.0-1.module+el9.6.0+23151+b1496e9d
+    sourcerpm: nodejs-22.16.0-1.module+el9.6.0+23151+b1496e9d.src.rpm
+  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/appstream/os/Packages/n/nodejs-docs-22.16.0-1.module+el9.6.0+23151+b1496e9d.noarch.rpm
     repoid: ubi-9-for-x86_64-appstream-rpms
-    size: 9370103
-    checksum: sha256:2fd7a08225ffcf2c7e8c9ddb9c2699e50a045efa94ff54e92b6ee7ddc88e3e58
+    size: 9442354
+    checksum: sha256:94213ff2de0d2e0602e82dd1cd36197ef0a145c4de082dcd6c65ab2f87259643
     name: nodejs-docs
-    evr: 1:22.15.0-1.module+el9.6.0+23062+9e7801b9
-    sourcerpm: nodejs-22.15.0-1.module+el9.6.0+23062+9e7801b9.src.rpm
+    evr: 1:22.16.0-1.module+el9.6.0+23151+b1496e9d
+    sourcerpm: nodejs-22.16.0-1.module+el9.6.0+23151+b1496e9d.src.rpm
   - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/appstream/os/Packages/n/nodejs-packaging-2021.06-4.module+el9.6.0+23062+9e7801b9.noarch.rpm
     repoid: ubi-9-for-x86_64-appstream-rpms
     size: 21644
@@ -3612,12 +3612,12 @@ arches:
     checksum: sha256:2f5ece89d6a8d892816f386462d8be291ad83f1500b4c4b3655dcc7ed5192c0d
     name: mpdecimal
     evr: 2.5.1-3.el9
-  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/appstream/source/SRPMS/Packages/n/nodejs-22.15.0-1.module+el9.6.0+23062+9e7801b9.src.rpm
+  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/appstream/source/SRPMS/Packages/n/nodejs-22.16.0-1.module+el9.6.0+23151+b1496e9d.src.rpm
     repoid: ubi-9-for-x86_64-appstream-source-rpms
-    size: 94718257
-    checksum: sha256:058f477cea55bbb3f9ed274354efb0cb0d8a943060e13a5a4eba240476402604
+    size: 94982379
+    checksum: sha256:440700162ffa5350f1a455f2091a209f01cd1c7fcc5f82fa1bfa0da170041e63
     name: nodejs
-    evr: 1:22.15.0-1.module+el9.6.0+23062+9e7801b9
+    evr: 1:22.16.0-1.module+el9.6.0+23151+b1496e9d
   - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/appstream/source/SRPMS/Packages/n/nodejs-packaging-2021.06-4.module+el9.6.0+23062+9e7801b9.src.rpm
     repoid: ubi-9-for-x86_64-appstream-source-rpms
     size: 28476
@@ -5125,7 +5125,7 @@ arches:
     name: zlib
     evr: 1.2.11-40.el9
   module_metadata:
-  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/appstream/os/repodata/b0471356959ad4b935ec3f5238238dd3342c5f737db020a51af52303259cf4a6-modules.yaml.gz
+  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/appstream/os/repodata/b627be696bbb08a96ca44014b6ed086d0bfa306278b4bb66c155a5413acd2d2f-modules.yaml.gz
     repoid: ubi-9-for-x86_64-appstream-rpms
-    size: 7928
-    checksum: sha256:b0471356959ad4b935ec3f5238238dd3342c5f737db020a51af52303259cf4a6
+    size: 7962
+    checksum: sha256:b627be696bbb08a96ca44014b6ed086d0bfa306278b4bb66c155a5413acd2d2f
