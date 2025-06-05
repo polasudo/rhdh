@@ -307,16 +307,16 @@ Christophe Fargette <jfargett@redhat.com>
 
 image::images/cve-list-export.png[File > Download > Comma Separated Values (.csv)]
 
-. [ ] Trigger the Konflux release for the container images to RHEC, passing the list of CVEs into the Release CR yaml file.
+. [ ] Trigger the Konflux release for the container images to RHEC, passing the list of CVEs, and **any JIRAs you want to be autoclosed**, into the Release CR yaml file. You might want to include the 1.y.z release Feature and Epic issues, plus any other important fixes you want to call attention to in the RHBA or RHSA.
 +
 ```
 ./build/scripts/kfuxRelease.sh -c help
 
 # use the CVE list file you exported from the RHDH CVE Management tracker above
-./build/scripts/kfuxRelease.sh --stage -c rhdh-operator-bundle -v 1.6.1 --cve "/tmp/RHDH CVE Management - 1.6.1.csv" [--debug] [--auto]
+./build/scripts/kfuxRelease.sh --stage -c rhdh-operator-bundle:1.6-zzz -v 1.6.2 --cve "/tmp/RHDH CVE Management - 1.6.2.csv" --issues RHIDP-7725,RHIDP-7726 [--debug]
 
 # if the above is successful, you can then push to prod using the same exported CVE list
-./build/scripts/kfuxRelease.sh --prod  -c rhdh-operator-bundle -v 1.6.1 --cve "/tmp/RHDH CVE Management - 1.6.1.csv" [--debug]
+./build/scripts/kfuxRelease.sh --prod  -c rhdh-operator-bundle:1.6-zzz -v 1.6.2 --cve "/tmp/RHDH CVE Management - 1.6.2.csv" --issues RHIDP-7725,RHIDP-7726 [--debug]
 ```
 . [ ] Monitor container image release using links provided by link:../build/scripts/kfuxRelease.sh[kfuxRelease.sh]. Release can be seen from link:https://konflux-ui.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/ns/rhdh-tenant/applications/rhdh-1-4/releases/[rhdh-1-4/releases] and should be done in 15-20 mins, depending on network traffic. 
 
@@ -430,7 +430,7 @@ This chart follows the same version of the main RHDH chart, starting from 1.7.0.
 ```
 ./build/scripts/kfuxRelease.sh --fbc help # get help
 
-./build/scripts/kfuxRelease.sh --fbc :1.6.1 -v 1.6.1 --prod --debug [--auto]
+./build/scripts/kfuxRelease.sh --fbc :1.6.1 [-v 1.6.1] --prod --debug [--auto]
 ```
 
 #### Tag the repos
