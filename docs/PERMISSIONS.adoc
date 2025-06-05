@@ -1,5 +1,11 @@
 # Requesting access to systems
 
+## Access to the github user rhdh-bot@redhat.com
+
+Need to log in as the bot? Ask one of the auth'd users to help you get in using their authenticator app's 2FA. 
+
+Once logged in, you can then add the 2FA to your own authentictor app from the "Two-factor methods" section of this page https://github.com/settings/security?type=app
+
 ## Access to internal Konflux
 
 If you cannot access https://konflux-ui.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/ns/rhdh-tenant/applications then click the "join the waitlist" button, refresh your browser, and ping one of the existing admins to be added to the rhdh-tenant namespace.
