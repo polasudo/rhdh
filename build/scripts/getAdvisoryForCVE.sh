@@ -56,7 +56,7 @@ if [[ ! $CVEListFile ]] && [[ ! $CVE_ID ]]; then usage; exit 1; fi
 
 if [[ -f $CVEListFile ]]; then 
     for line in $(awk -F "\"*,\"*" '{print $2,";",$7}' "$CVEListFile" | tr -d " " | tail --lines=+2); do 
-    # echo $line
+        # echo $line
         CVE_STATUS="$(echo "${line#*;}" | tr -d '\n')"
         if [[ $CVE_STATUS != "Done"* ]]; then
             # echo "[WARN] Skip $line"

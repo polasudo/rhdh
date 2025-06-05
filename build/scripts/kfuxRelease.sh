@@ -24,7 +24,8 @@ SNAPSHOT_OVERRIDE=""
 midstreamCommitSHA=""
 CVEListFile="" # full path to a .csv file containing CVE ids and container references
 advisoryType=""
-RHBA_JIRA=""
+ISSUES=""
+CVE_INCLUDE_ALL=0 # by default only include some issues; use --cve-all to include all when generating release.yaml
 
 norm="\033[0;39m"
 green="\033[1;32m"
@@ -63,12 +64,13 @@ Usage - for container snapshots:
 3. Pass that .csv file to this script:
 
 $0 --stage -c rhdh-operator-bundle -v $RHDH_FULL_VERSION_INPUT --cve /tmp/RHDH\ CVE\ Management\ -\ $RHDH_FULL_VERSION_INPUT.csv --debug 
-$0 --prod  -c rhdh-operator-bundle:1.5-187 -v 1.5.1 --cve /tmp/RHDH\ CVE\ Management\ -\ 1.5.1.csv
-$0 --prod  -c rhdh-operator-bundle:1.6-140 -v 1.6.1 --rhba RHIDP-7413
+$0 --prod  -c rhdh-operator-bundle:1.5-202 -v 1.5.2 --cve /tmp/RHDH\ CVE\ Management\ -\ 1.5.2.csv 
+$0 --prod  -c rhdh-operator-bundle:1.6-??? -v 1.6.2 --cve /tmp/RHDH\ CVE\ Management\ -\ 1.6.2.csv [--cve-all] --issues RHIDP-7725,RHIDP-7726
 
 Options:
   --cve              Full path to the CVE list file to use for the container Release, eg., /tmp/RHDH\ CVE\ Management\ -\ 1.y.z.csv
-  --rhba             If there are no CVEs fixed in this release, use this flag instead with the JIRA for the release
+  --cve-all          Include all CVEs, regardless of status; default: only include CVEs in the release.yaml if Resolution = ReleasePending
+  --issues           Space or comma separated list of iss(s) to include in this RHBA (or RHSA). Issues listed will be automatically closed. 
 
   --stage, --prod    Push to the stage or prod version of the RH Ecosystem Catalog
   -c                 Space-separated list of containers to release
@@ -142,7 +144,8 @@ while [[ "$#" -gt 0 ]]; do
     '--commit')   midstreamCommitSHA="$2"; shift 1;;
     '-c') CONTAINER="$2"; shift 1;;
     '--cve') CVEListFile="$2"; shift 1;;
-    '--rhba') advisoryType="RHBA"; RHBA_JIRA="$2"; shift 1;;
+    '--cve-all') CVE_INCLUDE_ALL=1;;
+    '--issues') ISSUES="$2"; shift 1;;
     *) usage; usageContainers; usageFBCs; echo; echo -e "${red}[ERROR] Unknown flag ${1}${norm}"; exit 1;;
   esac
   shift 1
@@ -220,13 +223,18 @@ if [[ $CONTAINER ]]; then
   fi
   echo -e ". done.${norm}"
   # check for quay images in quay and csv refs to r.r.io
-  if [[ $FORCE -eq 1 ]] && [[ "$(sed -r -e "s@registry.redhat.io/rhdh/@quay.io/rhdh/@g" "/tmp/imagelist_bundle_latest_$RHDH_VERSION.txt")" == "$latest_images" ]]; then
+  sorted1="$(sed -r -e "s@registry.redhat.io/rhdh/@quay.io/rhdh/@g" "/tmp/imagelist_bundle_latest_$RHDH_VERSION.txt" | sort)"
+  sorted2="$(sed -r -e "s@registry.redhat.io/rhdh/@quay.io/rhdh/@g" "/tmp/imagelist_bundle_latest_$RHDH_VERSION.txt" | sort)"
+  if [[ $FORCE -eq 1 ]] && [[ "${sorted1}" == "${sorted2}"  ]]; then
     echo
-    echo -e "${blue}[WARNING] Latest images (quay.io) == images in $latest_bundle (r.r.io) !${norm}"
+    echo -e "${blue}[WARNING] Latest images (quay.io) ~= images in $latest_bundle (r.r.io) !${norm}"
     echo -e "${blue}===================latest===================${norm}"
     echo -e "$latest_images" | grep -v operator-bundle
+    echo -e "${blue}===================latest===================${norm}"
+    echo
     echo -e "${blue}===================bundle===================${norm}"
     grep -v operator-bundle "/tmp/imagelist_bundle_latest_$RHDH_VERSION.txt"
+    echo -e "${blue}===================bundle===================${norm}"
     echo
   elif [[ "$(cat "/tmp/imagelist_bundle_latest_$RHDH_VERSION.txt")" != "$latest_images" ]]; then
     echo
@@ -298,12 +306,13 @@ fi
 cves_yaml=""
 references_yaml=""
 getCVElist () {
-  # read CVEListFile: find the CVE (2) and Container (5) columns; combine with " ; "; strip spaces; omit the header row with tail
-  
-  for line in $(awk -F "\"*,\"*" '{print $2,";",$5}' "$CVEListFile" | tr -d " " | tail --lines=+2); do 
+  if [[ $DEBUG -eq 1 ]]; then echo; fi
+  # read CVEListFile: find the CVE (2), Container (5), and Resolution (6) columns; combine with " ; "; strip spaces; omit the header row with tail
+  for line in $(awk -F "\"*,\"*" '{print $2,";",$5,";",$6}' "$CVEListFile" | tr -d " " | tail --lines=+2); do 
     #split into CVE ID and component
-    CVE_ID=${line%;*}
+    CVE_ID=${line%%;*}
     component=${line#*;}
+    component=${component%;*}
     if [[ $component == *"hub"* ]]; then 
       component="rhdh-hub-${RHDH_VERSION/./-}"
     elif [[ $component == *"operator"* ]]; then 
@@ -311,16 +320,47 @@ getCVElist () {
     else
       component="UNKNOWN"
     fi
+    # echo ":: $line"
+    CVE_STATUS="$(echo "${line##*;}" | tr -d '\n')"
     if [[ $component != "UNKNOWN" ]]; then
-      cves_yaml="$cves_yaml
+      if [[ $CVE_STATUS == "ReleasePending"* ]] || [[ $CVE_INCLUDE_ALL -eq 1 ]]; then
+        cves_yaml="$cves_yaml
         - key: $CVE_ID
           component: $component"
-      references_yaml="$references_yaml
+        references_yaml="$references_yaml
         - \"https://access.redhat.com/security/cve/$CVE_ID\""
+      else
+        if [[ $DEBUG -eq 1 ]]; then
+          echo -e "${blue}[INFO] Skip $CVE_ID; status = $CVE_STATUS${norm}"
+        fi
+      fi
     fi
   done
 }
 
+collectIssues ()
+{
+  # get list as space-separated in case given as comma-separated
+  ISSUES="${ISSUES//,/ }"
+  if [[ ! $advisoryType ]]; then
+    advisoryType="RHBA"
+  fi
+  i_count=0
+  fixed_issues=""
+  for iss in $ISSUES; do
+    (( i_count = i_count + 1 ))
+    references_yaml="$references_yaml
+        - \"https://issues.redhat.com/browse/$iss\""
+    fixed_issues="$fixed_issues
+          - id: $iss
+            source: issues.redhat.com"
+  done
+  if [[ $i_count -gt 0 ]]; then 
+    advisoryType="${advisoryType}
+      issues:
+        fixed: $fixed_issues"
+  fi
+}
 # TODO now compute the images in the bundle snapshot to make sure we have one that contains all the latest/correct images; if not all are present, fail!
 for SNAPSHOT in $SNAPSHOTS; do
   if [[ ! -v processed_images["$SNAPSHOT"] ]]; then # process this new one
@@ -336,16 +376,30 @@ for SNAPSHOT in $SNAPSHOTS; do
     done
     echo
 
-    # compare with the contents of the latest bundle's operands
-    if [[ "$(cat "/tmp/imagelist_bundle_latest_$RHDH_VERSION.txt")" != "$(cat "/tmp/imagelist_$SNAPSHOT.txt")" ]]; then
-      echo -e "${red}[ERROR] Latest images != images in snapshot:${norm}"
+    # check for quay images in quay and csv refs to r.r.io
+    sorted1="$(sed -r -e "s@registry.redhat.io/rhdh/@quay.io/rhdh/@g" "/tmp/imagelist_bundle_latest_$RHDH_VERSION.txt" | sort)"
+    sorted2="$(sed -r -e "s@registry.redhat.io/rhdh/@quay.io/rhdh/@g" "/tmp/imagelist_$SNAPSHOT.txt" | sort)"
+    if [[ $FORCE -eq 1 ]] && [[ "${sorted1}" == "${sorted2}"  ]]; then
+      echo
+      echo -e "${blue}[WARNING] Latest images in bundle (r.r.io) ~= images in snapshot (quay.io) !${norm}"
+      echo -e "${blue}===================latest===================${norm}"
+      cat "/tmp/imagelist_bundle_latest_$RHDH_VERSION.txt"
+      echo -e "${blue}===================latest===================${norm}"
+      echo
+      echo -e "${blue}===================snapshot=================${norm}"
+      cat "/tmp/imagelist_$SNAPSHOT.txt"
+      echo -e "${blue}===================snapshot=================${norm}"
+      echo
+    elif [[ "$(cat "/tmp/imagelist_bundle_latest_$RHDH_VERSION.txt")" != "$(cat "/tmp/imagelist_$SNAPSHOT.txt")" ]]; then
+      echo -e "${red}[ERROR] Latest images in bundle != images in snapshot:${norm}"
       echo -e "${red}===================latest===================${norm}"
       cat "/tmp/imagelist_bundle_latest_$RHDH_VERSION.txt"
       echo -e "${red}===================latest===================${norm}"
       echo
-      echo -e "${red}===================snapshot===================${norm}"
+      echo -e "${red}===================snapshot=================${norm}"
       cat "/tmp/imagelist_$SNAPSHOT.txt"
-      echo -e "${red}===================snapshot===================${norm}"
+      echo -e "${red}===================snapshot=================${norm}"
+      echo -e "\n${red}If the images are the same (but hub and operator have already been released\nto registry.redhat.io), you can re-run with the --force flag to proceed!${norm}"
       exit 
     else
       echo -e "${green}[INFO] Snapshot images match latest images - release can proceed for the following containers:${norm}"
@@ -372,22 +426,16 @@ for SNAPSHOT in $SNAPSHOTS; do
         fi
         advisoryType="RHSA"
         # prepend section header only for RHSA as an empty .cves section will confuse conforma
-        cves_yaml="      cves:
-$cves_yaml"
+        cves_yaml="      cves: $cves_yaml"
+        collectIssues
       else
-        echo -e "${red}\n[ERROR] Could not find CVEs in $CVEListFile to include in this release. If this is expected, omit the --cve flag and run this script again with the --rhba filag.${norm}"
+        echo -e "${red}\n[ERROR] Could not find CVEs in $CVEListFile to include in this release. If this is expected, omit the --cve flag and run this script again with the --rhba flag.${norm}"
         exit 1
       fi
     else
-      if [[ $advisoryType == "RHBA" ]]; then
-        echo -e "${green}\n[INFO] Advisory set to RHBA with fixed issue $RHBA_JIRA${norm}"
-        references_yaml="$references_yaml
-        - \"https://issues.redhat.com/browse/$RHBA_JIRA\""
-        advisoryType="${advisoryType}
-      issues:
-        fixed:
-          - id: $RHBA_JIRA
-            source: issues.redhat.com"
+      if [[ ! $advisoryType ]]; then
+        echo -e "${green}\n[INFO] Advisory set to RHBA with fixed issue(s): $ISSUES${norm}"
+        collectIssues
       fi
     fi
 
@@ -411,8 +459,7 @@ spec:
       references: 
         - "https://developers.redhat.com/rhdh/overview"
         - "https://docs.redhat.com/en/documentation/red_hat_developer_hub"
-        - "https://catalog.redhat.com/search?gs&searchType=containers&q=rhdh"
-$references_yaml
+        - "https://catalog.redhat.com/search?gs&searchType=containers&q=rhdh" $references_yaml
 $cves_yaml
 EOT
     # if [[ $DEBUG -eq 1 ]]; then cat "/tmp/release-${SNAPSHOT}-${DEST}-${TS}.yaml"; fi
