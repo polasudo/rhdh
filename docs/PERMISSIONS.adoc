@@ -4,7 +4,7 @@
 
 Need to log in as the bot? Ask one of the auth'd users to help you get in using their authenticator app's 2FA. 
 
-Once logged in, you can then add the 2FA to your own authentictor app from the "Two-factor methods" section of this page https://github.com/settings/security?type=app
+Once logged in, you can then add the 2FA to your own authenticator app from the "Two-factor methods" section of link:https://github.com/settings/security?type=app[the bot's security settings page] by scanning the QR code.
 
 ## Access to internal Konflux
 
