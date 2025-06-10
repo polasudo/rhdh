@@ -1,12 +1,15 @@
 #!/bin/bash
 #
-# Copyright (c) 2024 Red Hat, Inc.
+# Copyright (c) Red Hat, Inc.
 # This program and the accompanying materials are made
 # available under the terms of the Eclipse Public License 2.0
 # which is available at https://www.eclipse.org/legal/epl-2.0/
 #
 # SPDX-License-Identifier: EPL-2.0
 #
+# use this script to facilitate finding a snapshot to release a set of containers or FBCs.
+# for OCI artifact releases, see https://gitlab.cee.redhat.com/rhidp/rhdh-plugin-catalog/-/blob/rhdh-1-rhel-9/build/scripts/
+
 SCRIPT_DIR=$(cd "$(dirname "$0")" || exit; pwd)
 
 DEBUG=0 # quieter
@@ -93,20 +96,20 @@ Usage - for IIB / FBC updates:
 !!! Also make sure that you have fetched the latest contents from the production index when rendering. !!! 
 !!! See ../renderCatalogs.sh for more info, and use the --rhec flag to trigger new FBC builds. !!
 
-# 0. oc login as above
+# 1. oc login as above
 
 oc login ...
 
-# 1. render new catalogs using the --rhec flag
+# 2. render new catalogs using the --rhec flag
 ./build/scripts/renderCatalogs.sh -v $RHDH_FULL_VERSION_INPUT --default-sealights --rhec
 
-# 2. once fully rendered at https://konflux-ui.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/ns/rhdh-tenant/applications/fbc-4-18/activity/pipelineruns 
+# 3. once fully rendered at https://konflux-ui.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/ns/rhdh-tenant/applications/fbc-4-18/activity/pipelineruns 
 #    (and other supported versions), you can run this script!
 
-# 3a. for releasing FBCs after containers are already live
+# 4a. for releasing FBCs after containers are already live
 $0 --prod   --fbc :1.7.0 --debug --auto
 
-# 3b. or use SHA
+# 4b. or use SHA
 $0 --prod   --fbc @sha256:2981d2470951ea1e26eb968aefc39ab48ab7d9634a520cf2bbd8c5fef313db15 -v 1.7.0 --auto
 
 
@@ -146,6 +149,7 @@ while [[ "$#" -gt 0 ]]; do
     '--cve') CVEListFile="$2"; shift 1;;
     '--cve-all') CVE_INCLUDE_ALL=1;;
     '--issues') ISSUES="$2"; shift 1;;
+    '--help') usage; usageContainers; usageFBCs; exit 0;;
     *) usage; usageContainers; usageFBCs; echo; echo -e "${red}[ERROR] Unknown flag ${1}${norm}"; exit 1;;
   esac
   shift 1
