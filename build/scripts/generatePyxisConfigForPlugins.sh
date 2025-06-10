@@ -10,7 +10,9 @@
 # for a list of plugins, generate the yaml to update https://gitlab.cee.redhat.com/releng/pyxis-repo-configs/-/blob/main/products/developer-hub/developer-hub.yaml
 
 pluginsFile=""
-QUIET=0
+CLEAN=0
+
+RELEASE_CATEGORY="Tech Preview" # TODO: switch to "Generally Available" when we're happy with this approach
 
 usage () {
 	echo "Usage:
@@ -18,7 +20,7 @@ usage () {
   $0 /path/to/plugin_builds.json
 
 Options:
-  -q               quieter output
+  --clean          delete existing git checkout folder before running script
   -h, --help       this help
 "
 }
@@ -27,7 +29,7 @@ if [[ $# -lt 1 ]]; then usage; fi
 
 while [[ "$#" -gt 0 ]]; do
     case $1 in
-        '-q') QUIET=1;;
+        '--clean') CLEAN=1;;
         '-h'|'--help')       usage; exit 0;;
         *)         pluginsFile="$1";;
     esac
@@ -50,6 +52,14 @@ git config --global advice.detachedHead false
 createPr() {
   headBranch=$1
   baseBranch=$2
+
+  # git rev-parse --symbolic-full-name HEAD
+    
+  # if working in an existing PR
+  if [[ $(git rev-parse --symbolic-full-name HEAD) != "refs/heads/main" ]]; then
+    headBranch=$(git rev-parse --symbolic-full-name HEAD)
+    headBranch=${headBranch##*/}
+  fi
   if [[ $(git diff --name-only HEAD~1 2>/dev/null || true) ]]; then # only if we have changes
 	# in case we checked out from release-1.4 but need to base a PR against main
 	git config remote.origin.fetch '+refs/heads/*:refs/remotes/origin/*'; git fetch --depth=10 >/dev/null 2>&1 || true
@@ -58,13 +68,15 @@ createPr() {
 	git checkout "${headBranch}" 1>/dev/null 2>&1
 	git merge "${baseBranch}" 1>/dev/null 2>&1 || true
 	# shellcheck disable=SC2086
+    echo -e "\n > git push -f $(whoami) ${headBranch}\n"
 	if [[ $(/usr/bin/gh version 2>/dev/null || true) ]] || [[ $(which gh 2>/dev/null || true) ]]; then
 		if [[ $(git diff --name-only HEAD~1 2>/dev/null || true) ]]; then
             # try using the current user's fork
-            git remote add "$(whoami)" "git@gitlab.cee.redhat.com:$(whoami)/releng-pyxis-repo-configs.git"
+            git remote add "$(whoami)" "git@gitlab.cee.redhat.com:$(whoami)/releng-pyxis-repo-configs.git" 2>/dev/null || true
             PR_URL=$(git push -f "$(whoami)" "${headBranch}" 2>&1 | grep "${headBranch}" | grep "https://" | sed -r -e "s/remote:   //" | tr -d " ")
             if [[ ! $PR_URL ]]; then 
                 echo "[ERROR] Cannot create a PR for your changes. Please create a PR manually from sources in $(pwd) !"
+                echo "[ERROR] Check for existing PR at https://gitlab.cee.redhat.com/nboldt/releng-pyxis-repo-configs/-/merge_requests ?"
                 exit 1
             else 
                 PR_URL="${PR_URL}&merge_request%5Btarget_branch%5D=${baseBranch}"
@@ -80,7 +92,7 @@ createPr() {
 		git config --get remote.origin.url | sed -r -e "s#:#/#" -e "s#git@#https://#" -e "s#\.git#/tree/${headBranch}/#"
 	fi
   else
-	echo "nothing to commit, working tree clean (6)"
+	echo "nothing to commit, working tree clean (2)"
   fi
 }
 
@@ -92,33 +104,39 @@ doPush () {
   createPr "${pr_branch}" "${the_branch}"
 }
 
+if [[ $CLEAN -eq 1 ]]; then
+    rm -fr /tmp/pyxis-repo-configs
+fi
+
 yaml=developer-hub.yaml
 if [[ -f $pluginsFile ]]; then
-    rm -fr /tmp/pyxis-repo-configs
-    pushd /tmp >/dev/null 2>&1 || exit 1
+    if [[ -d /tmp/pyxis-repo-configs ]]; then # checked out already, so reuse that folder
+        pushd /tmp/pyxis-repo-configs/products/developer-hub >/dev/null 2>&1 || exit 1
+    else # do a fresh checkout
+        cd /tmp >/dev/null 2>&1 
         git clone git@gitlab.cee.redhat.com:releng/pyxis-repo-configs.git pyxis-repo-configs >/dev/null 2>&1 
         pushd /tmp/pyxis-repo-configs/products/developer-hub >/dev/null 2>&1 || exit 1
-            sed -i '/# insert plugin catalog entries below this line/q' $yaml
-            echo "# insert plugin catalog entries below this line" >> $yaml
-            grep registryReference "$pluginsFile" | sed -r -e 's|.+registryReference": "(.+)",*|\1|' | while IFS= read -r line; do
-                echo "$line" # quay.io/rhdh-plugin-catalog/backstage-community-plugin-scaffolder-backend-module-regex:2.4.0@sha256:c32763dedbbc81bf380e5a4504f1404cc60bb4199fa06d2966ac2f0533f589f5
-                repo=${line%%:*}
-                repo=${repo#*/}
-                plugin_name=${repo#*/}
-                # plugin_ver=${line#*:}
-                # plugin_ver=${plugin_ver%@*}
-                cat << EOL >> $yaml
-- image_type: Layered
+    fi
+    sed -i '/# insert plugin catalog entries below this line/q' $yaml
+    grep registryReference "$pluginsFile" | sed -r -e 's|.+registryReference": "(.+)",*|\1|' | while IFS= read -r line; do
+        echo "$line" # quay.io/rhdh-plugin-catalog/backstage-community-plugin-scaffolder-backend-module-regex:2.4.0@sha256:c32763dedbbc81bf380e5a4504f1404cc60bb4199fa06d2966ac2f0533f589f5
+        repo=${line%%:*}
+        repo=${repo#*/}
+        plugin_name=${repo#*/}
+        # plugin_ver=${line#*:}
+        # plugin_ver=${plugin_ver%@*}
+        cat << EOL >> $yaml
+- image_type: Base
   base_rhel_version: rhel9
   repository:
     repository: $repo
     release_categories:
-      - Technology Preview
+      - "$RELEASE_CATEGORY"
     includes_multiple_content_streams: true
     content_stream_tags: # list os tags
       *release-tags
     build_categories:
-      - Component image
+      - Standalone image
     team_id: "6423d6e67d139e5ada2e4f8d"
     display_data:
       name: "rhdh-plugin-catalog--$plugin_name"
@@ -134,11 +152,11 @@ if [[ -f $pluginsFile ]]; then
     use_latest: false
     requires_terms: true
 EOL
-            done
-            # git status
-            git commit --no-gpg-sign -s -m 'chore(rhdh): update developer-hub repositories' $yaml
-            doPush "main"
-        popd  >/dev/null 2>&1 || exit 1
+    done
+    # git status
+    git commit --no-gpg-sign -s -m 'chore(rhdh): update developer-hub repositories: add new plugin-catalog artifacts' $yaml || echo "nothing to commit, working tree clean"
+    doPush "main"
     popd  >/dev/null 2>&1 || exit 1
 fi
 
+echo -e "\nPR checked out in in /tmp/pyxis-repo-configs/products/developer-hub"
