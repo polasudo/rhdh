@@ -5146,7 +5146,7 @@ arches:
     name: zlib
     evr: 1.2.11-40.el9
   module_metadata:
-  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/appstream/os/repodata/8ba140cb1674ef2ca28664ec853e7d9f5ce282711b730708fd6e32e7cb694eb5-modules.yaml.gz
+  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/appstream/os/repodata/c7b8468fb7d1d28bc2571a1ad406d4771b3c8f849a4e5789c81edbd4f16246b6-modules.yaml.gz
     repoid: ubi-9-for-x86_64-appstream-rpms
-    size: 7962
-    checksum: sha256:8ba140cb1674ef2ca28664ec853e7d9f5ce282711b730708fd6e32e7cb694eb5
+    size: 7942
+    checksum: sha256:c7b8468fb7d1d28bc2571a1ad406d4771b3c8f849a4e5789c81edbd4f16246b6
