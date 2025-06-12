@@ -20,16 +20,22 @@ EXCLUDES="next|latest|candidate|guest|containers|-source|-pr-|-tmp-|-ci-|-gh-|sh
 THIS_SCRIPT="$0"
 
 # TODO switch to jq wrapper version of yq (not mikefarah)
-mikefarahyq_version="4.35.2"
+YQ="$HOME/.local/bin/yq_mf"
+mikefarahyq_version=4.45.4
+
 helmdocs_version="v1.11.3"
 oras_version="1.2.2"
 # Exit when any command fails
 set -e
 
 usage() {
-    echo "Usage: $0 --chart-version x.y.z --rhdh-version x.y-zzz --chart-branch release-1.4 [--catalog <git-url>] [--debug] [--publish]
+    echo "Utility script to push CI builds to quay and generate PRs for GA helm chart releases
 
-NOTE: This must be run using the GITHUB_TOKEN of rhdh-bot@redhat.com in order to push to that user's fork.
+Requires: both yq (python wrapper for jq) and yq from https://github.com/mikefarah/yq/ >= v$mikefarahyq_version
+
+Usage: $0 --chart-version x.y.z --rhdh-version x.y-zzz --chart-branch release-1.4 [--catalog <git-url>] [--debug] [--publish]
+
+NOTE: This must be run using the GITHUB_TOKEN of rhdh-bot@redhat.com in order to have PRs automerged. 
 
 Options:
     --chart-name               Override the chart name (default: $CHART_NAME). Use 'all' to iterate and publish all charts in ./charts/
@@ -172,6 +178,19 @@ while [[ "$#" -gt 0 ]]; do
     shift 1
 done
 
+# TODO switch to jq wrapper version of yq (not mikefarah)
+if ! command -v "$YQ" &> /dev/null; then
+    echo -e "${blue}Installing mikefarah yq version $mikefarahyq_version for $(uname -m -o) ...${norm}"
+    if [[ $(uname -m -o) == "arm64 Darwin" ]]; then
+        curl -sSLo "$YQ" https://github.com/mikefarah/yq/releases/download/v${mikefarahyq_version}/yq_darwin_arm64
+    elif [[ "$(uname -m -o)" == "x86_64 GNU/Linux" ]]; then
+        curl -sSLo "$YQ" https://github.com/mikefarah/yq/releases/download/v${mikefarahyq_version}/yq_linux_amd64
+    else 
+      usage; echo -e "${red}[ERROR] Please install yq v${mikefarahyq_version} from https://github.com/mikefarah/yq/ for your arch to ${YQ}${norm}"; exit 1
+    fi
+    chmod +x "$YQ"
+fi 
+
 if [[ $DO_LATEST -eq 1 ]]; then
     if [[ ! $CHART_BRANCH ]] || [[ $CHART_BRANCH == "main" ]]; then usage; fi
     # get all tags but find the ones starting with 1.yy-, then sort those and return the most recent one
@@ -194,8 +213,6 @@ HELM_DIR=$(mktemp -d)
 if [[ $DEBUG -eq 1 ]]; then echo "[DEBUG] Running in HELM_DIR = $HELM_DIR"; fi
 CATALOG_DIR=$(mktemp -d)
 SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)
-# TODO switch to jq wrapper version of yq (not mikefarah)
-YQ=${SCRIPT_DIR}/yq_mf
 HELM_DOCS_LOG_LEVEL="fatal"
 
 # TODO install the latest jq wrapper version of yq (not mikefarah)
@@ -241,12 +258,6 @@ if ! command -v oras &>/dev/null; then
     curl -sSLO "${orasrepo}${orastar}"
     sudo tar -zxf $orastar -C /usr/local/bin/ oras
     rm -rf $orastar oras-install/
-fi
-# TODO switch to jq wrapper version of yq (not mikefarah)
-# shellcheck disable=SC2086
-if ! command -v $YQ &>/dev/null; then
-    echo "Installing mikefarah yq version $mikefarahyq_version ..."
-    curl -sSLo $YQ https://github.com/mikefarah/yq/releases/download/v${mikefarahyq_version}/yq_linux_amd64 && chmod +x "$YQ"
 fi
 
 for c in gh git helm helm-docs oc podman $YQ; do

@@ -39,7 +39,7 @@ usage () {
     echo "\
 Utility script to release one container build snapshot (4+ images) + a set of FBCs with Konflux
 
-Requires: oc >=4.16, jq >= 1.7
+Requires: oc >=4.16, jq >= 1.7, yq (jq wrapper, NOT the mikefarah version)
 
 Requires that you are already logged into the Konflux cluster via commandline, for example
    oc login --token=sha256~YOUR_TOKEN_HERE --server=https://api.stone-prod-p02.hjvn.p1.openshiftapps.com:6443

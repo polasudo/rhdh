@@ -46,8 +46,20 @@ SOURCE_BRANCH=""
 
 CLEAN="false" #  if set true, delete existing folders and do fresh checkouts
 
+YQ="$HOME/.local/bin/yq_mf"
+mikefarahyq_version=4.45.4
+
+norm="\033[0;39m"
+green="\033[1;32m"
+blue="\033[1;34m"
+red="\033[1;31m"
+
 usage() {
 	echo "
+Utility script to perform updates to repos when branching or tagging
+
+Requires: both yq (python wrapper for jq) and yq from https://github.com/mikefarah/yq/ >= v$mikefarahyq_version
+	
 To create or update existing branches:
   $0 --branchfrom SOURCE_GH_BRANCH -gh TARGET_GH_BRANCH -ghtoken GITHUB_TOKEN
 Example: 
@@ -111,6 +123,19 @@ while [[ "$#" -gt 0 ]]; do
   shift 1
 done
 
+# TODO switch to jq wrapper version of yq (not mikefarah)
+if ! command -v "$YQ" &> /dev/null; then
+    echo -e "${blue}Installing mikefarah yq version $mikefarahyq_version for $(uname -m -o) ...${norm}"
+    if [[ $(uname -m -o) == "arm64 Darwin" ]]; then
+        curl -sSLo "$YQ" https://github.com/mikefarah/yq/releases/download/v${mikefarahyq_version}/yq_darwin_arm64
+    elif [[ "$(uname -m -o)" == "x86_64 GNU/Linux" ]]; then
+        curl -sSLo "$YQ" https://github.com/mikefarah/yq/releases/download/v${mikefarahyq_version}/yq_linux_amd64
+    else 
+      usage; echo -e "${red}[ERROR] Please install yq v${mikefarahyq_version} from https://github.com/mikefarah/yq/ for your arch to ${YQ}${norm}"; exit 1
+    fi
+    chmod +x "$YQ"
+fi 
+
 if [[ ! ${PROD_VERSION} ]]; then
 	PROD_VERSION=${CSV_VERSION%.*} # given 1.y.0, want 1.y
 fi
@@ -169,7 +194,7 @@ createPr() {
 					PR_URL=$(git push -f "$(whoami)" "${headBranch}" 2>&1 | grep "${headBranch}" | grep "https://" | sed -r -e "s/remote:   //" | tr -d " ")
 				fi
 				if [[ ! $PR_URL ]]; then 
-					echo "[ERROR] Cannot create a PR for your changes. Please create a PR manually from sources in $(pwd) !"
+					echo -e "${red}[ERROR] Cannot create a PR for your changes. Please create a PR manually from sources in $(pwd) !${norm}"
 					exit 1
 				else 
 					PR_URL="${PR_URL}&merge_request%5Btarget_branch%5D=${baseBranch}"
@@ -181,7 +206,7 @@ createPr() {
 			echo "No changes for which to create PR for $baseBranch"
 		fi
 	else
-		echo "[WARN] gh cli is required to generate pull requests. See https://github.com/cli/cli?tab=readme-ov-file#installation to install it."
+		echo -e "${blue}[WARN] gh cli is required to generate pull requests. See https://github.com/cli/cli?tab=readme-ov-file#installation to install it.${norm}"
 		echo -n "# To manually create a pull request, go here: "
 		git config --get remote.origin.url | sed -r -e "s#:#/#" -e "s#git@#https://#" -e "s#\.git#/tree/${headBranch}/#"
 	fi
@@ -538,19 +563,19 @@ pushBranchAndOrTagGH () {
 
 	# nothing to do if tag already exists
 	if [[ $CSV_VERSION ]] && [[ $(git ls-remote "git@github.com:$orgAndRepo" "refs/tags/$CSV_VERSION") ]] && [[ $DO_UPDATE -eq 0 ]]; then
-		echo; echo "[WARN] https://github.com/$orgAndRepo/tree/$CSV_VERSION already exists."
+		echo; echo -e "${blue}[WARN] https://github.com/$orgAndRepo/tree/$CSV_VERSION already exists.${norm}"
 	else
 		d="${orgAndRepo/\//__}"
 		echo; 
 		if [[ $SOURCE_BRANCH ]]; then
 			if [[ "$MIDSTM_BRANCH" == "$DWNSTM_TARGET_BRANCH" ]]; then 
-				echo "[ERROR] Cannot branch if MIDSTM_BRANCH=$MIDSTM_BRANCH equals DWNSTM_TARGET_BRANCH=$DWNSTM_TARGET_BRANCH ! "
-				echo "[ERROR] Always run this script from the rhdh-1-rhel-9 branch when creating branches"
+				echo -e "${red}[ERROR] Cannot branch if MIDSTM_BRANCH=$MIDSTM_BRANCH equals DWNSTM_TARGET_BRANCH=$DWNSTM_TARGET_BRANCH ! ${norm}"
+				echo -e "${red}[ERROR] Always run this script from the rhdh-1-rhel-9 branch when creating branches${norm}"
 				exit 1
 			fi
-			echo "== $orgAndRepo :: branch from $SOURCE_BRANCH to $TARGET_BRANCH =="
+			echo -e "${green}== $orgAndRepo :: branch from $SOURCE_BRANCH to $TARGET_BRANCH ==${norm}"
 		elif [[ $CSV_VERSION ]]; then
-			echo "== $orgAndRepo :: tag $CSV_VERSION from $TARGET_BRANCH =="
+			echo -e "${green}== $orgAndRepo :: tag $CSV_VERSION from $TARGET_BRANCH ==${norm}"
 		fi
 		# if source_branch defined and target branch doesn't exist yet, check out the source branch
 		if [[ ${SOURCE_BRANCH} ]] && [[ $(git ls-remote --heads "git@github.com:${orgAndRepo}" "${TARGET_BRANCH}") == "" ]]; then
@@ -613,23 +638,23 @@ pushBranchAndOrTagGH () {
 
 					# now bump TARGET_BRANCH = release-1.yy branch to x.yy.(z+1)
 					getNextCSVZ "$CSV_VERSION" 
-					# echo "[INFO] Next CSV version is $CSV_VERSION_Z / $CSV_VERSION_Z_OPERATOR"
+					# echo -e "${green}[INFO] Next CSV version is $CSV_VERSION_Z / $CSV_VERSION_Z_OPERATOR${norm}"
 					if [[ $d == "redhat-developer__rhdh" ]]; then
-						echo "[INFO] Bump $d to $CSV_VERSION_Z" 
+						echo -e "${green}[INFO] Bump $d to $CSV_VERSION_Z${norm}" 
 						updateRHDHVersions "$TARGET_BRANCH" "$CSV_VERSION_Z"
 					elif [[ $d == "redhat-developer__rhdh-operator" ]]; then
-						echo "[INFO] Bump $d to $CSV_VERSION_Z / $CSV_VERSION_Z_OPERATOR" 
+						echo -e "${green}[INFO] Bump $d to $CSV_VERSION_Z / $CSV_VERSION_Z_OPERATOR${norm}" 
 						updateOperatorVersions "$TARGET_BRANCH" "$CSV_VERSION_Z" "$CSV_VERSION_Z_OPERATOR"
 					elif [[ $d == "janus-idp__backstage-plugins" ]]; then
-						echo "[INFO] Bump $d to $CSV_VERSION_Z_PLUGINS" 
+						echo -e "${green}[INFO] Bump $d to $CSV_VERSION_Z_PLUGINS${norm}" 
 						updatePluginsRootVersion "$TARGET_BRANCH" "$CSV_VERSION_Z_PLUGINS"
 					elif [[ $d == "redhat-developer__red-hat-developers-documentation-rhdh" ]]; then
-						echo "[INFO] Bump $d to $CSV_VERSION" 
+						echo -e "${green}[INFO] Bump $d to $CSV_VERSION${norm}" 
 						# note: for now, only bump to the last RELEASED version in the docs
 						# so use CSV_VERSION=1.1.2 here (while showcase, operator, plugins move to 1.1.3 to prepare for a future release)
 						updateDocVersions "$TARGET_BRANCH" "$CSV_VERSION"
 					else
-						echo "[INFO] No version bumps needed for $d" 
+						echo -e "${green}[INFO] No version bumps needed for $d${norm}" 
 					fi
 				fi
 
@@ -647,15 +672,15 @@ pushTagGL ()
 	d="$1"
 	# nothing to do if tag already exists
 	if [[ $CSV_VERSION ]] && [[ $(git ls-remote "https://gitlab.cee.redhat.com/rhidp/${d}.git/" "refs/tags/$CSV_VERSION") ]]; then
-		echo; echo "[WARN] https://gitlab.cee.redhat.com/rhidp/${d}/-/tree/${CSV_VERSION}?ref_type=tags already exists."
+		echo; echo -e "${blue}[WARN] https://gitlab.cee.redhat.com/rhidp/${d}/-/tree/${CSV_VERSION}?ref_type=tags already exists.${norm}"
 	else
 		# convert release-1.4 to rhdh-1.4-rhel-9
 		DWNSTM_TARGET_BRANCH=rhdh-${TARGET_BRANCH/release-/}-rhel-9
 		echo;
 		if [[ $SOURCE_BRANCH ]]; then
 			if [[ "$MIDSTM_BRANCH" == "$DWNSTM_TARGET_BRANCH" ]]; then 
-				echo "[ERROR] Cannot branch if MIDSTM_BRANCH=$MIDSTM_BRANCH equals DWNSTM_TARGET_BRANCH=$DWNSTM_TARGET_BRANCH ! "
-				echo "[ERROR] Always run this script from the rhdh-1-rhel-9 branch when creating branches"
+				echo -e "${red}[ERROR] Cannot branch if MIDSTM_BRANCH=$MIDSTM_BRANCH equals DWNSTM_TARGET_BRANCH=$DWNSTM_TARGET_BRANCH ! ${norm}"
+				echo -e "${red}[ERROR] Always run this script from the rhdh-1-rhel-9 branch when creating branches${norm}"
 				exit 1
 			fi
 			echo "== $d :: branch from $MIDSTM_BRANCH to $DWNSTM_TARGET_BRANCH =="
@@ -761,9 +786,9 @@ updateKonfluxReleasePlanAdmissionYamls ()
 		#### NOTE THIS REQUIRES mikefarah's yq (which we have in the helm folder)
 		#### The python yq wrapper for jq does not preserve comments (because json has no comments)
 		for f in "rhdh-${KFUX_VERSION}-prod.yaml" "rhdh-${KFUX_VERSION}-stage.yaml"; do
-			"${SCRIPT_DIR}/../helm/yq_mf" '.spec.data.mapping.defaults.tags[1]|="'"$CSV_VERSION_Z"'"' "$f" > "$f"_; mv "$f"{_,}
+			"$YQ" '.spec.data.mapping.defaults.tags[1]|="'"$CSV_VERSION_Z"'"' "$f" > "$f"_; mv "$f"{_,}
 			# also add a timestamped tag for prod sec - RHIDP-6721
-			"${SCRIPT_DIR}/../helm/yq_mf" '.spec.data.mapping.defaults.tags[2]|="'"$CSV_VERSION_Z"'-{{ timestamp }}"' "$f" > "$f"_; mv "$f"{_,}
+			"$YQ" '.spec.data.mapping.defaults.tags[2]|="'"$CSV_VERSION_Z"'-{{ timestamp }}"' "$f" > "$f"_; mv "$f"{_,}
 		done
 		COMMITMSG="chore: update rhdh-$KFUX_VERSION-*.yaml RPAs for upcoming release $CSV_VERSION_Z"
 		if [[ ${DO_PUSH} -eq 1 ]]; then
