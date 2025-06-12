@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (c) 2024 Red Hat, Inc.
+# Copyright (c) Red Hat, Inc.
 # This program and the accompanying materials are made
 # available under the terms of the Eclipse Public License 2.0
 # which is available at https://www.eclipse.org/legal/epl-2.0/
@@ -9,6 +9,7 @@
 #
 # script to tag the janus/rhdh repos for a given release, or 
 # create stable branches + update main branches after branch creation
+
 SCRIPT_DIR=$(cd "$(dirname "$0")" || exit; pwd)
 
 # RH production key, to use only in release-1.yy stable branches; otherwise use the devel key for main

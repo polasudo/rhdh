@@ -1,4 +1,13 @@
 #!/usr/bin/bash
+#
+# Copyright (c) Red Hat, Inc.
+# This program and the accompanying materials are made
+# available under the terms of the Eclipse Public License 2.0
+# which is available at https://www.eclipse.org/legal/epl-2.0/
+#
+# SPDX-License-Identifier: EPL-2.0
+#
+# Utility script to push CI builds to quay and generate PRs for GA helm chart releases
 
 RHDH_VERSION=""                                                                               # Chart release version (used as 'version' in Chart.yaml)
 CHART_VERSION=""                                                                              # Developer Hub version (used as 'appVersion' in Chart.yaml and as image tag)
@@ -25,6 +34,12 @@ mikefarahyq_version=4.45.4
 
 helmdocs_version="v1.11.3"
 oras_version="1.2.2"
+
+norm="\033[0;39m"
+green="\033[1;32m"
+blue="\033[1;34m"
+red="\033[1;31m"
+
 # Exit when any command fails
 set -e
 
@@ -110,7 +125,6 @@ Examples:
     ##### 4. Prepare and push a Orchestrator Infra chart release to https://github.com/openshift-helm-charts/charts:
     # TODO write this - see publish_task.yaml
 "
-    exit
 }
 
 # Commandline args
@@ -130,24 +144,24 @@ while [[ "$#" -gt 0 ]]; do
     '--chart-version') CHART_VERSION="$2"; shift 1;;
     '--chart-branch') CHART_BRANCH="$2"; shift 1;;
     '--rhdh-version') RHDH_VERSION="$2";
-        if [[ ! $CHART_VERSION ]]; then usage; fi
+        if [[ ! $CHART_VERSION ]]; then usage; exit 1; fi
 
         if [[ "${CHART_NAME}" == "redhat-developer-hub" ]] || [[ "${CHART_NAME}" == "backstage" ]]; then
             if [[ $CHART_VERSION == *"CI"* ]]; then
                 RHDH_DIGEST=$(skopeo inspect docker://quay.io/rhdh/rhdh-hub-rhel9:"${RHDH_VERSION}" | jq -r '.Digest')
                 if [[ ! $RHDH_DIGEST ]]; then
                     echo -e "\n[ERROR] Image quay.io/rhdh/rhdh-hub-rhel9:${RHDH_VERSION} not found - Could not compute digest! Make sure the value of --rhdh-version is correct!\n\n"
-                    usage
+                    usage; exit 1
                 fi
             else
                 RHDH_DIGEST=$(skopeo inspect docker://registry.redhat.io/rhdh/rhdh-hub-rhel9:"${RHDH_VERSION}" | jq -r '.Digest')
                 if [[ ! $RHDH_DIGEST ]]; then
                     echo -e "\n[ERROR] Image registry.redhat.io/rhdh/rhdh-hub-rhel9:${RHDH_VERSION} not found - Could not compute digest! Make sure the value of --rhdh-version is correct!\n\n"
-                    usage
+                    usage; exit 1
                 fi
             fi
         else
-           # echo "[INFO] Skipping RHDH_DIGEST lookup for chart: ${CHART_NAME}"
+           # echo -e "${blue}[INFO] Skipping RHDH_DIGEST lookup for chart: ${CHART_NAME}${norm}"
             RHDH_DIGEST="none"
         fi
 
@@ -161,19 +175,19 @@ while [[ "$#" -gt 0 ]]; do
         ;;
     '--chart-name')
         CHART_NAME="$2"
-        if [[ $DEBUG -eq 1 ]]; then echo "[DEBUG] CHART_NAME set to ${CHART_NAME}"; fi
+        if [[ $DEBUG -eq 1 ]]; then echo -e "${blue}[DEBUG] CHART_NAME set to ${CHART_NAME}${norm}"; fi
         shift 1
         ;;
     '--chart-dir')
         CHART_DIR="$2"
-        if [[ $DEBUG -eq 1 ]]; then echo "[DEBUG] CHART_DIR set to ${CHART_DIR}"; fi
+        if [[ $DEBUG -eq 1 ]]; then echo -e "${blue}[DEBUG] CHART_DIR set to ${CHART_DIR}${norm}"; fi
         shift 1
         ;;
     '--debug')
         DEBUG=1
         QUIET=""
         ;;
-    '--help') usage ;;
+    '--help') usage; exit 0;;
     esac
     shift 1
 done
@@ -192,7 +206,7 @@ if ! command -v "$YQ" &> /dev/null; then
 fi 
 
 if [[ $DO_LATEST -eq 1 ]]; then
-    if [[ ! $CHART_BRANCH ]] || [[ $CHART_BRANCH == "main" ]]; then usage; fi
+    if [[ ! $CHART_BRANCH ]] || [[ $CHART_BRANCH == "main" ]]; then usage; exit 1; fi
     # get all tags but find the ones starting with 1.yy-, then sort those and return the most recent one
     CHART_FILTER="${CHART_BRANCH/release-/}"
     next_tag=$(skopeo inspect docker://quay.io/rhdh/rhdh-hub-rhel9:next | jq -r '.RepoTags[]' | \
@@ -206,11 +220,11 @@ fi
 
 # only need RHDH_VERSION for a RHDH chart release; not required for orch infra chart
 if [[ ! $RHDH_VERSION ]] && [[ "${CHART_NAME}" != "redhat-developer-hub-orchestrator-infra" ]]; then
-    usage
+    usage; exit 1
 fi
 
 HELM_DIR=$(mktemp -d)
-if [[ $DEBUG -eq 1 ]]; then echo "[DEBUG] Running in HELM_DIR = $HELM_DIR"; fi
+if [[ $DEBUG -eq 1 ]]; then echo -e "${blue}[DEBUG] Running in HELM_DIR = $HELM_DIR${norm}"; fi
 CATALOG_DIR=$(mktemp -d)
 SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)
 HELM_DOCS_LOG_LEVEL="fatal"
@@ -260,22 +274,22 @@ if ! command -v oras &>/dev/null; then
     rm -rf $orastar oras-install/
 fi
 
-for c in gh git helm helm-docs oc podman $YQ; do
+for c in gh git helm helm-docs oc podman oras $YQ; do
     if ! command -v "$c" &>/dev/null; then
         echo "Command not found: '$c'"
-        usage
+        usage; exit 1
     fi
 done
 
 if [[ $DEBUG -eq 1 ]]; then
     HELM_DOCS_LOG_LEVEL="warning"
-    echo "[DEBUG] Clone https://github.com/redhat-developer/rhdh-chart/tree/${CHART_BRANCH}/charts to $HELM_DIR"
+    echo -e "${blue}[DEBUG] Clone https://github.com/redhat-developer/rhdh-chart/tree/${CHART_BRANCH}/charts to $HELM_DIR${norm}"
 fi
 # skip binaries with --filter=blob:none
 git clone --depth=1 -q --branch="${CHART_BRANCH}" https://github.com/redhat-developer/rhdh-chart.git "${HELM_DIR}" >/dev/null
 
 if [[ "$CHART_NAME" == "all" ]]; then
-    echo "[INFO] Multi-chart mode: will publish all charts in https://github.com/redhat-developer/rhdh-chart/tree/$CHART_BRANCH/charts"
+    echo -e "${green}[INFO] Multi-chart mode: will publish all charts in https://github.com/redhat-developer/rhdh-chart/tree/$CHART_BRANCH/charts${norm}"
     # echo "Working dir: $HELM_DIR ..." 
     chart_paths="$(cd "${HELM_DIR}"; find charts/ -mindepth 1 -maxdepth 1 -type d | sort)"
     for chart_path in $chart_paths; do # want charts/backstage and charts/orchestrator-infra 
@@ -295,18 +309,18 @@ if [[ "$CHART_NAME" == "all" ]]; then
             ${QUAY_REGISTRY_CONFIG} ${DEBUGFLAG}
         rc=$?
         if [[ $rc -ne 0 ]]; then
-            echo "[ERROR] Failed to publish chart: $name (exit code $rc)"
+            echo -e "${red}[ERROR] Failed to publish chart: $name (exit code $rc)${norm}"
             exit $rc
         fi
         echo -e "\n===========================\n[INFO] Chart $name published\n===========================\n"
     done
-    echo "[INFO] All charts published successfully."
+    echo -e "${green}[INFO] All charts published successfully.${norm}"
     rm -fr "${HELM_DIR}"
     exit 0
 fi
 
 if [[ $DEBUG -eq 1 ]]; then
-    echo "[DEBUG] Patching 'Chart.yaml', 'values.yaml', 'README.md.gotmpl' from branch ${CHART_BRANCH} ..."
+    echo -e "${blue}[DEBUG] Patching 'Chart.yaml', 'values.yaml', 'README.md.gotmpl' from branch ${CHART_BRANCH} ...${norm}"
 fi
 
 # TODO revise these to use jq wrapper version of yq (not mikefarah)
@@ -314,7 +328,7 @@ CHART_PATH="${HELM_DIR}/${CHART_DIR}/Chart.yaml"
 VALUES_PATH="${HELM_DIR}/${CHART_DIR}/values.yaml"
 CHART_ACTUAL_NAME=$($YQ '.name' "$CHART_PATH" | tr -d '"')
 if [[ "$CHART_ACTUAL_NAME" == "redhat-developer-hub-orchestrator-infra" ]]; then
-  echo "[INFO] Set Orchestrator Infra chart version to ${CHART_VERSION}"
+  echo -e "${green}[INFO] Set Orchestrator Infra chart version to ${CHART_VERSION}${norm}"
 
   # TODO why do we extract, escape, then set description using the same information?
   # Extract raw description as plain string
@@ -402,14 +416,14 @@ if [[ "${CHART_NAME}" == "redhat-developer-hub" ]] || [[ "${CHART_NAME}" == "bac
         " "$VALUES_PATH"
     fi
 else
-    echo "[WARN] No patch to $VALUES_PATH required for ${CHART_NAME} - skip."
+    echo -e "${blue}[WARN] No patch to $VALUES_PATH required for ${CHART_NAME} - skip.${norm}"
 fi
 
 TEST_TEMPLATE="${HELM_DIR}/${CHART_DIR}/templates/tests/test-connection.yaml"
 if [[ -f "$TEST_TEMPLATE" ]]; then
     sed -e "s%quay.io/curl/curl:latest%registry.redhat.io/ubi9:latest%" -i "$TEST_TEMPLATE"
 else
-    echo "[WARN] No test-connection.yaml found for ${CHART_NAME}, skipping patch."
+    echo -e "${blue}[WARN] No test-connection.yaml found for ${CHART_NAME}, skipping patch.${norm}"
 fi
 
 # yq '.upstream.backstage.image , .upstream.postgresql.image' "${HELM_DIR}"/charts/backstage/values.yaml
@@ -420,17 +434,17 @@ fi
 helm-docs --chart-search-root="${HELM_DIR}"/charts --template-files=./_templates.gotmpl --template-files=README.md.gotmpl --log-level="$HELM_DOCS_LOG_LEVEL"
 
 if [[ $DEBUG -eq 1 ]]; then
-    echo "[DEBUG] Building dependencies..."
+    echo -e "${blue}[DEBUG] Building dependencies...${norm}"
 fi
 helm repo add --force-update bitnami https://charts.bitnami.com/bitnami 1>/dev/null
 helm repo add --force-update backstage https://backstage.github.io/charts 1>/dev/null
 
 if [[ $DEBUG -eq 1 ]]; then
-    echo "[DEBUG] Building helm deps in ${HELM_DIR}/${CHART_DIR} ..."
+    echo -e "${blue}[DEBUG] Building helm deps in ${HELM_DIR}/${CHART_DIR} ...${norm}"
 fi
 helm dependency build "${HELM_DIR}/${CHART_DIR}" 1>/dev/null
 if [[ $DEBUG -eq 1 ]]; then
-    echo "[DEBUG] Fetching Helm catalog into ${CATALOG_DIR} ..."
+    echo -e "${blue}[DEBUG] Fetching Helm catalog into ${CATALOG_DIR} ...${norm}"
 fi
 git clone --filter=blob:none --no-checkout --depth=1 -q "${CATALOG_FORK}" "${CATALOG_DIR}" && cd "${CATALOG_DIR}"
 git sparse-checkout init --cone >/dev/null
@@ -441,10 +455,10 @@ PACKAGE_DEST="${CATALOG_DIR}/charts/redhat/redhat/${CHART_NAME}/${CHART_VERSION}
 mkdir -p "$PACKAGE_DEST"
 helm package "${HELM_DIR}/${CHART_DIR}" -d "$PACKAGE_DEST" 1>/dev/null
 ls -lh "${PACKAGE_DEST}"
-echo "[INFO] Packaging chart to ${PACKAGE_DEST}"
+echo -e "${green}[INFO] Packaging chart to ${PACKAGE_DEST}${norm}"
 helm package "${HELM_DIR}/${CHART_DIR}" -d "$PACKAGE_DEST"
 if [[ $DEBUG -eq 1 ]]; then
-    echo "[DEBUG] Contents of ${HELM_DIR}/${CHART_DIR}:"
+    echo -e "${blue}[DEBUG] Contents of ${HELM_DIR}/${CHART_DIR}:${norm}"
     ls -lh "${HELM_DIR}/${CHART_DIR}"
 fi
 
@@ -458,21 +472,21 @@ mkdir "${CATALOG_DIR}"/installation -p
 # Clean up remnants from old helm chart system used
 rm -f "${CATALOG_DIR}"/installation/index.yaml
 
-echo "[INFO] Chart name:    ${CHART_NAME}"
-echo "[INFO] Chart version: ${CHART_VERSION}"
+echo -e "${green}[INFO] Chart name:    ${CHART_NAME}${norm}"
+echo -e "${green}[INFO] Chart version: ${CHART_VERSION}${norm}"
 if [[ $PUBLISH -eq 1 ]] && [[ $CHART_VERSION != *"CI"* ]]; then # include installation folder only for CI builds (not for GA)
-    echo "[INFO] Developer Hub image:  registry.redhat.io/rhdh/rhdh-hub-rhel9:${RHDH_VERSION}"
+    echo -e "${green}[INFO] Developer Hub image:  registry.redhat.io/rhdh/rhdh-hub-rhel9:${RHDH_VERSION}${norm}"
 else
-    echo "[INFO] Developer Hub image:  quay.io/rhdh/rhdh-hub-rhel9:${RHDH_VERSION}"
+    echo -e "${green}[INFO] Developer Hub image:  quay.io/rhdh/rhdh-hub-rhel9:${RHDH_VERSION}${norm}"
 fi
-echo "[INFO] Full repo folder:     $CATALOG_DIR"
-echo "[INFO] This chart's folder:  $PACKAGE_DEST"
+echo -e "${green}[INFO] Full repo folder:     $CATALOG_DIR${norm}"
+echo -e "${green}[INFO] This chart's folder:  $PACKAGE_DEST${norm}"
 
 if [[ $PUBLISH -eq 1 ]]; then
     helm_config="${PACKAGE_DEST}/chart_dump.json"
     actual_chart=$(find "${PACKAGE_DEST}/" -name "*.tgz")
     if [[ ! "${actual_chart}" ]] || [[ ! -f "${actual_chart}" ]]; then 
-        echo "[ERROR] Could not find chart in ${PACKAGE_DEST} - must exit!"; exit 1
+        echo -e "${red}[ERROR] Could not find chart in ${PACKAGE_DEST} - must exit!${norm}"; exit 1
     fi
 
     helm show chart "${actual_chart}" | $YQ -p yaml -o json > "${helm_config}"; # cat "${helm_config}"
@@ -485,7 +499,7 @@ if [[ $PUBLISH -eq 1 ]]; then
         TARGET_REPO="${CHART_NAME}"
     fi
     # set -x 
-    echo "[INFO] Publish Helm chart to quay.io/rhdh/${TARGET_REPO}:${CHART_VERSION} ..."
+    echo -e "${green}[INFO] Publish Helm chart to quay.io/rhdh/${TARGET_REPO}:${CHART_VERSION} ...${norm}"
     # shellcheck disable=SC2086
     oras push "quay.io/rhdh/${TARGET_REPO}:${CHART_VERSION}" \
         "${actual_chart}:application/vnd.cncf.helm.chart.content.v1.tar+gzip" \
@@ -516,8 +530,8 @@ if [[ $PUBLISH -eq 1 ]]; then
         pushd "openshift-helm-charts-main/charts/redhat/redhat/${CHART_NAME}/" >/dev/null || exit 1
         rsync -aqrz "${actual_chart}" "${CHART_VERSION}/"
         git checkout main >/dev/null 2>&1 
-        echo "[INFO] The following step will fail if there's an existing chart $CHART_VERSION at https://github.com/openshift-helm-charts"
-        echo "[INFO] You need to bump the chart version or the PR will fail validation with error: Helm chart release already exists in the index."
+        echo -e "${green}[INFO] The following step will fail if there's an existing chart $CHART_VERSION at https://github.com/openshift-helm-charts${norm}"
+        echo -e "${green}[INFO] You need to bump the chart version or the PR will fail validation with error: Helm chart release already exists in the index.${norm}"
         git pull origin main >/dev/null
         git pull origin >/dev/null
         git remote add rhdh-bot git@github.com:rhdh-bot/openshift-helm-charts.git
@@ -534,7 +548,7 @@ if [[ $PUBLISH -eq 1 ]]; then
         git push rhdh-bot release-"${CHART_VERSION}" >/dev/null 2>&1
 
         # Option 1: open the PR creation page
-        echo "[INFO] Create PR https://github.com/openshift-helm-charts/charts/compare/main...rhdh-bot:openshift-helm-charts:release-${CHART_VERSION}?expand=1 ..."
+        echo -e "${green}[INFO] Create PR https://github.com/openshift-helm-charts/charts/compare/main...rhdh-bot:openshift-helm-charts:release-${CHART_VERSION}?expand=1 ...${norm}"
 
         # Option 2: create the PR automatically
         gh repo set-default openshift-helm-charts/charts
@@ -558,7 +572,7 @@ if [[ $PUBLISH -eq 1 ]]; then
         if [[ $CHANGED -eq 1 ]]; then
             git -C "${CATALOG_DIR}-2" push $QUIET origin "${EXTRA_BRANCH}" -f >/dev/null 2>&1 || \
                 {
-                    echo "[ERROR] Could not push to branch ${CHART_NAME}-${CHART_VERSION}: must exit!"
+                    echo -e "${red}[ERROR] Could not push to branch ${CHART_NAME}-${CHART_VERSION}: must exit!${norm}"
                     exit 45
                 }
         else
@@ -568,7 +582,7 @@ if [[ $PUBLISH -eq 1 ]]; then
         popd >/dev/null || exit 1
         if [[ "${CHART_NAME}" == "redhat-developer-hub" ]] || [[ "${CHART_NAME}" == "backstage" ]]; then
             echo
-            echo "Helm chart published. To install, see: https://github.com/redhat-developer/rhdh-chart/blob/${CHART_BRANCH}/.rhdh/docs/installing-ci-charts.adoc"
+            echo -e "${green}Helm chart published. To install, see:${norm}\n  https://github.com/redhat-developer/rhdh-chart/blob/${CHART_BRANCH}/.rhdh/docs/installing-ci-charts.adoc"
         fi
     fi
 
@@ -597,12 +611,12 @@ else
     HELM_PROJECT="rhdh-${CHART_VERSION,,}"
     HELM_PROJECT="${HELM_PROJECT//./-}"
     echo ""
-    echo "Flag '--publish' is not set. Changes are not pushed to '$CATALOG_FORK'. Instead they can be previewed in:
+    echo -e "Flag '--publish' is not set. Changes are not pushed to '$CATALOG_FORK'. Instead they can be previewed in:
 
 Full repo folder:     $CATALOG_DIR
 This chart's folder:  $PACKAGE_DEST
 
-To install this chart, run the following commands against your OCP cluster:
+${green}To install this chart, run the following commands against your OCP cluster:${norm}
 
     oc new-project $HELM_PROJECT
 
