@@ -1,12 +1,17 @@
  # Release Guide for RHDH
 
-This document outlines the complete end-to-end process for releasing RHDH, covering everything from branch creation to the GA push. It is tailored for a Linux/amd64 environment. If you're using macOS with arm64 architecture, be sure to run the link:../build/scripts/prepareOSXARM64.sh[prepareOSXARM64.sh] script beforehand to set up your environment.
+This document outlines the complete end-to-end process for releasing RHDH, covering everything from branch creation to the GA push. It is tailored for a Linux/amd64 environment. 
+
+====
+**NOTE**:
+If you're using macOS with arm64 architecture, be sure to run the link:../build/scripts/prepareOSXARM64.sh[prepareOSXARM64.sh] script beforehand to install required tools and set up your environment.
+====
 
 ## Code Freeze / Blockers Only / New Stream Day
 
 Run the branch creation script whenever dev is done (or nearly done) and it's time for feature (or code) freeze.
 
-Once the branches are created, expect a flurry of last minute cherrypicks and requests for "can I include this non-blocker item too?" :this-is-fine: :this-is-the-way:
+Once the branches are created, expect a flurry of last minute cherrypicks and requests for "can I include this non-blocker item too?" 
 
 **Reject those requests** and send them to RM/PM/QE/Doc for approval as these should have already landed in the LOCKED test/doc plan weeks ago.
 
