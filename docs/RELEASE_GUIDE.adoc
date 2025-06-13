@@ -2,8 +2,8 @@
 
 This document outlines the complete end-to-end process for releasing RHDH, covering everything from branch creation to the GA push. It is tailored for a Linux/amd64 environment. 
 
+[IMPORTANT]
 ====
-**NOTE**:
 If you're using macOS with arm64 architecture, be sure to run the link:../build/scripts/prepareOSXARM64.sh[prepareOSXARM64.sh] script beforehand to install required tools and set up your environment.
 ====
 
@@ -247,9 +247,9 @@ MIDSTREAM_REPO=https://gitlab.cee.redhat.com/rhidp/rhdh/-/commits/rhdh-1.6-rhel-
 +
 . Release containers to Stage for any RCs using link:../build/scripts/kfuxRelease.sh[kfuxRelease.sh]
 +
-====
-**NOTE**:
 
+[NOTE]
+====
 * **FBCs** are not supported on the RHEC Stage instance link:https://gitlab.cee.redhat.com/releng/konflux-release-data/-/merge_requests/3947[if the production policy is in effect]. See link:https://redhat-internal.slack.com/archives/C06RBUP0M2Q/p1737051256060019[this thread]. Because of this, there is no value in trying to push FBCs to stage prior to GA day. 
 ====
 +
@@ -259,9 +259,8 @@ MIDSTREAM_REPO=https://gitlab.cee.redhat.com/rhidp/rhdh/-/commits/rhdh-1.6-rhel-
 
 ### Release Candidates Notifications
 
+[IMPORTANT]
 ====
-**IMPORTANT**:
-
 * Once the RC images are created (containers and FBCs), *notify the following people* via the following methods:
 ** Slack channel: link:https://app.slack.com/client/E030G10V24F/C07EVRDD7KN[forum-rhdh-releases] - use the link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1-rhel-9/build/scripts/sendSlackNotifications.sh[sendSlackNotifications.sh] script 
 
@@ -512,36 +511,13 @@ Ongoing through the quarter, remember to:
 . Monitor new OCP release dates - add a new Application and Component for the new FBC in Konflux - see link:RHDH-Konflux-overview-onboarding.adoc[RHDH-Konflux-overview-onboarding]
 . Monitor OCP EOL dates - delete old FBC Applications from Konflux to stop building for that OCP version - see link:RHDH-Konflux-overview-onboarding.adoc[RHDH-Konflux-overview-onboarding]
 
-## Summary of Release tasks:
+---
 
-### For a z-stream update, first do this
-
-- collect the fixes in janus plugins + community plugins, and verify that they've been released to npmjs.com
-- collect the updated plugin versions into showcase, and verify a downstream build has succeeded
-
-### For all builds (y and z-stream)
-
-- Use link:../build/scripts/kfuxRelease.sh[kfuxRelease.sh] to push the latest snapshot to stage 
-- coordinate with QE and Doc via slack and email notifications of RC builds and progress of testing, doc readiness, etc.
-- remind QE to announce test completion; watch while the builds are pushed (1-2 hrs?); complain on slack in various rel-eng channels if things break while pushing
-
-### Once the containers have shipped 
-
-- re-render FBCs to refer to registry.redhat.io instead of quay.io
-- generate the helm chart PR for the openshift helm charts repo; monitor until it's merged
-- release the FBCs to production
-- smoke test the operator and helm installs
-- notify Docs that they can release the latest RN updates
-- tag the repos w/ new 1.y.z tag; bump the repos 1.y.(z+1) to prepare for subsequent releases
-- for a .0 release, remove EOL versions of RHD from Comet
-
-### Extended Summary
+### Release Process Summary
 |===
 | **Step** | **Key Actions & Required Scripts** | **Responsible Team**
 
-| **1. Code Freeze** | Ensure all changes are merged before freeze. Reject non-blocker requests and route them to PM/QE/Docs. Test/documentation plans must be locked. | Release Engineering
-
-| **2. Branch Creation** | Run the script https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1-rhel-9/build/scripts/tagRelease.sh?ref_type=heads[tagRelease] script:
+| **1. Feture Freeze / Branch Creation** | For Feature Freeze of an upcoming .0 release, run the script https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1-rhel-9/build/scripts/tagRelease.sh[tagRelease.sh] script:
 ```export GITHUB_TOKEN=<rhdh_bot_GH_token>
 ./build/scripts/tagRelease.sh -t 1.6 --branchfrom main -gh release-1.6
 ```
@@ -549,7 +525,11 @@ This script creates link:https://github.com/redhat-developer/rhdh/branches/all?q
 
 Once everything is merged, link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/pipeline_schedules[create a new GL pipeline] for the new stable branch.  | Release Engineering
 
-| **3. Build & Test** | Tekton Pipelines for builds are triggered automatically when commits happen in the upstream GH repos. File Based Catalog fragments (FBCs) must be built by hand at intervals (see link:https://issues.redhat.com/browse/RHIDP-5888[RHIDP-5888] and link:https://issues.redhat.com/browse/RHIDP-6305[RHIDP-6305]). Update link:../.tekton/[Tekton pipelines] regularly. | QE, Engineering, Release Engineering
+| **2. Code Freeze** | Ensure all changes are merged before freeze. Reject non-blocker requests and route them to PM/QE/Docs. Test/documentation plans must be locked. 
+
+For .z updates, verify that all announced fixes have been merged and built. Verify that the operator bundle contains the correct latest hub and operator images. | Release Engineering
+
+| **3. Build & Test** | Tekton Pipelines for builds are triggered automatically when commits happen in the upstream GH repos, if the GL pipeline is enabled and changes are found. File Based Catalog fragments (FBCs) must be built by hand at intervals (see link:https://issues.redhat.com/browse/RHIDP-5888[RHIDP-5888] and link:https://issues.redhat.com/browse/RHIDP-6305[RHIDP-6305]). Update link:../.tekton/[Tekton pipelines] regularly with link:../.tekton/updateDigests.sh[updateDigests.sh]. | QE, Engineering, Release Engineering
 
 | **4. Release Candidate (RC)** | 
 1. **Disable scheduled pipelines** to prevent unapproved changes:  
@@ -557,7 +537,7 @@ Go to link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/pipeline_schedules[pipelin
 
 2. If needed, **spin a new operator-bundle build**. 
 
-3. **Update the FBCs** using https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1-rhel-9/build/scripts/renderCatalogs.sh?ref_type=heads[renderCatalogs.sh].
+3. **Update the FBCs** using https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1-rhel-9/build/scripts/renderCatalogs.sh[renderCatalogs.sh].
 
 4. Verify FBC content. If replacements are incorrect, modify `catalog-template.json` and rerun the script. **NOTE**: if multiple releases are in flight, remember to re-render FBCs after each GA push in order to not accidentally delete freshly released operators. 
 
@@ -575,33 +555,42 @@ Run update scripts:
 ```
 Notify QE and Security for final validation. | Security, Docs, QE
 
-| **6. GA Release** | **Trigger container release:**
-```./build/scripts/kfuxRelease.sh --prod -c rhdh-operator-bundle -v 1.6.1 --cve /tmp/RHDH\ CVE\ Management\ -\ 1.6.1.csv
+| **6. GA Release** | **Container release:**
+
+```./build/scripts/kfuxRelease.sh --prod -c rhdh-operator-bundle:1.6-zzz -v 1.6.1 --cve /tmp/RHDH\ CVE\ Management\ -\ 1.6.1.csv
 ```
 
-**Trigger the Helm Chart release:**
-```./build/helm/prepare.sh --chart-version 1.6.1 --rhdh-version 1.6-140 --chart-branch release-1.6 --catalog git@github.com:rhdh-bot/openshift-helm-charts.git --publish
-```
-See PR: link:https://github.com/openshift-helm-charts/charts/pull/1556[Helm Chart PR].
+**Helm Chart PR generation:**
 
-**Trigger FBC release:**
+```./build/helm/prepare.sh --chart-version 1.6.1 --rhdh-version 1.6.1 --chart-branch release-1.6 --publish
+```
+
+**FBC re-rendering:**
+
 ```./build/scripts/renderCatalogs.sh --rhec ...
-./build/scripts/kfuxRelease.sh --stage --fbc :1.6.1 -v 1.6.1 [--debug] [--auto]
-# if successful, then push to prod
-./build/scripts/kfuxRelease.sh --prod  --fbc :1.6.1 -v 1.6.1 [--debug] [--auto]
 ```
 
-**Tag repositories:**
+**FBC release:**
+
+```./build/scripts/kfuxRelease.sh --prod --fbc :1.6.1 [--debug] [--auto]
 ```
-export GITHUB_TOKEN=rhdh-bot-token-goes-here
+
+**Repository tagging & updates:**
+
+```export GITHUB_TOKEN=rhdh-bot-token-goes-here
 ./build/scripts/tagRelease.sh -v 1.6.1 -t 1.6 -gh release-1.6 --midstream-branch rhdh-1.6-rhel-9 --clean --force-update --nobuild
 ``` | Release Engineering
 
-| **7. Post-Release** | For a .0 release, **Delete EOL versions** from Comet: link:https://comet.engineering.redhat.com/containers/repositories?view=myRepos&filter=repoPath:rhdh[Comet].
+| **7. Post-Release** | 
 
-Monitor Quay image updates.
+Smoke test install/update with Helm and Operator.
 
-Update pipeline runner images **at least once per quarter**. | Release Engineering
+Notify CCS that the doc .0 release or .z update can go live.
+
+Update link:../build/containerfiles[pipeline runner containerfiles] **at least once per quarter**. 
+
+For a .0 release, **Delete EOL versions** from Comet: link:https://comet.engineering.redhat.com/containers/repositories?view=myRepos&filter=repoPath:rhdh[Comet].
+| Release Engineering
 |===
 
 
