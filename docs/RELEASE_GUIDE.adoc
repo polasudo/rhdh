@@ -517,7 +517,7 @@ Ongoing through the quarter, remember to:
 |===
 | **Step** | **Key Actions & Required Scripts** | **Responsible Team**
 
-| **1. Feture Freeze / Branch Creation** | For Feature Freeze of an upcoming .0 release, run the script https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1-rhel-9/build/scripts/tagRelease.sh[tagRelease.sh] script:
+| **1. Feature Freeze / Branch Creation** | For Feature Freeze of an upcoming .0 release, run the script https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1-rhel-9/build/scripts/tagRelease.sh[tagRelease.sh] script:
 ```export GITHUB_TOKEN=<rhdh_bot_GH_token>
 ./build/scripts/tagRelease.sh -t 1.6 --branchfrom main -gh release-1.6
 ```
@@ -525,9 +525,13 @@ This script creates link:https://github.com/redhat-developer/rhdh/branches/all?q
 
 Once everything is merged, link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/pipeline_schedules[create a new GL pipeline] for the new stable branch.  | Release Engineering
 
-| **2. Code Freeze** | Ensure all changes are merged before freeze. Reject non-blocker requests and route them to PM/QE/Docs. Test/documentation plans must be locked. 
+| **2. Code Freeze** | For .0 releases, ensure all changes are merged. Reject non-blocker requests and route them to PM/QE/Docs. Test/documentation plans must be locked. 
 
-For .z updates, verify that all announced fixes have been merged and built. Verify that the operator bundle contains the correct latest hub and operator images. | Release Engineering
+For .z updates, verify that all announced fixes have been merged and built. 
+
+In both cases, ensure that base images have been updated to the latest possible tags in the branch from which you're building. Run the sync-midstream.sh to pin the latest RPMs too.
+
+Verify that the hub and operator repos' latest commits have been built, and that the operator bundle contains the correct latest images. | Release Engineering
 
 | **3. Build & Test** | Tekton Pipelines for builds are triggered automatically when commits happen in the upstream GH repos, if the GL pipeline is enabled and changes are found. File Based Catalog fragments (FBCs) must be built by hand at intervals (see link:https://issues.redhat.com/browse/RHIDP-5888[RHIDP-5888] and link:https://issues.redhat.com/browse/RHIDP-6305[RHIDP-6305]). Update link:../.tekton/[Tekton pipelines] regularly with link:../.tekton/updateDigests.sh[updateDigests.sh]. | QE, Engineering, Release Engineering
 
