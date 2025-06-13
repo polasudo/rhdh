@@ -1,4 +1,4 @@
- # Release Guide for RHDH
+# Release Guide for RHDH
 
 This document outlines the complete end-to-end process for releasing RHDH, covering everything from branch creation to the GA push. It is tailored for a Linux/amd64 environment. 
 
