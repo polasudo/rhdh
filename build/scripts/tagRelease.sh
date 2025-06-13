@@ -68,7 +68,7 @@ Example:
 
 To create tags (and push updates to release-1.yy branches):
 1. You should have a valid GITHUB_TOKEN for your user (for upstream PRs).
-2. You should have a valid $MIDSTM_USER kerberos login (for mid- and downstreeam pushes).
+2. You should have a valid $MIDSTM_USER kerberos login (for mid- and downstream pushes).
 3. Run this
   $0 -v CSV_VERSION -t PROD_VERSION -gh GH_BRANCH -ghtoken GITHUB_TOKEN
 Example: 

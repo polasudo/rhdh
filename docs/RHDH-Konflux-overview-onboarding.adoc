@@ -20,7 +20,7 @@ Once these exist, a new Application, with 3 (or more) components can then be add
 
 ### Component Nudging
 
-To trigger a build of the FBCs when a new operator-bundle image has been published, link:https://konflux-ci.dev/docs/how-tos/configuring/component-nudges/#in-the-ui[component nudging] is required. This should be configured so that for any new build of the rhdh-hub or rhdh-operator containers, a new rhdh-operator-bundle is theen built; once that is built, the bundle should nudge the FBC applications to update those with fresher digests. 
+To trigger a build of the FBCs when a new operator-bundle image has been published, link:https://konflux-ci.dev/docs/how-tos/configuring/component-nudges/#in-the-ui[component nudging] is required. This should be configured so that for any new build of the rhdh-hub or rhdh-operator containers, a new rhdh-operator-bundle is then built; once that is built, the bundle should nudge the FBC applications to update those with fresher digests. 
 
 TODO: RHIDP-4223 - this doesn't work! Therefore, must do manual builds of new bundles for every new hub or operator, then manually build new FBCs for that new bundle.
 
