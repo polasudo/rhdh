@@ -71,7 +71,7 @@ Adding a new release tag is currently performed manually:
 
 Updating the list of plugins is also a manual step, but has been scripted:
 
-* https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1-rhel-9/build/scripts/generatePyxisConfigForPlugins.sh
+* https://gitlab.cee.redhat.com/rhidp/rhdh-plugin-catalog/-/blob/rhdh-1-rhel-9/build/scripts/generatePyxisConfigForPlugins.sh
 
 **TODO: include these manual steps in tagRelease.sh: https://issues.redhat.com/browse/RHIDP-7800**
 
