@@ -25,7 +25,7 @@ prepareOSXARM64() {
 	else	
 		# Check if Homebrew is up to date
 		echo "[INFO] Checking for Homebrew updates..."
-		OUTDATED=$(brew update --dry-run 2>&1)
+		OUTDATED=$(brew outdated | grep -q . || echo "Already up-to-date")
 
 		if echo "$OUTDATED" | grep -q "Already up-to-date"; then
 			echo "✅ Homebrew is already up to date."
