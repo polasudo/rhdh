@@ -340,17 +340,13 @@ NOTE: To get access to the rhtap-releng namespace to watch managed pipelines, se
 
 #### Collect RHSA link for Release Notes
 
-TODO: https://issues.redhat.com/browse/RHIDP-7619: script this so it's easier in future
-
-Since 1.6.0, we need to link the Release Notes to the RHSA containing the list of fixed CVEs in each release. This is particularly important for z-stream updates.
-
-For 1.6.0 the RHSA was https://access.redhat.com/errata/RHSA-2025:7626
-
-You can find the RHSA by searching for CVEs that were fixed in a given release. For example https://access.redhat.com/security/cve/CVE-2025-29775 links to the RHDH 1.6 errata, released on 14 May 2025.
-
+. Release notes should be updated with a link to the latest RHBA or RHSA advisory. To find that link, use link:../build/scripts/getAdvisoryForCVE.sh[getAdvisoryForCVE.sh].
++
 Once you have the RHSA link, submit a PR to the docs repo to add a link into `modules/release-notes/ref-release-notes-fixed-security-issues.adoc` - here's an example:
-
++
 https://github.com/redhat-developer/red-hat-developers-documentation-rhdh/pull/1170/files
+
+. In future this may be done automatically. TODO: https://issues.redhat.com/browse/RHIDP-7886
 
 #### FBC re-render (15 mins)
 
@@ -492,6 +488,8 @@ image::images/smoketest-rosa-helm_2.png[install the version just released,width=
 ### [DOCUMENTATION] Notify docs team
 
 . In the link:https://app.slack.com/client/E030G10V24F/C07EVRDD7KN[forum-rhdh-releases], update any existing threads about this release, and at-mention the `@rhdh-docs-gate-keeper` group so that Docs is aware they can release the doc updates. This may include the dynamic plugin lists, release notes, and any other queued fixes. 
+
+. Release notes should be updated with a link to the latest RHBA or RHSA advisory. To find that link, use link:../build/scripts/getAdvisoryForCVE.sh[getAdvisoryForCVE.sh]. In future this may be done automatically. TODO: https://issues.redhat.com/browse/RHIDP-7886
 
 ### [SUPPORT] Comet updates
 
