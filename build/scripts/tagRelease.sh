@@ -126,6 +126,7 @@ done
 
 # TODO switch to jq wrapper version of yq (not mikefarah)
 if ! command -v "$YQ" &> /dev/null; then
+    mkdir -p "$HOME/.local/bin/"
     echo -e "${blue}Installing mikefarah yq version $mikefarahyq_version for $(uname -m -o) ...${norm}"
     if [[ $(uname -m -o) == "arm64 Darwin" ]]; then
         curl -sSLo "$YQ" https://github.com/mikefarah/yq/releases/download/v${mikefarahyq_version}/yq_darwin_arm64
