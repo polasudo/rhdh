@@ -1018,8 +1018,8 @@ function updateFBCVersions() {
 	popd >/dev/null || exit 1
 }
 
-# update the Pyxis Config for plugins for a new branch
-function updatePyxisConfigForPlugins() {
+# when creating a new branch, update the Pyxis Config to add any new plugins + release streams (1.5, 1.6, 1.7)
+function generatePyxisConfigForPlugins() {
 	the_branch="rhdh-1-rhel-9"
 	pluginBuildsJson=plugin_builds.json
 	orgAndRepo="rhidp/rhdh-plugin-catalog"
@@ -1027,10 +1027,20 @@ function updatePyxisConfigForPlugins() {
 	
 	rm -fr "$TMPDIR/projects_${d}" && git clone -q --depth 1 -b "${the_branch}" "git@gitlab.cee.redhat.com:${orgAndRepo}" "$TMPDIR/projects_${d}" || echo "Branch $the_branch doesn't exist: skip!"
 	pushd "$TMPDIR/projects_${d}" >/dev/null || exit 1
-	chmod +x "$(pwd)/build/scripts/generatePyxisConfigForPlugins.sh"
+	./build/scripts/generatePyxisConfigForPlugins.sh -f "$(pwd)/${pluginBuildsJson}" -v "${PROD_VERSION}.0"
+	popd >/dev/null || exit 1
+}
+
+# when creating a new branch, update the Konflux release data to add any new plugins and plugin catalog builders; requires that the above PR is merged first!
+function generateKonfluxReleaseDataForPlugins() {
+	the_branch="rhdh-1-rhel-9"
+	pluginBuildsJson=plugin_builds.json
+	orgAndRepo="rhidp/rhdh-plugin-catalog"
+	d="${orgAndRepo/\//__}"
 	
-	"./build/scripts/generatePyxisConfigForPlugins.sh" "$(pwd)/${pluginBuildsJson}" --release ${PROD_VERSION}
-	
+	rm -fr "$TMPDIR/projects_${d}" && git clone -q --depth 1 -b "${the_branch}" "git@gitlab.cee.redhat.com:${orgAndRepo}" "$TMPDIR/projects_${d}" || echo "Branch $the_branch doesn't exist: skip!"
+	pushd "$TMPDIR/projects_${d}" >/dev/null || exit 1
+	./build/scripts/generateKonfluxReleaseDataForPlugins.sh -f "$(pwd)/${pluginBuildsJson}" -v "${PROD_VERSION}.0"
 	popd >/dev/null || exit 1
 }
 
@@ -1143,8 +1153,8 @@ if [[ $SKIP_GL -eq 0 ]] && [[ "${MIDSTM_BRANCH}" ]]; then
 fi
 
 if [[ $SKIP_PYXIS -eq 0 ]] && [[ "${SOURCE_BRANCH}" ]]; then
-	if [[ $VERBOSE -eq 1 ]]; then echo "[DEBUG] update the Pyxis Config for plugins for a new branch"; fi
-	updatePyxisConfigForPlugins
+	if [[ $VERBOSE -eq 1 ]]; then echo "[DEBUG] update the Pyxis Repo Configs repo to add new plugins"; fi
+	generatePyxisConfigForPlugins
 fi
 
 if [[ $SKIP_KRD -eq 0 ]] && [[ "${MIDSTM_BRANCH}" ]]; then
@@ -1154,6 +1164,8 @@ if [[ $SKIP_KRD -eq 0 ]] && [[ "${MIDSTM_BRANCH}" ]]; then
 	else # for branching - create everything at version 1.5.0
 		generateNewProdsecDefinitions
 		generateNewKonfluxReleaseDataYamls
+		if [[ $VERBOSE -eq 1 ]]; then echo "[DEBUG] update the Konflux Release Data repo to add new plugins and catalog builders (depends on Pyxis Repo Configs MR being merged first!)"; fi
+		generateKonfluxReleaseDataForPlugins
 	fi
 	# cleanup
 	# rm -fr "${TMPDIR:?}"/*
