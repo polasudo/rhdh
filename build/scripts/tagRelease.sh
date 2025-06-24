@@ -1152,19 +1152,30 @@ if [[ $SKIP_GL -eq 0 ]] && [[ "${MIDSTM_BRANCH}" ]]; then
 	done
 fi
 
-if [[ $SKIP_PYXIS -eq 0 ]] && [[ "${SOURCE_BRANCH}" ]]; then
-	if [[ $VERBOSE -eq 1 ]]; then echo "[DEBUG] update the Pyxis Repo Configs repo to add new plugins"; fi
-	generatePyxisConfigForPlugins
-fi
-
 if [[ $SKIP_KRD -eq 0 ]] && [[ "${MIDSTM_BRANCH}" ]]; then
 	if [[ $CSV_VERSION ]]; then # for tagging
 		# midstream konflux-release-data sources - bump the RPA to 1.5.z
 		updateKonfluxReleasePlanAdmissionYamls
+		# TODO should we also run generatePyxisConfigForPlugins after tagging, 
+		# or when preparing an RC?
 	else # for branching - create everything at version 1.5.0
 		generateNewProdsecDefinitions
+		
+		if [[ $SKIP_PYXIS -eq 0 ]]; then
+			if [[ $VERBOSE -eq 1 ]]; then echo "[DEBUG] update the Pyxis Repo Configs repo to add new plugins"; fi
+			echo "[INFO] pyxis-repo-configs merge requests may fail if there are required changes to this repo:"
+			echo "       * https://gitlab.cee.redhat.com/prodsec/product-definitions/-/merge_requests/ (new  RHDH version)"
+			generatePyxisConfigForPlugins
+		fi
+
 		generateNewKonfluxReleaseDataYamls
-		if [[ $VERBOSE -eq 1 ]]; then echo "[DEBUG] update the Konflux Release Data repo to add new plugins and catalog builders (depends on Pyxis Repo Configs MR being merged first!)"; fi
+
+		if [[ $VERBOSE -eq 1 ]]; then 
+			echo "[DEBUG] update the Konflux Release Data repo to add new plugins and catalog builders"
+		fi
+		echo "[INFO] konflux-release-data merge requests may fail if there are required changes to either of these repos:"
+		echo "       * https://gitlab.cee.redhat.com/prodsec/product-definitions/-/merge_requests/ (new RHDH version)"
+		echo "       * https://gitlab.cee.redhat.com/releng/pyxis-repo-configs/-/merge_requests/ (new plugin repos)"
 		generateKonfluxReleaseDataForPlugins
 	fi
 	# cleanup
