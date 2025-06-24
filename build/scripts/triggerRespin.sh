@@ -34,6 +34,7 @@ or
 
 Examples: 
     $0 -v 1 hub,op    # both hub and operator (NOT bundle)
+    $0 -v 1 all       # both hub and operator (NOT bundle)
     $0 -v 1.6 hub     # only hub
     $0 -v 1.6 hub -k  # only hub, no midstream sync (konflux only)
     $0 -v 1.6 op      # only operator

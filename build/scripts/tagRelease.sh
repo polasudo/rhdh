@@ -29,12 +29,13 @@ if [[ $TARGET_BRANCH != "rhdh-1."*"-rhel-9" ]]; then
 	TARGET_BRANCH="rhdh-1-rhel-9"
 fi
 
-DO_BUILD=1  # update yarn locks
-DO_PUSH=1   # push the commit
-DO_UPDATE=0 # force update of release-1.yy branches, even if tag already exists
-SKIP_GH=0   # skip updates to GH repos
-SKIP_GL=0   # skip updates to RHDH GL repo
-SKIP_KRD=0  # skip updates to konflux-release-data repo
+DO_BUILD=1   # update yarn locks
+DO_PUSH=1    # push the commit
+DO_UPDATE=0  # force update of release-1.yy branches, even if tag already exists
+SKIP_GH=0    # skip updates to GH repos
+SKIP_GL=0    # skip updates to RHDH GL repo
+SKIP_KRD=0   # skip updates to konflux-release-data repo
+SKIP_PYXIS=0 # skip updates to pyxis-repo-configs repo
 # make builds faster
 export HUSKY=0
 
@@ -88,6 +89,7 @@ Options:
     --skip-gh                 skip all github updates
     --skip-gl                 skip gitlab rhdh repo updates
     --skip-krd                skip gitlab konflux-release-data repo updates
+    --skip-pyxis              skip gitlab pyxis-repo-configs repo updates
     --debug                   more output
 "
 }
@@ -101,7 +103,7 @@ fi
 while [[ "$#" -gt 0 ]]; do
   case $1 in
 	'--branchfrom') SOURCE_BRANCH="$2"; shift 1;; # this flag will create branches instead of using branches to create tags
-	'-v') CSV_VERSION="$2"; shift 1;; # 1.y.0
+	'-v') CSV_VERSION="$2"; shift 1;; # 1.y.z
 	'-t') PROD_VERSION="$2"; shift 1;; # 1.y # used to get released bundle container's CSV contents
 	'-gh') TARGET_BRANCH="$2"; shift 1;;
 	'-ghtoken') GITHUB_TOKEN="$2"; shift 1;;
@@ -109,7 +111,7 @@ while [[ "$#" -gt 0 ]]; do
 	'--midstream-branch') MIDSTM_BRANCH="$2"; shift 1;;
 	'--clean') CLEAN="true"; shift 0;; # if set true, delete existing folders and do fresh checkouts
 	'--nobuild') DO_BUILD=0;; 
-	'--nopush') DO_PUSH=0; shift 1;;
+	'--nopush') DO_PUSH=0;;
 	'--gitlab-pipeline-push') DO_PUSH=1; DO_BUILD=1; GITLAB_PIPELINE="true";;
 	'--dry-run') DRYRUN="$1";;
 	'--force-update') DO_UPDATE=1;;
@@ -117,6 +119,7 @@ while [[ "$#" -gt 0 ]]; do
 	'--skip-gh') SKIP_GH=1;;
 	'--skip-gl') SKIP_GL=1;;
 	'--skip-krd') SKIP_KRD=1;;
+	'--skip-pyxis') SKIP_PYXIS=1;;
 	'--debug') VERBOSE=1;;
 	'-h'|'--help') usage;;
     *) echo "Unknown parameter used: $1."; usage; exit 1;;
@@ -1014,6 +1017,23 @@ function updateFBCVersions() {
 		popd >/dev/null || exit 1
 	popd >/dev/null || exit 1
 }
+
+# update the Pyxis Config for plugins for a new branch
+function updatePyxisConfigForPlugins() {
+	the_branch="rhdh-1-rhel-9"
+	pluginBuildsJson=plugin_builds.json
+	orgAndRepo="rhidp/rhdh-plugin-catalog"
+	d="${orgAndRepo/\//__}"
+	
+	rm -fr "$TMPDIR/projects_${d}" && git clone -q --depth 1 -b "${the_branch}" "git@gitlab.cee.redhat.com:${orgAndRepo}" "$TMPDIR/projects_${d}" || echo "Branch $the_branch doesn't exist: skip!"
+	pushd "$TMPDIR/projects_${d}" >/dev/null || exit 1
+	chmod +x "$(pwd)/build/scripts/generatePyxisConfigForPlugins.sh"
+	
+	"./build/scripts/generatePyxisConfigForPlugins.sh" "$(pwd)/${pluginBuildsJson}" --release ${PROD_VERSION}
+	
+	popd >/dev/null || exit 1
+}
+
 ####################################
 
 getXYplusOneFromBranch "$TARGET_BRANCH"
@@ -1120,6 +1140,11 @@ if [[ $SKIP_GL -eq 0 ]] && [[ "${MIDSTM_BRANCH}" ]]; then
 			removeOperatorBundleLatestTags 
 		fi
 	done
+fi
+
+if [[ $SKIP_PYXIS -eq 0 ]] && [[ "${SOURCE_BRANCH}" ]]; then
+	if [[ $VERBOSE -eq 1 ]]; then echo "[DEBUG] update the Pyxis Config for plugins for a new branch"; fi
+	updatePyxisConfigForPlugins
 fi
 
 if [[ $SKIP_KRD -eq 0 ]] && [[ "${MIDSTM_BRANCH}" ]]; then
