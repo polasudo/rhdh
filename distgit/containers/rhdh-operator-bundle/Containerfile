@@ -16,7 +16,7 @@ COPY licenses /licenses/
 # append Brew metadata here
 ENV SUMMARY="Red Hat Developer Hub operator bundle" \
     DESCRIPTION="Red Hat Developer Hub operator bundle" \
-    UPSTREAM_REPO="https://github.com/redhat-developer/rhdh-operator/tree/main @ 6f1c911a" \
+    UPSTREAM_REPO="https://github.com/redhat-developer/rhdh-operator/tree/main @ d0da24f5" \
     MIDSTREAM_REPO="https://gitlab.cee.redhat.com/rhidp/rhdh/-/commits/rhdh-1-rhel-9" \
     PRODNAME="rhdh" \
     COMPNAME="operator-bundle"
@@ -39,11 +39,11 @@ LABEL operators.operatorframework.io.bundle.mediatype.v1=registry+v1 \
       name="$PRODNAME/$PRODNAME-$COMPNAME" \
       version="1.7" \
       vendor="Red Hat, Inc." \
-      release="43" \
+      release="44" \
       license="ASLv2" \
       maintainer="RHDH Team <rhdh-bot@redhat.com>" \
       io.openshift.expose-services="" \
       usage="" \
-      konflux.additional-tags="next, 1.7, 1.7-43" \
+      konflux.additional-tags="next, 1.7, 1.7-44" \
       distribution-scope="public" \
       url="https://red.ht/rhdh"

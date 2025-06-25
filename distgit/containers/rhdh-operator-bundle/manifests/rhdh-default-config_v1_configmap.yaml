@@ -58,7 +58,7 @@ data:
       name: backstage-psql-cr1 # placeholder for 'backstage-psql-<cr-name>'
     spec:
       podManagementPolicy: OrderedReady
-      replicas: 1
+      # replicas: 1 # Intentionally omitted to allow HPA or custom scaling control.
       selector:
         matchLabels:
           rhdh.redhat.com/app: backstage-psql-cr1 # placeholder for 'backstage-psql-<cr-name>'
@@ -87,7 +87,7 @@ data:
                   value: /var/lib/pgsql/data
                 - name: PGDATA
                   value: /var/lib/pgsql/data/userdata
-              image: registry.redhat.io/rhel9/postgresql-15@sha256:ddf4827c9093a0ec93b5b4f4fd31b009c7811c38a406187400ab448579036c6c
+              image: registry.redhat.io/rhel9/postgresql-15@sha256:13afc0c65af0ff1c1362ed9fbc3112a71edd76a54e6811883f44ef4927905e46
               imagePullPolicy: IfNotPresent
               securityContext:
                 # runAsUser:26 does not work for Openshift but looks work for AKS/EKS
@@ -179,7 +179,7 @@ data:
     metadata:
       name: backstage # placeholder for 'backstage-<cr-name>'
     spec:
-      replicas: 1
+      # replicas: 1 # Intentionally omitted to allow HPA or custom scaling control.
       selector:
         matchLabels:
           rhdh.redhat.com/app: # placeholder for 'backstage-<cr-name>'
@@ -224,7 +224,7 @@ data:
                 - ./install-dynamic-plugins.sh
                 - /dynamic-plugins-root
               # image will be replaced by the value of the `RELATED_IMAGE_backstage` env var, if set
-              image: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:ba9958750b4ab6f5cde6d0b0f0a5e421659270576ae302be7a142f2915ba7d28
+              image: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:69c713c8ec9a5dd055bce07e18a368b6d9107ae77ec2648453655740c4c31d82
               imagePullPolicy: IfNotPresent
               securityContext:
                 readOnlyRootFilesystem: true
@@ -266,7 +266,7 @@ data:
           containers:
             - name: backstage-backend
               # image will be replaced by the value of the `RELATED_IMAGE_backstage` env var, if set
-              image: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:ba9958750b4ab6f5cde6d0b0f0a5e421659270576ae302be7a142f2915ba7d28
+              image: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:69c713c8ec9a5dd055bce07e18a368b6d9107ae77ec2648453655740c4c31d82
               imagePullPolicy: IfNotPresent
               args:
                 - "--config"
