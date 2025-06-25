@@ -31,7 +31,9 @@ RUN echo ${SL_buildSessionId} > buildSessionId
 ENV NODE_OPTIONS="${NODE_OPTIONS} --require /opt/app-root/src/.npm-global/lib/node_modules/slnodejs/lib/preload.js" \
     SL_workspacepath="." \
     SL_useinitialcolor="true" \
-    SL_buildSessionIdFile="/opt/app-root/src/buildSessionId"
+    SL_buildSessionIdFile="/opt/app-root/src/buildSessionId" \
+    SL_disableCoverageSummaryLogs="true" \
+    NODE_DEBUG=""
 
 # append Brew metadata here
 ENV SUMMARY="Red Hat Developer Hub container" \
