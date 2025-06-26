@@ -201,13 +201,14 @@ fi
 
 RHDH_VERSION=${RHDH_FULL_VERSION%.*}
 RHDH_FULL_VERSION=${RHDH_FULL_VERSION//./-}
+LATEST_IMAGES_FILE="/tmp/imagelist_bundle_latest_$RHDH_VERSION.txt"
 
 TS=$(date +'%Y%m%d-%H%M%S' -u) # unique timestamp 
 
 if [[ $CONTAINER ]]; then
   echo
   echo -n -e "${blue}[INFO] Collect bundle and related images from $CONTAINER " 
-  rm -f "/tmp/imagelist_bundle_latest_$RHDH_VERSION.txt"
+  rm -f "${LATEST_IMAGES_FILE}"
 
   if [[ $CONTAINER == "rhdh-operator-bundle:${RHDH_VERSION}-"* ]]; then # bundle version already specified
     latest_bundle="quay.io/rhdh/$CONTAINER"
@@ -217,50 +218,67 @@ if [[ $CONTAINER ]]; then
   fi
   echo -n "."
 
-  echo "$latest_bundle" >> "/tmp/imagelist_bundle_latest_$RHDH_VERSION.txt"
-  "${SCRIPT_DIR}/checkImagesInCSV.sh" -q -y "$latest_bundle" -i 'hub|operator' >> "/tmp/imagelist_bundle_latest_$RHDH_VERSION.txt"
-  sort -uV "/tmp/imagelist_bundle_latest_$RHDH_VERSION.txt" > "/tmp/imagelist_bundle_latest_$RHDH_VERSION.txt_"; mv "/tmp/imagelist_bundle_latest_$RHDH_VERSION.txt"{_,}
+  echo "$latest_bundle" >> "${LATEST_IMAGES_FILE}"
+  "${SCRIPT_DIR}/checkImagesInCSV.sh" -q -y "$latest_bundle" -i 'hub|operator' >> "${LATEST_IMAGES_FILE}"
+  sort -uV "${LATEST_IMAGES_FILE}" > "${LATEST_IMAGES_FILE}_"; mv "${LATEST_IMAGES_FILE}"{_,}
 
   # if we passed in a specific bundle, no need to check if it refers to the latest
   if [[ $CONTAINER == "rhdh-operator-bundle:${RHDH_VERSION}-"* ]]; then # bundle version already specified
-    latest_images="$(cat "/tmp/imagelist_bundle_latest_$RHDH_VERSION.txt")"
+    latest_images="$(cat "${LATEST_IMAGES_FILE}")"
   fi
   echo -e ". done.${norm}"
   # check for quay images in quay and csv refs to r.r.io
-  sorted1="$(sed -r -e "s@registry.redhat.io/rhdh/@quay.io/rhdh/@g" "/tmp/imagelist_bundle_latest_$RHDH_VERSION.txt" | sort)"
-  sorted2="$(sed -r -e "s@registry.redhat.io/rhdh/@quay.io/rhdh/@g" "/tmp/imagelist_bundle_latest_$RHDH_VERSION.txt" | sort)"
-  if [[ $FORCE -eq 1 ]] && [[ "${sorted1}" == "${sorted2}"  ]]; then
+  if [[ $FORCE -eq 1 ]]; then
     echo
     echo -e "${blue}[WARNING] Latest images (quay.io) ~= images in $latest_bundle (r.r.io) !${norm}"
-    echo -e "${blue}===================latest===================${norm}"
+    echo -e "${blue}=================== latest hub + operator images ===================${norm}"
     echo -e "$latest_images" | grep -v operator-bundle
-    echo -e "${blue}===================latest===================${norm}"
+    echo -e "${blue}=================== latest hub + operator images ===================${norm}"
     echo
-    echo -e "${blue}===================bundle===================${norm}"
-    grep -v operator-bundle "/tmp/imagelist_bundle_latest_$RHDH_VERSION.txt"
-    echo -e "${blue}===================bundle===================${norm}"
+    echo -e "${blue}=================== latest bundle ===================${norm}"
+    grep operator-bundle "${LATEST_IMAGES_FILE}"
+    echo -e "${blue}=================== latest bundle ===================${norm}"
     echo
-  elif [[ "$(cat "/tmp/imagelist_bundle_latest_$RHDH_VERSION.txt")" != "$latest_images" ]]; then
+  elif [[ "$(cat "${LATEST_IMAGES_FILE}")" != "$latest_images" ]]; then
     echo
     echo -e "${red}[ERROR] Latest images != images in $latest_bundle !${norm}"
-    echo -e "${red}===================latest===================${norm}"
+    echo -e "${red}=================== latest hub + operator images ===================${norm}"
     echo -e "$latest_images" | grep -v operator-bundle
-    echo -e "${red}===================latest===================${norm}"
+    echo -e "${red}=================== latest hub + operator images ===================${norm}"
     echo
-    echo -e "${red}===================bundle===================${norm}"
-    grep -v operator-bundle "/tmp/imagelist_bundle_latest_$RHDH_VERSION.txt"
-    echo -e "${red}===================bundle===================${norm}"
-    echo -e "\n${red}Rebuild the operator-bundle to pick up the latest operand images!${norm}"
+    echo -e "${red}=================== latest bundle ===================${norm}"
+    grep operator-bundle "${LATEST_IMAGES_FILE}"
+    echo -e "${red}=================== latest bundle ===================${norm}"
+    echo -e "\n${red}Rebuild the operator-bundle to pick up the latest hub + operator images!${norm}"
     exit 
   else
     if [[ $DEBUG -eq 1 ]]; then
       echo -e "\n${blue}[DEBUG] Related images in $latest_bundle :"
       while IFS= read -r line; do
         echo "        > $line"
-      done < <(grep -v "operator-bundle" "/tmp/imagelist_bundle_latest_$RHDH_VERSION.txt")
+      done < <(grep -v "operator-bundle" "${LATEST_IMAGES_FILE}")
     fi
     echo -e "${norm}"
   fi
+
+  # Loop over each image to check if sbom tags exist
+  echo "$latest_images" | while read -r image; do
+    # Extract the registry/repo and the tag
+    repo="${image%:*}"   # e.g., quay.io/rhdh/rhdh-hub-rhel9
+    tag="${image##*:}"   # e.g., 1.5-203
+
+    SHA=$(skopeo inspect "docker://${image}" | jq -r '.Digest' | tr ":" "-")
+    SBOM_TAG="${SHA}.sbom"
+    if [[ ! $QUIET ]]; then echo -n "[INFO] Search for ${image}:${SBOM_TAG} ... "; fi
+
+    # Use skopeo to get the list of tags
+    if skopeo list-tags "docker://${repo}" 2>/dev/null | grep -q "\"$SBOM_TAG\""; then
+      if [[ ! $QUIET ]]; then echo -e "found"; fi
+    else
+      echo -e "${red}$SBOM_TAG is NOT found in $repo. Rebuild to create SBOM tags!${norm}"
+      exit 1
+    fi
+  done
 fi
 
 # collect array of processed images so we don't process duplicate snapshots
@@ -367,8 +385,9 @@ collectIssues ()
 }
 # TODO now compute the images in the bundle snapshot to make sure we have one that contains all the latest/correct images; if not all are present, fail!
 for SNAPSHOT in $SNAPSHOTS; do
+  SNAPSHOT_IMAGES_FILE="/tmp/imagelist_$SNAPSHOT.txt"
   if [[ ! -v processed_images["$SNAPSHOT"] ]]; then # process this new one
-    rm -f "/tmp/imagelist_$SNAPSHOT.txt"
+    rm -f "${SNAPSHOT_IMAGES_FILE}"
     echo -e "${blue}[INFO] Inspecting $SNAPSHOT:${norm}"
     
     oc -n rhdh-tenant get Snapshot "$SNAPSHOT" -o yaml > /tmp/"$SNAPSHOT".yaml
@@ -376,42 +395,42 @@ for SNAPSHOT in $SNAPSHOTS; do
     for i in $(yq -r '.spec.components[].containerImage' /tmp/"$SNAPSHOT".yaml | sort -uV); do 
       imageAndTag="$("${SCRIPT_DIR}/getTagForSHA.sh" "$i" -q -y)" 
       echo -e " * $imageAndTag = $i"
-      echo "$imageAndTag" >> "/tmp/imagelist_$SNAPSHOT.txt"
+      echo "$imageAndTag" >> "${SNAPSHOT_IMAGES_FILE}"
     done
     echo
 
     # check for quay images in quay and csv refs to r.r.io
-    sorted1="$(sed -r -e "s@registry.redhat.io/rhdh/@quay.io/rhdh/@g" "/tmp/imagelist_bundle_latest_$RHDH_VERSION.txt" | sort)"
-    sorted2="$(sed -r -e "s@registry.redhat.io/rhdh/@quay.io/rhdh/@g" "/tmp/imagelist_$SNAPSHOT.txt" | sort)"
+    sorted1="$(sed -r -e "s@registry.redhat.io/rhdh/@quay.io/rhdh/@g" "${LATEST_IMAGES_FILE}" | sort)"
+    sorted2="$(sed -r -e "s@registry.redhat.io/rhdh/@quay.io/rhdh/@g" "${SNAPSHOT_IMAGES_FILE}" | sort)"
     if [[ $FORCE -eq 1 ]] && [[ "${sorted1}" == "${sorted2}"  ]]; then
       echo
       echo -e "${blue}[WARNING] Latest images in bundle (r.r.io) ~= images in snapshot (quay.io) !${norm}"
-      echo -e "${blue}===================latest===================${norm}"
-      cat "/tmp/imagelist_bundle_latest_$RHDH_VERSION.txt"
-      echo -e "${blue}===================latest===================${norm}"
+      echo -e "${blue}=================== latest hub + operator images ===================${norm}"
+      cat "${LATEST_IMAGES_FILE}"
+      echo -e "${blue}=================== latest hub + operator images ===================${norm}"
       echo
-      echo -e "${blue}===================snapshot=================${norm}"
-      cat "/tmp/imagelist_$SNAPSHOT.txt"
-      echo -e "${blue}===================snapshot=================${norm}"
+      echo -e "${blue}=================== snapshot =================${norm}"
+      cat "${SNAPSHOT_IMAGES_FILE}"
+      echo -e "${blue}=================== snapshot =================${norm}"
       echo
-    elif [[ "$(cat "/tmp/imagelist_bundle_latest_$RHDH_VERSION.txt")" != "$(cat "/tmp/imagelist_$SNAPSHOT.txt")" ]]; then
+    elif [[ "$(cat "${LATEST_IMAGES_FILE}")" != "$(cat "${SNAPSHOT_IMAGES_FILE}")" ]]; then
       echo -e "${red}[ERROR] Latest images in bundle != images in snapshot:${norm}"
-      echo -e "${red}===================latest===================${norm}"
-      cat "/tmp/imagelist_bundle_latest_$RHDH_VERSION.txt"
-      echo -e "${red}===================latest===================${norm}"
+      echo -e "${red}=================== latest hub + operator images ===================${norm}"
+      cat "${LATEST_IMAGES_FILE}"
+      echo -e "${red}=================== latest hub + operator images ===================${norm}"
       echo
-      echo -e "${red}===================snapshot=================${norm}"
-      cat "/tmp/imagelist_$SNAPSHOT.txt"
-      echo -e "${red}===================snapshot=================${norm}"
+      echo -e "${red}=================== snapshot =================${norm}"
+      cat "${SNAPSHOT_IMAGES_FILE}"
+      echo -e "${red}=================== snapshot =================${norm}"
       echo -e "\n${red}If the images are the same (but hub and operator have already been released\nto registry.redhat.io), you can re-run with the --force flag to proceed!${norm}"
       exit 
     else
       echo -e "${green}[INFO] Snapshot images match latest images - release can proceed for the following containers:${norm}"
       while IFS= read -r line; do
         echo -e "${blue}       > ${line}${norm}"
-      done < "/tmp/imagelist_$SNAPSHOT.txt"
+      done < "${SNAPSHOT_IMAGES_FILE}"
     fi
-    rm -f "/tmp/imagelist_$SNAPSHOT.txt" "/tmp/imagelist_bundle_latest_$RHDH_VERSION.txt"
+    rm -f "${SNAPSHOT_IMAGES_FILE}" "${LATEST_IMAGES_FILE}"
 
     # by default assume we're doing a RHSA, unless the --rhba flag is set
     if [[ $CVEListFile ]] && [[ ! $advisoryType ]]; then
