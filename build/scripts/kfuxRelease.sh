@@ -250,7 +250,7 @@ if [[ $CONTAINER ]]; then
     grep operator-bundle "${LATEST_IMAGES_FILE}"
     echo -e "${red}=================== latest bundle ===================${norm}"
     echo -e "\n${red}Rebuild the operator-bundle to pick up the latest hub + operator images!${norm}"
-    exit 
+    exit 1
   else
     if [[ $DEBUG -eq 1 ]]; then
       echo -e "\n${blue}[DEBUG] Related images in $latest_bundle :"
@@ -261,25 +261,28 @@ if [[ $CONTAINER ]]; then
     echo -e "${norm}"
   fi
 
+  echo -e "${blue}[INFO] Inspecting SBOMs:${norm}"
   # Loop over each image to check if sbom tags exist
-  echo "$latest_images" | while read -r image; do
+  for image in $latest_images; do
     # Extract the registry/repo and the tag
     repo="${image%:*}"   # e.g., quay.io/rhdh/rhdh-hub-rhel9
-    tag="${image##*:}"   # e.g., 1.5-203
+    # tag="${image##*:}"   # e.g., 1.5-203
 
     SHA=$(skopeo inspect "docker://${image}" | jq -r '.Digest' | tr ":" "-")
     SBOM_TAG="${SHA}.sbom"
-    if [[ ! $QUIET ]]; then echo -n "[INFO] Search for ${image}:${SBOM_TAG} ... "; fi
 
-    # Use skopeo to get the list of tags
-    if skopeo list-tags "docker://${repo}" 2>/dev/null | grep -q "\"$SBOM_TAG\""; then
-      if [[ ! $QUIET ]]; then echo -e "found"; fi
+    # Use skopeo to inspect the image we want (using list-tags takes ~9s; inspect takes 0.02s)
+    if skopeo inspect --raw "docker://${repo}:${SBOM_TAG}" >/dev/null 2>&1; then
+      if [[ ! $QUIET ]]; then echo -e "${green} * ${repo}:${SBOM_TAG} (for $image)${norm}"; fi
     else
-      echo -e "${red}$SBOM_TAG is NOT found in $repo. Rebuild to create SBOM tags!${norm}"
+      echo -e "${red}[ERROR]: ${repo}:${SBOM_TAG} NOT found for $image ! Rebuild required to create SBOM.${norm}"
       exit 1
     fi
   done
 fi
+
+# shellcheck disable=SC2086
+if [[ ! $QUIET ]]; then echo; fi
 
 # collect array of processed images so we don't process duplicate snapshots
 declare -A processed_images
@@ -295,7 +298,7 @@ if [[ $CONTAINER ]]; then
   CONTAINER="${CONTAINER%:*}" # trim off the trailing 1.y-zzz tag if present
   tagXYZ=$(jq -r '.Labels.version+"-"+.Labels.release' /tmp/container_inspect.txt)
   digest=$(jq -r '.Digest' /tmp/container_inspect.txt)
-  echo -e "${blue} * $CONTAINER:${tagXYZ}@${digest}\n * built on $(jq -r '.Labels."build-date"' /tmp/container_inspect.txt)\n * from $(jq -r '.Env[]|select(.|contains("UPSTREAM_REPO"))' /tmp/container_inspect.txt)${norm}"
+  echo -e "${blue}Bundle info:${norm}\n * $CONTAINER:${tagXYZ}@${digest}\n * built on $(jq -r '.Labels."build-date"' /tmp/container_inspect.txt)\n * from $(jq -r '.Env[]|select(.|contains("UPSTREAM_REPO"))' /tmp/container_inspect.txt)"
 
   processed_images["${CONTAINER}:${tagXYZ}"]+="${CONTAINER}@${digest}"
 
