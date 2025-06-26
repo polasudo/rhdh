@@ -6,6 +6,7 @@ BUNDLE_TAG=''
 RHDH_VERSION=''
 RHDH_FULL_VERSION=''
 WEBHOOK_URL=''
+DRYRUN=0
 
 usage() {
   echo "
@@ -21,9 +22,10 @@ usage() {
     $0 --version <x.y.z version> --bundle-tag x.y-zzz --slack-webhook https://hooks.slack.com/services/... [OPTIONS]
   
   Options:
-    --version <x.y.z version> : version of the RHDH RC or GA build. Required.
+    --version <x.y.z version> : Version of the RHDH RC or GA build. Required.
     --bundle-tag <bundle-tag> : Operator-bundle tag to use. If not provided, will search for the the latest operator-bundle image for the RHDH version.
     --slack-webhook <webhook> : Webhook to post a message to a given channel (For webhook for #forum-rhdh-releases, see bitwarden)
+    --dryrun                  : Create payload but do not send to webhook.
     --release-state <release-state> : Release State (RC or GA) to be mentioned in the slack message; default: RC.
 
   Example:
@@ -47,7 +49,7 @@ send_slack_message() {
 }
 
 create_payload() {
-  HELM_INSTALL="cd /tmp; curl -sSLO https://raw.githubusercontent.com/redhat-developer/rhdh-chart/refs/heads/release-${RHDH_VERSION}/.rhdh/scripts/install.sh; chmod +x install.sh;\n./install.sh ${BUNDLE_TAG}-CI --namespace rhdh-${RHDH_FULL_VERSION//./-}-${RELEASE_STATE,,}"
+  HELM_INSTALL="cd /tmp; curl -sSLO https://raw.githubusercontent.com/redhat-developer/rhdh-chart/refs/heads/release-${RHDH_VERSION}/.rhdh/scripts/install.sh; chmod +x install.sh;\n./install.sh ${CHART_TAG}-CI --namespace rhdh-${RHDH_FULL_VERSION//./-}-${RELEASE_STATE,,}"
   HEADING=":announcement: $RELEASE_STATE $RHDH_FULL_VERSION is available + ready for testing :announcement:"
   BUNDLE_IMAGE="quay.io/rhdh/rhdh-operator-bundle:$BUNDLE_TAG"
   FBC_LINK="quay.io/rhdh/iib"
@@ -100,10 +102,14 @@ create_payload() {
 EOF
   )
 
-  echo "[INFO] PAYLOAD created"
-  # echo "==============="
-  # echo "$PAYLOAD" | jq
-  # echo "==============="
+  if [[ $DRYRUN -eq 1 ]]; then
+    echo -e "\n[INFO] PAYLOAD created (--dryrun)"
+    echo "==============="
+    # remove newlines to avoid "control characters from U+0000 through U+001F must be escaped" message from yq
+    echo -e "${PAYLOAD}" | tr "\n" " " | jq
+    echo "==============="
+    echo -e "\nTo post to Slack, use the --slack-webhook flag"
+  fi
 }
 
 get_images() {
@@ -141,10 +147,15 @@ get_images() {
   IMAGE_LIST=""
   for i in $IMAGES; do
     imageAndTag="$("${PWD}/getTagForSHA.sh" "$i" -q -y)"
+    if [[ "$imageAndTag" == *"rhdh-hub"* ]]; then 
+      CHART_TAG=${imageAndTag}
+      CHART_TAG=${CHART_TAG#*:}
+      # echo "CHART_TAG=$CHART_TAG"
+    fi
     # shellcheck disable=SC2086
     echo $imageAndTag >>"${TMPDIR}/imagelist_$SNAPSHOT.txt"
     # shellcheck disable=SC2001
-    i=$(echo $i | sed 's/^[^@]*\(@.*\)/\1/')
+    i=$(echo "$i" | sed 's/^[^@]*\(@.*\)/\1/')
     IMAGE_LIST="$IMAGE_LIST$imageAndTag ($i)\n"
   done
 
@@ -184,6 +195,10 @@ while [ $# -gt 0 ]; do
     RHDH_FULL_VERSION="$2"
     shift
     ;;
+  --dryrun)
+    DRYRUN=1
+    shift
+    ;;
   --slack-webhook)
     WEBHOOK_URL="$2"
     shift
@@ -204,8 +219,8 @@ else
   RHDH_VERSION=${RHDH_FULL_VERSION%.*}
 fi
 
-if [ -z "$WEBHOOK_URL" ]; then
-  echo "[ERROR] Slack Webhook URL is required."
+if [[ -z "$WEBHOOK_URL" ]] && [[ $DRYRUN -eq 0 ]]; then
+  echo "[ERROR] Slack Webhook URL is required; use --dryrun flag to create payload without sending."
   usage
   exit 1
 fi
@@ -215,7 +230,9 @@ TMPDIR=$(mktemp -d)
 
 get_images
 create_payload
-send_slack_message
+if [[ $DRYRUN -eq 0 ]]; then
+  send_slack_message
+fi
 
 # cleanup
 rm -fr "$TMPDIR"
