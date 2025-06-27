@@ -6,7 +6,7 @@ ARG BSID AGENT_VERSION
 ENV SL_buildSessionId=${BSID} AGENT_VERSION=${AGENT_VERSION} \
     SL_tokenFile=/opt/app-root/src/sltoken.txt NODE_DEBUG=sl FRONTEND_BUILD_DIR=dist SL_FRONTEND_BUILD_DIR=sl_dist
 
-RUN npm install -g slnodejs@${AGENT_VERSION}
+RUN npm install -g slnodejs@${AGENT_VERSION} && npm cache clean --force
 
 USER root
 RUN --mount=type=secret,id=sealights-credentials/token cp /run/secrets/sealights-credentials/token $SL_tokenFile
