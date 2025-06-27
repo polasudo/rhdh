@@ -362,8 +362,7 @@ if [[ "${CHART_NAME}" == "redhat-developer-hub" ]] || [[ "${CHART_NAME}" == "bac
 	            . *= load(\"${SCRIPT_DIR}/Chart_patch.yaml\") |
 	            .version=\"${CHART_VERSION}\" |
 	            .appVersion=\"${RHDH_VERSION}\" |
-	            .annotations.\"charts.openshift.io/name\"=\"Red Hat Developer Hub (CI Build)\" |
-	            .description=\"A Helm chart for deploying Red Hat Developer Hub (CI Build)\"
+	            .annotations.\"charts.openshift.io/name\"=\"Red Hat Developer Hub (${CHART_VERSION} Build)\"
 	        " "${CHART_PATH}"
 	    else
 	        $YQ -i "
@@ -376,15 +375,12 @@ if [[ "${CHART_NAME}" == "redhat-developer-hub" ]] || [[ "${CHART_NAME}" == "bac
     #####< removed in 1.7 as values were pushed upstream into rhdh-chart - RHIDP-1477, RHIDP-7529)
 
     sed -i "$CHART_PATH" -r \
-    `# change .name from backstage to redhat-developer-hub` \
-    -e "s/^name: backstage/name: redhat-developer-hub/" \
-    `# change version to 1.7-46-CI; add appVersion 1.7-46` \
-    -e "s/^version: (.+)/version: $CHART_VERSION\nappVersion: ${CHART_VERSION/-CI}/"
-
-    if [[ $CHART_VERSION == *"CI"* ]]; then
+        `# change .name from backstage to redhat-developer-hub` \
+        -e "s/^name: backstage/name: redhat-developer-hub/"
+    if [[ ! -f "${SCRIPT_DIR}/Chart_patch.yaml" ]]; then 
         sed -i "$CHART_PATH" -r \
-        `# append (CI Build) on name and description` \
-        -e "s@(charts.openshift.io/name: Red Hat Developer Hub|A Helm chart for deploying Red Hat Developer Hub)@\1 \(CI Build)@"
+            `# change version to 1.7-46-CI; add appVersion 1.7-46` \
+            -e "s/^version: (.+)/version: $CHART_VERSION\nappVersion: ${CHART_VERSION/-CI}/"
     fi
 
     POSTGRESQL_DIGEST=$(skopeo inspect docker://registry.redhat.io/rhel9/postgresql-15:latest | jq -r '.Digest')
