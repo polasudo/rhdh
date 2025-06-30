@@ -435,9 +435,7 @@ function updateOperatorVersions() {
 				-e "s/(^  version: )[0-9.]+/\1$the_version/" \
 				-e "s/(^  replaces: rhdh-operator.v)[0-9.]+/\1${PROD_VERSION}.0/" \
 				-e "s/(rhdh-rhdh-hub-rhel9:|rhdh-rhdh-rhel9-operator:)[0-9.]+/\1${the_version%.*}/" \
-				-e "s|(.*https://access.redhat.com/documentation/en-us/red_hat_developer_hub/)([0-9.]+)(/html-single/administration_guide_for_red_hat_developer_hub/index#assembly-rhdh-telemetry_admin-rhdh.*)|\1${the_version%.*}\3|g" \
-				` # replace upstream refs to quay images with RHEC ones` \
-				-e "s|quay.io/rhdh/rhdh-hub-rhel9:next|registry.redhat.io/rhdh/rhdh-hub-rhel9:${the_version%.*}|"
+				-e "s|(.*https://access.redhat.com/documentation/en-us/red_hat_developer_hub/)([0-9.]+)(/html-single/administration_guide_for_red_hat_developer_hub/index#assembly-rhdh-telemetry_admin-rhdh.*)|\1${the_version%.*}\3|g"
 			# NOTE: downstream we need to rename this file from backstage-operator.clusterserviceversion.yaml to rhdh-operator.clusterserviceversion.yaml
 		fi
 	done
@@ -1215,3 +1213,5 @@ if [[ ${DO_PUSH} -eq 1 ]]; then
 	# cleanup
 	rm -fr "$TMPDIR"
 fi
+
+echo -e "\n${green}[INFO] Done! ${norm}"
