@@ -636,9 +636,35 @@ pushBranchAndOrTagGH () {
 				##############################
 
 				if [[ $CSV_VERSION ]]; then # push a new tag (or no-op if exists)
-					git tag "${CSV_VERSION}" || true
-					if [[ $DO_PUSH -eq 1 ]]; then 
-						git push origin "${CSV_VERSION}" || true
+					# RHIDP-7906 inspect the rhdh container and tag the repo based on THAT SHA, not just the latest one in the branch
+					if [[ $orgAndRepo == "redhat-developer/rhdh" ]]; then
+						upstream_rhdh_digest=$(skopeo inspect "docker://registry.redhat.io/rhdh/rhdh-hub-rhel9:${CSV_VERSION}" | grep UPSTREAM | sed -r -e "s/.+ \@ ([0-9a-f]+).+/\1/")
+						if [[ ! $upstream_rhdh_digest ]]; then
+							echo "[ERROR] Could not find commit SHA used to build registry.redhat.io/rhdh/rhdh-hub-rhel9:${CSV_VERSION} !" 
+							exit 1
+						else
+							previous_sha=$(git rev-parse HEAD)
+							git checkout "$upstream_rhdh_digest"
+							git tag "${CSV_VERSION}" || true
+							if [[ $DO_PUSH -eq 1 ]]; then 
+								echo "[INFO] Tag $orgAndRepo from $upstream_rhdh_digest as $CSV_VERSION"
+								git push origin "${CSV_VERSION}" || true
+							fi
+							# now create the floating 1.y tag too; first delete the existing one, then recreate it at the new SHA
+							git push origin ":${CSV_VERSION%.*}" || true
+							git tag "${CSV_VERSION%.*}" || true
+							if [[ $DO_PUSH -eq 1 ]]; then 
+								echo "[INFO] Tag $orgAndRepo from $upstream_rhdh_digest as ${CSV_VERSION%.*}"
+								git push origin "${CSV_VERSION%.*}" || true
+							fi
+							git checkout "$previous_sha"
+						fi
+					else
+						# other repos just get a single x.y.z tag
+						git tag "${CSV_VERSION}" || true
+						if [[ $DO_PUSH -eq 1 ]]; then 
+							git push origin "${CSV_VERSION}" || true
+						fi
 					fi
 
 					# now bump TARGET_BRANCH = release-1.yy branch to x.yy.(z+1)
@@ -1065,12 +1091,13 @@ getXYplusOneFromBranch "$TARGET_BRANCH"
 # branch and/or tag GH repos
 if [[ $SKIP_GH -eq 0 ]]; then
 	for repo in \
+		redhat-developer/rhdh \
 		redhat-developer/rhdh-operator \
 		redhat-developer/rhdh-chart \
 		redhat-developer/red-hat-developers-documentation-rhdh \
 		redhat-developer/red-hat-developer-hub-software-templates \
 		redhat-developer/red-hat-developer-hub-theme \
-		redhat-developer/rhdh \
+		redhat-developer/rhdh-local \
 		janus-idp/backstage-plugins \
 		; do
 		pushBranchAndOrTagGH $repo 
