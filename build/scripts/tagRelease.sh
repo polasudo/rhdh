@@ -328,6 +328,8 @@ function updatePluginsRootVersion() {
 			# quietly install any updates to yarn.lock so PR will pass sniff test
 			yarn install 2> >(grep -v warning 1>&2) 
 			COMMITMSG="${COMMITMSG} + regen yarn.lock"
+		else
+			COMMITMSG="${COMMITMSG} [skip-build]"
 		fi
 		if [[ $(git diff || true ) ]]; then
 			git commit --no-gpg-sign -s -m "${COMMITMSG}" package.json yarn.lock
@@ -373,6 +375,8 @@ function updateRHDHVersions() {
 			# quietly install any updates to yarn.lock so PR will pass sniff test
 			yarn install 2> >(grep -v warning 1>&2) 
 			COMMITMSG="${COMMITMSG} + regen yarn.lock"
+		else
+			COMMITMSG="${COMMITMSG} [skip-build]"
 		fi
 		if [[ $(git diff || true ) ]]; then
 			git commit --no-gpg-sign -s -m "${COMMITMSG}" .
@@ -451,9 +455,6 @@ function updateOperatorVersions() {
 		fi
 	done
 
-	# TODO: once 1.4 is EOL, can remove this
-	#  config/manifests/rhdh/bases/csv.yaml
-
 	# remove old refs to reg-proxy
 	for d in \
 		config/manifests/rhdh/bases/csv.yaml \
@@ -468,7 +469,7 @@ function updateOperatorVersions() {
 
 	echo -n "updateOperatorVersions: "; pwd; git diff || true
 	if [[ $(git diff || true ) ]] && [[ ${DO_PUSH} -eq 1 ]]; then
-		COMMITMSG="chore: tagRelease.sh: bump to $the_version in $the_branch branch"
+		COMMITMSG="chore: tagRelease.sh: bump to $the_version in $the_branch branch [skip-build]"
 		git commit --no-gpg-sign -s -m "${COMMITMSG}" .
 		git pull origin "${the_branch}" || true
 		# create pull request if target branch is restricted access
@@ -499,7 +500,7 @@ function updateDocVersions() {
 
 	echo -n "updateDocVersions: "; pwd; git diff || true
 	if [[ $(git diff || true ) ]] && [[ ${DO_PUSH} -eq 1 ]]; then
-		COMMITMSG="chore: tagRelease.sh: bump to $the_version in $the_branch branch"
+		COMMITMSG="chore: tagRelease.sh: bump to $the_version in $the_branch branch [skip-build]"
 		git commit --no-gpg-sign -s -m "${COMMITMSG}" .
 		git pull origin "${the_branch}" || true
 		# create pull request if target branch is restricted access
@@ -547,7 +548,7 @@ function updateChartVersions(){
 		done
 		git diff || true
 
-		COMMITMSG="chore: tagRelease.sh: bump to ${the_version} in ${the_branch} branch"
+		COMMITMSG="chore: tagRelease.sh: bump to ${the_version} in ${the_branch} branch [skip-build]"
 		git commit --no-gpg-sign -s -m "${COMMITMSG}" . || git commit --no-gpg-sign -s -m "${COMMITMSG}" . 
 		git pull origin "${the_branch}" || true
 		# create pull request if target branch is restricted access
@@ -591,7 +592,7 @@ pushBranchAndOrTagGH () {
 		# echo "[DEBUG] Using clone_branch=$clone_branch ..."
 		
 		if [[ ! -d "$TMPDIR/projects_${d}" ]]; then
-			git clone -q --depth 1 -b "${clone_branch}" "git@github.com:${orgAndRepo}" "projects_${d}" || echo "Branch $clone_branch doesn't exist: skip!"
+			git clone -q --depth 15 -b "${clone_branch}" "git@github.com:${orgAndRepo}" "projects_${d}" || echo "Branch $clone_branch doesn't exist: skip!"
 		fi
 		if [[ -d "$TMPDIR/projects_${d}" ]]; then
 			pushd "$TMPDIR/projects_${d}" >/dev/null || exit 1
@@ -652,6 +653,7 @@ pushBranchAndOrTagGH () {
 							fi
 							# now create the floating 1.y tag too; first delete the existing one, then recreate it at the new SHA
 							git push origin ":${CSV_VERSION%.*}" || true
+							git tag -d "${CSV_VERSION%.*}" || true
 							git tag "${CSV_VERSION%.*}" || true
 							if [[ $DO_PUSH -eq 1 ]]; then 
 								echo "[INFO] Tag $orgAndRepo from $upstream_rhdh_digest as ${CSV_VERSION%.*}"
