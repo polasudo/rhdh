@@ -90,7 +90,7 @@ if [[ "$TYPE" == "cache" ]]; then
       fetch-deps --dev-package-managers  \
       --source . \
       --output /cachi2/output \
-      '[{"type": "rpm", "path": "distgit/containers/rhdh-hub"}, {"type": "yarn","path": "distgit/containers/rhdh-hub"}, {"type": "pip","path": "distgit/containers/rhdh-hub/python", "allow_binary": "false"}]'
+      '[{"type": "rpm", "path": "distgit/containers/rhdh-hub"}, {"type": "yarn","path": "distgit/containers/rhdh-hub"}, {"type": "yarn","path": "distgit/containers/rhdh-hub/dynamic-plugins"}, {"type": "pip","path": "distgit/containers/rhdh-hub/python", "allow_binary": "false"}]'
 
   podman run --rm -ti -v "$PWD:/source:z" -v "$LOCAL_CACHE_DIR":/cachi2:z -w /source $HERMETO_IMAGE \
     generate-env --format env --output /cachi2/cachi2.env /cachi2/output
@@ -111,7 +111,7 @@ if [[ "$TYPE" == "image" ]]; then
     exit 1
   fi
 
-  # transform the containerfile to simulate Konfux build
+  # transform the containerfile to simulate Konflux build
   transformContainerfile "$COMPONENT_DIR/Containerfile" "$COMPONENT_DIR/Containerfile.hermeto"
 
   podman build -t "$IMAGE" \
