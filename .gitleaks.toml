@@ -3,7 +3,4 @@
 
   # see https://source.redhat.com/departments/it/it-information-security/wiki/pattern_distribution_server
   paths = [
-    # Ignore secrets/rhdh-bot* files
-    '''secrets/rhdh-bot.*$''',
-    '''secrets/rhdh_bot.*$'''
   ]

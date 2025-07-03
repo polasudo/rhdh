@@ -47,7 +47,6 @@ sync-midstream:
         mkdir -p "${CI_PROJECT_DIR}/"outputs1; touch "${CI_PROJECT_DIR}/"outputs1/sync-midstream.sh.result.txt
         mv /tmp/sync-midstream.sh.result.txt "${CI_PROJECT_DIR}/"outputs1/sync-midstream.sh.result.txt
         # don't fail the build with a >0 exit code - it's OK if nothing happened
-        # exit 71
       fi
   # keep artifacts for 8 hrs so we can use them for multiple scheduled quay/helm chart updates
   artifacts:
