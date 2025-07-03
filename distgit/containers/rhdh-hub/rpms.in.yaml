@@ -1,7 +1,7 @@
 # after editing, run:
-#   rpm-lockfile-prototype -f Containerfile rpms.in.yaml 
+#   rpm-lockfile-prototype -f Containerfile rpms.in.yaml
 # to regen rpms.lock.yaml
-# Note that the repoid values are special, and must be from here: 
+# Note that the repoid values are special, and must be from here:
 # https://github.com/release-engineering/rhtap-ec-policy/blob/main/data/known_rpm_repositories.yml
 allowerasing: true
 contentOrigin:
@@ -21,7 +21,7 @@ contentOrigin:
     #   baseurl: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/$basearch/codeready-builder/source/SRPMS
     #   # gpgcheck: 0
 
-moduleEnable: 
+moduleEnable:
   - nodejs:22
 packages:
   - acl
@@ -42,7 +42,6 @@ packages:
   - bzip2-libs
   - ca-certificates
   - cairo
-  - cmake
   - containers-common
   - coreutils-single
   - cpp
@@ -299,8 +298,6 @@ packages:
   - procps-ng
   - protobuf-c
   - psmisc
-  - python-unversioned-command
-  - python3
   - python3-chardet
   - python3-cloud-what
   - python3-dateutil
@@ -312,27 +309,24 @@ packages:
   - python3-gobject-base-noarch
   - python3-gpg
   - python3-hawkey
-  - python3-idna
   - python3-iniparse
   - python3-inotify
   - python3-libcomps
   - python3-libdnf
   - python3-librepo
-  - python3-libs
-  - python3-pip
-  - python3-pip-wheel
-  - python3-pysocks
-  - python3-requests
   - python3-rpm
-  - python3-setuptools
-  - python3-setuptools-wheel
-  - python3-six
   - python3-subscription-manager-rhsm
   - python3-systemd
-  - python3-urllib3
   - python3.11
-  - python3.11-pip
   - python3.11-devel
+  - python3.11-idna
+  - python3.11-pip
+  - python3.11-pip-wheel
+  - python3.11-pysocks
+  - python3.11-requests
+  - python3.11-setuptools
+  - python3.11-setuptools-wheel
+  - python3.11-urllib3
   - readline
   - redhat-release
   - rootfiles
@@ -375,4 +369,3 @@ packages:
   - yum
   - zlib
   - zlib-devel
-  
