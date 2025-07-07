@@ -90,7 +90,6 @@ spec:
           --chart-name ${chart_name} \
           --chart-branch ${chart_branch} \
           --publish \
-          --extra-branch ${target_branch} \
           --catalog "https://rhdh-bot:${GITHUB_TOKEN}@github.com/rhdh-bot/openshift-helm-charts.git" \
           --registry-config '/var/workdir/registry_auth.json'
 

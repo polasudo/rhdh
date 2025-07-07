@@ -17,7 +17,6 @@ PUBLISH=0                                                                       
 CHART_BRANCH="main"                                                                           # can also be release-1.4, etc.
 CHART_NAME="redhat-developer-hub"
 CHART_DIR="charts/backstage"
-EXTRA_BRANCH=""       # another branch to force push, eg., rhdh-1.4-rhel-9
 DELETE_OLD_BRANCHES=0 # set to 1 to purge old 1.4-zzz branches from the rhdh-bot repo when pushing a 1.4.z release to the openshift charts repo
 QUAY_REGISTRY_CONFIG=""
 DO_LATEST=0 # if we want to generate a chart for the :latest, we need to set a --chart-branch
@@ -60,7 +59,6 @@ Options:
     --next   --chart-branch main           Compute the most recent tag (by semver sort rules) from quay.io/rhdh/rhdh-hub-rhel9:next, and use that tag in chart
 
     --publish                 Push the changes to branch developer-hub-\${CHART_VERSION} of the repository specified by --catalog
-    --extra-branch            Push changes to an extra branch, such as rhdh-1.4-rhel-9
     --catalog                 If publish is set, this needs to point to a fork of
                               git@github.com:openshift-helm-charts/charts.git with write access
     --chart-version           Chart release version (used as 'version' in Chart.yaml)
@@ -88,17 +86,17 @@ Examples:
 
     # Published on every build in konflux
     $ TAG=1.y-zzz; $0 --chart-version \${TAG}-CI --rhdh-version \${TAG} \\
-        --extra-branch rhdh-\${TAG%-*}-rhel-9 --chart-branch release-\${TAG%-*} --publish
+        --chart-branch release-\${TAG%-*} --publish
                 OR
     $ TAG=1.y-zzz; $0 --chart-version \${TAG}-CI --rhdh-version \${TAG} \\
-        --extra-branch rhdh-1-rhel-9 --chart-branch main --publish
+        --chart-branch main --publish
     Chart version:        1.y-zzz-CI
     Developer Hub image:  quay.io/rhdh/rhdh-hub-rhel9:1.y-zzz
 
     # Or, log into the quay.io and registry.redhat.io to be able to pull container metadata, then compute the latest 1.y-zz or next 1.yy-zzz
     $ export GITHUB_TOKEN=ghp_rhdh-bot-token-here
-    $ $0 --latest --chart-branch release-1.6 --publish --extra-branch rhdh-1.6-rhel-9
-    $ $0 --next   --chart-branch main        --publish --extra-branch rhdh-1-rhel-9
+    $ $0 --latest --chart-branch release-1.6 --publish
+    $ $0 --next   --chart-branch main        --publish
     Chart version:        1.next-zzz-CI
     Developer Hub image:  quay.io/rhdh/rhdh-hub-rhel9:1.next-zzz
 
@@ -106,7 +104,7 @@ Examples:
 
     TAG=1.y-zzz; $0 --chart-version \${TAG}-CI 
         --chart-name redhat-developer-hub-orchestrator-infra --chart-dir charts/orchestrator-infra \
-        --extra-branch rhdh-\${TAG%-*}-rhel-9 --chart-branch release-\${TAG%-*} --publish
+        --chart-branch release-\${TAG%-*} --publish
 
     ##### 3. Prepare and push a RHDH chart release to https://github.com/openshift-helm-charts/charts:
 
@@ -138,7 +136,6 @@ while [[ "$#" -gt 0 ]]; do
         CHART_VERSION=${next_tag}-CI
         RHDH_VERSION=${next_tag}
         echo "Create chart for $RHDH_VERSION";;
-    '--extra-branch') EXTRA_BRANCH="$2"; shift 1;;
     '--publish') PUBLISH=1;;
     '--catalog') CATALOG_FORK="$2"; shift 1;;
     '--chart-version') CHART_VERSION="$2"; shift 1;;
@@ -305,7 +302,6 @@ if [[ "$CHART_NAME" == "all" ]]; then
             --rhdh-version "$RHDH_VERSION" \
             --chart-branch "$CHART_BRANCH" \
             --publish \
-            --extra-branch "$EXTRA_BRANCH" \
             --catalog "$CATALOG_FORK" \
             ${QUAY_REGISTRY_CONFIG} ${DEBUGFLAG}
         rc=$?
@@ -555,32 +551,6 @@ if [[ $PUBLISH -eq 1 ]]; then
         google-chrome --incognito "$URL" || true
         popd >/dev/null || exit 1
         rm -fr /tmp/openshift-helm-charts-main
-    elif [[ $EXTRA_BRANCH ]]; then # include installation folder only for CI builds (not for GA)
-        git clone --filter=blob:none --no-checkout --depth=1 -q "${CATALOG_FORK}" "${CATALOG_DIR}-2" >/dev/null 2>&1 && \
-            pushd "${CATALOG_DIR}-2" >/dev/null || exit 1
-        git sparse-checkout init --cone >/dev/null
-        git read-tree -mu HEAD >/dev/null
-        git -C "${CATALOG_DIR}-2" checkout -q -b "${EXTRA_BRANCH}" >/dev/null 2>&1 || true
-        git -C "${CATALOG_DIR}-2" pull $QUIET origin "${EXTRA_BRANCH}" >/dev/null 2>&1 || true
-        rsync -arzq "${CATALOG_DIR}/installation" "${CATALOG_DIR}-2/"
-        git -C "${CATALOG_DIR}-2" add installation --sparse >/dev/null 2>&1
-        CHANGED=1
-        git -C "${CATALOG_DIR}-2" commit -q --no-verify --no-gpg-sign -s -m "chore: add ${CHART_NAME}-${CHART_VERSION}" || CHANGED=0
-        if [[ $CHANGED -eq 1 ]]; then
-            git -C "${CATALOG_DIR}-2" push $QUIET origin "${EXTRA_BRANCH}" -f >/dev/null 2>&1 || \
-                {
-                    echo -e "${red}[ERROR] Could not push to branch ${CHART_NAME}-${CHART_VERSION}: must exit!${norm}"
-                    exit 45
-                }
-        else
-            # echo "nothing to commit, working tree clean"
-            true
-        fi
-        popd >/dev/null || exit 1
-        if [[ "${CHART_NAME}" == "redhat-developer-hub" ]] || [[ "${CHART_NAME}" == "backstage" ]]; then
-            echo
-            echo -e "${green}Helm chart published. To install, see:${norm}\n  https://github.com/redhat-developer/rhdh-chart/blob/${CHART_BRANCH}/.rhdh/docs/installing-ci-charts.adoc"
-        fi
     fi
 
     if [[ $CHART_VERSION != *"CI"* ]] && [[ $DELETE_OLD_BRANCHES -eq 1 ]]; then
