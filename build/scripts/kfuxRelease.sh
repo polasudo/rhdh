@@ -68,12 +68,14 @@ Usage - for container snapshots:
 
 $0 --stage -c rhdh-operator-bundle -v $RHDH_FULL_VERSION_INPUT --cve /tmp/RHDH\ CVE\ Management\ -\ $RHDH_FULL_VERSION_INPUT.csv --debug 
 $0 --prod  -c rhdh-operator-bundle:1.5-202 -v 1.5.2 --cve /tmp/RHDH\ CVE\ Management\ -\ 1.5.2.csv 
-$0 --prod  -c rhdh-operator-bundle:1.6-??? -v 1.6.2 --cve /tmp/RHDH\ CVE\ Management\ -\ 1.6.2.csv [--cve-all] --issues RHIDP-7725,RHIDP-7726
+$0 --prod  -c rhdh-operator-bundle:1.6-??? -v 1.6.2 --cve /tmp/RHDH\ CVE\ Management\ -\ 1.6.2.csv [--cve-all] \
+  [--issues RHIDP-7725,RHIDP-7726,...]
 
 Options:
   --cve              Full path to the CVE list file to use for the container Release, eg., /tmp/RHDH\ CVE\ Management\ -\ 1.y.z.csv
   --cve-all          Include all CVEs, regardless of status; default: only include CVEs in the release.yaml if Resolution = ReleasePending
-  --issues           Space or comma separated list of iss(s) to include in this RHBA (or RHSA). Issues listed will be automatically closed. 
+  --issues           Space or comma separated list of issue(s) to include in this RHBA (or RHSA). Issues listed will be automatically closed 
+                     when the container images are live in RHEC.
 
   --stage, --prod    Push to the stage or prod version of the RH Ecosystem Catalog
   -c                 Space-separated list of containers to release
