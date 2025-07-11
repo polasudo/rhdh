@@ -44,6 +44,7 @@ packages:
   - cairo
   - containers-common
   - coreutils-single
+  - cmake
   - cpp
   - cracklib
   - cracklib-dicts
@@ -314,6 +315,7 @@ packages:
   - python3-libcomps
   - python3-libdnf
   - python3-librepo
+  - python3-pip
   - python3-rpm
   - python3-subscription-manager-rhsm
   - python3-systemd

@@ -67,6 +67,34 @@ arches:
     name: cairo
     evr: 1.17.4-7.el9
     sourcerpm: cairo-1.17.4-7.el9.src.rpm
+  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/appstream/os/Packages/c/cmake-3.26.5-2.el9.x86_64.rpm
+    repoid: ubi-9-for-x86_64-appstream-rpms
+    size: 9159462
+    checksum: sha256:f553370cb02b87e7388697468256556e765b102c2fcb56be6bc250cb2351e8ad
+    name: cmake
+    evr: 3.26.5-2.el9
+    sourcerpm: cmake-3.26.5-2.el9.src.rpm
+  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/appstream/os/Packages/c/cmake-data-3.26.5-2.el9.noarch.rpm
+    repoid: ubi-9-for-x86_64-appstream-rpms
+    size: 2488227
+    checksum: sha256:84da65a7b8921f031d15903d91c5967022620f9e96b7493c8ab8024014755ee7
+    name: cmake-data
+    evr: 3.26.5-2.el9
+    sourcerpm: cmake-3.26.5-2.el9.src.rpm
+  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/appstream/os/Packages/c/cmake-filesystem-3.26.5-2.el9.x86_64.rpm
+    repoid: ubi-9-for-x86_64-appstream-rpms
+    size: 23450
+    checksum: sha256:49fafe6c2b29fdede611a0a78664021d13f7126599e37ebff92bcb06d18f58b6
+    name: cmake-filesystem
+    evr: 3.26.5-2.el9
+    sourcerpm: cmake-3.26.5-2.el9.src.rpm
+  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/appstream/os/Packages/c/cmake-rpm-macros-3.26.5-2.el9.noarch.rpm
+    repoid: ubi-9-for-x86_64-appstream-rpms
+    size: 12250
+    checksum: sha256:1c74969c8a4f21851f5b89f25ac55c689b75bed1318d0435fc3a14a49c39d0e3
+    name: cmake-rpm-macros
+    evr: 3.26.5-2.el9
+    sourcerpm: cmake-3.26.5-2.el9.src.rpm
   - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/appstream/os/Packages/c/container-selinux-2.237.0-1.el9_6.noarch.rpm
     repoid: ubi-9-for-x86_64-appstream-rpms
     size: 61961
@@ -417,6 +445,13 @@ arches:
     name: libthai
     evr: 0.1.28-8.el9
     sourcerpm: libthai-0.1.28-8.el9.src.rpm
+  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/appstream/os/Packages/l/libuv-1.42.0-2.el9_4.x86_64.rpm
+    repoid: ubi-9-for-x86_64-appstream-rpms
+    size: 154427
+    checksum: sha256:e1fab39251239ccaad2fb4dbe6c55ec1ae60f76d4ae81582b06e6a58e30879b2
+    name: libuv
+    evr: 1:1.42.0-2.el9_4
+    sourcerpm: libuv-1.42.0-2.el9_4.src.rpm
   - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/appstream/os/Packages/l/libwayland-server-1.21.0-1.el9.x86_64.rpm
     repoid: ubi-9-for-x86_64-appstream-rpms
     size: 44352
@@ -2244,6 +2279,13 @@ arches:
     name: python-unversioned-command
     evr: 3.9.21-2.el9_6.1
     sourcerpm: python3.9-3.9.21-2.el9_6.1.src.rpm
+  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/appstream/os/Packages/p/python3-pip-21.3.1-1.el9.noarch.rpm
+    repoid: ubi-9-for-x86_64-appstream-rpms
+    size: 2133958
+    checksum: sha256:2ff41d5bbfb5bf09378a499b56d9854e9389e3a8648897426d144f4b385f8730
+    name: python3-pip
+    evr: 21.3.1-1.el9
+    sourcerpm: python-pip-21.3.1-1.el9.src.rpm
   - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/appstream/os/Packages/p/python3.11-3.11.11-2.el9_6.1.x86_64.rpm
     repoid: ubi-9-for-x86_64-appstream-rpms
     size: 26530
@@ -3401,6 +3443,12 @@ arches:
     checksum: sha256:0185c51c6c00b3a238e9038addfa1be86fee1b3cc3933efdd4f05f8c5db775d6
     name: cairo
     evr: 1.17.4-7.el9
+  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/appstream/source/SRPMS/Packages/c/cmake-3.26.5-2.el9.src.rpm
+    repoid: ubi-9-for-x86_64-appstream-source-rpms
+    size: 10671338
+    checksum: sha256:2f86bb96562eaf679969c2716738fbdfcc8a3966ecc3bb6317596fe2e214ea2b
+    name: cmake
+    evr: 3.26.5-2.el9
   - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/appstream/source/SRPMS/Packages/c/container-selinux-2.237.0-1.el9_6.src.rpm
     repoid: ubi-9-for-x86_64-appstream-source-rpms
     size: 50154
@@ -3593,6 +3641,12 @@ arches:
     checksum: sha256:1bff93f9076778b16fea27d75a7434caf8e9fb5e9bcabbf2cf8f7f0069302d73
     name: libthai
     evr: 0.1.28-8.el9
+  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/appstream/source/SRPMS/Packages/l/libuv-1.42.0-2.el9_4.src.rpm
+    repoid: ubi-9-for-x86_64-appstream-source-rpms
+    size: 1300269
+    checksum: sha256:f9dfa0dc965675730184604570c6a2aa95ddc2dfa6a7cb209514b1e744a4e3d7
+    name: libuv
+    evr: 1:1.42.0-2.el9_4
   - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/appstream/source/SRPMS/Packages/l/libxcb-1.13.1-9.el9.src.rpm
     repoid: ubi-9-for-x86_64-appstream-source-rpms
     size: 519787
