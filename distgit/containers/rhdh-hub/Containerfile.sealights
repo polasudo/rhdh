@@ -38,7 +38,7 @@ ENV NODE_OPTIONS="${NODE_OPTIONS} --require /opt/app-root/src/.npm-global/lib/no
 # append Brew metadata here
 ENV SUMMARY="Red Hat Developer Hub container" \
     DESCRIPTION="Red Hat Developer Hub container" \
-    UPSTREAM_REPO="https://github.com/redhat-developer/rhdh/tree/main @ 74bf4196" \
+    UPSTREAM_REPO="https://github.com/redhat-developer/rhdh/tree/main @ e5088eae" \
     MIDSTREAM_REPO="https://gitlab.cee.redhat.com/rhidp/rhdh/-/commits/rhdh-1-rhel-9" \
     PRODNAME="rhdh" \
     COMPNAME="hub"
@@ -57,6 +57,6 @@ LABEL summary="$SUMMARY" \
       vendor="Red Hat, Inc." \
       io.openshift.expose-services="" \
       usage="" \
-      konflux.additional-tags="next, 1.7, 1.7-116" \
+      konflux.additional-tags="1.7, 1.7-116" \
       distribution-scope="public" \
       url="https://red.ht/rhdh"
