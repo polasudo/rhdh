@@ -57,6 +57,6 @@ LABEL summary="$SUMMARY" \
       vendor="Red Hat, Inc." \
       io.openshift.expose-services="" \
       usage="" \
-      konflux.additional-tags="1.7, 1.7-116" \
+      konflux.additional-tags="next, 1.7, 1.7-116" \
       distribution-scope="public" \
       url="https://red.ht/rhdh"
