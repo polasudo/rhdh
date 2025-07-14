@@ -1096,7 +1096,6 @@ if [[ $SKIP_GH -eq 0 ]]; then
 		redhat-developer/rhdh-chart \
 		redhat-developer/red-hat-developers-documentation-rhdh \
 		redhat-developer/red-hat-developer-hub-software-templates \
-		redhat-developer/red-hat-developer-hub-theme \
 		redhat-developer/rhdh-local \
 		janus-idp/backstage-plugins \
 		; do

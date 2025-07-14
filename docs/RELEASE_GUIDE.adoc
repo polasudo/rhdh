@@ -48,8 +48,8 @@ link:https://gitlab.cee.redhat.com/prodsec/product-definitions[Product Security]
 .. [ ] janus-idp/backstage-plugins 
 ... [ ] Bump all non-private plugin & package package.json files to new version 1.y+1 - see link:../build/scripts/checkPluginVersions.sh[checkPluginVersions.sh] (called from link:../build/scripts/tagRelease.sh[tagRelease.sh])
 
-.. [ ] redhat-developer/rhdh
-... [ ] Bump link:https://github.com/redhat-developer/rhdh/blob/main/package.json#L3[package.json] and e2e-tests/package.json to new 1.y+1 version
+.. [ ] link:https://github.com/redhat-developer/rhdh/pull/3127/files[redhat-developer/rhdh]
+... [ ] Bump link:https://github.com/redhat-developer/rhdh/blob/main/package.json#L3[package.json], link:https://github.com/redhat-developer/rhdh/blob/main/e2e-tests/package.json[e2e-tests/package.json] and link:https://github.com/redhat-developer/rhdh/blob/main/dynamic-plugins/package.json[dynamic-plugins/package.json] to new 1.y+1 versions
 ... [ ] Verify https://github.com/redhat-developer/rhdh/blob/main/packages/app/src/build-metadata.json is correct (both Backstage and RHDH versions)
 
 .. [ ] redhat-developer/rhdh-operator
@@ -69,15 +69,24 @@ Starting with 1.7, link:../build/scripts/tagRelease.sh[tagRelease.sh] should gen
 * link:https://gitlab.cee.redhat.com/rhidp/rhdh-plugin-catalog/-/blob/rhdh-1-rhel-9/build/scripts/generatePyxisConfigForPlugins.sh[generatePyxisConfigForPlugins.sh]
 * link:https://gitlab.cee.redhat.com/rhidp/rhdh-plugin-catalog/-/blob/rhdh-1-rhel-9/build/scripts/generateKonfluxReleaseDataForPlugins.sh[generateKonfluxReleaseDataForPlugins.sh]
 
-NOTE: Merge requests may fail if there are required changes to either of their dependent repos.
+NOTE: Merge requests **WILL FAIL** if there are required changes to either of their dependent repos (eg., cannot update konflux-release-data if the CPE isn't present).
 
-For reference here are the MRs for the 1.6 branch creation:
+For reference, here are the PRs and MRs for the 1.7 branch creation:
+
+* https://github.com/redhat-developer/rhdh/pull/3127
+* https://github.com/redhat-developer/rhdh/pull/3126
+* https://github.com/redhat-developer/rhdh-operator/pull/1370
+* https://gitlab.cee.redhat.com/prodsec/product-definitions/-/merge_requests/3720 (CPE for 1.7, needs merge)
+* https://gitlab.cee.redhat.com/releng/pyxis-repo-configs/-/merge_requests/198 (catalog onboarding)
+* https://gitlab.cee.redhat.com/releng/konflux-release-data/-/merge_requests/8157 (app, components, RPs, RPAs for RHDH) - requires MR 3720 be merged first
+* https://gitlab.cee.redhat.com/releng/konflux-release-data/-/merge_requests/8158 (app, component, RPs, RPAs, for plugin catalog) - requires MR 3720 be merged first
+resolve RHIDP-7874
+
+Here are the MRs for 1.6: 
 
 * https://gitlab.cee.redhat.com/prodsec/product-definitions/-/merge_requests/3392
 * https://gitlab.cee.redhat.com/releng/pyxis-repo-configs/-/merge_requests/161
 * https://gitlab.cee.redhat.com/releng/konflux-release-data/-/merge_requests/5276
-
-**TODO**: replace with links for 1.7 and rewrite this section to just summarize the steps.
 
 ## Create new GL pipeline
 
