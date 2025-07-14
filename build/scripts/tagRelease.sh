@@ -279,7 +279,6 @@ getXYplusOneFromBranch() {
 # to bump only the root package.json, see updatePluginsRootVersion()
 function updatePluginVersions() {
 	# for janus-idp/backstage-plugins, run checkPluginVersions.sh
-	# TODO move to backstage/community-plugins
 	orgAndRepo="janus-idp/backstage-plugins"
 	d="${orgAndRepo/\//__}"
 	pushd "$TMPDIR/projects_${d}" >/dev/null || exit 1
@@ -308,7 +307,6 @@ function updatePluginVersions() {
 function updatePluginsRootVersion() {
 	the_branch="$1"
 	the_version="$2"
-	# TODO move to backstage/community-plugins
 	orgAndRepo="janus-idp/backstage-plugins"
 	d="${orgAndRepo/\//__}"
 	rm -fr "$TMPDIR/projects_${d}_2" && git clone -q --depth 1 -b "${the_branch}" "git@github.com:${orgAndRepo}" "$TMPDIR/projects_${d}_2" || echo "Branch $clone_branch doesn't exist: skip!"
@@ -343,11 +341,68 @@ function updatePluginsRootVersion() {
 	popd >/dev/null || exit 1
 }
 
+# for redhat-developer/rhdh-local, bump to specified version WHEN TAGGING ONLY
+function updateRHDHLocalVersions() {
+	the_branch="$1"
+	the_version_z="$2" # 1.7.z
+	the_version_y="${the_version_z%.*}" # 1.7
+	the_next_version_y=${the_version_y}
+	if [[ $the_next_version_y =~ ^([0-9]+)\.([0-9]+) ]]; then # increase the y digit
+		XX=${BASH_REMATCH[1]}
+		YY=${BASH_REMATCH[2]}
+		(( YY=YY+1 ))
+		the_next_version_y="${XX}.${YY}"
+	fi
+	
+	orgAndRepo="redhat-developer/rhdh-local"
+	d="${orgAndRepo/\//__}"
+	rm -fr "$TMPDIR/projects_${d}_2" && git clone -q --depth 1 -b "${the_branch}" "git@github.com:${orgAndRepo}" "$TMPDIR/projects_${d}_2" || echo "Branch $clone_branch doesn't exist: skip!"
+	pushd "$TMPDIR/projects_${d}_2" >/dev/null || exit 1
+
+	################
+	# update 3 files
+	################
+
+	for d in \
+		./additional-config-guides/container-image-guide.md \
+		./default.env \
+		./compose.yaml \
+		; do 
+		if [[ -f $d ]]; then
+			sed -i $d -r \
+				-e "s|rhdh-community/rhdh:([0-9]+\.[0-9]+)|rhdh-community/rhdh:$the_version_y|g" \
+				-e "s/^(example, )([0-9]+\.[0-9]+)/\1$the_version_z/" \
+				-e "s|(registry.redhat.io/rhdh/rhdh-hub-rhel9:)([0-9]+\.[0-9]+)|\1$the_version_z|g" \
+				-e "s/(CI build of RHDH 1.y \(for example, )([0-9]+\.[0-9]+)/\1$the_next_version_y/" \
+				-e "s|(quay.io/rhdh/rhdh-hub-rhel9:)([0-9]+\.[0-9]+)|\1$the_next_version_y|g"
+		fi
+	done
+	echo -n "updateRHDHLocalVersions: "; pwd; git diff || true
+	if [[ ${DO_PUSH} -eq 1 ]]; then
+		COMMITMSG="chore: tagRelease.sh: bump to $the_version_z in $the_branch branch"
+		if [[ $DO_BUILD -eq 1 ]]; then
+			# quietly install any updates to yarn.lock so PR will pass sniff test
+			yarn install 2> >(grep -v warning 1>&2) 
+			COMMITMSG="${COMMITMSG} + regen yarn.lock"
+		else
+			COMMITMSG="${COMMITMSG} [skip-build]"
+		fi
+		if [[ $(git diff || true ) ]]; then
+			git commit --no-gpg-sign -s -m "${COMMITMSG}" .
+			git pull origin "${the_branch}" || true
+			# create pull request if target branch is restricted access
+			pr_branch="pr-bump-to-${the_version_z}-in-${the_branch}-$(date +%s)"
+			createPr "${pr_branch}" "${the_branch}"
+		fi
+	fi ## if DO_PUSH
+
+	popd >/dev/null || exit 1
+}
+
 # for redhat-developer/rhdh, bump to specified version
 function updateRHDHVersions() {
 	the_branch="$1"
 	the_version="$2"
-	# TODO move to red-hat-developer-hub
 	orgAndRepo="redhat-developer/rhdh"
 	d="${orgAndRepo/\//__}"
 	rm -fr "$TMPDIR/projects_${d}_2" && git clone -q --depth 1 -b "${the_branch}" "git@github.com:${orgAndRepo}" "$TMPDIR/projects_${d}_2" || echo "Branch $clone_branch doesn't exist: skip!"
@@ -411,17 +466,8 @@ function updateOperatorVersions() {
 	# update Makefile
 	sed -i Makefile -r -e "s/(VERSION \?= )[0-9.]+/\1$the_version_op/" # 0.y.0
 
-	# upstream we don't change this
-	# -e "s|quay.io/fedora/postgresql-15:latest|registry.redhat.io/rhel9/postgresql-15:latest|" \
-
-	# TODO: once 1.4 is EOL, can remove these
-	#  .rhdh/bundle/manifests/rhdh-operator.clusterserviceversion.yaml \
-	#  config/manifests/rhdh/bases/csv.yaml
-
 	# update *.clusterserviceversion.yaml
 	for y in \
-		.rhdh/bundle/manifests/rhdh-operator.clusterserviceversion.yaml \
-		config/manifests/rhdh/bases/csv.yaml \
 		config/manifests/rhdh/bases/backstage-operator.clusterserviceversion.yaml \
 		bundle/rhdh/manifests/backstage-operator.clusterserviceversion.yaml; do
 		if [[ -f $y ]]; then
@@ -510,7 +556,7 @@ function updateDocVersions() {
 }
 
 # for charts repo, bump to specified version
-# TODO: chart version must increment (y+1) in charts/backstage/Chart.yaml and in README.md
+# chart version must increment (y+1) in charts/backstage/Chart.yaml and in README.md
 function updateChartVersions(){
     the_branch="$1"
     the_version="$2" # 1.3.0
@@ -679,6 +725,9 @@ pushBranchAndOrTagGH () {
 					elif [[ $d == "janus-idp__backstage-plugins" ]]; then
 						echo -e "${green}[INFO] Bump $d to $CSV_VERSION_Z_PLUGINS${norm}" 
 						updatePluginsRootVersion "$TARGET_BRANCH" "$CSV_VERSION_Z_PLUGINS"
+					elif [[ $d == "redhat-developer__rhdh-local" ]]; then
+						echo -e "${green}[INFO] Bump $d main to ${CSV_VERSION}${norm}" 
+						updateRHDHLocalVersions "main" "$CSV_VERSION"
 					elif [[ $d == "redhat-developer__red-hat-developers-documentation-rhdh" ]]; then
 						echo -e "${green}[INFO] Bump $d to $CSV_VERSION${norm}" 
 						# note: for now, only bump to the last RELEASED version in the docs
@@ -1096,8 +1145,8 @@ if [[ $SKIP_GH -eq 0 ]]; then
 		redhat-developer/rhdh-chart \
 		redhat-developer/red-hat-developers-documentation-rhdh \
 		redhat-developer/red-hat-developer-hub-software-templates \
-		redhat-developer/rhdh-local \
 		janus-idp/backstage-plugins \
+		redhat-developer/rhdh-local \
 		; do
 		pushBranchAndOrTagGH $repo 
 	done
