@@ -1,8 +1,8 @@
 {
   "title": "RHDH Metadata",
   "card": {
-    "RHDH Version": "1.7.0",
+    "RHDH Version": "1.8.0",
     "Backstage Version": "1.39.1",
-    "Upstream": "https://github.com/redhat-developer/rhdh/tree/main @ 7e093d00", "Midstream": "https://gitlab.cee.redhat.com/rhidp/rhdh/-/commits/rhdh-1-rhel-9 @ 33018d7c", "Build Time": "2025-07-14T13:26:04Z"
+    "Upstream": "https://github.com/redhat-developer/rhdh/tree/main @ 96f607be", "Midstream": "https://gitlab.cee.redhat.com/rhidp/rhdh/-/commits/rhdh-1-rhel-9 @ f58a2943", "Build Time": "2025-07-14T15:57:10Z"
   }
 }
