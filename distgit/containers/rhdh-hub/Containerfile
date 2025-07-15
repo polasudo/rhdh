@@ -73,6 +73,7 @@ COPY $EXTERNAL_SOURCE_NESTED/plugins/dynamic-plugins-info-backend/package.json .
 COPY $EXTERNAL_SOURCE_NESTED/packages/plugin-utils/package.json ./packages/plugin-utils/package.json
 COPY $EXTERNAL_SOURCE_NESTED/packages/backend/package.json ./packages/backend/package.json
 COPY $EXTERNAL_SOURCE_NESTED/packages/app/package.json ./packages/app/package.json
+COPY $EXTERNAL_SOURCE_NESTED/packages/app-next/package.json ./packages/app-next/package.json
 COPY $EXTERNAL_SOURCE_NESTED/package.json ./package.json
 # END COPY package.json files
 
@@ -328,7 +329,7 @@ ENTRYPOINT ["node", "--require", "./instrumentation.js", "packages/backend", "--
 # append Brew metadata here
 ENV SUMMARY="Red Hat Developer Hub container" \
     DESCRIPTION="Red Hat Developer Hub container" \
-    UPSTREAM_REPO="https://github.com/redhat-developer/rhdh/tree/main @ efee34c4" \
+    UPSTREAM_REPO="https://github.com/redhat-developer/rhdh/tree/main @ 449bac52" \
     MIDSTREAM_REPO="https://gitlab.cee.redhat.com/rhidp/rhdh/-/commits/rhdh-1-rhel-9" \
     PRODNAME="rhdh" \
     COMPNAME="hub"
