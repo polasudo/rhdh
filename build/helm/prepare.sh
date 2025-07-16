@@ -42,6 +42,9 @@ red="\033[1;31m"
 # Exit when any command fails
 set -e
 
+SCRIPT_DIR=$(cd "$(dirname "$0")" || exit; pwd)
+source "${SCRIPT_DIR}/../scripts/prepareOSXARM64.sh"
+
 usage() {
     echo "Utility script to push CI builds to quay and generate PRs for GA helm chart releases
 
@@ -236,40 +239,52 @@ HELM_DOCS_LOG_LEVEL="fatal"
 #     python${PYTHON_VERSION} -m pip install --user --no-cache-dir --upgrade pip setuptools yq
 # fi
 
-if ! command -v gh &>/dev/null; then
-    ghclirepo=https://cli.github.com/packages/rpm/gh-cli.repo
-    echo "Intalling gh from $ghclirepo ..."
-    sudo dnf config-manager --add-repo $ghclirepo -q && sudo dnf -y -q install gh >/dev/null 2>&1
-fi
-if ! command -v helm &>/dev/null; then
-    helmrpmrepo="https://rhsm-pulp.corp.redhat.com/content/dist/layered/rhel8/x86_64/ocp-tools/4.14/os/"
-    echo "Installing helm from $helmrpmrepo ..."
-    sudo dnf config-manager --add-repo $helmrpmrepo -q && sudo dnf -y -q install helm >/dev/null 2>&1
-fi
+# Function to install package with cross-platform support
+install_package() {
+    local rpm_repo="$1"
+    local package="$2"
+    local brew_package="${3:-$package}"
+    local rpm_package="${4:-$package}"
+    
+    if ! command -v "$package" &>/dev/null; then
+        if [[ $(uname -m -o) == "arm64 Darwin" ]]; then
+            install_brew_package "$package" "$brew_package"
+        else
+            echo "Installing $package from $rpm_repo ..."
+            sudo dnf config-manager --add-repo "$rpm_repo" -q && sudo dnf -y -q install "$rpm_package" >/dev/null 2>&1
+        fi
+    fi
+}
+
+# Install packages
+install_package "https://cli.github.com/packages/rpm/gh-cli.repo" "gh"
+install_package "https://rhsm-pulp.corp.redhat.com/content/dist/layered/rhel8/x86_64/ocp-tools/4.14/os/" "helm"
+install_package "https://rhsm-pulp.corp.redhat.com/content/dist/layered/rhel8/x86_64/rhocp/4.14/os/" "podman"
+install_package "https://rhsm-pulp.corp.redhat.com/content/dist/layered/rhel8/x86_64/rhocp/4.14/os/" "oc" "openshift-cli" "openshift-clients"
+
 if ! command -v helm-docs &>/dev/null; then
-    helmdocrepo=github.com/norwoodj/helm-docs/cmd/helm-docs@${helmdocs_version}
-    echo "Installing $helmdocrepo to ${HOME}/go/bin/helm-docs ..."
-    sudo dnf -y -q install brotli-devel cmake gcc gcc-c++ git golang >/dev/null 2>&1
-    GO111MODULE=on go install $helmdocrepo >/dev/null 2>&1
-    export PATH="$PATH:${HOME}/go/bin"
+    if [[ $(uname -m -o) == "arm64 Darwin" ]]; then
+        install_brew_package "helm-docs" "helm-docs"
+    else
+        helmdocrepo=github.com/norwoodj/helm-docs/cmd/helm-docs@${helmdocs_version}
+        echo "Installing $helmdocrepo to ${HOME}/go/bin/helm-docs ..."
+        sudo dnf -y -q install brotli-devel cmake gcc gcc-c++ git golang >/dev/null 2>&1
+        GO111MODULE=on go install $helmdocrepo >/dev/null 2>&1
+        export PATH="$PATH:${HOME}/go/bin"
+    fi
 fi
-if ! command -v oc &>/dev/null; then
-    ocrpmrepo="https://rhsm-pulp.corp.redhat.com/content/dist/layered/rhel8/x86_64/rhocp/4.14/os/"
-    echo "Installing oc from $ocrpmrepo ..."
-    sudo dnf config-manager --add-repo $ocrpmrepo -q && sudo dnf -y -q install openshift-clients >/dev/null 2>&1
-fi
-if ! command -v podman &>/dev/null; then
-    ocrpmrepo="https://rhsm-pulp.corp.redhat.com/content/dist/layered/rhel8/x86_64/rhocp/4.14/os/"
-    echo "Installing podman from $ocrpmrepo ..."
-    sudo dnf config-manager --add-repo $ocrpmrepo -q && sudo dnf -y -q install podman >/dev/null 2>&1
-fi
+
 if ! command -v oras &>/dev/null; then
-    orasrepo="https://github.com/oras-project/oras/releases/download/v${oras_version}/"
-    orastar="oras_${oras_version}_linux_amd64.tar.gz"
-    echo "Installing oras from $orasrepo ..."
-    curl -sSLO "${orasrepo}${orastar}"
-    sudo tar -zxf $orastar -C /usr/local/bin/ oras
-    rm -rf $orastar oras-install/
+    if [[ $(uname -m -o) == "arm64 Darwin" ]]; then
+        install_brew_package "oras" "oras"
+    else
+        orasrepo="https://github.com/oras-project/oras/releases/download/v${oras_version}/"
+        orastar="oras_${oras_version}_linux_amd64.tar.gz"
+        echo "Installing oras from $orasrepo ..."
+        curl -sSLO "${orasrepo}${orastar}"
+        sudo tar -zxf $orastar -C /usr/local/bin/ oras
+        rm -rf $orastar oras-install/
+    fi
 fi
 
 for c in gh git helm helm-docs oc podman oras $YQ; do

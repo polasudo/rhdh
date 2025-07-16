@@ -11,6 +11,38 @@
 # macOS ARM64 environment for building RHDH images
 SCRIPT_DIR=$(cd "$(dirname "$0")" || exit; pwd)
 
+# Function to install Homebrew package with PATH management
+install_brew_package() {
+	local package="$1"
+	local brew_package="${2:-$package}"
+	local path_type="${3:-bin}"  # bin, gnu-sed, gawk, gnu-tar
+	
+	if ! command -v "$package" &>/dev/null; then
+		echo "🔧 Installing $package..."
+		brew install "$brew_package" >/dev/null 2>&1
+		
+		# Add appropriate PATH based on package type
+		case "$path_type" in
+			"gnu-sed")
+				export PATH="/opt/homebrew/opt/gnu-sed/libexec/gnubin:$PATH"
+				;;
+			"gawk")
+				export PATH="/opt/homebrew/opt/gawk/libexec/gnubin:$PATH"
+				;;
+			"gnu-tar")
+				export PATH="/opt/homebrew/opt/gnu-tar/libexec/gnubin:$PATH"
+				;;
+			"bin")
+				if [[ ":$PATH:" != *":/opt/homebrew/bin:"* ]]; then
+					export PATH="/opt/homebrew/bin:$PATH"
+				fi
+				;;
+		esac
+	else
+		echo "✅ $package is already installed."
+	fi
+}
+
 prepareOSXARM64() {
 	if [[ $(uname -o) == "Darwin" ]] && [[ $(uname -m) == "arm64" ]]; then
 		echo "🔧 Preparing macOS environment..."
@@ -57,120 +89,31 @@ prepareOSXARM64() {
 	else
 		echo "✅ Your Bash version ($current_bash_version) is already up to date (≥ 5)."
 	fi
-	
-	if ! command -v gsed &>/dev/null; then
-		echo "🔧 Installing GNU sed (gsed)..."
-		brew install gnu-sed
-		export PATH="/opt/homebrew/opt/gnu-sed/libexec/gnubin:$PATH"
-	else
-		echo "✅ gsed is already installed."
-	fi
 
-	if ! command -v gawk &>/dev/null; then
-		echo "🔧 Installing GNU awk (gawk)..."
-		brew install gawk
-		export PATH="/opt/homebrew/opt/gawk/libexec/gnubin:$PATH"
-	else
-		echo "✅ gawk is already installed."
-	fi
+	# Install GNU tools (need special PATH handling)
+	install_brew_package "gsed" "gnu-sed" "gnu-sed"
+	install_brew_package "gawk" "gawk" "gawk"
+	install_brew_package "gnu-tar" "gnu-tar" "gnu-tar"
 
-	if ! command -v rsync &>/dev/null; then
-		echo "🔧 Installing rsync..."
-		brew install rsync
-		if [[ ":$PATH:" != *":/opt/homebrew/bin:"* ]]; then
-  			export PATH="/opt/homebrew/bin:$PATH"
-		fi
-	else
-		echo "✅ rsync is already installed."
-	fi
+	# Install standard packages
+	install_brew_package "rsync" "rsync"
+	install_brew_package "gh" "gh"
+	install_brew_package "git" "git"
+	install_brew_package "helm" "helm"
+	install_brew_package "helm-docs" "helm-docs"
+	install_brew_package "oc" "openshift-cli"
+	install_brew_package "podman" "podman"
+	install_brew_package "oras" "oras"
 
-	if ! command -v gnu-tar &>/dev/null; then
-		echo "🔧 Installing gnu-tar..."
-		brew install gnu-tar
-		export PATH="/opt/homebrew/opt/gnu-tar/libexec/gnubin:$PATH"
-	else
-		echo "✅ gnu-tar is already installed."
-	fi
-
-	if ! command -v gh &>/dev/null; then
-		echo "🔧 Installing gh..."
-		brew install gh
-		if [[ ":$PATH:" != *":/opt/homebrew/bin:"* ]]; then
-  			export PATH="/opt/homebrew/bin:$PATH"
-		fi
-	else
-		echo "✅ gh is already installed."
-	fi
-
-	if ! command -v git &>/dev/null; then
-		echo "🔧 Installing git..."
-		brew install git
-		if [[ ":$PATH:" != *":/opt/homebrew/bin:"* ]]; then
-  			export PATH="/opt/homebrew/bin:$PATH"
-		fi
-	else
-		echo "✅ git is already installed."
-	fi
-
-	if ! command -v helm &>/dev/null; then
-		echo "🔧 Installing helm..."
-		brew install helm
-		if [[ ":$PATH:" != *":/opt/homebrew/bin:"* ]]; then
-  			export PATH="/opt/homebrew/bin:$PATH"
-		fi
-	else
-		echo "✅ helm is already installed."
-	fi
-
-	if ! command -v helm-docs &>/dev/null; then
-		echo "🔧 Installing helm-docs..."
-		brew install helm-docs
-		if [[ ":$PATH:" != *":/opt/homebrew/bin:"* ]]; then
-  			export PATH="/opt/homebrew/bin:$PATH"
-		fi
-	else
-		echo "✅ helm-docs is already installed."
-	fi
-
-	if ! command -v oc &>/dev/null; then
-		echo "🔧 Installing oc..."
-		brew install openshift-cli
-		if [[ ":$PATH:" != *":/opt/homebrew/bin:"* ]]; then
-  			export PATH="/opt/homebrew/bin:$PATH"
-		fi
-	else
-		echo "✅ oc is already installed."
-	fi
-
-	if ! command -v podman &>/dev/null; then
-		echo "🔧 Installing podman..."
-		brew install podman
-		if [[ ":$PATH:" != *":/opt/homebrew/bin:"* ]]; then
-  			export PATH="/opt/homebrew/bin:$PATH"
-		fi
-	else
-		echo "✅ podman is already installed."
-	fi
-
-	if ! command -v oras &>/dev/null; then
-		echo "🔧 Installing oras..."
-		brew install oras
-		
-		if [[ ":$PATH:" != *":/opt/homebrew/bin:"* ]]; then
-  			export PATH="/opt/homebrew/bin:$PATH"
-		fi
-	else
-		echo "✅ oras is already installed."
-	fi
-
+	# Install Google Chrome (special case - cask)
 	if [ -x "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" ]; then
-		echo "Google Chrome is installed or accessible."
+		echo "✅ Google Chrome is installed or accessible."
 	else
-		echo "Google Chrome is not available."
 		echo "🔧 Installing Google Chrome..."
 		brew install --cask google-chrome
 	fi
 
+	# Create symlink for Google Chrome
 	if ! command -v google-chrome &>/dev/null; then
 		echo "🔧 Adding a symlink for Google Chrome..."
 		sudo ln -s "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" /usr/local/bin/google-chrome
@@ -178,21 +121,21 @@ prepareOSXARM64() {
 		echo "✅ symlink to Google Chrome is already available"
 	fi
 
-	# Check if skopeo is installed
+	# Install skopeo with wrapper (special case)
 	if ! command -v skopeo >/dev/null 2>&1; then
 		echo "🔧 Installing skopeo..."
 		brew install skopeo
 
 		echo "🔧 Adding a wrapper for skopeo..."
-
 		cat <<'EOF' | sudo tee /usr/local/bin/skopeo > /dev/null
 #!/bin/bash
 /opt/homebrew/bin/skopeo "\$@" --override-arch=amd64 --override-os=linux
 EOF
-    	sudo chmod +x /usr/local/bin/skopeo
+		sudo chmod +x /usr/local/bin/skopeo
 	else
-    	echo "✅ A wrapper to skopeo is already available"
+		echo "✅ A wrapper to skopeo is already available"
 	fi
 }
 
-prepareOSXARM64
+# this script should do nothing if we're not on arm64 Mac
+if [[ $(uname -m -o) == "arm64 Darwin" ]]; then prepareOSXARM64; fi 
