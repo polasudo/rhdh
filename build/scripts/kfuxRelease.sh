@@ -76,6 +76,8 @@ Options:
   --cve-all          Include all CVEs, regardless of status; default: only include CVEs in the release.yaml if Resolution = ReleasePending
   --issues           Space or comma separated list of issue(s) to include in this RHBA (or RHSA). Issues listed will be automatically closed 
                      when the container images are live in RHEC.
+  --bz               Space or comma separated list of bugzilla(s) to include in this RHBA. Useful for linking to upstream base image issues 
+                     fixed in a .z respin. See RHIDP-8185 for how to get the list of BZs for a CVE.
 
   --stage, --prod    Push to the stage or prod version of the RH Ecosystem Catalog
   -c                 Space-separated list of containers to release
@@ -151,6 +153,7 @@ while [[ "$#" -gt 0 ]]; do
     '--cve') CVEListFile="$2"; shift 1;;
     '--cve-all') CVE_INCLUDE_ALL=1;;
     '--issues') ISSUES="$2"; shift 1;;
+    '--bz') BZ="$2"; shift 1;;
     '--help') usage; usageContainers; usageFBCs; exit 0;;
     *) usage; usageContainers; usageFBCs; echo; echo -e "${red}[ERROR] Unknown flag ${1}${norm}"; exit 1;;
   esac
@@ -374,6 +377,8 @@ collectIssues ()
   fi
   i_count=0
   fixed_issues=""
+
+  # jiras
   for iss in $ISSUES; do
     (( i_count = i_count + 1 ))
     references_yaml="$references_yaml
@@ -382,6 +387,17 @@ collectIssues ()
           - id: $iss
             source: issues.redhat.com"
   done
+
+  # bugzillas
+  for bz in $BZ; do
+    (( i_count = i_count + 1 ))
+    references_yaml="$references_yaml
+        - \"https://bugzilla.redhat.com/show_bug.cgi?id=$bz\""
+    fixed_issues="$fixed_issues
+          - id: $bz
+            source: bugzilla.redhat.com"
+  done
+
   if [[ $i_count -gt 0 ]]; then 
     advisoryType="${advisoryType}
       issues:
