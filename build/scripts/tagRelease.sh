@@ -65,7 +65,7 @@ Requires: both yq (python wrapper for jq) and yq from https://github.com/mikefar
 To create or update existing branches:
   $0 --branchfrom SOURCE_GH_BRANCH -gh TARGET_GH_BRANCH -ghtoken GITHUB_TOKEN
 Example: 
-  $0 --branchfrom main -gh release-1.6 --clean -ghtoken \$GITHUB_TOKEN
+  $0 --branchfrom main -gh release-1.7 --clean -ghtoken \$GITHUB_TOKEN
 
 To create tags (and push updates to release-1.yy branches):
 1. You should have a valid GITHUB_TOKEN for your user (for upstream PRs).
@@ -73,7 +73,7 @@ To create tags (and push updates to release-1.yy branches):
 3. Run this
   $0 -v CSV_VERSION -t PROD_VERSION -gh GH_BRANCH -ghtoken GITHUB_TOKEN
 Example: 
-  $0 -v 1.5.2 -t 1.5 -gh release-1.5 --midstream-branch rhdh-1.5-rhel-9 --clean --force-update -tmpdir $TMPDIR --nobuild
+  $0 -v 1.7.2 -t 1.7 -gh release-1.7 --midstream-branch rhdh-1.7-rhel-9 --clean --force-update -tmpdir $TMPDIR --nobuild
 
 Options:
     --clean                   delete existing temp folders and do fresh checkouts
@@ -399,6 +399,43 @@ function updateRHDHLocalVersions() {
 	popd >/dev/null || exit 1
 }
 
+# for redhat-developer/rhdh-cli, bump to specified version
+function updateRHDHCLIVersion() {
+	the_branch="$1"
+	the_version="$2"
+	orgAndRepo="redhat-developer/rhdh-cli"
+	d="${orgAndRepo/\//__}"
+	rm -fr "$TMPDIR/projects_${d}_2" && git clone -q --depth 1 -b "${the_branch}" "git@github.com:${orgAndRepo}" "$TMPDIR/projects_${d}_2" || echo "Branch $clone_branch doesn't exist: skip!"
+	pushd "$TMPDIR/projects_${d}_2" >/dev/null || exit 1
+
+	################
+	# update 1 file
+	################
+
+	d=package.json
+	jq -r --arg the_version "$the_version" '.version|=$the_version' $d > "${d}1"; mv -f "${d}1" "${d}"
+
+	echo -n "updateRHDHCLIVersion: "; pwd; git diff || true
+	if [[ ${DO_PUSH} -eq 1 ]]; then
+		COMMITMSG="chore: tagRelease.sh: bump to $the_version in $the_branch branch"
+		if [[ $DO_BUILD -eq 1 ]]; then
+			# quietly install any updates to yarn.lock so PR will pass sniff test
+			yarn install 2> >(grep -v warning 1>&2) 
+			COMMITMSG="${COMMITMSG} + regen yarn.lock"
+		else
+			COMMITMSG="${COMMITMSG} [skip-build]"
+		fi
+		if [[ $(git diff || true ) ]]; then
+			git commit --no-gpg-sign -s -m "${COMMITMSG}" .
+			git pull origin "${the_branch}" || true
+			# create pull request if target branch is restricted access
+			pr_branch="pr-bump-to-${the_version}-in-${the_branch}-$(date +%s)"
+			createPr "${pr_branch}" "${the_branch}"
+		fi
+	fi ## if DO_PUSH
+
+	popd >/dev/null || exit 1
+}
 # for redhat-developer/rhdh, bump to specified version
 function updateRHDHVersions() {
 	the_branch="$1"
@@ -719,6 +756,9 @@ pushBranchAndOrTagGH () {
 					if [[ $d == "redhat-developer__rhdh" ]]; then
 						echo -e "${green}[INFO] Bump $d to $CSV_VERSION_Z${norm}" 
 						updateRHDHVersions "$TARGET_BRANCH" "$CSV_VERSION_Z"
+					elif [[ $d == "redhat-developer__rhdh-cli" ]]; then
+						echo -e "${green}[INFO] Bump $d to $CSV_VERSION_Z${norm}" 
+						updateRHDHCLIVersion "$TARGET_BRANCH" "$CSV_VERSION_Z"
 					elif [[ $d == "redhat-developer__rhdh-operator" ]]; then
 						echo -e "${green}[INFO] Bump $d to $CSV_VERSION_Z / $CSV_VERSION_Z_OPERATOR${norm}" 
 						updateOperatorVersions "$TARGET_BRANCH" "$CSV_VERSION_Z" "$CSV_VERSION_Z_OPERATOR"
@@ -1140,6 +1180,7 @@ getXYplusOneFromBranch "$TARGET_BRANCH"
 # branch and/or tag GH repos
 if [[ $SKIP_GH -eq 0 ]]; then
 	for repo in \
+		redhat-developer/rhdh-cli \
 		redhat-developer/rhdh \
 		redhat-developer/rhdh-operator \
 		redhat-developer/rhdh-chart \
@@ -1159,6 +1200,7 @@ if [[ $SKIP_GH -eq 0 ]]; then
 	if [[ ${SOURCE_BRANCH} ]]; then
 		# check for changes and push a PR for each repo
 		# still needed for 1.4's janus plugins
+		updateRHDHCLIVersion "$SOURCE_BRANCH" "$newver"
 		updatePluginVersions 
 		updateOperatorVersions "$SOURCE_BRANCH" "$newver" "$newverOp"
 		updateRHDHVersions "$SOURCE_BRANCH" "$newver"
