@@ -73,7 +73,7 @@ WORKDIR ${HOME}
 ENTRYPOINT ["/manager"]
 ENV SUMMARY="Red Hat Developer Hub operator" \
     DESCRIPTION="Red Hat Developer Hub operator" \
-    UPSTREAM_REPO="https://github.com/redhat-developer/rhdh-operator/tree/main @ 9e1bf749" \
+    UPSTREAM_REPO="https://github.com/redhat-developer/rhdh-operator/tree/main @ edc37456" \
     MIDSTREAM_REPO="https://gitlab.cee.redhat.com/rhidp/rhdh/-/commits/rhdh-1-rhel-9" \
     PRODNAME="rhdh" \
     COMPNAME="operator"
@@ -86,12 +86,12 @@ LABEL summary="$SUMMARY" \
       com.redhat.component="$PRODNAME-$COMPNAME-container" \
       name="$PRODNAME/$PRODNAME-rhel9-$COMPNAME" \
       version="1.8" \
-      release="3" \
+      release="4" \
       license="ASLv2" \
       maintainer="RHDH Team <rhdh-bot@redhat.com>" \
       vendor="Red Hat, Inc." \
       io.openshift.expose-services="" \
       usage="" \
-      konflux.additional-tags="next, 1.8, 1.8-3" \
+      konflux.additional-tags="next, 1.8, 1.8-4" \
       distribution-scope="public" \
       url="https://red.ht/rhdh"
