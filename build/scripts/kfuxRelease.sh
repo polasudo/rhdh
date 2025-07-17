@@ -28,6 +28,7 @@ midstreamCommitSHA=""
 CVEListFile="" # full path to a .csv file containing CVE ids and container references
 advisoryType=""
 ISSUES=""
+BZ=""
 CVE_INCLUDE_ALL=0 # by default only include some issues; use --cve-all to include all when generating release.yaml
 
 norm="\033[0;39m"
@@ -384,17 +385,18 @@ collectIssues ()
     references_yaml="$references_yaml
         - \"https://issues.redhat.com/browse/$iss\""
     fixed_issues="$fixed_issues
-          - id: $iss
+          - id: \"$iss\"
             source: issues.redhat.com"
   done
 
   # bugzillas
+  BZ="${BZ//,/ }"
   for bz in $BZ; do
     (( i_count = i_count + 1 ))
     references_yaml="$references_yaml
         - \"https://bugzilla.redhat.com/show_bug.cgi?id=$bz\""
     fixed_issues="$fixed_issues
-          - id: $bz
+          - id: \"$bz\"
             source: bugzilla.redhat.com"
   done
 
