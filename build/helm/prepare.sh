@@ -23,6 +23,12 @@ DO_LATEST=0 # if we want to generate a chart for the :latest, we need to set a -
 DEBUG=0
 QUIET="-q"
 
+# RHIDP-8242 must manually opt in to publishing new charts here, by:
+# creating new quay.io/rhdh/*-chart repo, then adding more folders to this for loop
+# must also add logic below to handle mapping the chart name to its URL
+# look for 'if [[ "${CHART_NAME}" ==' sections
+CHARTS_TO_PUBLISH="charts/backstage charts/orchestrator-infra"
+
 EXCLUDES="next|latest|candidate|guest|containers|-source|-pr-|-tmp-|-ci-|-gh-|sha256-|on-push|on-pull|build-container|build-image-index"
 
 THIS_SCRIPT="$0"
@@ -43,6 +49,7 @@ red="\033[1;31m"
 set -e
 
 SCRIPT_DIR=$(cd "$(dirname "$0")" || exit; pwd)
+# shellcheck disable=SC1091
 source "${SCRIPT_DIR}/../scripts/prepareOSXARM64.sh"
 
 usage() {
@@ -55,7 +62,8 @@ Usage: $0 --chart-version x.y.z --rhdh-version x.y-zzz --chart-branch release-1.
 NOTE: This must be run using the GITHUB_TOKEN of rhdh-bot@redhat.com in order to have PRs automerged. 
 
 Options:
-    --chart-name               Override the chart name (default: $CHART_NAME). Use 'all' to iterate and publish all charts in ./charts/
+    --chart-name               Set chart name (default: $CHART_NAME). Use 'all' to publish multiple charts:
+                                 $CHARTS_TO_PUBLISH
     --chart-dir                Relative path to the chart directory (default: $CHART_DIR)
 
     --latest --chart-branch release-1.yy   Compute the most recent 1.y-zzz tag (by semver sort rules) in quay.io/rhdh/rhdh-hub-rhel9, and use that tag in chart
@@ -82,7 +90,7 @@ This script requires following binaries to be present on the system:
     helm-docs  $helmdocs_version        https://github.com/norwoodj/helm-docs
     oc         v4             https://console.redhat.com/openshift/downloads#tool-oc
     podman     v4             https://podman.io/
-    yq         $mikefarahyq_version             https://github.com/mikefarah/yq/
+    yq         $mikefarahyq_version         https://github.com/mikefarah/yq/
 
 Examples:
     ##### 1. Prepare and push a release to quay.io/rhdh/chart:
@@ -304,8 +312,7 @@ git clone --depth=1 -q --branch="${CHART_BRANCH}" https://github.com/redhat-deve
 if [[ "$CHART_NAME" == "all" ]]; then
     echo -e "${green}[INFO] Multi-chart mode: will publish all charts in https://github.com/redhat-developer/rhdh-chart/tree/$CHART_BRANCH/charts${norm}"
     # echo "Working dir: $HELM_DIR ..." 
-    chart_paths="$(cd "${HELM_DIR}"; find charts/ -mindepth 1 -maxdepth 1 -type d | sort)"
-    for chart_path in $chart_paths; do # want charts/backstage and charts/orchestrator-infra 
+    for chart_path in $CHARTS_TO_PUBLISH; do 
         name=$(basename "$chart_path"); 
         echo -e "\n===========================\n[INFO] Publishing chart $name from $chart_path\n===========================\n"
         if [[ $DEBUG -eq 1 ]]; then DEBUGFLAG="--debug"; else DEBUGFLAG=""; fi
@@ -362,28 +369,6 @@ if [[ "$CHART_ACTUAL_NAME" == "redhat-developer-hub-orchestrator-infra" ]]; then
 fi
 
 if [[ "${CHART_NAME}" == "redhat-developer-hub" ]] || [[ "${CHART_NAME}" == "backstage" ]]; then
-
-    #####> removed in 1.7 as values were pushed upstream into rhdh-chart - RHIDP-1477, RHIDP-7529
-	if [[ -f "${SCRIPT_DIR}/Chart_patch.yaml" ]]; then 
-	    if [[ $CHART_VERSION == *"CI"* ]]; then
-	        if [[ $DEBUG -eq 1 ]]; then
-	            echo "Apply (CI Build) suffix to chart name"
-	        fi
-	        $YQ -i "
-	            . *= load(\"${SCRIPT_DIR}/Chart_patch.yaml\") |
-	            .version=\"${CHART_VERSION}\" |
-	            .appVersion=\"${RHDH_VERSION}\" |
-	            .annotations.\"charts.openshift.io/name\"=\"Red Hat Developer Hub (${CHART_VERSION} Build)\"
-	        " "${CHART_PATH}"
-	    else
-	        $YQ -i "
-	            . *= load(\"${SCRIPT_DIR}/Chart_patch.yaml\") |
-	            .version=\"${CHART_VERSION}\" |
-	            .appVersion=\"${RHDH_VERSION}\"
-	        " "${CHART_PATH}"
-	    fi
-	fi
-    #####< removed in 1.7 as values were pushed upstream into rhdh-chart - RHIDP-1477, RHIDP-7529)
 
     sed -i "$CHART_PATH" -r \
         `# change .name from backstage to redhat-developer-hub` \
@@ -498,13 +483,13 @@ if [[ $PUBLISH -eq 1 ]]; then
     fi
 
     helm show chart "${actual_chart}" | $YQ -p yaml -o json > "${helm_config}"; # cat "${helm_config}"
-    # we push to either quay.io/rhdh/chart or quay.io/rhdh/orchestrator-infra-chart
-	if [[ "$CHART_NAME" == "redhat-developer-hub-orchestrator-infra" ]] || [[ "$CHART_NAME" == "orchestrator-infra" ]]; then
+    # push to quay.io/rhdh/*chart according to the rules below
+    if [[ "$CHART_NAME" == "redhat-developer-hub-orchestrator-infra" ]] || [[ "$CHART_NAME" == "orchestrator-infra" ]]; then
         TARGET_REPO="orchestrator-infra-chart"
     elif [[ "${CHART_NAME}" == "redhat-developer-hub" ]] || [[ "${CHART_NAME}" == "backstage" ]]; then
         TARGET_REPO="chart"
     else
-        TARGET_REPO="${CHART_NAME}"
+        TARGET_REPO="${CHART_NAME}-chart"
     fi
     # set -x 
     echo -e "${green}[INFO] Publish Helm chart to quay.io/rhdh/${TARGET_REPO}:${CHART_VERSION} ...${norm}"
