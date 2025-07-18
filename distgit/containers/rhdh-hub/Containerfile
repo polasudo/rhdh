@@ -272,8 +272,7 @@ COPY $EXTERNAL_SOURCE_NESTED/catalog-entities/marketplace /marketplace/catalog-e
 
 # Copy script to gather dynamic plugins; copy embedded dynamic plugins to root folder; fix permissions
 COPY $EXTERNAL_SOURCE_NESTED/docker/install-dynamic-plugins.py $EXTERNAL_SOURCE_NESTED/docker/install-dynamic-plugins.sh ./
-RUN ./install-dynamic-plugins.py; \
-  chmod -R a+rx ./install-dynamic-plugins.sh
+RUN chmod -R a+rx ./install-dynamic-plugins.*
 
 # The existence of the index.html.tmpl tells Backstage to take that file and load it into memory, inject the needed appConfig (instead of writing
 # it into a random *.chunk.js file, and then serve that file from memory so that we can set the readOnlyRootFilesystem: true option for
@@ -329,7 +328,7 @@ ENTRYPOINT ["node", "--require", "./instrumentation.js", "packages/backend", "--
 # append Brew metadata here
 ENV SUMMARY="Red Hat Developer Hub container" \
     DESCRIPTION="Red Hat Developer Hub container" \
-    UPSTREAM_REPO="https://github.com/redhat-developer/rhdh/tree/main @ 7bd7b7ef" \
+    UPSTREAM_REPO="https://github.com/redhat-developer/rhdh/tree/main @ b890a8a0" \
     MIDSTREAM_REPO="https://gitlab.cee.redhat.com/rhidp/rhdh/-/commits/rhdh-1-rhel-9" \
     PRODNAME="rhdh" \
     COMPNAME="hub"
@@ -342,12 +341,12 @@ LABEL summary="$SUMMARY" \
       com.redhat.component="$PRODNAME-$COMPNAME-container" \
       name="$PRODNAME/$PRODNAME-$COMPNAME-rhel9" \
       version="1.8" \
-      release="3" \
+      release="4" \
       license="ASLv2" \
       maintainer="RHDH Team <rhdh-bot@redhat.com>" \
       vendor="Red Hat, Inc." \
       io.openshift.expose-services="" \
       usage="" \
-      konflux.additional-tags="next, 1.8, 1.8-3" \
+      konflux.additional-tags="next, 1.8, 1.8-4" \
       distribution-scope="public" \
       url="https://red.ht/rhdh"
