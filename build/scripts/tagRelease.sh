@@ -35,6 +35,7 @@ DO_UPDATE=0  # force update of release-1.yy branches, even if tag already exists
 SKIP_GH=0    # skip updates to GH repos
 SKIP_GL=0    # skip updates to RHDH GL repo
 SKIP_KRD=0   # skip updates to konflux-release-data repo
+SKIP_PRODSEC=0 # skip updates to prodsec/product-definitions repo
 SKIP_PYXIS=0 # skip updates to pyxis-repo-configs repo
 # make builds faster
 export HUSKY=0
@@ -89,6 +90,7 @@ Options:
     --skip-gh                 skip all github updates
     --skip-gl                 skip gitlab rhdh repo updates
     --skip-krd                skip gitlab konflux-release-data repo updates
+    --skip-prodsec            skip gitlab prodsec/product-definitions repo updates
     --skip-pyxis              skip gitlab pyxis-repo-configs repo updates
     --debug                   more output
 "
@@ -119,6 +121,7 @@ while [[ "$#" -gt 0 ]]; do
 	'--skip-gh') SKIP_GH=1;;
 	'--skip-gl') SKIP_GL=1;;
 	'--skip-krd') SKIP_KRD=1;;
+	'--skip-prodsec') SKIP_PRODSEC=1;;
 	'--skip-pyxis') SKIP_PYXIS=1;;
 	'--debug') VERBOSE=1;;
 	'-h'|'--help') usage;;
@@ -906,9 +909,9 @@ updateKonfluxReleasePlanAdmissionYamls ()
 		#### NOTE THIS REQUIRES mikefarah's yq (which we have in the helm folder)
 		#### The python yq wrapper for jq does not preserve comments (because json has no comments)
 		for f in "rhdh-${KFUX_VERSION}-prod.yaml" "rhdh-${KFUX_VERSION}-stage.yaml"; do
-			"$YQ" '.spec.data.mapping.defaults.tags[1]|="'"$CSV_VERSION_Z"'"' "$f" > "$f"_; mv "$f"{_,}
+			"$YQ" e '.spec.data.mapping.defaults.tags[1]|="'"$CSV_VERSION_Z"'"' -i "$f"
 			# also add a timestamped tag for prod sec - RHIDP-6721
-			"$YQ" '.spec.data.mapping.defaults.tags[2]|="'"$CSV_VERSION_Z"'-{{ timestamp }}"' "$f" > "$f"_; mv "$f"{_,}
+			"$YQ" e '.spec.data.mapping.defaults.tags[2]|="'"$CSV_VERSION_Z"'-{{ timestamp }}"' -i "$f"
 		done
 		COMMITMSG="chore: update rhdh-$KFUX_VERSION-*.yaml RPAs for upcoming release $CSV_VERSION_Z"
 		if [[ ${DO_PUSH} -eq 1 ]]; then
@@ -1006,9 +1009,11 @@ generateNewKonfluxReleaseDataYamls ()
 		YY=${BASH_REMATCH[2]}
 		(( YY=YY-1 ))
 		PROD_VERSION_PREV="$XX.$YY"
+		(( YY=YY-2 ))
+		KFUX_VERSION_DEAD="$XX-$YY"
 	fi
 
-	echo; echo "== $repo :: generate Konflux $KFUX_VERSION yaml for RHDH $PROD_VERSION (based on $PROD_VERSION_PREV config) =="
+	echo; echo "== $repo :: generate Konflux $KFUX_VERSION yaml for RHDH $PROD_VERSION (based on $PROD_VERSION_PREV config; delete $KFUX_VERSION_DEAD) =="
 
 	pushd "$TMPDIR" >/dev/null || exit 1
 	# fetch repo
@@ -1036,15 +1041,32 @@ generateNewKonfluxReleaseDataYamls ()
 						-e "s@Hub ${PROD_VERSION_PREV//./\\.}@Hub ${PROD_VERSION}@g" \
 						-e "s@rhdh-${PROD_VERSION_PREV//./\\.}@rhdh-${PROD_VERSION}@g" \
 						-e "s@\"${PROD_VERSION_PREV//./\\.}\"@\"${PROD_VERSION}\"@g" \
-						-e "s@\"${PROD_VERSION_PREV//./\\.}\.([1-9]+)\"@\"${PROD_VERSION}.0\"@g"
+						-e "s@\"${PROD_VERSION_PREV//./\\.}\.([1-9]+)\"@\"${PROD_VERSION}.0\"@g" \
 					# append into kustomization file
 					if [[ -f $d/kustomization.yaml ]]; then 
 						echo "   Edit $d/kustomization.yaml ..."
-						sed -i $d/kustomization.yaml -r -e "/  - ${f##*/}/a \ \ - ${g##*/}"
+						sed -i "$d/kustomization.yaml" -r \
+							-e "/-${KFUX_VERSION_DEAD}\.yaml/d" \
+							-e "/-${KFUX_VERSION_DEAD}-.+\.yaml/d"
+						"$YQ" e '.resources[.resources|length]|="'"${g##*/}"'"|.resources = (.resources | sort | unique)' \
+							-i "$d/kustomization.yaml"
 					fi
 				done
-
+				for f in $(find $d -maxdepth 1 -type f -name "*${KFUX_VERSION_DEAD}*" | sort -uV); do # find the deleteable files
+					echo " Delete $f ..."
+					git rm -f "$f" >/dev/null || rm -f "$f"
+				done
 			done
+
+			pushd config/stone-prod-p02.hjvn.p1/product/ReleasePlanAdmission/rhdh/ >/dev/null || exit 1
+			#### NOTE THIS REQUIRES mikefarah's yq (which we have in the helm folder)
+			#### The python yq wrapper for jq does not preserve comments (because json has no comments)
+			for f in "rhdh-${KFUX_VERSION}-prod.yaml" "rhdh-${KFUX_VERSION}-stage.yaml"; do
+				# replace timestamped tag for prod sec
+				"$YQ" e '.spec.data.mapping.defaults.tags[2]|="'"${PROD_VERSION}.0"'-{{ timestamp }}"' -i "$f"
+			done
+			popd >/dev/null || exit 1
+
 			# 2. auto-generate content
 			pushd "$TMPDIR/${repo}/tenants-config" >/dev/null || exit 1
 				./build-single.sh rhdh
@@ -1146,7 +1168,7 @@ function generatePyxisConfigForPlugins() {
 	popd >/dev/null || exit 1
 }
 
-# when creating a new branch, update the Konflux release data to add any new plugins and plugin catalog builders; requires that the above PR is merged first!
+# when creating a new branch, update the Konflux release data to add any new plugins and plugin catalog index; requires that the above PR is merged first!
 function generateKonfluxReleaseDataForPlugins() {
 	the_branch="rhdh-1-rhel-9"
 	pluginBuildsJson=plugin_builds.json
@@ -1276,7 +1298,9 @@ if [[ $SKIP_KRD -eq 0 ]] && [[ "${MIDSTM_BRANCH}" ]]; then
 		# TODO should we also run generatePyxisConfigForPlugins after tagging, 
 		# or when preparing an RC?
 	else # for branching - create everything at version 1.5.0
-		generateNewProdsecDefinitions
+		if [[ $SKIP_PRODSEC -eq 0 ]]; then
+			generateNewProdsecDefinitions
+		fi
 		
 		if [[ $SKIP_PYXIS -eq 0 ]]; then
 			if [[ $VERBOSE -eq 1 ]]; then echo "[DEBUG] update the Pyxis Repo Configs repo to add new plugins"; fi
@@ -1288,7 +1312,7 @@ if [[ $SKIP_KRD -eq 0 ]] && [[ "${MIDSTM_BRANCH}" ]]; then
 		generateNewKonfluxReleaseDataYamls
 
 		if [[ $VERBOSE -eq 1 ]]; then 
-			echo "[DEBUG] update the Konflux Release Data repo to add new plugins and catalog builders"
+			echo "[DEBUG] update the Konflux Release Data repo to add new plugins and catalog index"
 		fi
 		echo "[INFO] konflux-release-data merge requests may fail if there are required changes to either of these repos:"
 		echo "       * https://gitlab.cee.redhat.com/prodsec/product-definitions/-/merge_requests/ (new RHDH version)"
