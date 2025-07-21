@@ -70,7 +70,7 @@ if [[ $targets == "bun" ]] && [[ $KONFLUX_ONLY -eq 0 ]]; then
         fi
     fi
     "${SCRIPT_DIR}/../ci/sync-midstream.sh" --bundleonly --force $latestNext -b "${MIDSTM_BRANCH}"
-    google-chrome "https://konflux-ui.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/ns/rhdh-tenant/applications/rhdh-${BRANCH/./-}/activity/pipelineruns?name=bundle"
+    google-chrome "https://konflux-ui.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/ns/rhdh-tenant/applications/rhdh-${BRANCH/./-}/activity/pipelineruns?name=rhdh-operator-bundle"
 else
     if [[ $targets == *","* ]]; then
         commitMsg="trigger ${MIDSTM_BRANCH} builds: $targets"
