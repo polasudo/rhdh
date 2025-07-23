@@ -317,7 +317,7 @@ Christophe Fargette <jfargett@redhat.com>
 .. Run the following scripts to update existing pending RN/plugins table PRs, or to inform creation of new one(s).
 ... https://github.com/redhat-developer/red-hat-developers-documentation-rhdh/blob/main/modules/dynamic-plugins/rhdh-supported-plugins.sh
 ... https://github.com/redhat-developer/red-hat-developers-documentation-rhdh/blob/main/modules/release-notes/single-source-release-notes.py
-.... Check the list of versions at https://issues.redhat.com/projects/RHIDP?selectedItem=com.atlassian.jira.jira-projects-plugin%3Arelease-page&status=released-unreleased -- Versions must be in **sequential order** or else the fixversion/affectsversion fields in queries won't work with the `>` and `<` operators and you may end up with **NO ISSUES FOUND**.
+.... Check the list of versions at link:https://issues.redhat.com/projects/RHIDP?selectedItem=com.atlassian.jira.jira-projects-plugin%3Arelease-page&status=released-unreleased[RHIDP release-page]. Versions must be in **sequential order** or else the fixversion/affectsversion fields in queries won't work with the `>` and `<` operators and you may end up with **NO ISSUES FOUND**.
 .. If changes are found, create a PR with updates. To update only the dynamic plugins table, use this action:
 ... https://github.com/redhat-developer/red-hat-developers-documentation-rhdh/actions/workflows/generate-supported-plugins-pr.yml
 
@@ -536,6 +536,12 @@ image::images/smoketest-rosa-helm_2.png[install the version just released,width=
 . In the link:https://app.slack.com/client/E030G10V24F/C07EVRDD7KN[forum-rhdh-releases], update any existing threads about this release, and at-mention the `@rhdh-docs-gate-keeper` group so that Docs is aware they can release the doc updates. This may include the dynamic plugin lists, release notes, and any other queued fixes. 
 
 . Release notes should be updated with a link to the latest RHBA or RHSA advisory. To find that link, use link:../build/scripts/getAdvisoryForCVE.sh[getAdvisoryForCVE.sh]. In future this may be done automatically. TODO: https://issues.redhat.com/browse/RHIDP-7886
+
+### JIRA release
+
+. Close the JIRA release, assuming all the issues are resolved. If not, go chase people or ask the Release Manager to chase them
+
+. The list of unreleased versions is here: link:https://issues.redhat.com/projects/RHIDP?selectedItem=com.atlassian.jira.jira-projects-plugin%3Arelease-page&status=unreleased[RHIDP release-page].
 
 ### [SUPPORT] Comet updates
 
