@@ -537,11 +537,13 @@ image::images/smoketest-rosa-helm_2.png[install the version just released,width=
 
 . Release notes should be updated with a link to the latest RHBA or RHSA advisory. To find that link, use link:../build/scripts/getAdvisoryForCVE.sh[getAdvisoryForCVE.sh]. In future this may be done automatically. TODO: https://issues.redhat.com/browse/RHIDP-7886
 
-### JIRA release
+### [Release Manager] JIRA release
 
-. Close the JIRA release, assuming all the issues are resolved. If not, go chase people or ask the Release Manager to chase them
+. Close the JIRA release from the link:https://issues.redhat.com/projects/RHIDP?selectedItem=com.atlassian.jira.jira-projects-plugin%3Arelease-page&status=unreleased[RHIDP release-page], _assuming all the issues are resolved_.
 
-. The list of unreleased versions is here: link:https://issues.redhat.com/projects/RHIDP?selectedItem=com.atlassian.jira.jira-projects-plugin%3Arelease-page&status=unreleased[RHIDP release-page].
+.. If not, go chase people or ask the `@rhdh-release-manager` to chase them
+
+.. If you don't have permission to update JIRA, please message the `@rhdh-release-manager` group in Slack for help.
 
 ### [SUPPORT] Comet updates
 
