@@ -14,17 +14,51 @@ RUN chmod +r ${SL_tokenFile}
 RUN chown 1001 ${SL_tokenFile}
 USER 1001
 
-RUN slnodejs scan --tokenfile $SL_tokenFile --buildsessionid $SL_buildSessionId --scm none --instrumentForBrowsers \
-    --projectroot "$CONTAINER_SOURCE" --excludedpaths webpack --workspacepath "$CONTAINER_SOURCE/packages/app/${FRONTEND_BUILD_DIR}" \
-    --outputpath "$CONTAINER_SOURCE/packages/app/${SL_FRONTEND_BUILD_DIR}" --uniqueModuleId frontend
+# Declare the plugin list as an ENV variable
+ENV PLUGIN_LIST="dynamic-plugins-info-backend licensed-users-info-backend scalprum-backend"
 
-RUN slnodejs scan --tokenfile $SL_tokenFile --buildsessionid $SL_buildSessionId --scm none \
-    --projectroot "$CONTAINER_SOURCE" --workspacepath "$CONTAINER_SOURCE/packages/backend" --uniqueModuleId backend
+# Define common scan parameters
+ENV SL_SCAN_BASE="slnodejs scan --tokenfile $SL_tokenFile --buildsessionid $SL_buildSessionId --excludedpaths webpack --scm none --projectroot $CONTAINER_SOURCE"
+
+# Scan modules with browser instrumentation (frontend and app-next)
+RUN $SL_SCAN_BASE --workspacepath "$CONTAINER_SOURCE/packages/app/${FRONTEND_BUILD_DIR}" --uniqueModuleId frontend
+RUN $SL_SCAN_BASE --workspacepath "$CONTAINER_SOURCE/packages/app-next/dist" --uniqueModuleId app-next
+
+# Scan backend module
+RUN $SL_SCAN_BASE --workspacepath "$CONTAINER_SOURCE/packages/backend" --uniqueModuleId backend
+
+# Scan plugins using array iteration
+RUN for plugin in $PLUGIN_LIST; do \
+        $SL_SCAN_BASE --workspacepath "$CONTAINER_SOURCE/plugins/$plugin/dist" --uniqueModuleId $plugin; \
+    done
 
 RUN slnodejs buildend --buildsessionid $SL_buildSessionId --tokenfile $SL_tokenFile --ok
 
-RUN rm -rf "$CONTAINER_SOURCE/packages/app/${FRONTEND_BUILD_DIR}" && \
+# Define common instrument parameters
+ENV SL_INSTRUMENT_BASE="slnodejs instrument --tokenfile $SL_tokenFile --buildsessionid $SL_buildSessionId --projectroot $CONTAINER_SOURCE"
+
+# Instrument frontend
+RUN $SL_INSTRUMENT_BASE \
+    --workspacepath "$CONTAINER_SOURCE/packages/app/${FRONTEND_BUILD_DIR}" \
+    --outputpath "$CONTAINER_SOURCE/packages/app/${SL_FRONTEND_BUILD_DIR}" && \
+    rm -rf "$CONTAINER_SOURCE/packages/app/${FRONTEND_BUILD_DIR}" && \
     mv "$CONTAINER_SOURCE/packages/app/${SL_FRONTEND_BUILD_DIR}" "$CONTAINER_SOURCE/packages/app/${FRONTEND_BUILD_DIR}"
+
+# Instrument app-next
+RUN $SL_INSTRUMENT_BASE \
+    --workspacepath "$CONTAINER_SOURCE/packages/app-next/dist" \
+    --outputpath "$CONTAINER_SOURCE/packages/app-next/sl_dist" && \
+    rm -rf "$CONTAINER_SOURCE/packages/app-next/dist" && \
+    mv "$CONTAINER_SOURCE/packages/app-next/sl_dist" "$CONTAINER_SOURCE/packages/app-next/dist"
+
+# Instrument plugins using array iteration
+RUN for plugin in $PLUGIN_LIST; do \
+        $SL_INSTRUMENT_BASE \
+            --workspacepath "$CONTAINER_SOURCE/plugins/$plugin/dist" \
+            --outputpath "$CONTAINER_SOURCE/plugins/$plugin/sl_dist" && \
+        rm -rf "$CONTAINER_SOURCE/plugins/$plugin/dist" && \
+        mv "$CONTAINER_SOURCE/plugins/$plugin/sl_dist" "$CONTAINER_SOURCE/plugins/$plugin/dist"; \
+    done
 
 RUN echo ${SL_buildSessionId} > buildSessionId
 
