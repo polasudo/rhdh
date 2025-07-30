@@ -73,6 +73,9 @@ red="\033[1;31m"
 # mappings of base:oldTag = newTag and base:newTag = newSHA to avoid doing a lot of skopeo inspects
 declare -A digests
 
+# list of migrations due to minor updates
+declare -A MIGRATIONS
+
 # file counters: tf, cf
 tf=0; cf=0
 
@@ -88,7 +91,7 @@ for file in $(find "$ROOTPATH" -name "${REGEX}" | sort -V); do
     # line counters: tl, cl
     tl=0; cl=0
 
-    echo -e "[$cf/$tf] ${red}>${norm} $file"
+    echo -e "[$cf/$tf] ${blue}>>${norm} $file"
     grep -E "@sha256|value: .+(task|tekton|konflux)-.+:[0-9.]+" < "$file" | sort -uV > mypipe &
     while IFS= read -r line; do
         if [[ $line != "value:" ]]; then
@@ -137,9 +140,16 @@ for file in $(find "$ROOTPATH" -name "${REGEX}" | sort -V); do
             else
                 sed -i "$file" -r -e "s|${oldTag}@${oldSHA}$|${newTag}@${newSHA}|g"
             fi
-            echo -e "[$cf/$tf] [$cl/$tl] ${green}+${norm} $base:${newTag}@${newSHA}"
+            if [[ "$newTag" == "$oldTag" ]]; then 
+                echo -e "[$cf/$tf] [$cl/$tl] ${green}==>${norm} $base:${newTag}@${newSHA}"
+            else
+                url_frag="${base#*/task-}/${newTag}"
+                echo -e "[$cf/$tf] [$cl/$tl] ${red}[!]${norm} $base:${newTag}@${newSHA}"
+                echo -e "[$cf/$tf] [$cl/$tl] ${red}[!]${norm} migration required for ${base#*/task-} ${blue}$oldTag${norm} to ${red}$newTag${norm}!\n"
+                MIGRATIONS["$url_frag"]="https://github.com/konflux-ci/build-definitions/blob/main/task/${url_frag}/MIGRATION.md"
+            fi
         else
-            echo -e "[$cf/$tf] [$cl/$tl] ${blue}=${norm} $line"
+            echo -e "[$cf/$tf] [$cl/$tl] ${blue}===${norm} $line"
         fi
     done < mypipe
 done
@@ -164,6 +174,16 @@ createPr() {
 		git config --get remote.origin.url | sed -r -e "s#:#/#" -e "s#git@#https://#" -e "s#\.git#/tree/${headBranch}/#"
 	fi
 }
+
+if [[ ${#MIGRATIONS[@]} -gt 0 ]]; then
+    dopush=0
+    echo -e "\nThe following migrations must occur to ensure continued working tasks:\n"
+    sorted_keys=($(for key in "${!MIGRATIONS[@]}"; do echo "$key"; done | sort))
+    for key in "${sorted_keys[@]}"; do
+        echo -e " ${red}[!]${norm} ${MIGRATIONS[$key]}"
+        google-chrome "${MIGRATIONS[$key]}" 2>&1 >/dev/null
+    done
+fi
 
 if [[ ${docommit} -eq 1 ]]; then 
     git add "$ROOTPATH/*.yaml" "$ROOTPATH/*.sh" || true
