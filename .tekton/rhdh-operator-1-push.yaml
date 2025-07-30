@@ -482,8 +482,10 @@ spec:
         - "false"
     - name: apply-tags
       params:
-      - name: IMAGE
+      - name: IMAGE_URL
         value: $(tasks.build-image-index.results.IMAGE_URL)
+      - name: IMAGE_DIGEST
+        value: $(tasks.build-image-index.results.IMAGE_DIGEST)
       runAfter:
       - build-image-index
       taskRef:
@@ -497,8 +499,10 @@ spec:
         resolver: bundles
     - name: apply-tags-sealights
       params:
-      - name: IMAGE
+      - name: IMAGE_URL
         value: $(tasks.build-container-sealights.results.IMAGE_URL)
+      - name: IMAGE_DIGEST
+        value: $(tasks.build-container-sealights.results.IMAGE_DIGEST)
       runAfter:
       - build-container-sealights
       taskRef:
