@@ -9,13 +9,11 @@ metadata:
     - title: About RHDH
       url: https://developers.redhat.com/rhdh
     - title: RHDH Documentation
-      url: https://access.redhat.com/documentation/en-us/red_hat_developer_hub
-    - title: RHDH Demo
-      url: https://rhdh.janus-idp.io/
-    - title: Janus IDP Community Blog
+      url: https://docs.redhat.com/en/documentation/red_hat_developer_hub/
+    - title: Blog
       url: https://janus-idp.io/blog
-    - title: Janus IDP Community Slack
-      url: https://join.slack.com/t/janus-idp/shared_invite/zt-1pxtehxom-fCFtF9rRe3vFqUiFFeAkmg
+    - title: Backstage Discord
+      url: https://discord.com/servers/backstage-687207715902193673
   annotations:
     argocd/app-name: 'janus-idp'
     backstage.io/kubernetes-id: 'janus-idp'
