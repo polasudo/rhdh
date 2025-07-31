@@ -338,8 +338,8 @@ cves_yaml=""
 references_yaml=""
 getCVElist () {
   if [[ $DEBUG -eq 1 ]]; then echo; fi
-  # read CVEListFile: find the CVE (2), Container (5), and Resolution (6) columns; combine with " ; "; strip spaces; omit the header row with tail
-  for line in $(awk -F "\"*,\"*" '{print $2,";",$5,";",$6}' "$CVEListFile" | tr -d " " | tail --lines=+2); do 
+  # read CVEListFile: find the CVE (2), Container (5), and Resolution (7) columns; combine with " ; "; strip spaces; omit the header row with tail
+  for line in $(awk -F "\"*,\"*" '{print $2,";",$5,";",$7}' "$CVEListFile" | tr -d " " | tail --lines=+2); do 
     #split into CVE ID and component
     CVE_ID=${line%%;*}
     component=${line#*;}
@@ -351,7 +351,7 @@ getCVElist () {
     else
       component="UNKNOWN"
     fi
-    # echo ":: $line"
+    # echo ":CVE: $line"
     CVE_STATUS="$(echo "${line##*;}" | tr -d '\n')"
     if [[ $component != "UNKNOWN" ]]; then
       if [[ $CVE_STATUS == "ReleasePending"* ]] || [[ $CVE_INCLUDE_ALL -eq 1 ]]; then
