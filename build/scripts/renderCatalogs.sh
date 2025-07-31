@@ -371,14 +371,11 @@ for OCP_VERSION in ${OCP_VERSIONS}; do
     # For 4.14, use RHEL8 registry directly
     if ! vergte "${OCP_VERSION}" "4.15"; then
         registry="${RHEL8_REGISTRY}:v${OCP_VERSION}"
-    # For newer versions, try RHEL9 first, then fallback to brew registry
-    elif skopeo inspect "docker://${RHEL9_REGISTRY}:v${OCP_VERSION}" >/dev/null 2>&1; then
-        registry="${RHEL9_REGISTRY}:v${OCP_VERSION}"
-    elif skopeo inspect "docker://${BREW_REGISTRY}:v${OCP_VERSION}" >/dev/null 2>&1; then
+    # For future unreleased OCP versions, use brew registry
+    elif [[ "${OCP_VERSION}" == "${OCP_VERSION_NEXT}" ]];  then 
         registry="${BREW_REGISTRY}:v${OCP_VERSION}"
     else
-        echo "❌ No registry found for OCP version ${OCP_VERSION}"
-        exit 1
+        registry="${RHEL9_REGISTRY}:v${OCP_VERSION}"
     fi
 
     fastYChannel=""; if [[ $PROD_VERSION ]]; then fastYChannel=",fast-${PROD_VERSION}"; fi
