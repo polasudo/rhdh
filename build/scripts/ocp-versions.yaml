@@ -1,0 +1,19 @@
+# OCP Version Configuration
+# This file defines OCP version settings shared between renderCatalogs.sh and kfuxRelease.sh
+
+# Base version from which to render catalogs (used by renderCatalogs.sh)
+OCP_VERSION_BASE: "4.14"
+
+# Currently supported versions (used by both scripts)
+SUPPORTED_VERSIONS:
+  - "4.16"
+  - "4.17"
+  - "4.18"
+  - "4.19"
+
+# Registry configurations
+REGISTRIES:
+  RHEL9_REGISTRY: "registry.redhat.io/openshift4/ose-operator-registry-rhel9"
+  BREW_REGISTRY: "brew.registry.redhat.io/rh-osbs/openshift-ose-operator-registry-rhel9"
+  RHEL8_REGISTRY: "registry.redhat.io/openshift4/ose-operator-registry"
+

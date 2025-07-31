@@ -21,7 +21,18 @@ RHDH_FULL_VERSION_INPUT="1.7.0"
 CONTAINER=""
 DEST=""
 # ARCHES="x86_64"  # TODO add arch64/arm64
-OCP_VERSIONS="4.14 4.16 4.17 4.18 4.19"
+
+# Load OCP version configuration from ocp-versions.yaml
+CONFIG_FILE="$SCRIPT_DIR/ocp-versions.yaml"
+if [[ ! -f "$CONFIG_FILE" ]]; then
+    echo "OCP versions file not found: $CONFIG_FILE"
+    exit 1
+fi
+
+OCP_VERSION_BASE=$(yq -r '.OCP_VERSION_BASE' "$CONFIG_FILE")
+OCP_VERSIONS=$(yq -r '.SUPPORTED_VERSIONS[]' "$CONFIG_FILE" | tr '\n' ' ')
+# Add base version to the list
+OCP_VERSIONS="$OCP_VERSION_BASE $OCP_VERSIONS"
 BUNDLE_TAG_OR_SHA=""
 SNAPSHOT_OVERRIDE=""
 midstreamCommitSHA=""

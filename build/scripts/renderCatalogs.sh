@@ -52,8 +52,21 @@ else
   RHDH_VERSION="1.y.z"
 fi
 
-OCP_VERSION_BASE="4.14" # version from which to render catalogs
-OCP_VERSIONS="4.16 4.17 4.18 4.19" # versions to just copy verbatim from the above
+# Load OCP version configuration from YAML file
+CONFIG_FILE="$SCRIPT_DIR/ocp-versions.yaml"
+if [[ ! -f "$CONFIG_FILE" ]]; then
+    echo "OCP versions file not found: $CONFIG_FILE"
+    exit 1
+fi
+
+# Parse YAML configuration
+OCP_VERSION_BASE=$(yq -r '.OCP_VERSION_BASE' "$CONFIG_FILE")
+OCP_VERSIONS=$(yq -r '.SUPPORTED_VERSIONS[]' "$CONFIG_FILE" | tr '\n' ' ')
+RHEL9_REGISTRY=$(yq -r '.REGISTRIES.RHEL9_REGISTRY' "$CONFIG_FILE")
+BREW_REGISTRY=$(yq -r '.REGISTRIES.BREW_REGISTRY' "$CONFIG_FILE")
+RHEL8_REGISTRY=$(yq -r '.REGISTRIES.RHEL8_REGISTRY' "$CONFIG_FILE")
+
+
 
 DO_COMMIT=1 # by default, commit change
 DO_PUSH=1   # push the commit
@@ -348,12 +361,19 @@ for OCP_VERSION in ${OCP_VERSIONS}; do
     time opm alpha render-template basic "${templateFile}" $migrateLevel > "${CATALOG_DIR}/v${OCP_VERSION}/configs/${prod_path}/catalog.json"
     set +x
 
-    # for 4.15+, use the rhel9 image
-    vergte "${OCP_VERSION}" "4.15" && registry="registry.redhat.io/openshift4/ose-operator-registry-rhel9:v${OCP_VERSION}" || registry="registry.redhat.io/openshift4/ose-operator-registry:v${OCP_VERSION}"
-
-    # hackaround for unreleased version of OCP
-    # TODO change this after 06-02-2025 when 4.19 is live
-    vergte "${OCP_VERSION}" "4.19" && registry="brew.registry.redhat.io/rh-osbs/openshift-ose-operator-registry-rhel9:v4.19"
+    # registry selection based on OCP version
+    # For 4.14, use RHEL8 registry directly
+    if ! vergte "${OCP_VERSION}" "4.15"; then
+        registry="${RHEL8_REGISTRY}:v${OCP_VERSION}"
+    # For newer versions, try RHEL9 first, then fallback to brew registry
+    elif skopeo inspect "docker://${RHEL9_REGISTRY}:v${OCP_VERSION}" >/dev/null 2>&1; then
+        registry="${RHEL9_REGISTRY}:v${OCP_VERSION}"
+    elif skopeo inspect "docker://${BREW_REGISTRY}:v${OCP_VERSION}" >/dev/null 2>&1; then
+        registry="${BREW_REGISTRY}:v${OCP_VERSION}"
+    else
+        echo "❌ No registry found for OCP version ${OCP_VERSION}"
+        exit 1
+    fi
 
     fastYChannel=""; if [[ $PROD_VERSION ]]; then fastYChannel=",fast-${PROD_VERSION}"; fi
 

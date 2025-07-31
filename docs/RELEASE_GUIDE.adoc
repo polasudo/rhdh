@@ -174,10 +174,10 @@ Before declaring RC, you should make sure we've updated to the latest base image
 
 ```
 cd /path/to/gh/rhd/rhdh/
-/path/to/gl/rhidp/rhdh/build/scripts/updateBaseImages.sh -b release-1.6 -w $(pwd) -f \*ockerfile -maxdepth 5 -o
+/path/to/gl/rhidp/rhdh/build/scripts/updateBaseImages.sh -b release-1.6 -w $(pwd) -f \*ockerfile -maxdepth 5
 
 cd /path/to/gh/rhd/rhdh-operator/
-/path/to/gl/rhidp/rhdh/build/scripts/updateBaseImages.sh -b release-1.6 -w $(pwd) -f \*ockerfile -maxdepth 5 -o
+/path/to/gl/rhidp/rhdh/build/scripts/updateBaseImages.sh -b release-1.6 -w $(pwd) -f \*ockerfile -maxdepth 5
 ```
 
 ### Spinning up the RC
