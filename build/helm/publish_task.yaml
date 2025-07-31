@@ -9,9 +9,12 @@ spec:
   - name: SOURCE_ARTIFACT
     type: string
     description: "The Trusted Artifact URI pointing to the artifact with the application source code."
-  - name: IMAGE
+  - name: IMAGE_URL
     type: string
     description: "Reference of image that was pushed to registry in the buildah task."
+  - name: IMAGE_DIGEST
+    type: string
+    description: "Digest of image that was pushed to registry in the buildah task."
   - name: target_branch
     description: "The Target branch to be be published onto"
     type: string
@@ -53,8 +56,8 @@ spec:
           value: rhdh-bot-github-token
         - name: target_branch
           value: $(params.target_branch)
-        - name: IMAGE
-          value: $(params.IMAGE)
+        - name: IMAGE_URL
+          value: $(params.IMAGE_URL)
       script: |
         #!/usr/bin/env bash
 
@@ -67,11 +70,11 @@ spec:
         export GITHUB_TOKEN=$(cat /etc/secrets/${GITHUB_TOKEN_KEY})
 
         # To test this locally:
-        # 1. export IMAGE=quay.io/rhdh/rhdh-hub-rhel9:1.7-38
+        # 1. export IMAGE_URL=quay.io/rhdh/rhdh-hub-rhel9:1.7-38
         # 2. export target_branch=rhdh-1-rhel-9 or rhdh-1.y-rhel-9 as appropriate
         # 3. export GITHUB_TOKEN=<your-token-here>
         # 4. run everything below EXCEPT the --quay-registry-config flag
-        TAGS_FROM_IMAGE_LABEL=$(skopeo inspect --format '{{ index .Labels "konflux.additional-tags" }}' docker://$IMAGE)
+        TAGS_FROM_IMAGE_LABEL=$(skopeo inspect --format '{{ index .Labels "konflux.additional-tags" }}' docker://$IMAGE_URL)
         TAG=$(echo -n ${TAGS_FROM_IMAGE_LABEL} | awk '{print $NF}')
 
         # Determine TAG and chart branch
