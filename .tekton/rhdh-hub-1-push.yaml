@@ -724,8 +724,10 @@ spec:
         value: $(tasks.clone-repository.results.SOURCE_ARTIFACT)
       - name: target_branch
         value: $(params.target_branch)
-      - name: IMAGE
+      - name: IMAGE_URL
         value: $(tasks.build-image-index.results.IMAGE_URL)
+      - name: IMAGE_DIGEST
+        value: $(tasks.build-image-index.results.IMAGE_DIGEST)
       when:
       - input: $(tasks.init.results.build)
         operator: in
