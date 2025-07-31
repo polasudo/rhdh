@@ -303,6 +303,8 @@ spec:
         - "true"
     - name: build-container-sealights
       params:
+      - name: SKIP_SBOM_GENERATION
+        value: "true"
       - name: ADDITIONAL_SECRET
         value: sealights-credentials
       - name: IMAGE

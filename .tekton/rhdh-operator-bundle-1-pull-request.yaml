@@ -256,6 +256,8 @@ spec:
         workspace: workspace
     - name: build-container-sealights
       params:
+      - name: SKIP_SBOM_GENERATION
+        value: "true"
       - name: IMAGE
         value: $(params.sealights-output-image)
       - name: DOCKERFILE
