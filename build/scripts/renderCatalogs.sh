@@ -61,12 +61,11 @@ fi
 
 # Parse YAML configuration
 OCP_VERSION_BASE=$(yq -r '.OCP_VERSION_BASE' "$CONFIG_FILE")
+OCP_VERSION_NEXT=$(yq -r '.OCP_VERSION_NEXT' "$CONFIG_FILE")
 OCP_VERSIONS=$(yq -r '.SUPPORTED_VERSIONS[]' "$CONFIG_FILE" | tr '\n' ' ')
 RHEL9_REGISTRY=$(yq -r '.REGISTRIES.RHEL9_REGISTRY' "$CONFIG_FILE")
 BREW_REGISTRY=$(yq -r '.REGISTRIES.BREW_REGISTRY' "$CONFIG_FILE")
 RHEL8_REGISTRY=$(yq -r '.REGISTRIES.RHEL8_REGISTRY' "$CONFIG_FILE")
-
-
 
 DO_COMMIT=1 # by default, commit change
 DO_PUSH=1   # push the commit
@@ -98,7 +97,7 @@ Options:
   --sealights            in addition to pristine catalogs, will also render Sealights versions
 
   --versions             space-separated list of OCP versions to render;
-                         default: $OCP_VERSION_BASE $OCP_VERSIONS
+                         default: $OCP_VERSION_BASE $OCP_VERSIONS $OCP_VERSION_NEXT
 
   --template             instead of generating a template, use some other local file
   --rhec                 switch any quay.io/rhdh/ image refs to registry.redhat.io/rhdh/ (RH Ecosystem Catalog)
@@ -120,23 +119,23 @@ Examples:
     # For example, must previously have created quay.io/rhdh/rhdh-operator-bundle-sealights for the quay.io/rhdh/rhdh-operator-bundle image, and
     # that bundle must refer to any related sealights-enabled operator and operand images. 
 
-    # without sealights rendering (--default)
+    # without sealights rendering (same as: $0 --default)
     RHDH_VERSION="$RHDH_VERSION"
     OCP_VERSION=$OCP_VERSION_BASE
     $0 $latestNextExample --clean --versions "\${OCP_VERSION}" -v "\${RHDH_VERSION}"
     alias cp=cp
-    for OCP_VERSION in $OCP_VERSIONS; do \\
+    for OCP_VERSION in $OCP_VERSIONS $OCP_VERSION_NEXT; do \\
       sleep 30s; \\
       cp -f catalogs/v{\$OCP_VERSION_BASE,\$OCP_VERSION}/catalog-template.json; \\
       $0 $latestNextExample --clean --versions "\${OCP_VERSION}" -v "\${RHDH_VERSION}" --template "catalogs/v\${OCP_VERSION}/catalog-template.json" \\
     done
 
-    # or with sealights rendering (--default-sealights)
+    # or with sealights rendering (same as: $0 --default-sealights)
     RHDH_VERSION="$RHDH_VERSION"
     OCP_VERSION=$OCP_VERSION_BASE
     $0 $latestNextExample --clean --versions "\${OCP_VERSION}" -v "\${RHDH_VERSION}" --sealights
     alias cp=cp
-    for OCP_VERSION in $OCP_VERSIONS; do \\
+    for OCP_VERSION in $OCP_VERSIONS $OCP_VERSION_NEXT; do \\
       sleep 30s; \\
       cp -f catalogs/v{\$OCP_VERSION_BASE,\$OCP_VERSION}/catalog-template.json; \\
       cp -f catalogs-sealights/v{\$OCP_VERSION_BASE,\${OCP_VERSION}}/catalog-template.json; \\
@@ -162,7 +161,7 @@ vergte() {
 if [[ $# -lt 1 ]]; then usage; exit 1; fi
 
 # render all versions by default, base + copied ones
-OCP_VERSIONS="$OCP_VERSION_BASE $OCP_VERSIONS"
+OCP_VERSIONS="$OCP_VERSION_BASE $OCP_VERSIONS $OCP_VERSION_NEXT"
 
 while [[ "$#" -gt 0 ]]; do
   case $1 in
@@ -203,14 +202,21 @@ recurse () {
       if [[ ! $DRYRUN ]]; then 
         sleep 30s
       fi
-      cp -f "catalogs/v$OCP_VERSION_BASE/catalog-template.json" "catalogs/v$OCP_VERSION/catalog-template.json"
-      if [[ $DO_DEFAULT_SEALIGHTS -eq 1 ]]; then 
-        cp -f "catalogs-sealights/v$OCP_VERSION_BASE/catalog-template.json" "catalogs-sealights/v$OCP_VERSION/catalog-template.json"
-      fi
-      echo -e "\n${blue} >> $0 $latestNextExample --clean --versions ${OCP_VERSION} -v ${RHDH_VERSION} --template catalogs/v${OCP_VERSION}/catalog-template.json $SEALIGHTS_FLAG $DRYRUN ${norm}\n"
-      if [[ ! $DRYRUN ]]; then 
-        # shellcheck disable=SC2086
-        $0 $latestNextExample --clean --versions "${OCP_VERSION}" -v "${RHDH_VERSION}" --template "catalogs/v${OCP_VERSION}/catalog-template.json" $SEALIGHTS_FLAG $DRYRUN
+      if [[ ! -d "catalogs/v$OCP_VERSION/" ]]; then # need to bootstrap from scratch
+        echo -e "\n${blue} >> $0 $latestNextExample --clean --versions ${OCP_VERSION} -v ${RHDH_VERSION} $SEALIGHTS_FLAG $DRYRUN ${norm}\n"
+        if [[ ! $DRYRUN ]]; then 
+          $0 $latestNextExample --clean --versions "${OCP_VERSION}" -v "${RHDH_VERSION}" $SEALIGHTS_FLAG $DRYRUN
+        fi
+      else # folder exists so just run from template
+        cp -f "catalogs/v$OCP_VERSION_BASE/catalog-template.json" "catalogs/v$OCP_VERSION/catalog-template.json"
+        if [[ $DO_DEFAULT_SEALIGHTS -eq 1 ]]; then 
+          cp -f "catalogs-sealights/v$OCP_VERSION_BASE/catalog-template.json" "catalogs-sealights/v$OCP_VERSION/catalog-template.json"
+        fi
+        echo -e "\n${blue} >> $0 $latestNextExample --clean --versions ${OCP_VERSION} -v ${RHDH_VERSION} --template catalogs/v${OCP_VERSION}/catalog-template.json $SEALIGHTS_FLAG $DRYRUN ${norm}\n"
+        if [[ ! $DRYRUN ]]; then 
+          # shellcheck disable=SC2086
+          $0 $latestNextExample --clean --versions "${OCP_VERSION}" -v "${RHDH_VERSION}" --template "catalogs/v${OCP_VERSION}/catalog-template.json" $SEALIGHTS_FLAG $DRYRUN
+        fi
       fi
     done
 }

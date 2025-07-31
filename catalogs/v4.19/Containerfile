@@ -1,5 +1,5 @@
   # The base image is expected to contain /bin/opm (with a serve subcommand) and /bin/grpc_health_probe
-FROM brew.registry.redhat.io/rh-osbs/openshift-ose-operator-registry-rhel9:v4.19
+FROM registry.redhat.io/openshift4/ose-operator-registry-rhel9:v4.19
 
 ENTRYPOINT ["/bin/opm"]
 CMD ["serve", "/configs", "--cache-dir=/tmp/cache"]
@@ -20,7 +20,7 @@ LABEL operators.operatorframework.io.metrics.mediatype.v1=metrics+v1
 LABEL operators.operatorframework.io.metrics.project_layout=go.kubebuilder.io/v3
 LABEL operators.operatorframework.io.index.configs.v1=/configs
 LABEL \
-      version="1.7" \
+      version="1.8" \
       license="ASLv2" \
       maintainer="RHDH Team <rhdh-bot@redhat.com>" \
       vendor="Red Hat, Inc." \

@@ -65,13 +65,38 @@
         },
         {
           "name": "rhdh-operator.v1.6.0",
-          "replaces": "rhdh-operator.v1.5.1",
+          "replaces": "rhdh-operator.v1.5.3",
           "skipRange": "<1.6.0"
         },
         {
-          "name": "rhdh-operator.v1.7.0",
+          "name": "rhdh-operator.v1.6.1",
           "replaces": "rhdh-operator.v1.6.0",
-          "skipRange": "<1.7.0"
+          "skipRange": "<1.6.1"
+        },
+        {
+          "name": "rhdh-operator.v1.5.2",
+          "replaces": "rhdh-operator.v1.5.1",
+          "skipRange": "<1.5.2"
+        },
+        {
+          "name": "rhdh-operator.v1.6.2",
+          "replaces": "rhdh-operator.v1.6.1",
+          "skipRange": "<1.6.2"
+        },
+        {
+          "name": "rhdh-operator.v1.5.3",
+          "replaces": "rhdh-operator.v1.5.2",
+          "skipRange": "<1.5.3"
+        },
+        {
+          "name": "rhdh-operator.v1.6.3",
+          "replaces": "rhdh-operator.v1.6.2",
+          "skipRange": "<1.6.3"
+        },
+        {
+          "name": "rhdh-operator.v1.8.0",
+          "replaces": "rhdh-operator.v1.6.3",
+          "skipRange": "<1.8.0"
         }
       ],
       "name": "fast",
@@ -194,6 +219,16 @@
           "name": "rhdh-operator.v1.5.1",
           "replaces": "rhdh-operator.v1.4.3",
           "skipRange": "<1.5.1"
+        },
+        {
+          "name": "rhdh-operator.v1.5.2",
+          "replaces": "rhdh-operator.v1.5.1",
+          "skipRange": "<1.5.2"
+        },
+        {
+          "name": "rhdh-operator.v1.5.3",
+          "replaces": "rhdh-operator.v1.5.2",
+          "skipRange": "<1.5.3"
         }
       ],
       "name": "fast-1.5",
@@ -204,8 +239,23 @@
       "entries": [
         {
           "name": "rhdh-operator.v1.6.0",
-          "replaces": "rhdh-operator.v1.5.1",
+          "replaces": "rhdh-operator.v1.5.3",
           "skipRange": "<1.6.0"
+        },
+        {
+          "name": "rhdh-operator.v1.6.1",
+          "replaces": "rhdh-operator.v1.6.0",
+          "skipRange": "<1.6.1"
+        },
+        {
+          "name": "rhdh-operator.v1.6.2",
+          "replaces": "rhdh-operator.v1.6.1",
+          "skipRange": "<1.6.2"
+        },
+        {
+          "name": "rhdh-operator.v1.6.3",
+          "replaces": "rhdh-operator.v1.6.2",
+          "skipRange": "<1.6.3"
         }
       ],
       "name": "fast-1.6",
@@ -278,23 +328,43 @@
     },
     {
       "schema": "olm.bundle",
+      "image": "registry.redhat.io/rhdh/rhdh-operator-bundle@sha256:13e82b4fccc423d0d68550b084cd37a394fdcdb7313b99e142c1570ccff07d91"
+    },
+    {
+      "schema": "olm.bundle",
+      "image": "registry.redhat.io/rhdh/rhdh-operator-bundle@sha256:5a19032dda9a0f584b41cbe9e729ed23e6003d90ebbb026eb9e7bb9769d4a4e4"
+    },
+    {
+      "schema": "olm.bundle",
       "image": "registry.redhat.io/rhdh/rhdh-operator-bundle@sha256:3da4799b9a79f688ca55ec85d0b3e28348dbc2661e82110aedbf27dfa97f49e1"
+    },
+    {
+      "schema": "olm.bundle",
+      "image": "registry.redhat.io/rhdh/rhdh-operator-bundle@sha256:f2d99c68895d8e99cfd132c78bc39be5f2d860737f6e7d2520167404880ed865"
+    },
+    {
+      "schema": "olm.bundle",
+      "image": "registry.redhat.io/rhdh/rhdh-operator-bundle@sha256:c99f378315b703b586196ea3978e3858e2c73d4b16d761700efafc9a82e618d9"
+    },
+    {
+      "schema": "olm.bundle",
+      "image": "registry.redhat.io/rhdh/rhdh-operator-bundle@sha256:dfeca6c0f951ee92eb8c7c2a57f99e755c1d7af81ea86dfd8cb2ee1df5034da4"
     },
     {
       "entries": [
         {
-          "name": "rhdh-operator.v1.7.0",
-          "replaces": "rhdh-operator.v1.6.0",
-          "skipRange": "<1.7.0"
+          "name": "rhdh-operator.v1.8.0",
+          "replaces": "rhdh-operator.v1.6.3",
+          "skipRange": "<1.8.0"
         }
       ],
-      "name": "fast-1.7",
+      "name": "fast-1.8",
       "package": "rhdh",
       "schema": "olm.channel"
     },
     {
       "schema": "olm.bundle",
-      "image": "quay.io/rhdh/rhdh-operator-bundle-sealights@sha256:ae65e2832395ae9ddea2833147f115307bfe8cef84fea852f813a00cc91eddd6"
+      "image": "quay.io/rhdh/rhdh-operator-bundle-sealights@sha256:77a7e14fa2d231e0797a4abf5c18da56080cc6e222e25527c04fe882908c2c4e"
     }
   ]
 }
