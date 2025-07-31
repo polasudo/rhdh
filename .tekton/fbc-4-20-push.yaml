@@ -4,17 +4,16 @@ metadata:
   annotations:
     build.appstudio.openshift.io/repo: https://gitlab.cee.redhat.com/rhidp/rhdh/-/tree/{{revision}}
     build.appstudio.redhat.com/commit_sha: '{{revision}}'
-    build.appstudio.redhat.com/pull_request_number: '{{pull_request_number}}'
     build.appstudio.redhat.com/target_branch: '{{target_branch}}'
     pipelinesascode.tekton.dev/max-keep-runs: "6"
-    pipelinesascode.tekton.dev/on-cel-expression: event == "pull_request" && target_branch
-      == "rhdh-1-rhel-9" && ( "catalogs*/v4.14/***".pathChanged() || ".tekton/fbc-4-14-pull-request.yaml".pathChanged())
+    pipelinesascode.tekton.dev/on-cel-expression: event == "push" && target_branch
+      == "rhdh-1-rhel-9" && ( "catalogs*/v4.20/***".pathChanged() || ".tekton/fbc-4-20-push.yaml".pathChanged())
   creationTimestamp: null
   labels:
-    appstudio.openshift.io/application: fbc-4-14
-    appstudio.openshift.io/component: fbc-4-14
+    appstudio.openshift.io/application: fbc-4-20
+    appstudio.openshift.io/component: fbc-4-20
     pipelines.appstudio.openshift.io/type: build
-  name: fbc-4-14-on-pull-request
+  name: fbc-4-20-on-push
   namespace: rhdh-tenant
 spec:
   params:
@@ -23,13 +22,19 @@ spec:
   - name: revision
     value: '{{revision}}'
   - name: output-image
-    value: quay.io/rhdh/iib:on-pr-{{revision}}
+    value: quay.io/rhdh/iib:fbc-4-20-on-push-for-rhdh-1-rhel-9-from-{{revision}}
+  - name: sealights-output-image
+    value: quay.io/rhdh/iib-sealights:fbc-4-20-on-push-for-rhdh-1-rhel-9-from-{{revision}}
   - name: image-expires-after
-    value: 5d
+    value: ''
+  - name: sealights-image-expires-after
+    value: '2w'
   - name: dockerfile
     value: Containerfile
   - name: path-context
-    value: catalogs/v4.14
+    value: catalogs/v4.20
+  - name: sealights-path-context
+    value: catalogs-sealights/v4.20
   pipelineSpec:
     description: |
       This pipeline is ideal for building and verifying [file-based catalogs](https://konflux.pages.redhat.com/docs/users/advanced-how-tos/building-olm.html#_building_the_file_based_catalog).
@@ -109,10 +114,14 @@ spec:
       description: Build dependencies to be prefetched by Cachi2
       name: prefetch-input
       type: string
-    - default: "5d"
+    - default: ""
       description: Image tag expiration time, time values could be something like
         1h, 2d, 3w for hours, days, and weeks, respectively.
       name: image-expires-after
+    - default: ""
+      description: Sealights image tag expiration time, time values could be something like
+        1h, 2d, 3w for hours, days, and weeks, respectively.
+      name: sealights-image-expires-after
     - default: "false"
       description: Build a source image.
       name: build-source-image
@@ -212,6 +221,41 @@ spec:
       workspaces:
       - name: source
         workspace: workspace
+    - name: build-container-sealights
+      params:
+      - name: SKIP_SBOM_GENERATION
+        value: "true"
+      - name: IMAGE
+        value: $(params.sealights-output-image)
+      - name: DOCKERFILE
+        value: $(params.dockerfile)
+      - name: CONTEXT
+        value: $(params.sealights-path-context)
+      - name: HERMETIC
+        value: $(params.hermetic)
+      - name: IMAGE_EXPIRES_AFTER
+        value: $(params.sealights-image-expires-after)
+      - name: COMMIT_SHA
+        value: $(tasks.clone-repository.results.commit)
+      runAfter:
+      - clone-repository
+      taskRef:
+        params:
+        - name: name
+          value: buildah
+        - name: bundle
+          value: quay.io/konflux-ci/tekton-catalog/task-buildah:0.4@sha256:2a654b1b100465b07b4faf79a0c640b324b10453ed9e7e61655361db3e74d940
+        - name: kind
+          value: task
+        resolver: bundles
+      when:
+      - input: $(tasks.init.results.build)
+        operator: in
+        values:
+        - "true"
+      workspaces:
+      - name: source
+        workspace: workspace
     - name: build-image-index
       params:
       - name: IMAGE
@@ -263,6 +307,23 @@ spec:
         operator: in
         values:
         - "false"
+    - name: apply-tags
+      params:
+      - name: IMAGE_URL
+        value: $(tasks.build-image-index.results.IMAGE_URL)
+      - name: IMAGE_DIGEST
+        value: $(tasks.build-image-index.results.IMAGE_DIGEST)
+      runAfter:
+      - build-image-index
+      taskRef:
+        params:
+        - name: name
+          value: apply-tags
+        - name: bundle
+          value: quay.io/konflux-ci/tekton-catalog/task-apply-tags:0.2@sha256:264fa9591929fb60e3aca033ff168e5d98b1aafb458d6988e327a99ff494b00b
+        - name: kind
+          value: task
+        resolver: bundles
     - name: rpms-signature-scan
       params:
       - name: image-url
@@ -360,7 +421,7 @@ spec:
     - name: netrc
       optional: true
   taskRunTemplate::
-    build-pipeline-fbc-4-14
+    build-pipeline-fbc-4-20
 
   workspaces:
   - name: workspace
