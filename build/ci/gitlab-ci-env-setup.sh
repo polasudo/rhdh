@@ -50,26 +50,27 @@ git branch
 git checkout "${CI_COMMIT_BRANCH}" || exit 1
 git rev-parse --abbrev-ref HEAD
 
-# build and install download-secure-files from sources
-DSF_TAG="v0.1.12"
-pushd /tmp >/dev/null || exit 1
-# Redirect console output and errors to a log file to make this log shorter
-exec 3>&1 4>&2 1>> /tmp/gitlab-ci-env-setup.sh.build.log.txt 2>> /tmp/gitlab-ci-env-setup.sh.build.log.txt
-    rm -fr download-secure-files/
-    git clone https://gitlab.com/gitlab-org/incubation-engineering/mobile-devops/download-secure-files.git && cd download-secure-files/
-    git checkout $DSF_TAG
-    echo "download-secure-files version: $(cat VERSION)"
-    go get; CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-X 'main.Version=$(cat VERSION)'"  -o "$HOME/bin/download-secure-files" download-secure-files
-    go test -v
-    chmod +x "$HOME/bin/download-secure-files"
-    rm -fr /tmp/download-secure-files
-# end console redirection of output and errors
-exec 1>&3 3>&- 2>&4 4>&- 
-popd >/dev/null || exit 1
+# 2025/08/01: build and install download-secure-files in builder.Containerfile / quay.io/rhdh/gitlab-runner to save recompiling every time
+# DSF_TAG="v0.1.12"
+# pushd /tmp >/dev/null || exit 1
+# # Redirect console output and errors to a log file to make this log shorter
+# exec 3>&1 4>&2 1>> /tmp/gitlab-ci-env-setup.sh.build.log.txt 2>> /tmp/gitlab-ci-env-setup.sh.build.log.txt
+#     rm -fr download-secure-files/
+#     git clone https://gitlab.com/gitlab-org/incubation-engineering/mobile-devops/download-secure-files.git && cd download-secure-files/
+#     git checkout $DSF_TAG
+#     echo "download-secure-files version: $(cat VERSION)"
+#     go get; CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-X 'main.Version=$(cat VERSION)'"  -o "$HOME/bin/download-secure-files" download-secure-files
+#     go test -v
+#     chmod +x "$HOME/bin/download-secure-files"
+#     rm -fr /tmp/download-secure-files
+# # end console redirection of output and errors
+# exec 1>&3 3>&- 2>&4 4>&- 
+# popd >/dev/null || exit 1
+
 # try several times because it seems to work less than half the time...
 for d in {1..90}; do 
     failed=0
-    echo -n "[$d] "; /root/bin/download-secure-files || failed=1
+    echo -n "[$d] "; "$HOME/bin/download-secure-files" || failed=1
     if [[ $failed -eq 0 ]]; then 
         break
     else
