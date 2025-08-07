@@ -1,6 +1,6 @@
 # Using this containerfile to define the runtime environment for the export plugins tekton tasks
 # https://registry.access.redhat.com/ubi9/nodejs-22
-FROM registry.access.redhat.com/ubi9/nodejs-22:9.6-1753172464
+FROM registry.access.redhat.com/ubi9/nodejs-22:9.6-1754470807
 USER 0
 
 ENV oras_version="1.2.2" \
@@ -70,7 +70,7 @@ RUN chown -R 1001:1001 /opt/app-root/src/
 
 # Prepare appropriate storage driver for buildah
 ENV STORAGE_DRIVER=vfs
-RUN sed -i '/^mountopt =.*/d' /etc/containers/storage.conf
+RUN mkdir -p /etc/containers; touch /etc/containers/storage.conf; sed -i '/^mountopt =.*/d' /etc/containers/storage.conf
 
 # # RHIDP-4220 - make Konflux preflight happy (don't run as root)
 # USER 1001
