@@ -1,6 +1,6 @@
 # Using this containerfile to define the runtime environment for the export plugins tekton tasks
 # https://registry.access.redhat.com/ubi9/nodejs-22
-FROM registry.access.redhat.com/ubi9/nodejs-22:9.6-1754470807
+FROM registry.access.redhat.com/ubi9/nodejs-22:9.6-1753172464
 USER 0
 
 ENV oras_version="1.2.2" \
@@ -72,31 +72,8 @@ RUN chown -R 1001:1001 /opt/app-root/src/
 ENV STORAGE_DRIVER=vfs
 RUN mkdir -p /etc/containers; touch /etc/containers/storage.conf; sed -i '/^mountopt =.*/d' /etc/containers/storage.conf
 
-# # RHIDP-4220 - make Konflux preflight happy (don't run as root)
+# for gitlab, run as root
+USER 0
+
+# for konflux, must run as non-root (RHIDP-4220)
 # USER 1001
-
-# append Brew metadata here
-ENV SUMMARY="Red Hat Developer Hub plugin catalog index" \
-    DESCRIPTION="Red Hat Developer Hub plugin catalog index" \
-    UPSTREAM_REPO="https://github.com/redhat-developer/rhdh-plugin-export-overlays/tree/main @ fcfb07f6" \
-    MIDSTREAM_REPO="https://gitlab.cee.redhat.com/rhidp/rhdh-plugin-catalog/-/commits/rhdh-1-rhel-9" \
-    PRODNAME="rhdh" \
-    COMPNAME="plugin-catalog-index"
-
-LABEL summary="$SUMMARY" \
-      description="$DESCRIPTION" \
-      io.k8s.description="$DESCRIPTION" \
-      io.k8s.display-name="$DESCRIPTION" \
-      io.openshift.tags="$PRODNAME,$COMPNAME" \
-      com.redhat.component="$PRODNAME-$COMPNAME-container" \
-      name="$PRODNAME/$PRODNAME-$COMPNAME-rhel9" \
-      version="1.8" \
-      release="0" \
-      license="ASLv2" \
-      maintainer="RHDH Team <rhdh-bot@redhat.com>" \
-      vendor="Red Hat, Inc." \
-      io.openshift.expose-services="" \
-      usage="" \
-      konflux.additional-tags="next" \
-      distribution-scope="public" \
-      url="https://red.ht/rhdh"
