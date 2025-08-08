@@ -2,7 +2,7 @@
 # https://registry.access.redhat.com/ubi9/nodejs-22
 # FROM registry.access.redhat.com/ubi9/nodejs-22:9.6-1753172464
 
-https://registry.access.redhat.com/ubi9
+# https://registry.access.redhat.com/ubi9
 FROM registry.redhat.io/ubi9:9.6-1754586119
 USER 0
 
