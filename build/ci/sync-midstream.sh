@@ -1116,7 +1116,7 @@ for d in $these_dirs; do
           export PATH=${PATH%":${HOME}/.local/bin"}:${HOME}/.local/bin
         fi
         echo "[INFO] Regen $d/rpms.lock.yaml from Containerfile + rpms.in.yaml"
-        rpm-lockfile-prototype -f Containerfile rpms.in.yaml >/dev/null 2>&1 
+        "${HOME}/.local/bin/rpm-lockfile-prototype" -f Containerfile rpms.in.yaml >/dev/null 2>&1 
       fi
     fi
 
