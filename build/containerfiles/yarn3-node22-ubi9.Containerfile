@@ -7,8 +7,7 @@ FROM registry.redhat.io/ubi9:9.6-1754586119
 USER 0
 
 ENV oras_version="1.2.2" \
-    DSF_TAG="v0.1.15" \
-    RLP_TAG="v0.17.0"
+    DSF_TAG="v0.1.15"
 
 # Install required tools
 RUN PATH=$PATH:/opt/app-root/src/.local/bin; \
@@ -36,15 +35,6 @@ RUN PATH=$PATH:/opt/app-root/src/.local/bin; \
     # fix ownership for pip install folder
     mkdir -p /opt/app-root/src/.cache/pip && chown -R default:default /opt/app-root/src/ && \
     pip3 install --no-cache-dir -q yq; \
-    \
-    # to verify rpm-lockfile-prototype was installed correctly, start this container:
-    #   cd /path/to/rhidp/rhdh/distgit/containers/rhdh-hub
-    #   podman run -it --rm --entrypoint /bin/sh --user root -v .:/host-mount <this-container>
-    # then
-    #   cd /host-mount; su default -c "rpm-lockfile-prototype -f Containerfile rpms.in.yaml"
-    su - default -c "PATH=${PATH}:/opt/app-root/src/.local/bin; pip3 install --no-cache-dir -q --user https://github.com/konflux-ci/rpm-lockfile-prototype/archive/refs/tags/${RLP_TAG}.zip"; \
-    \
-    mv /opt/app-root/src/.local/bin/* /usr/local/bin/; \
     time npm install --network-timeout=600000 --global npm corepack typescript husky node-gyp prettier turbo @janus-idp/cli; \
     corepack enable; \
     corepack install -g yarn; \
