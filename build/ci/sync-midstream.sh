@@ -1028,7 +1028,6 @@ for d in $these_dirs; do
     ##################################### update the RPM lock files to make Cachi2 and ECP happy ##################################### 
     if [[ $d == "distgit/containers/rhdh-hub" ]] || [[ $d == "distgit/containers/rhdh-operator" ]]; then
       if [[ -f rpms.in.yaml ]] && [[ -f rpms.lock.yaml ]]; then
-        set -x
         if [[ $(which rpm-lockfile-prototype 2>&1) == *"no rpm-lockfile-prototype in"* ]]; then 
           echo "Installing rpm-lockfile-prototype ... "
           sudo dnf -q -y install python3 python3-pip python3-dnf
@@ -1036,10 +1035,12 @@ for d in $these_dirs; do
           python3 -m pip install --user https://github.com/konflux-ci/rpm-lockfile-prototype/archive/refs/heads/main.zip
           export PATH=${PATH%":${HOME}/.local/bin"}:${HOME}/.local/bin
         fi
-        echo "[INFO] Regen $d/rpms.lock.yaml from Containerfile + rpms.in.yaml"
-        which rpm-lockfile-prototype
-        /usr/local/bin/rpm-lockfile-prototype -f Containerfile rpms.in.yaml # >/dev/null 2>&1 
-        set +x
+        echo "[INFO] Regen $d/rpms.lock.yaml from Containerfile + rpms.in.yaml using $(which rpm-lockfile-prototype)"
+        pushd distgit/containers/rhdh-hub >/dev/null || exit 1
+          set -x
+          /usr/local/bin/rpm-lockfile-prototype -f Containerfile rpms.in.yaml # >/dev/null 2>&1 
+          set +x
+        popd >/dev/null || exit 1
       fi
     fi
 
