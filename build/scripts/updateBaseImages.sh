@@ -18,7 +18,7 @@
 
 # see exclude list in getLatestImageTags.sh and updateBaseImages.sh
 EXCLUDES="latest|-source|next|nightly|-tmp-|-ci-|-gh-|.att|.git|.src|.sig|.sbom|.prefetch|on-pull-|on-push-|on-pr-|sha256-|-container"
-PATH_EXCLUDES="/\.git/|/node_modules/"
+PATH_EXCLUDES="/\.git/|/node_modules/|/\.ibm/"
 
 command -v jq >/dev/null 2>&1 || { echo "jq is not installed. Aborting."; exit 1; }
 command -v skopeo >/dev/null 2>&1 || { echo "skopeo is not installed. Aborting."; exit 1; }
@@ -56,6 +56,11 @@ docommit=1 # by default DO commit the change
 dopush=1 # by default DO push the change
 dopronly=0 # by default, attempt to push directly; create a PR only if necessary
 buildCommand="echo" # By default, no build will be triggered when a change occurs; use -c for a container-build (or -s for scratch).
+
+norm="\033[0;39m"
+green="\033[1;32m"
+blue="\033[1;34m"
+red="\033[1;31m"
 
 checkrecentupdates () {
 	# set +e
@@ -108,7 +113,7 @@ if [[ $# -lt 1 ]]; then usage; exit; fi
 BASETAG="."
 while [[ "$#" -gt 0 ]]; do
   case $1 in
-	'-w') WORKDIR="$2"; shift 1;;
+	'-w') WORKDIR="${2%/}"; shift 1;;
 	'-b'|'--sources-branch') SOURCES_BRANCH="$2"; shift 1;;
 	'-sb'|'--scripts-branch') SCRIPTS_BRANCH="$2"; shift 1;;
 	'--tag') BASETAG="$2"; shift 1;; # rather than fetching latest tag, grab latest tag matching a pattern like "1.13"
@@ -201,19 +206,36 @@ createPr() {
 		git config --get remote.origin.url | sed -r -e "s#:#/#" -e "s#git@#https://#" -e "s#\.git#/tree/${headBranch}/#"
 	fi
 }
+# Pull latest commits once at the beginning
+if [[ -d "${WORKDIR}" ]]; then
+	pushd "${WORKDIR}" >/dev/null || exit 1
+	git branch --set-upstream-to="origin/${SOURCES_BRANCH}" "${SOURCES_BRANCH}" -q || true
+	git checkout "${SOURCES_BRANCH}" -q || true 
+	
+	# Check for uncommitted changes before pulling
+	if [[ -n "$(git status --porcelain)" ]]; then
+		echo -e "${blue}[WARNING] Repository has uncommitted changes${norm}"
+		echo -e "${blue}Current changes:${norm}"
+		git status --short
+		echo -e "${blue}You can either:${norm}"
+		echo "#   1. Commit your changes first: git add . && git commit -m 'your message'"
+		echo "#   2. Stash your changes: git stash"
+		exit 1
+	else
+		git pull -q || true
+	fi
+	popd >/dev/null || exit 1
+else
+	echo -e "${red}[ERROR] Working directory '${WORKDIR}' does not exist${norm}"
+	echo -e "${red}Please specify a valid directory with the -w option${norm}"
+	exit 1
+fi
+
 pushedIn=0
-for d in $(find "${WORKDIR}/" -maxdepth "${MAXDEPTH}" -name "${DOCKERFILE}" | sort -r | grep -E -v "${PATH_EXCLUDES}"); do
+for d in $(find "${WORKDIR}" -maxdepth "${MAXDEPTH}" -name "${DOCKERFILE}" | sort -r | grep -E -v "${PATH_EXCLUDES}"); do
 	if [[ -f ${d} ]]; then
 		echo ""
 		echo "# Checking ${d} ..."
-		# pull latest commits
-		if [[ -d ${d%%/${DOCKERFILE}} ]]; then pushd "${d%%/${DOCKERFILE}}" >/dev/null; pushedIn=1; fi
-		BRANCHUSED=${SOURCES_BRANCH}
-		git branch --set-upstream-to="origin/${BRANCHUSED}" "${BRANCHUSED}" -q || true
-		git checkout "${BRANCHUSED}" -q || true 
-		git pull -q || true
-		if [[ ${pushedIn} -eq 1 ]]; then popd >/dev/null; pushedIn=0; fi
-
 		FROMPREFIX=""
 		LATESTTAG=""
 		# shellcheck disable=SC2002
@@ -331,15 +353,15 @@ for d in $(find "${WORKDIR}/" -maxdepth "${MAXDEPTH}" -name "${DOCKERFILE}" | so
 									git add "${DOCKERFILE}" || true
 									git commit -s -m "chore: Update from ${URL} to ${FROMPREFIX}:${LATESTTAG}" "${DOCKERFILE}"
 									if [[ ${dopronly} -eq 1 ]]; then
-										createPr "${PR_BRANCH}" "${BRANCHUSED}"
+										createPr "${PR_BRANCH}" "${SOURCES_BRANCH}"
 									else
 										if [[ ${dopush} -eq 1 ]]; then
-											git pull origin "${BRANCHUSED}"
-											PUSH_TRY="$(git push origin "${BRANCHUSED}" 2>&1 || true)"
+											git pull origin "${SOURCES_BRANCH}"
+											PUSH_TRY="$(git push origin "${SOURCES_BRANCH}" 2>&1 || true)"
 											# shellcheck disable=SC2181
 											if [[ $? -gt 0 ]] || [[ $PUSH_TRY == *"protected branch hook declined"* ]]; then
 												# create pull request if target branch is restricted access
-												createPr "${PR_BRANCH}" "${BRANCHUSED}"
+												createPr "${PR_BRANCH}" "${SOURCES_BRANCH}"
 											fi
 										fi
 									fi
