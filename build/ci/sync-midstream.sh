@@ -888,90 +888,8 @@ else
   echo
   set -e
 
-  ## COMMENT THIS OUT TO TEST FIX FOR RHIDP-4936 
-  # NOTE: if we have to bring it back, dfestal says use insertYarn=" --no-install \&\& cd path/to/dist-dynamic; yarn install" instead of workspace commands
-  # echo "[INFO] ===================================== Patch embedded yarn commands =====================================>"
-  # #shellcheck disable=SC2044,SC2143
-  # # two options for janus-cli syntax (--in-place added June 2024):
-  # # janus-cli package export-dynamic-plugin --in-place # front end - do NOT convert
-  # # janus-cli package export-dynamic-plugin --embed-package @backstage/plugin-scaffolder-backend-module-bitbucket-cloud --override-interop default --no-embed-as-dependencies # back end - DO convert
-  # for d in $(find distgit/containers/rhdh-hub/dynamic-plugins -name package.json) ; do
-  #   # determine if this a front or back end plugin; only work on BACK END plugins
-  #   # see https://github.com/redhat-developer/rhdh-plugin-export-utils/blob/main/export-dynamic/export-dynamic.sh
-  #   if [[ "$(grep -e '"role" *: *"backend-plugin' "$d")" != "" ]] && [[ $(grep -E 'export-dynamic-plugin' "$d" | grep -v -- '--network-timeout') ]]; then
-  #     echo "[INFO] Patch yarn command in ${d#distgit/containers/rhdh-hub/} (back end plugins ONLY) ..."
-  #     dName=$(jq -r '.name' "${d%/package.json}/dist-dynamic/package.json" | sed -r -e "s/-dynamic$//") # remove -dynamic suffix when invoking the workspace name
-  #     insertYarn=" --no-install \&\& yarn workspace $dName install"
-  #     sed -i "$d" -r \
-  #     -e 's#("janus-cli package export-dynamic-plugin.+)"#\1'"$insertYarn"'"#g'
-  #     # debug
-  #     grep -E "network-timeout|export-dynamic-plugin" "$d" || true
-  #   fi
-  # done
-  # echo "[INFO] <===================================== Patch embedded yarn commands ====================================="
-  # echo
-
-  # debug
-  # find distgit/containers/rhdh-*/ -name "dist" -exec tree -d {} \; 2>/dev/null
-  # find distgit/containers/rhdh-*/ -name "dist-dynamic" -exec tree -d {} \; 2>/dev/null
-
-  echo "[INFO] ===================================== Configure cachito =====================================>"
-  # verify folders exist and are configured correctly for cachito to use
-  # for d in $(yq -r -Y '.remote_sources[0].remote_source.packages.yarn' distgit/containers/rhdh-hub/container.yaml.in | sed -r "s#- path: ##"); do
-  #   if [[ ! -d $d ]] || [[ ! -f $d/package.json ]] || [[ ! -f $d/yarn.lock ]]; then
-  #     echo "[ERROR] Problem with folder $d -- check if package.json or yarn.lock are present!"
-  #     (( haderror = haderror + 1 ))
-  #   else
-  #     # shellcheck disable=SC2086,SC2013
-  #     if [[ $d == *"/dist-dynamic"* ]]; then
-  #       echo "[INFO] Replace resolutions with dependencies in ${d##*wrappers/}/package.json ..."
-  #       if [[ $(find "$d" -name package-lock.json) ]]; then
-  #         echo "[ERROR] Found package-lock.json in $d! Must abort!"; exit 20
-  #       fi
-
-  #       # 0. collect existing .dependencies
-  #       pairs="$(jq -M -c '.dependencies' "$d"/package.json | tr -d "{}")"; if [[ "$pairs" ]]; then pairs=",$pairs"; fi
-
-  #       # 1. add resolutions to dependencies
-  #       # "npm:@smithy/util-utf8@^2.0.0" --> "@smithy/util-utf8": "^2.0.0"
-  #       for key in $(jq '.resolutions|to_entries[].key' "$d"/package.json); do
-  #         val=$(jq '.resolutions['$key']' "$d"/package.json)
-  #         val_clean=${val/npm:/}; val_clean=${val_clean//\"/}; # echo $val_clean
-  #         # split on @
-  #         depName=${val_clean%@*};
-  #         depVer=${val_clean##*@};
-  #         # echo "   $depName: $depVer"
-  #         pairs="$pairs,\"$depName\": \"$depVer\""
-  #       done
-  #       # "@aws-sdk/util-utf8-browser" -> "@aws-sdk/util-utf8-browser": "^3"
-  #       pairs="$pairs,\"@aws-sdk/util-utf8-browser\": \"^3\""
-  #       pairs=${pairs:1} # trim prefix comma
-
-  #       # echo "[INFO] Insert dependencies = $pairs ..."
-  #       jq '.dependencies|={'"$pairs"'}' "$d"/package.json > "$d"/package.json_; mv "$d"/package.json{_,}
-
-  #       # 2. remove resolutions (moved above)
-  #       jq '.resolutions|={}' "$d"/package.json > "$d"/package.json_; mv "$d"/package.json{_,}
-
-  #       dName=$(jq -r '.name' "$d/package.json")
-  #       echo "[INFO] Regen wrapper ${d##*wrappers/} yarn.lock ..."
-  #       pushd "${d}" >/dev/null || exit 1
-  #         $YARN workspace "$dName" install --no-immutable --silent 2> >(grep -v warning 1>&2) || exit 61
-  #       popd >/dev/null || exit 1
-  #       # debug changes in each folder
-  #       # changed_diff=$(git diff --name-only "./$d" || true)
-  #       # if [[ $changed_diff ]]; then
-  #       #   echo "== changed files =>"
-  #       #   echo $changed_diff
-  #       #   echo "<= changed files =="
-  #       # fi
-  #       # force add package.json and yarn.lock (override .gitignore)
-  #       git add -f "$d"/package.json "$d"/yarn.lock
-  #     fi
-  #   fi
-  # done # hub container
-
-  # switch from yarn to npm registry, in case this makes Cachito happier?
+    echo "[INFO] ===================================== Configure cachito =====================================>"
+    # switch from yarn to npm registry, in case this makes Cachito happier?
   # Could not download types-jest-29.5.7.tgz from https://cachito-nexus.engineering.redhat.com/repository/cachito-yarn-1047885/@types/jest/-/jest-29.5.7.tgz
   # shellcheck disable=SC2044
   for d in $(find distgit/containers/rhdh-hub/ -name yarn.lock); do sed -i "$d" -r -e "s#registry.yarnpkg.com#registry.npmjs.org#g"; done
@@ -983,6 +901,7 @@ else
   exec 1>&3 3>&- 2>&4 4>&- 
 fi ## if DO_BUILD
 
+# shellcheck disable=SC2181
 if [[ $? -gt 0 ]] || [[ $haderror -gt 0 ]]; then 
   echo "[ERROR] Build error occurred!";
   cat /tmp/sync-midstream.sh.build.log.txt
