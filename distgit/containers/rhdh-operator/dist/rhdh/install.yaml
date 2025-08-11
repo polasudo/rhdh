@@ -1524,6 +1524,16 @@ spec:
                       Optional.
                     x-kubernetes-preserve-unknown-fields: true
                 type: object
+              monitoring:
+                default:
+                  enabled: false
+                description: Monitoring config to enable ServiceMonitor for metrics
+                properties:
+                  enabled:
+                    default: false
+                    description: Enable ServiceMonitor for Prometheus scraping
+                    type: boolean
+                type: object
               rawRuntimeConfig:
                 description: Raw Runtime RuntimeObjects configuration. For Advanced
                   scenarios.
@@ -1782,6 +1792,18 @@ rules:
   - ingresses
   verbs:
   - get
+- apiGroups:
+  - monitoring.coreos.com
+  resources:
+  - servicemonitors
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
 - apiGroups:
   - rhdh.redhat.com
   resources:
@@ -2461,7 +2483,7 @@ data:
     apiVersion: networking.k8s.io/v1
     kind: NetworkPolicy
     metadata:
-      name: allow-knative-to-sonataflow-and-workflows # hardcoded
+      name: allow-infra-ns-to-workflow-ns # hardcoded
     spec:
       podSelector: {}
       ingress:
@@ -2474,6 +2496,10 @@ data:
                 matchLabels:
                   # Allow auxiliary knative function for workflow (such as m2k-save-transformation)
                   kubernetes.io/metadata.name: knative-serving
+            - namespaceSelector:
+                matchLabels:
+                  # Allow openshift serverless logic operator controller pod to access all pods in sonataflow
+                  kubernetes.io/metadata.name: openshift-serverless-logic
     ---
     # NetworkPolicy to unblock incoming traffic to the namespace
     apiVersion: networking.k8s.io/v1
