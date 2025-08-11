@@ -1035,12 +1035,12 @@ for d in $these_dirs; do
           python3 -m pip install --user https://github.com/konflux-ci/rpm-lockfile-prototype/archive/refs/heads/main.zip
           export PATH=${PATH%":${HOME}/.local/bin"}:${HOME}/.local/bin
         fi
-        echo "[INFO] Regen $d/rpms.lock.yaml from Containerfile + rpms.in.yaml using $(which rpm-lockfile-prototype)"
-        pushd distgit/containers/rhdh-hub >/dev/null || exit 1
+        echo "[INFO] Regen $d/rpms.lock.yaml from Containerfile + rpms.in.yaml using $(which rpm-lockfile-prototype) in [$(pwd)]"
+        # pushd distgit/containers/rhdh-hub >/dev/null || exit 1
           set -x
           /usr/local/bin/rpm-lockfile-prototype -f Containerfile rpms.in.yaml # >/dev/null 2>&1 
           set +x
-        popd >/dev/null || exit 1
+        # popd >/dev/null || exit 1
       fi
     fi
 
