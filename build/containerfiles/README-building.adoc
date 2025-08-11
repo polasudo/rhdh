@@ -16,12 +16,12 @@ If the version of yarn changes in distgit/containers/rhdh-hub/.yarnrc.yml be sur
 For 1.5+ using link:https://catalog.redhat.com/search?gs&q=nodejs-22&searchType=containers[node 22], from the root of this repo, run the following to build and publish an updated container:
 
 ```
-TODAY=$(date +%Y%m%d-%H%M)
-podman rmi registry.redhat.io/ubi9:latest -f
+TODAY=$(date +%Y%m%d-%H%M); \
+podman rmi registry.redhat.io/ubi9:latest -f; \
 podman build . --no-cache -f build/containerfiles/yarn3-node22-ubi9.Containerfile --label quay.expires-after=99d \
     -t quay.io/rhdh/gitlab-runner:yarn3-node22-$TODAY \
-    -t quay.io/rhdh/gitlab-runner:yarn3-node22-latest 
-podman push quay.io/rhdh/gitlab-runner:yarn3-node22-$TODAY
+    -t quay.io/rhdh/gitlab-runner:yarn3-node22-latest && \
+podman push quay.io/rhdh/gitlab-runner:yarn3-node22-$TODAY; \
 podman push quay.io/rhdh/gitlab-runner:yarn3-node22-latest
 ```
 

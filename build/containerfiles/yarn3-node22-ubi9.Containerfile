@@ -6,8 +6,11 @@
 FROM registry.redhat.io/ubi9:9.6-1754586119
 USER 0
 
-ENV oras_version="1.2.2" \
-    DSF_TAG="v0.1.15"
+ENV STORAGE_DRIVER=vfs \
+    DSF_TAG="v0.1.15" \
+    oras_version="1.2.2" \
+    helmdocs_version="v1.11.3" \
+    mikefarahyq_version="4.45.4"
 
 # Install required tools
 RUN PATH=$PATH:/opt/app-root/src/.local/bin; \
@@ -18,11 +21,13 @@ RUN PATH=$PATH:/opt/app-root/src/.local/bin; \
     https://coprbe.devel.redhat.com/results/@endpoint-systems-sysadmins/unsupported-fedora-packages/epel-9-x86_64/00122526-redhat-internal-cert-install/redhat-internal-cert-install-0.2-4.el9.noarch.rpm; \
     curl -sSLkO \
     https://coprbe.devel.redhat.com/results/@endpoint-systems-sysadmins/unsupported-fedora-packages/epel-9-x86_64/00122526-redhat-internal-cert-install/redhat-internal-cert-install-ca2015-0.2-4.el9.noarch.rpm; \
-    # add repo to resolve helm
+    # add repos to resolve helm, openshift-clients (oc) + gh cli
     dnf config-manager --add-repo https://rhsm-pulp.corp.redhat.com/content/dist/layered/rhel9/x86_64/ocp-tools/4.18/os/ -q; \
+    dnf config-manager --add-repo https://rhsm-pulp.corp.redhat.com/content/dist/layered/rhel8/x86_64/rhocp/4.19/os/ -q; \
+    dnf config-manager --add-repo https://cli.github.com/packages/rpm/gh-cli.repo -q; \
     dnf -y -q update && \
     dnf module enable nodejs:22 -y && \
-    dnf -y -q install brotli-devel buildah cmake gcc gcc-c++ git golang helm jq make nodejs npm openssl openssl-devel gettext patch \
+    dnf -y -q install brotli-devel buildah cmake gcc gcc-c++ git gh golang helm jq make nodejs npm openshift-clients openssl openssl-devel gettext patch podman \
         python3 python3-pip python3-dnf python3.11-pip rsync skopeo sudo zlib-devel \
         krb5-workstation redhat-internal-cert-install*.rpm && dnf clean all && \
     rm -f /tmp/redhat-internal-cert-install*.rpm; \
@@ -44,10 +49,31 @@ RUN PATH=$PATH:/opt/app-root/src/.local/bin; \
     yarn config set npmRegistryServer $(npm config get registry); \
     # list installed binaries and default locations
     for r in jq node node-gyp npm prettier yq janus-cli turbo; do echo -n "$(which $r) : "; "$r" --version || true; done; \
-    dnf repolist; for r in /etc/yum.repos.d/*; do echo "==== $r ====>"; grep -E "enabled=1|enabled = 1" -B3 -A2 $r; echo "<==== $r ===="; done
-
-# build and install download-secure-files from sources
-RUN \
+    dnf repolist; for r in /etc/yum.repos.d/*; do echo "==== $r ====>"; grep -E "enabled=1|enabled = 1" -B3 -A2 $r; echo "<==== $r ===="; done; \
+    \
+    # install mkikefarah YQ
+    YQ="$HOME/.local/bin/yq_mf"; mkdir -p "$HOME/.local/bin/"; \
+    echo -e "Install mikefarah yq $mikefarahyq_version to $YQ ..."; \
+    curl -sSLo "$YQ" https://github.com/mikefarah/yq/releases/download/v${mikefarahyq_version}/yq_linux_amd64; \
+    chmod +x "$YQ"; $YQ --version; \
+    \
+    # install helmdocs
+    helmdocrepo=github.com/norwoodj/helm-docs/cmd/helm-docs@${helmdocs_version}; \
+    echo "Install $helmdocrepo to ${HOME}/go/bin/helm-docs ..."; \
+    mkdir -p "${HOME}/go/bin"; \
+    GO111MODULE=on go install $helmdocrepo >/dev/null 2>&1; \
+    export PATH="$PATH:${HOME}/go/bin"; \
+    \
+    # install oras
+    orasrepo="https://github.com/oras-project/oras/releases/download/v${oras_version}/" &&\
+    orastar="oras_${oras_version}_linux_amd64.tar.gz" &&\
+    echo "Install oras $oras_version from $orasrepo ..." &&\
+    curl -sSLO "${orasrepo}${orastar}" &&\
+    tar -zxf $orastar -C /usr/local/bin/ oras &&\
+    rm -rf $orastar oras-install/ &&\
+    oras version; \
+    \
+    # install download-secure-files from sources (used in GL pipelines to fetch secrets)
     pushd /tmp >/dev/null || exit 1; \
     # Redirect console output and errors to a log file to make this log shorter
     exec 3>&1 4>&2 1>> /tmp/gitlab-ci-env-setup.sh.build.log.txt 2>> /tmp/gitlab-ci-env-setup.sh.build.log.txt; \
@@ -61,23 +87,16 @@ RUN \
         rm -fr /tmp/download-secure-files; \
     # end console redirection of output and errors
     exec 1>&3 3>&- 2>&4 4>&- ; \
-    popd >/dev/null || exit 1
-
-RUN orasrepo="https://github.com/oras-project/oras/releases/download/v${oras_version}/" &&\
-    orastar="oras_${oras_version}_linux_amd64.tar.gz" &&\
-    echo "Installing oras from $orasrepo ..." &&\
-    curl -sSLO "${orasrepo}${orastar}" &&\
-    tar -zxf $orastar -C /usr/local/bin/ oras &&\
-    rm -rf $orastar oras-install/
+    popd >/dev/null || exit 1; \
+    \
+    # cleanup temp files and fix permissions
+    rm -fr /opt/app-root/src/.cache/pip; chown -R 1001:1001 /opt/app-root/src/; \
+    \
+    # Prepare appropriate STORAGE_DRIVER for buildah
+    mkdir -p /etc/containers; touch /etc/containers/storage.conf; sed -i '/^mountopt =.*/d' /etc/containers/storage.conf
 
 # RHIDP-4220 - make Konflux preflight and EC checks happy - [check-container] Create a directory named /licenses and include all relevant licensing
 COPY licenses /licenses/
-
-RUN rm -fr /opt/app-root/src/.cache/pip; chown -R 1001:1001 /opt/app-root/src/
-
-# Prepare appropriate storage driver for buildah
-ENV STORAGE_DRIVER=vfs
-RUN mkdir -p /etc/containers; touch /etc/containers/storage.conf; sed -i '/^mountopt =.*/d' /etc/containers/storage.conf
 
 # for gitlab, run as root
 USER 0
