@@ -24,6 +24,6 @@ LABEL \
       license="ASLv2" \
       maintainer="RHDH Team <rhdh-bot@redhat.com>" \
       vendor="Red Hat, Inc." \
-      konflux.additional-tags="1.8-v4.14-x86_64" \
+      konflux.additional-tags="1.8-v4.14-x86_64,next-v4.14-x86_64" \
       distribution-scope="public" \
       url="https://red.ht/rhdh"
