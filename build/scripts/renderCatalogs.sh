@@ -120,26 +120,22 @@ Examples:
     # that bundle must refer to any related sealights-enabled operator and operand images. 
 
     # without sealights rendering (same as: $0 --default)
-    RHDH_VERSION="$RHDH_VERSION"
-    OCP_VERSION=$OCP_VERSION_BASE
-    $0 $latestNextExample --clean --versions "\${OCP_VERSION}" -v "\${RHDH_VERSION}"
+    $0 $latestNextExample --clean --versions "${OCP_VERSION_BASE}" -v "${RHDH_VERSION}"
     alias cp=cp
-    for OCP_VERSION in $OCP_VERSIONS $OCP_VERSION_NEXT; do \\
+    for OCP_VERSION in ${OCP_VERSIONS% } $OCP_VERSION_NEXT; do \\
       sleep 30s; \\
-      cp -f catalogs/v{\$OCP_VERSION_BASE,\$OCP_VERSION}/catalog-template.json; \\
-      $0 $latestNextExample --clean --versions "\${OCP_VERSION}" -v "\${RHDH_VERSION}" --template "catalogs/v\${OCP_VERSION}/catalog-template.json" \\
+      cp -f catalogs/v{$OCP_VERSION_BASE,\$OCP_VERSION}/catalog-template.json; \\
+      $0 $latestNextExample --clean --versions "\${OCP_VERSION}" -v "${RHDH_VERSION}" --template "catalogs/v\${OCP_VERSION}/catalog-template.json" \\
     done
 
     # or with sealights rendering (same as: $0 --default-sealights)
-    RHDH_VERSION="$RHDH_VERSION"
-    OCP_VERSION=$OCP_VERSION_BASE
-    $0 $latestNextExample --clean --versions "\${OCP_VERSION}" -v "\${RHDH_VERSION}" --sealights
+    $0 $latestNextExample --clean --versions "${OCP_VERSION_BASE}" -v "${RHDH_VERSION}" --sealights
     alias cp=cp
-    for OCP_VERSION in $OCP_VERSIONS $OCP_VERSION_NEXT; do \\
+    for OCP_VERSION in ${OCP_VERSIONS% } $OCP_VERSION_NEXT; do \\
       sleep 30s; \\
-      cp -f catalogs/v{\$OCP_VERSION_BASE,\$OCP_VERSION}/catalog-template.json; \\
-      cp -f catalogs-sealights/v{\$OCP_VERSION_BASE,\${OCP_VERSION}}/catalog-template.json; \\
-      $0 $latestNextExample --clean --versions "\${OCP_VERSION}" -v "\${RHDH_VERSION}" --sealights --template "catalogs/v\${OCP_VERSION}/catalog-template.json"; \\
+      cp -f catalogs/v{$OCP_VERSION_BASE,\$OCP_VERSION}/catalog-template.json; \\
+      cp -f catalogs-sealights/v{$OCP_VERSION_BASE,\${OCP_VERSION}}/catalog-template.json; \\
+      $0 $latestNextExample --clean --versions "\${OCP_VERSION}" -v "${RHDH_VERSION}" --sealights --template "catalogs/v\${OCP_VERSION}/catalog-template.json"; \\
     done
 
 EOF
@@ -205,6 +201,7 @@ recurse () {
       if [[ ! -d "catalogs/v$OCP_VERSION/" ]]; then # need to bootstrap from scratch
         echo -e "\n${blue} >> $0 $latestNextExample --clean --versions ${OCP_VERSION} -v ${RHDH_VERSION} $SEALIGHTS_FLAG $DRYRUN ${norm}\n"
         if [[ ! $DRYRUN ]]; then 
+          # shellcheck disable=SC2086
           $0 $latestNextExample --clean --versions "${OCP_VERSION}" -v "${RHDH_VERSION}" $SEALIGHTS_FLAG $DRYRUN
         fi
       else # folder exists so just run from template
