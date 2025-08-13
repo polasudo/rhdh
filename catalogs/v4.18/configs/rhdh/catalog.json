@@ -3924,7 +3924,7 @@
     "schema": "olm.bundle",
     "name": "rhdh-operator.v1.8.0",
     "package": "rhdh",
-    "image": "quay.io/rhdh/rhdh-operator-bundle@sha256:f6334c09c981893ee9ddf1ab846d4e161ee1493f31a5fb8fc3e678b18755a7f4",
+    "image": "quay.io/rhdh/rhdh-operator-bundle@sha256:b56f68ff567ab6671ef57100b55d88a9f280ef2edacecc87d527917ea68ec8bb",
     "properties": [
         {
             "type": "olm.gvk",
@@ -3951,6 +3951,14 @@
             }
         },
         {
+            "type": "olm.gvk",
+            "value": {
+                "group": "rhdh.redhat.com",
+                "kind": "Backstage",
+                "version": "v1alpha4"
+            }
+        },
+        {
             "type": "olm.package",
             "value": {
                 "packageName": "rhdh",
@@ -3961,12 +3969,12 @@
             "type": "olm.csv.metadata",
             "value": {
                 "annotations": {
-                    "alm-examples": "[\n  {\n    \"apiVersion\": \"rhdh.redhat.com/v1alpha1\",\n    \"kind\": \"Backstage\",\n    \"metadata\": {\n      \"labels\": {\n        \"app.kubernetes.io/name\": \"backstage\"\n      },\n      \"name\": \"developer-hub\"\n    }\n  },\n  {\n    \"apiVersion\": \"rhdh.redhat.com/v1alpha2\",\n    \"kind\": \"Backstage\",\n    \"metadata\": {\n      \"labels\": {\n        \"app.kubernetes.io/name\": \"backstage\"\n      },\n      \"name\": \"developer-hub\"\n    }\n  },\n  {\n    \"apiVersion\": \"rhdh.redhat.com/v1alpha3\",\n    \"kind\": \"Backstage\",\n    \"metadata\": {\n      \"labels\": {\n        \"app.kubernetes.io/name\": \"backstage\"\n      },\n      \"name\": \"developer-hub\"\n    }\n  }\n]",
+                    "alm-examples": "[\n  {\n    \"apiVersion\": \"rhdh.redhat.com/v1alpha1\",\n    \"kind\": \"Backstage\",\n    \"metadata\": {\n      \"labels\": {\n        \"app.kubernetes.io/name\": \"backstage\"\n      },\n      \"name\": \"developer-hub\"\n    }\n  },\n  {\n    \"apiVersion\": \"rhdh.redhat.com/v1alpha2\",\n    \"kind\": \"Backstage\",\n    \"metadata\": {\n      \"labels\": {\n        \"app.kubernetes.io/name\": \"backstage\"\n      },\n      \"name\": \"developer-hub\"\n    }\n  },\n  {\n    \"apiVersion\": \"rhdh.redhat.com/v1alpha3\",\n    \"kind\": \"Backstage\",\n    \"metadata\": {\n      \"labels\": {\n        \"app.kubernetes.io/name\": \"backstage\"\n      },\n      \"name\": \"developer-hub\"\n    }\n  },\n  {\n    \"apiVersion\": \"rhdh.redhat.com/v1alpha4\",\n    \"kind\": \"Backstage\",\n    \"metadata\": {\n      \"labels\": {\n        \"app.kubernetes.io/name\": \"backstage\"\n      },\n      \"name\": \"developer-hub\"\n    }\n  }\n]",
                     "capabilities": "Seamless Upgrades",
                     "categories": "Developer Tools",
                     "certified": "true",
-                    "containerImage": "registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:fab9e17f44cea58c4626c78ce6df2b05b4753a30668c31caa4b8a0778555501c",
-                    "createdAt": "2025-07-14T15:38:46Z",
+                    "containerImage": "registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:2b4fdbbf52b5454477ddadcbf37c85d582ebec3806c4fdad93f92514e091f55c",
+                    "createdAt": "2025-08-07T14:21:31Z",
                     "description": "Red Hat Developer Hub is a Red Hat supported version of Backstage. It comes with pre-built plug-ins and configuration settings, supports use of an external database, and can help streamline the process of setting up a self-managed internal developer portal for adopters who are just starting out.",
                     "features.operators.openshift.io/cnf": "false",
                     "features.operators.openshift.io/cni": "false",
@@ -4006,6 +4014,13 @@
                         {
                             "name": "backstages.rhdh.redhat.com",
                             "version": "v1alpha3",
+                            "kind": "Backstage",
+                            "displayName": "Red Hat Developer Hub",
+                            "description": "Backstage is the Schema for the Red Hat Developer Hub backstages API.\nIt comes with pre-built plug-ins, configuration settings, and deployment mechanisms,\nwhich can help streamline the process of setting up a self-managed internal\ndeveloper portal for adopters who are just starting out."
+                        },
+                        {
+                            "name": "backstages.rhdh.redhat.com",
+                            "version": "v1alpha4",
                             "kind": "Backstage",
                             "displayName": "Red Hat Developer Hub",
                             "description": "Backstage is the Schema for the Red Hat Developer Hub backstages API.\nIt comes with pre-built plug-ins, configuration settings, and deployment mechanisms,\nwhich can help streamline the process of setting up a self-managed internal\ndeveloper portal for adopters who are just starting out."
@@ -4079,19 +4094,19 @@
     "relatedImages": [
         {
             "name": "",
-            "image": "quay.io/rhdh/rhdh-operator-bundle@sha256:f6334c09c981893ee9ddf1ab846d4e161ee1493f31a5fb8fc3e678b18755a7f4"
+            "image": "quay.io/rhdh/rhdh-operator-bundle@sha256:b56f68ff567ab6671ef57100b55d88a9f280ef2edacecc87d527917ea68ec8bb"
         },
         {
             "name": "backstage",
-            "image": "registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:12f3043084ab9964415b9b5ee6da75e181bb48f9edc9cf6b7764877a011bd6a3"
+            "image": "registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:87666f973531563fb13e8355d33864e25c8448889e410c81f0de7a15ed122d79"
         },
         {
             "name": "",
-            "image": "registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:fab9e17f44cea58c4626c78ce6df2b05b4753a30668c31caa4b8a0778555501c"
+            "image": "registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:2b4fdbbf52b5454477ddadcbf37c85d582ebec3806c4fdad93f92514e091f55c"
         },
         {
             "name": "postgresql",
-            "image": "registry.redhat.io/rhel9/postgresql-15@sha256:2b7a8dceeabdcb099f87feb52f0f007ef8ac2ea66f6946173b16bc1b8e981885"
+            "image": "registry.redhat.io/rhel9/postgresql-15@sha256:7e2529e27bdbfad42953b5bcd2f6d0036ef54f7f0031fd180ee1fa58a3790f69"
         }
     ]
 }
