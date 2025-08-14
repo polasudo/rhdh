@@ -1,0 +1,15 @@
+check-downstream:
+  extends: .shared_config
+  stage: check-downstream
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+      when: never
+    # for scheduled runs, check env var
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+  script:
+    - ./build/ci/check-downstream.sh
+  artifacts:
+    expire_in: 8 hours
+    paths:
+      - sync_report.env
+      

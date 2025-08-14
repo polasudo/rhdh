@@ -22,12 +22,13 @@ workflow:
   rules:
     # run if not a merge request or if scheduled
     - if: $CI_PIPELINE_SOURCE != 'merge_request_event' || $CI_PIPELINE_SOURCE == "schedule"
-    # don't run on default branch rhdh-1-rhel-9, only on stable branches rhdh-1-yy-rhel-9 for now
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
-      when: never
 
 stages:
   - sync-midstream
+  - check-downstream
+  - trigger-respin
 
 include:
   - local: "/build/ci/sync-midstream.yml"
+  - local: "/build/ci/check-downstream.yml"
+  - local: "/build/ci/trigger-respin.yml"

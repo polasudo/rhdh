@@ -2,7 +2,8 @@ sync-midstream:
   extends: .shared_config
   stage: sync-midstream
   rules:
-    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+    # don't run for merge requests
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
       when: never
     - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH =~ /rhdh-[0-9.]+-rhel-9/
     # see https://gitlab.cee.redhat.com/rhidp/rhdh/-/pipeline_schedules/1043/edit
@@ -26,16 +27,11 @@ sync-midstream:
       echo "Running sync-midstream.sh $latestNext for $GITLAB_USER_LOGIN in branch $CI_COMMIT_REF_NAME ..."
       # can add --force flag here to push with -f
       # RHIDP-3698 local yarn build still needed to get yarn locks updated so the downstream can run in offline mode
-        # distgit/containers/rhdh-hub/dynamic-plugins-imports-peer-dependencies/yarn.lock
-        # distgit/containers/rhdh-hub/e2e-tests/yarn.lock
+        # distgit/containers/rhdh-hub/dynamic-plugins/yarn.lock
         # distgit/containers/rhdh-hub/yarn.lock
         # etc.
 
       ./build/ci/sync-midstream.sh $latestNext -b "$CI_COMMIT_REF_NAME" --gitlab-pipeline-push || exit 15
-
-      # gitlab version of component nudging (RHIDP-4451) for operator-bundle
-      # disabled because this triggers a build that points to the n-1 versions of hub and operator, so it's a waste of time
-      # ./build/ci/sync-midstream.sh $latestNext -b "$CI_COMMIT_REF_NAME" --gitlab-pipeline-push --bundleonly --force || exit 16
 
       echo "Committed: $CI_COMMIT_REF_NAME"
       set -x
