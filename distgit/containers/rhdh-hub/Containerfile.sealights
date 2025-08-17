@@ -14,8 +14,17 @@ RUN chmod +r ${SL_tokenFile}
 RUN chown 1001 ${SL_tokenFile}
 USER 1001
 
+# Update source map relative paths to absolute paths before scanning (plugins only).
+RUN cd $CONTAINER_SOURCE && \
+    for map_file in $(find plugins -path "*/dist/*.map" -type f); do \
+        if grep -q '"sources"' "$map_file"; then \
+            plugin_base=${map_file%/dist/*}; \
+            sed -i -E "s|\"(\\.\\.?/)+([^\"]*)\"|\"$CONTAINER_SOURCE/$plugin_base/\\2\"|g" "$map_file"; \
+        fi; \
+    done
+
 # Declare the plugin list as an ENV variable
-ENV PLUGIN_LIST="dynamic-plugins-info-backend licensed-users-info-backend scalprum-backend"
+ENV PLUGIN_LIST="dynamic-plugins-info-backend licensed-users-info-backend scalprum-backend dynamic-plugins-info"
 
 # Define common scan parameters
 ENV SL_SCAN_BASE="slnodejs scan --tokenfile $SL_tokenFile --buildsessionid $SL_buildSessionId --excludedpaths webpack --scm none --projectroot $CONTAINER_SOURCE"
