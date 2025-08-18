@@ -59,6 +59,13 @@ done
 
 MIDSTM_BRANCH=rhdh-${BRANCH}-rhel-9
 
+function openURL {
+    if [[ $(which google-chrome) ]]; then 
+        google-chrome $1
+    else 
+        echo " >> $1"
+    fi
+}
 if [[ $targets == "bun" ]] && [[ $KONFLUX_ONLY -eq 0 ]]; then
     latestStableBranch="$(curl -sSLk --url "https://gitlab.cee.redhat.com/api/v4/projects/rhidp%2Frhdh/repository/branches?per_page=200&regex=^rhdh-1..*-rhel-9$" | jq -r '.[].name' | sort -uV | tail -1)"; # echo $latestStableBranch
     latestNext=""
@@ -70,7 +77,7 @@ if [[ $targets == "bun" ]] && [[ $KONFLUX_ONLY -eq 0 ]]; then
         fi
     fi
     "${SCRIPT_DIR}/../ci/sync-midstream.sh" --bundleonly --force $latestNext -b "${MIDSTM_BRANCH}"
-    google-chrome "https://konflux-ui.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/ns/rhdh-tenant/applications/rhdh-${BRANCH/./-}/activity/pipelineruns?name=rhdh-operator-bundle"
+    openURL "https://konflux-ui.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/ns/rhdh-tenant/applications/rhdh-${BRANCH/./-}/activity/pipelineruns?name=rhdh-operator-bundle"
 else
     if [[ $targets == *","* ]]; then
         commitMsg="trigger ${MIDSTM_BRANCH} builds: $targets"
@@ -135,8 +142,8 @@ else
     if [[ -d /tmp/rhdh-tmp ]]; then rm -fr /tmp/rhdh-tmp; fi
 
     if [[ $KONFLUX_ONLY -eq 1 ]]; then
-        google-chrome "https://konflux-ui.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/ns/rhdh-tenant/applications/rhdh-${BRANCH/./-}/activity/pipelineruns?name=on-push"
+        openURL "https://konflux-ui.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/ns/rhdh-tenant/applications/rhdh-${BRANCH/./-}/activity/pipelineruns?name=on-push"
     else
-        google-chrome https://gitlab.cee.redhat.com/rhidp/rhdh/-/pipelines
+        openURL https://gitlab.cee.redhat.com/rhidp/rhdh/-/pipelines
     fi
 fi
