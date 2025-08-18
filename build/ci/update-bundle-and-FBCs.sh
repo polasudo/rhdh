@@ -15,7 +15,8 @@ source "$ROOTPATH/build/ci/check-repository.sh"
 
 # Function to trigger respin and render catalogs
 update_bundle_and_FBCs() {
-    local VERSION="$1"
+    local DWNSTM_BRANCH="$1" # rhdh-1-rhel-9 or rhdh-1.8-rhel-9
+    local DH_VERSION_FULL="$2" # 1.8.3
     
     echo "[INFO] Update operator-bundle and FBCs for changes to hub or operator images"
     
@@ -29,8 +30,9 @@ update_bundle_and_FBCs() {
         exit 1
     fi
     
-    echo "[INFO] Run triggerRespin.sh to update operator-bundle..."
-    "$ROOTPATH/build/scripts/triggerRespin.sh" -v "$VERSION" bun
+    echo "[INFO] Run 'triggerRespin.sh -v ${triggerBranch}' to update operator-bundle..."
+    triggerBranch=${DWNSTM_BRANCH%-rhel-9}; triggerBranch=${triggerBranch#rhdh-} # 1 or 1.y
+    "$ROOTPATH/build/scripts/triggerRespin.sh" -v "${triggerBranch}" bun
     
     echo "[INFO] Polling for new operator-bundle every 3 minutes..."
     # Poll every 3 minutes for up to 15 minutes (5 attempts)
@@ -48,10 +50,10 @@ update_bundle_and_FBCs() {
         fi
         
         # Use the existing check_repository function to detect changes
-        if [[ $(check_repository "$QUAY_REPO_OPERATOR_BUNDLE" "$SYNC_FILE_OPERATOR_BUNDLE" "OPERATOR_BUNDLE") -ne 0 ]]; then
+        if [[ $(check_repository "$QUAY_REPO_OPERATOR_BUNDLE:${DH_VERSION_FULL%.*}" "$SYNC_FILE_OPERATOR_BUNDLE" "OPERATOR_BUNDLE") -ne 0 ]]; then
             true; # echo "[INFO] No new operator-bundle detected yet (attempt $ATTEMPT)"
         else
-            echo "[INFO] New operator-bundle found at $QUAY_REPO_OPERATOR_BUNDLE:$VERSION"
+            echo "[INFO] New operator-bundle found at $QUAY_REPO_OPERATOR_BUNDLE:${DH_VERSION_FULL%.*}"
             NEW_BUNDLE_DETECTED=true
         fi
         
@@ -62,17 +64,17 @@ update_bundle_and_FBCs() {
     if [[ "$NEW_BUNDLE_DETECTED" == "true" ]]; then
         echo "[INFO] New operator-bundle detected! Running renderCatalogs.sh..."
         # TODO remove this if-block once 1.6 is EOL and we're always using sealights
-        if [[ $VERSION == "1.6"* ]]; then 
+        if [[ "${DH_VERSION_FULL%.*}" == "1.6"* ]]; then 
             OCP_VERSION=4.14
             pushd "$ROOTPATH" >/dev/null 2>&1 || exit 1
-                ./build/scripts/renderCatalogs.sh  --clean --versions "${OCP_VERSION}" -v "${RHDH_VERSION}"; sleep 30s; echo
+                ./build/scripts/renderCatalogs.sh  --clean --versions "${OCP_VERSION}" -v "${DH_VERSION_FULL}"; sleep 30s; echo
                 for OCP_VERSION in 4.15 4.16 4.17 4.18 4.19 4.20; do \
                 cp -f catalogs/v{4.14,${OCP_VERSION}}/catalog-template.json; \
-                ./build/scripts/renderCatalogs.sh  --clean --versions "${OCP_VERSION}" -v "${RHDH_VERSION}" --template "catalogs/v${OCP_VERSION}/catalog-template.json"; sleep 30s; \
+                ./build/scripts/renderCatalogs.sh  --clean --versions "${OCP_VERSION}" -v "${DH_VERSION_FULL}" --template "catalogs/v${OCP_VERSION}/catalog-template.json"; sleep 30s; \
                 done
             popd >/dev/null 2>&1 || exit 1
         else
-            # for 1.7+
+            # for 1.next and 1.7+
             "$ROOTPATH/build/scripts/renderCatalogs.sh" --default-sealights
         fi
         echo "[INFO] FBC catalogs updated successfully"
@@ -87,10 +89,13 @@ export -f update_bundle_and_FBCs
 # If script is run directly, execute the function
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
     if [[ $# -lt 1 ]]; then
-        echo "Usage: $0 <VERSION>"
-        echo "Example: $0 1.8"
+        echo -e "Usage: $0 <DWNSTM_BRANCH> <VERSION>
+
+Examples:
+  $0 rhdh-1.7-rhel-9 1.7.1
+  $0 rhdh-1-rhel-9 1.8.0"
         exit 1
     fi
     
-    update_bundle_and_FBCs "$1"
+    update_bundle_and_FBCs "$1" "$2"
 fi

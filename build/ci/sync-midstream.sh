@@ -639,8 +639,8 @@ done                        # foreach upstream repo
 # compute x.y version from package.json upstream
 # TODO RHIDP-1022 switch to rhdh repo instead of showcase
 showcasePackageJson="https://raw.githubusercontent.com/redhat-developer/rhdh/refs/heads/$upstream_repo_hub_branch/package.json"
-DH_VERSION=$(curl -sSLko- "$showcasePackageJson" | yq -r '.version') # 1.5.0
-DH_VERSION=${DH_VERSION%.*} # 1.2
+DH_VERSION_FULL=$(curl -sSLko- "$showcasePackageJson" | yq -r '.version') # 1.5.0
+DH_VERSION=${DH_VERSION_FULL%.*} # 1.2
 echo "[INFO] Got DH_VERSION = $DH_VERSION from $showcasePackageJson #.version"
 if [[ "${#SKIPPED_CONTAINERS[@]}" == "$NUM_REPOS" ]]; then
   echo " 
@@ -648,12 +648,11 @@ if [[ "${#SKIPPED_CONTAINERS[@]}" == "$NUM_REPOS" ]]; then
 [SKIP] Nothing to sync or build: ${#SKIPPED_CONTAINERS[@]} of $NUM_REPOS upstream repos unchanged! (0)
 =================================================================
 " | tee /tmp/sync-midstream.sh.result.txt
-    if [[ $(check_repositories) -eq 0 ]]; then
+    if [[ $(check_repositories "$DH_VERSION") -eq 0 ]]; then
       echo "[INFO] Changes detected in Quay repositories. Updating operator-bundle and FBCs ..."
-      # Source and execute the update_bundle_and_FBCs function
       # shellcheck disable=SC1091
       source "$ROOTPATH/build/ci/update-bundle-and-FBCs.sh"
-      update_bundle_and_FBCs "$DH_VERSION"
+      update_bundle_and_FBCs "$DWNSTM_BRANCH" "$DH_VERSION_FULL"
       exit 0
     else
         echo " 
@@ -1192,7 +1191,7 @@ $gitdiff
 =================================================================
 " | tee /tmp/sync-midstream.sh.result.txt
       ./build/ci/cancel-pipeline.sh
-    elif [[ $(check_repositories) -ne 0 ]]; then
+    elif [[ $(check_repositories "$DH_VERSION") -ne 0 ]]; then
       echo " 
 =================================================================
 [SKIP] Nothing to sync: midstream diff is empty & no new quay repos detected! (3)
