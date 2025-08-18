@@ -181,7 +181,7 @@ for OCP_VERSION in $OCP_VERSIONS; do
   (( num_ocp_versions = num_ocp_versions + 1 ))
 done
 
-if [[ $SNAPSHOT_OVERRIDE ]] && [[ $num_ocp_versions -gt 1 ]]; then
+if [[ $SNAPSHOT_OVERRIDE ]] && [[ $num_ocp_versions -gt 1 ]] && [[ ! $CONTAINER ]]; then
   usage; usageFBCs; echo; echo -e "${red}[ERROR] Can only specify a snapshot for a single OCP version! Use '-o 4.18' to set the OCP version for the specified snapshot $SNAPSHOT_OVERRIDE !${norm}"; exit 1
 fi
 
@@ -327,9 +327,14 @@ if [[ $CONTAINER ]]; then
 
   # using midstream commit SHA and the container image, find Snapshot(s_)
   if [[ $DEBUG -eq 1 ]]; then set -x; fi
-  SNAPSHOT=$(oc -n rhdh-tenant get Snapshots --sort-by=.metadata.creationTimestamp \
-    --selector='pac.test.appstudio.openshift.io/original-prname='"${CONTAINER/-rhel9/}"'-'"${RHDH_VERSION/./-}"'-on-push,pac.test.appstudio.openshift.io/sha='"${MID_SHA}"| \
-    sed -r -e '/NAME +AGE/d' -e "s/([a-z0-9-]+)\ +([0-9smhdy]+)/\1/g")
+  if [[ $SNAPSHOT_OVERRIDE ]]; then
+    echo; echo -e "${blue}[INFO] Use snapshot override = $SNAPSHOT_OVERRIDE${norm}"
+    SNAPSHOT="${SNAPSHOT_OVERRIDE}"
+  else 
+    SNAPSHOT=$(oc -n rhdh-tenant get Snapshots --sort-by=.metadata.creationTimestamp \
+      --selector='pac.test.appstudio.openshift.io/original-prname='"${CONTAINER/-rhel9/}"'-'"${RHDH_VERSION/./-}"'-on-push,pac.test.appstudio.openshift.io/sha='"${MID_SHA}"| \
+      sed -r -e '/NAME +AGE/d' -e "s/([a-z0-9-]+)\ +([0-9smhdy]+)/\1/g")
+    fi
   if [[ $DEBUG -eq 1 ]]; then set +x; fi
 
   if [[ ! $SNAPSHOT ]]; then
@@ -337,8 +342,10 @@ if [[ $CONTAINER ]]; then
     exit 1
   fi
 
-  echo; echo -e "${blue}[INFO] For midstream SHA = $MID_SHA, found these snapshot(s):${norm}\n$SNAPSHOT"
-  # TODO fail if we find more than one snapshot for this image; exit 1
+  if [[ ! $SNAPSHOT_OVERRIDE ]]; then 
+    echo; echo -e "${blue}[INFO] For midstream SHA = $MID_SHA, found these snapshot(s):${norm}\n$SNAPSHOT"
+    # TODO fail if we find more than one snapshot for this image; exit 1
+  fi
   SNAPSHOTS="${SNAPSHOTS} ${SNAPSHOT}"
   rm -f /tmp/container_inspect.txt
   echo 
@@ -417,6 +424,7 @@ collectIssues ()
         fixed: $fixed_issues"
   fi
 }
+
 # TODO now compute the images in the bundle snapshot to make sure we have one that contains all the latest/correct images; if not all are present, fail!
 for SNAPSHOT in $SNAPSHOTS; do
   SNAPSHOT_IMAGES_FILE="/tmp/imagelist_$SNAPSHOT.txt"

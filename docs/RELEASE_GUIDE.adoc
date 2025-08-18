@@ -228,46 +228,50 @@ image::images/sbom-check.png[quay.io view filtered for a specific digest]
 ** verify the FBC content is correct - check that the image contains the SAME images as the latest ones; also use the list of branches/commits to verify that all expected commits have been built:
 +
 ```
-STREAM=1.6 # or 1.7
-./build/scripts/checkImagesInIIB.sh -y -q "quay.io/rhdh/iib:${STREAM}-v4.14-x86_64" --bundlefilter "v${STREAM}"; \
+STREAM=1.7
 ./build/scripts/getCommitsForImage.sh -v "${STREAM}"
+./build/scripts/checkImagesInIIB.sh -y -q "quay.io/rhdh/iib:${STREAM}-v4.18-x86_64" --bundlefilter "v${STREAM}";
 
 # cleanup
 sudo rm -fr /tmp/quay.io-rhdh-iib-*
 ```
 +
 ```
-[INFO] Bundle Version: rhdh-operator.v1.6.0
-[INFO] Bundle Image SHA: quay.io/rhdh/rhdh-operator-bundle@sha256:38cd0447ab7ee2ca708e66ea435ee88bd0ca859ed8f962afe751bf5d2612ef0e
-[INFO] Bundle Image Tag: quay.io/rhdh/rhdh-operator-bundle:1.6-161
+[INFO] Bundle Version: rhdh-operator.v1.7.0
+[INFO] Bundle Image SHA: quay.io/rhdh/rhdh-operator-bundle@sha256:7dad33bce18ec8417e9345ce8cdd39f3c9bfd637cecc8ce6750fa3e5279dc06b
+[INFO] Bundle Image Tag: quay.io/rhdh/rhdh-operator-bundle:1.7-50
 [INFO] CSV contains:
-quay.io/rhdh/rhdh-hub-rhel9:1.6-175
-quay.io/rhdh/rhdh-rhel9-operator:1.6-93
-registry.redhat.io/rhel9/postgresql-15:1-1741891035
+quay.io/rhdh/rhdh-hub-rhel9:1.7-132
+quay.io/rhdh/rhdh-rhel9-operator:1.7-53
+registry.redhat.io/rhel9/postgresql-15:1-1754404395
 
-quay.io/rhdh/rhdh-hub-rhel9:1.6-175
-UPSTREAM_REPO=https://github.com/redhat-developer/rhdh/tree/release-1.6 @ 22737d02
-MIDSTREAM_REPO=https://gitlab.cee.redhat.com/rhidp/rhdh/-/commits/rhdh-1.6-rhel-9
+quay.io/rhdh/rhdh-hub-rhel9:1.7-132
+UPSTREAM_REPO=https://github.com/redhat-developer/rhdh/tree/release-1.7 @ ad48a214
+MIDSTREAM_REPO=https://gitlab.cee.redhat.com/rhidp/rhdh/-/commits/rhdh-1.7-rhel-9
 
-quay.io/rhdh/rhdh-rhel9-operator:1.6-93
-UPSTREAM_REPO=https://github.com/redhat-developer/rhdh-operator/tree/release-1.6 @ 6ce061ee
-MIDSTREAM_REPO=https://gitlab.cee.redhat.com/rhidp/rhdh/-/commits/rhdh-1.6-rhel-9
+quay.io/rhdh/rhdh-rhel9-operator:1.7-53
+UPSTREAM_REPO=https://github.com/redhat-developer/rhdh-operator/tree/release-1.7 @ dd4eb226
+MIDSTREAM_REPO=https://gitlab.cee.redhat.com/rhidp/rhdh/-/commits/rhdh-1.7-rhel-9
 
-quay.io/rhdh/rhdh-operator-bundle:1.6-161
-UPSTREAM_REPO=https://github.com/redhat-developer/rhdh-operator/tree/release-1.6 @ 6ce061ee
-MIDSTREAM_REPO=https://gitlab.cee.redhat.com/rhidp/rhdh/-/commits/rhdh-1.6-rhel-9
+quay.io/rhdh/rhdh-operator-bundle:1.7-50
+UPSTREAM_REPO=https://github.com/redhat-developer/rhdh-operator/tree/release-1.7 @ dd4eb226
+MIDSTREAM_REPO=https://gitlab.cee.redhat.com/rhidp/rhdh/-/commits/rhdh-1.7-rhel-9
 ```
 +
 . Release containers to Stage for any RCs using link:../build/scripts/kfuxRelease.sh[kfuxRelease.sh]
 +
 ```
 # choose the correct branch
-git checkout rhdh-1.6-rhel-9
+git checkout rhdh-1.7-rhel-9
 
 ./build/scripts/kfuxRelease.sh -c help
 
 # use the CVE list file you exported from the RHDH CVE Management tracker above
-./build/scripts/kfuxRelease.sh --stage -c rhdh-operator-bundle:1.6-zzz -v 1.6.2 --cve "/tmp/RHDH CVE Management - 1.6.2.csv" --issues RHIDP-7725,RHIDP-7726 [--debug]
+# with list of JIRAs to close (recommended), and snapshot override (if needed)
+./build/scripts/kfuxRelease.sh --stage -v 1.7.0 -c rhdh-operator-bundle:1.7-50 \
+    --cve ~/tmp/cve_csv_exports/1.7/RHDH\ CVE\ Management\ -\ 1.7.0.csv  \
+    --issues RHIDP-6469,RHIDP-6937,RHIDP-6470 \
+    --snapshot rhdh-1-7-8qdgl
 ```
 
 [NOTE]
@@ -347,15 +351,16 @@ image::images/cve-list-export.png[File > Download > Comma Separated Values (.csv
 +
 ```
 # choose the correct branch
-git checkout rhdh-1.6-rhel-9
+git checkout rhdh-1.7-rhel-9
 
 ./build/scripts/kfuxRelease.sh -c help
 
 # use the CVE list file you exported from the RHDH CVE Management tracker above
-./build/scripts/kfuxRelease.sh --stage -c rhdh-operator-bundle:1.6-zzz -v 1.6.2 --cve "/tmp/RHDH CVE Management - 1.6.2.csv" --issues RHIDP-7725,RHIDP-7726 [--debug]
-
-# if the above is successful, you can then push to prod using the same exported CVE list
-./build/scripts/kfuxRelease.sh --prod  -c rhdh-operator-bundle:1.6-zzz -v 1.6.2 --cve "/tmp/RHDH CVE Management - 1.6.2.csv" --issues RHIDP-7725,RHIDP-7726 [--debug]
+# with list of JIRAs to close (recommended), and snapshot override (if needed)
+./build/scripts/kfuxRelease.sh --prod -v 1.7.0 -c rhdh-operator-bundle:1.7-50 \
+    --cve ~/tmp/cve_csv_exports/1.7/RHDH\ CVE\ Management\ -\ 1.7.0.csv  \
+    --issues RHIDP-6469,RHIDP-6937,RHIDP-6470 \
+    --snapshot rhdh-1-7-8qdgl
 ```
 . [ ] Monitor container image release using links provided by link:../build/scripts/kfuxRelease.sh[kfuxRelease.sh]. Release can be seen from link:https://konflux-ui.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/ns/rhdh-tenant/applications/rhdh-1-6/releases/[rhdh-1-6/releases] and should be done in 15-20 mins, depending on network traffic. 
 
