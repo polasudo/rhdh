@@ -229,8 +229,8 @@ image::images/sbom-check.png[quay.io view filtered for a specific digest]
 +
 ```
 STREAM=1.7
+./build/scripts/checkImagesInIIB.sh -y -q "quay.io/rhdh/iib:${STREAM}-v4.18-x86_64" --bundlefilter "v${STREAM}"; \
 ./build/scripts/getCommitsForImage.sh -v "${STREAM}"
-./build/scripts/checkImagesInIIB.sh -y -q "quay.io/rhdh/iib:${STREAM}-v4.18-x86_64" --bundlefilter "v${STREAM}";
 
 # cleanup
 sudo rm -fr /tmp/quay.io-rhdh-iib-*
@@ -301,8 +301,6 @@ CC:
 Nick Boldt <nboldt@redhat.com>,
 
 Kim Tsao <ktsao@redhat.com>
-Corey Daley <cdaley@redhat.com>,
-
 Fabrice Flore-Thébault <ffloreth@redhat.com>,
 Kavya Verma <kavverma@redhat.com>,
 

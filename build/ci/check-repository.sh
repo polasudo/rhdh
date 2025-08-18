@@ -7,7 +7,7 @@
 
 norm="\033[0;39m"
 green="\033[1;32m"
-blue="\033[1;34m"
+# blue="\033[1;34m"
 red="\033[1;31m"
 
 check_repository() {

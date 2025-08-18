@@ -642,25 +642,23 @@ showcasePackageJson="https://raw.githubusercontent.com/redhat-developer/rhdh/ref
 DH_VERSION=$(curl -sSLko- "$showcasePackageJson" | yq -r '.version') # 1.5.0
 DH_VERSION=${DH_VERSION%.*} # 1.2
 echo "[INFO] Got DH_VERSION = $DH_VERSION from $showcasePackageJson #.version"
-
 if [[ "${#SKIPPED_CONTAINERS[@]}" == "$NUM_REPOS" ]]; then
   echo " 
 =================================================================
-[SKIP] Nothing to sync or build: ${#SKIPPED_CONTAINERS[@]} of $NUM_REPOS upstream repos unchanged!
+[SKIP] Nothing to sync or build: ${#SKIPPED_CONTAINERS[@]} of $NUM_REPOS upstream repos unchanged! (0)
 =================================================================
 " | tee /tmp/sync-midstream.sh.result.txt
     if [[ $(check_repositories) -eq 0 ]]; then
-      echo "[INFO] Changes detected in Quay repositories. Triggering respin..."
-      echo "[INFO] Using VERSION: $DH_VERSION for respin"
-      # Source and execute the trigger-respin-render function
-      source "$(dirname "$0")/trigger-respin-render.sh"
-      trigger_respin_render "$DH_VERSION"
-      
+      echo "[INFO] Changes detected in Quay repositories. Updating operator-bundle and FBCs ..."
+      # Source and execute the update_bundle_and_FBCs function
+      # shellcheck disable=SC1091
+      source "$ROOTPATH/build/ci/update-bundle-and-FBCs.sh"
+      update_bundle_and_FBCs "$DH_VERSION"
       exit 0
     else
         echo " 
 =================================================================
-[SKIP] No changes detected in Quay.io repositories!
+[SKIP] No new quay repos detected! (1)
 =================================================================
 "
       ./build/ci/cancel-pipeline.sh
@@ -1185,13 +1183,19 @@ $gitdiff
 
 ==============================================================
 "
-echo "$gitdiff" > "/tmp/sync-midstream.sh.diff.txt"
+    echo "$gitdiff" > "/tmp/sync-midstream.sh.diff.txt"
   else 
-    if [[ $(check_repositories) -ne 0 ]]; then
+    if [[ $BUNDLEONLY -eq 1 ]]; then
       echo " 
 =================================================================
-[SKIP] Nothing to sync: midstream diff is empty!
-[SKIP] No changes detected in Quay.io repositories!
+[SKIP] Nothing to sync: midstream diff is empty! (2)
+=================================================================
+" | tee /tmp/sync-midstream.sh.result.txt
+      ./build/ci/cancel-pipeline.sh
+    elif [[ $(check_repositories) -ne 0 ]]; then
+      echo " 
+=================================================================
+[SKIP] Nothing to sync: midstream diff is empty & no new quay repos detected! (3)
 =================================================================
 " | tee /tmp/sync-midstream.sh.result.txt
       ./build/ci/cancel-pipeline.sh

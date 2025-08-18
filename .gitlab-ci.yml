@@ -30,5 +30,3 @@ stages:
 
 include:
   - local: "/build/ci/sync-midstream.yml"
-  - local: "/build/ci/check-downstream.yml"
-  - local: "/build/ci/trigger-respin.yml"
