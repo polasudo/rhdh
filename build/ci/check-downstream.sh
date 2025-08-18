@@ -2,13 +2,7 @@
 
 set -e
 
-# Configuration for both repositories
-QUAY_REPO_HUB="${QUAY_REPO_HUB:-quay.io/rhdh/rhdh-hub-rhel9}"
-QUAY_REPO_OPERATOR="${QUAY_REPO_OPERATOR:-quay.io/rhdh/rhdh-rhel9-operator}"
-SYNC_FILE_HUB="${SYNC_FILE_HUB:-sync/upstream_SHA_rhdh-hub}"
-SYNC_FILE_OPERATOR="${SYNC_FILE_OPERATOR:-sync/upstream_SHA_rhdh-operator}"
-UPSTREAM_REPO_HUB="${UPSTREAM_REPO_HUB:-https://github.com/redhat-developer/rhdh}"
-UPSTREAM_REPO_OPERATOR="${UPSTREAM_REPO_OPERATOR:-https://github.com/redhat-developer/rhdh-operator}"
+
 
 # default TAG and VERSION
 TAG="next"
@@ -28,7 +22,7 @@ fi
 
 echo "${green}[INFO] Image TAG: $TAG, VERSION: $VERSION for branch: $CI_COMMIT_REF_NAME${norm}"
 
-source "$(dirname "$0")/check_repository.sh"
+source "$(dirname "$0")/check-repository.sh"
 
 # Remove existing sync_report.env file to start fresh
 if [ -f "sync_report.env" ]; then
@@ -36,11 +30,7 @@ if [ -f "sync_report.env" ]; then
     rm sync_report.env
 fi
 
-RESPIN_NEEDED=false
-if [[ $(check_repository "$QUAY_REPO_HUB" "$SYNC_FILE_HUB" "HUB") -eq 0 ]] || \
-   [[ $(check_repository "$QUAY_REPO_OPERATOR" "$SYNC_FILE_OPERATOR" "OPERATOR") -eq 0 ]]; then
-    RESPIN_NEEDED=true
-fi
+RESPIN_NEEDED=$([[ $(check_repositories) -eq 0 ]] && echo "true" || echo "false")
 
 echo "TRIGGER_RESPIN=$RESPIN_NEEDED" >> sync_report.env
 

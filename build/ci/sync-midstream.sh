@@ -48,6 +48,8 @@ fi
 # upstream repos to fetch
 UPSTREAM_FILE="${ROOTPATH}/upstream_repos.yml"
 
+source "$(dirname "$0")/check-repository.sh"
+
 usage() {
   echo "
 Usage:
@@ -634,14 +636,36 @@ for ((i = START_REPO; i < NUM_REPOS; i++)); do # echo $i
   popd >/dev/null || exit 1 # distgit/containers/*
 done                        # foreach upstream repo
 
-if [[ "${#SKIPPED_CONTAINERS[@]}" == "$NUM_REPOS" ]]; then 
+# compute x.y version from package.json upstream
+# TODO RHIDP-1022 switch to rhdh repo instead of showcase
+showcasePackageJson="https://raw.githubusercontent.com/redhat-developer/rhdh/refs/heads/$upstream_repo_hub_branch/package.json"
+DH_VERSION=$(curl -sSLko- "$showcasePackageJson" | yq -r '.version') # 1.5.0
+DH_VERSION=${DH_VERSION%.*} # 1.2
+echo "[INFO] Got DH_VERSION = $DH_VERSION from $showcasePackageJson #.version"
+
+if [[ "${#SKIPPED_CONTAINERS[@]}" == "$NUM_REPOS" ]]; then
   echo " 
 =================================================================
 [SKIP] Nothing to sync or build: ${#SKIPPED_CONTAINERS[@]} of $NUM_REPOS upstream repos unchanged!
 =================================================================
 " | tee /tmp/sync-midstream.sh.result.txt
-  ./build/ci/cancel-pipeline.sh
-  exit 0
+    if [[ $(check_repositories) -eq 0 ]]; then
+      echo "[INFO] Changes detected in Quay repositories. Triggering respin..."
+      echo "[INFO] Using VERSION: $DH_VERSION for respin"
+      # Source and execute the trigger-respin-render function
+      source "$(dirname "$0")/trigger-respin-render.sh"
+      trigger_respin_render "$DH_VERSION"
+      
+      exit 0
+    else
+        echo " 
+=================================================================
+[SKIP] No changes detected in Quay.io repositories!
+=================================================================
+"
+      ./build/ci/cancel-pipeline.sh
+      exit 0
+    fi
 fi
 
 # use this to set ENV var in container image so we can get this via skopeo inspect without downloading the container image
@@ -912,13 +936,6 @@ else
   fi
 fi
 
-# compute x.y version from package.json upstream
-# TODO RHIDP-1022 switch to rhdh repo instead of showcase
-showcasePackageJson="https://raw.githubusercontent.com/redhat-developer/rhdh/refs/heads/$upstream_repo_hub_branch/package.json"
-DH_VERSION=$(curl -sSLko- "$showcasePackageJson" | yq -r '.version') # 1.5.0
-DH_VERSION=${DH_VERSION%.*} # 1.2
-echo "[INFO] Got DH_VERSION = $DH_VERSION from $showcasePackageJson #.version"
-
 if [[ $BUNDLEONLY -eq 1 ]]; then
   these_dirs="distgit/containers/rhdh-operator-bundle"
 else
@@ -1169,24 +1186,27 @@ $gitdiff
 ==============================================================
 "
 echo "$gitdiff" > "/tmp/sync-midstream.sh.diff.txt"
-  else
-    echo " 
-==============================================================
+  else 
+    if [[ $(check_repositories) -ne 0 ]]; then
+      echo " 
+=================================================================
 [SKIP] Nothing to sync: midstream diff is empty!
-==============================================================
+[SKIP] No changes detected in Quay.io repositories!
+=================================================================
 " | tee /tmp/sync-midstream.sh.result.txt
-    ./build/ci/cancel-pipeline.sh
+      ./build/ci/cancel-pipeline.sh
+    fi
   fi
 
   ## include license files from hub and operator in /licenses folder to make Konflux happy
   [[ $BUNDLEONLY -eq 1 ]] && LICENSE_DIRS="rhdh-operator-bundle" || LICENSE_DIRS="rhdh-hub rhdh-operator" 
   for d in $LICENSE_DIRS; do
     if [[ -f distgit/containers/${d}/LICENSE ]]; then
-      cp -f distgit/containers/${d}/LICENSE licenses/${d}-LICENSE
-      git add licenses/${d}-LICENSE 1>/dev/null 2>&1 || true
+      cp -f distgit/containers/"${d}"/LICENSE licenses/"${d}"-LICENSE
+      git add licenses/"${d}"-LICENSE 1>/dev/null 2>&1 || true
     fi
     # RHIDP-4220 konflux preflight check 
-    rsync -Azq licenses/* distgit/containers/${d}/licenses/
+    rsync -Azq licenses/* distgit/containers/"${d}"/licenses/
   done
 
   ##################################################################

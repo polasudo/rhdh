@@ -82,5 +82,17 @@ check_repository() {
     fi
 }
 
-# Export the function so it can be used when sourced
-export -f check_repository
+QUAY_REPO_HUB="${QUAY_REPO_HUB:-quay.io/rhdh/rhdh-hub-rhel9}"
+QUAY_REPO_OPERATOR="${QUAY_REPO_OPERATOR:-quay.io/rhdh/rhdh-rhel9-operator}"
+SYNC_FILE_HUB="${SYNC_FILE_HUB:-sync/upstream_SHA_rhdh-hub}"
+SYNC_FILE_OPERATOR="${SYNC_FILE_OPERATOR:-sync/upstream_SHA_rhdh-operator}"
+
+# Function to check if any Quay repository has changes
+# Returns: 0 if changes detected, 1 if no changes
+check_repositories() {
+    [[ $(check_repository "$QUAY_REPO_HUB" "$SYNC_FILE_HUB" "HUB") -eq 0 ]] || \
+    [[ $(check_repository "$QUAY_REPO_OPERATOR" "$SYNC_FILE_OPERATOR" "OPERATOR") -eq 0 ]]
+}
+
+# Export functions so they can be used when sourced    
+export -f check_repository check_repositories
