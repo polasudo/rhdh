@@ -459,8 +459,7 @@ gh auth status
 git checkout rhdh-1.7-rhel-9
 
 # create pull request for RHDH chart
-./build/helm/prepare.sh --chart-version 1.7.0 --rhdh-version 1.7.0 --chart-branch release-1.7 --publish \
-  --rhdh-version 1.7.0
+./build/helm/prepare.sh --chart-version 1.7.0 --rhdh-version 1.7.0 --chart-branch release-1.7 --publish 
 
 Create chart for 1.7.0 (1.7.0)
 [INFO] Set image digests in /tmp/tmp.xROIH7u8EN/charts/backstage/values.yaml:
@@ -493,11 +492,11 @@ https://github.com/openshift-helm-charts/charts/pull/2016
 +
 ```
 # choose the correct branch
-git checkout rhdh-1.6-rhel-9
+git checkout rhdh-1.7-rhel-9
 
 ./build/scripts/kfuxRelease.sh --fbc help # get help
 
-./build/scripts/kfuxRelease.sh --fbc :1.6.1 [-v 1.6.1] --prod --debug [--auto]
+./build/scripts/kfuxRelease.sh --fbc :1.7.0 --prod --debug [--auto]
 ```
 
 #### Tag the repos
@@ -511,7 +510,7 @@ cd /tmp; git clone git@gitlab.cee.redhat.com:rhidp/rhdh.git --depth 1 && cd rhdh
 git checkout rhdh-1-rhel-9
 
 export GITHUB_TOKEN=rhdh-bot-token-goes-here
-./build/scripts/tagRelease.sh -v 1.6.1 -t 1.6 -gh release-1.6 --midstream-branch rhdh-1.6-rhel-9 --clean --force-update --nobuild
+./build/scripts/tagRelease.sh -v 1.7.0 -t 1.7 -gh release-1.7 --midstream-branch rhdh-1.7-rhel-9 --clean --force-update --nobuild
 ```
 Note: If tags already exist but version bump PRs were not created, you can rerun the script with the `--force-update` flag to resolve this. Use `--skip-gh`, `--skip-gl`, `--skip-krd` and `--skip-pyxis` if those steps were completed previously.
 
