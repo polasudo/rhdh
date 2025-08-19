@@ -426,7 +426,7 @@ git checkout rhdh-1.7-rhel-9
 
 ### Chart release (15 mins)
 
-. [ ] Verify the latest rhdh-hub tag you want to release exists at https://catalog.redhat.com/software/containers/rhdh/rhdh-hub-rhel9/645bd4c15c00598369c31aba?image=68360c12177ad86df31947d8, eg., `1.6.1`
+. [ ] Verify the latest rhdh-hub tag you want to release exists at https://catalog.redhat.com/software/containers/rhdh/rhdh-hub-rhel9/645bd4c15c00598369c31aba?image=68a46041e06f8cfcc4f7904e, eg., `1.7.0`
 +
 . [ ] link:../build/helm/prepare.sh[Push the helm chart].
 +
@@ -438,42 +438,33 @@ export GITHUB_TOKEN=ghp_*****
 gh auth status
 
 # choose the correct branch: rhdh-1 branch may have changes that are not compatible with maintenance releases!
-git checkout rhdh-1.6-rhel-9
+git checkout rhdh-1.7-rhel-9
 
-# create pull request
-./build/helm/prepare.sh --chart-version 1.6.1 --rhdh-version 1.6.1 --chart-branch release-1.6 --publish
-```
-+
-You should see something like this:
-+
-```
-Create chart for 1.6.0 (1.6.0)
-Set image digests in charts/backstage/values.yaml: 
-* RHDH_DIGEST = 5eb109362246ccddd564febe6387bc6015d47555df00c36aa88c2247099851b7, 
-* POSTGRESQL_DIGEST = b5f1af9950aee7306f5063229aad0da08f885c4cf4bf39ba74b11b4e58e8d40b
+# create pull request for RHDH chart
+./build/helm/prepare.sh --chart-version 1.7.0 --rhdh-version 1.7.0 --chart-branch release-1.7 --publish \
+  --rhdh-version 1.7.0
+
+Create chart for 1.7.0 (1.7.0)
+[INFO] Set image digests in /tmp/tmp.xROIH7u8EN/charts/backstage/values.yaml:
+* RHDH_DIGEST = 0c76994fde2cd71471802d458b682ab652be5a0e291c3a2773cb524259ac79b2,
+* POSTGRESQL_DIGEST = 7e2529e27bdbfad42953b5bcd2f6d0036ef54f7f0031fd180ee1fa58a3790f69
 ...
-Chart version:        1.6.0
-Developer Hub image:  registry.redhat.io/rhdh/rhdh-hub-rhel9:1.6.0
-...
-[release-1.6.0 2cfbc91] chore: chart: add Red Hat Developer Hub 1.6.0 for registry.redhat.io/rhdh/rhdh-hub-rhel9:1.6.0
-...
-https://github.com/openshift-helm-charts/charts/pull/1843
+https://github.com/openshift-helm-charts/charts/pull/2017
 ```
 
 . [ ] link:../build/helm/prepare.sh[Publish the Orchestrator Infra chart]
-+
-**TODO: starting from 1.7.0, ensure this works https://issues.redhat.com/browse/RHIDP-7489**
 +
 The link:https://github.com/redhat-developer/rhdh-chart/tree/main/charts/orchestrator-infra[Orchestrator Infra Helm Chart] is a standalone chart that deploys the required OpenShift infrastructure to support the Orchestrator flavor of RHDH. Specifically, it installs the OpenShift Serverless Operator and Serverless Logic Operator, and applies required Knative CRDs. These components are necessary for enabling orchestration features in Red Hat Developer Hub.
 +
 This chart follows the same version of the main RHDH chart, starting from 1.7.0. 
 ```
-  ./build/helm/prepare.sh \
-    --chart-version 1.7.0
-    --chart-name redhat-developer-hub-orchestrator-infra \
-    --chart-dir charts/orchestrator-infra \
-    --chart-branch release-1.7 \
-    --publish
+  ./build/helm/prepare.sh --chart-version 1.7.0 --rhdh-version 1.7.0 --chart-branch release-1.7 --publish \
+    --chart-name redhat-developer-hub-orchestrator-infra --chart-dir charts/orchestrator-infra
+
+Create chart for 1.7.0 (1.7.0)
+[INFO] Set Orchestrator Infra chart version to 1.7.0
+...
+https://github.com/openshift-helm-charts/charts/pull/2016
 ```
 
 #### FBC release (30 mins)
