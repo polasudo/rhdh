@@ -648,7 +648,8 @@ if [[ "${#SKIPPED_CONTAINERS[@]}" == "$NUM_REPOS" ]]; then
 [SKIP] Nothing to sync or build: ${#SKIPPED_CONTAINERS[@]} of $NUM_REPOS upstream repos unchanged! (0)
 =================================================================
 " | tee /tmp/sync-midstream.sh.result.txt
-    if [[ $(check_repositories "$DH_VERSION") -eq 0 ]]; then
+    
+    if check_repositories "$DH_VERSION" -eq 0; then
       echo "[INFO] Changes detected in Quay repositories. Updating operator-bundle and FBCs ..."
       # shellcheck disable=SC1091
       source "$ROOTPATH/build/ci/update-bundle-and-FBCs.sh"
@@ -1191,7 +1192,7 @@ $gitdiff
 =================================================================
 " | tee /tmp/sync-midstream.sh.result.txt
       ./build/ci/cancel-pipeline.sh
-    elif [[ $(check_repositories "$DH_VERSION") -ne 0 ]]; then
+    elif check_repositories "$DH_VERSION" -gt 0; then
       echo " 
 =================================================================
 [SKIP] Nothing to sync: midstream diff is empty & no new quay repos detected! (3)

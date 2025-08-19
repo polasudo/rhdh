@@ -30,8 +30,8 @@ update_bundle_and_FBCs() {
         exit 1
     fi
     
-    echo "[INFO] Run 'triggerRespin.sh -v ${triggerBranch}' to update operator-bundle..."
     triggerBranch=${DWNSTM_BRANCH%-rhel-9}; triggerBranch=${triggerBranch#rhdh-} # 1 or 1.y
+    echo "[INFO] Run 'triggerRespin.sh -v ${triggerBranch}' to update operator-bundle..."
     "$ROOTPATH/build/scripts/triggerRespin.sh" -v "${triggerBranch}" bun
     
     echo "[INFO] Polling for new operator-bundle every 3 minutes..."

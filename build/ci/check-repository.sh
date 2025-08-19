@@ -77,7 +77,8 @@ check_repository() {
 }
 
 # Function to check if any Quay repository has changes
-# Returns: 0 if changes detected, 1 if no changes
+# Returns: 0 if changes detected, 1 if no changes or error
+check_repositories_return=0
 check_repositories() {
     local TAG
     if [[ $1 ]]; then TAG="$1"; else TAG="next"; fi
@@ -86,8 +87,13 @@ check_repositories() {
     SYNC_FILE_HUB="${SYNC_FILE_HUB:-sync/upstream_SHA_rhdh-hub}"
     SYNC_FILE_OPERATOR="${SYNC_FILE_OPERATOR:-sync/upstream_SHA_rhdh-operator}"
 
-    [[ $(check_repository "$QUAY_REPO_HUB" "$SYNC_FILE_HUB" "HUB") -eq 0 ]] || \
-    [[ $(check_repository "$QUAY_REPO_OPERATOR" "$SYNC_FILE_OPERATOR" "OPERATOR") -eq 0 ]]
+    check_repository "$QUAY_REPO_HUB" "$SYNC_FILE_HUB" "HUB"
+    (( check_repositories_return = check_repositories_return + $? ))
+    check_repository "$QUAY_REPO_OPERATOR" "$SYNC_FILE_OPERATOR" "OPERATOR"
+    (( check_repositories_return = check_repositories_return + $? ))
+
+    # return value in check_repositories_return
+    return $check_repositories_return
 }
 
 # Export functions so they can be used when sourced    
