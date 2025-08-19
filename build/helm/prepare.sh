@@ -528,26 +528,26 @@ if [[ $PUBLISH -eq 1 ]]; then
         git pull origin main >/dev/null
         git pull origin >/dev/null
         git remote add rhdh-bot git@github.com:rhdh-bot/openshift-helm-charts.git
-        git checkout origin/main -b "release-${CHART_VERSION}" >/dev/null 2>&1 || true
-        git checkout "release-${CHART_VERSION}" >/dev/null 2>&1 || true
+        git checkout origin/main -b "release-${CHART_NAME}-${CHART_VERSION}" >/dev/null 2>&1 || true
+        git checkout "release-${CHART_NAME}-${CHART_VERSION}" >/dev/null 2>&1 || true
         git add "${CHART_VERSION}"
-        COMMIT_MSG="chore: chart: add Red Hat Developer Hub ${CHART_VERSION} for registry.redhat.io/rhdh/rhdh-hub-rhel9:${RHDH_VERSION}"
+        COMMIT_MSG="chore: add Red Hat Developer Hub chart: ${CHART_NAME} ${CHART_VERSION}"
         git commit --no-gpg-sign -s -m "${COMMIT_MSG}" "${CHART_VERSION}" .
         # delete branch (if exists)
-        if [[ $(git ls-remote --heads git@github.com:rhdh-bot/openshift-helm-charts.git "refs/heads/release-${CHART_VERSION}") ]]; then
-            git push rhdh-bot :release-"${CHART_VERSION}" >/dev/null 2>&1 || true
+        if [[ $(git ls-remote --heads git@github.com:rhdh-bot/openshift-helm-charts.git "refs/heads/release-${CHART_NAME}-${CHART_VERSION}") ]]; then
+            git push rhdh-bot ":release-${CHART_NAME}-${CHART_VERSION}" >/dev/null 2>&1 || true
         fi
         # create new branch
-        git push rhdh-bot release-"${CHART_VERSION}" >/dev/null 2>&1
+        git push rhdh-bot "release-${CHART_NAME}-${CHART_VERSION}" >/dev/null 2>&1
 
         # Option 1: open the PR creation page
-        echo -e "${green}[INFO] Create PR https://github.com/openshift-helm-charts/charts/compare/main...rhdh-bot:openshift-helm-charts:release-${CHART_VERSION}?expand=1 ...${norm}"
+        echo -e "${green}[INFO] Create PR https://github.com/openshift-helm-charts/charts/compare/main...rhdh-bot:openshift-helm-charts:release-${CHART_NAME}-${CHART_VERSION}?expand=1 ...${norm}"
 
         # Option 2: create the PR automatically
         gh repo set-default openshift-helm-charts/charts
-        gh pr create -t "${COMMIT_MSG}" -b "${COMMIT_MSG}" --base main --head rhdh-bot:openshift-helm-charts:release-"${CHART_VERSION}"
+        gh pr create -t "${COMMIT_MSG}" -b "${COMMIT_MSG}" --base main --head "rhdh-bot:openshift-helm-charts:release-${CHART_NAME}-${CHART_VERSION}"
         # open new PR in a browser
-        URL=$(gh pr view rhdh-bot:release-"${CHART_VERSION}" --json 'url' | jq -r '.url')
+        URL=$(gh pr view "rhdh-bot:release-${CHART_NAME}-${CHART_VERSION}" --json 'url' | jq -r '.url')
         google-chrome --incognito "$URL" || true
         popd >/dev/null || exit 1
         rm -fr /tmp/openshift-helm-charts-main
