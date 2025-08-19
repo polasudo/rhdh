@@ -21,7 +21,6 @@ DELETE_OLD_BRANCHES=0 # set to 1 to purge old 1.4-zzz branches from the rhdh-bot
 QUAY_REGISTRY_CONFIG=""
 DO_LATEST=0 # if we want to generate a chart for the :latest, we need to set a --chart-branch
 DEBUG=0
-QUIET="-q"
 
 # RHIDP-8242 must manually opt in to publishing new charts here, by:
 # creating new quay.io/rhdh/*-chart repo, then adding more folders to this for loop
@@ -123,16 +122,20 @@ Examples:
     # 1. use gh to log in as the bot (not using exported github token) - can use incognito browser so you don't have to log out as yourself
     $ export GITHUB_TOKEN=
     $ gh auth login -h github.com
-    # 2. Run a manual release as the bot:
     $ export GITHUB_TOKEN=ghp_rhdh-bot-token-here
-    $ $0 --chart-version 1.6.1 --rhdh-version 1.6.1   --chart-branch release-1.6 --publish 
-    $ $0 --chart-version 1.5.2 --rhdh-version 1.5.2   --chart-branch release-1.5 --publish 
+    # 2. Run a manual release as the bot:
+    $ $0 --chart-version 1.7.0 --rhdh-version 1.7.0   --chart-branch release-1.7 --publish 
     Chart version:       1.y.z
     Developer Hub image:  registry.redhat.io/rhdh/rhdh-hub-rhel9:1.y.z
     # !! NOTE !! If the PR is not created correctly, you may have to manually create it from the release-x.y.z branch.
 
     ##### 4. Prepare and push a Orchestrator Infra chart release to https://github.com/openshift-helm-charts/charts:
-    # TODO write this - see publish_task.yaml
+
+    1. Same setup as in step 3 to run as the bot. 
+    2. Then run the publish with different chart-name and chart-dir values:
+
+    $0 --chart-version 1.7.0 --rhdh-version 1.7.0 --chart-branch release-1.7 --publish \
+        --chart-name redhat-developer-hub-orchestrator-infra --chart-dir charts/orchestrator-infra
 "
 }
 
@@ -193,7 +196,6 @@ while [[ "$#" -gt 0 ]]; do
         ;;
     '--debug')
         DEBUG=1
-        QUIET=""
         ;;
     '--help') usage; exit 0;;
     esac
