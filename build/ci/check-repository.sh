@@ -64,7 +64,7 @@ check_repository() {
         fi
         
         if [[ "$CURRENT_SHA" == "$UPSTREAM_SHA" ]]; then
-            echo "${green}[INFO] No new changes for $repo_suffix.${norm}"
+            echo "${green}[INFO] No new changes for $repo_suffix (SHA = $UPSTREAM_SHA).${norm}"
             return 1
         else
             echo "${green}[INFO] New changes found for $repo_suffix! SHA changed from $CURRENT_SHA to $UPSTREAM_SHA${norm}"
