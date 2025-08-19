@@ -392,9 +392,6 @@ for ((i = START_REPO; i < NUM_REPOS; i++)); do # echo $i
     # if processing the upstream operator, also collect sync/upstream_SHA* file for operator-bundle
     if [[ $destination_folder == *"rhdh-operator"* ]]; then
       echo "$SHA = $branch @ $repo" > "${ROOTPATH}/sync/upstream_SHA_${CONTAINER_NAME}-bundle"
-      msg="${CONTAINER_NAME}-bundle from: $repo/tree/$branch @ $SHA"
-      echo "[INFO] Update: $msg"
-      commitMsg="${commitMsg} ${msg};"
     fi
     ##################################### rhdh-operator-bundle #####################################
   popd >/dev/null || exit 1
@@ -1247,7 +1244,7 @@ $gitdiff
 
   if [[ $BUNDLEONLY -eq 1 ]]; then
     # trigger only kfux, not GL pipeline
-    git commit -s -m "[ci skip] Bundle Update Only: ${commitMsg}" . || true
+    git commit -s -m "[ci skip] Bundle Update:${commitMsg//operator /operator-bundle }" . || true
   else
     git commit -s -m "chore: Update:${commitMsg}" . || true
   fi
