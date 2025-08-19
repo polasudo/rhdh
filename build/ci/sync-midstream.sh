@@ -641,8 +641,8 @@ DH_VERSION=${DH_VERSION_FULL%.*} # 1.2
 echo "[INFO] Got DH_VERSION = $DH_VERSION from $showcasePackageJson #.version"
 
 # check latest images for this branch in quay and compare with latest bundle's contents. if different, we need a new bundle build!
-latest_at_quay=$(./build/scripts/getLatestImageTags.sh -b "$DWNSTM_BRANCH" --quay  -c rhdh/rhdh-hub-rhel9 -c rhdh/rhdh-rhel9-operator --tag "${DH_VERSION}-"); # echo -e "$latest_quay"
-latest_in_bundle=$(./build/scripts/checkImagesInCSV.sh -y -q -i "hub|operator" "quay.io/rhdh/rhdh-operator-bundle:${DH_VERSION}" | sort -uV); # echo -e "$latest_bundle"
+latest_at_quay=$(./build/scripts/getLatestImageTags.sh -b "$DWNSTM_BRANCH" --quay  -c rhdh/rhdh-hub-rhel9 -c rhdh/rhdh-rhel9-operator --tag "${DH_VERSION}-"); # echo -e "$latest_at_quay"
+latest_in_bundle=$(./build/scripts/checkImagesInCSV.sh -y -q -i "hub|operator" "quay.io/rhdh/rhdh-operator-bundle:${DH_VERSION}" | sort -uV); # echo -e "$latest_in_bundle"
 
 if [[ "${#SKIPPED_CONTAINERS[@]}" == "$NUM_REPOS" ]]; then
   echo " 
@@ -652,7 +652,11 @@ if [[ "${#SKIPPED_CONTAINERS[@]}" == "$NUM_REPOS" ]]; then
 " | tee /tmp/sync-midstream.sh.result.txt
     
     if [[ "$latest_at_quay" != "$latest_in_bundle" ]]; then 
-      echo -e "[INFO] Newer images found in quay:\n * $(echo $latest_at_quay | sed -r -e "s|[\r\n ]+|\n * |g")\nUpdating operator-bundle and FBCs ..."
+      # shellcheck disable=SC2086
+      echo -e "[INFO] Latest bundled images:\n       * $(echo $latest_in_bundle | sed -r -e "s|[\r\n ]+|\n       * |g")\n"
+      # shellcheck disable=SC2086
+      echo -e "[INFO] Latest images in quay:\n       * $(echo $latest_at_quay | sed -r -e "s|[\r\n ]+|\n       * |g")\n"
+      echo -e "[INFO] Updating operator-bundle and FBCs ..."
       # shellcheck disable=SC1091
       source "$ROOTPATH/build/ci/update-bundle-and-FBCs.sh"
       update_bundle_and_FBCs "$DWNSTM_BRANCH" "$DH_VERSION_FULL"
