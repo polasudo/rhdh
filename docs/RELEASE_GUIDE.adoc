@@ -399,7 +399,7 @@ oc login --token=... # log into the https://console-openshift-console.apps.stone
 
 ###########################################################################
 
-# for <=1.6, with support up to OCP 4.18
+# for <=1.6, with support from OCP 4.14 to 4.19 GA + 4.20 CI
 
 # choose the correct branch
 git checkout rhdh-1.6-rhel-9
@@ -408,16 +408,15 @@ RHDH_VERSION="1.6.0"
 OCP_VERSION=4.14
 ./build/scripts/renderCatalogs.sh --rhec [--latest] --clean --versions "${OCP_VERSION}" -v "${RHDH_VERSION}"; sleep 30s; echo
 alias cp=cp
-for OCP_VERSION in 4.15 4.16 4.17 4.18; do \
+for OCP_VERSION in 4.15 4.16 4.17 4.18 4.19 4.20; do \
   cp -f catalogs/v{4.14,${OCP_VERSION}}/catalog-template.json; 
   ./build/scripts/renderCatalogs.sh --rhec [--latest] --clean --versions "${OCP_VERSION}" -v "${RHDH_VERSION}" --template "catalogs/v${OCP_VERSION}/catalog-template.json"; sleep 30s; \
 done
 
 ###########################################################################
 
-# for >=1.7, with support for OCP 4.19 (4.15 removed) + sealights
-# going forward the list of OCP versions is hardcoded by release stream, 
-# so the above for loop should no longer be needed
+# for >=1.7, with support for OCP 4.19 GA + 4.20 CI; 4.15 removed; sealights support added
+# list of OCP versions is set in ocp-versions.yaml
 
 # choose the correct branch
 git checkout rhdh-1.7-rhel-9
