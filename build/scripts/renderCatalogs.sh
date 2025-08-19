@@ -25,6 +25,9 @@ DO_DEFAULT=0
 DO_DEFAULT_SEALIGHTS=0
 DRYRUN=""
 
+# assume running locally; if --ci flag used, then don't try to log in to the konlfux console to retrieve pipelinerun information
+CI=0 
+
 # eg., rhdh-1.5-rhel-9
 latestStableBranch="$(curl -sSLk --url "https://gitlab.cee.redhat.com/api/v4/projects/rhidp%2Frhdh/repository/branches?per_page=200&regex=^rhdh-1..*-rhel-9$" | jq -r '.[].name' | sort -uV | tail -1)"; # echo $latestStableBranch
 
@@ -108,6 +111,7 @@ Options:
   --default              run the example below excluding sealights
   --default-sealights    run the example below including sealights
   --dryrun               show commands to run but do not execute them
+  --ci                   run in CI mode -- do not attempt to log in to the Konflux UI to track pipelineruns
   -h, --help             show this help
 
 Examples:
@@ -141,14 +145,6 @@ Examples:
 EOF
 }
 
-# break if not logged in
-if [[ $(oc whoami 2>&1 || true) == *"You must be logged in"* ]] || [[ $(oc whoami 2>&1 || true) == *"cannot get resource"* ]]; then 
-  usage; echo; echo -e "${red}[ERROR] You must be logged into the konflux console at https://console-openshift-console.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/k8s/cluster/projects/rhdh-tenant !${norm}"; echo; exit 1; 
-else
-  oc project rhdh-tenant >/dev/null 2>&1 || { usage; echo; echo -e "${red}[ERROR] You must have access to the rhdh-tenant namespace! Are you logged in at https://console-openshift-console.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/k8s/cluster/projects/rhdh-tenant ?${norm}"; echo; exit 1; }
-  oc -n rhdh-tenant get PipelineRuns >/dev/null 2>&1 || { usage; echo; echo -e "${red}[ERROR] Cannot load PipelineRuns from rhdh-tenant namespace. Are you logged into the correct konflux console at https://console-openshift-console.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/k8s/cluster/projects/rhdh-tenant ?${norm}"; echo; exit 1; }
-fi
-
 # check if $1 is greater than or equal to $2
 vergte() {
     [  "$1" = "$(echo -e "$1\n$2" | sort -Vr | head -n1)" ]
@@ -179,11 +175,24 @@ while [[ "$#" -gt 0 ]]; do
     '--default')             DO_DEFAULT=1;;
     '--default-sealights')   DO_DEFAULT_SEALIGHTS=1;;
     '--dryrun')              DRYRUN="$1";;
+    '--ci')       CI="1";;
     '-h'|'--help') usage; exit 0;;
     *) usage; echo; echo -e "\n${red}[ERROR] Unknown parameter used: $1 ${norm}"; exit 1;;
   esac
   shift 1
 done
+
+if [[ $CI -eq 0 ]]; then # not in CI mode
+  # break if not logged in
+  if [[ $(oc whoami 2>&1 || true) == *"You must be logged in"* ]] || [[ $(oc whoami 2>&1 || true) == *"cannot get resource"* ]]; then 
+    usage; echo; echo -e "${red}[ERROR] You must be logged into the konflux console at https://console-openshift-console.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/k8s/cluster/projects/rhdh-tenant !${norm}"; echo; exit 1; 
+  else
+    oc project rhdh-tenant >/dev/null 2>&1 || { usage; echo; echo -e "${red}[ERROR] You must have access to the rhdh-tenant namespace! Are you logged in at https://console-openshift-console.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/k8s/cluster/projects/rhdh-tenant ?${norm}"; echo; exit 1; }
+    oc -n rhdh-tenant get PipelineRuns >/dev/null 2>&1 || { usage; echo; echo -e "${red}[ERROR] Cannot load PipelineRuns from rhdh-tenant namespace. Are you logged into the correct konflux console at https://console-openshift-console.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/k8s/cluster/projects/rhdh-tenant ?${norm}"; echo; exit 1; }
+  fi
+else
+  echo "Running in CI mode (--ci)."
+fi
 
 recurse () {
   SEALIGHTS_FLAG=""; 
@@ -441,28 +450,31 @@ EOF
     git pull origin "${DWNSTM_BRANCH}" >/dev/null 2>&1 || true
     git push origin "${DWNSTM_BRANCH}" >/dev/null 2>&1
     echo
-    waitTime="20"
-    echo -n -e "${blue}Waiting ${waitTime}s for new pipeline to trigger from the above commit and push${norm}"
-    for ((i = 0; i < waitTime; ++i)); do sleep 1s; echo -n -e "${blue}.${norm}"; done; echo
-    oc -n rhdh-tenant get PipelineRuns --sort-by=.metadata.creationTimestamp --selector='pipelinesascode.tekton.dev/original-prname=fbc-'"${OCP_VERSION/./-}"'-on-push' -o yaml > "/tmp/fbc-pipelineruns-${OCP_VERSION}.yaml"
-    # debugging
-    echo -e "${green}Found pipeline run(s):${norm}"
-    echo -e "${blue}timestamp\t\tmidstreamCommitSHA\t\t\t\tpipelinerunURL${norm}"
-    yq -r '.items[]|select(.metadata.annotations."pipelinesascode.tekton.dev/branch" == "'"${DWNSTM_BRANCH}"'")|select(.metadata.annotations."pipelinesascode.tekton.dev/state" != "completed")|.status.conditions[0].lastTransitionTime + "\t" + .metadata.annotations."pipelinesascode.tekton.dev/sha" + "\t" + .metadata.annotations."pipelinesascode.tekton.dev/log-url"' "/tmp/fbc-pipelineruns-${OCP_VERSION}.yaml"  | tail -3
 
-    # choose the latest run
-    pipelinerun=$(yq -r '.items[]|select(.metadata.annotations."pipelinesascode.tekton.dev/branch" == "'"${DWNSTM_BRANCH}"'")|select(.metadata.annotations."pipelinesascode.tekton.dev/state" != "completed")|.metadata.annotations."pipelinesascode.tekton.dev/log-url"' "/tmp/fbc-pipelineruns-${OCP_VERSION}.yaml" | tail -1)
-    if [[ $pipelinerun ]] && [[ $pipelinerun != "null" ]]; then
-      PIPELINE_URL="$pipelinerun"
-      echo -e "\n${green}Running in $PIPELINE_URL${norm}"
-    else
-      PIPELINE_URL="https://konflux-ui.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/ns/rhdh-tenant/applications/fbc-${OCP_VERSION/./-}/activity/pipelineruns"
-      echo -e "\n${blue}Pipelinerun not found for branch = $DWNSTM_BRANCH - see running pipelineruns at $PIPELINE_URL${norm}"
+    if [[ $CI -eq 0 ]]; then # not in CI mode
+      waitTime="20"
+      echo -n -e "${blue}Waiting ${waitTime}s for new pipeline to trigger from the above commit and push${norm}"
+      for ((i = 0; i < waitTime; ++i)); do sleep 1s; echo -n -e "${blue}.${norm}"; done; echo
+      oc -n rhdh-tenant get PipelineRuns --sort-by=.metadata.creationTimestamp --selector='pipelinesascode.tekton.dev/original-prname=fbc-'"${OCP_VERSION/./-}"'-on-push' -o yaml > "/tmp/fbc-pipelineruns-${OCP_VERSION}.yaml"
+      # debugging
+      echo -e "${green}Found pipeline run(s):${norm}"
+      echo -e "${blue}timestamp\t\tmidstreamCommitSHA\t\t\t\tpipelinerunURL${norm}"
+      yq -r '.items[]|select(.metadata.annotations."pipelinesascode.tekton.dev/branch" == "'"${DWNSTM_BRANCH}"'")|select(.metadata.annotations."pipelinesascode.tekton.dev/state" != "completed")|.status.conditions[0].lastTransitionTime + "\t" + .metadata.annotations."pipelinesascode.tekton.dev/sha" + "\t" + .metadata.annotations."pipelinesascode.tekton.dev/log-url"' "/tmp/fbc-pipelineruns-${OCP_VERSION}.yaml"  | tail -3
+
+      # choose the latest run
+      pipelinerun=$(yq -r '.items[]|select(.metadata.annotations."pipelinesascode.tekton.dev/branch" == "'"${DWNSTM_BRANCH}"'")|select(.metadata.annotations."pipelinesascode.tekton.dev/state" != "completed")|.metadata.annotations."pipelinesascode.tekton.dev/log-url"' "/tmp/fbc-pipelineruns-${OCP_VERSION}.yaml" | tail -1)
+      if [[ $pipelinerun ]] && [[ $pipelinerun != "null" ]]; then
+        PIPELINE_URL="$pipelinerun"
+        echo -e "\n${green}Running in $PIPELINE_URL${norm}"
+      else
+        PIPELINE_URL="https://konflux-ui.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/ns/rhdh-tenant/applications/fbc-${OCP_VERSION/./-}/activity/pipelineruns"
+        echo -e "\n${blue}Pipelinerun not found for branch = $DWNSTM_BRANCH - see running pipelineruns at $PIPELINE_URL${norm}"
+      fi
+      # open a browser to watch the release
+      if [[ $(command -v google-chrome) == *"google-chrome"* ]] || [[ $(which google-chrome) != *"which: no google-chrome"* ]]; then google-chrome "$PIPELINE_URL"; fi
+      echo "-----------------------------------------------------------------------"
+      echo
+      rm -f "/tmp/fbc-pipelineruns-${OCP_VERSION}.yaml"
     fi
-    # open a browser to watch the release
-    if [[ $(command -v google-chrome) == *"google-chrome"* ]] || [[ $(which google-chrome) != *"which: no google-chrome"* ]]; then google-chrome "$PIPELINE_URL"; fi
-    echo "-----------------------------------------------------------------------"
-    echo
-    rm -f "/tmp/fbc-pipelineruns-${OCP_VERSION}.yaml"
   fi
 done

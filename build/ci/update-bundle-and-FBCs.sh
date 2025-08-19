@@ -67,15 +67,15 @@ update_bundle_and_FBCs() {
         if [[ "${DH_VERSION_FULL%.*}" == "1.6"* ]]; then 
             OCP_VERSION=4.14
             pushd "$ROOTPATH" >/dev/null 2>&1 || exit 1
-                ./build/scripts/renderCatalogs.sh  --clean --versions "${OCP_VERSION}" -v "${DH_VERSION_FULL}"; sleep 30s; echo
+                ./build/scripts/renderCatalogs.sh --ci --clean --versions "${OCP_VERSION}" -v "${DH_VERSION_FULL}"; sleep 30s; echo
                 for OCP_VERSION in 4.15 4.16 4.17 4.18 4.19 4.20; do \
                 cp -f catalogs/v{4.14,${OCP_VERSION}}/catalog-template.json; \
-                ./build/scripts/renderCatalogs.sh  --clean --versions "${OCP_VERSION}" -v "${DH_VERSION_FULL}" --template "catalogs/v${OCP_VERSION}/catalog-template.json"; sleep 30s; \
+                ./build/scripts/renderCatalogs.sh --ci --clean --versions "${OCP_VERSION}" -v "${DH_VERSION_FULL}" --template "catalogs/v${OCP_VERSION}/catalog-template.json"; sleep 30s; \
                 done
             popd >/dev/null 2>&1 || exit 1
         else
             # for 1.next and 1.7+
-            "$ROOTPATH/build/scripts/renderCatalogs.sh" --default-sealights
+            "$ROOTPATH/build/scripts/renderCatalogs.sh" --ci --default-sealights
         fi
         echo "[INFO] FBC catalogs updated successfully"
     else
