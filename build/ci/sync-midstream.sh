@@ -664,7 +664,7 @@ if [[ "${#SKIPPED_CONTAINERS[@]}" == "$NUM_REPOS" ]]; then
     else
         echo " 
 =================================================================
-[SKIP] No new quay repos detected! (1)
+[SKIP] Latest operator-bundle contains latest hub and operator images - nothing to do! (1)
 =================================================================
 "
       ./build/ci/cancel-pipeline.sh
