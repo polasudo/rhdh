@@ -24,9 +24,8 @@ ENABLE_SEALIGHTS="false"
 DO_DEFAULT=0
 DO_DEFAULT_SEALIGHTS=0
 DRYRUN=""
-
 # assume running locally; if --ci flag used, then don't try to log in to the konlfux console to retrieve pipelinerun information
-CI=0 
+CI=""
 
 # eg., rhdh-1.5-rhel-9
 latestStableBranch="$(curl -sSLk --url "https://gitlab.cee.redhat.com/api/v4/projects/rhidp%2Frhdh/repository/branches?per_page=200&regex=^rhdh-1..*-rhel-9$" | jq -r '.[].name' | sort -uV | tail -1)"; # echo $latestStableBranch
@@ -175,14 +174,14 @@ while [[ "$#" -gt 0 ]]; do
     '--default')             DO_DEFAULT=1;;
     '--default-sealights')   DO_DEFAULT_SEALIGHTS=1;;
     '--dryrun')              DRYRUN="$1";;
-    '--ci')       CI="1";;
+    '--ci')                  CI="$1";;
     '-h'|'--help') usage; exit 0;;
     *) usage; echo; echo -e "\n${red}[ERROR] Unknown parameter used: $1 ${norm}"; exit 1;;
   esac
   shift 1
 done
 
-if [[ $CI -eq 0 ]]; then # not in CI mode
+if [[ $CI == "" ]]; then # not in CI mode
   # break if not logged in
   if [[ $(oc whoami 2>&1 || true) == *"You must be logged in"* ]] || [[ $(oc whoami 2>&1 || true) == *"cannot get resource"* ]]; then 
     usage; echo; echo -e "${red}[ERROR] You must be logged into the konflux console at https://console-openshift-console.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/k8s/cluster/projects/rhdh-tenant !${norm}"; echo; exit 1; 
@@ -198,30 +197,30 @@ recurse () {
   SEALIGHTS_FLAG=""; 
   # shellcheck disable=SC2086
   if [[ $DO_DEFAULT_SEALIGHTS -eq 1 ]]; then SEALIGHTS_FLAG="--sealights"; fi
-    echo -e "\n${blue} >> $0 $latestNextExample --clean --versions ${OCP_VERSION_BASE} -v ${RHDH_VERSION} $SEALIGHTS_FLAG $DRYRUN ${norm}\n"
+    echo -e "\n${blue} >> $0 $latestNextExample --clean --versions ${OCP_VERSION_BASE} -v ${RHDH_VERSION} $SEALIGHTS_FLAG $DRYRUN $CI${norm}\n"
     if [[ ! $DRYRUN ]]; then 
       # shellcheck disable=SC2086
-      $0 $latestNextExample --clean --versions "${OCP_VERSION_BASE}" -v "${RHDH_VERSION}" $SEALIGHTS_FLAG $DRYRUN
+      $0 $latestNextExample --clean --versions "${OCP_VERSION_BASE}" -v "${RHDH_VERSION}" $SEALIGHTS_FLAG $DRYRUN $CI
     fi
     for OCP_VERSION in ${OCP_VERSIONS//${OCP_VERSION_BASE} }; do \
       if [[ ! $DRYRUN ]]; then 
         sleep 30s
       fi
       if [[ ! -d "catalogs/v$OCP_VERSION/" ]]; then # need to bootstrap from scratch
-        echo -e "\n${blue} >> $0 $latestNextExample --clean --versions ${OCP_VERSION} -v ${RHDH_VERSION} $SEALIGHTS_FLAG $DRYRUN ${norm}\n"
+        echo -e "\n${blue} >> $0 $latestNextExample --clean --versions ${OCP_VERSION} -v ${RHDH_VERSION} $SEALIGHTS_FLAG $DRYRUN $CI${norm}\n"
         if [[ ! $DRYRUN ]]; then 
           # shellcheck disable=SC2086
-          $0 $latestNextExample --clean --versions "${OCP_VERSION}" -v "${RHDH_VERSION}" $SEALIGHTS_FLAG $DRYRUN
+          $0 $latestNextExample --clean --versions "${OCP_VERSION}" -v "${RHDH_VERSION}" $SEALIGHTS_FLAG $DRYRUN $CI
         fi
       else # folder exists so just run from template
         cp -f "catalogs/v$OCP_VERSION_BASE/catalog-template.json" "catalogs/v$OCP_VERSION/catalog-template.json"
         if [[ $DO_DEFAULT_SEALIGHTS -eq 1 ]]; then 
           cp -f "catalogs-sealights/v$OCP_VERSION_BASE/catalog-template.json" "catalogs-sealights/v$OCP_VERSION/catalog-template.json"
         fi
-        echo -e "\n${blue} >> $0 $latestNextExample --clean --versions ${OCP_VERSION} -v ${RHDH_VERSION} --template catalogs/v${OCP_VERSION}/catalog-template.json $SEALIGHTS_FLAG $DRYRUN ${norm}\n"
+        echo -e "\n${blue} >> $0 $latestNextExample --clean --versions ${OCP_VERSION} -v ${RHDH_VERSION} --template catalogs/v${OCP_VERSION}/catalog-template.json $SEALIGHTS_FLAG $DRYRUN $CI${norm}\n"
         if [[ ! $DRYRUN ]]; then 
           # shellcheck disable=SC2086
-          $0 $latestNextExample --clean --versions "${OCP_VERSION}" -v "${RHDH_VERSION}" --template "catalogs/v${OCP_VERSION}/catalog-template.json" $SEALIGHTS_FLAG $DRYRUN
+          $0 $latestNextExample --clean --versions "${OCP_VERSION}" -v "${RHDH_VERSION}" --template "catalogs/v${OCP_VERSION}/catalog-template.json" $SEALIGHTS_FLAG $DRYRUN $CI 
         fi
       fi
     done
@@ -451,7 +450,7 @@ EOF
     git push origin "${DWNSTM_BRANCH}" >/dev/null 2>&1
     echo
 
-    if [[ $CI -eq 0 ]]; then # not in CI mode
+    if [[ $CI == "" ]]; then # not in CI mode
       waitTime="20"
       echo -n -e "${blue}Waiting ${waitTime}s for new pipeline to trigger from the above commit and push${norm}"
       for ((i = 0; i < waitTime; ++i)); do sleep 1s; echo -n -e "${blue}.${norm}"; done; echo
