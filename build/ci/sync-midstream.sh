@@ -639,6 +639,11 @@ showcasePackageJson="https://raw.githubusercontent.com/redhat-developer/rhdh/ref
 DH_VERSION_FULL=$(curl -sSLko- "$showcasePackageJson" | yq -r '.version') # 1.5.0
 DH_VERSION=${DH_VERSION_FULL%.*} # 1.2
 echo "[INFO] Got DH_VERSION = $DH_VERSION from $showcasePackageJson #.version"
+
+# check latest images for this branch in quay and compare with latest bundle's contents. if different, we need a new bundle build!
+latest_at_quay=$(./build/scripts/getLatestImageTags.sh -b "$DWNSTM_BRANCH" --quay  -c rhdh/rhdh-hub-rhel9 -c rhdh/rhdh-rhel9-operator --tag "${DH_VERSION}-"); # echo -e "$latest_quay"
+latest_in_bundle=$(./build/scripts/checkImagesInCSV.sh -y -q -i "hub|operator" "quay.io/rhdh/rhdh-operator-bundle:${DH_VERSION}" | sort -uV); # echo -e "$latest_bundle"
+
 if [[ "${#SKIPPED_CONTAINERS[@]}" == "$NUM_REPOS" ]]; then
   echo " 
 =================================================================
@@ -646,8 +651,8 @@ if [[ "${#SKIPPED_CONTAINERS[@]}" == "$NUM_REPOS" ]]; then
 =================================================================
 " | tee /tmp/sync-midstream.sh.result.txt
     
-    if check_repositories "$DH_VERSION" -eq 0; then
-      echo "[INFO] Changes detected in Quay repositories. Updating operator-bundle and FBCs ..."
+    if [[ "$latest_at_quay" != "$latest_in_bundle" ]]; then 
+      echo -e "[INFO] Newer images found in quay:\n * $(echo $latest_at_quay | sed -r -e "s|[\r\n ]+|\n * |g")\nUpdating operator-bundle and FBCs ..."
       # shellcheck disable=SC1091
       source "$ROOTPATH/build/ci/update-bundle-and-FBCs.sh"
       update_bundle_and_FBCs "$DWNSTM_BRANCH" "$DH_VERSION_FULL"
@@ -1185,17 +1190,19 @@ $gitdiff
     if [[ $BUNDLEONLY -eq 1 ]]; then
       echo " 
 =================================================================
-[SKIP] Nothing to sync: midstream diff is empty! (2)
+[SKIP] Nothing to sync: midstream diff is empty for bundle! (2)
 =================================================================
 " | tee /tmp/sync-midstream.sh.result.txt
       ./build/ci/cancel-pipeline.sh
-    elif check_repositories "$DH_VERSION" -gt 0; then
-      echo " 
+    else
+      if [[ "$latest_at_quay" == "$latest_in_bundle" ]]; then 
+        echo " 
 =================================================================
-[SKIP] Nothing to sync: midstream diff is empty & no new quay repos detected! (3)
+[SKIP] Nothing to sync: midstream diff is empty & operator-bundle includes latest operands! (3)
 =================================================================
 " | tee /tmp/sync-midstream.sh.result.txt
-      ./build/ci/cancel-pipeline.sh
+        ./build/ci/cancel-pipeline.sh
+      fi
     fi
   fi
 
