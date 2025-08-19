@@ -15,6 +15,15 @@ Once the branches are created, expect a flurry of last minute cherrypicks and re
 
 **Reject those requests** and send them to RM/PM/QE/Doc for approval as these should have already landed in the LOCKED test/doc plan weeks ago.
 
+### Does this new release add or remove support for OCP versions?
+
+If so, be sure to add a new application, component, RP + RPA. If removing support, remove RP and RPAs, but keep the application and component until the older release is EOL. 
+
+For example:
+
+* link:https://gitlab.cee.redhat.com/releng/konflux-release-data/-/merge_requests/9018[add FBC application]
+* link:https://gitlab.cee.redhat.com/releng/konflux-release-data/-/merge_requests/9491[add FBC release plan and admission]
+
 ### Create branches (release-1.y, rhdh-1.y-rhel-9) + onboard new Product Security definition, Konflux application & components, and pyxis configuration
 
 Use the link:../build/scripts/tagRelease.sh[tagRelease.sh] script like this:
@@ -179,6 +188,15 @@ cd /path/to/gh/rhd/rhdh/
 cd /path/to/gh/rhd/rhdh-operator/
 /path/to/gl/rhidp/rhdh/build/scripts/updateBaseImages.sh -b release-1.6 -w $(pwd) -f \*ockerfile -maxdepth 5
 ```
+
+### Does this new release add or remove support for OCP versions?
+
+If so, be sure to add a new application, component, RP + RPA. If removing support, remove RP and RPAs, but keep the application and component until the older release is EOL. 
+
+For example:
+
+* link:https://gitlab.cee.redhat.com/releng/konflux-release-data/-/merge_requests/9018[add FBC application]
+* link:https://gitlab.cee.redhat.com/releng/konflux-release-data/-/merge_requests/9491[add FBC release plan and admission]
 
 ### Spinning up the RC
 
