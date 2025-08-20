@@ -40,6 +40,14 @@ SKIP_PYXIS=0 # skip updates to pyxis-repo-configs repo
 # make builds faster
 export HUSKY=0
 
+GH_REPOS="redhat-developer/rhdh \
+	redhat-developer/rhdh-cli \
+	redhat-developer/rhdh-operator \
+	redhat-developer/rhdh-chart \
+	redhat-developer/red-hat-developers-documentation-rhdh \
+	redhat-developer/red-hat-developer-hub-software-templates \
+	redhat-developer/rhdh-local"
+
 # NOT USED
 # FORCE_PUSH=""    # force push to the midstream repo in case of merge conflicts (use "-f")
 
@@ -74,7 +82,9 @@ To create tags (and push updates to release-1.yy branches):
 3. Run this
   $0 -v CSV_VERSION -t PROD_VERSION -gh GH_BRANCH -ghtoken GITHUB_TOKEN
 Example: 
-  $0 -v 1.7.2 -t 1.7 -gh release-1.7 --midstream-branch rhdh-1.7-rhel-9 --clean --force-update -tmpdir $TMPDIR --nobuild
+  $0 -v 1.7.2 -t 1.7 -gh release-1.7 --midstream-branch rhdh-1.7-rhel-9 --clean --force-update -tmpdir $TMPDIR --nobuild \\
+    --skip-gl --skip-krd --skip-prodsec --skip-pyxis \\
+    --gh-repos \"redhat-developer/rhdh redhat-developer/rhdh-operator\"
 
 Options:
     --clean                   delete existing temp folders and do fresh checkouts
@@ -88,6 +98,7 @@ Options:
     --midstream-branch        run against a different midstream branch; default: $MIDSTM_BRANCH
     -tmpdir                   temporary dir for checkouts; default $TMPDIR
     --skip-gh                 skip all github updates
+    --gh-repos                space-separated list of GH repos to process, if not the whole set
     --skip-gl                 skip gitlab rhdh repo updates
     --skip-krd                skip gitlab konflux-release-data repo updates
     --skip-prodsec            skip gitlab prodsec/product-definitions repo updates
@@ -119,6 +130,7 @@ while [[ "$#" -gt 0 ]]; do
 	'--force-update') DO_UPDATE=1;;
 	'-tmpdir') TMPDIR="$2"; shift 1;;
 	'--skip-gh') SKIP_GH=1;;
+	'--gh-repos') GH_REPOS="$2"; shift 1;;
 	'--skip-gl') SKIP_GL=1;;
 	'--skip-krd') SKIP_KRD=1;;
 	'--skip-prodsec') SKIP_PRODSEC=1;;
@@ -730,17 +742,19 @@ pushBranchAndOrTagGH () {
 						else
 							previous_sha=$(git rev-parse HEAD)
 							git checkout "$upstream_rhdh_digest"
-							git tag "${CSV_VERSION}" || true
 							if [[ $DO_PUSH -eq 1 ]]; then 
 								echo "[INFO] Tag $orgAndRepo from $upstream_rhdh_digest as $CSV_VERSION"
+								git push origin ":${CSV_VERSION}" || true
+								git tag -d "${CSV_VERSION}" || true
+								git tag "${CSV_VERSION}" || true
 								git push origin "${CSV_VERSION}" || true
 							fi
 							# now create the floating 1.y tag too; first delete the existing one, then recreate it at the new SHA
-							git push origin ":${CSV_VERSION%.*}" || true
-							git tag -d "${CSV_VERSION%.*}" || true
-							git tag "${CSV_VERSION%.*}" || true
 							if [[ $DO_PUSH -eq 1 ]]; then 
 								echo "[INFO] Tag $orgAndRepo from $upstream_rhdh_digest as ${CSV_VERSION%.*}"
+								git push origin ":${CSV_VERSION%.*}" || true
+								git tag -d "${CSV_VERSION%.*}" || true
+								git tag "${CSV_VERSION%.*}" || true
 								git push origin "${CSV_VERSION%.*}" || true
 							fi
 							git checkout "$previous_sha"
@@ -1196,21 +1210,9 @@ getXYplusOneFromBranch "$TARGET_BRANCH"
 # UPSTREAM 
 ############
 
-# TODO move janus-idp to redhat-developer
-	# RHIDP-1018 Sunset Janus IDP GH repos
-	# RHIDP-1019 Migrate Janus IDP plugins repo to backstage upstream
-
 # branch and/or tag GH repos
 if [[ $SKIP_GH -eq 0 ]]; then
-	for repo in \
-		redhat-developer/rhdh-cli \
-		redhat-developer/rhdh \
-		redhat-developer/rhdh-operator \
-		redhat-developer/rhdh-chart \
-		redhat-developer/red-hat-developers-documentation-rhdh \
-		redhat-developer/red-hat-developer-hub-software-templates \
-		janus-idp/backstage-plugins \
-		redhat-developer/rhdh-local \
+	for repo in $GH_REPOS \
 		; do
 		pushBranchAndOrTagGH $repo 
 	done
