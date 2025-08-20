@@ -8,6 +8,7 @@ USER 0
 
 ENV STORAGE_DRIVER=vfs \
     DSF_TAG="v0.1.15" \
+    opm_version="v1.56.0" \
     oras_version="1.2.2" \
     helmdocs_version="v1.11.3" \
     mikefarahyq_version="4.45.4"
@@ -64,6 +65,9 @@ RUN PATH=$PATH:/opt/app-root/src/.local/bin; \
     GO111MODULE=on go install $helmdocrepo >/dev/null 2>&1; \
     export PATH="$PATH:${HOME}/go/bin"; \
     \
+    # install opm
+    curl -sSLk https://github.com/operator-framework/operator-registry/releases/download/${opm_version}/linux-amd64-opm -o /usr/local/bin/opm && \
+    opm version; \
     # install oras
     orasrepo="https://github.com/oras-project/oras/releases/download/v${oras_version}/" &&\
     orastar="oras_${oras_version}_linux_amd64.tar.gz" &&\
