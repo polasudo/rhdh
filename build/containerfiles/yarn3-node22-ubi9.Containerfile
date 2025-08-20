@@ -66,12 +66,14 @@ RUN PATH=$PATH:/opt/app-root/src/.local/bin; \
     export PATH="$PATH:${HOME}/go/bin"; \
     \
     # install opm
+    echo "Install opm $opm_version to /usr/local/bin/opm ..."; \
     curl -sSLk https://github.com/operator-framework/operator-registry/releases/download/${opm_version}/linux-amd64-opm -o /usr/local/bin/opm && \
+    chmod +x 755 /usr/local/bin/opm && \
     opm version; \
     # install oras
     orasrepo="https://github.com/oras-project/oras/releases/download/v${oras_version}/" &&\
     orastar="oras_${oras_version}_linux_amd64.tar.gz" &&\
-    echo "Install oras $oras_version from $orasrepo ..." &&\
+    echo "Install oras $oras_version from $orasrepo to /usr/local/bin/oras ..." &&\
     curl -sSLO "${orasrepo}${orastar}" &&\
     tar -zxf $orastar -C /usr/local/bin/ oras &&\
     rm -rf $orastar oras-install/ &&\
