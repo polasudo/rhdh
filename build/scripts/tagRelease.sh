@@ -759,9 +759,6 @@ pushBranchAndOrTagGH () {
 					if [[ $d == "redhat-developer__rhdh" ]]; then
 						echo -e "${green}[INFO] Bump $d to $CSV_VERSION_Z${norm}" 
 						updateRHDHVersions "$TARGET_BRANCH" "$CSV_VERSION_Z"
-					elif [[ $d == "redhat-developer__rhdh-cli" ]]; then
-						echo -e "${green}[INFO] Bump $d to $CSV_VERSION_Z${norm}" 
-						updateRHDHCLIVersion "$TARGET_BRANCH" "$CSV_VERSION_Z"
 					elif [[ $d == "redhat-developer__rhdh-operator" ]]; then
 						echo -e "${green}[INFO] Bump $d to $CSV_VERSION_Z / $CSV_VERSION_Z_OPERATOR${norm}" 
 						updateOperatorVersions "$TARGET_BRANCH" "$CSV_VERSION_Z" "$CSV_VERSION_Z_OPERATOR"
@@ -776,6 +773,10 @@ pushBranchAndOrTagGH () {
 						# note: for now, only bump to the last RELEASED version in the docs
 						# so use CSV_VERSION=1.1.2 here (while showcase, operator, plugins move to 1.1.3 to prepare for a future release)
 						updateDocVersions "$TARGET_BRANCH" "$CSV_VERSION"
+					# rhdh-cli lifecycle is handled outside of RHDH releases; eg., we're on cli 1.7.1 at the time of RHDH 1.7.0 GA
+					# elif [[ $d == "redhat-developer__rhdh-cli" ]]; then
+						# echo -e "${green}[INFO] Bump $d to $CSV_VERSION_Z${norm}" 
+						# updateRHDHCLIVersion "$TARGET_BRANCH" "$CSV_VERSION_Z"
 					else
 						echo -e "${green}[INFO] No version bumps needed for $d${norm}" 
 					fi
