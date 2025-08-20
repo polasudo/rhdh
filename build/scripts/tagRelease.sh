@@ -48,9 +48,6 @@ GH_REPOS="redhat-developer/rhdh \
 	redhat-developer/red-hat-developer-hub-software-templates \
 	redhat-developer/rhdh-local"
 
-# NOT USED
-# FORCE_PUSH=""    # force push to the midstream repo in case of merge conflicts (use "-f")
-
 # normally, use this script to create tags, not branches
 # this also defines the branch to update after creating a new branch (eg., for a TARGET_BRANCH=release-1.3 branch creation, bump SOURCE_BRANCH=main to 1.4.0)
 SOURCE_BRANCH="" 
@@ -197,7 +194,7 @@ createPr() {
 		if [[ $(git diff --name-only HEAD~1 2>/dev/null || true) ]]; then
 			# if github
 			if [[ $(git remote -v | grep github || true) ]]; then
-				git push origin "${headBranch}" 1>/dev/null # ${FORCE_PUSH}
+				git push origin "${headBranch}" 1>/dev/null
 				gh repo set-default "$(git remote get-url origin)"
 				# shellcheck disable=SC2086
 				# echo "### tR.sh CREATING PR for baseBranch=$baseBranch .. headBranch=$headBranch ..."
