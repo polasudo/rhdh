@@ -46,10 +46,10 @@ blue="\033[1;34m"
 red="\033[1;31m"
 
 SCRIPT_DIR=$(cd "$(dirname "$0")" || exit; pwd)
-ROOT_DIR=$(cd "$SCRIPT_DIR"/../../ || exit; pwd)
+ROOTPATH=$(cd "$SCRIPT_DIR"/../../ || exit; pwd)
 
-if [[ -f ${ROOT_DIR}/distgit/containers/rhdh-hub/package.json ]]; then
-  RHDH_VERSION="$(jq -r '.version' "${ROOT_DIR}/distgit/containers/rhdh-hub/package.json")"
+if [[ -f ${ROOTPATH}/distgit/containers/rhdh-hub/package.json ]]; then
+  RHDH_VERSION="$(jq -r '.version' "${ROOTPATH}/distgit/containers/rhdh-hub/package.json")"
 else
   RHDH_VERSION="1.y.z"
 fi
@@ -149,6 +149,14 @@ vergte() {
     [  "$1" = "$(echo -e "$1\n$2" | sort -Vr | head -n1)" ]
 }
 
+function openURL {
+    if [[ $(command -v google-chrome) == *"google-chrome"* ]] || [[ $(which google-chrome 2>&1) != *"which: no google-chrome"* ]]; then 
+        google-chrome "$1" >/dev/null 2>&1
+    else 
+        echo " >> $1"
+    fi
+}
+
 if [[ $# -lt 1 ]]; then usage; exit 1; fi
 
 # render all versions by default, base + copied ones
@@ -181,6 +189,13 @@ while [[ "$#" -gt 0 ]]; do
   shift 1
 done
 
+if [[ $CI_BUILDS_DIR ]]; then # running in gitlab so set up env
+  echo -e "${blue}[INFO] Running in gitlab pipeline. ${norm}"
+  # shellcheck disable=SC1091
+  source "${ROOTPATH}/build/ci/gitlab-ci-env-setup.sh"
+  CI="--ci"
+fi
+
 if [[ $CI == "" ]]; then # not in CI mode
   # break if not logged in
   if [[ $(oc whoami 2>&1 || true) == *"You must be logged in"* ]] || [[ $(oc whoami 2>&1 || true) == *"cannot get resource"* ]]; then 
@@ -190,7 +205,7 @@ if [[ $CI == "" ]]; then # not in CI mode
     oc -n rhdh-tenant get PipelineRuns >/dev/null 2>&1 || { usage; echo; echo -e "${red}[ERROR] Cannot load PipelineRuns from rhdh-tenant namespace. Are you logged into the correct konflux console at https://console-openshift-console.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/k8s/cluster/projects/rhdh-tenant ?${norm}"; echo; exit 1; }
   fi
 else
-  echo "Running in CI mode (--ci)."
+  echo -e "${blue}[INFO] Running in CI mode (--ci). ${norm}"
 fi
 
 recurse () {
@@ -470,7 +485,7 @@ EOF
         echo -e "\n${blue}Pipelinerun not found for branch = $DWNSTM_BRANCH - see running pipelineruns at $PIPELINE_URL${norm}"
       fi
       # open a browser to watch the release
-      if [[ $(command -v google-chrome) == *"google-chrome"* ]] || [[ $(which google-chrome) != *"which: no google-chrome"* ]]; then google-chrome "$PIPELINE_URL"; fi
+      openURL "$PIPELINE_URL"
       echo "-----------------------------------------------------------------------"
       echo
       rm -f "/tmp/fbc-pipelineruns-${OCP_VERSION}.yaml"

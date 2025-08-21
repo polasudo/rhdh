@@ -27,6 +27,11 @@ CONTAINER_NUDGE="" # set  to tru when running inside a containerfile to skip git
 
 TMPDIR=/tmp
 
+norm="\033[0;39m"
+green="\033[1;32m"
+blue="\033[1;34m"
+red="\033[1;31m"
+
 # Ignore husky warnings
 HUSKY=0; export HUSKY
 
@@ -48,6 +53,7 @@ fi
 # upstream repos to fetch
 UPSTREAM_FILE="${ROOTPATH}/upstream_repos.yml"
 
+# shellcheck disable=SC1091
 source "$(dirname "$0")/check-repository.sh"
 
 usage() {
@@ -164,8 +170,10 @@ if [[ ! -f $UPSTREAM_FILE ]]; then usage; fi
 # if [[ ! $NAMESPACE ]]; then usage; fi
 
 if [[ $CI_BUILDS_DIR ]]; then # running in gitlab so set up env
+  echo -e "${blue}[INFO] Running in gitlab pipeline. ${norm}"
   # shellcheck disable=SC1091
   source "${ROOTPATH}/build/ci/gitlab-ci-env-setup.sh"
+  GITLAB_PIPELINE="true"
 fi
 
 echo "#################################
@@ -196,8 +204,8 @@ createPr() {
     gh pr create -f -B "${baseBranch}" -H "${headBranch}" -w || true
 
   else
-    echo "[WARN] gh cli is required to generate pull requests. See https://github.com/cli/cli?tab=readme-ov-file#installation to install it."
-    echo -n "# To manually create a pull request, go here: "
+    echo -e "${red}[WARN] gh cli is required to generate pull requests. See https://github.com/cli/cli?tab=readme-ov-file#installation to install it."
+    echo -e -n "# To manually create a pull request, go here: ${norm}"
     git config --get remote.origin.url | sed -r -e "s#:#/#" -e "s#git@#https://#" -e "s#\.git#/tree/${headBranch}/#"
   fi
 }
@@ -332,7 +340,7 @@ for ((i = START_REPO; i < NUM_REPOS; i++)); do # echo $i
   elif [[ $(git ls-remote --heads $repo refs/heads/$branch1 | wc -l) -eq 1 ]]; then
     branch=$branch1
   else
-    echo "[ERROR] Could not find $branch0 or $branch1 at $repo !"; exit 1
+    echo -e "${red}[ERROR] Could not find $branch0 or $branch1 at $repo ! ${norm}"; exit 1
   fi
   
   destination_folder=$(yq --arg i "$i" -r '.repos['$i'].destination_folder' "${UPSTREAM_FILE}")
@@ -340,7 +348,7 @@ for ((i = START_REPO; i < NUM_REPOS; i++)); do # echo $i
   destination_folders="${destination_folders} ${destination_folder}"
   rm -fr "$TMPDIR/repo${i}"
   echo
-  echo "[INFO] Fetch $repo into $TMPDIR/repo${i} from branch $branch, then sync to $destination_folder ..."
+  echo -e "${green}[INFO] Fetch $repo into $TMPDIR/repo${i} from branch $branch, then sync to $destination_folder ... ${norm}"
   git clone $repo -b $branch "$TMPDIR/repo${i}" --depth=3 && \
   pushd "$TMPDIR/repo${i}" >/dev/null || exit 1
     # set -x
@@ -359,9 +367,9 @@ for ((i = START_REPO; i < NUM_REPOS; i++)); do # echo $i
     if [[ -f "${ROOTPATH}/sync/upstream_SHA_${CONTAINER_NAME}" ]] && [[ $(cat "${ROOTPATH}/sync/upstream_SHA_${CONTAINER_NAME}") == *"$SHA = $branch @ $repo"* ]]; then
       if [[ ${CONTAINER_NAME} == "rhdh-hub" ]]; then 
         DO_BUILD=0
-        echo "[INFO] Nothing changed in upstream repo: $SHA = $branch @ $repo; skip yarn build and sync!"
+        echo -e "${blue}[INFO] Nothing changed in upstream repo: $SHA = $branch @ $repo; skip yarn build and sync! ${norm}"
       else
-        echo "[INFO] Nothing changed in upstream repo: $SHA = $branch @ $repo; skip sync!"
+        echo -e "${blue}[INFO] Nothing changed in upstream repo: $SHA = $branch @ $repo; skip sync! ${norm}"
       fi
       SKIPPED_CONTAINERS[${#SKIPPED_CONTAINERS[@]}]="${CONTAINER_NAME}/"
       popd >/dev/null || exit 1
@@ -498,7 +506,7 @@ for ((i = START_REPO; i < NUM_REPOS; i++)); do # echo $i
                   sed -i $yml -r -e "s|$imageAndSHA|$checkImage_result|g" 
                   # git diff $yml
                 else
-                  echo "[ERROR] Could not compute digest for $imageAndSHA or $imageFloatingTag !"; exit 1
+                  echo -e "${red}[ERROR] Could not compute digest for $imageAndSHA or $imageFloatingTag ! ${norm}"; exit 1
                 fi
               done
               sed -i $yml -r \
@@ -558,7 +566,7 @@ for ((i = START_REPO; i < NUM_REPOS; i++)); do # echo $i
     echo "done."; echo
   fi
 
-  echo "[INFO] Process files in ${destination_folder} ..."
+  echo -e "${green}[INFO] Process files in ${destination_folder} ... ${norm}"
   pushd "${destination_folder}" >/dev/null || exit 1
 
     ##################################### rhdh-hub #####################################
@@ -645,28 +653,28 @@ latest_at_quay=$(./build/scripts/getLatestImageTags.sh -b "$DWNSTM_BRANCH" --qua
 latest_in_bundle=$(./build/scripts/checkImagesInCSV.sh -y -q -i "hub|operator" "quay.io/rhdh/rhdh-operator-bundle:${DH_VERSION}" | sort -uV); # echo -e "$latest_in_bundle"
 
 if [[ "${#SKIPPED_CONTAINERS[@]}" == "$NUM_REPOS" ]]; then
-  echo " 
+  echo -e "${blue} 
 =================================================================
 [SKIP] Nothing to sync or build: ${#SKIPPED_CONTAINERS[@]} of $NUM_REPOS upstream repos unchanged! (0)
 =================================================================
-" | tee /tmp/sync-midstream.sh.result.txt
+${norm}" | tee /tmp/sync-midstream.sh.result.txt
     
-    if [[ "$latest_at_quay" != "$latest_in_bundle" ]]; then 
+    if [[ "$latest_at_quay" != "$latest_in_bundle" ]]; then
       # shellcheck disable=SC2086
       echo -e "[INFO] Latest bundled images:\n       * $(echo $latest_in_bundle | sed -r -e "s|[\r\n ]+|\n       * |g")\n"
       # shellcheck disable=SC2086
       echo -e "[INFO] Latest images in quay:\n       * $(echo $latest_at_quay | sed -r -e "s|[\r\n ]+|\n       * |g")\n"
-      echo -e "[INFO] Updating operator-bundle and FBCs ..."
+      echo -e "${green}[INFO] Updating operator-bundle and FBCs ... ${norm}"
       # shellcheck disable=SC1091
       source "$ROOTPATH/build/ci/update-bundle-and-FBCs.sh"
       update_bundle_and_FBCs "$DWNSTM_BRANCH" "$DH_VERSION_FULL"
       exit 0
     else
-        echo " 
+        echo -e "${blue} 
 =================================================================
 [SKIP] Latest operator-bundle contains latest hub and operator images - nothing to do! (1)
 =================================================================
-"
+${norm}"
       ./build/ci/cancel-pipeline.sh
       exit 0
     fi
@@ -854,7 +862,7 @@ else
     echo -n "Yarn version ($YARN): "; $YARN --version
     echo
 
-    echo "[INFO] ===================================== INSTALL =====================================>"
+    echo -e "${green}[INFO] ===================================== INSTALL =====================================> ${norm}"
     # suppress warnings with: >(grep -v warning 1>&2)
     if ! time $YARN install --no-immutable --silent; then
       (( haderror = haderror + 40 ))
@@ -864,10 +872,10 @@ else
     #   time npm i -g node-gyp@^9.4.1 turbo prettier
     # fi
     # for d in node-gyp turbo prettier; do echo -n "$d : "; $d --version; done;
-    echo "[INFO] <===================================== INSTALL ====================================="
+    echo -e "${green}[INFO] <===================================== INSTALL ===================================== ${norm}"
     echo
 
-    echo "[INFO] ===================================== EXPORT + COPY DYNAMIC PLUGINS =====================================>"
+    echo -e "${blue}[INFO] ===================================== EXPORT + COPY DYNAMIC PLUGINS =====================================> ${norm}"
     # see (brew.)Dockerfile for more details about these steps
     echo -n "Yarn version ($YARN): ";  $YARN --version
     if ! time $YARN export-dynamic; then
@@ -876,7 +884,7 @@ else
     if ! time $YARN copy-dynamic-plugins dist; then
       (( haderror = haderror + 42 ))
     fi
-    echo "[INFO] <===================================== EXPORT + COPY DYNAMIC PLUGINS ====================================="
+    echo -e "${blue}[INFO] <===================================== EXPORT + COPY DYNAMIC PLUGINS ===================================== ${norm}"
     echo
   popd >/dev/null || exit 1
 
@@ -931,12 +939,12 @@ fi ## if DO_BUILD
 
 # shellcheck disable=SC2181
 if [[ $? -gt 0 ]] || [[ $haderror -gt 0 ]]; then 
-  echo "[ERROR] Build error occurred!";
+  echo -e "${red}[ERROR] Build error occurred! ${norm}";
   cat /tmp/sync-midstream.sh.build.log.txt
 else
   # TODO optionally do we want a --debug flag to show the log?
   if [[ $DO_BUILD -eq 1 ]]; then 
-    echo "[INFO] Build passed (lengthy yarn log suppressed)."
+    echo -e "${green}[INFO] Build passed (lengthy yarn log suppressed). ${norm}"
   fi
 fi
 
@@ -948,13 +956,13 @@ fi
 # set -x
 for d in $these_dirs; do
   if [[ $d == "distgit/containers/rhdh-hub" ]] && [[ " ${SKIPPED_CONTAINERS[*]} " == *"rhdh-hub/"* ]]; then
-    echo "[INFO] ======= Skip rhdh-hub ======="
+    echo -e "${blue}[INFO] ======= Skip rhdh-hub ======= ${norm}"
     continue
   elif [[ $d == "distgit/containers/rhdh-operator" ]] && [[ " ${SKIPPED_CONTAINERS[*]} " == *"rhdh-operator/"* ]]; then
-    echo "[INFO] ======= Skip rhdh-operator ======="
+    echo -e "${blue}[INFO] ======= Skip rhdh-operator ======= ${norm}"
     continue
   elif [[ $d == "distgit/containers/rhdh-operator-bundle" ]] &&[[ " ${SKIPPED_CONTAINERS[*]} " == *"rhdh-operator-bundle/"* ]]; then
-    echo "[INFO] ======= Skip rhdh-operator-bundle ======="
+    echo -e "${blue}[INFO] ======= Skip rhdh-operator-bundle ======= ${norm}"
     continue
   fi
   echo "[INFO] Remove generated/ignored content from $d/"
@@ -1042,7 +1050,7 @@ for d in $these_dirs; do
     ##################################### fix SEGMENT_WRITE_KEY for rhdh-1.y branches ONLY ##################################### 
     if [[ $d == "distgit/containers/rhdh-hub" ]] && [[ $DWNSTM_BRANCH == "rhdh-1."*"-rhel-9" ]]; then
         sed -i Containerfile -r -e "s|(.*SEGMENT_WRITE_KEY=).*|\1$SEGMENT_WRITE_KEY|g"
-        echo "[INFO] Use SEGMENT_WRITE_KEY = $SEGMENT_WRITE_KEY for branch $DWNSTM_BRANCH"
+        echo -e "${green}[INFO] Use SEGMENT_WRITE_KEY = $SEGMENT_WRITE_KEY for branch $DWNSTM_BRANCH ${norm}"
     fi
     ##################################### fix SEGMENT_WRITE_KEY for rhdh-1.y branches ONLY ##################################### 
 
@@ -1056,7 +1064,7 @@ for d in $these_dirs; do
           time python3 -m pip install --user https://github.com/konflux-ci/rpm-lockfile-prototype/archive/refs/heads/main.zip
           export PATH=${PATH%":${HOME}/.local/bin"}:${HOME}/.local/bin
         fi
-        echo "[INFO] Regen $d/rpms.lock.yaml from Containerfile + rpms.in.yaml using $(which rpm-lockfile-prototype) in [$(pwd)]"
+        echo -e "${green}[INFO] Regen $d/rpms.lock.yaml from Containerfile + rpms.in.yaml using $(which rpm-lockfile-prototype) in [$(pwd)] ${norm}"
         time "${HOME}/.local/bin/rpm-lockfile-prototype" -f Containerfile rpms.in.yaml # >/dev/null 2>&1 
       fi
     fi
@@ -1192,19 +1200,19 @@ $gitdiff
     echo "$gitdiff" > "/tmp/sync-midstream.sh.diff.txt"
   else 
     if [[ $BUNDLEONLY -eq 1 ]]; then
-      echo " 
+      echo -e "${blue} 
 =================================================================
 [SKIP] Nothing to sync: midstream diff is empty for bundle! (2)
 =================================================================
-" | tee /tmp/sync-midstream.sh.result.txt
+${norm}" | tee /tmp/sync-midstream.sh.result.txt
       ./build/ci/cancel-pipeline.sh
     else
       if [[ "$latest_at_quay" == "$latest_in_bundle" ]]; then 
-        echo " 
+        echo -e "${blue} 
 =================================================================
 [SKIP] Nothing to sync: midstream diff is empty & operator-bundle includes latest operands! (3)
 =================================================================
-" | tee /tmp/sync-midstream.sh.result.txt
+${norm}" | tee /tmp/sync-midstream.sh.result.txt
         ./build/ci/cancel-pipeline.sh
       fi
     fi
@@ -1231,21 +1239,21 @@ $gitdiff
     # for stable branches rhdh-1.y, want the above PROD segment key
     if [[ $DWNSTM_BRANCH == "rhdh-1."*"-rhel-9" ]] && [[ $(grep -c "SEGMENT_WRITE_KEY=$SEGMENT_WRITE_KEY" "$c") -lt 1 ]]; then 
       # prod key not found, must exit
-      echo "[ERROR] Could not find SEGMENT_WRITE_KEY=$SEGMENT_WRITE_KEY in distgit/containers/rhdh-hub/Containerfile for branch $DWNSTM_BRANCH - must exit."
-      echo "[ERROR] Please ensure the prod key is used in stable 1.y branch builds, not the dev key!"
+      echo -e "${red}[ERROR] Could not find SEGMENT_WRITE_KEY=$SEGMENT_WRITE_KEY in distgit/containers/rhdh-hub/Containerfile for branch $DWNSTM_BRANCH - must exit. ${norm}"
+      echo -e "${red}[ERROR] Please ensure the prod key is used in stable 1.y branch builds, not the dev key! ${norm}"
       exit 4
     elif [[ $DWNSTM_BRANCH == "rhdh-1-rhel-9" ]] && [[ $(grep -c "SEGMENT_WRITE_KEY=gGVM6sYRK0D0ndVX22BOtS7NRcxPej8t" "$c") -lt 1 ]]; then 
       # dev key not found, must exit
-      echo "[ERROR] Could not find SEGMENT_WRITE_KEY=gGVM6sYRK0D0ndVX22BOtS7NRcxPej8t in distgit/containers/rhdh-hub/Containerfile for branch $DWNSTM_BRANCH - must exit."
-      echo "[ERROR] Please ensure the dev key is used in 1.next CI branch builds, not the prod key!"
+      echo -e "${red}[ERROR] Could not find SEGMENT_WRITE_KEY=gGVM6sYRK0D0ndVX22BOtS7NRcxPej8t in distgit/containers/rhdh-hub/Containerfile for branch $DWNSTM_BRANCH - must exit. ${norm}"
+      echo -e "${red}[ERROR] Please ensure the dev key is used in 1.next CI branch builds, not the prod key! ${norm}"
       exit 5
     elif [[ $DWNSTM_BRANCH == "rhdh-1-rhel-9" ]] && [[ $(grep -c "SEGMENT_WRITE_KEY=$SEGMENT_WRITE_KEY" "$c") -eq 1 ]]; then 
       # dev key not found, must exit
-      echo "[ERROR] Prod key SEGMENT_WRITE_KEY=$SEGMENT_WRITE_KEY not allowed in distgit/containers/rhdh-hub/Containerfile for branch $DWNSTM_BRANCH - must exit."
-      echo "[ERROR] Please ensure the dev key gGVM6sYRK0D0ndVX22BOtS7NRcxPej8t is used in 1.next CI branch builds, not the prod key!"
+      echo -e "${red}[ERROR] Prod key SEGMENT_WRITE_KEY=$SEGMENT_WRITE_KEY not allowed in distgit/containers/rhdh-hub/Containerfile for branch $DWNSTM_BRANCH - must exit. ${norm}"
+      echo -e "${red}[ERROR] Please ensure the dev key gGVM6sYRK0D0ndVX22BOtS7NRcxPej8t is used in 1.next CI branch builds, not the prod key! ${norm}"
       exit 6
     else
-      echo "[INFO] Correctly set SEGMENT_WRITE_KEY in $c for branch $DWNSTM_BRANCH: $(grep "SEGMENT_WRITE_KEY=" "$c")"
+      echo -e "${green}[INFO] Correctly set SEGMENT_WRITE_KEY in $c for branch $DWNSTM_BRANCH: $(grep "SEGMENT_WRITE_KEY=" "$c") ${norm}"
     fi
   fi
 
@@ -1281,7 +1289,7 @@ fi ## if DO_PUSH
 # if pushing as a gitlab pipeline
 if [[ $GITLAB_PIPELINE == "true" ]]; then
   # push changes; see also https://docs.gitlab.com/ee/ci/variables/predefined_variables.html
-  echo "Pushing changes as $GITLAB_USER_LOGIN ($GITLAB_USER_EMAIL) to branch $CI_COMMIT_REF_NAME of ${CI_SERVER_HOST}/${CI_PROJECT_NAMESPACE}/${CI_PROJECT_NAME} ..."
+  echo -e "${blue}Pushing changes as $GITLAB_USER_LOGIN ($GITLAB_USER_EMAIL) to branch $CI_COMMIT_REF_NAME of ${CI_SERVER_HOST}/${CI_PROJECT_NAMESPACE}/${CI_PROJECT_NAME} ... ${norm}"
   set -x
   git pull --rebase origin "HEAD:$CI_COMMIT_REF_NAME" || true
   git push origin "HEAD:$CI_COMMIT_REF_NAME" -o ci.skip ${FORCE} || exit 16

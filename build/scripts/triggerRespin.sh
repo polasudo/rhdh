@@ -18,6 +18,13 @@ ROOT_DIR=$(cd "$SCRIPT_DIR"/../../ || exit; pwd)
 # this will trigger a konflux build (without triggering sync-midstream.sh)
 KONFLUX_ONLY=0
 
+GITLAB_PIPELINE_FLAG="" # set "--gitlab-pipeline-push" when running inside a gitlab pipeline to override default git push settings
+
+norm="\033[0;39m"
+green="\033[1;32m"
+blue="\033[1;34m"
+red="\033[1;31m"
+
 usage () {
     echo "
 
@@ -31,6 +38,9 @@ or
 
     # check out sources if not already on disk
     $0 -v VERSION IMAGE1[,IMAGE2][,IMAGE3] [-k] 
+
+Options:
+    --gitlab-pipeline-push    use this flag to push changes when running inside a gitlab pipeline
 
 Examples: 
     $0 -v 1 hub,op    # both hub and operator (NOT bundle)
@@ -50,18 +60,36 @@ fi
 # commandline args
 while [[ "$#" -gt 0 ]]; do
   case $1 in
-	'-h'|'--help') usage; exit;;
-	'-v') BRANCH=$2; shift 2;;
-	'-k') KONFLUX_ONLY=1; shift 1;;
+    '-h'|'--help') usage; exit;;
+    '-v') BRANCH=$2; shift 2;;
+    '-k') KONFLUX_ONLY=1; shift 1;;
+    '--gitlab-pipeline-push') GITLAB_PIPELINE_FLAG="$1"; shift 1;;
     *) targets="$1"; shift 1;;
   esac
 done
 
+if [[ $CI_BUILDS_DIR ]]; then # running in gitlab
+  echo -e "${blue}[INFO] Running in gitlab pipeline. ${norm}"
+  # shellcheck disable=SC1091
+  source "${ROOTPATH}/build/ci/gitlab-ci-env-setup.sh"
+  GITLAB_PIPELINE_FLAG="--gitlab-pipeline-push"
+fi
+
 MIDSTM_BRANCH=rhdh-${BRANCH}-rhel-9
 
+# get all upstream branches to avoid merge conflicts
+if [[ $GITLAB_PIPELINE == "true" ]]; then
+  # NOTE that if debugging PRIVATE_TOKEN with set -x, token will be revealed in plaintext, not obfuscated
+  git remote rm origin; git remote add origin "https://${CI_PROJECT_NAME}:${PRIVATE_TOKEN}@${CI_SERVER_HOST}/${CI_PROJECT_NAMESPACE}/${CI_PROJECT_NAME}.git"
+  git remote set-branches origin "*" || true
+  git fetch --all || true
+  git checkout "${DWNSTM_BRANCH}" || true
+  git pull origin "${DWNSTM_BRANCH}" || true
+fi
+
 function openURL {
-    if [[ $(which google-chrome) ]]; then 
-        google-chrome $1
+    if [[ $(command -v google-chrome) == *"google-chrome"* ]] || [[ $(which google-chrome 2>&1) != *"which: no google-chrome"* ]]; then 
+        google-chrome "$1" >/dev/null 2>&1
     else 
         echo " >> $1"
     fi
@@ -76,7 +104,7 @@ if [[ $targets == "bun" ]] && [[ $KONFLUX_ONLY -eq 0 ]]; then
             latestNext="--latest"
         fi
     fi
-    "${SCRIPT_DIR}/../ci/sync-midstream.sh" --bundleonly --force $latestNext -b "${MIDSTM_BRANCH}"
+    "${SCRIPT_DIR}/../ci/sync-midstream.sh" --bundleonly --force $latestNext -b "${MIDSTM_BRANCH}" "${GITLAB_PIPELINE_FLAG}"
     openURL "https://konflux-ui.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/ns/rhdh-tenant/applications/rhdh-${BRANCH/./-}/activity/pipelineruns?name=rhdh-operator-bundle"
 else
     if [[ $targets == *","* ]]; then

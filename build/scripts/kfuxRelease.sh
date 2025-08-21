@@ -172,6 +172,14 @@ while [[ "$#" -gt 0 ]]; do
   shift 1
 done
 
+function openURL {
+    if [[ $(command -v google-chrome) == *"google-chrome"* ]] || [[ $(which google-chrome 2>&1) != *"which: no google-chrome"* ]]; then 
+        google-chrome "$1" >/dev/null 2>&1
+    else 
+        echo " >> $1"
+    fi
+}
+
 # disable autorelease until we fix https://issues.redhat.com/browse/RHIDP-5840 and can automatically pull in a list of CVEs to include in the release
 if [[ $CONTAINER ]]; then AUTORELEASE=0; fi
 
@@ -546,9 +554,7 @@ EOT
       echo -e "$RELEASE_URL${norm}"
 
       # open a browser to watch the release
-      if [[ $(command -v google-chrome) == *"google-chrome"* ]] || [[ $(which google-chrome) != *"which: no google-chrome"* ]]; then 
-        google-chrome "$managedPipelineURL" >/dev/null 2>&1; 
-      fi
+      openURL "$managedPipelineURL"
       echo "-----------------------------------------------------------------------"
       echo
     else
@@ -556,9 +562,7 @@ EOT
       echo -e "Run this:\n   oc apply -f /tmp/release-${SNAPSHOT}-${DEST}-${TS}.yaml"; echo 
       releasesURL="https://konflux-ui.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/ns/rhdh-tenant/applications/rhdh-${RHDH_VERSION/./-}/releases/"
       echo -e "Then watch Release at\n   ${green}${releasesURL}${norm}"
-      if [[ $(command -v google-chrome) == *"google-chrome"* ]] || [[ $(which google-chrome) != *"which: no google-chrome"* ]]; then 
-        google-chrome "$releasesURL" >/dev/null 2>&1; 
-      fi
+      openURL "$releasesURL"
       echo -e "\nOr for a list of Releases:\n   oc -n rhdh-tenant get Releases --sort-by=.metadata.creationTimestamp -o yaml > /tmp/releases.yaml"
     fi
   fi
@@ -701,7 +705,7 @@ EOT
             RELEASE_URL="https://konflux-ui.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/ns/rhdh-tenant/applications/fbc-${OCP_VERSION}/releases/release-rhdh-${RHDH_FULL_VERSION}-fbc-${OCP_VERSION}-${DEST}-${TS}"
             echo "Run in $RELEASE_URL"
             # open a browser to watch the release
-            if [[ $(command -v google-chrome) == *"google-chrome"* ]] || [[ $(which google-chrome) != *"which: no google-chrome"* ]]; then google-chrome "$RELEASE_URL"; fi
+            openURL "$RELEASE_URL"
             echo "-----------------------------------------------------------------------"
             echo
           else

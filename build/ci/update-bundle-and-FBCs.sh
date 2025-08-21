@@ -17,9 +17,9 @@ source "$ROOTPATH/build/ci/check-repository.sh"
 update_bundle_and_FBCs() {
     local DWNSTM_BRANCH="$1" # rhdh-1-rhel-9 or rhdh-1.8-rhel-9
     local DH_VERSION_FULL="$2" # 1.8.3
-    
+
     echo "[INFO] Update operator-bundle and FBCs for changes to hub or operator images"
-    
+
     if [ ! -f "$ROOTPATH/build/scripts/triggerRespin.sh" ]; then
         echo "[ERROR] triggerRespin.sh not found"
         exit 1
@@ -29,7 +29,10 @@ update_bundle_and_FBCs() {
         echo "[ERROR] renderCatalogs.sh not found"
         exit 1
     fi
-    
+
+    # get the bundle tag from before the respin
+    latest_bundle_before=$("${ROOTPATH}/build/scripts/getLatestImageTags.sh" -b "$DWNSTM_BRANCH" --quay -c rhdh/rhdh-operator-bundle --tag "${DH_VERSION_FULL%.*}-")
+
     triggerBranch=${DWNSTM_BRANCH%-rhel-9}; triggerBranch=${triggerBranch#rhdh-} # 1 or 1.y
     echo "[INFO] Run 'triggerRespin.sh -v ${triggerBranch}' to update operator-bundle..."
     "$ROOTPATH/build/scripts/triggerRespin.sh" -v "${triggerBranch}" bun
@@ -39,7 +42,7 @@ update_bundle_and_FBCs() {
     MAX_ATTEMPTS=5
     ATTEMPT=1
     NEW_BUNDLE_DETECTED=false
-    
+
     while [[ $ATTEMPT -le $MAX_ATTEMPTS ]] && [[ "$NEW_BUNDLE_DETECTED" == "false" ]]; do
         echo "[INFO] Polling attempt $ATTEMPT/$MAX_ATTEMPTS..."
         
@@ -49,20 +52,19 @@ update_bundle_and_FBCs() {
             sleep 3m
         fi
         
-        # Use the existing check_repository function to detect changes
-        if [[ $(check_repository "$QUAY_REPO_OPERATOR_BUNDLE:${DH_VERSION_FULL%.*}" "$SYNC_FILE_OPERATOR_BUNDLE" "OPERATOR_BUNDLE") -ne 0 ]]; then
-            true; # echo "[INFO] No new operator-bundle detected yet (attempt $ATTEMPT)"
-        else
+        latest_bundle_after=$("${ROOTPATH}/build/scripts/getLatestImageTags.sh" -b "$DWNSTM_BRANCH" --quay -c rhdh/rhdh-operator-bundle --tag "${DH_VERSION_FULL%.*}-")
+
+        if [[ "$latest_bundle_after" != "$latest_bundle_before" ]]; then
             echo "[INFO] New operator-bundle found at $QUAY_REPO_OPERATOR_BUNDLE:${DH_VERSION_FULL%.*}"
             NEW_BUNDLE_DETECTED=true
+            break
         fi
-        
         ATTEMPT=$((ATTEMPT + 1))
     done
     
     # Check final result
     if [[ "$NEW_BUNDLE_DETECTED" == "true" ]]; then
-        echo "[INFO] New operator-bundle detected! Running renderCatalogs.sh..."
+        echo "[INFO] Running renderCatalogs.sh..."
         # TODO remove this if-block once 1.6 is EOL and we're always using sealights
         if [[ "${DH_VERSION_FULL%.*}" == "1.6"* ]]; then 
             OCP_VERSION=4.14

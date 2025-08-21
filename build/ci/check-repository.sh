@@ -7,7 +7,7 @@
 
 norm="\033[0;39m"
 green="\033[1;32m"
-# blue="\033[1;34m"
+blue="\033[1;34m"
 red="\033[1;31m"
 
 check_repository() {
@@ -17,14 +17,14 @@ check_repository() {
     
     # Check if required parameters are provided
     if [[ -z "$quay_repo_and_tag" ]] || [[ -z "$sync_file" ]] || [[ -z "$repo_suffix" ]]; then
-        echo "${red}[ERROR] Missing required parameters for check_repository${norm}" >&2
-        echo "${red}[ERROR] Usage: check_repository <quay_repo_and_tag> <sync_file> <repo_suffix>${norm}" >&2
+        echo -e "${red}[ERROR] Missing required parameters for check_repository${norm}" >&2
+        echo -e "${red}[ERROR] Usage: check_repository <quay_repo_and_tag> <sync_file> <repo_suffix>${norm}" >&2
         echo >&2
-        echo "${red}[ERROR] Example: check_repository quay.io/rhdh/rhdh-operator-bundle sync/upstream_SHA_rhdh-operator-bundle OPERATOR_BUNDLE${norm}" >&2
+        echo -e "${red}[ERROR] Example: check_repository quay.io/rhdh/rhdh-operator-bundle sync/upstream_SHA_rhdh-operator-bundle OPERATOR_BUNDLE${norm}" >&2
         return 1
     fi
     
-    echo "${green}[INFO] Checking $repo_suffix repository for $quay_repo_and_tag ...${norm}"
+    echo -e "${blue}[INFO] Checking $repo_suffix repository for $quay_repo_and_tag ...${norm}"
     
     # Extract upstream SHA from the container image
     local UPSTREAM_SHA
@@ -36,13 +36,13 @@ check_repository() {
 
     # Check for command failure first
     if [[ $skopeo_exit_code -ne 0 ]]; then
-        echo "${red}[ERROR] Failed to inspect container $quay_repo_and_tag (exit code: $skopeo_exit_code)${norm}" >&2
+        echo -e "${red}[ERROR] Failed to inspect container $quay_repo_and_tag (exit code: $skopeo_exit_code)${norm}" >&2
         return $skopeo_exit_code
     fi
 
     # Validate that we extracted a hash
     if [[ -z "$UPSTREAM_SHA" ]]; then
-        echo "${red}[ERROR] Failed to extract UPSTREAM_REPO SHA from $quay_repo_and_tag${norm}" >&2
+        echo -e "${red}[ERROR] Failed to extract UPSTREAM_REPO SHA from $quay_repo_and_tag${norm}" >&2
         return 1
     fi
     
@@ -59,19 +59,19 @@ check_repository() {
         
         # Validate that we extracted a hash
         if [[ -z "$CURRENT_SHA" ]]; then
-            echo "${red}[ERROR] Failed to extract hash from sync file content for $repo_suffix: $CURRENT_SHA_RAW${norm}" >&2
+            echo -e "${red}[ERROR] Failed to extract hash from sync file content for $repo_suffix: $CURRENT_SHA_RAW${norm}" >&2
             return 1
         fi
         
         if [[ "$CURRENT_SHA" == "$UPSTREAM_SHA" ]]; then
-            echo "${green}[INFO] No new changes for $repo_suffix (SHA = $UPSTREAM_SHA).${norm}"
+            echo -e "${green}[INFO] No new changes for $repo_suffix (SHA = $UPSTREAM_SHA).${norm}"
             return 1
         else
-            echo "${green}[INFO] New changes found for $repo_suffix! SHA changed from $CURRENT_SHA to $UPSTREAM_SHA${norm}"
+            echo -e "${green}[INFO] New changes found for $repo_suffix! SHA changed from $CURRENT_SHA to $UPSTREAM_SHA${norm}"
             return 0
         fi
     else
-        echo "${red}[ERROR] Sync file not found for $repo_suffix. Creating new file...${norm}"
+        echo -e "${red}[ERROR] Sync file not found for $repo_suffix. Creating new file...${norm}"
         return 1
     fi
 }
