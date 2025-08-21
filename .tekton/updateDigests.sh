@@ -175,13 +175,23 @@ createPr() {
 	fi
 }
 
+function openURL {
+    if [[ $(command -v google-chrome) == *"google-chrome"* ]] || [[ $(which google-chrome 2>&1) != *"which: no google-chrome"* ]]; then 
+        google-chrome "$1" "$2" >/dev/null 2>&1
+    else 
+        echo " >> $1"
+    fi
+}
+
 if [[ ${#MIGRATIONS[@]} -gt 0 ]]; then
     dopush=0
-    echo -e "\nThe following migrations must occur to ensure continued working tasks:\n"
-    sorted_keys=($(for key in "${!MIGRATIONS[@]}"; do echo "$key"; done | sort))
+    target="--new-window"
+    echo -e "\nThe following ${#MIGRATIONS[@]} migrations must occur to ensure continued working tasks:\n"
+    mapfile -t sorted_keys < <(for key in "${!MIGRATIONS[@]}"; do echo "$key"; done | sort)
     for key in "${sorted_keys[@]}"; do
         echo -e " ${red}[!]${norm} ${MIGRATIONS[$key]}"
-        google-chrome "${MIGRATIONS[$key]}" 2>&1 >/dev/null
+        openURL "${MIGRATIONS[$key]}" $target
+        target=""
     done
 fi
 
