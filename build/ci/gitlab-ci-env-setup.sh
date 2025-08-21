@@ -80,7 +80,7 @@ for d in {1..90}; do
 done
 
 # personal access token (rhdh-bot.pat) uploaded to Secure Files, see https://gitlab.cee.redhat.com/rhidp/rhdh/-/settings/ci_cd
-if [[ -f "${CI_PROJECT_DIR}/.secure_files/rhdh-bot.pat" ]]; then
+if [[ -f "${CI_PROJECT_DIR}/.secure_files/rhdh-bot.gitlab.pat" ]]; then
     set +x
     # NOTE that if debugging PRIVATE_TOKEN with set -x, token will be revealed in plaintext, not obfuscated
     # for pushing to gitlab
