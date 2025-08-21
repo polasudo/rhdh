@@ -84,7 +84,7 @@ if [[ -f "${CI_PROJECT_DIR}/.secure_files/rhdh-bot.gitlab.pat" ]]; then
     set +x
     # NOTE that if debugging PRIVATE_TOKEN with set -x, token will be revealed in plaintext, not obfuscated
     # for pushing to gitlab
-    PRIVATE_TOKEN=$(grep -E -v "^#" "${CI_PROJECT_DIR}/.secure_files/rhdh-bot.pat")
+    PRIVATE_TOKEN=$(grep -E -v "^#" "${CI_PROJECT_DIR}/.secure_files/rhdh-bot.gitlab.pat")
     export PRIVATE_TOKEN
 
     # for pushing to github
