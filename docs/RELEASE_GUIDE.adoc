@@ -337,7 +337,10 @@ Christophe Fargette <jfargett@redhat.com>
 .. Run the following scripts to update existing pending RN/plugins table PRs, or to inform creation of new one(s).
 ... https://github.com/redhat-developer/red-hat-developers-documentation-rhdh/blob/main/modules/dynamic-plugins/rhdh-supported-plugins.sh
 ... https://github.com/redhat-developer/red-hat-developers-documentation-rhdh/blob/main/modules/release-notes/single-source-release-notes.py
-.... Check the list of versions at link:https://issues.redhat.com/projects/RHIDP?selectedItem=com.atlassian.jira.jira-projects-plugin%3Arelease-page&status=released-unreleased[RHIDP release-page]. Versions must be in **sequential order** or else the fixversion/affectsversion fields in queries won't work with the `>` and `<` operators and you may end up with **NO ISSUES FOUND**.
+.... Check the list of versions on the release-pages:
+      * link:https://issues.redhat.com/projects/RHIDP?selectedItem=com.atlassian.jira.jira-projects-plugin%3Arelease-page&status=released-unreleased[RHIDP]
+      * link:https://issues.redhat.com/projects/RHDHBUGS?selectedItem=com.atlassian.jira.jira-projects-plugin%3Arelease-page&status=released-unreleased[RHDHBUGS]
+     Versions must be in **sequential order** or else the fixversion/affectsversion fields in queries won't work with the `>` and `<` operators and you may end up with **NO ISSUES FOUND**.
 .. If changes are found, create a PR with updates. To update only the dynamic plugins table, use this action:
 ... https://github.com/redhat-developer/red-hat-developers-documentation-rhdh/actions/workflows/generate-supported-plugins-pr.yml
 
@@ -549,7 +552,9 @@ image::images/smoketest-rosa-helm_2.png[install the version just released,width=
 
 ### [Release Manager] JIRA release
 
-. Close the JIRA release from the link:https://issues.redhat.com/projects/RHIDP?selectedItem=com.atlassian.jira.jira-projects-plugin%3Arelease-page&status=unreleased[RHIDP release-page], _assuming all the issues are resolved_.
+. If all the issues are resolved, close the JIRA releases
+      * link:https://issues.redhat.com/projects/RHIDP?selectedItem=com.atlassian.jira.jira-projects-plugin%3Arelease-page&status=released-unreleased[RHIDP]
+      * link:https://issues.redhat.com/projects/RHDHBUGS?selectedItem=com.atlassian.jira.jira-projects-plugin%3Arelease-page&status=released-unreleased[RHDHBUGS]
 
 .. If not, go chase people or ask the `@rhdh-release-manager` to chase them
 
