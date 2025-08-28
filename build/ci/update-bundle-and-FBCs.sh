@@ -10,8 +10,6 @@ QUAY_REPO_OPERATOR_BUNDLE="${QUAY_REPO_OPERATOR_BUNDLE:-quay.io/rhdh/rhdh-operat
 SYNC_FILE_OPERATOR_BUNDLE="${SYNC_FILE_OPERATOR_BUNDLE:-sync/upstream_SHA_rhdh-operator-bundle}"
 
 ROOTPATH=$(dirname "$0"); ROOTPATH=${ROOTPATH/\/build\/ci}
-# shellcheck disable=SC1091
-source "$ROOTPATH/build/ci/check-repository.sh"
 
 # Function to trigger respin and render catalogs
 update_bundle_and_FBCs() {

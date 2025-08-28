@@ -53,9 +53,6 @@ fi
 # upstream repos to fetch
 UPSTREAM_FILE="${ROOTPATH}/upstream_repos.yml"
 
-# shellcheck disable=SC1091
-source "$(dirname "$0")/check-repository.sh"
-
 usage() {
   echo "
 Usage:
