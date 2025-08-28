@@ -45,10 +45,10 @@ Options:
 Examples: 
     $0 -v 1 hub,op    # both hub and operator (NOT bundle)
     $0 -v 1 all       # both hub and operator (NOT bundle)
-    $0 -v 1.6 hub     # only hub
-    $0 -v 1.6 hub -k  # only hub, no midstream sync (konflux only)
-    $0 -v 1.6 op      # only operator
-    $0 -v 1.6 bun     # only bundle
+    $0 -v 1.7 hub     # only hub
+    $0 -v 1.7 hub -k  # only hub, no midstream sync (konflux only)
+    $0 -v 1.7 op      # only operator
+    $0 -v 1.7 bun     # only bundle
 "; 
 }
 

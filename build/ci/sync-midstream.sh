@@ -639,7 +639,6 @@ for ((i = START_REPO; i < NUM_REPOS; i++)); do # echo $i
 done                        # foreach upstream repo
 
 # compute x.y version from package.json upstream
-# TODO RHIDP-1022 switch to rhdh repo instead of showcase
 showcasePackageJson="https://raw.githubusercontent.com/redhat-developer/rhdh/refs/heads/$upstream_repo_hub_branch/package.json"
 DH_VERSION_FULL=$(curl -sSLko- "$showcasePackageJson" | yq -r '.version') # 1.5.0
 DH_VERSION=${DH_VERSION_FULL%.*} # 1.2
