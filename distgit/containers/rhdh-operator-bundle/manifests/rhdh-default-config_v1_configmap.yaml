@@ -87,7 +87,7 @@ data:
                   value: /var/lib/pgsql/data
                 - name: PGDATA
                   value: /var/lib/pgsql/data/userdata
-              image: registry.redhat.io/rhel9/postgresql-15@sha256:7034f92d9b80a6b3868d29544d20daf0de0e43c706dc815e4607a9c93053fe1d
+              image: registry.redhat.io/rhel9/postgresql-15@sha256:aa3e7e94c1cb487af091ea369d4640c532980c8a2e8d1768ee1baf2b72af93a1
               imagePullPolicy: IfNotPresent
               securityContext:
                 # runAsUser:26 does not work for Openshift but looks work for AKS/EKS
@@ -220,7 +220,7 @@ data:
                 - ./install-dynamic-plugins.sh
                 - /dynamic-plugins-root
               # image will be replaced by the value of the `RELATED_IMAGE_backstage` env var, if set
-              image: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:d18f2dd74f6e1bcc9ad0e092b3ef673fe107cb3ab8b315a641418fcf5d83ef82
+              image: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:d55eb61f2497e400562952b8f588bf09a0e9e334b71a61c1f380725878633a6e
               imagePullPolicy: IfNotPresent
               securityContext:
                 readOnlyRootFilesystem: true
@@ -259,7 +259,7 @@ data:
           containers:
             - name: backstage-backend
               # image will be replaced by the value of the `RELATED_IMAGE_backstage` env var, if set
-              image: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:d18f2dd74f6e1bcc9ad0e092b3ef673fe107cb3ab8b315a641418fcf5d83ef82
+              image: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:d55eb61f2497e400562952b8f588bf09a0e9e334b71a61c1f380725878633a6e
               imagePullPolicy: IfNotPresent
               args:
                 - "--config"
