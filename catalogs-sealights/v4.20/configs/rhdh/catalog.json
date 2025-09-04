@@ -4301,7 +4301,7 @@
     "schema": "olm.bundle",
     "name": "rhdh-operator.v1.8.0",
     "package": "rhdh",
-    "image": "quay.io/rhdh/rhdh-operator-bundle-sealights@sha256:f2150bfc41f9b290d5b09a2e9d06d2d66686e9992233610a97b8a3b7399abf47",
+    "image": "quay.io/rhdh/rhdh-operator-bundle-sealights@sha256:14b35be8848e39f26a870f80eba23fd6fcc9944915ec14a144eb7162bf03b955",
     "properties": [
         {
             "type": "olm.gvk",
@@ -4471,11 +4471,11 @@
     "relatedImages": [
         {
             "name": "backstage",
-            "image": "quay.io/rhdh/rhdh-hub-rhel9-sealights@sha256:40df61c0c0a4597340244a198553eb2cd7eda5ee910403e973da053cc0bd9c25"
+            "image": "quay.io/rhdh/rhdh-hub-rhel9-sealights@sha256:ef5aa1fcd9bd39d4287ec8d7457ac9d25e9acff59bd8084175e197acef2c4ac2"
         },
         {
             "name": "",
-            "image": "quay.io/rhdh/rhdh-operator-bundle-sealights@sha256:f2150bfc41f9b290d5b09a2e9d06d2d66686e9992233610a97b8a3b7399abf47"
+            "image": "quay.io/rhdh/rhdh-operator-bundle-sealights@sha256:14b35be8848e39f26a870f80eba23fd6fcc9944915ec14a144eb7162bf03b955"
         },
         {
             "name": "",
@@ -4483,7 +4483,7 @@
         },
         {
             "name": "postgresql",
-            "image": "registry.redhat.io/rhel9/postgresql-15@sha256:aa3e7e94c1cb487af091ea369d4640c532980c8a2e8d1768ee1baf2b72af93a1"
+            "image": "registry.redhat.io/rhel9/postgresql-15@sha256:4d707fc04f13c271b455f7b56c1fda9e232a62214ffc6213c02e41177dd4a13f"
         }
     ]
 }
