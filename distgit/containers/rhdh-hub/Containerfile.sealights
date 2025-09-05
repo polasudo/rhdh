@@ -60,14 +60,6 @@ RUN $SL_INSTRUMENT_BASE \
     rm -rf "$CONTAINER_SOURCE/packages/app-next/dist" && \
     mv "$CONTAINER_SOURCE/packages/app-next/sl_dist" "$CONTAINER_SOURCE/packages/app-next/dist"
 
-# Instrument plugins using array iteration
-RUN for plugin in $PLUGIN_LIST; do \
-        $SL_INSTRUMENT_BASE \
-            --workspacepath "$CONTAINER_SOURCE/plugins/$plugin/dist" \
-            --outputpath "$CONTAINER_SOURCE/plugins/$plugin/sl_dist" && \
-        rm -rf "$CONTAINER_SOURCE/plugins/$plugin/dist" && \
-        mv "$CONTAINER_SOURCE/plugins/$plugin/sl_dist" "$CONTAINER_SOURCE/plugins/$plugin/dist"; \
-    done
 
 RUN echo ${SL_buildSessionId} > buildSessionId
 
