@@ -564,48 +564,48 @@ arches:
     name: nodejs-packaging
     evr: 2021.06-4.module+el9.6.0+23339+d3c8acfa
     sourcerpm: nodejs-packaging-2021.06-4.module+el9.6.0+23339+d3c8acfa.src.rpm
-  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/appstream/os/Packages/n/nspr-4.35.0-17.el9_2.x86_64.rpm
+  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/appstream/os/Packages/n/nspr-4.36.0-4.el9_4.x86_64.rpm
     repoid: ubi-9-for-x86_64-appstream-rpms
-    size: 140607
-    checksum: sha256:2e0acde0bc7ae98792638c1aae305461486c9891ecc02817362bc0e76ae505b4
+    size: 136524
+    checksum: sha256:dd9a598390e8adfebdcec7adbc5aa140d6584ede4d581d5fec328d2e4a5107db
     name: nspr
-    evr: 4.35.0-17.el9_2
-    sourcerpm: nss-3.101.0-10.el9_2.src.rpm
-  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/appstream/os/Packages/n/nss-3.101.0-10.el9_2.x86_64.rpm
+    evr: 4.36.0-4.el9_4
+    sourcerpm: nss-3.112.0-4.el9_4.src.rpm
+  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/appstream/os/Packages/n/nss-3.112.0-4.el9_4.x86_64.rpm
     repoid: ubi-9-for-x86_64-appstream-rpms
-    size: 736821
-    checksum: sha256:c642ba6fc4cf83466640f05b98ca75968db524e1f4418a2e7b30a7512aed6808
+    size: 740527
+    checksum: sha256:6eefe50251cf43934ea5c949a0f23e0da20d81262394e7824328e0f21aabbe88
     name: nss
-    evr: 3.101.0-10.el9_2
-    sourcerpm: nss-3.101.0-10.el9_2.src.rpm
-  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/appstream/os/Packages/n/nss-softokn-3.101.0-10.el9_2.x86_64.rpm
+    evr: 3.112.0-4.el9_4
+    sourcerpm: nss-3.112.0-4.el9_4.src.rpm
+  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/appstream/os/Packages/n/nss-softokn-3.112.0-4.el9_4.x86_64.rpm
     repoid: ubi-9-for-x86_64-appstream-rpms
-    size: 402822
-    checksum: sha256:b633b9b499984d9e02d7ffdcf575bacf54f7075173466fbba42c4a5818eae6c8
+    size: 409821
+    checksum: sha256:ac09b91c717cf003714b62cb033bea51770c887fdc70426f625a677e50b0813f
     name: nss-softokn
-    evr: 3.101.0-10.el9_2
-    sourcerpm: nss-3.101.0-10.el9_2.src.rpm
-  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/appstream/os/Packages/n/nss-softokn-freebl-3.101.0-10.el9_2.x86_64.rpm
+    evr: 3.112.0-4.el9_4
+    sourcerpm: nss-3.112.0-4.el9_4.src.rpm
+  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/appstream/os/Packages/n/nss-softokn-freebl-3.112.0-4.el9_4.x86_64.rpm
     repoid: ubi-9-for-x86_64-appstream-rpms
-    size: 320699
-    checksum: sha256:a664810fcd953ce4c940ff6bf3693dd1dc484c1dc8ff24ca98580864fc06c367
+    size: 423244
+    checksum: sha256:1eb3fb60d885f3a1071dcb335e1ee34c156bbc50c797f42772d61412a91db8f5
     name: nss-softokn-freebl
-    evr: 3.101.0-10.el9_2
-    sourcerpm: nss-3.101.0-10.el9_2.src.rpm
-  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/appstream/os/Packages/n/nss-sysinit-3.101.0-10.el9_2.x86_64.rpm
+    evr: 3.112.0-4.el9_4
+    sourcerpm: nss-3.112.0-4.el9_4.src.rpm
+  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/appstream/os/Packages/n/nss-sysinit-3.112.0-4.el9_4.x86_64.rpm
     repoid: ubi-9-for-x86_64-appstream-rpms
-    size: 21285
-    checksum: sha256:16c68e2a826f0c4d27b90310c99cf1dac1d81301f7d72f24dc8a39c27a9e9925
+    size: 18225
+    checksum: sha256:5b5314ce6088f161b2a404b566c6d5016811b6c12e90c7bf70d3fd281168d659
     name: nss-sysinit
-    evr: 3.101.0-10.el9_2
-    sourcerpm: nss-3.101.0-10.el9_2.src.rpm
-  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/appstream/os/Packages/n/nss-util-3.101.0-10.el9_2.x86_64.rpm
+    evr: 3.112.0-4.el9_4
+    sourcerpm: nss-3.112.0-4.el9_4.src.rpm
+  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/appstream/os/Packages/n/nss-util-3.112.0-4.el9_4.x86_64.rpm
     repoid: ubi-9-for-x86_64-appstream-rpms
-    size: 94111
-    checksum: sha256:1138da0bc3c4e0ead78842dc3180f1d5a60bc3824223cd1bca38eaf0c026dd9e
+    size: 91543
+    checksum: sha256:3904f1eab4e56789d8d818d0ca4a76c49d1ef5de947ccdabaf64f9d748ad05df
     name: nss-util
-    evr: 3.101.0-10.el9_2
-    sourcerpm: nss-3.101.0-10.el9_2.src.rpm
+    evr: 3.112.0-4.el9_4
+    sourcerpm: nss-3.112.0-4.el9_4.src.rpm
   - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/appstream/os/Packages/n/nss_wrapper-libs-1.1.13-1.el9.x86_64.rpm
     repoid: ubi-9-for-x86_64-appstream-rpms
     size: 42421
@@ -3666,12 +3666,12 @@ arches:
     checksum: sha256:cec9e2520f165b4948d6866a6449e841481ba77b66c1fd318f7429f0e6c0d0a2
     name: nodejs-packaging
     evr: 2021.06-4.module+el9.6.0+23339+d3c8acfa
-  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/appstream/source/SRPMS/Packages/n/nss-3.101.0-10.el9_2.src.rpm
+  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/appstream/source/SRPMS/Packages/n/nss-3.112.0-4.el9_4.src.rpm
     repoid: ubi-9-for-x86_64-appstream-source-rpms
-    size: 77496560
-    checksum: sha256:59cef71eeb70a0a6674212f9d0c386b7f8885c6604a45060ae11f94859dc74e0
+    size: 81951225
+    checksum: sha256:2c03ead1e23a8a81cc6e28fbc46fa51b7cd085ab84186117ecb78dc86d0632f2
     name: nss
-    evr: 3.101.0-10.el9_2
+    evr: 3.112.0-4.el9_4
   - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/appstream/source/SRPMS/Packages/n/nss_wrapper-1.1.13-1.el9.src.rpm
     repoid: ubi-9-for-x86_64-appstream-source-rpms
     size: 199854
@@ -5203,7 +5203,7 @@ arches:
     name: zlib
     evr: 1.2.11-40.el9
   module_metadata:
-  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/appstream/os/repodata/9807eb017639e3ca339b1cdcecc6c51db08582cb8e365eef0c0a4e0d55cbb5c8-modules.yaml.gz
+  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/appstream/os/repodata/0017aaf9a2dcf167eb4929ba11e48869e0ad0b20560b9b43115e9491ba97f5a5-modules.yaml.gz
     repoid: ubi-9-for-x86_64-appstream-rpms
     size: 7922
-    checksum: sha256:9807eb017639e3ca339b1cdcecc6c51db08582cb8e365eef0c0a4e0d55cbb5c8
+    checksum: sha256:0017aaf9a2dcf167eb4929ba11e48869e0ad0b20560b9b43115e9491ba97f5a5
