@@ -4301,7 +4301,7 @@
     "schema": "olm.bundle",
     "name": "rhdh-operator.v1.8.0",
     "package": "rhdh",
-    "image": "quay.io/rhdh/rhdh-operator-bundle-sealights@sha256:ffd7ca3324cd894cd1dc38756b8468ae3aa3645b05fb5fe3f6b33acc21266c75",
+    "image": "quay.io/rhdh/rhdh-operator-bundle-sealights@sha256:6b217bde1d9cf917f4a6361e5c16d9a07c19c608d9384cfc81d4df69707d6ac4",
     "properties": [
         {
             "type": "olm.gvk",
@@ -4350,7 +4350,7 @@
                     "capabilities": "Seamless Upgrades",
                     "categories": "Developer Tools",
                     "certified": "true",
-                    "containerImage": "quay.io/rhdh/rhdh-rhel9-operator-sealights@sha256:09ed532d35146058b1b99fc946e695c7b3bef760cfd23dfdf12ba2f864b9ae21",
+                    "containerImage": "quay.io/rhdh/rhdh-rhel9-operator-sealights@sha256:812c705080d609b9ec1afbfa4047bd9dde73532f1354b7383a9db2208cdc3e76",
                     "createdAt": "2025-09-08T10:32:36Z",
                     "description": "Red Hat Developer Hub is a Red Hat supported version of Backstage. It comes with pre-built plug-ins and configuration settings, supports use of an external database, and can help streamline the process of setting up a self-managed internal developer portal for adopters who are just starting out.",
                     "features.operators.openshift.io/cnf": "false",
@@ -4475,11 +4475,11 @@
         },
         {
             "name": "",
-            "image": "quay.io/rhdh/rhdh-operator-bundle-sealights@sha256:ffd7ca3324cd894cd1dc38756b8468ae3aa3645b05fb5fe3f6b33acc21266c75"
+            "image": "quay.io/rhdh/rhdh-operator-bundle-sealights@sha256:6b217bde1d9cf917f4a6361e5c16d9a07c19c608d9384cfc81d4df69707d6ac4"
         },
         {
             "name": "",
-            "image": "quay.io/rhdh/rhdh-rhel9-operator-sealights@sha256:09ed532d35146058b1b99fc946e695c7b3bef760cfd23dfdf12ba2f864b9ae21"
+            "image": "quay.io/rhdh/rhdh-rhel9-operator-sealights@sha256:812c705080d609b9ec1afbfa4047bd9dde73532f1354b7383a9db2208cdc3e76"
         },
         {
             "name": "postgresql",
