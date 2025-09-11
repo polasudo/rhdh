@@ -4301,7 +4301,7 @@
     "schema": "olm.bundle",
     "name": "rhdh-operator.v1.8.0",
     "package": "rhdh",
-    "image": "quay.io/rhdh/rhdh-operator-bundle-sealights@sha256:6b217bde1d9cf917f4a6361e5c16d9a07c19c608d9384cfc81d4df69707d6ac4",
+    "image": "quay.io/rhdh/rhdh-operator-bundle-sealights@sha256:b611a1c8a5a3c5b54f150f193e948f8a9cedd60915664d3d6930d78915dacc30",
     "properties": [
         {
             "type": "olm.gvk",
@@ -4350,7 +4350,7 @@
                     "capabilities": "Seamless Upgrades",
                     "categories": "Developer Tools",
                     "certified": "true",
-                    "containerImage": "quay.io/rhdh/rhdh-rhel9-operator-sealights@sha256:812c705080d609b9ec1afbfa4047bd9dde73532f1354b7383a9db2208cdc3e76",
+                    "containerImage": "quay.io/rhdh/rhdh-rhel9-operator-sealights@sha256:044f02e97cc26657d0e2c49628e44f3b11b13bcf369e50c3b5c47f261ed04e5d",
                     "createdAt": "2025-09-08T10:32:36Z",
                     "description": "Red Hat Developer Hub is a Red Hat supported version of Backstage. It comes with pre-built plug-ins and configuration settings, supports use of an external database, and can help streamline the process of setting up a self-managed internal developer portal for adopters who are just starting out.",
                     "features.operators.openshift.io/cnf": "false",
@@ -4471,15 +4471,15 @@
     "relatedImages": [
         {
             "name": "backstage",
-            "image": "quay.io/rhdh/rhdh-hub-rhel9-sealights@sha256:93ab2da0e5949175765a42293c538edb94442ed61c23f22b721fd800adb5b8d2"
+            "image": "quay.io/rhdh/rhdh-hub-rhel9-sealights@sha256:332689d4ef6d5d02111727aa40f97eb135b6d6ab60476ba68e656fdd9e050413"
         },
         {
             "name": "",
-            "image": "quay.io/rhdh/rhdh-operator-bundle-sealights@sha256:6b217bde1d9cf917f4a6361e5c16d9a07c19c608d9384cfc81d4df69707d6ac4"
+            "image": "quay.io/rhdh/rhdh-operator-bundle-sealights@sha256:b611a1c8a5a3c5b54f150f193e948f8a9cedd60915664d3d6930d78915dacc30"
         },
         {
             "name": "",
-            "image": "quay.io/rhdh/rhdh-rhel9-operator-sealights@sha256:812c705080d609b9ec1afbfa4047bd9dde73532f1354b7383a9db2208cdc3e76"
+            "image": "quay.io/rhdh/rhdh-rhel9-operator-sealights@sha256:044f02e97cc26657d0e2c49628e44f3b11b13bcf369e50c3b5c47f261ed04e5d"
         },
         {
             "name": "postgresql",
