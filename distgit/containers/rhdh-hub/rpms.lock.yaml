@@ -2524,13 +2524,13 @@ arches:
     name: crypto-policies-scripts
     evr: 20250128-1.git5269e22.el9
     sourcerpm: crypto-policies-20250128-1.git5269e22.el9.src.rpm
-  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/baseos/os/Packages/c/cups-libs-2.3.3op2-33.el9.x86_64.rpm
+  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/baseos/os/Packages/c/cups-libs-2.3.3op2-33.el9_6.1.x86_64.rpm
     repoid: ubi-9-for-x86_64-baseos-rpms
-    size: 270943
-    checksum: sha256:32c2f0f270bb0a8c8a9c821745a3d5fbee43e3ab5a070732e020f0bfb50ebfde
+    size: 266700
+    checksum: sha256:d430a82961d9d79cc3325cd662cc91d64d4479965462431b4244cb782c3647f4
     name: cups-libs
-    evr: 1:2.3.3op2-33.el9
-    sourcerpm: cups-2.3.3op2-33.el9.src.rpm
+    evr: 1:2.3.3op2-33.el9_6.1
+    sourcerpm: cups-2.3.3op2-33.el9_6.1.src.rpm
   - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/baseos/os/Packages/d/dbus-1.12.20-8.el9.x86_64.rpm
     repoid: ubi-9-for-x86_64-baseos-rpms
     size: 8073
@@ -4632,12 +4632,12 @@ arches:
     checksum: sha256:0f6081ad96e9d7cb80aa18736e3a06bbf7d2c19bdc0f95a707a4f3ed0926b878
     name: crypto-policies
     evr: 20250128-1.git5269e22.el9
-  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/baseos/source/SRPMS/Packages/c/cups-2.3.3op2-33.el9.src.rpm
+  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/baseos/source/SRPMS/Packages/c/cups-2.3.3op2-33.el9_6.1.src.rpm
     repoid: ubi-9-for-x86_64-baseos-source-rpms
-    size: 8129461
-    checksum: sha256:9b52b33fc3a31eaa28fa02a9fec6c188cef1487136f095f1a164bd829651edaa
+    size: 8125712
+    checksum: sha256:d47b1ed7a8374a9881475617f7d1779e73960fbdc5a1402fd1327a144de06136
     name: cups
-    evr: 1:2.3.3op2-33.el9
+    evr: 1:2.3.3op2-33.el9_6.1
   - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/baseos/source/SRPMS/Packages/d/dbus-1.12.20-8.el9.src.rpm
     repoid: ubi-9-for-x86_64-baseos-source-rpms
     size: 2143916
@@ -5203,7 +5203,7 @@ arches:
     name: zlib
     evr: 1.2.11-40.el9
   module_metadata:
-  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/appstream/os/repodata/80c7b4512461218eae1320894b508a5e05d96ae822a3cf1a851f44f41034c33d-modules.yaml.gz
+  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/appstream/os/repodata/62835d594ed9251133becdf45dd280a329dec728559a762d7b25a91347f974cc-modules.yaml.gz
     repoid: ubi-9-for-x86_64-appstream-rpms
     size: 7922
-    checksum: sha256:80c7b4512461218eae1320894b508a5e05d96ae822a3cf1a851f44f41034c33d
+    checksum: sha256:62835d594ed9251133becdf45dd280a329dec728559a762d7b25a91347f974cc
