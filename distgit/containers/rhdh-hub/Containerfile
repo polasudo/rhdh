@@ -329,7 +329,7 @@ ENTRYPOINT ["node", "--require", "./instrumentation.js", "packages/backend", "--
 # append Brew metadata here
 ENV SUMMARY="Red Hat Developer Hub container" \
     DESCRIPTION="Red Hat Developer Hub container" \
-    UPSTREAM_REPO="https://github.com/redhat-developer/rhdh/tree/main @ 706a6966" \
+    UPSTREAM_REPO="https://github.com/redhat-developer/rhdh/tree/main @ 2329940c" \
     MIDSTREAM_REPO="https://gitlab.cee.redhat.com/rhidp/rhdh/-/commits/rhdh-1-rhel-9" \
     PRODNAME="rhdh" \
     COMPNAME="hub"
@@ -342,12 +342,12 @@ LABEL summary="$SUMMARY" \
       com.redhat.component="$PRODNAME-$COMPNAME-container" \
       name="$PRODNAME/$PRODNAME-$COMPNAME-rhel9" \
       version="1.8" \
-      release="87" \
+      release="88" \
       license="ASLv2" \
       maintainer="RHDH Team <rhdh-bot@redhat.com>" \
       vendor="Red Hat, Inc." \
       io.openshift.expose-services="" \
       usage="" \
-      konflux.additional-tags="next, 1.8, 1.8-87" \
+      konflux.additional-tags="next, 1.8, 1.8-88" \
       distribution-scope="public" \
       url="https://red.ht/rhdh"
