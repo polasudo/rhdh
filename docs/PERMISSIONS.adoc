@@ -48,6 +48,8 @@ Note that pullsecrets for quay.io should be restricted to using a SINGLE organiz
 
 ## Access to Splunk (for archived build logs)
 
+NOTE: RH is replacing Splunk with Sumo Logic by the end of 2026. 
+
 Ask "please add me to the `production-rhtap-application-logs`` and `staging-rhtap-application-logs` rover groups?" in link:https://app.slack.com/client/E030G10V24F/C04FDFTF8EB[#forum-konflux-o11y]
 
 See also link:https://gitlab.cee.redhat.com/konflux/docs/sop/-/blob/main/release-service/accessing-internal-services-pipeline-logs-in-splunk.md#accessing-the-release-service-internal-services-pipelinerun-logs-from-splunk[Accessing the Release Service Internal Services PipelineRun logs from Splunk]
