@@ -246,35 +246,14 @@ image::images/sbom-check.png[quay.io view filtered for a specific digest]
 ** verify the FBC content is correct - check that the image contains the SAME images as the latest ones; also use the list of branches/commits to verify that all expected commits have been built:
 +
 ```
-STREAM=1.7
-./build/scripts/checkImagesInIIB.sh -y -q "quay.io/rhdh/iib:${STREAM}-v4.18-x86_64" --bundlefilter "v${STREAM}"; \
-./build/scripts/getCommitsForImage.sh -v "${STREAM}"
-
-# cleanup
-sudo rm -fr /tmp/quay.io-rhdh-iib-*
+RHDH_VERSION=1.7
+OCP_VERSION=4.18
+sudo ./build/scripts/checkRCStatus.sh -v ${RHDH_VERSION} -o ${OCP_VERSION}
 ```
 +
-```
-[INFO] Bundle Version: rhdh-operator.v1.7.0
-[INFO] Bundle Image SHA: quay.io/rhdh/rhdh-operator-bundle@sha256:7dad33bce18ec8417e9345ce8cdd39f3c9bfd637cecc8ce6750fa3e5279dc06b
-[INFO] Bundle Image Tag: quay.io/rhdh/rhdh-operator-bundle:1.7-50
-[INFO] CSV contains:
-quay.io/rhdh/rhdh-hub-rhel9:1.7-132
-quay.io/rhdh/rhdh-rhel9-operator:1.7-53
-registry.redhat.io/rhel9/postgresql-15:1-1754404395
-
-quay.io/rhdh/rhdh-hub-rhel9:1.7-132
-UPSTREAM_REPO=https://github.com/redhat-developer/rhdh/tree/release-1.7 @ ad48a214
-MIDSTREAM_REPO=https://gitlab.cee.redhat.com/rhidp/rhdh/-/commits/rhdh-1.7-rhel-9
-
-quay.io/rhdh/rhdh-rhel9-operator:1.7-53
-UPSTREAM_REPO=https://github.com/redhat-developer/rhdh-operator/tree/release-1.7 @ dd4eb226
-MIDSTREAM_REPO=https://gitlab.cee.redhat.com/rhidp/rhdh/-/commits/rhdh-1.7-rhel-9
-
-quay.io/rhdh/rhdh-operator-bundle:1.7-50
-UPSTREAM_REPO=https://github.com/redhat-developer/rhdh-operator/tree/release-1.7 @ dd4eb226
-MIDSTREAM_REPO=https://gitlab.cee.redhat.com/rhidp/rhdh/-/commits/rhdh-1.7-rhel-9
-```
+Sample output:
++
+image::images/checkRCStatus_sample.png[checkRCStatus sample output,width=640]
 +
 . Release containers to Stage for any RCs using link:../build/scripts/kfuxRelease.sh[kfuxRelease.sh]
 +
