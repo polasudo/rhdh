@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/usr/bin/env bash
 #
 # Copyright (c) Red Hat, Inc.
 # This program and the accompanying materials are made
@@ -547,7 +547,7 @@ if [[ $PUBLISH -eq 1 ]]; then
 
         # Option 2: create the PR automatically
         gh repo set-default openshift-helm-charts/charts
-        gh pr create -t "${COMMIT_MSG}" -b "${COMMIT_MSG}" --base main --head "rhdh-bot:openshift-helm-charts:release-${CHART_NAME}-${CHART_VERSION}"
+        gh pr create -t "${COMMIT_MSG}" -b "${COMMIT_MSG}" --base main --head "rhdh-bot:release-${CHART_NAME}-${CHART_VERSION}"
         # open new PR in a browser
         URL=$(gh pr view "rhdh-bot:release-${CHART_NAME}-${CHART_VERSION}" --json 'url' | jq -r '.url')
         google-chrome --incognito "$URL" || true
