@@ -12,7 +12,7 @@
 #
 
 SCRIPT_DIR=$(cd "$(dirname "$0")" || exit; pwd)
-ROOT_DIR=$(cd "$SCRIPT_DIR"/../../ || exit; pwd)
+ROOTPATH=$(cd "$SCRIPT_DIR"/../../ || exit; pwd)
 
 # set true to change the 'max-keep-runs' value in the .tekton push pipeline
 # this will trigger a konflux build (without triggering sync-midstream.sh)
@@ -131,8 +131,8 @@ else
         targets=${targets/bun/upstream_SHA_rhdh-operator-bundle}
         targets=${targets//,/ }
     fi
-    if [[ -d "$ROOT_DIR/sync" ]]; then 
-        cd "$ROOT_DIR" || exit 1
+    if [[ -d "$ROOTPATH/sync" ]]; then 
+        cd "$ROOTPATH" || exit 1
     else
         cd /tmp || exit 1
         rm -fr /tmp/rhdh-tmp
@@ -145,7 +145,7 @@ else
 
     if [[ $KONFLUX_ONLY -eq 1 ]]; then
         for target in $targets; do 
-            target_file=$(find "$ROOT_DIR/.tekton" -name "rhdh-${target}-${BRANCH/./-}-push.yaml")
+            target_file=$(find "$ROOTPATH/.tekton" -name "rhdh-${target}-${BRANCH/./-}-push.yaml")
             if [[ ! -f $target_file ]]; then 
                 echo "[ERROR] Could not find $target_file!"; exit 1
             fi
