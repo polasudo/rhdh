@@ -399,7 +399,7 @@
     },
     {
       "schema": "olm.bundle",
-      "image": "quay.io/rhdh/rhdh-operator-bundle@sha256:14553581d0bfb6fa78fc8b4d3f75004768a64ab9f5a231b28934bc6395db98ac"
+      "image": "quay.io/rhdh/rhdh-operator-bundle@sha256:56bc3f1c75fe339bfc0267704f01e6756608676e56e904e7e43b769dbd996920"
     }
   ]
 }
