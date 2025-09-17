@@ -28,6 +28,11 @@ BUNDLE_FILTER=""
 # by default show tags; use this to show digests only (eg., for use with a script that copies images inside an airgap)
 SHOW_DIGESTS_ONLY=""
 
+norm="\033[0;39m"
+green="\033[1;32m"
+blue="\033[1;34m"
+red="\033[1;31m"
+
 usage () {
   echo "For a given IIB container, check that the bundle image's RELATED_IMAGE's digests align to specific images
 
@@ -134,11 +139,12 @@ for IIB_IMAGE in $IMAGES; do
     for bc in $bundleContainers; do bundleContainer=$bc; done 
     if [[ "$bundleContainer" =~ ^(registry.redhat.io/rhdh/rhdh-operator-bundle:[0-9.]+)-[0-9]+ ]]; then
       # remove the -zzz since that's not in RHEC
+      echo -e "${blue}[WARN] Use registry.redhat.io/rhdh/rhdh-operator-bundle:${BASH_REMATCH[1]} (not ${bundleContainer##*:})${norm}"
       bundleContainer="${BASH_REMATCH[1]}" # 1.7-67 ==> 1.7
     fi
     REGEX_FILTER_FLAG=""
-    echo "[INFO] Bundle Image Tag: $bundleContainer"
     if [[ $QUIETER != "true" ]]; then 
+        echo "[INFO] Bundle Image Tag: $bundleContainer"
         if [[ $REGEX_FILTER ]]; then 
             echo "[INFO] CSV contains [filter = $REGEX_FILTER]:"
             REGEX_FILTER_FLAG="-i $REGEX_FILTER"
@@ -146,6 +152,6 @@ for IIB_IMAGE in $IMAGES; do
         echo "[INFO] CSV contains:"
         fi
     fi
-    echo "[DEBUG] checkImagesInCSV.sh ${bundleContainer} ${QUAY} ${QUIET} ${BREW} ${SHOW_DIGESTS_ONLY} ${REGEX_FILTER_FLAG}"
+    echo "[INFO] Get images in CSV: checkImagesInCSV.sh ${bundleContainer} ${QUAY} ${QUIET} ${BREW} ${SHOW_DIGESTS_ONLY} ${REGEX_FILTER_FLAG}"
     "${SCRIPTPATH}/checkImagesInCSV.sh" "${bundleContainer}" ${QUAY} "${QUIET}" ${BREW} "${SHOW_DIGESTS_ONLY}" "${REGEX_FILTER_FLAG}"
 done

@@ -98,8 +98,9 @@ echo "============"
 # Get images from IIB using OCP_VERSION (defaults to 4.18)
 echo "[INFO] Get operator bundle from IIB: checkImagesInIIB.sh -y -q quay.io/rhdh/iib:${RHDH_VERSION}-v${OCP_VERSION}-x86_64 --bundlefilter v${RHDH_VERSION} -qq"
 IIB_IMAGES="$("${SCRIPTPATH}/checkImagesInIIB.sh" -y -q "quay.io/rhdh/iib:${RHDH_VERSION}-v${OCP_VERSION}-x86_64" --bundlefilter "v${RHDH_VERSION}" -qq)"
-echo "[INFO] IIB Images found:"
+# echo "[INFO] IIB Images found:"
 echo "$IIB_IMAGES"
+echo "============"
 
 # Check if IIB_IMAGES is empty and exit if so
 if [[ -z "$IIB_IMAGES" ]]; then
@@ -127,7 +128,7 @@ operator_check_result=""
 
 for q in $CONTAINERS; do 
     upstream_repo_line=$(skopeo inspect "docker://$q" | jq -r '.Env[] | select(.|test("_REPO=")?)' | grep UPSTREAM_REPO=)
-    echo "[INFO] $upstream_repo_line"
+    # echo "[DEBUG] $upstream_repo_line"
     
     # Special handling for rhdh-rhel9-operator-bundle - reuse operator check result
     if [[ "$q" == *"rhdh-operator-bundle"* ]]; then

@@ -25,6 +25,11 @@ SHOW_DIGESTS_ONLY=0
 # default
 OCP_VER=4.18
 
+norm="\033[0;39m"
+green="\033[1;32m"
+blue="\033[1;34m"
+red="\033[1;31m"
+
 # cleanup /tmp files
 rm -fr /tmp/job-config.json || true
 
@@ -111,6 +116,7 @@ for imageAndTag in $IMAGES; do
     if [[ "$imageAndTag" =~ ^(registry.redhat.io/rhdh/rhdh-operator-bundle:[0-9.-]+) ]]; then
       if [[ "$containerTag" =~ ^([0-9.]+)-[0-9]+ ]]; then
         # remove the -zzz since that's not in RHEC
+        echo -e "${blue}[WARN] Use registry.redhat.io/rhdh/rhdh-operator-bundle:${BASH_REMATCH[1]} (not :$containerTag)${norm}"
         containerTag="${BASH_REMATCH[1]}" # 1.7-67 ==> 1.7
       fi
     fi

@@ -19,11 +19,16 @@
 
 # see exclude list in getLatestImageTags.sh and updateBaseImages.sh
 EXCLUDES="latest|-source|next|nightly|-tmp-|-ci-|-gh-|.att|.git|.src|.sig|.sbom|.prefetch|on-pull-|on-push-|on-pr-|sha256-|-container"
-EXCLUDES_FRESHMAKER="[0-9]+\.[0-9]+-[0-9]*\.[0-9]{10}" # if set, exclude x.yy-zz.freshmakertimestamp tags; if 1; include them
+# EXCLUDES_TIMESTAMPED='[0-9]+\.[0-9]+\.[0-9]+-[0-9]{10}' # if set, exclude x.y.z-timestamp tags
 
 # try to compute branches from currently checked out branch; else fall back to hard coded value
 DWNSTM_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "rhdh-1-rhel-9")
 if [[ ${DWNSTM_BRANCH} != "rhdh-"*"-rhel-"* ]]; then DWNSTM_BRANCH="rhdh-1-rhel-9"; fi
+
+norm="\033[0;39m"
+green="\033[1;32m"
+blue="\033[1;34m"
+red="\033[1;31m"
 
 getVersion ()
 {
@@ -254,12 +259,12 @@ for URLfrag in $CONTAINERS; do
 		LATESTTAGs="$(${QUERY} 2>/dev/null | jq -r .RepoTags[] | grep -E -v "${EXCLUDES}" | grep -E "${BASETAG}" | sort -V)"
 	fi
 
-	# exclude freshmaker containers and/or sort and grab only the last n tags
-	if [[ $EXCLUDES_FRESHMAKER ]]; then
+	# exclude timestamped containers and/or sort and grab only the last n tags
+	if [[ $EXCLUDES_TIMESTAMPED ]]; then
 		if [[ $VERBOSE -eq 1 ]]; then 
-		    echo "echo \"\$LATESTTAGs\" | grep -E -v \"${EXCLUDES_FRESHMAKER}\" | tail -5" 
+		    echo "echo \"\$LATESTTAGs\" | grep -E -v \"${EXCLUDES_TIMESTAMPED}\" | tail -5" 
 		fi
-		LATESTTAGs="$(echo "$LATESTTAGs" | grep -E -v "${EXCLUDES_FRESHMAKER}" | tail -${NUMTAGS})"
+		LATESTTAGs="$(echo "$LATESTTAGs" | grep -E -v "${EXCLUDES_TIMESTAMPED}" | tail -${NUMTAGS})"
 	else 
 		if [[ $VERBOSE -eq 1 ]]; then 
 		    echo "echo \"\$LATESTTAGs\" | tail -5" 
@@ -289,9 +294,9 @@ for URLfrag in $CONTAINERS; do
 			if [[ $ARCHES -eq 1 ]]; then
 				arches=""
 				arch_string=""
-				raw_inspect=$(skopeo inspect --raw docker://${REGISTRYPRE}${URLfrag%%:*}:${LATESTTAG})
-				if [[ $(echo "${raw_inspect}" | grep "architecture") ]]; then 
-					arches=$(echo $raw_inspect | yq -r .manifests[].platform.architecture)
+				raw_inspect=$(skopeo inspect --raw "docker://${REGISTRYPRE}${URLfrag%%:*}:${LATESTTAG}")
+				if echo "${raw_inspect}" | grep -q "architecture"; then 
+					arches=$(echo "$raw_inspect" | yq -r .manifests[].platform.architecture)
 				else
 					arches="unknown (amd64 only?)"
 				fi
@@ -300,7 +305,16 @@ for URLfrag in $CONTAINERS; do
 			elif [[ ${TAGONLY} -eq 1 ]]; then
 				echo "${LATESTTAG}"
 			elif [[ $QUIET -eq 1 ]]; then
-				echo "${REGISTRYPRE}${URLfrag%%:*}:${LATESTTAG}"
+				konflux_add_tags=""
+				if [[ $REGISTRY == "http://registry.redhat.io" ]]; then 
+					konflux_add_tags="$(skopeo inspect "docker://${REGISTRYPRE}${URLfrag%%:*}:${LATESTTAG}" | jq -r '.Labels."konflux.additional-tags"' 2>/dev/null)"
+					if [[ $konflux_add_tags ]]; then 
+						konflux_add_tags=" (${blue}${LATESTTAG%%-*}, $konflux_add_tags${norm})"; 
+					else 
+						konflux_add_tags=" (${blue}${LATESTTAG%%-*}${norm})"; 
+					fi
+				fi
+				echo -e "${REGISTRYPRE}${URLfrag%%:*}:${LATESTTAG}$konflux_add_tags"
 			else
 				echo "${URLfrag%%:*}:${LATESTTAG} :: ${REGISTRY}/${URLfrag%%:*}:${LATESTTAG}"
 			fi
