@@ -66,7 +66,6 @@ RUN chmod +x "$YARN" && ln -s "$YARN" /usr/local/bin/yarn
 FROM skeleton AS deps
 COPY $EXTERNAL_SOURCE_NESTED/yarn.lock ./
 # BEGIN COPY package.json files
-COPY $EXTERNAL_SOURCE_NESTED/.ibm/package.json ./.ibm/package.json
 COPY $EXTERNAL_SOURCE_NESTED/plugins/translation-backend/package.json ./plugins/translation-backend/package.json
 COPY $EXTERNAL_SOURCE_NESTED/plugins/scalprum-backend/package.json ./plugins/scalprum-backend/package.json
 COPY $EXTERNAL_SOURCE_NESTED/plugins/licensed-users-info-backend/package.json ./plugins/licensed-users-info-backend/package.json
@@ -325,7 +324,9 @@ ENTRYPOINT ["node", "--require", "./instrumentation.js", "packages/backend", "--
 # append Brew metadata here
 ENV SUMMARY="Red Hat Developer Hub container" \
     DESCRIPTION="Red Hat Developer Hub container" \
-    UPSTREAM_REPO="https://github.com/redhat-developer/rhdh/tree/main @ f3ea6de1" \
+    RHDH_VERSION="1.8.0" \
+    BACKSTAGE_VERSION="1.39.1" \
+    UPSTREAM_REPO="https://github.com/redhat-developer/rhdh/tree/main @ 38da21f1" \
     MIDSTREAM_REPO="https://gitlab.cee.redhat.com/rhidp/rhdh/-/commits/rhdh-1-rhel-9" \
     PRODNAME="rhdh" \
     COMPNAME="hub"
