@@ -66,6 +66,7 @@ RUN chmod +x "$YARN" && ln -s "$YARN" /usr/local/bin/yarn
 FROM skeleton AS deps
 COPY $EXTERNAL_SOURCE_NESTED/yarn.lock ./
 # BEGIN COPY package.json files
+COPY $EXTERNAL_SOURCE_NESTED/.ibm/package.json ./.ibm/package.json
 COPY $EXTERNAL_SOURCE_NESTED/plugins/translation-backend/package.json ./plugins/translation-backend/package.json
 COPY $EXTERNAL_SOURCE_NESTED/plugins/scalprum-backend/package.json ./plugins/scalprum-backend/package.json
 COPY $EXTERNAL_SOURCE_NESTED/plugins/licensed-users-info-backend/package.json ./plugins/licensed-users-info-backend/package.json
@@ -329,7 +330,7 @@ ENTRYPOINT ["node", "--require", "./instrumentation.js", "packages/backend", "--
 # append Brew metadata here
 ENV SUMMARY="Red Hat Developer Hub container" \
     DESCRIPTION="Red Hat Developer Hub container" \
-    UPSTREAM_REPO="https://github.com/redhat-developer/rhdh/tree/main @ 04731762" \
+    UPSTREAM_REPO="https://github.com/redhat-developer/rhdh/tree/main @ f9795b12" \
     MIDSTREAM_REPO="https://gitlab.cee.redhat.com/rhidp/rhdh/-/commits/rhdh-1-rhel-9" \
     PRODNAME="rhdh" \
     COMPNAME="hub"
@@ -342,12 +343,12 @@ LABEL summary="$SUMMARY" \
       com.redhat.component="$PRODNAME-$COMPNAME-container" \
       name="$PRODNAME/$PRODNAME-$COMPNAME-rhel9" \
       version="1.8" \
-      release="91" \
+      release="92" \
       license="ASLv2" \
       maintainer="RHDH Team <rhdh-bot@redhat.com>" \
       vendor="Red Hat, Inc." \
       io.openshift.expose-services="" \
       usage="" \
-      konflux.additional-tags="next, 1.8, 1.8-91" \
+      konflux.additional-tags="next, 1.8, 1.8-92" \
       distribution-scope="public" \
       url="https://red.ht/rhdh"
