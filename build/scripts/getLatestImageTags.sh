@@ -190,7 +190,7 @@ if [[ ${REGISTRY} != "" ]]; then
 			# CONTAINERS="${CONTAINERS//rhdh-rhdh-operator-bundle/rhdh-operator-bundle}"
 			# CONTAINERS="${CONTAINERS/rhdh-rhel9-operator/rhdh-rhdh-rhel9-operator}"
 		fi
-	elif [[ ${REGISTRY} == *"quay.io"* ]]; then
+	elif [[ ${REGISTRY} == *"quay.io"* ]] || [[ ${REGISTRY} == *"registry.redhat.io"* ]]; then
 		searchTag=":${latestNext}"
 		if [[ ${CONTAINERS} == "${DH_CONTAINERS}" ]] || [[ ${CONTAINERS} == "" ]]; then
 			CONTAINERS="${DH_CONTAINERS}"; 

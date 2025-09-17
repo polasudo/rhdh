@@ -83,10 +83,20 @@ get_latest_github_commit() {
 }
 
 # Get images from getLatestImageTags.sh
-CONTAINERS="$("${SCRIPTPATH}/getLatestImageTags.sh" -b "rhdh-${RHDH_VERSION}-rhel-9" --quay --tag "${RHDH_VERSION}-")";
+echo "[INFO] Get latest GA containers from registry.redhat.io/rhdh: getLatestImageTags.sh --rhec --latestNext ${RHDH_VERSION}"
+CONTAINERS="$("${SCRIPTPATH}/getLatestImageTags.sh" -b "rhdh-${RHDH_VERSION}-rhel-9" --rhec --latestNext "${RHDH_VERSION}")"
+echo "[INFO] Containers found:"
+echo "$CONTAINERS"
+echo "============"
+
+echo "[INFO] Get latest RC or CI containers from quay.io/rhdh: getLatestImageTags.sh -b rhdh-${RHDH_VERSION}-rhel-9 --quay --tag ${RHDH_VERSION}-"
+CONTAINERS="$("${SCRIPTPATH}/getLatestImageTags.sh" -b "rhdh-${RHDH_VERSION}-rhel-9" --quay --tag "${RHDH_VERSION}-")"
+echo "[INFO] Containers found:"
+echo "$CONTAINERS"
+echo "============"
 
 # Get images from IIB using OCP_VERSION (defaults to 4.18)
-echo "[INFO] Getting images from IIB for RHDH version $RHDH_VERSION, OCP version $OCP_VERSION"
+echo "[INFO] Get operator bundle from IIB: checkImagesInIIB.sh -y -q quay.io/rhdh/iib:${RHDH_VERSION}-v${OCP_VERSION}-x86_64 --bundlefilter v${RHDH_VERSION} -qq"
 IIB_IMAGES="$("${SCRIPTPATH}/checkImagesInIIB.sh" -y -q "quay.io/rhdh/iib:${RHDH_VERSION}-v${OCP_VERSION}-x86_64" --bundlefilter "v${RHDH_VERSION}" -qq)"
 echo "[INFO] IIB Images found:"
 echo "$IIB_IMAGES"

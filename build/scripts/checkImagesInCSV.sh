@@ -108,6 +108,13 @@ if [[ ${MIDSTM_BRANCH} != "rhdh-"*"-rhel-"* ]]; then MIDSTM_BRANCH="rhdh-1-rhel-
 for imageAndTag in $IMAGES; do 
     SOURCE_CONTAINER=${imageAndTag%%:*}
     containerTag=$(skopeo inspect docker://${imageAndTag} | jq -r '.Labels.version+"-"+.Labels.release')
+    if [[ "$imageAndTag" =~ ^(registry.redhat.io/rhdh/rhdh-operator-bundle:[0-9.-]+) ]]; then
+      if [[ "$containerTag" =~ ^([0-9.]+)-[0-9]+ ]]; then
+        # remove the -zzz since that's not in RHEC
+        containerTag="${BASH_REMATCH[1]}" # 1.7-67 ==> 1.7
+      fi
+    fi
+
     # echo "Found containerTag = ${containerTag}"
 
     if [[ ! -x ${SCRIPTPATH}/containerExtract.sh ]]; then

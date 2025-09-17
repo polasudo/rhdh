@@ -71,9 +71,11 @@ done
 
 for IIB_IMAGE in $IMAGES; do
     IMAGE_PATH="$(echo "$IIB_IMAGE" | tr "/:@" "-")"
+    # echo "[DEBUG] Extracting to /tmp/${IMAGE_PATH}* ..."
     rm -fr /tmp/"${IMAGE_PATH}"*/ 2>/dev/null || sudo rm -fr /tmp/"${IMAGE_PATH}"*/ 2>/dev/null  || true
     "${SCRIPTPATH}"/containerExtract.sh --delete-before --delete-after "${QUIET}" "${IIB_IMAGE}"
-    cd /tmp/"${IMAGE_PATH}"* || exit 1
+    tmpdir=$(find /tmp/ -type d -name "${IMAGE_PATH}*" 2>/dev/null | sort -V | tail -1)
+    cd "$tmpdir" || exit 1
 
     # for newer file-based catalogs like OCP 4.12
     catalogJson="configs/rhdh/catalog.json"
@@ -130,12 +132,20 @@ for IIB_IMAGE in $IMAGES; do
     # extract the last value or the failure (tokenize to remove "For..." and "Got..." if we're not in quiet mode)
     bundleContainer=""
     for bc in $bundleContainers; do bundleContainer=$bc; done 
-    if [[ $QUIETER != "true" ]]; then echo "[INFO] Bundle Image Tag: $bundleContainer"; 
+    if [[ "$bundleContainer" =~ ^(registry.redhat.io/rhdh/rhdh-operator-bundle:[0-9.]+)-[0-9]+ ]]; then
+      # remove the -zzz since that's not in RHEC
+      bundleContainer="${BASH_REMATCH[1]}" # 1.7-67 ==> 1.7
+    fi
+    REGEX_FILTER_FLAG=""
+    echo "[INFO] Bundle Image Tag: $bundleContainer"
+    if [[ $QUIETER != "true" ]]; then 
         if [[ $REGEX_FILTER ]]; then 
             echo "[INFO] CSV contains [filter = $REGEX_FILTER]:"
+            REGEX_FILTER_FLAG="-i $REGEX_FILTER"
         else
         echo "[INFO] CSV contains:"
         fi
     fi
-    "${SCRIPTPATH}/checkImagesInCSV.sh" "${bundleContainer}" ${QUAY} "${QUIET}" ${BREW} "${SHOW_DIGESTS_ONLY}" -i "${REGEX_FILTER}"
+    echo "[DEBUG] checkImagesInCSV.sh ${bundleContainer} ${QUAY} ${QUIET} ${BREW} ${SHOW_DIGESTS_ONLY} ${REGEX_FILTER_FLAG}"
+    "${SCRIPTPATH}/checkImagesInCSV.sh" "${bundleContainer}" ${QUAY} "${QUIET}" ${BREW} "${SHOW_DIGESTS_ONLY}" "${REGEX_FILTER_FLAG}"
 done
