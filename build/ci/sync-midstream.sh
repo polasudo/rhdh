@@ -38,6 +38,10 @@ HUSKY=0; export HUSKY
 # RH production key, to use only in rhdh-1.yy-rhel-9 stable branches; otherwise use the devel key for main
 SEGMENT_WRITE_KEY="mUr49Tkld5bj1lFFPxxqHrAzkQMRINvF"
 
+# computed from the packages/app/src/build-metadata.json file later on
+RHDH_VERSION=""
+BACKSTAGE_VERSION=""
+
 latestStableBranch="$(curl -sSLk --url "https://gitlab.cee.redhat.com/api/v4/projects/rhidp%2Frhdh/repository/branches?per_page=200&regex=^rhdh-1..*-rhel-9$" | jq -r '.[].name' | sort -uV | tail -1)"; # echo $latestStableBranch
 
 DWNSTM_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "rhdh-1-rhel-9")
@@ -689,6 +693,9 @@ echo "Using midstream_repo:
 
 latestNextTag=""; if [[ $latestNext ]]; then latestNextTag="${latestNext}, "; fi 
 
+RHDH_VERSION=$(grep '"RHDH Version"' "${ROOTPATH}/distgit/containers/rhdh-hub/packages/app/src/build-metadata.json" | sed 's/.*": "\([^"]*\)".*/\1/') && \
+BACKSTAGE_VERSION=$(grep '"Backstage Version"' "${ROOTPATH}/distgit/containers/rhdh-hub/packages/app/src/build-metadata.json" | sed 's/.*": "\([^"]*\)".*/\1/') 
+
 if [[ $BUNDLEONLY -eq 0 ]]; then
 
   # append Brew metadata here
@@ -698,6 +705,8 @@ if [[ $BUNDLEONLY -eq 0 ]]; then
   cat <<EOT >$TMPDIR/hub.Dockerfile.foot
 ENV SUMMARY="Red Hat Developer Hub container" \\
     DESCRIPTION="Red Hat Developer Hub container" \\
+    RHDH_VERSION="${RHDH_VERSION}" \\
+    BACKSTAGE_VERSION="${BACKSTAGE_VERSION}" \\
     UPSTREAM_REPO="${upstream_repo_hub}" \\
     MIDSTREAM_REPO="${midstream_repo}" \\
     PRODNAME="rhdh" \\
@@ -744,6 +753,8 @@ EOT
   cat <<EOT >$TMPDIR/operator.Dockerfile.foot
 ENV SUMMARY="Red Hat Developer Hub operator" \\
     DESCRIPTION="Red Hat Developer Hub operator" \\
+    RHDH_VERSION="${RHDH_VERSION}" \\
+    BACKSTAGE_VERSION="${BACKSTAGE_VERSION}" \\
     UPSTREAM_REPO="${upstream_repo_op}" \\
     MIDSTREAM_REPO="${midstream_repo}" \\
     PRODNAME="rhdh" \\
@@ -784,6 +795,8 @@ if [[ $BUNDLEONLY -eq 1 ]]; then
   cat <<EOT >$TMPDIR/operator-bundle.Dockerfile.foot
 ENV SUMMARY="Red Hat Developer Hub operator bundle" \\
     DESCRIPTION="Red Hat Developer Hub operator bundle" \\
+    RHDH_VERSION="${RHDH_VERSION}" \\
+    BACKSTAGE_VERSION="${BACKSTAGE_VERSION}" \\
     UPSTREAM_REPO="${upstream_repo_op}" \\
     MIDSTREAM_REPO="${midstream_repo}" \\
     PRODNAME="rhdh" \\
