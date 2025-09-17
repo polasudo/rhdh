@@ -209,36 +209,39 @@ else
 fi
 
 recurse () {
-  SEALIGHTS_FLAG=""; 
-  # shellcheck disable=SC2086
+  SEALIGHTS_FLAG=""
   if [[ $DO_DEFAULT_SEALIGHTS -eq 1 ]]; then SEALIGHTS_FLAG="--sealights"; fi
-    echo -e "\n${blue} >> $0 $latestNextExample --clean --versions ${OCP_VERSION_BASE} -v ${RHDH_VERSION} $SEALIGHTS_FLAG $DRYRUN $CI${norm}\n"
+
+  RHEC_FLAG=""
+  if [[ $USE_RHEC == "1" ]]; then RHEC_FLAG="--rhec"; fi
+
+  echo -e "\n${blue} >> $0 $latestNextExample --clean --versions ${OCP_VERSION_BASE} -v ${RHDH_VERSION} $SEALIGHTS_FLAG $RHEC_FLAG $DRYRUN $CI${norm}\n"
+  if [[ ! $DRYRUN ]]; then 
+    # shellcheck disable=SC2086
+    $0 $latestNextExample --clean --versions "${OCP_VERSION_BASE}" -v "${RHDH_VERSION}" $SEALIGHTS_FLAG $RHEC_FLAG $DRYRUN $CI
+  fi
+  for OCP_VERSION in ${OCP_VERSIONS//${OCP_VERSION_BASE} }; do \
     if [[ ! $DRYRUN ]]; then 
-      # shellcheck disable=SC2086
-      $0 $latestNextExample --clean --versions "${OCP_VERSION_BASE}" -v "${RHDH_VERSION}" $SEALIGHTS_FLAG $DRYRUN $CI
+      sleep 30s
     fi
-    for OCP_VERSION in ${OCP_VERSIONS//${OCP_VERSION_BASE} }; do \
+    if [[ ! -d "catalogs/v$OCP_VERSION/" ]]; then # need to bootstrap from scratch
+      echo -e "\n${blue} >> $0 $latestNextExample --clean --versions ${OCP_VERSION} -v ${RHDH_VERSION} $SEALIGHTS_FLAG $RHEC_FLAG $DRYRUN $CI${norm}\n"
       if [[ ! $DRYRUN ]]; then 
-        sleep 30s
+        # shellcheck disable=SC2086
+        $0 $latestNextExample --clean --versions "${OCP_VERSION}" -v "${RHDH_VERSION}" $SEALIGHTS_FLAG $RHEC_FLAG $DRYRUN $CI
       fi
-      if [[ ! -d "catalogs/v$OCP_VERSION/" ]]; then # need to bootstrap from scratch
-        echo -e "\n${blue} >> $0 $latestNextExample --clean --versions ${OCP_VERSION} -v ${RHDH_VERSION} $SEALIGHTS_FLAG $DRYRUN $CI${norm}\n"
-        if [[ ! $DRYRUN ]]; then 
-          # shellcheck disable=SC2086
-          $0 $latestNextExample --clean --versions "${OCP_VERSION}" -v "${RHDH_VERSION}" $SEALIGHTS_FLAG $DRYRUN $CI
-        fi
-      else # folder exists so just run from template
-        cp -f "catalogs/v$OCP_VERSION_BASE/catalog-template.json" "catalogs/v$OCP_VERSION/catalog-template.json"
-        if [[ $DO_DEFAULT_SEALIGHTS -eq 1 ]]; then 
-          cp -f "catalogs-sealights/v$OCP_VERSION_BASE/catalog-template.json" "catalogs-sealights/v$OCP_VERSION/catalog-template.json"
-        fi
-        echo -e "\n${blue} >> $0 $latestNextExample --clean --versions ${OCP_VERSION} -v ${RHDH_VERSION} --template catalogs/v${OCP_VERSION}/catalog-template.json $SEALIGHTS_FLAG $DRYRUN $CI${norm}\n"
-        if [[ ! $DRYRUN ]]; then 
-          # shellcheck disable=SC2086
-          $0 $latestNextExample --clean --versions "${OCP_VERSION}" -v "${RHDH_VERSION}" --template "catalogs/v${OCP_VERSION}/catalog-template.json" $SEALIGHTS_FLAG $DRYRUN $CI 
-        fi
+    else # folder exists so just run from template
+      cp -f "catalogs/v$OCP_VERSION_BASE/catalog-template.json" "catalogs/v$OCP_VERSION/catalog-template.json"
+      if [[ $DO_DEFAULT_SEALIGHTS -eq 1 ]]; then 
+        cp -f "catalogs-sealights/v$OCP_VERSION_BASE/catalog-template.json" "catalogs-sealights/v$OCP_VERSION/catalog-template.json"
       fi
-    done
+      echo -e "\n${blue} >> $0 $latestNextExample --clean --versions ${OCP_VERSION} -v ${RHDH_VERSION} --template catalogs/v${OCP_VERSION}/catalog-template.json $SEALIGHTS_FLAG $RHEC_FLAG $DRYRUN $CI${norm}\n"
+      if [[ ! $DRYRUN ]]; then 
+        # shellcheck disable=SC2086
+        $0 $latestNextExample --clean --versions "${OCP_VERSION}" -v "${RHDH_VERSION}" --template "catalogs/v${OCP_VERSION}/catalog-template.json" $SEALIGHTS_FLAG $RHEC_FLAG $DRYRUN $CI 
+      fi
+    fi
+  done
 }
 
 if [[ $DO_DEFAULT -eq 1 ]] || [[ $DO_DEFAULT_SEALIGHTS -eq 1 ]]; then
