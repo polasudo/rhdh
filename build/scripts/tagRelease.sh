@@ -461,7 +461,10 @@ function updateRHDHVersions() {
 	# update RHDH doc URLs with version
 	######################################
 
-	# TODO update this to use https://github.com/redhat-developer/rhdh-plugin-export-overlays/ once catalog entities have moved (or https://gitlab.cee.redhat.com/rhidp/rhdh-plugin-catalog
+	# TODO https://issues.redhat.com/browse/RHIDP-8936 
+	# update this to use https://github.com/redhat-developer/rhdh-plugin-export-overlays/ (or https://gitlab.cee.redhat.com/rhidp/rhdh-plugin-catalog)
+	# once catalog entities have moved to new location
+
 	# Directory containing the plugin YAML files with docs URLs
 	docsDir="catalog-entities/marketplace"
 	branchVersion="${the_branch#release-}"
@@ -472,9 +475,8 @@ function updateRHDHVersions() {
 		do
 			(( count++ ))
 			echo " - Updating $file"
-			sed -i -E \
-"s~https://docs.redhat.com/en/documentation/red_hat_developer_hub(/([0-9]+\.[0-9]+)|/latest)?~https://docs.redhat.com/en/documentation/red_hat_developer_hub/${branchVersion}~g" \
-"$file"
+			sed -i "$file" -r \
+				-e "s~(https://docs.redhat.com/en/documentation/red_hat_developer_hub)(/([0-9]+\.[0-9]+)|/latest)?~\1/${branchVersion}~g" 
 		done < <(find "$docsDir" -type f -name "*.yaml" -print0)
 		echo "Updated $count files"
 	fi
@@ -608,7 +610,7 @@ function updateDocVersions() {
 	###############
 
 	d=artifacts/attributes.adoc
-	sed -i $d -r \
+	sed -i "$d" -r \
 		-e "s/(:product-version: ).+/\1${the_version%.*}/" \
 		-e "s/(:product-bundle-version: ).+/\1${the_version}/" \
 		-e "s/(:product-chart-version: ).+/\1${the_version}/"
@@ -642,8 +644,8 @@ function updateChartVersions(){
 
     # update telemetry link in chart files to new version 
 	for file in $files_to_bump; do
-		sed -i "${file}" -r -e \
-			"s|(.*https://access.redhat.com/documentation/en-us/red_hat_developer_hub/)([0-9.]+)(/html-single/administration_guide_for_red_hat_developer_hub/index#assembly-rhdh-telemetry_admin-rhdh.*)|\1${the_version}\3|g"
+		sed -i "${file}" -r \
+			-e "s|(.*https://access.redhat.com/documentation/en-us/red_hat_developer_hub/)([0-9.]+)(/html-single/administration_guide_for_red_hat_developer_hub/index#assembly-rhdh-telemetry_admin-rhdh.*)|\1${the_version}\3|g"
 	done
     
     # if there are changes in the file and commit can be pushed
@@ -659,7 +661,8 @@ function updateChartVersions(){
 			newver="$XX.$YY.0"
 		fi
 		for file in $files_to_bump; do
-			sed -i "${file}" -r -e "s/(^version: |Version: |Version-)([0-9.]+)/\1$newver/g"
+			sed -i "${file}" -r \
+				-e "s/(^version: |Version: |Version-)([0-9.]+)/\1$newver/g"
 		done
 		git diff || true
 
@@ -737,7 +740,8 @@ pushBranchAndOrTagGH () {
 					# changes to apply to new midstream release-1.yy branch
 					# https://issues.redhat.com/browse/RHIDP-1311 apply the production key to the release-1.yy stable branches, so we can use the devel key for main/CI builds
 					if [[ $d == "redhat-developer__rhdh" ]]; then
-						sed -i .rhdh/docker/Dockerfile -r -e "s|(.*SEGMENT_WRITE_KEY=).*|\1$SEGMENT_WRITE_KEY|g"
+						sed -i .rhdh/docker/Dockerfile -r \
+							-e "s|(.*SEGMENT_WRITE_KEY=).*|\1$SEGMENT_WRITE_KEY|g"
 						COMMITMSG="chore: switch SEGMENT_WRITE_KEY in $TARGET_BRANCH"
 						git commit --no-gpg-sign -s -m "${COMMITMSG}" .rhdh/docker/Dockerfile || true # if no changes, continue
 					fi
@@ -888,7 +892,8 @@ pushTagGL ()
 						pushd "$TMPDIR/gitlab_${d}/catalogs" >/dev/null || exit 1
 							for c in */Containerfile; do 
 								echo " > $c"
-								sed -i "$c" -r -e "s@next-v4@latest-v4@g"
+								sed -i "$c" -r \
+									-e "s@next-v4@latest-v4@g"
 							done
 							if [[ $(git diff --name-only -- catalogs/) != "" ]]; then (( CHANGES = CHANGES + 1 )); fi
 							COMMITMSG="chore: tagRelease.sh: update FBCs in $DWNSTM_TARGET_BRANCH to latest"					
@@ -896,7 +901,8 @@ pushTagGL ()
 
 						popd >/dev/null || exit 1
 
-						sed -i upstream_repos.yml -r -e "s|- main|- ${TARGET_BRANCH}|g"
+						sed -i upstream_repos.yml -r \
+							-e "s|- main|- ${TARGET_BRANCH}|g"
 						if [[ $(git diff --name-only -- upstream_repos.yml) != "" ]]; then (( CHANGES = CHANGES + 1 )); fi
 						if [[ $CHANGES -gt 0 ]]; then 
 							rm -f sync/*
@@ -1278,7 +1284,8 @@ function removeOperatorBundleLatestTags() {
 		pushd "$TMPDIR/gitlab_${d}/distgit/containers/" >/dev/null || exit 1
 			for c in */Containerfile; do 
 				echo " > $c"
-				sed -i "$c" -r -e "/konflux.additional-tags/ s/latest, //"
+				sed -i "$c" -r \
+					-e "/konflux.additional-tags/ s/latest, //"
 			done
 			COMMITMSG="chore: tagRelease.sh: remove latest tags from Containerfiles in ${MIDSTM_BRANCH_PREV} branch"
 			git commit --no-gpg-sign -s -m "${COMMITMSG}" . || echo "nothing to commit, working tree clean (7)"
