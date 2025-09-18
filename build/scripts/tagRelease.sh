@@ -7,7 +7,7 @@
 #
 # SPDX-License-Identifier: EPL-2.0
 #
-# script to tag the janus/rhdh repos for a given release, or 
+# script to tag the rhdh repos for a given release, or 
 # create stable branches + update main branches after branch creation
 
 SCRIPT_DIR=$(cd "$(dirname "$0")" || exit; pwd)
@@ -285,72 +285,6 @@ getXYplusOneFromBranch() {
 		fi
 		newverOp="$XX.$YY.0"
 	fi
-}
-
-# note that this will bump versions of all plugins' package.json AND the root package.json too
-# to bump only the root package.json, see updatePluginsRootVersion()
-function updatePluginVersions() {
-	# for janus-idp/backstage-plugins, run checkPluginVersions.sh
-	orgAndRepo="janus-idp/backstage-plugins"
-	d="${orgAndRepo/\//__}"
-	pushd "$TMPDIR/projects_${d}" >/dev/null || exit 1
-	git checkout "${SOURCE_BRANCH}" || true
-	
-	# get script
-	if [[ -x ${SCRIPT_DIR}/checkPluginVersions.sh ]]; then
-		CPV=${SCRIPT_DIR}/checkPluginVersions.sh
-	else
-		if [[ $VERBOSE -eq 1 ]]; then echo "[DEBUG] Downloading checkPluginVersions.sh script from Github"; fi
-		pushd /tmp >/dev/null || exit
-		curl -sSLO "https://gitlab.cee.redhat.com/rhidp/rhdh/-/raw/${MIDSTM_BRANCH}/build/scripts/checkPluginVersions.sh" && chmod +x checkPluginVersions.sh
-		CPV=/tmp/checkPluginVersions.sh
-		popd >/dev/null || exit
-	fi
-
-	set -x
-	$CPV -s "$(pwd)" -b "${TARGET_BRANCH}" --pr-branch "tagRelease.sh_create_branch_${TARGET_BRANCH}" --push
-	set +x
-
-	popd >/dev/null || exit 1
-}
-
-# for backstage-plugins, bump root package.json to specified version
-# to bump all plugins as well, see updatePluginVersions()
-function updatePluginsRootVersion() {
-	the_branch="$1"
-	the_version="$2"
-	orgAndRepo="janus-idp/backstage-plugins"
-	d="${orgAndRepo/\//__}"
-	rm -fr "$TMPDIR/projects_${d}_2" && git clone -q --depth 1 -b "${the_branch}" "git@github.com:${orgAndRepo}" "$TMPDIR/projects_${d}_2" || echo "Branch $clone_branch doesn't exist: skip!"
-	pushd "$TMPDIR/projects_${d}_2" >/dev/null || exit 1
-
-	###############
-	# update 1 file
-	###############
-
-	d=package.json
-	jq -r --arg the_version "$the_version" '.version|=$the_version' $d > "${d}1"; mv -f "${d}1" "${d}"
-
-	echo -n "updatePluginsRootVersion: "; pwd; git diff || true
-	if [[ ${DO_PUSH} -eq 1 ]]; then
-		COMMITMSG="chore: tagRelease.sh: bump to $the_version in $the_branch branch"
-		if [[ $DO_BUILD -eq 1 ]]; then
-			# quietly install any updates to yarn.lock so PR will pass sniff test
-			yarn install 2> >(grep -v warning 1>&2) 
-			COMMITMSG="${COMMITMSG} + regen yarn.lock"
-		else
-			COMMITMSG="${COMMITMSG} [skip-build]"
-		fi
-		if [[ $(git diff || true ) ]]; then
-			git commit --no-gpg-sign -s -m "${COMMITMSG}" package.json yarn.lock
-			git pull origin "${the_branch}" || true
-			# create pull request if target branch is restricted access
-			pr_branch="pr-bump-to-${the_version}-in-${the_branch}-$(date +%s)"
-			createPr "${pr_branch}" "${the_branch}"
-		fi
-	fi ## if DO_PUSH
-
-	popd >/dev/null || exit 1
 }
 
 # for redhat-developer/rhdh-local, bump to specified version WHEN TAGGING ONLY
@@ -783,6 +717,9 @@ pushBranchAndOrTagGH () {
 							fi
 							git checkout "$previous_sha"
 						fi
+					elif [[ $orgAndRepo == "redhat-developer/rhdh-cli" ]]; then
+						# do not tag the rhdh-cli repo, since it releases and tags using npm processes
+						true
 					else
 						# other repos just get a single x.y.z tag
 						git tag "${CSV_VERSION}" || true
@@ -800,9 +737,6 @@ pushBranchAndOrTagGH () {
 					elif [[ $d == "redhat-developer__rhdh-operator" ]]; then
 						echo -e "${green}[INFO] Bump $d to $CSV_VERSION_Z / $CSV_VERSION_Z_OPERATOR${norm}" 
 						updateOperatorVersions "$TARGET_BRANCH" "$CSV_VERSION_Z" "$CSV_VERSION_Z_OPERATOR"
-					elif [[ $d == "janus-idp__backstage-plugins" ]]; then
-						echo -e "${green}[INFO] Bump $d to $CSV_VERSION_Z_PLUGINS${norm}" 
-						updatePluginsRootVersion "$TARGET_BRANCH" "$CSV_VERSION_Z_PLUGINS"
 					elif [[ $d == "redhat-developer__rhdh-local" ]]; then
 						echo -e "${green}[INFO] Bump $d main to ${CSV_VERSION}${norm}" 
 						updateRHDHLocalVersions "main" "$CSV_VERSION"
@@ -1250,9 +1184,7 @@ fi
 if [[ $SKIP_GH -eq 0 ]]; then
 	if [[ ${SOURCE_BRANCH} ]]; then
 		# check for changes and push a PR for each repo
-		# still needed for 1.4's janus plugins
 		updateRHDHCLIVersion "$SOURCE_BRANCH" "$newver"
-		updatePluginVersions 
 		updateOperatorVersions "$SOURCE_BRANCH" "$newver" "$newverOp"
 		updateRHDHVersions "$SOURCE_BRANCH" "$newver"
 		updateChartVersions "$SOURCE_BRANCH" "$newver"
