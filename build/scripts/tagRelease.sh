@@ -420,7 +420,7 @@ function updateRHDHVersions() {
 	# update 3+ files
 	################
 
-	for d in package.json e2e-tests/package.json dynamic-plugins/package.json; do # dynamic-plugins/package.json is new for 1.7+
+	for d in package.json ./*/package.json ./.?*/package.json; do # dynamic-plugins/package.json is new for 1.7+; .ibm/package.json is new for 1.8+
 		if [[ -f $d ]]; then
 			jq -r --arg the_version "$the_version" '.version|=$the_version' $d > "${d}1"; mv -f "${d}1" "${d}"
 		fi
