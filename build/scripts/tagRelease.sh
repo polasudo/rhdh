@@ -469,7 +469,8 @@ function updateRHDHVersions() {
 	docsDir="catalog-entities/marketplace"
 	branchVersion="${the_branch#release-}"
 
-	if [[ -d "$docsDir" ]]; then
+	# do not make this change in main branch, only for release-1.y branches!
+	if [[ -d "$docsDir" ]] && [[ ! ${SOURCE_BRANCH} ]]; then
 		echo "Updating docs URLs with RHDH version ${branchVersion} in $docsDir"
 		while IFS= read -r -d '' file;
 		do
