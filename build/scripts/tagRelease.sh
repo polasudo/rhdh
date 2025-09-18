@@ -318,7 +318,7 @@ function updateRHDHLocalVersions() {
 			sed -i $d -r \
 				-e "s|rhdh-community/rhdh:([0-9]+\.[0-9]+)|rhdh-community/rhdh:$the_version_y|g" \
 				-e "s/^(example, )([0-9]+\.[0-9]+)/\1$the_version_z/" \
-				-e "s|(registry.redhat.io/rhdh/rhdh-hub-rhel9:)([0-9]+\.[0-9]+)|\1$the_version_z|g" \
+				-e "s|(registry.redhat.io/rhdh/rhdh-hub-rhel9:)([0-9]+\.[0-9.]+)|\1$the_version_z|g" \
 				-e "s/(CI build of RHDH 1.y \(for example, )([0-9]+\.[0-9]+)/\1$the_next_version_y/" \
 				-e "s|(quay.io/rhdh/rhdh-hub-rhel9:)([0-9]+\.[0-9]+)|\1$the_next_version_y|g"
 		fi
