@@ -525,29 +525,30 @@ for ((i = START_REPO; i < NUM_REPOS; i++)); do # echo $i
           # replace upstream refs in configmap
             # image: quay.io/fedora/postgresql-15:latest
             # image: quay.io/rhdh/rhdh-hub-rhel9:next
-          yml=manifests/rhdh-default-config_v1_configmap.yaml
-          echo -e "\n[INFO] Transform $bundle_dir/$yml ..."
-          sed -i $yml -r \
-              -e "s@quay.io/fedora/postgresql-15:.+@registry.redhat.io/rhel9/postgresql-15:latest@g" \
-              -e "s@quay.io/rhdh/rhdh-hub-rhel9:.*@quay.io/rhdh/rhdh-hub-rhel9:$dhImageTag@g"
-          for d in registry.redhat.io/rhel9/postgresql-15:latest quay.io/rhdh/rhdh-hub-rhel9:$dhImageTag; do
-            if [[ ! ${digest_mapping[$d]} ]]; then 
-              checkImage "$d"
-              echo "       + Got $checkImage_result for $d"
-              if [[ "$checkImage_result" != "NONE" ]]; then
-                digest_mapping["${d}"]="${checkImage_result}"
+          for yml in manifests/rhdh-default-config_v1_configmap.yaml manifests/rhdh-plugin-deps_v1_configmap.yaml; do
+            echo -e "\n[INFO] Transform $bundle_dir/$yml ..."
+            sed -i $yml -r \
+                -e "s@quay.io/fedora/postgresql-15:.+@registry.redhat.io/rhel9/postgresql-15:latest@g" \
+                -e "s@quay.io/rhdh/rhdh-hub-rhel9:.*@quay.io/rhdh/rhdh-hub-rhel9:$dhImageTag@g"
+            for d in registry.redhat.io/rhel9/postgresql-15:latest quay.io/rhdh/rhdh-hub-rhel9:$dhImageTag; do
+              if [[ ! ${digest_mapping[$d]} ]]; then 
+                checkImage "$d"
+                echo "       + Got $checkImage_result for $d"
+                if [[ "$checkImage_result" != "NONE" ]]; then
+                  digest_mapping["${d}"]="${checkImage_result}"
+                fi
+              else
+                echo "       > Use ${digest_mapping[$d]} for $d"
+                checkImage_result="${digest_mapping[$d]}"
               fi
-            else
-              echo "       > Use ${digest_mapping[$d]} for $d"
-              checkImage_result="${digest_mapping[$d]}"
-            fi
-            if [[ "$checkImage_result" != "NONE" ]]; then
-              sed -i $yml -r -e "s|$d|$checkImage_result|g" 
-            fi
+              if [[ "$checkImage_result" != "NONE" ]]; then
+                sed -i $yml -r -e "s|$d|$checkImage_result|g" 
+              fi
+            done
+            sed -i $yml -r -e "s@quay.io/rhdh/@registry.redhat.io/rhdh/@g"
+            # debugging: show contents after transformation
+            # grep "image:" $yml
           done
-          sed -i $yml -r -e "s@quay.io/rhdh/@registry.redhat.io/rhdh/@g"
-          # debugging: show contents after transformation
-          # grep "image:" $yml
         popd >/dev/null || exit 1
       done
 
