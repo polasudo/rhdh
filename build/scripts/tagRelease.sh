@@ -457,6 +457,28 @@ function updateRHDHVersions() {
 	rm -fr "$TMPDIR/projects_${d}_2" && git clone -q --depth 1 -b "${the_branch}" "git@github.com:${orgAndRepo}" "$TMPDIR/projects_${d}_2" || echo "Branch $clone_branch doesn't exist: skip!"
 	pushd "$TMPDIR/projects_${d}_2" >/dev/null || exit 1
 
+	######################################
+	# update RHDH doc URLs with version
+	######################################
+
+	# TODO update this to use https://github.com/redhat-developer/rhdh-plugin-export-overlays/ once catalog entities have moved (or https://gitlab.cee.redhat.com/rhidp/rhdh-plugin-catalog
+	# Directory containing the plugin YAML files with docs URLs
+	docsDir="catalog-entities/marketplace"
+	branchVersion="${the_branch#release-}"
+
+	if [[ -d "$docsDir" ]]; then
+		echo "Updating docs URLs with RHDH version ${branchVersion} in $docsDir"
+		while IFS= read -r -d '' file;
+		do
+			(( count++ ))
+			echo " - Updating $file"
+			sed -i -E \
+"s~https://docs.redhat.com/en/documentation/red_hat_developer_hub(/([0-9]+\.[0-9]+)|/latest)?~https://docs.redhat.com/en/documentation/red_hat_developer_hub/${branchVersion}~g" \
+"$file"
+		done < <(find "$docsDir" -type f -name "*.yaml" -print0)
+		echo "Updated $count files"
+	fi
+
 	################
 	# update 3+ files
 	################
