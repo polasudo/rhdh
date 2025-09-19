@@ -134,7 +134,7 @@ Options:
   -v                 RHDH version x.y.z to release
 
   --fbc              Publish FBCs for the specified bundle tag, eg., 1.3-133 or 1.4.2
-  --snapshot         Rather than pick the latest snapshot, use a specific older one, eg., fbc-4-14-znfg9
+  --snapshot         Rather than pick the latest snapshot, use a specific older one, eg., fbc-4-18-znfg9
   --commit           Rather than pick the latest snapshot, use a specific older one matching a commit SHA, eg., 8ce7098e
   -o                 OCP versions for which to release FBC; default '$OCP_VERSIONS'
 
@@ -571,7 +571,7 @@ rm -fr /tmp/container_inspect.txt
 
 ###############################################################################################################
 
-# process the FBCs the same way for all the valid arches (x86_64 for now) and OCP versions (4.14-4.17)
+# process the FBCs the same way for all the valid arches (x86_64 for now) and OCP versions (4.16+)
 collected_commands=""
 if [[ $BUNDLE_TAG_OR_SHA ]]; then 
   declare -A operator_bundle_mapping
@@ -601,7 +601,7 @@ if [[ $BUNDLE_TAG_OR_SHA ]]; then
     OCP_VERSION=${OCP_VERSION/./-} # replace . with -
     # # compute the correct fbc Snapshot with these filters:
     # pac.test.appstudio.openshift.io/branch: rhdh-1.4-rhel-9
-    # pac.test.appstudio.openshift.io/original-prname: fbc-4-14-on-push
+    # pac.test.appstudio.openshift.io/original-prname: fbc-4-18-on-push
     # pac.test.appstudio.openshift.io/sha: 7e6c56d5dccb86c37e26672e40ed3a0a9bcd28a2
 
     oc -n rhdh-tenant get Snapshots --sort-by=.metadata.creationTimestamp --selector='pac.test.appstudio.openshift.io/original-prname=fbc-'"${OCP_VERSION}"'-on-push' -o yaml > "/tmp/fbc-snapshots-${OCP_VERSION}.yaml"
@@ -620,8 +620,8 @@ if [[ $BUNDLE_TAG_OR_SHA ]]; then
       echo -e "finish timestamp\tsnapshot\tpipelinerun\t\tmidstreamCommitSHA"
     fi
     yq -r '.items[]|select(.metadata.annotations."pac.test.appstudio.openshift.io/branch" == "'"${BRANCH}"'")|select(.metadata.labels."pac.test.appstudio.openshift.io/state" == "completed")'"$extraSelect"'|.metadata.labels."test.appstudio.openshift.io/pipelinerunfinishtime" + "\t" + .metadata.name + "\t" + .metadata.labels."appstudio.openshift.io/build-pipelinerun" + "\t" + .metadata.labels."pac.test.appstudio.openshift.io/sha"' "/tmp/fbc-snapshots-${OCP_VERSION}.yaml" > "/tmp/fbc-snapshots-${OCP_VERSION}.csv"
-    # 1734044836	fbc-4-14-mhchr	fbc-4-14-on-push-s687p	76ada30bafa4341c6032496c1aa64d8c8a441447
-    # 1734114561	fbc-4-14-d766t	fbc-4-14-on-push-g9fpp	7e6c56d5dccb86c37e26672e40ed3a0a9bcd28a2
+    # 1734044836	fbc-4-18-mhchr	fbc-4-18-on-push-s687p	76ada30bafa4341c6032496c1aa64d8c8a452947
+    # 1734194561	fbc-4-18-d766t	fbc-4-18-on-push-g9fpp	7e6c56d5dccb86c37e26672e40ed3a0a9bcd28a2
     # get the 5 most recent ones 
     tail -5 "/tmp/fbc-snapshots-${OCP_VERSION}.csv" > "/tmp/fbc-snapshots-${OCP_VERSION}.csv_"
     mv -f "/tmp/fbc-snapshots-${OCP_VERSION}.csv"{_,}
@@ -649,8 +649,8 @@ if [[ $BUNDLE_TAG_OR_SHA ]]; then
       echo -e "${red}[ERROR] Could not find a snapshot! Try different values for the --fbc, --snapshot, and/or --commit flags.${norm}"; exit 1
     fi
 
-    # pipelinerun: https://konflux-ui.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/ns/rhdh-tenant/applications/fbc-4-14/pipelineruns/fbc-4-14-on-push-g9fpp
-    # snapshot:    https://konflux-ui.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/ns/rhdh-tenant/applications/fbc-4-14/snapshots/fbc-4-14-d766t
+    # pipelinerun: https://konflux-ui.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/ns/rhdh-tenant/applications/fbc-4-18/pipelineruns/fbc-4-18-on-push-g9fpp
+    # snapshot:    https://konflux-ui.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/ns/rhdh-tenant/applications/fbc-4-18/snapshots/fbc-4-18-d766t
     echo -e "${green}For $OCP_VERSION, found snapshot (completed $pipelinerunfinishtime):"
     echo -e " * Commit:   https://gitlab.cee.redhat.com/rhidp/rhdh/-/commit/$(tail -1 "/tmp/fbc-snapshots-${OCP_VERSION}.csv" | sed -r -e "s@.+\t([^\t]+)@\1@")"
     echo -e " * Snapshot: https://konflux-ui.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/ns/rhdh-tenant/applications/fbc-${OCP_VERSION}/snapshots/$SNAPSHOT${norm}\n"

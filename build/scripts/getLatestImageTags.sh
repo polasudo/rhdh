@@ -99,7 +99,7 @@ Usage:
   $0 -b ${DWNSTM_BRANCH} --quay --tag \"${DH_VERSION}-\" --hide        | use default quay.io/rhdh images, for tag ${DH_VERSION}-; show nothing if unmatched tag
   $0 -b ${DWNSTM_BRANCH} --stage --sort                    | use default list of DH images in RHEC Stage, sorted alphabetically
   $0 -b ${DWNSTM_BRANCH} --arches                          | use default list of DH images in RHEC Prod; show arches
-  $0 -c rhdh/iib --quay -o v4.14 --tag ${DH_VERSION}-v4.14          | search for latest IIBs in quay for a given OCP version
+  $0 -c rhdh/iib --quay -o v4.18 --tag ${DH_VERSION}-v4.18          | search for latest IIBs in quay for a given OCP version
 
   $0 -c rhdh/rhdh-hub-rhel9 --quay                        | check latest tag for specific Quay image(s), with branch = ${DWNSTM_BRANCH}
   $0 -c ubi9-minimal -c ubi9-micro -n 3 --tag .           | check RHEC prod registry; show all tags; show 3 tags per container

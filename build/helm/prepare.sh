@@ -269,8 +269,8 @@ install_package() {
 # Install packages
 install_package "https://cli.github.com/packages/rpm/gh-cli.repo" "gh"
 install_package "https://rhsm-pulp.corp.redhat.com/content/dist/layered/rhel8/x86_64/ocp-tools/4.14/os/" "helm"
-install_package "https://rhsm-pulp.corp.redhat.com/content/dist/layered/rhel8/x86_64/rhocp/4.14/os/" "podman"
-install_package "https://rhsm-pulp.corp.redhat.com/content/dist/layered/rhel8/x86_64/rhocp/4.14/os/" "oc" "openshift-cli" "openshift-clients"
+install_package "https://rhsm-pulp.corp.redhat.com/content/dist/layered/rhel8/x86_64/rhocp/4.18/os/" "podman"
+install_package "https://rhsm-pulp.corp.redhat.com/content/dist/layered/rhel8/x86_64/rhocp/4.19/os/" "oc" "openshift-cli" "openshift-clients"
 
 if ! command -v helm-docs &>/dev/null; then
     if [[ $(uname -m -o) == "arm64 Darwin" ]]; then

@@ -67,7 +67,6 @@ OCP_VERSION_NEXT=$(yq -r '.OCP_VERSION_NEXT' "$CONFIG_FILE")
 OCP_VERSIONS=$(yq -r '.SUPPORTED_VERSIONS[]' "$CONFIG_FILE" | tr '\n' ' ')
 RHEL9_REGISTRY=$(yq -r '.REGISTRIES.RHEL9_REGISTRY' "$CONFIG_FILE")
 BREW_REGISTRY=$(yq -r '.REGISTRIES.BREW_REGISTRY' "$CONFIG_FILE")
-RHEL8_REGISTRY=$(yq -r '.REGISTRIES.RHEL8_REGISTRY' "$CONFIG_FILE")
 
 DO_COMMIT=1 # by default, commit change
 DO_PUSH=1   # push the commit
@@ -391,11 +390,7 @@ for OCP_VERSION in ${OCP_VERSIONS}; do
     set +x
 
     # registry selection based on OCP version
-    # For 4.14, use RHEL8 registry directly
-    if ! vergte "${OCP_VERSION}" "4.15"; then
-        registry="${RHEL8_REGISTRY}:v${OCP_VERSION}"
-    # For future unreleased OCP versions, use brew registry
-    elif [[ "${OCP_VERSION}" == "${OCP_VERSION_NEXT}" ]];  then 
+    if [[ "${OCP_VERSION}" == "${OCP_VERSION_NEXT}" ]];  then 
         registry="${BREW_REGISTRY}:v${OCP_VERSION}"
     else
         registry="${RHEL9_REGISTRY}:v${OCP_VERSION}"

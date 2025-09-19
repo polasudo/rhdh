@@ -11,6 +11,17 @@ SYNC_FILE_OPERATOR_BUNDLE="${SYNC_FILE_OPERATOR_BUNDLE:-sync/upstream_SHA_rhdh-o
 
 ROOTPATH=$(dirname "$0"); ROOTPATH=${ROOTPATH/\/build\/ci}
 
+# Load OCP version configuration from ocp-versions.yaml
+CONFIG_FILE="$ROOTPATH/build/scripts/ocp-versions.yaml"
+if [[ ! -f "$CONFIG_FILE" ]]; then
+    echo "OCP versions file not found: $CONFIG_FILE"
+    exit 1
+fi
+
+OCP_VERSION_BASE=$(yq -r '.OCP_VERSION_BASE' "$CONFIG_FILE")
+OCP_VERSIONS=$(yq -r '.SUPPORTED_VERSIONS[]' "$CONFIG_FILE" | tr '\n' ' ')
+OCP_VERSION_NEXT=$(yq -r '.OCP_VERSION_NEXT' "$CONFIG_FILE")
+
 # Function to trigger respin and render catalogs
 update_bundle_and_FBCs() {
     local DWNSTM_BRANCH="$1" # rhdh-1-rhel-9 or rhdh-1.8-rhel-9
@@ -65,12 +76,12 @@ update_bundle_and_FBCs() {
         echo "[INFO] Running renderCatalogs.sh..."
         # TODO remove this if-block once 1.6 is EOL and we're always using sealights
         if [[ "${DH_VERSION_FULL%.*}" == "1.6"* ]]; then 
-            OCP_VERSION=4.14
             pushd "$ROOTPATH" >/dev/null 2>&1 || exit 1
-                ./build/scripts/renderCatalogs.sh --ci --clean --versions "${OCP_VERSION}" -v "${DH_VERSION_FULL}"; sleep 30s; echo
-                for OCP_VERSION in 4.15 4.16 4.17 4.18 4.19 4.20; do \
-                cp -f catalogs/v{4.14,${OCP_VERSION}}/catalog-template.json; \
-                ./build/scripts/renderCatalogs.sh --ci --clean --versions "${OCP_VERSION}" -v "${DH_VERSION_FULL}" --template "catalogs/v${OCP_VERSION}/catalog-template.json"; sleep 30s; \
+                ./build/scripts/renderCatalogs.sh --ci --clean --versions "${OCP_VERSION_BASE}" -v "${DH_VERSION_FULL}"; sleep 30s; echo
+                for OCP_VERSION in $OCP_VERSIONS $OCP_VERSION_NEXT; do
+                  # shellcheck disable=SC2086
+                  cp -f catalogs/v{${OCP_VERSION_BASE},${OCP_VERSION}}/catalog-template.json; \
+                  ./build/scripts/renderCatalogs.sh --ci --clean --versions "${OCP_VERSION}" -v "${DH_VERSION_FULL}" --template "catalogs/v${OCP_VERSION}/catalog-template.json"; sleep 30s; \
                 done
             popd >/dev/null 2>&1 || exit 1
         else

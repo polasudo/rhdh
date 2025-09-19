@@ -46,8 +46,8 @@ Depending on the size of your template or catalog file, this might take over 4 m
 Requires: jq
 
 Usage: 
-  $0 -f catalogs/v4.14/catalog-template.json
-  $0 -f catalogs/v4.14/configs/rhdh/catalog.json
+  $0 -f catalogs/v4.18/catalog-template.json
+  $0 -f catalogs/v4.18/configs/rhdh/catalog.json
 "
 exit
 }

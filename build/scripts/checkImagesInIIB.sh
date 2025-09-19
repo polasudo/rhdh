@@ -53,7 +53,7 @@ Options:
   --digests            Instead of showing tags, just show image digests as seen in the IIB/CSV
 
 Examples:
-  $0 brew.registry.redhat.io/rh-osbs/iib-pub-pending:v4.14 --brew --quay --filter 'dashboard|operator|registry-rhel|udi' --quiet
+  $0 brew.registry.redhat.io/rh-osbs/iib-pub-pending:v4.18 --brew --quay --filter 'dashboard|operator|registry-rhel|udi' --quiet
   $0 quay.io/rhdh/iib:1.3-v4.16-x86_64 --bundlefilter 'v1.3' --filter 'operator|hub' --quay -q
 "
 }
@@ -120,7 +120,7 @@ for IIB_IMAGE in $IMAGES; do
     fi
 
     if [[ $QUIETER != "true" ]]; then echo "[INFO] Bundle Version: $bundle"; fi
-    #  "image": "registry.stage.redhat.io/rhdh/rhdh-operator-bundle@sha256:481491c923cb9b432b23f4bd6f64599d82180b2ed1c7f558bc1f8335256c64e3",
+    #  "image": "registry.stage.redhat.io/rhdh/rhdh-operator-bundle@sha256:478991c923cb9b432b23f4bd6f64599d82180b2ed1c7f558bc1f8335256c64e3",
     imageWithSHA=$(grep "${bundle}" -A2 $catalogJson | grep image | sed -r -e 's@.+image": "(.+)".+@\1@')
     # alternative query for quay.io/rhdh/iib containers
     if [[ ! $imageWithSHA ]]; then # instead of channel.json or catalog.json, use rhdhoperator.v1.0.0.bundle.json
