@@ -231,7 +231,7 @@ RUN hadFail=0; for d in $(find /tmp -name "yarn*log*" || true) $(find /tmp/xfs-*
 
 # Stage 5 - Build the runner image
 # https://registry.access.redhat.com/ubi9/nodejs-22-minimal
-FROM registry.access.redhat.com/ubi9/nodejs-22-minimal:9.6-1755749564 AS runner
+FROM registry.access.redhat.com/ubi9/nodejs-22-minimal:9.6-1758213587 AS runner
 USER 0
 
 ENV EXTERNAL_SOURCE_NESTED=.
@@ -326,7 +326,7 @@ ENV SUMMARY="Red Hat Developer Hub container" \
     DESCRIPTION="Red Hat Developer Hub container" \
     RHDH_VERSION="1.8.0" \
     BACKSTAGE_VERSION="1.39.1" \
-    UPSTREAM_REPO="https://github.com/redhat-developer/rhdh/tree/main @ 343eff35" \
+    UPSTREAM_REPO="https://github.com/redhat-developer/rhdh/tree/main @ a7749e74" \
     MIDSTREAM_REPO="https://gitlab.cee.redhat.com/rhidp/rhdh/-/commits/rhdh-1-rhel-9" \
     PRODNAME="rhdh" \
     COMPNAME="hub"
