@@ -183,11 +183,15 @@ Before declaring RC, you should make sure we've updated to the latest base image
 
 ```
 cd /path/to/gh/rhd/rhdh/
-/path/to/gl/rhidp/rhdh/build/scripts/updateBaseImages.sh -b release-1.6 -w $(pwd) -f \*ockerfile -maxdepth 5
+/path/to/gl/rhidp/rhdh/build/scripts/updateBaseImages.sh -b release-1.7 -w $(pwd) -f \*ockerfile -maxdepth 5
 
 cd /path/to/gh/rhd/rhdh-operator/
-/path/to/gl/rhidp/rhdh/build/scripts/updateBaseImages.sh -b release-1.6 -w $(pwd) -f \*ockerfile -maxdepth 5
+/path/to/gl/rhidp/rhdh/build/scripts/updateBaseImages.sh -b release-1.7 -w $(pwd) -f \*ockerfile -maxdepth 5
 ```
+
+### Konflux pipeline tekton tasks
+
+Before declaring RC, you should make sure we're updated to the latest tekton tasks. Run link:../.tekton/updateDigests.sh[updateDigests.sh] to update tekton tasks in pipelines. You can use the `--minor` flag to update from 0.y to 0.y+1, but bear in mind you may need to follow the migration steps to adjust the pipeline yaml after changing to the new tag version.
 
 ### Does this new release add or remove support for OCP versions?
 
@@ -585,15 +589,19 @@ Verify that the hub and operator repos' latest commits have been built, and that
 1. **Disable scheduled pipelines** to prevent unapproved changes:  
 Go to link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/pipeline_schedules[pipeline schedules], uncheck *Activated*, and save changes.
 
-2. If needed, **spin a new operator-bundle build**. 
+2. Run link:../build/scripts/updateBaseImages.sh[updateBaseImages.sh] against the upstream repos link:https://github.com/redhat-developer/rhdh/[rhdh] and link:https://github.com/redhat-developer/rhdh-operator/[rhdh-operator] to update base images in containerfiles.
 
-3. **Update the FBCs** using https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1-rhel-9/build/scripts/renderCatalogs.sh[renderCatalogs.sh].
+3. Update link:../.tekton/[Tekton pipeline task versions] using link:../.tekton/updateDigests.sh[updateDigests.sh].
 
-4. Verify FBC content. If replacements are incorrect, modify `catalog-template.json` and rerun the script. **NOTE**: if multiple releases are in flight, remember to re-render FBCs after each GA push in order to not accidentally delete freshly released operators. 
+4. If needed, **spin a new operator-bundle build**. 
 
-5. Release containers to stage.
+5. **Update the FBCs** using https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1-rhel-9/build/scripts/renderCatalogs.sh[renderCatalogs.sh].
 
-6. Notify team about RC via slack and email.
+6. Verify FBC content. If replacements are incorrect, modify `catalog-template.json` and rerun the script. **NOTE**: if multiple releases are in flight, remember to re-render FBCs after each GA push in order to not accidentally delete freshly released operators. 
+
+7. Release containers to stage.
+
+8. Notify team about RC via slack and email.
 | Release Engineering, PM, QE
 
 | **5. GA Preparation** | Update documentation and release notes.
