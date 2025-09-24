@@ -376,7 +376,9 @@ for OCP_VERSION in ${OCP_VERSIONS}; do
 
     # switch quay.io/rhdh references that will fail in a push to production Release
     if [[ $USE_RHEC -eq 1 ]]; then 
-      sed -i "${CATALOG_DIR}/v${OCP_VERSION}/catalog-template.json" -r -e "s|quay.io/rhdh|registry.redhat.io/rhdh|g"
+      sed -i "${CATALOG_DIR}/v${OCP_VERSION}/catalog-template.json" -r \
+        -e "s|quay.io/rhdh|registry.redhat.io/rhdh|g" \
+        -e "s|registry.redhat.io/rhdh/rhdh-operator-bundle-sealights|quay.io/rhdh/rhdh-operator-bundle-sealights|g"
     fi
 
     ############################################## render catalog content from the template ##############################################
@@ -400,7 +402,8 @@ for OCP_VERSION in ${OCP_VERSIONS}; do
 
     # if using build-image-index=false in .tekton push pipeline, append the arch to the tags (like in OSBS)
     # set to "" and re-render if switching back to build-image-index=true
-    arch="-$(uname -m)"
+    # arch="-$(uname -m)"
+    arch="-x86_64"
 
     # echo "[INFO] Render catalogs/v${OCP_VERSION}/Containerfile for channels=fast${fastYChannel}"
     latestNextTag=""; if [[ $latestNext ]]; then latestNextTag=",${latestNext}-v${OCP_VERSION}${arch}"; fi
