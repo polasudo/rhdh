@@ -74,10 +74,6 @@ spec:
     - description: Private output image reference used for Sealights artifacts
       name: sealights-output-image
       type: string
-    - default: "linux/x86_64"
-      description: List of platforms to build the image for
-      name: build-platforms
-      type: array
     - description: If you have a dedicated Dockerfile for Sealights instrumented image,
         use this parameter to point to that file
       name: sealights-dockerfile
@@ -438,12 +434,7 @@ spec:
         operator: in
         values:
         - "false"
-    - matrix:
-        params:
-        - name: image-platform
-          value:
-          - $(params.build-platforms)
-      name: clair-scan
+    - name: clair-scan
       params:
       - name: image-digest
         value: $(tasks.build-image-index.results.IMAGE_DIGEST)
