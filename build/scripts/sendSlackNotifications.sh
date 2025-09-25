@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 PWD="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 RELEASE_STATE='RC'
