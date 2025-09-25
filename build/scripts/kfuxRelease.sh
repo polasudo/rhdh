@@ -35,6 +35,7 @@ OCP_VERSIONS=$(yq -r '.SUPPORTED_VERSIONS[]' "$CONFIG_FILE" | tr '\n' ' ')
 OCP_VERSIONS="$OCP_VERSION_BASE $OCP_VERSIONS"
 BUNDLE_TAG_OR_SHA=""
 SNAPSHOT_OVERRIDE=""
+SNAPSHOT_STATE="completed" # override to "queued" to find other snapshots?
 midstreamCommitSHA=""
 CVEListFile="" # full path to a .csv file containing CVE ids and container references
 advisoryType=""
@@ -160,6 +161,7 @@ while [[ "$#" -gt 0 ]]; do
     '--force') FORCE=1;;
     '--fbc') BUNDLE_TAG_OR_SHA=$2; shift 1;;
     '--snapshot') SNAPSHOT_OVERRIDE=$2; shift 1;;
+    '--snapshot-state') SNAPSHOT_STATE="$2"; shift 1;;
     '--commit')   midstreamCommitSHA="$2"; shift 1;;
     '-c') CONTAINER="$2"; shift 1;;
     '--cve') CVEListFile="$2"; shift 1;;
@@ -624,7 +626,7 @@ if [[ $BUNDLE_TAG_OR_SHA ]]; then
       echo "Found snapshot(s):"
       echo -e "finish timestamp\tsnapshot\tpipelinerun\t\tmidstreamCommitSHA"
     fi
-    yq -r '.items[]|select(.metadata.annotations."pac.test.appstudio.openshift.io/branch" == "'"${BRANCH}"'")|select(.metadata.labels."pac.test.appstudio.openshift.io/state" == "completed")'"$extraSelect"'|.metadata.labels."test.appstudio.openshift.io/pipelinerunfinishtime" + "\t" + .metadata.name + "\t" + .metadata.labels."appstudio.openshift.io/build-pipelinerun" + "\t" + .metadata.labels."pac.test.appstudio.openshift.io/sha"' "/tmp/fbc-snapshots-${OCP_VERSION}.yaml" > "/tmp/fbc-snapshots-${OCP_VERSION}.csv"
+    yq -r '.items[]|select(.metadata.annotations."pac.test.appstudio.openshift.io/branch" == "'"${BRANCH}"'")|select(.metadata.labels."pac.test.appstudio.openshift.io/state" == "'"${SNAPSHOT_STATE}"'")'"$extraSelect"'|.metadata.labels."test.appstudio.openshift.io/pipelinerunfinishtime" + "\t" + .metadata.name + "\t" + .metadata.labels."appstudio.openshift.io/build-pipelinerun" + "\t" + .metadata.labels."pac.test.appstudio.openshift.io/sha"' "/tmp/fbc-snapshots-${OCP_VERSION}.yaml" > "/tmp/fbc-snapshots-${OCP_VERSION}.csv"
     # 1734044836	fbc-4-18-mhchr	fbc-4-18-on-push-s687p	76ada30bafa4341c6032496c1aa64d8c8a452947
     # 1734194561	fbc-4-18-d766t	fbc-4-18-on-push-g9fpp	7e6c56d5dccb86c37e26672e40ed3a0a9bcd28a2
     # get the 5 most recent ones 
@@ -648,7 +650,7 @@ if [[ $BUNDLE_TAG_OR_SHA ]]; then
     # TODO should we reverse the sort and start processing them from most recent to oldest, find the iib image, and extract that to pull out the referenced operator-bundle image for this release; stop after the first good one
 
     # pick the last (or only) snapshot
-    SNAPSHOT=$(yq -r '.items[]|select(.metadata.annotations."pac.test.appstudio.openshift.io/branch" == "'"${BRANCH}"'")|select(.metadata.labels."pac.test.appstudio.openshift.io/state" == "completed")'"$extraSelect"'|.metadata.name' "/tmp/fbc-snapshots-${OCP_VERSION}.yaml" | tail -1)
+    SNAPSHOT=$(yq -r '.items[]|select(.metadata.annotations."pac.test.appstudio.openshift.io/branch" == "'"${BRANCH}"'")|select(.metadata.labels."pac.test.appstudio.openshift.io/state" == "'"${SNAPSHOT_STATE}"'")'"$extraSelect"'|.metadata.name' "/tmp/fbc-snapshots-${OCP_VERSION}.yaml" | tail -1)
     
     if [[ ! $SNAPSHOT ]] || [[ ! $pipelinerunfinishtime ]]; then
       echo -e "${red}[ERROR] Could not find a snapshot! Try different values for the --fbc, --snapshot, and/or --commit flags.${norm}"; exit 1
