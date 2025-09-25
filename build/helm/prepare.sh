@@ -601,5 +601,11 @@ ${green}To install this chart, run the following commands against your OCP clust
 "
 fi
 
-# delete temp folders
-rm -fr "${HELM_DIR}" "${CATALOG_DIR}" "${CATALOG_DIR}-2" 
+if [[ $PUBLISH -eq 1 ]]; then
+    # delete temp folders
+    rm -fr "${HELM_DIR}" "${CATALOG_DIR}" "${CATALOG_DIR}-2" 
+else
+    echo "To clean up, run this:
+rm -fr \"${HELM_DIR}\" \"${CATALOG_DIR}\" \"${CATALOG_DIR}-2\""
+
+fi
