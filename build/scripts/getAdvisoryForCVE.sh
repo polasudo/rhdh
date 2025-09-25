@@ -55,10 +55,11 @@ if [[ ! $RHDH_VERSION ]]; then usage; exit 1; fi
 if [[ ! $CVEListFile ]] && [[ ! $CVE_ID ]]; then usage; exit 1; fi
 
 if [[ -f $CVEListFile ]]; then 
+      # read CVEListFile: find the CVE (2), and Resolution (7) columns; combine with " ; "; strip spaces; omit the header row with tail
     for line in $(awk -F "\"*,\"*" '{print $2,";",$7}' "$CVEListFile" | tr -d " " | tail --lines=+2); do 
         # echo $line
         CVE_STATUS="$(echo "${line#*;}" | tr -d '\n')"
-        if [[ $CVE_STATUS != "Done"* ]]; then
+        if [[ $CVE_STATUS != *"ReleasePending"* ]] && [[ $CVE_STATUS != "Done"* ]]; then
             # echo "[WARN] Skip $line"
             true
         else
