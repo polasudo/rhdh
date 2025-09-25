@@ -404,11 +404,11 @@ function updateRHDHVersions() {
 	branchVersion="${the_branch#release-}"
 
 	# do not make this change in main branch, only for release-1.y branches!
+	count=0
 	if [[ -d "$docsDir" ]] && [[ ! ${SOURCE_BRANCH} ]]; then
 		echo "Updating docs URLs with RHDH version ${branchVersion} in $docsDir"
-		while IFS= read -r -d '' file;
-		do
-			(( count++ ))
+		while IFS= read -r -d '' file; do
+			(( count = count + 1 ))
 			echo " - Updating $file"
 			sed -i "$file" -r \
 				-e "s~(https://docs.redhat.com/en/documentation/red_hat_developer_hub)(/([0-9]+\.[0-9]+)|/latest)?~\1/${branchVersion}~g" 
