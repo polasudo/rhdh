@@ -430,6 +430,17 @@ git checkout rhdh-1.7-rhel-9
 
 ### Chart release (15 mins)
 
+. [ ] Log into quay.io as the rhdh-bot so you can upload the new chart artifact. The bot's token can be found at in link:https://vault.bitwarden.com/#/vault?organizationId=cd864c42-0667-4521-afb0-aae600ef844c&folderId=fe39131e-178d-4940-8fb9-b1e8014f2d34&itemId=cf9f66a9-e522-49a1-9679-b1e801543ffc&action=view[bitwarden].
++
+```
+REGISTRY="quay.io"
+QUAY_USER="rhdh+rhdh_bot"
+QUAY_TOKEN="..." # see 
+echo -n "[INFO]: Log into $REGISTRY ... "
+echo "${QUAY_TOKEN}" | skopeo login -u="${QUAY_USER}" --password-stdin ${REGISTRY}
+echo "${QUAY_TOKEN}" | oras login -u="${QUAY_USER}" --password-stdin ${REGISTRY} 
+```
++
 . [ ] Verify the latest rhdh-hub tag you want to release exists at https://catalog.redhat.com/software/containers/rhdh/rhdh-hub-rhel9/645bd4c15c00598369c31aba?image=68a46041e06f8cfcc4f7904e, eg., `1.7.0`
 +
 . [ ] link:../build/helm/prepare.sh[Push the helm chart].
