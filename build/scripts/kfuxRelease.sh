@@ -92,6 +92,9 @@ Options:
   --bz               Space or comma separated list of bugzilla(s) to include in this RHBA. Useful for linking to upstream base image issues 
                      fixed in a .z respin. See RHIDP-8185 for how to get the list of BZs for a CVE.
 
+  --snapshot         Rather than pick the latest snapshot, use a specific older one, eg., rhdh-1-6-lsbrr
+  --snapshot-state   Search for snapshots in a different state than the default 'completed', eg. 'queued'
+
   --stage, --prod    Push to the stage or prod version of the RH Ecosystem Catalog
   -c                 Space-separated list of containers to release
                      use \"rhdh-operator-bundle:1.y-zzz\" to release a specific bundle and its operands (hub + operator); or,
@@ -136,6 +139,7 @@ Options:
 
   --fbc              Publish FBCs for the specified bundle tag, eg., 1.3-133 or 1.4.2
   --snapshot         Rather than pick the latest snapshot, use a specific older one, eg., fbc-4-18-znfg9
+  --snapshot-state   Search for snapshots in a different state than the default 'completed', eg. 'queued'
   --commit           Rather than pick the latest snapshot, use a specific older one matching a commit SHA, eg., 8ce7098e
   -o                 OCP versions for which to release FBC; default '$OCP_VERSIONS'
 
