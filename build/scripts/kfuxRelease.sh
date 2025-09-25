@@ -293,12 +293,17 @@ if [[ $CONTAINER ]]; then
     repo="${image%:*}"   # e.g., quay.io/rhdh/rhdh-hub-rhel9
     # tag="${image##*:}"   # e.g., 1.5-203
 
-    SHA=$(skopeo inspect "docker://${image}" | jq -r '.Digest' | tr ":" "-")
+    SHA=$(skopeo inspect "docker://${image}" 2>/dev/null | jq -r '.Digest' | tr ":" "-")
+    # if we checked registry.redhat.io/rhdh/rhdh-hub-rhel9:1.6-110 and couldn't find it, then we need to get the SHA another way
+    if [[ ! $SHA ]]; then 
+      # check quay for the matching tag instead
+      SHA=$(skopeo inspect "docker://${image/registry.redhat.io/quay.io}" | jq -r '.Digest' | tr ":" "-")
+    fi
     SBOM_TAG="${SHA}.sbom"
 
     # Use skopeo to inspect the image we want (using list-tags takes ~9s; inspect takes 0.02s)
     if skopeo inspect --raw "docker://${repo}:${SBOM_TAG}" >/dev/null 2>&1; then
-      if [[ ! $QUIET ]]; then echo -e "${green} * ${repo}:${SBOM_TAG} (for $image)${norm}"; fi
+      if [[ ! $QUIET ]]; then echo -e "${green} * ${repo}:${SBOM_TAG} (for ${image#*/})${norm}"; fi
     else
       echo -e "${red}[ERROR]: ${repo}:${SBOM_TAG} NOT found for $image ! Rebuild required to create SBOM.${norm}"
       exit 1
@@ -334,16 +339,16 @@ if [[ $CONTAINER ]]; then
   MID_SHA=${MID_SHA/sha256:/}
 
   # using midstream commit SHA and the container image, find Snapshot(s_)
-  if [[ $DEBUG -eq 1 ]]; then set -x; fi
   if [[ $SNAPSHOT_OVERRIDE ]]; then
     echo; echo -e "${blue}[INFO] Use snapshot override = $SNAPSHOT_OVERRIDE${norm}"
     SNAPSHOT="${SNAPSHOT_OVERRIDE}"
   else 
+    if [[ $DEBUG -eq 1 ]]; then set -x; fi
     SNAPSHOT=$(oc -n rhdh-tenant get Snapshots --sort-by=.metadata.creationTimestamp \
       --selector='pac.test.appstudio.openshift.io/original-prname='"${CONTAINER/-rhel9/}"'-'"${RHDH_VERSION/./-}"'-on-push,pac.test.appstudio.openshift.io/sha='"${MID_SHA}"| \
       sed -r -e '/NAME +AGE/d' -e "s/([a-z0-9-]+)\ +([0-9smhdy]+)/\1/g")
-    fi
-  if [[ $DEBUG -eq 1 ]]; then set +x; fi
+    if [[ $DEBUG -eq 1 ]]; then set +x; fi
+  fi
 
   if [[ ! $SNAPSHOT ]]; then
     echo -e "${red}[ERROR] No Snapshots found for ${CONTAINER/-rhel9/}-${RHDH_VERSION/./-}-on-push and sha=${MID_SHA}! ${norm}"
