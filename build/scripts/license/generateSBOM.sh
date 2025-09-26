@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 if ! command -v podman &> /dev/null || ! command -v syft &> /dev/null; then
   echo "Error: Both podman and syft must be installed. To install syft, see https://github.com/anchore/syft/tree/main?tab=readme-ov-file#recommended"

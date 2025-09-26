@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/usr/bin/env bash -e
 #
 # Copyright (c) 2018-2021 Red Hat, Inc.
 # This program and the accompanying materials are made

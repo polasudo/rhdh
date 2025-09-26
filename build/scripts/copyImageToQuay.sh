@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # Copyright (c) Red Hat, Inc.
 # This program and the accompanying materials are made

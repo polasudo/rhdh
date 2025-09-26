@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # Copyright (c) 2024 Red Hat, Inc.
 # This program and the accompanying materials are made
@@ -128,7 +128,7 @@ prepareOSXARM64() {
 
 		echo "🔧 Adding a wrapper for skopeo..."
 		cat <<'EOF' | sudo tee /usr/local/bin/skopeo > /dev/null
-#!/bin/bash
+#!/usr/bin/env bash
 /opt/homebrew/bin/skopeo "\$@" --override-arch=amd64 --override-os=linux
 EOF
 		sudo chmod +x /usr/local/bin/skopeo
