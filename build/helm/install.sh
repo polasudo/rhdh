@@ -1,4 +1,4 @@
-#!/usr/bin/env bash  -e
+#!/usr/bin/env bash
 #
 # Copyright (c) 2024 Red Hat, Inc.
 # This program and the accompanying materials are made
@@ -8,6 +8,8 @@
 # SPDX-License-Identifier: EPL-2.0
 #
 # install a helm chart with the correct global.clusterRouterBase
+
+set -e
 
 # default namespace if none set
 namespace="rhdh-helm"

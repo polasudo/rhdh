@@ -1,4 +1,4 @@
-#!/usr/bin/env bash -e
+#!/usr/bin/env bash
 #
 # Copyright (c) 2021-2022 Red Hat, Inc.
 # This program and the accompanying materials are made
@@ -10,6 +10,7 @@
 # this script will extract the filesystem of a container to a folder 
 # so you can browse its contents. Also works with scratch images
 
+set -e
 DELETE_LOCAL_IMAGE=""
 QUIET=""
 TMPDIR="/tmp"

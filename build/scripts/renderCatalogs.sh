@@ -1,4 +1,4 @@
-#!/usr/bin/env bash -e
+#!/usr/bin/env bash
 #
 # Copyright (c) 2024 Red Hat, Inc.
 # This program and the accompanying materials are made
@@ -9,6 +9,8 @@
 #
 
 # render IIB catalog sources as FBCs for use with Konflux Tekton pipelines
+
+set -e 
 
 # defaults for RHDH 1.4+
 package_name="rhdh"

@@ -1,4 +1,4 @@
-#!/usr/bin/env bash -e
+#!/usr/bin/env bash
 #
 # Copyright (c) 2018-2021 Red Hat, Inc.
 # This program and the accompanying materials are made
@@ -7,6 +7,8 @@
 #
 # SPDX-License-Identifier: EPL-2.0
 #
+
+set -e 
 
 # script to query latest tags of the FROM repos, and update Dockerfiles using the latest base images
 # REQUIRES: 
