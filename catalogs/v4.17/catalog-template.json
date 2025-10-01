@@ -427,7 +427,7 @@
     },
     {
       "schema": "olm.bundle",
-      "image": "quay.io/rhdh/rhdh-operator-bundle@sha256:b4079f412952b8214ac7324980c0872e5befd1e00e59570825e604227d5ccdeb"
+      "image": "quay.io/rhdh/rhdh-operator-bundle@sha256:adfa8924ba3d79e970dfda63d28d4d0eb23ab003d65c28e46750bbf6d856e3c5"
     }
   ]
 }
