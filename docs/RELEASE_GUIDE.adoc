@@ -401,7 +401,10 @@ Christophe Fargette <jfargett@redhat.com>
 
 image::images/cve-list-export.png[File > Download > Comma Separated Values (.csv)]
 
-. Trigger the Konflux release for the container images to RHEC, passing the list of CVEs, and **any JIRAs you want to be autoclosed**, into the Release CR yaml file. You might want to include the `1.y.z` release Feature and Epic issues, plus any other important fixes you want to call attention to in the RHBA or RHSA.
+. Trigger the Konflux release for the container images to RHEC.
+** When creating the Release CR yaml, include the **list of CVEs**, and 
+** the `1.y.z` Test Plan and release Feature and Epic JIRAs, plus any noteworthy fixes you want mentioned in advisory.
+** Konflux will add a link to the RHSA or RHBA link in each JIRA. 
 +
 ```
 # choose the correct branch
@@ -410,7 +413,7 @@ git checkout rhdh-1.7-rhel-9
 ./build/scripts/kfuxRelease.sh -c help
 
 # use the CVE list file you exported from the RHDH CVE Management tracker above
-# with list of JIRAs to close (recommended), and snapshot override (if needed)
+# with list of JIRAs to close (auto-closes JIRAs and provides RHSA link), and snapshot override (if needed)
 ./build/scripts/kfuxRelease.sh --prod -v 1.7.1 -c rhdh-operator-bundle:1.7-51 \
     --cve ~/tmp/cve_csv_exports/1.7/RHDH\ CVE\ Management\ -\ 1.7.1.csv  \
     --issues RHIDP-6469,RHIDP-6937,RHIDP-6470 \
@@ -428,16 +431,18 @@ NOTE: To get access to the rhtap-releng namespace to watch managed pipelines, se
 . Release notes should be updated with a link to the latest RHBA or RHSA advisory.
 
 ====
-* The process for getting the link is a work in progress. For 1.6.0, you could use link:../build/scripts/getAdvisoryForCVE.sh[getAdvisoryForCVE.sh] but the VEX service may take 24hrs to show the data needed.
+* The process for getting the link is a work in progress.
 
-* Data is also available at https://gitlab.cee.redhat.com/releng/advisories/-/tree/main/data/advisories/rhdh-tenant
+** If your RHSA included JIRAs, you can simply open one of those JIRAs to see the link to the RHSA
+*** https://issues.redhat.com/browse/RHIDP-8806?focusedId=28128589&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-28128589
 
-* Or, you can find the rhdh-hub-rhel9 container image in RHEC, choose the tag you want, and click the Security tab to find the advisory:
+** Alternatively, data is available at https://gitlab.cee.redhat.com/releng/advisories/-/tree/main/data/advisories/rhdh-tenant
 
-** 1.6.2: https://catalog.redhat.com/software/containers/rhdh/rhdh-hub-rhel9/645bd4c15c00598369c31aba?image=68629c00516df09321576900 => https://access.redhat.com/errata/RHSA-2025:9966
+** Or, find the rhdh-hub-rhel9 container image in RHEC, choose the tag you want, and click the Security tab to find the advisory:
+*** 1.6.2: https://catalog.redhat.com/software/containers/rhdh/rhdh-hub-rhel9/645bd4c15c00598369c31aba?image=68629c00516df09321576900 => https://access.redhat.com/errata/RHSA-2025:9966
 
-* Once you have the RHSA link, submit a PR to the docs repo to add a link into `modules/release-notes/ref-release-notes-fixed-security-issues.adoc` - here's an example:
-** https://github.com/redhat-developer/red-hat-developers-documentation-rhdh/pull/1239/files
+* Once you have the RHSA link, submit a new PR or amend and existing one in flightto add a link into `modules/release-notes/ref-release-notes-fixed-security-issues.adoc` - here's an example:
+** https://github.com/redhat-developer/red-hat-developers-documentation-rhdh/pull/1415/commits
 
 * In future this may be done automatically. TODO: https://issues.redhat.com/browse/RHIDP-7886
 ====
@@ -565,6 +570,16 @@ export GITHUB_TOKEN=rhdh-bot-token-goes-here
 ./build/scripts/tagRelease.sh -v 1.7.0 -t 1.7 -gh release-1.7 --midstream-branch rhdh-1.7-rhel-9 --clean --force-update --nobuild
 ```
 Note: If tags already exist but version bump PRs were not created, you can rerun the script with the `--force-update` flag to resolve this. Use `--skip-gh`, `--skip-gl`, `--skip-krd` and `--skip-pyxis` if those steps were completed previously.
+
+### Monitor community builds for rhdh-local
+
+Once the new `1.y.z` tag exists, a link:https://github.com/redhat-developer/rhdh/actions/workflows/next-build-image.yaml?query=event%3Apush[GH action] will be triggered to rebuild the rhdh-community image from that tag in order to provide an arm64 version. 
+
+* https://github.com/redhat-developer/rhdh/actions/workflows/next-build-image.yaml?query=event%3Apush
+
+* https://quay.io/repository/rhdh-community/rhdh?tab=tags
+
+Check back in about an hour to see if the new tag is available, and retrigger the action if it fails. You should see a new `1.y.z` tag in link:https://quay.io/repository/rhdh-community/rhdh?tab=tags[quay.io/rhdh-community/rhdh]. 
 
 ### [TEST] Once images, chart, and tags are available
 
@@ -705,6 +720,8 @@ Notify QE and Security for final validation. | Security, Docs, QE
 ``` | Release Engineering
 
 | **7. Post-Release** | 
+
+Verify new tag is available in link:https://quay.io/repository/rhdh-community/rhdh?tab=tags[quay.io/rhdh-community/rhdh] for use with rhdh-local.
 
 Smoke test install/update with Helm and Operator.
 
