@@ -220,7 +220,7 @@ data:
                 - ./install-dynamic-plugins.sh
                 - /dynamic-plugins-root
               # image will be replaced by the value of the `RELATED_IMAGE_backstage` env var, if set
-              image: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:b3ce1ff366a4413a818d5d9f494efbdd78f9364d28e62d75d09cfee6b6cf2808
+              image: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:979215c0ce3f88cd3ae6bf6047cb4b71d5f74e035761d872f6184770cc5ebc26
               imagePullPolicy: IfNotPresent
               securityContext:
                 readOnlyRootFilesystem: true
@@ -259,7 +259,7 @@ data:
           containers:
             - name: backstage-backend
               # image will be replaced by the value of the `RELATED_IMAGE_backstage` env var, if set
-              image: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:b3ce1ff366a4413a818d5d9f494efbdd78f9364d28e62d75d09cfee6b6cf2808
+              image: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:979215c0ce3f88cd3ae6bf6047cb4b71d5f74e035761d872f6184770cc5ebc26
               imagePullPolicy: IfNotPresent
               args:
                 - "--config"
