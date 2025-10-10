@@ -48,4 +48,5 @@ LABEL operators.operatorframework.io.bundle.mediatype.v1=registry+v1 \
       usage="" \
       konflux.additional-tags="next, 1.8, 1.8-110" \
       distribution-scope="public" \
-      url="https://red.ht/rhdh"
+      url="https://red.ht/rhdh" \
+      cpe="cpe:/a:redhat:rhdh:1.8::el9"

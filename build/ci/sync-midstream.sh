@@ -729,7 +729,8 @@ LABEL summary="\$SUMMARY" \\
       usage="" \\
       konflux.additional-tags="${latestNextTag}\${CI_X_VERSION}.\${CI_Y_VERSION}, \${CI_X_VERSION}.\${CI_Y_VERSION}-\${RELEASE_NUMBER}" \\
       distribution-scope="public" \\
-      url="https://red.ht/rhdh"
+      url="https://red.ht/rhdh" \\
+      cpe="cpe:/a:redhat:rhdh:\${CI_X_VERSION}.\${CI_Y_VERSION}::el9"
 EOT
   echo "[INFO] Added metadata to $TMPDIR/hub.Dockerfile.foot"
 
@@ -777,7 +778,8 @@ LABEL summary="\$SUMMARY" \\
       usage="" \\
       konflux.additional-tags="${latestNextTag}\${CI_X_VERSION}.\${CI_Y_VERSION}, \${CI_X_VERSION}.\${CI_Y_VERSION}-\${RELEASE_NUMBER}" \\
       distribution-scope="public" \\
-      url="https://red.ht/rhdh"
+      url="https://red.ht/rhdh" \\
+      cpe="cpe:/a:redhat:rhdh:\${CI_X_VERSION}.\${CI_Y_VERSION}::el9"
 EOT
   echo "[INFO] Added metadata to $TMPDIR/operator.Dockerfile.foot"
 fi
@@ -828,7 +830,8 @@ LABEL operators.operatorframework.io.bundle.mediatype.v1=registry+v1 \\
       usage="" \\
       konflux.additional-tags="${latestNextTag}\${CI_X_VERSION}.\${CI_Y_VERSION}, \${CI_X_VERSION}.\${CI_Y_VERSION}-\${RELEASE_NUMBER}" \\
       distribution-scope="public" \\
-      url="https://red.ht/rhdh"
+      url="https://red.ht/rhdh" \\
+      cpe="cpe:/a:redhat:rhdh:\${CI_X_VERSION}.\${CI_Y_VERSION}::el9"
 EOT
   echo "[INFO] Added metadata to $TMPDIR/operator-bundle.Dockerfile.foot"
 fi
