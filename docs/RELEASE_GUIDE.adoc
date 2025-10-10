@@ -81,7 +81,7 @@ Details:
 
 .. link:https://gitlab.cee.redhat.com/prodsec/product-definitions[Product Security] (to add new RHDH versions)
 .. link:https://gitlab.cee.redhat.com/releng/pyxis-repo-configs[Pyxis repo configs] (to add new plugin repos for the catalog)
-.. link:https://gitlab.cee.redhat.com/releng/konflux-release-data[Konflux release data] (to add new link:https://konflux-ui.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/ns/rhdh-tenant/release/release-plan-admission[RPAs], link:https://konflux-ui.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/ns/rhdh-tenant/release[RPs], link:https://konflux-ui.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/ns/rhdh-tenant/applications[Applications], and link:https://konflux-ui.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/ns/rhdh-tenant/applications/rhdh-1-7/components[Components] (including new plugin catalog builders and plugins).
+.. link:https://gitlab.cee.redhat.com/releng/konflux-release-data[Konflux release data] to add new link:https://konflux-ui.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/ns/rhdh-tenant/release/release-plan-admission[RPAs], link:https://konflux-ui.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/ns/rhdh-tenant/release[RPs], and link:https://konflux-ui.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/ns/rhdh-tenant/applications[Applications] (including new plugin catalog builders and plugins).
 
 NOTE: **[1.7+]** link:../build/scripts/tagRelease.sh[tagRelease.sh] should generate MRs for all three repos mentioned above, including adding new plugins with: link:https://gitlab.cee.redhat.com/rhidp/rhdh-plugin-catalog/-/blob/rhdh-1-rhel-9/build/scripts/generatePyxisConfigForPlugins.sh[generatePyxisConfigForPlugins.sh] and link:https://gitlab.cee.redhat.com/rhidp/rhdh-plugin-catalog/-/blob/rhdh-1-rhel-9/build/scripts/generateKonfluxReleaseDataForPlugins.sh[generateKonfluxReleaseDataForPlugins.sh]. 
 
@@ -232,30 +232,6 @@ or
 ./build/scripts/triggerRespin.sh -v 1.7 hub -k 
 ```
 +
-[[bash-requirement-note]]
-[NOTE]
-====
-[🍎 macOS_arm64]
-`triggerRespin.sh`,`sync-midstream.sh`, `kfuxRelease.sh` and other scripts require GNU bash 5.0 or later. If you're using an older version or the default macOS bash, please refer to <<prepare-os-arm64, macOS preparation note>> to install GNU bash and skip `install bash` part:
-
-. Install GNU bash using Homebrew:
-+
-```
-brew install bash
-```
-. Add the Homebrew bash to your PATH by adding this line to your shell profile (e.g., `~/.zshrc` or `~/.bash_profile`):
-+
-```
-export PATH="/opt/homebrew/bin:$PATH"
-```
-. Update the script to use the new bash by running:
-+
-```
-sed -i 's|/bin/bash|/usr/bin/env bash|' ./build/scripts/triggerRespin.sh
-sed -i 's|/bin/bash|/usr/bin/env bash|' ./build/scripts/sync-midstream.sh
-```
-Alternatively, you can manually edit script files by changing the shebang line from `\#!/bin/bash` to `#!/usr/bin/env bash` at the top.
-====
 NOTE: It may take up to 50 minutes for the new images to be available. You can monitor the progress in https://quay.io/repository/rhdh/rhdh-hub-rhel9?tab=tags and https://quay.io/repository/rhdh/rhdh-rhel9-operator?tab=tags.
 +
 . To create a new operator-bundle, do this (latest or next flag will be computed automatically):
@@ -635,11 +611,12 @@ image::images/comet-config.png[]
 ## Other considerations
 
 Ongoing through the quarter, remember to:
+
 . Update the link:../build/containerfiles/[gitlab pipeline runner images] at least once every quarter
 . Monitor GH-GL syncs and pipelines, as things can fail unexpectedly on gitlab runners
 . Monitor quay image updates to ensure everything is kept current and fresh relative to upstream branches
 . Monitor new OCP release dates - add a new Application and Component for the new FBC in Konflux - see link:RHDH-Konflux-overview-onboarding.adoc[RHDH-Konflux-overview-onboarding]
-. Monitor OCP EOL dates - delete old FBC Applications from Konflux to stop building for that OCP version - see link:RHDH-Konflux-overview-onboarding.adoc[RHDH-Konflux-overview-onboarding] (TODO: delete link:https://konflux-ui.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/ns/rhdh-tenant/applications/fbc-4-15[4.15 FBC application] (EOL))
+. Monitor OCP EOL dates - delete old FBC Applications from Konflux to stop building for that OCP version (link:https://issues.redhat.com/browse/RHIDP-9064[RHIDP-9064]) - see link:RHDH-Konflux-overview-onboarding.adoc[RHDH-Konflux-overview-onboarding] 
 
 ---
 
