@@ -68,8 +68,7 @@ COPY $EXTERNAL_SOURCE_NESTED/yarn.lock ./
 # BEGIN COPY package.json files
 COPY $EXTERNAL_SOURCE_NESTED/plugins/scalprum-backend/package.json ./plugins/scalprum-backend/package.json
 COPY $EXTERNAL_SOURCE_NESTED/plugins/licensed-users-info-backend/package.json ./plugins/licensed-users-info-backend/package.json
-COPY $EXTERNAL_SOURCE_NESTED/plugins/dynamic-plugins-info/package.json ./plugins/dynamic-plugins-info/package.json
-COPY $EXTERNAL_SOURCE_NESTED/plugins/dynamic-plugins-info-backend/package.json ./plugins/dynamic-plugins-info-backend/package.json
+COPY $EXTERNAL_SOURCE_NESTED/packages/theme-wrapper/package.json ./packages/theme-wrapper/package.json
 COPY $EXTERNAL_SOURCE_NESTED/packages/plugin-utils/package.json ./packages/plugin-utils/package.json
 COPY $EXTERNAL_SOURCE_NESTED/packages/backend/package.json ./packages/backend/package.json
 COPY $EXTERNAL_SOURCE_NESTED/packages/app/package.json ./packages/app/package.json
@@ -325,7 +324,7 @@ ENV SUMMARY="Red Hat Developer Hub container" \
     DESCRIPTION="Red Hat Developer Hub container" \
     RHDH_VERSION="1.8.0" \
     BACKSTAGE_VERSION="1.42.5" \
-    UPSTREAM_REPO="https://github.com/redhat-developer/rhdh/tree/main @ a9f632c4" \
+    UPSTREAM_REPO="https://github.com/redhat-developer/rhdh/tree/main @ 7bc87eae" \
     MIDSTREAM_REPO="https://gitlab.cee.redhat.com/rhidp/rhdh/-/commits/rhdh-1-rhel-9" \
     PRODNAME="rhdh" \
     COMPNAME="hub"
@@ -338,13 +337,13 @@ LABEL summary="$SUMMARY" \
       com.redhat.component="$PRODNAME-$COMPNAME-container" \
       name="$PRODNAME/$PRODNAME-$COMPNAME-rhel9" \
       version="1.8" \
-      release="139" \
+      release="140" \
       license="ASLv2" \
       maintainer="RHDH Team <rhdh-bot@redhat.com>" \
       vendor="Red Hat, Inc." \
       io.openshift.expose-services="" \
       usage="" \
-      konflux.additional-tags="next, 1.8, 1.8-139" \
+      konflux.additional-tags="next, 1.8, 1.8-140" \
       distribution-scope="public" \
       url="https://red.ht/rhdh" \
       cpe="cpe:/a:redhat:rhdh:1.8::el9"
