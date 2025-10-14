@@ -114,9 +114,9 @@
             "skipRange": "<1.6.5"
         },
         {
-            "name": "rhdh-operator.v1.8.0",
+            "name": "rhdh-operator.v1.9.0",
             "replaces": "rhdh-operator.v1.7.1",
-            "skipRange": "<1.8.0"
+            "skipRange": "<1.9.0"
         }
     ]
 }
@@ -308,13 +308,13 @@
 }
 {
     "schema": "olm.channel",
-    "name": "fast-1.8",
+    "name": "fast-1.9",
     "package": "rhdh",
     "entries": [
         {
-            "name": "rhdh-operator.v1.8.0",
+            "name": "rhdh-operator.v1.9.0",
             "replaces": "rhdh-operator.v1.7.1",
-            "skipRange": "<1.8.0"
+            "skipRange": "<1.9.0"
         }
     ]
 }
@@ -4669,9 +4669,9 @@
 }
 {
     "schema": "olm.bundle",
-    "name": "rhdh-operator.v1.8.0",
+    "name": "rhdh-operator.v1.9.0",
     "package": "rhdh",
-    "image": "quay.io/rhdh/rhdh-operator-bundle-sealights@sha256:39effad59c86bf199777305745a6477fe817c2373d0bbef4c252ded0ab2f6d4c",
+    "image": "quay.io/rhdh/rhdh-operator-bundle-sealights@sha256:01a6346cec3ccf22b9c5d126dda3595f97948a0ad6d0b925b1344c426f38865d",
     "properties": [
         {
             "type": "olm.gvk",
@@ -4709,7 +4709,7 @@
             "type": "olm.package",
             "value": {
                 "packageName": "rhdh",
-                "version": "1.8.0"
+                "version": "1.9.0"
             }
         },
         {
@@ -4720,8 +4720,8 @@
                     "capabilities": "Seamless Upgrades",
                     "categories": "Developer Tools",
                     "certified": "true",
-                    "containerImage": "quay.io/rhdh/rhdh-rhel9-operator@sha256@sha256:ad6c68fe48879050db3e9d4a38af7c50f4f04fbac469d82fb874df21efee99ad",
-                    "createdAt": "2025-10-03T13:20:42Z",
+                    "containerImage": "quay.io/rhdh/rhdh-rhel9-operator@sha256@sha256:fa79c23e8d9d99595bf744dbadf3c1e2dcf19fadc11b5787f048874b1c542d61",
+                    "createdAt": "2025-10-14T17:57:10Z",
                     "description": "Red Hat Developer Hub is a Red Hat supported version of Backstage. It comes with pre-built plug-ins and configuration settings, supports use of an external database, and can help streamline the process of setting up a self-managed internal developer portal for adopters who are just starting out.",
                     "features.operators.openshift.io/cnf": "false",
                     "features.operators.openshift.io/cni": "false",
@@ -4738,7 +4738,7 @@
                     "operators.operatorframework.io/builder": "operator-sdk-v1.37.0",
                     "operators.operatorframework.io/project_layout": "go.kubebuilder.io/v4",
                     "repository": "https://gitlab.cee.redhat.com/rhidp/rhdh/",
-                    "skipRange": ">=1.0.0 <1.8.0",
+                    "skipRange": ">=1.0.0 <1.9.0",
                     "support": "Red Hat"
                 },
                 "apiServiceDefinitions": {},
@@ -4774,7 +4774,7 @@
                         }
                     ]
                 },
-                "description": "Red Hat Developer Hub is an enterprise-grade platform for building developer portals, containing a supported and opinionated framework. It comes with pre-built plug-ins and configuration settings, supports use of an external database, and can help streamline the process of setting up a self-managed internal developer portal for adopters who are just starting out. By implementing a unified and open platform designed to maximize developer skills, ease onboarding, and increase development productivity, focus can be centered on what really matters: writing great code. Red Hat Developer Hub also offers Software Templates to simplify the development process, which can reduce friction and frustration for development teams, boosting their productivity and increasing an organization's competitive advantage.\n\nSystem Architects can benefit by implementing a tailored platform with a complementary suite of verified and curated tools and components needed for operations teams to support developers—within a centralized, consistent location. Development teams can experience increased productivity, fewer development team obstacles, and simplified governance of technology choices with self-service and guardrails.\n\n## Telemetry data collection\n\nThe telemetry data collection feature is enabled by default. Red Hat Developer Hub sends telemetry data to Red Hat by using the `backstage-plugin-analytics-provider-segment` plugin. To disable this and to learn what data is being collected, see [Red Hat Developer Hub documentation on telemetry data collection](https://access.redhat.com/documentation/en-us/red_hat_developer_hub/1.8/html-single/administration_guide_for_red_hat_developer_hub/index#assembly-rhdh-telemetry_admin-rhdh).\n\n## More Information\n\n* [Red Hat Developer Hub Product Page](https://www.redhat.com/en/technologies/cloud-computing/developer-hub)\n* [Product Documentation](https://access.redhat.com/documentation/en-us/red_hat_developer_hub)\n* [Life Cycle](https://access.redhat.com/node/7025299)\n* [Support Policies](https://access.redhat.com/policy/developerhub-support-policy)\n* [Configuring external PostgreSQL databases](https://docs.redhat.com/en/documentation/red_hat_developer_hub/1.3/html/administration_guide_for_red_hat_developer_hub/assembly-configuring-external-postgresql-databases#assembly-configuring-external-postgresql-databases)\n",
+                "description": "Red Hat Developer Hub is an enterprise-grade platform for building developer portals, containing a supported and opinionated framework. It comes with pre-built plug-ins and configuration settings, supports use of an external database, and can help streamline the process of setting up a self-managed internal developer portal for adopters who are just starting out. By implementing a unified and open platform designed to maximize developer skills, ease onboarding, and increase development productivity, focus can be centered on what really matters: writing great code. Red Hat Developer Hub also offers Software Templates to simplify the development process, which can reduce friction and frustration for development teams, boosting their productivity and increasing an organization's competitive advantage.\n\nSystem Architects can benefit by implementing a tailored platform with a complementary suite of verified and curated tools and components needed for operations teams to support developers—within a centralized, consistent location. Development teams can experience increased productivity, fewer development team obstacles, and simplified governance of technology choices with self-service and guardrails.\n\n## Telemetry data collection\n\nThe telemetry data collection feature is enabled by default. Red Hat Developer Hub sends telemetry data to Red Hat by using the `backstage-plugin-analytics-provider-segment` plugin. To disable this and to learn what data is being collected, see [Red Hat Developer Hub documentation on telemetry data collection](https://access.redhat.com/documentation/en-us/red_hat_developer_hub/1.9/html-single/administration_guide_for_red_hat_developer_hub/index#assembly-rhdh-telemetry_admin-rhdh).\n\n## More Information\n\n* [Red Hat Developer Hub Product Page](https://www.redhat.com/en/technologies/cloud-computing/developer-hub)\n* [Product Documentation](https://access.redhat.com/documentation/en-us/red_hat_developer_hub)\n* [Life Cycle](https://access.redhat.com/node/7025299)\n* [Support Policies](https://access.redhat.com/policy/developerhub-support-policy)\n* [Configuring external PostgreSQL databases](https://docs.redhat.com/en/documentation/red_hat_developer_hub/1.3/html/administration_guide_for_red_hat_developer_hub/assembly-configuring-external-postgresql-databases#assembly-configuring-external-postgresql-databases)\n",
                 "displayName": "Red Hat Developer Hub Operator",
                 "installModes": [
                     {
@@ -4841,15 +4841,15 @@
     "relatedImages": [
         {
             "name": "backstage",
-            "image": "quay.io/rhdh/rhdh-hub-rhel9@sha256@sha256:3939beff256a1b1f36fd55f00500e1db736ecd013c686ddda04a0f112dd530cb"
+            "image": "quay.io/rhdh/rhdh-hub-rhel9@sha256@sha256:cdccce8ef5bb46e7d4b666bba8fee4e6e4382fecaba7f161529498a632bd3b85"
         },
         {
             "name": "",
-            "image": "quay.io/rhdh/rhdh-operator-bundle-sealights@sha256:39effad59c86bf199777305745a6477fe817c2373d0bbef4c252ded0ab2f6d4c"
+            "image": "quay.io/rhdh/rhdh-operator-bundle-sealights@sha256:01a6346cec3ccf22b9c5d126dda3595f97948a0ad6d0b925b1344c426f38865d"
         },
         {
             "name": "",
-            "image": "quay.io/rhdh/rhdh-rhel9-operator@sha256@sha256:ad6c68fe48879050db3e9d4a38af7c50f4f04fbac469d82fb874df21efee99ad"
+            "image": "quay.io/rhdh/rhdh-rhel9-operator@sha256@sha256:fa79c23e8d9d99595bf744dbadf3c1e2dcf19fadc11b5787f048874b1c542d61"
         },
         {
             "name": "postgresql",
