@@ -94,12 +94,12 @@ Options:
     --midstream-user          run as a different bot user; default: $MIDSTM_USER 
     --midstream-branch        run against a different midstream branch; default: $MIDSTM_BRANCH
     -tmpdir                   temporary dir for checkouts; default $TMPDIR
-    --skip-gh                 skip all github updates
-    --gh-repos                space-separated list of GH repos to process, if not the whole set
-    --skip-gl                 skip gitlab rhdh repo updates
-    --skip-krd                skip gitlab konflux-release-data repo updates
-    --skip-prodsec            skip gitlab prodsec/product-definitions repo updates
-    --skip-pyxis              skip gitlab pyxis-repo-configs repo updates
+    --skip-gh                 (1) skip all github updates
+      --gh-repos                  space-separated list of GH repos to process, if not the whole set
+    --skip-gl                 (2) skip gitlab rhdh repo updates
+    --skip-prodsec            (3) skip gitlab prodsec/product-definitions repo updates
+    --skip-pyxis              (4)skip gitlab pyxis-repo-configs repo updates
+    --skip-krd                (5) skip gitlab konflux-release-data repo updates
     --debug                   more output
 "
 }
@@ -1133,7 +1133,7 @@ function updateFBCVersions() {
 # when creating a new branch, update the Pyxis Config to add any new plugins + release streams (1.5, 1.6, 1.7)
 function generatePyxisConfigForPlugins() {
 	the_branch="rhdh-1-rhel-9"
-	pluginBuildsJson=plugin_builds.json
+	pluginBuildsJson=plugin_builds/
 	orgAndRepo="rhidp/rhdh-plugin-catalog"
 	d="${orgAndRepo/\//__}"
 	
@@ -1146,7 +1146,7 @@ function generatePyxisConfigForPlugins() {
 # when creating a new branch, update the Konflux release data to add any new plugins and plugin catalog index; requires that the above PR is merged first!
 function generateKonfluxReleaseDataForPlugins() {
 	the_branch="rhdh-1-rhel-9"
-	pluginBuildsJson=plugin_builds.json
+	pluginBuildsJson=plugin_builds/
 	orgAndRepo="rhidp/rhdh-plugin-catalog"
 	d="${orgAndRepo/\//__}"
 	
@@ -1267,7 +1267,7 @@ if [[ $SKIP_KRD -eq 0 ]] && [[ "${MIDSTM_BRANCH}" ]]; then
 		if [[ $SKIP_PYXIS -eq 0 ]]; then
 			if [[ $VERBOSE -eq 1 ]]; then echo "[DEBUG] update the Pyxis Repo Configs repo to add new plugins"; fi
 			echo "[INFO] pyxis-repo-configs merge requests may fail if there are required changes to this repo:"
-			echo "       * https://gitlab.cee.redhat.com/prodsec/product-definitions/-/merge_requests/ (new  RHDH version)"
+			echo "       * https://gitlab.cee.redhat.com/prodsec/product-definitions/-/merge_requests/ (new RHDH version)"
 			generatePyxisConfigForPlugins
 		fi
 
