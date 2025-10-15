@@ -71,7 +71,7 @@ Requires: both yq (python wrapper for jq) and yq from https://github.com/mikefar
 To create or update existing branches:
   $0 --branchfrom SOURCE_GH_BRANCH -gh TARGET_GH_BRANCH -ghtoken GITHUB_TOKEN
 Example: 
-  $0 --branchfrom main -gh release-1.7 --clean -ghtoken \$GITHUB_TOKEN
+  $0 --branchfrom main -gh release-1.8 --clean -ghtoken \$GITHUB_TOKEN
 
 To create tags (and push updates to release-1.yy branches):
 1. You should have a valid GITHUB_TOKEN for your user (for upstream PRs).
@@ -79,7 +79,7 @@ To create tags (and push updates to release-1.yy branches):
 3. Run this
   $0 -v CSV_VERSION -t PROD_VERSION -gh GH_BRANCH -ghtoken GITHUB_TOKEN
 Example: 
-  $0 -v 1.7.2 -t 1.7 -gh release-1.7 --midstream-branch rhdh-1.7-rhel-9 --clean --force-update -tmpdir $TMPDIR --nobuild \\
+  $0 -v 1.8.1 -t 1.8 -gh release-1.8 --midstream-branch rhdh-1.8-rhel-9 --clean --force-update -tmpdir $TMPDIR --nobuild \\
     --skip-gl --skip-krd --skip-prodsec --skip-pyxis \\
     --gh-repos \"redhat-developer/rhdh redhat-developer/rhdh-operator\"
 
@@ -184,6 +184,7 @@ createPr() {
   baseBranch=$2
   if [[ $(git diff --name-only HEAD~1 2>/dev/null || true) ]]; then # only if we have changes
 	# in case we checked out from release-1.4 but need to base a PR against main
+	# set -x
 	git config remote.origin.fetch '+refs/heads/*:refs/remotes/origin/*'; git fetch --depth=10 >/dev/null 2>&1 || true
 	git pull origin "${baseBranch}" 1>/dev/null 2>&1 || true
 	git branch "${headBranch}" || true
@@ -227,6 +228,7 @@ createPr() {
 		echo -n "# To manually create a pull request, go here: "
 		git config --get remote.origin.url | sed -r -e "s#:#/#" -e "s#git@#https://#" -e "s#\.git#/tree/${headBranch}/#"
 	fi
+	# set +x
   else
 	echo "nothing to commit, working tree clean (6)"
   fi
@@ -422,7 +424,7 @@ function updateRHDHVersions() {
 
 	for d in package.json ./*/package.json ./.?*/package.json; do # dynamic-plugins/package.json is new for 1.7+; .ibm/package.json is new for 1.8+
 		if [[ -f $d ]]; then
-			jq -r --arg the_version "$the_version" '.version|=$the_version' $d > "${d}1"; mv -f "${d}1" "${d}"
+			jq -r --arg the_version "$the_version" '.version|=$the_version' "$d" > "${d}1"; mv -f "${d}1" "${d}"
 		fi
 	done
 	sed -i packages/app/src/build-metadata.json -r \
@@ -1174,7 +1176,7 @@ getXYplusOneFromBranch "$TARGET_BRANCH"
 if [[ $SKIP_GH -eq 0 ]]; then
 	for repo in $GH_REPOS \
 		; do
-		pushBranchAndOrTagGH $repo 
+		pushBranchAndOrTagGH "$repo"
 	done
 fi
 
@@ -1236,12 +1238,43 @@ function removeOperatorBundleLatestTags() {
 	popd >/dev/null || exit 1
 }
 
+# fix branch used to pull overlays repo
+function updatePluginCatalogUpstreamBranches() {
+	DWNSTM_TARGET_BRANCH=rhdh-${TARGET_BRANCH/release-/}-rhel-9
+	d="rhdh-plugin-catalog"
+	if [[ "${CLEAN}" == "true" ]] && [[ -d "$TMPDIR/gitlab_${d}" ]]; then 
+		rm -fr "$TMPDIR/gitlab_${d}"
+		git clone -q --depth 1 -b "${DWNSTM_TARGET_BRANCH}" "git@gitlab.cee.redhat.com:rhidp/${d}.git" "gitlab_${d}" || \
+			{ echo "ERROR: Branch $DWNSTM_TARGET_BRANCH doesn't exist: fail!"; exit 1; }
+	fi
+	pushd "$TMPDIR/gitlab_${d}" >/dev/null || exit 1
+		git checkout --track origin/"${DWNSTM_TARGET_BRANCH}" -q 2>/dev/null || true
+		git pull -q 2>/dev/null || true
+		$YQ '.repos[0].branch[0]|="'"$TARGET_BRANCH"'"' -i "upstream_repos.yml"
+		# TODO remove this when we no longer need to fetch catalog entities from rhd/rhdh repo.
+		$YQ '.repos[1].branch[0]|="'"$TARGET_BRANCH"'"' -i "upstream_repos.yml"
+
+		COMMITMSG="chore: tagRelease.sh: update upstream_repos.yml to $TARGET_BRANCH sources"
+		git commit --no-gpg-sign -s -m "${COMMITMSG}" . || echo "nothing to commit, working tree clean (2)"
+		if [[ $DO_PUSH -eq 1 ]]; then
+			if [[ $(git diff --name-only HEAD~1 2>/dev/null || true) ]]; then 
+				git push origin "${DWNSTM_TARGET_BRANCH}" 1>/dev/null 2>&1  || true
+				doPush "${DWNSTM_TARGET_BRANCH}"
+			else 
+				echo "nothing to commit, working tree clean (3)"
+			fi
+		else
+			echo "Updated files are in $TMPDIR/gitlab_${d}/ -- commit and push them manually"
+		fi
+	popd >/dev/null || exit 1
+}
+
 # echo "SKIPS: $SKIP_GL"
 # branch or tag GL repo(s)
 if [[ $SKIP_GL -eq 0 ]] && [[ "${MIDSTM_BRANCH}" ]]; then
 	# midstream build sources
 	for repo in \
-		rhdh rhdh-plugin-catalog \
+		rhdh-plugin-catalog rhdh\
 		; do
 		pushTagGL $repo
 		# updates to 1.x branch after branching
@@ -1249,6 +1282,9 @@ if [[ $SKIP_GL -eq 0 ]] && [[ "${MIDSTM_BRANCH}" ]]; then
 			echo "Update existing branch $MIDSTM_BRANCH" 
 			updateFBCVersions
 			removeOperatorBundleLatestTags 
+		elif [[ ! $CSV_VERSION ]] && [[ $repo == "rhdh-plugin-catalog" ]]; then
+			echo "Update existing branch $MIDSTM_BRANCH"
+			updatePluginCatalogUpstreamBranches
 		fi
 	done
 fi
