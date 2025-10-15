@@ -9,7 +9,7 @@ This document outlines the complete end-to-end process for releasing RHDH, cover
 Be sure to run link:../build/scripts/prepareOSXARM64.sh[prepareOSXARM64.sh] beforehand to install required tools and set up environment
 ====
 
-## Code Freeze / Blockers Only / New Stream Day
+## Feature Freeze / New Stream Day
 
 Run the branch creation script (link:../build/scripts/tagRelease.sh[tagRelease.sh]) whenever dev is done (or nearly done) and it's time for feature (or code) freeze.
 
@@ -103,10 +103,39 @@ Here are the MRs for 1.6:
 * https://gitlab.cee.redhat.com/prodsec/product-definitions/-/merge_requests/3392
 * https://gitlab.cee.redhat.com/releng/pyxis-repo-configs/-/merge_requests/161
 * https://gitlab.cee.redhat.com/releng/konflux-release-data/-/merge_requests/5276
+
+And for 1.7: 
+* https://github.com/redhat-developer/rhdh/pull/3544
+* https://github.com/redhat-developer/rhdh-cli/pull/35
+* https://github.com/redhat-developer/rhdh-operator/pull/1733
+* https://github.com/redhat-developer/rhdh/pull/3546
+* https://gitlab.cee.redhat.com/rhidp/rhdh/-/commit/b28643458, 4e9baa24e, and 1ee76b9a7
+* https://gitlab.cee.redhat.com/releng/pyxis-repo-configs/-/merge_requests/323
+* https://gitlab.cee.redhat.com/prodsec/product-definitions/-/merge_requests/3943
+* https://gitlab.cee.redhat.com/releng/konflux-release-data/-/merge_requests/11184
 ====
+
+### Create plugin pipelines
+
+Once the k-r-d MR is merged, Konflux will generate new pipelines in the `1.y` branch, which should be ignored and closed.
+
+Purge branches with:
+```
+for branch in $(git branch -a | grep remotes/origin/konflux- | sed -r -e "s|remotes/origin/||"); do git push origin :$branch; done
+````
+
+Then batch-close the MRs: 
+
+https://gitlab.cee.redhat.com/rhidp/rhdh-plugin-catalog/-/merge_requests/?sort=updated_desc&state=opened&author_username=project_112031_bot_7effa89ba961de1dc1ce4830a29db90e&first_page_size=20
+
+Now you can run the `./generatePipelineRunsForPlugins.sh` script in the `.tekton` folder of the rhdh-plugin-catalog repo.
+
+(TODO: add more info here)
+
+
 ## Create new GL pipeline
 
-As the 'rhdh-bot@redhat.com' user, go to link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/pipeline_schedules[pipeline schedules] and create new pipeline for the `1.y` branch, then point it at the recently created `rhdh-1.y-rhel-9` branch. 
+As the 'rhdh-bot@redhat.com' user, go to link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/pipeline_schedules[pipeline schedules] and create (or repurpose) a new pipeline for the `1.y` branch, then point it at the recently created `rhdh-1.y-rhel-9` branch. 
 
 You should never need more than 4 pipelines:
 
