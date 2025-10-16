@@ -1,0 +1,65 @@
+DRAFT DOC IN PROGRESS
+
+See https://issues.redhat.com/browse/RHIDP-7097
+
+### Create branches
+
+This will create branches and do the initial onboarding of a prod sec version for RHDH, plus pyxis and k-r-d stuff for RHDH.
+
+For the Plugin Catalog, see subsequent steps below.
+
+```
+./build/scripts/tagRelease.sh
+```
+
+### Plugin Catalog - rhdh-1-rhel-9 branch:
+
+Check out the new rhdh-1-rhel-9 branch, then:
+
+1. Remove plugin_builds/ content + regenerate; review changes and merge manually, or re-run without the --nopush flag to push directly
+```
+./build/ci/sync-midstream.sh --force -b rhdh-1-rhel-9 --nopush
+```
+
+2. Onboad new plugins to Konflux (if any); update 1.next pipelines
++ 
+For each of the scripts run, review changes and merge manually, or re-run without the --nopush flag to generate MRs
++
+```
+export QUAY_TOKEN=...
+
+./build/scripts/generatePyxisConfigForPlugins.sh -v 1.9.0 --clean --nopush
+./build/scripts/generateKonfluxReleaseDataForPlugins.sh -v 1.next --clean --nopush
+
+# wait up to 15 mins for new components to appear on the cluster (?)
+
+cd .tekton; ./generatePipelineRunsForPlugins.sh -v 1.next --clean --nopush 
+		<< not working, pagerduty-bsp and backend missing
+```
+
+### Plugin Catalog - rhdh-1.y-rhel-9 branch:
+
+Check out the new rhdh-1.y-rhel-9 branch, then:
+
+1. Remove plugin_builds/ content + regenerate; review changes and merge manually, or re-run without the --nopush flag to push directly
+```
+VERSION=1.8
+./build/ci/sync-midstream.sh --force -b rhdh-1.y-rhel-9 --nopush
+```
+
+2. Onboad new 1.y plugin to Konflux; remove 1.next pipelines from the 1.y branch
++ 
+For each of the scripts run, review changes and merge manually, or re-run without the --nopush flag to generate MRs
+```
+rm -fr .tekton/*-1-push*
+
+export QUAY_TOKEN=...
+
+./build/scripts/generatePyxisConfigForPlugins.sh -v 1.8.0 --clean --nopush
+./build/scripts/generateKonfluxReleaseDataForPlugins.sh -v 1.8.0 --clean --nopush
+
+# wait up to 15 mins for new components to appear on the cluster (?)
+
+cd .tekton; ./generatePipelineRunsForPlugins.sh -v 1.8.0 --clean --nopush 
+		<< not working, pagerduty-bsp and backend missing?
+```
