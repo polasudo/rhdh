@@ -234,7 +234,7 @@ else
 fi
 
 pushedIn=0
-for d in $(find "${WORKDIR}" -maxdepth "${MAXDEPTH}" -name "${DOCKERFILE}" | sort -r | grep -E -v "${PATH_EXCLUDES}"); do
+for d in $(find "${WORKDIR}/" -maxdepth "${MAXDEPTH}" -name "${DOCKERFILE}" | sort -r | grep -E -v "${PATH_EXCLUDES}"); do
 	if [[ -f ${d} ]]; then
 		echo ""
 		echo "# Checking ${d} ..."
