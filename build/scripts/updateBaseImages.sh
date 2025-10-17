@@ -37,7 +37,7 @@ checkVersion 1.1 "$(skopeo --version | sed -e "s/skopeo version //")" skopeo
 
 QUIET=0	 # less output - omit container tag URLs
 VERBOSE=0	# more output
-USE_DIGESTS=0  # by default, trim @sha256:digest suffixes and just use tags
+USE_DIGESTS=1  # by default, append @sha256:digest suffixes onto references
 WORKDIR=$(pwd)
 
 # try to compute branches from currently checked out branch; else fall back to hard coded value
@@ -99,7 +99,7 @@ usage () {
 	-prb			set a PR_BRANCH; default: pr-new-base-images-(timestamp)
 	-px 			additional paths to exclude; default: $PATH_EXCLUDES
 	-q, -v			quiet, verbose output
-	--sha			include SHA digest suffix (for Konflux)
+	--no-sha		do not include SHA digest suffix
 	--help, -h		help
 	--check-recent-updates-only   
 		don't poll for new base images; just report on 
@@ -132,7 +132,7 @@ while [[ "$#" -gt 0 ]]; do
 	'-q') QUIET=1; shift 0;;
 	'-v') QUIET=0; VERBOSE=1; shift 0;;
 	'--check-recent-updates-only') QUIET=0; VERBOSE=1; checkrecentupdates; shift 0; exit;;
-	'--sha') USE_DIGESTS=1;;
+	'--no-sha') USE_DIGESTS=0;;
 	'--help'|'-h') usage; exit;;
 	*) OTHER="${OTHER} $1"; shift 0;; 
   esac
@@ -291,7 +291,7 @@ for d in $(find "${WORKDIR}/" -maxdepth "${MAXDEPTH}" -name "${DOCKERFILE}" | so
 				GLIT="$GLIT -b ${SCRIPTS_BRANCH}"
 				if [[ $QUIET -eq 1 ]];then GLIT="${GLIT} -q"; fi
 				if [[ $VERBOSE -eq 1 ]];then GLIT="${GLIT} -v"; fi
-				GLIT="${GLIT} ${GLIT_REPOFLAG} -c ${FROMPREFIX} -x ${EXCLUDES} --tag ${GLIT_TAG}"
+				GLIT="${GLIT} ${GLIT_REPOFLAG} -c ${FROMPREFIX} -x ${EXCLUDES} --tag ${GLIT_TAG} --latestNext latest"
 				if [[ $VERBOSE -eq 1 ]]; then echo "[DEBUG] $GLIT"; fi
 				LATESTTAG=$(${GLIT})
 				if [[ $VERBOSE -eq 1 ]]; then echo "[DEBUG] ============>"; echo "$LATESTTAG"; echo "[DEBUG] <============"; fi
@@ -353,7 +353,7 @@ for d in $(find "${WORKDIR}/" -maxdepth "${MAXDEPTH}" -name "${DOCKERFILE}" | so
 								if [[ -d ${d%%/${DOCKERFILE}} ]]; then pushd "${d%%/${DOCKERFILE}}" >/dev/null; pushedIn=1; fi
 								if [[ ${docommit} -eq 1 ]]; then 
 									git add "${DOCKERFILE}" || true
-									git commit -s -m "chore: Update from ${URL} to ${FROMPREFIX}:${LATESTTAG}" "${DOCKERFILE}"
+									git commit -s -m "chore: Update from ${URL} to ${FROMPREFIX}:${LATESTTAG}" "${DOCKERFILE}" 2>&1 || true
 									if [[ ${dopronly} -eq 1 ]]; then
 										createPr "${PR_BRANCH}" "${SOURCES_BRANCH}"
 									else
