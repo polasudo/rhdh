@@ -816,7 +816,7 @@ pushTagGL ()
 					CHANGES=0
 					if [[ $d == "rhdh" ]]; then # for rhidp/rhdh
 						pushd "$TMPDIR/gitlab_${d}/.tekton" >/dev/null || exit 1
-							generateNewTektonPipelines "${TARGET_BRANCH/release-/}" "$DWNSTM_TARGET_BRANCH" # 1.y rhdh-1.y-rhel-9 
+							generateNewTektonPipelines "${TARGET_BRANCH/release-/}" "$DWNSTM_TARGET_BRANCH" # 1.y rhdh-1.y-rhel-9
 						popd >/dev/null || exit 1
 						if [[ $(git diff --name-only -- .tekton/) != "" ]]; then 
 							(( CHANGES = CHANGES + 1 ))
@@ -844,8 +844,31 @@ pushTagGL ()
 						if [[ $CHANGES -gt 0 ]]; then 
 							rm -f sync/*
 						fi
-						COMMITMSG="chore: tagRelease.sh: use $TARGET_BRANCH in upstream_repos.yml; trigger full build"
-						git commit --no-gpg-sign -s -m "${COMMITMSG}" .tekton/ sync/ upstream_repos.yml || echo "nothing to commit, working tree clean (5)"
+					elif [[ $d == "rhdh-plugin-catalog" ]]; then # for rhidp/rhdh-plugin-catalog
+						# generate new tekton pipelines for plugin-catalog-builder only
+						pushd "$TMPDIR/gitlab_${d}/.tekton" >/dev/null || exit 1
+							generateNewTektonPipelines "${TARGET_BRANCH/release-/}" "$DWNSTM_TARGET_BRANCH" "plugin-catalog-builder"
+							generateNewTektonPipelines "${TARGET_BRANCH/release-/}" "$DWNSTM_TARGET_BRANCH" "oci-plugin-build-pipeline"
+						popd >/dev/null || exit 1
+						if [[ $(git diff --name-only -- .tekton/) != "" ]]; then 
+							(( CHANGES = CHANGES + 1 ))
+							git add .tekton/* || true
+						fi
+
+						# update upstream_repos.yml to use release-1.y
+						$YQ '.repos[0].branch[0]|="'"$TARGET_BRANCH"'"' -i "upstream_repos.yml"
+						# TODO remove this when we no longer need to fetch catalog entities from rhd/rhdh repo.
+						$YQ '.repos[1].branch[0]|="'"$TARGET_BRANCH"'"' -i "upstream_repos.yml"
+						if [[ $(git diff --name-only -- upstream_repos.yml) != "" ]]; then (( CHANGES = CHANGES + 1 )); fi
+					fi
+					if [[ $d == "rhdh" ]] || [[ $d == "rhdh-plugin-catalog" ]]; then 
+						if [[ $d == "rhdh" ]]; then
+							COMMITMSG="chore: tagRelease.sh: use $TARGET_BRANCH in upstream_repos.yml; trigger rhdh build"
+							git commit --no-gpg-sign -s -m "${COMMITMSG}" .tekton/ sync/ upstream_repos.yml || echo "nothing to commit, working tree clean (5a)"
+						elif [[ $d == "rhdh-plugin-catalog" ]]; then
+							COMMITMSG="chore: tagRelease.sh: use $TARGET_BRANCH in upstream_repos.yml"
+							git commit --no-gpg-sign -s -m "${COMMITMSG}" .tekton/ upstream_repos.yml || echo "nothing to commit, working tree clean (5b)"
+						fi
 					fi
 
 					if [[ $DO_PUSH -eq 1 ]]; then
@@ -1073,12 +1096,14 @@ generateNewTektonPipelines ()
 {
 	xdashy=$1; xdashy=${xdashy/./-} # 1-5
 	branchy=$2                       # rhdh-1.5-rhel-9
+	regex="$3"
 	# rename the -1- files to -1.y-
 	# update them to replace -1- with -1-y- and rhdh-1-rhel-9 with rhdh-1.y-rhel-9
 	echo " = generate new piplines in $(pwd) for $branchy ($xdashy)"
-	for y in *.yaml; do
+	for y in ${regex}*.yaml; do
 		if [[ $y == *"-1-"* ]]; then # rename rhdh pipelines
-			e="$(echo "$y" | sed -r -e "s@-1-([a-z]+)@-${xdashy}-\1@g")"
+			e="$(echo "$y" | sed -r \
+				-e "s@-1-([a-z]+)@-${xdashy}-\1@g")"
 			if [[ "$e" != "$y" ]]; then
 				if [[ $VERBOSE -eq 1 ]]; then echo -n ">> $y"; fi
 				git mv "$y" "$e"
@@ -1089,8 +1114,9 @@ generateNewTektonPipelines ()
 		sed -i "$y" -r \
 			-e "s@rhdh-1-rhel-9@${branchy}@g" \
 			-e "s@-1-([a-z]+)@-${xdashy}-\1@g" \
-			-e "s|application: rhdh-1$|application: rhdh-${xdashy}|" \
-			-e "s|(component: rhdh-[a-z-]+)-1$|\1-${xdashy}|"
+			-e "s@${xdashy}-next@${xdashy}@g" \
+			-e "s/(application: (rhdh-plugin-catalog-1|rhdh-1))$/\1-${xdashy}/" \
+			-e "s/(component: (plugin-catalog-builder-|rhdh-)[a-z-]+)-1$/\1-${xdashy}/"
 	done
 }
 
@@ -1238,43 +1264,12 @@ function removeOperatorBundleLatestTags() {
 	popd >/dev/null || exit 1
 }
 
-# fix branch used to pull overlays repo
-function updatePluginCatalogUpstreamBranches() {
-	DWNSTM_TARGET_BRANCH=rhdh-${TARGET_BRANCH/release-/}-rhel-9
-	d="rhdh-plugin-catalog"
-	if [[ "${CLEAN}" == "true" ]] && [[ -d "$TMPDIR/gitlab_${d}" ]]; then 
-		rm -fr "$TMPDIR/gitlab_${d}"
-		git clone -q --depth 1 -b "${DWNSTM_TARGET_BRANCH}" "git@gitlab.cee.redhat.com:rhidp/${d}.git" "gitlab_${d}" || \
-			{ echo "ERROR: Branch $DWNSTM_TARGET_BRANCH doesn't exist: fail!"; exit 1; }
-	fi
-	pushd "$TMPDIR/gitlab_${d}" >/dev/null || exit 1
-		git checkout --track origin/"${DWNSTM_TARGET_BRANCH}" -q 2>/dev/null || true
-		git pull -q 2>/dev/null || true
-		$YQ '.repos[0].branch[0]|="'"$TARGET_BRANCH"'"' -i "upstream_repos.yml"
-		# TODO remove this when we no longer need to fetch catalog entities from rhd/rhdh repo.
-		$YQ '.repos[1].branch[0]|="'"$TARGET_BRANCH"'"' -i "upstream_repos.yml"
-
-		COMMITMSG="chore: tagRelease.sh: update upstream_repos.yml to $TARGET_BRANCH sources"
-		git commit --no-gpg-sign -s -m "${COMMITMSG}" . || echo "nothing to commit, working tree clean (2)"
-		if [[ $DO_PUSH -eq 1 ]]; then
-			if [[ $(git diff --name-only HEAD~1 2>/dev/null || true) ]]; then 
-				git push origin "${DWNSTM_TARGET_BRANCH}" 1>/dev/null 2>&1  || true
-				doPush "${DWNSTM_TARGET_BRANCH}"
-			else 
-				echo "nothing to commit, working tree clean (3)"
-			fi
-		else
-			echo "Updated files are in $TMPDIR/gitlab_${d}/ -- commit and push them manually"
-		fi
-	popd >/dev/null || exit 1
-}
-
 # echo "SKIPS: $SKIP_GL"
 # branch or tag GL repo(s)
 if [[ $SKIP_GL -eq 0 ]] && [[ "${MIDSTM_BRANCH}" ]]; then
 	# midstream build sources
 	for repo in \
-		rhdh-plugin-catalog rhdh\
+		rhdh-plugin-catalog rhdh \
 		; do
 		pushTagGL $repo
 		# updates to 1.x branch after branching
@@ -1282,9 +1277,6 @@ if [[ $SKIP_GL -eq 0 ]] && [[ "${MIDSTM_BRANCH}" ]]; then
 			echo "Update existing branch $MIDSTM_BRANCH" 
 			updateFBCVersions
 			removeOperatorBundleLatestTags 
-		elif [[ ! $CSV_VERSION ]] && [[ $repo == "rhdh-plugin-catalog" ]]; then
-			echo "Update existing branch $MIDSTM_BRANCH"
-			updatePluginCatalogUpstreamBranches
 		fi
 	done
 fi
