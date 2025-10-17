@@ -29,6 +29,17 @@ if [[ ! -f "$CONFIG_FILE" ]]; then
     exit 1
 fi
 
+# Check for required tools early
+checkPrerequisites() {
+    if ! command -v yq >/dev/null 2>&1; then
+        echo -e "${red}[ERROR] yq is required but not found. Please install yq (jq wrapper, NOT the mikefarah version)${norm}"
+        exit 1
+    fi
+    echo -e "${green}[INFO] Prerequisites check passed${norm}"
+}
+
+checkPrerequisites
+
 OCP_VERSION_BASE=$(yq -r '.OCP_VERSION_BASE' "$CONFIG_FILE")
 OCP_VERSIONS=$(yq -r '.SUPPORTED_VERSIONS[]' "$CONFIG_FILE" | tr '\n' ' ')
 # Add base version to the list
@@ -42,6 +53,8 @@ advisoryType=""
 ISSUES=""
 BZ=""
 CVE_INCLUDE_ALL=0 # by default only include some issues; use --cve-all to include all when generating release.yaml
+SKIP_RPA_CHECK=0 # by default, validate RPA version configuration matches planned GA version
+TEST_RPA_ONLY=0 # by default, run full release process; set to 1 to only test RPA validation
 
 norm="\033[0;39m"
 green="\033[1;32m"
@@ -84,6 +97,9 @@ $0 --prod  -c rhdh-operator-bundle:1.5-202 -v 1.5.2 --cve /tmp/RHDH\ CVE\ Manage
 $0 --prod  -c rhdh-operator-bundle:1.6-??? -v 1.6.2 --cve /tmp/RHDH\ CVE\ Management\ -\ 1.6.2.csv [--cve-all] \
   [--issues RHIDP-7725,RHIDP-7726,...]
 
+# Test RPA validation only
+$0 --test-rpa-check -v $RHDH_FULL_VERSION_INPUT
+
 Options:
   --cve              Full path to the CVE list file to use for the container Release, eg., /tmp/RHDH\ CVE\ Management\ -\ 1.y.z.csv
   --cve-all          Include all CVEs, regardless of status; default: only include CVEs in the release.yaml if Resolution = ReleasePending
@@ -91,6 +107,9 @@ Options:
                      when the container images are live in RHEC.
   --bz               Space or comma separated list of bugzilla(s) to include in this RHBA. Useful for linking to upstream base image issues 
                      fixed in a .z respin. See RHIDP-8185 for how to get the list of BZs for a CVE.
+  --skip-rpa-check   Skip validation of RPA (Release Plan Admission) version configuration. NOT RECOMMENDED as this can result
+                     in containers being tagged with incorrect versions if the RPA config is outdated.
+  --test-rpa-check   Test the RPA version validation only (no release work). Only requires -v version flag.
 
   --snapshot         Rather than pick the latest snapshot, use a specific older one, eg., rhdh-1-6-lsbrr
   --snapshot-state   Search for snapshots in a different state than the default 'completed', eg. 'queued'
@@ -144,6 +163,8 @@ Options:
   -o                 OCP versions for which to release FBC; default '$OCP_VERSIONS'
 
   --auto             Rather than showing you the yaml to apply, just execute it automatically. Be careful!
+  --skip-rpa-check   Skip validation of RPA (Release Pipeline Automation) version configuration. NOT RECOMMENDED.
+  --test-rpa-check   Test the RPA version validation only (no release work). Only requires -v version flag.
   "
 }
 
@@ -172,6 +193,8 @@ while [[ "$#" -gt 0 ]]; do
     '--cve-all') CVE_INCLUDE_ALL=1;;
     '--issues') ISSUES="$2"; shift 1;;
     '--bz') BZ="$2"; shift 1;;
+    '--skip-rpa-check') SKIP_RPA_CHECK=1;;
+    '--test-rpa-check') TEST_RPA_ONLY=1;;
     '--help') usage; usageContainers; usageFBCs; exit 0;;
     *) usage; usageContainers; usageFBCs; echo; echo -e "${red}[ERROR] Unknown flag ${1}${norm}"; exit 1;;
   esac
@@ -184,6 +207,53 @@ function openURL {
     else 
         echo " >> $1"
     fi
+}
+
+# Generate MR to update RPA configuration
+generateRPAMergeRequest() {
+  local version_xyz="$1"
+  local version_xy="${version_xyz%.*}"  # 1.7.8 -> 1.7
+  local gh_branch="release-${version_xy}"    # release-1.7
+  local midstream_branch="rhdh-${version_xy}-rhel-9"  # rhdh-1.7-rhel-9
+
+  local version_for_tagrelease="${version_xyz%.*}.$(( ${version_xyz##*.} - 1 ))"  # 1.7.1 -> 1.7.0
+
+  echo
+  echo -e "${blue}[INFO] Generating MR to update RPA configuration for version ${version_xyz}...${norm}"
+  echo -e "${blue}[INFO] Using tagRelease.sh with version ${version_for_tagrelease} to configure ${version_xyz}${norm}"
+
+  # Call tagRelease.sh to update the konflux-release-data RPA files.
+  # This bumps RPAs to the next Z (getNextCSVZ) based on the CSV_VERSION provided.
+  local tagRelease_output
+  local tagRelease_exit_code
+
+  tagRelease_output="$("${SCRIPT_DIR}/tagRelease.sh" \
+    -v "${version_for_tagrelease}" \
+    -t "${version_xy}" \
+    -gh "${gh_branch}" \
+    --midstream-branch "${midstream_branch}" \
+    --clean \
+    --force-update \
+    --nobuild \
+    --skip-gh \
+    --skip-gl \
+    --skip-prodsec \
+    --skip-pyxis 2>&1)"
+  tagRelease_exit_code=$?
+
+  # Always log the output for debugging purposes
+  if [[ -n "$tagRelease_output" ]]; then
+    echo -e "${blue}[INFO] tagRelease.sh output:${norm}"
+    echo "$tagRelease_output"
+  fi
+
+  if [[ $tagRelease_exit_code -eq 0 ]]; then
+    echo -e "${green}[SUCCESS] RPA configuration update completed successfully${norm}"
+    return 0
+  else
+    echo -e "${red}[ERROR] Failed to update RPA configuration using tagRelease.sh${norm}"
+    return 1
+  fi
 }
 
 # disable autorelease until we fix https://issues.redhat.com/browse/RHIDP-5840 and can automatically pull in a list of CVEs to include in the release
@@ -199,7 +269,7 @@ if [[ $SNAPSHOT_OVERRIDE ]] && [[ $num_ocp_versions -gt 1 ]] && [[ ! $CONTAINER 
   usage; usageFBCs; echo; echo -e "${red}[ERROR] Can only specify a snapshot for a single OCP version! Use '-o 4.18' to set the OCP version for the specified snapshot $SNAPSHOT_OVERRIDE !${norm}"; exit 1
 fi
 
-if [[ ! $CONTAINER ]] && [[ ! $BUNDLE_TAG_OR_SHA ]]; then 
+if [[ ! $CONTAINER ]] && [[ ! $BUNDLE_TAG_OR_SHA ]] && [[ $TEST_RPA_ONLY -eq 0 ]]; then 
   usage; usageContainers; usageFBCs; echo; echo -e "${red}[ERROR] Must specify '-c rhdh-operator-bundle', or for FBCs, use a bundle image tag with --fbc :1.y-zzz to perfom a release!${norm}"; exit 1
 fi
 
@@ -216,7 +286,7 @@ if [[ ! $RHDH_FULL_VERSION ]]; then
   fi
 fi
 
-if [[ ! $DEST ]]; then 
+if [[ ! $DEST ]] && [[ $TEST_RPA_ONLY -eq 0 ]]; then 
   usage; 
   if [[ $CONTAINER ]]; then usageContainers; fi
   if [[ $BUNDLE_TAG_OR_SHA ]]; then usageFBCs; fi;
@@ -230,11 +300,128 @@ fi
 
 ######################################################################################################################
 
+# Preflight check: Validate RPA version configuration matches planned GA version
+validateRPAVersion() {
+  local expected_version="$1"
+  local expected_version_pattern="${expected_version%.*}" # e.g., 1.7.0 -> 1.7
+  
+  echo -e "${blue}[INFO] Validating RPA version configuration for ${expected_version}...${norm}"
+  
+  # Check if konflux-release-data repository is accessible
+  RPA_REPO_URL="https://gitlab.cee.redhat.com/releng/konflux-release-data"
+  
+  # Extract major.minor version for file paths (e.g., 1.7.0 -> 1-7)
+  local version_for_path="${expected_version%.*}"  # 1.7.0 -> 1.7
+  version_for_path="${version_for_path/./-}"       # 1.7 -> 1-7
+  
+  RPA_CHECK_FILES=(
+    "config/stone-prod-p02.hjvn.p1/product/ReleasePlanAdmission/rhdh/rhdh-${version_for_path}-stage.yaml"
+    "config/stone-prod-p02.hjvn.p1/product/ReleasePlanAdmission/rhdh/rhdh-${version_for_path}-prod.yaml"
+  )
+  
+  local validation_failed=0
+  local temp_dir="/tmp/rpa-validation-$$"
+  
+  # Clone or check the RPA repository
+  echo -e "${blue}[INFO] Checking RPA configuration in konflux-release-data repository...${norm}"
+  
+  if ! git clone --depth 1 --quiet "$RPA_REPO_URL" "$temp_dir" 2>/dev/null; then
+    echo -e "${red}[WARNING] Could not clone RPA repository to validate version configuration.${norm}"
+    echo -e "${red}[WARNING] Please manually verify that the RPA configuration has been updated with version ${expected_version}.${norm}"
+    echo -e "${red}[WARNING] See: ${RPA_REPO_URL}${norm}"
+    return 0  # Allow to continue with warning
+  fi
+  
+  # Check each configuration file for version patterns
+  for file in "${RPA_CHECK_FILES[@]}"; do
+    local file_path="$temp_dir/$file"
+    if [[ -f "$file_path" ]]; then
+      echo -e "${blue}[INFO] Checking $file for version ${expected_version}...${norm}"
+      
+      # Look for version patterns in the defaults.tags array
+      local version_found=0
+
+      # Use grep to check for version patterns (more reliable than complex yq parsing)
+      if grep -q "\"${expected_version}\"" "$file_path" || grep -q "\"${expected_version}-{{ timestamp }}\"" "$file_path" || grep -q "${expected_version}-{{ timestamp }}" "$file_path"; then
+        version_found=1
+        echo -e "${green}[INFO]   ✓ Found expected version ${expected_version} in $file${norm}"
+      fi
+
+      if [[ $version_found -eq 0 ]]; then
+        echo -e "${red}[ERROR]   ✗ Expected version ${expected_version} not found in defaults.tags of $file${norm}"
+        if [[ $DEBUG -eq 1 ]]; then
+          echo -e "${red}[DEBUG] Available tags in $file:${norm}"
+          grep -o '"[^"]*"' "$file_path" | grep -E '(1\.[0-9]+\.[0-9]+|1\.[0-9]+)' | sort -u | while read -r tag; do
+            echo -e "${red}[DEBUG]   - $tag${norm}"
+          done
+        fi
+        validation_failed=1
+      fi
+    else
+      echo -e "${red}[WARNING] RPA configuration file $file not found${norm}"
+    fi
+  done
+  
+  # Cleanup
+  rm -rf "$temp_dir"
+  
+  if [[ $validation_failed -eq 1 ]]; then
+    echo -e "${red}[ERROR] RPA version validation failed!${norm}"
+    echo -e "${red}[ERROR] The RPA configuration does not appear to be updated for version ${expected_version}.${norm}"
+    echo -e "${red}[ERROR] This could result in containers being tagged with incorrect versions.${norm}"
+    echo -e "${red}[ERROR]${norm}"
+    echo -e "${red}[ERROR] Please ensure that the following MR has been merged BEFORE running this script:${norm}"
+    echo -e "${red}[ERROR] - Update RPA configuration to change version patterns from previous version to ${expected_version}${norm}"
+    echo -e "${red}[ERROR] - Update patterns like \"x.y.z\" → \"${expected_version}\" and \"x.y.z-{{ timestamp }}\" → \"${expected_version}-{{ timestamp }}\"${norm}"
+    echo -e "${red}[ERROR]${norm}"
+    echo -e "${red}[ERROR] Repository: ${RPA_REPO_URL}${norm}"
+    echo -e "${red}[ERROR] Files to check: ${RPA_CHECK_FILES[*]}${norm}"
+    echo -e "${red}[ERROR]${norm}"
+    echo -e "${red}[ERROR] Use --skip-rpa-check to bypass this validation (NOT RECOMMENDED).${norm}"
+    return 1
+  else
+    echo -e "${green}[INFO] RPA version validation passed for ${expected_version}${norm}"
+    return 0
+  fi
+}
+
+######################################################################################################################
+
 RHDH_VERSION=${RHDH_FULL_VERSION%.*}
-RHDH_FULL_VERSION=${RHDH_FULL_VERSION//./-}
 LATEST_IMAGES_FILE="/tmp/imagelist_bundle_latest_$RHDH_VERSION.txt"
 
 TS=$(date +'%Y%m%d-%H%M%S' -u) # unique timestamp 
+# Handle test-only mode: run RPA validation check and exit
+if [[ $TEST_RPA_ONLY -eq 1 ]]; then
+  echo -e "${blue}[INFO] Running RPA version validation test for version $RHDH_FULL_VERSION${norm}"
+  echo
+  if validateRPAVersion "$RHDH_FULL_VERSION"; then
+    echo
+    echo -e "${green}[SUCCESS] RPA uses version $RHDH_FULL_VERSION${norm}"
+    exit 0
+  else
+    echo
+    echo -e "${red}[FAILED] RPA version validation test failed!${norm}"
+    echo -e "${blue}[INFO] Attempting to automatically generate MR to fix RPA configuration...${norm}"
+    generateRPAMergeRequest "$RHDH_FULL_VERSION"
+    exit 1
+  fi
+fi
+# Run RPA version validation check before proceeding with any release work
+if [[ $SKIP_RPA_CHECK -eq 0 ]]; then
+  if ! validateRPAVersion "$RHDH_FULL_VERSION"; then
+    echo -e "${red}[ERROR] RPA version validation failed!${norm}"
+    echo -e "${blue}[INFO] Attempting to automatically generate MR to fix RPA configuration...${norm}"
+    generateRPAMergeRequest "$RHDH_FULL_VERSION"
+    exit 1
+  fi
+else
+  echo -e "${blue}[WARNING] Skipping RPA version validation as requested with --skip-rpa-check${norm}"
+  echo -e "${blue}[WARNING] Ensure RPA configuration is correct to avoid version tagging issues!${norm}"
+fi
+
+# Convert dots to dashes for use in container tags and file names
+RHDH_FULL_VERSION=${RHDH_FULL_VERSION//./-}
 
 if [[ $CONTAINER ]]; then
   echo
