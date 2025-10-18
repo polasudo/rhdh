@@ -4671,7 +4671,7 @@
     "schema": "olm.bundle",
     "name": "rhdh-operator.v1.9.0",
     "package": "rhdh",
-    "image": "quay.io/rhdh/rhdh-operator-bundle-sealights@sha256:2b50b974edb87b943975a40c17119ac99f26cf00a225a95fda3193ce9db64b0f",
+    "image": "quay.io/rhdh/rhdh-operator-bundle-sealights@sha256:4a01d4643d708051509daa6f477fb357e7af39b61c9213b4e159cabbd7e7d2d8",
     "properties": [
         {
             "type": "olm.gvk",
@@ -4841,11 +4841,11 @@
     "relatedImages": [
         {
             "name": "backstage",
-            "image": "quay.io/rhdh/rhdh-hub-rhel9@sha256@sha256:6471e420ce3adb2378be67ef0aa5382f697df6f670be7afed9ae10c1bcdcd973"
+            "image": "quay.io/rhdh/rhdh-hub-rhel9@sha256@sha256:16657d82d4a2e8e6c305c266fa12b86ec66215a1095dd6ed56ca6c5231c750ed"
         },
         {
             "name": "",
-            "image": "quay.io/rhdh/rhdh-operator-bundle-sealights@sha256:2b50b974edb87b943975a40c17119ac99f26cf00a225a95fda3193ce9db64b0f"
+            "image": "quay.io/rhdh/rhdh-operator-bundle-sealights@sha256:4a01d4643d708051509daa6f477fb357e7af39b61c9213b4e159cabbd7e7d2d8"
         },
         {
             "name": "",
