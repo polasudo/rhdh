@@ -385,7 +385,7 @@ spec:
         - name: name
           value: validate-fbc
         - name: bundle
-          value: quay.io/konflux-ci/tekton-catalog/task-validate-fbc:0.1@sha256:0a850adba13d8369fb3b61b8e4f4e7f6d579bce6ae260a5280fddff3958d00ba
+          value: quay.io/konflux-ci/tekton-catalog/task-validate-fbc:0.1@sha256:a63bca72bb7f0c61b238e0aef8b88d566342597ffaf4f17efddaccc3e7cbd2f0
         - name: kind
           value: task
         resolver: bundles
@@ -407,7 +407,7 @@ spec:
         - name: name
           value: fbc-fips-check
         - name: bundle
-          value: quay.io/konflux-ci/tekton-catalog/task-fbc-fips-check:0.1@sha256:ffd7276ea14e356938b1b5ea4ea9eecaaf5cb77ec50ea9658539c33b158f8268
+          value: quay.io/konflux-ci/tekton-catalog/task-fbc-fips-check:0.1@sha256:c6cb8aae1a56ac511078a03ab135d3257cb48ab8a9f0ca607a090a7fd818205a
         - name: kind
           value: task
         resolver: bundles

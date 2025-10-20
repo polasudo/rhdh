@@ -11,7 +11,7 @@ set -e
 
 SCRIPT=$(readlink -f "$0")
 ROOTPATH=$(dirname "$SCRIPT")
-PR_BRANCH="pr-update-base-images-$(date +%s)"
+PR_BRANCH="pr-update-tekton-tasks-$(date +%s)"
 DO_MINOR="false"
 REGEX="*yaml"
 TRIGGER="false"
@@ -134,7 +134,7 @@ for file in $(find "$ROOTPATH" -name "${REGEX}" | sort -V); do
         else
             newSHA="${digests["${base}:${newTag}_sha"]}"
         fi
-        if [[ "$oldSHA" != "$newSHA" ]]; then
+        if [[ "$newSHA" ]] && [[ "$oldSHA" != "$newSHA" ]]; then
             if [[ $oldSHA == "NONE" ]]; then
                 sed -i "$file" -r -e "s|${oldTag}$|${newTag}@${newSHA}|g"
             else
@@ -148,6 +148,8 @@ for file in $(find "$ROOTPATH" -name "${REGEX}" | sort -V); do
                 echo -e "[$cf/$tf] [$cl/$tl] ${red}[!]${norm} migration required for ${base#*/task-} ${blue}$oldTag${norm} to ${red}$newTag${norm}!\n"
                 MIGRATIONS["$url_frag"]="https://github.com/konflux-ci/build-definitions/blob/main/task/${url_frag}/MIGRATION.md"
             fi
+        elif [[ ! "$newSHA" ]]; then
+            echo -e "[$cf/$tf] [$cl/$tl] could not compute new SHA, skip!${norm} $line"
         else
             echo -e "[$cf/$tf] [$cl/$tl] ${blue}===${norm} $line"
         fi
