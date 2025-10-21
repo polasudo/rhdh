@@ -1096,28 +1096,58 @@ generateNewTektonPipelines ()
 {
 	xdashy=$1; xdashy=${xdashy/./-} # 1-5
 	branchy=$2                       # rhdh-1.5-rhel-9
-	regex="$3"
-	# rename the -1- files to -1.y-
-	# update them to replace -1- with -1-y- and rhdh-1-rhel-9 with rhdh-1.y-rhel-9
-	echo " = generate new piplines in $(pwd) for $branchy ($xdashy)"
-	for y in ${regex}*.yaml; do
-		if [[ $y == *"-1-"* ]]; then # rename rhdh pipelines
-			e="$(echo "$y" | sed -r \
-				-e "s@-1-([a-z]+)@-${xdashy}-\1@g")"
-			if [[ "$e" != "$y" ]]; then
-				if [[ $VERBOSE -eq 1 ]]; then echo -n ">> $y"; fi
-				git mv "$y" "$e"
-				y="${e}"
-			fi
+	regex="$3"                       # optional: filter for specific pipeline types
+	
+	echo " = generate new pipelines in $(pwd) for $branchy ($xdashy)"
+	
+	# Use the create-new-version.sh script if it exists
+	if [[ -f "create-new-version.sh" ]]; then
+		echo " > Using create-new-version.sh to generate pipelines"
+		bash create-new-version.sh "$xdashy"
+		
+		# If regex filter provided, handle specific pipeline types (e.g., plugin-catalog-builder)
+		if [[ -n "$regex" ]] && [[ "$regex" != "rhdh" ]]; then
+			# For plugin-catalog-builder or other custom pipelines, use sed-based approach
+			for y in ${regex}*.yaml; do
+				if [[ $y == *"-1-"* ]]; then
+					e="$(echo "$y" | sed -r -e "s@-1-([a-z]+)@-${xdashy}-\1@g")"
+					if [[ "$e" != "$y" ]]; then
+						if [[ $VERBOSE -eq 1 ]]; then echo -n ">> $y"; fi
+						git mv "$y" "$e"
+						y="${e}"
+					fi
+				fi
+				echo " > $y"
+				sed -i "$y" -r \
+					-e "s/(application: )(rhdh-plugin-catalog|rhdh)-1$/\1\2-${xdashy}/" \
+					-e "s/(component: (plugin-catalog-builder-|rhdh-)[a-z-]+)-1$/\1-${xdashy}/" \
+					-e "s@rhdh-1-rhel-9@${branchy}@g" \
+					-e "s@-1-([a-z]+)@-${xdashy}-\1@g" \
+					-e "s@${xdashy}-next@${xdashy}@g"
+			done
 		fi
+	else
+		# Fallback to old sed-based approach if create-new-version.sh doesn't exist
+		# TODO https://issues.redhat.com/browse/RHIDP-9418 remove this once we no longer need the old way of building things in 1.10
+		echo " > Using legacy sed-based pipeline generation"
+		for y in ${regex}*.yaml; do
+			if [[ $y == *"-1-"* ]]; then
+				e="$(echo "$y" | sed -r -e "s@-1-([a-z]+)@-${xdashy}-\1@g")"
+				if [[ "$e" != "$y" ]]; then
+					if [[ $VERBOSE -eq 1 ]]; then echo -n ">> $y"; fi
+					git mv "$y" "$e"
+					y="${e}"
+				fi
+			fi
 		echo " > $y"
 		sed -i "$y" -r \
+			-e "s/(application: )(rhdh-plugin-catalog|rhdh)-1$/\1\2-${xdashy}/" \
+			-e "s/(component: (plugin-catalog-builder-|rhdh-)[a-z-]+)-1$/\1-${xdashy}/" \
 			-e "s@rhdh-1-rhel-9@${branchy}@g" \
 			-e "s@-1-([a-z]+)@-${xdashy}-\1@g" \
-			-e "s@${xdashy}-next@${xdashy}@g" \
-			-e "s/(application: (rhdh-plugin-catalog-1|rhdh-1))$/\1-${xdashy}/" \
-			-e "s/(component: (plugin-catalog-builder-|rhdh-)[a-z-]+)-1$/\1-${xdashy}/"
-	done
+			-e "s@${xdashy}-next@${xdashy}@g"
+		done
+	fi
 }
 
 function updateFBCVersions() {

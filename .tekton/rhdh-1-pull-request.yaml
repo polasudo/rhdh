@@ -1,0 +1,135 @@
+apiVersion: tekton.dev/v1
+kind: PipelineRun
+metadata:
+  annotations:
+    build.appstudio.openshift.io/repo: https://gitlab.cee.redhat.com/rhidp/rhdh/-/tree/{{revision}}
+    build.appstudio.redhat.com/commit_sha: '{{revision}}'
+    build.appstudio.redhat.com/pull_request_number: '{{pull_request_number}}'
+    build.appstudio.redhat.com/target_branch: '{{target_branch}}'
+    pipelinesascode.tekton.dev/max-keep-runs: "7"
+    pipelinesascode.tekton.dev/on-cel-expression: |
+      event == "pull_request" && target_branch == "rhdh-1-rhel-9" && (
+        "distgit/containers/rhdh-hub/**".pathChanged() ||
+        "distgit/containers/rhdh-operator/**".pathChanged() ||
+        "distgit/containers/rhdh-operator-bundle/**".pathChanged() ||
+        ".tekton/rhdh-1-pull-request.yaml".pathChanged() )
+  creationTimestamp: null
+  labels:
+    appstudio.openshift.io/application: rhdh-1
+    appstudio.openshift.io/component: rhdh-hub-1
+    pipelines.appstudio.openshift.io/type: build
+  name: rhdh-1-on-pull-request
+  namespace: rhdh-tenant
+spec:
+  params:
+    # Component-specific parameters - dynamically determined by which files changed
+    - name: rhdh-version
+      value: "1"
+    - name: component-type
+      value: |
+        {{ "distgit/containers/rhdh-hub/**".pathChanged() ? "hub" : 
+           ( "distgit/containers/rhdh-operator/**".pathChanged() ? "operator" : 
+             ( "distgit/containers/rhdh-operator-bundle/**".pathChanged() ? "operator-bundle" : "UNKNOWN" ) 
+           )
+        }}
+
+    - name: DO_HELM
+      value: |
+        {{ "distgit/containers/rhdh-hub/**".pathChanged() ? "true" : "false" }}
+    - name: IS_BUNDLE
+      value: |
+        {{ "distgit/containers/rhdh-operator-bundle/**".pathChanged() ? "true" : "false" }}
+    # Common build parameters
+    - name: git-url
+      value: '{{source_url}}'
+    - name: revision
+      value: '{{revision}}'
+    - name: source-branch
+      value: '{{source_branch}}'
+    - name: target_branch
+      value: '{{target_branch}}'
+    - name: output-image
+      value: |
+        {{ "distgit/containers/rhdh-hub/**".pathChanged() ? "quay.io/rhdh/rhdh-hub-rhel9:on-pr-{{revision}}" : 
+           ( "distgit/containers/rhdh-operator/**".pathChanged() ? "quay.io/rhdh/rhdh-operator-rhel9:on-pr-{{revision}}" : 
+             ( "distgit/containers/rhdh-operator-bundle/**".pathChanged() ? "quay.io/rhdh/rhdh-operator-bundle-rhel9:on-pr-{{revision}}" : "UNKNOWN" ) 
+           )
+        }}
+    - name: sealights-output-image
+      value: |
+        {{ "distgit/containers/rhdh-hub/**".pathChanged() ? "quay.io/rhdh/rhdh-hub-rhel9-sealights:on-pr-{{revision}}" : 
+           ( "distgit/containers/rhdh-operator/**".pathChanged() ? "quay.io/rhdh/rhdh-operator-rhel9-sealights:on-pr-{{revision}}" : 
+             ( "distgit/containers/rhdh-operator-bundle/**".pathChanged() ? "quay.io/rhdh/rhdh-operator-bundle-rhel9-sealights:on-pr-{{revision}}" : "INVALID-SEALIGHTS-IMAGE" ) 
+           )
+        }}
+    - name: image-expires-after
+      value: 2w
+    - name: sealights-image-expires-after
+      value: '2w'
+    - name: dockerfile
+      value: Containerfile
+    - name: sealights-dockerfile
+      value: Containerfile.sealights
+    - name: path-context
+      value: |
+        {{ "distgit/containers/rhdh-hub/**".pathChanged() ? "distgit/containers/rhdh-hub" : 
+           ( "distgit/containers/rhdh-operator/**".pathChanged() ? "distgit/containers/rhdh-operator" : 
+             ( "distgit/containers/rhdh-operator-bundle/**".pathChanged() ? "distgit/containers/rhdh-operator-bundle" : "INVALID-PATH" ) 
+           )
+        }}
+    - name: prefetch-input
+      value: |
+        {{ "distgit/containers/rhdh-hub/**".pathChanged() ? 
+           '[{"type": "rpm", "path": "distgit/containers/rhdh-hub"},{"type": "yarn","path": "distgit/containers/rhdh-hub"},{"type": "yarn","path": "distgit/containers/rhdh-hub/dynamic-plugins"},{"type": "pip","path": "distgit/containers/rhdh-hub/python", "allow_binary": "false"}]' : 
+           ( "distgit/containers/rhdh-operator/**".pathChanged() ? 
+             '[{"type": "go-package", "path": "distgit/containers/rhdh-operator"},{"type": "rpm", "path": "distgit/containers/rhdh-operator"}]' : 
+             ( "distgit/containers/rhdh-operator-bundle/**".pathChanged() ? 
+               '[{"type": "rpm", "path": "distgit/containers/rhdh-operator-bundle"}]' : '[]' ) 
+           )
+        }}
+    - name: enable-sealights
+      value: "true"
+  pipelineRef:
+    name: build-pipeline-rhdh
+  taskRunSpecs:
+    - pipelineTaskName: build-container
+      stepSpecs:
+      - name: build
+        computeResources:
+          requests:
+            cpu: '8'
+            memory: 20Gi
+          limits:
+            cpu: '8'
+            memory: 20Gi
+    - pipelineTaskName: prefetch-dependencies
+      stepSpecs:
+      - name: prefetch
+        computeResources:
+          requests:
+            cpu: '8'
+            memory: 12Gi
+          limits:
+            cpu: '8'
+            memory: 12Gi
+  taskRunTemplate:
+    serviceAccountName: pipeline
+  timeouts:
+    # See https://tekton.dev/docs/pipelines/pipelineruns/#configuring-a-failure-timeout
+      pipeline: 3h
+  workspaces:
+  - name: workspace
+    volumeClaimTemplate:
+      metadata:
+        creationTimestamp: null
+      spec:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: 5Gi
+      status: {}
+  - name: git-auth
+    secret:
+      secretName: '{{ git_auth_secret }}'
+status: {}
