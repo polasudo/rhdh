@@ -115,24 +115,6 @@ And for 1.7:
 * https://gitlab.cee.redhat.com/releng/konflux-release-data/-/merge_requests/11184
 ====
 
-### Create plugin pipelines
-
-Once the k-r-d MR is merged, Konflux will generate new pipelines in the `1.y` branch, which should be ignored and closed.
-
-Purge branches with:
-```
-for branch in $(git branch -a | grep remotes/origin/konflux- | sed -r -e "s|remotes/origin/||"); do git push origin :$branch; done
-````
-
-Then batch-close the MRs: 
-
-https://gitlab.cee.redhat.com/rhidp/rhdh-plugin-catalog/-/merge_requests/?sort=updated_desc&state=opened&author_username=project_112031_bot_7effa89ba961de1dc1ce4830a29db90e&first_page_size=20
-
-Now you can run the `./generatePipelineRunsForPlugins.sh` script in the `.tekton` folder of the rhdh-plugin-catalog repo.
-
-(TODO: add more info here)
-
-
 ## Create new GL pipeline
 
 As the 'rhdh-bot@redhat.com' user, go to link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/pipeline_schedules[pipeline schedules] and create (or repurpose) a new pipeline for the `1.y` branch, then point it at the recently created `rhdh-1.y-rhel-9` branch. 
@@ -207,6 +189,12 @@ You can now install from an FBC using link:https://github.com/redhat-developer/r
 If the changes you expect are not seen when installing via Operator, but are seen via Helm, re-run the link:../build/scripts/renderCatalogs.sh[renderCatalogs.sh] script to pull in the latest CI build for the current branch.
 ====
 
+## Create plugin pipelines
+
+This process is still evolving and subject to change. Once we have a stable process for building plugins and the catalog index, onboarding + building the plugins will need to happen BEFORE the operator bundle build.
+
+See link:RELEASE_GUIDE_plugin_catalog.adoc[RELEASE_GUIDE_plugin_catalog.adoc]
+
 ## Release Candidates
 
 ### Container base images 
@@ -218,7 +206,7 @@ Before declaring RC, you should make sure we've updated to the latest base image
 git clone -b release-1.y git@github.com:redhat-developer/rhdh.git
 cd rhdh
 
-# NOTE: '-sb' set scripts branch to 'rhdh-1-rhel-9' to use the latest scripts.
+# NOTE: use the '-sb' flag to set scripts branch to 'rhdh-1-rhel-9' for latest scripts.
 /path/to/gl/rhidp/rhdh/build/scripts/updateBaseImages.sh -b release-1.7 -sb rhdh-1-rhel-9 -w $(pwd) -f \*ockerfile -maxdepth 5 --sha
 
 # choose the correct branch
@@ -263,7 +251,8 @@ or
 +
 NOTE: It may take up to 50 minutes for the new images to be available. You can monitor the progress in https://quay.io/repository/rhdh/rhdh-hub-rhel9?tab=tags and https://quay.io/repository/rhdh/rhdh-rhel9-operator?tab=tags.
 +
-. To create a new operator-bundle, do this (latest or next flag will be computed automatically):
+. As of 1.7, GL pipelines will link:../build/ci/sync-midstream.sh#L663[automatically respin] the link:../build/ci/update-bundle-and-FBCs.sh[bundle and FBC builds] if a new hub or operator image is found in quay.io/rhdh. 
+.. To manually create a new operator-bundle, do this (latest or next flag will be computed automatically):
 +
 ```
 # choose the correct branch
@@ -292,7 +281,15 @@ For example if the SHA for `quay.io/rhdh/rhdh-hub-rhel9:1.5-182` starts with `85
 image::images/sbom-check.png[quay.io view filtered for a specific digest]
 ====
 +
-. Publish new FBCs to link:https://quay.io/repository/rhdh/iib[quay.io/rhdh/iib] by using link:../build/scripts/renderCatalogs.sh[renderCatalogs.sh] script. *Run the script from the correct `rhdh-1.y-rhel-9` branch*, and it will provide usage intructions you can then copy into the console. Latest or next flag will be added automatically if appropriate. Rendering, committing changes, and running builds for each OCP version should take no more than 20-30 mins.
+. As of 1.7, GL pipelines will link:../build/ci/sync-midstream.sh#L663[automatically respin] the link:../build/ci/update-bundle-and-FBCs.sh[bundle and FBC builds] if a new hub or operator image is found in quay.io/rhdh. 
+
+.. To manually publish new FBCs to link:https://quay.io/repository/rhdh/iib[quay.io/rhdh/iib], use the link:../build/scripts/renderCatalogs.sh[renderCatalogs.sh] script. *Run the script from the correct `rhdh-1.y-rhel-9` branch*, and it will provide usage intructions you can then copy into the console. Latest or next flag will be added automatically if appropriate. Rendering, committing changes, and running builds for each OCP version should take no more than 20-30 mins.
++
+```
+# choose the correct branch
+git checkout rhdh-1.7-rhel-9
+./build/scripts/renderCatalogs.sh --default-sealights ...
+```
 
 ** verify the FBC content is correct - check that the image contains the SAME images as the latest ones; also use the list of branches/commits to verify that all expected commits have been built:
 +
@@ -303,7 +300,7 @@ image::images/sbom-check.png[quay.io view filtered for a specific digest]
 ====
 +
 ```
-RHDH_VERSION=1.7
+RHDH_VERSION=1.8
 OCP_VERSION=4.18
 sudo ./build/scripts/checkRCStatus.sh -v ${RHDH_VERSION} -o ${OCP_VERSION}
 ```

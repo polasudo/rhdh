@@ -1,4 +1,11 @@
+# Release Guide for RHDH Plugins and Catalog Index
+
+[IMPORTANT]
+====
 DRAFT DOC IN PROGRESS
+
+This process is still evolving and subject to change. Once we have a stable process for building plugins and the catalog index, onboarding + building the plugins will need to happen BEFORE the operator bundle build.
+====
 
 See https://issues.redhat.com/browse/RHIDP-7097
 
@@ -11,6 +18,22 @@ For the Plugin Catalog, see subsequent steps below.
 ```
 ./build/scripts/tagRelease.sh
 ```
+
+#### Purge Konflux-generated MRs and branches
+
+Once the k-r-d MR is merged, Konflux may generate new pipelines in the `1.y` branch, which should be ignored and closed.
+
+Purge branches with:
+
+```
+for branch in $(git branch -a | grep remotes/origin/konflux- | sed -r -e "s|remotes/origin/||"); do git push origin :$branch; done
+```
+
+Then close the MRs in batches: 
+
+https://gitlab.cee.redhat.com/rhidp/rhdh-plugin-catalog/-/merge_requests/?sort=updated_desc&state=opened&author_username=project_112031_bot_7effa89ba961de1dc1ce4830a29db90e&first_page_size=20
+
+The above steps may no longer be necessary. See https://issues.redhat.com/browse/RHIDP-9369 which hopefully prevents creation of unnecessary MRs. 
 
 ### Plugin Catalog - rhdh-1-rhel-9 branch:
 
