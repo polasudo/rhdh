@@ -483,7 +483,7 @@ spec:
       - name: CACHI2_ARTIFACT
         value: $(tasks.prefetch-dependencies.results.CACHI2_ARTIFACT)
       # - name: ARGS
-      #   value: "--project-name=konflux-rhdh-hub-1-next --report --org=3640be2c-1549-4d4c-bc0b-46b24799e4b6"
+      #   value: "--project-name=konflux-rhdh-hub-1 --report --org=3640be2c-1549-4d4c-bc0b-46b24799e4b6"
       runAfter:
       - build-image-index
       taskRef:
