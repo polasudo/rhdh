@@ -6,6 +6,10 @@ The are published to https://quay.io/repository/rhdh/gitlab-runner?tab=tags
 
 Images include certs to allow pushing changes to RH GL repos such as this one.
 
+Images are based on the plugin catalog builder image @ https://quay.io/rhdh/plugin-catalog-builder-rhel9
+
+See also https://issues.redhat.com/browse/RHIDP-7998
+
 [NOTE]
 ====
 If the version of yarn changes in distgit/containers/rhdh-hub/.yarnrc.yml be sure to update the Containerfile(s) too.
@@ -17,8 +21,8 @@ For 1.5+ using link:https://catalog.redhat.com/search?gs&q=nodejs-22&searchType=
 
 ```
 TODAY=$(date +%Y%m%d-%H%M); \
-podman rmi registry.redhat.io/ubi9:latest -f; \
-podman build . --no-cache -f build/containerfiles/yarn3-node22-ubi9.Containerfile --label quay.expires-after=99d \
+podman rmi quay.io/rhdh/plugin-catalog-builder-rhel9:1.9 -f; \
+podman build . --no-cache -f yarn3-node22-ubi9.Containerfile --label quay.expires-after=99d \
     -t quay.io/rhdh/gitlab-runner:yarn3-node22-$TODAY \
     -t quay.io/rhdh/gitlab-runner:yarn3-node22-latest && \
 podman push quay.io/rhdh/gitlab-runner:yarn3-node22-$TODAY; \
@@ -28,3 +32,5 @@ podman push quay.io/rhdh/gitlab-runner:yarn3-node22-latest
 ## Node 24 runner
 
 In future, a new Containerfile will be added for link:https://catalog.redhat.com/search?gs&q=nodejs-24&searchType=containers[node 24].
+
+At that point it might make sense to switch to a 1.y versioning scheme for these images instead of `yarn3-node22` names, so we can differentiate between runner images.
