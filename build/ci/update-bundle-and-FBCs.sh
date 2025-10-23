@@ -74,7 +74,7 @@ update_bundle_and_FBCs() {
     # Check final result
     if [[ "$NEW_BUNDLE_DETECTED" == "true" ]]; then
         echo "[INFO] Running renderCatalogs.sh..."
-        # TODO remove this if-block once 1.6 is EOL and we're always using sealights
+        # TODO remove this if-block once 1.6 is EOL
         if [[ "${DH_VERSION_FULL%.*}" == "1.6"* ]]; then 
             pushd "$ROOTPATH" >/dev/null 2>&1 || exit 1
                 ./build/scripts/renderCatalogs.sh --ci --clean --versions "${OCP_VERSION_BASE}" -v "${DH_VERSION_FULL}"; sleep 30s; echo
@@ -86,7 +86,7 @@ update_bundle_and_FBCs() {
             popd >/dev/null 2>&1 || exit 1
         else
             # for 1.next and 1.7+
-            "$ROOTPATH/build/scripts/renderCatalogs.sh" --ci --default-sealights
+            "$ROOTPATH/build/scripts/renderCatalogs.sh" --ci --default
         fi
         echo "[INFO] FBC catalogs updated successfully"
     else

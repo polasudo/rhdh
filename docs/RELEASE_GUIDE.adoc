@@ -288,7 +288,7 @@ image::images/sbom-check.png[quay.io view filtered for a specific digest]
 ```
 # choose the correct branch
 git checkout rhdh-1.7-rhel-9
-./build/scripts/renderCatalogs.sh --default-sealights ...
+./build/scripts/renderCatalogs.sh --default ...
 ```
 
 ** verify the FBC content is correct - check that the image contains the SAME images as the latest ones; also use the list of branches/commits to verify that all expected commits have been built:
@@ -481,13 +481,13 @@ done
 
 ###########################################################################
 
-# for >=1.7, with support for OCP 4.19 GA + 4.20 CI; 4.15 removed; sealights support added
+# for >=1.7, with support for OCP 4.19 GA + 4.20 CI; 4.15 removed
 # list of OCP versions is set in ocp-versions.yaml
 
 # choose the correct branch
 git checkout rhdh-1.7-rhel-9
 
-./build/scripts/renderCatalogs.sh --rhec --default-sealights
+./build/scripts/renderCatalogs.sh --rhec --default
 ```
 
 ### Chart release (15 mins)

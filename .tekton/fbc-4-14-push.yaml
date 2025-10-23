@@ -23,18 +23,12 @@ spec:
     value: '{{revision}}'
   - name: output-image
     value: quay.io/rhdh/iib:fbc-4-14-on-push-for-rhdh-1-rhel-9-from-{{revision}}
-  - name: sealights-output-image
-    value: quay.io/rhdh/iib-sealights:fbc-4-14-on-push-for-rhdh-1-rhel-9-from-{{revision}}
   - name: image-expires-after
     value: ''
-  - name: sealights-image-expires-after
-    value: '2w'
   - name: dockerfile
     value: Containerfile
   - name: path-context
     value: catalogs/v4.14
-  - name: sealights-path-context
-    value: catalogs-sealights/v4.14
   pipelineSpec:
     description: |
       This pipeline is ideal for building and verifying [file-based catalogs](https://konflux.pages.redhat.com/docs/users/advanced-how-tos/building-olm.html#_building_the_file_based_catalog).
@@ -118,10 +112,6 @@ spec:
       description: Image tag expiration time, time values could be something like
         1h, 2d, 3w for hours, days, and weeks, respectively.
       name: image-expires-after
-    - default: ""
-      description: Sealights image tag expiration time, time values could be something like
-        1h, 2d, 3w for hours, days, and weeks, respectively.
-      name: sealights-image-expires-after
     - default: "false"
       description: Build a source image.
       name: build-source-image
@@ -200,41 +190,6 @@ spec:
         value: $(params.hermetic)
       - name: IMAGE_EXPIRES_AFTER
         value: $(params.image-expires-after)
-      - name: COMMIT_SHA
-        value: $(tasks.clone-repository.results.commit)
-      runAfter:
-      - clone-repository
-      taskRef:
-        params:
-        - name: name
-          value: buildah
-        - name: bundle
-          value: quay.io/konflux-ci/tekton-catalog/task-buildah:0.6@sha256:e8648dff9859d89a0dbaedd120eec2e07afbffc850e706d16d0ac479a905efa0
-        - name: kind
-          value: task
-        resolver: bundles
-      when:
-      - input: $(tasks.init.results.build)
-        operator: in
-        values:
-        - "true"
-      workspaces:
-      - name: source
-        workspace: workspace
-    - name: build-container-sealights
-      params:
-      - name: SKIP_SBOM_GENERATION
-        value: "true"
-      - name: IMAGE
-        value: $(params.sealights-output-image)
-      - name: DOCKERFILE
-        value: $(params.dockerfile)
-      - name: CONTEXT
-        value: $(params.sealights-path-context)
-      - name: HERMETIC
-        value: $(params.hermetic)
-      - name: IMAGE_EXPIRES_AFTER
-        value: $(params.sealights-image-expires-after)
       - name: COMMIT_SHA
         value: $(tasks.clone-repository.results.commit)
       runAfter:

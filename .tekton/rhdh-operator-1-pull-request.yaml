@@ -27,8 +27,6 @@ spec:
     value: '{"packages": [{"type": "rpm", "path": "distgit/containers/rhdh-operator"},{"path": "distgit/containers/rhdh-operator", "type": "gomod"}], "flags": ["cgo-disable"]}'
   - name: output-image
     value: quay.io/rhdh/rhdh-rhel9-operator:on-pr-{{revision}}
-  - name: sealights-output-image
-    value: quay.io/rhdh/rhdh-rhel9-operator-sealights:on-pr-{{revision}}
   - name: image-expires-after
     value: 2w
   - name: dockerfile
@@ -95,7 +93,7 @@ spec:
       description: Build a source image.
       name: build-source-image
       type: string
-    - default: "false"
+    - default: "true"
       description: Add built image into an OCI image index
       name: build-image-index
       type: string
@@ -195,37 +193,6 @@ spec:
         workspace: git-auth
       - name: netrc
         workspace: netrc
-    - name: sealights-go-instrumentation
-      runAfter:
-        - prefetch-dependencies
-      taskRef:
-        params:
-        - name: name
-          value: sealights-go-oci-ta
-        - name: bundle
-          value: quay.io/konflux-ci/tekton-catalog/task-sealights-go-oci-ta:0.1@sha256:ce75fd9d498365a9c1e42f8340cc3e7d09a68ab312588905d169964055f092b2
-        - name: kind
-          value: task
-        resolver: bundles
-      params:
-        - name: SOURCE_ARTIFACT
-          value: $(tasks.clone-repository.results.SOURCE_ARTIFACT)
-        - name: component
-          value: 'rhdh-operator-downstream'
-        - name: branch
-          value: '{{ source_branch }}'
-        - name: revision
-          value: '{{ revision }}'
-        - name: repository-url
-          value: '{{ repo_url }}'
-        - name: pull-request-number
-          value: '{{ pull_request_number }}'
-        - name: target-branch
-          value: '{{ target_branch }}'
-        - name: oci-storage
-          value: $(params.sealights-output-image).sealights.git
-        - name: workspace-path
-          value: $(params.path-context)
     - name: build-container
       params:
       - name: IMAGE
@@ -267,49 +234,6 @@ spec:
         operator: in
         values:
         - "true"
-    - name: build-container-sealights
-      params:
-      - name: SKIP_SBOM_GENERATION
-        value: "true"
-      - name: IMAGE
-        value: $(params.sealights-output-image)
-      - name: DOCKERFILE
-        value: $(params.dockerfile)
-      - name: CONTEXT
-        value: $(params.path-context)
-      - name: HERMETIC
-        value: $(params.hermetic)
-      - name: PREFETCH_INPUT
-        value: $(params.prefetch-input)
-      - name: IMAGE_EXPIRES_AFTER
-        value: $(params.image-expires-after)
-      - name: COMMIT_SHA
-        value: $(tasks.clone-repository.results.commit)
-      - name: BUILD_ARGS
-        value:
-        - $(params.build-args[*])
-      - name: BUILD_ARGS_FILE
-        value: $(params.build-args-file)
-      - name: SOURCE_ARTIFACT
-        value: $(tasks.sealights-go-instrumentation.results.SOURCE_ARTIFACT)
-      - name: CACHI2_ARTIFACT
-        value: $(tasks.prefetch-dependencies.results.CACHI2_ARTIFACT)
-      runAfter:
-      - sealights-go-instrumentation
-      taskRef:
-        params:
-        - name: name
-          value: buildah-oci-ta
-        - name: bundle
-          value: quay.io/konflux-ci/tekton-catalog/task-buildah-oci-ta:0.6@sha256:7b4c101b71e48b267079a5b6331d22de0b25e008c9e1dcaca1c41c4312391e39
-        - name: kind
-          value: task
-        resolver: bundles
-      when:
-      - input: $(tasks.init.results.build)
-        operator: in
-        values:
-        - "true"
     - name: build-image-index
       params:
       - name: IMAGE
@@ -325,7 +249,6 @@ spec:
         - $(tasks.build-container.results.IMAGE_URL)@$(tasks.build-container.results.IMAGE_DIGEST)
       runAfter:
       - build-container
-      - build-container-sealights
       taskRef:
         params:
         - name: name
@@ -444,8 +367,6 @@ spec:
         value: $(tasks.prefetch-dependencies.results.SOURCE_ARTIFACT)
       - name: CACHI2_ARTIFACT
         value: $(tasks.prefetch-dependencies.results.CACHI2_ARTIFACT)
-      # - name: ARGS
-      #   value: "--project-name=konflux-rhdh-operator-1 --report --org=3640be2c-1549-4d4c-bc0b-46b24799e4b6"
       runAfter:
       - build-image-index
       taskRef:
@@ -484,71 +405,6 @@ spec:
         operator: in
         values:
         - "false"
-    # - name: sast-coverity-check
-    #   params:
-    #   - name: image-digest
-    #     value: $(tasks.build-image-index.results.IMAGE_DIGEST)
-    #   - name: image-url
-    #     value: $(tasks.build-image-index.results.IMAGE_URL)
-    #   - name: IMAGE
-    #     value: $(params.output-image)
-    #   - name: DOCKERFILE
-    #     value: $(params.dockerfile)
-    #   - name: CONTEXT
-    #     value: $(params.path-context)
-    #   - name: HERMETIC
-    #     value: $(params.hermetic)
-    #   - name: PREFETCH_INPUT
-    #     value: $(params.prefetch-input)
-    #   - name: IMAGE_EXPIRES_AFTER
-    #     value: $(params.image-expires-after)
-    #   - name: COMMIT_SHA
-    #     value: $(tasks.clone-repository.results.commit)
-    #   - name: BUILD_ARGS
-    #     value:
-    #     - $(params.build-args[*])
-    #   - name: BUILD_ARGS_FILE
-    #     value: $(params.build-args-file)
-    #   runAfter:
-    #   - coverity-availability-check
-    #   taskRef:
-    #     params:
-    #     - name: name
-    #       value: sast-coverity-check
-    #     - name: bundle
-    #       value: quay.io/konflux-ci/tekton-catalog/task-sast-coverity-check:0.3@sha256:9d572d7f7486224318d59de1b166efa68e59e17bac0785e2ecdcd014fe8e44d5
-    #     - name: kind
-    #       value: task
-    #     resolver: bundles
-    #   when:
-    #   - input: $(params.skip-checks)
-    #     operator: in
-    #     values:
-    #     - "false"
-    #   - input: $(tasks.coverity-availability-check.results.STATUS)
-    #     operator: in
-    #     values:
-    #     - success
-    #   workspaces:
-    #   - name: source
-    #     workspace: workspace
-    # - name: coverity-availability-check
-    #   runAfter:
-    #   - build-image-index
-    #   taskRef:
-    #     params:
-    #     - name: name
-    #       value: coverity-availability-check
-    #     - name: bundle
-    #       value: quay.io/konflux-ci/tekton-catalog/task-coverity-availability-check:0.2@sha256:db2b267dc15e4ed17f704ee91b8e9b38068e1a35b1018a328fdca621819d74c6
-    #     - name: kind
-    #       value: task
-    #     resolver: bundles
-    #   when:
-    #   - input: $(params.skip-checks)
-    #     operator: in
-    #     values:
-    #     - "false"
     - name: sast-shell-check
       params:
       - name: image-digest

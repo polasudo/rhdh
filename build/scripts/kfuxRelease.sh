@@ -140,7 +140,7 @@ Usage - for IIB / FBC updates:
 oc login ...
 
 # 2. render new catalogs using the --rhec flag
-./build/scripts/renderCatalogs.sh -v $RHDH_FULL_VERSION_INPUT --default-sealights --rhec
+./build/scripts/renderCatalogs.sh -v $RHDH_FULL_VERSION_INPUT --default --rhec
 
 # 3. once fully rendered at https://konflux-ui.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/ns/rhdh-tenant/applications/fbc-4-18/activity/pipelineruns 
 #    (and other supported versions), you can run this script!

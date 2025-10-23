@@ -20,11 +20,9 @@ operator_name="rhdh-operator"
 bundle_image="quay.io/rhdh/rhdh-operator-bundle"
 maintainers="RHDH Team <rhdh-bot@redhat.com>"
 templateFileInput=""
-ENABLE_SEALIGHTS="false"
 
 # shortcut to running the recommended for loop
 DO_DEFAULT=0
-DO_DEFAULT_SEALIGHTS=0
 DRYRUN=""
 # assume running locally; if --ci flag used, then don't try to log in to the konlfux console to retrieve pipelinerun information
 CI=""
@@ -97,8 +95,6 @@ Options:
   --bundle-image         operator bundle image to add to the catalog,                                  eg., quay.io/rhdh/rhdh-operator-bundle
   --maintainers          one or more comma-separated email addresses,                                  eg., RHDH Team <rhdh-bot@redhat.com>
 
-  --sealights            in addition to pristine catalogs, will also render Sealights versions
-
   --versions             space-separated list of OCP versions to render;
                          default: $OCP_VERSION_BASE $OCP_VERSIONS $OCP_VERSION_NEXT
 
@@ -108,8 +104,7 @@ Options:
   --nocommit             do not commit or push local changes
   --nopush               do not push local changes
   --clean                if catalog render folder exists on disk, delete and create a new one; also delete when done
-  --default              run the example below excluding sealights
-  --default-sealights    run the example below including sealights
+  --default              run the example below
   --dryrun               show commands to run but do not execute them
   --ci                   run in CI mode -- do not attempt to log in to the Konflux UI to track pipelineruns
   -h, --help             show this help
@@ -118,12 +113,9 @@ Examples:
     oc login --token=<your-token-here> --server=https://api.<your-cluster-here>.openshiftapps.com:6443
 
     # If all your templates are the same - that is, the same versions of operator-bundles exist on all OCP versions),
-    # you can render one template from the public index, and then copy it for the other OCP versions. This script enables the integration
-    # of fbc catalogs with Sealight. When using the flag --sealights, there must be a matching -sealights image for the operator-bundle image, 
-    # For example, must previously have created quay.io/rhdh/rhdh-operator-bundle-sealights for the quay.io/rhdh/rhdh-operator-bundle image, and
-    # that bundle must refer to any related sealights-enabled operator and operand images. 
+    # you can render one template from the public index, and then copy it for the other OCP versions. 
 
-    # without sealights rendering (same as: $0 --default)
+    # same as: $0 --default
     $0 $latestNextExample --clean --versions "${OCP_VERSION_BASE}" -v "${RHDH_VERSION}"
     alias cp=cp
     for OCP_VERSION in ${OCP_VERSIONS% } $OCP_VERSION_NEXT; do \\
@@ -131,17 +123,6 @@ Examples:
       cp -f catalogs/v{$OCP_VERSION_BASE,\$OCP_VERSION}/catalog-template.json; \\
       $0 $latestNextExample --clean --versions "\${OCP_VERSION}" -v "${RHDH_VERSION}" --template "catalogs/v\${OCP_VERSION}/catalog-template.json" \\
     done
-
-    # or with sealights rendering (same as: $0 --default-sealights)
-    $0 $latestNextExample --clean --versions "${OCP_VERSION_BASE}" -v "${RHDH_VERSION}" --sealights
-    alias cp=cp
-    for OCP_VERSION in ${OCP_VERSIONS% } $OCP_VERSION_NEXT; do \\
-      sleep 30s; \\
-      cp -f catalogs/v{$OCP_VERSION_BASE,\$OCP_VERSION}/catalog-template.json; \\
-      cp -f catalogs-sealights/v{$OCP_VERSION_BASE,\${OCP_VERSION}}/catalog-template.json; \\
-      $0 $latestNextExample --clean --versions "\${OCP_VERSION}" -v "${RHDH_VERSION}" --sealights --template "catalogs/v\${OCP_VERSION}/catalog-template.json"; \\
-    done
-
 EOF
 }
 
@@ -172,7 +153,6 @@ while [[ "$#" -gt 0 ]]; do
     '--prod-url') prod_url="$2"; shift 1;; 
     '--operator-name') operator_name="$2"; shift 1;; 
     '--bundle-image') bundle_image="$2"; shift 1;; 
-    '--sealights') ENABLE_SEALIGHTS="true";;
     '--maintainers') maintainers="$2"; shift 1;; 
     '--template') templateFileInput="$2"; shift 1;;
     '--rhec') USE_RHEC="1";;
@@ -181,7 +161,6 @@ while [[ "$#" -gt 0 ]]; do
     '--nocommit') DO_COMMIT=0; DO_PUSH=0;;
     '--nopush')   DO_PUSH=0;;
     '--default')             DO_DEFAULT=1;;
-    '--default-sealights')   DO_DEFAULT_SEALIGHTS=1;;
     '--dryrun')              DRYRUN="$1";;
     '--ci')                  CI="$1";;
     '-h'|'--help') usage; exit 0;;
@@ -210,42 +189,37 @@ else
 fi
 
 recurse () {
-  SEALIGHTS_FLAG=""
-  if [[ $DO_DEFAULT_SEALIGHTS -eq 1 ]]; then SEALIGHTS_FLAG="--sealights"; fi
 
   RHEC_FLAG=""
   if [[ $USE_RHEC == "1" ]]; then RHEC_FLAG="--rhec"; fi
 
-  echo -e "\n${blue} >> $0 $latestNextExample --clean --versions ${OCP_VERSION_BASE} -v ${RHDH_VERSION} $SEALIGHTS_FLAG $RHEC_FLAG $DRYRUN $CI${norm}\n"
+  echo -e "\n${blue} >> $0 $latestNextExample --clean --versions ${OCP_VERSION_BASE} -v ${RHDH_VERSION} $RHEC_FLAG $DRYRUN $CI${norm}\n"
   if [[ ! $DRYRUN ]]; then 
     # shellcheck disable=SC2086
-    $0 $latestNextExample --clean --versions "${OCP_VERSION_BASE}" -v "${RHDH_VERSION}" $SEALIGHTS_FLAG $RHEC_FLAG $DRYRUN $CI
+    $0 $latestNextExample --clean --versions "${OCP_VERSION_BASE}" -v "${RHDH_VERSION}" $RHEC_FLAG $DRYRUN $CI
   fi
   for OCP_VERSION in ${OCP_VERSIONS//${OCP_VERSION_BASE} }; do \
     if [[ ! $DRYRUN ]]; then 
       sleep 30s
     fi
     if [[ ! -d "catalogs/v$OCP_VERSION/" ]]; then # need to bootstrap from scratch
-      echo -e "\n${blue} >> $0 $latestNextExample --clean --versions ${OCP_VERSION} -v ${RHDH_VERSION} $SEALIGHTS_FLAG $RHEC_FLAG $DRYRUN $CI${norm}\n"
+      echo -e "\n${blue} >> $0 $latestNextExample --clean --versions ${OCP_VERSION} -v ${RHDH_VERSION} $RHEC_FLAG $DRYRUN $CI${norm}\n"
       if [[ ! $DRYRUN ]]; then 
         # shellcheck disable=SC2086
-        $0 $latestNextExample --clean --versions "${OCP_VERSION}" -v "${RHDH_VERSION}" $SEALIGHTS_FLAG $RHEC_FLAG $DRYRUN $CI
+        $0 $latestNextExample --clean --versions "${OCP_VERSION}" -v "${RHDH_VERSION}" $RHEC_FLAG $DRYRUN $CI
       fi
     else # folder exists so just run from template
       cp -f "catalogs/v$OCP_VERSION_BASE/catalog-template.json" "catalogs/v$OCP_VERSION/catalog-template.json"
-      if [[ $DO_DEFAULT_SEALIGHTS -eq 1 ]]; then 
-        cp -f "catalogs-sealights/v$OCP_VERSION_BASE/catalog-template.json" "catalogs-sealights/v$OCP_VERSION/catalog-template.json"
-      fi
-      echo -e "\n${blue} >> $0 $latestNextExample --clean --versions ${OCP_VERSION} -v ${RHDH_VERSION} --template catalogs/v${OCP_VERSION}/catalog-template.json $SEALIGHTS_FLAG $RHEC_FLAG $DRYRUN $CI${norm}\n"
+      echo -e "\n${blue} >> $0 $latestNextExample --clean --versions ${OCP_VERSION} -v ${RHDH_VERSION} --template catalogs/v${OCP_VERSION}/catalog-template.json $RHEC_FLAG $DRYRUN $CI${norm}\n"
       if [[ ! $DRYRUN ]]; then 
         # shellcheck disable=SC2086
-        $0 $latestNextExample --clean --versions "${OCP_VERSION}" -v "${RHDH_VERSION}" --template "catalogs/v${OCP_VERSION}/catalog-template.json" $SEALIGHTS_FLAG $RHEC_FLAG $DRYRUN $CI 
+        $0 $latestNextExample --clean --versions "${OCP_VERSION}" -v "${RHDH_VERSION}" --template "catalogs/v${OCP_VERSION}/catalog-template.json" $RHEC_FLAG $DRYRUN $CI 
       fi
     fi
   done
 }
 
-if [[ $DO_DEFAULT -eq 1 ]] || [[ $DO_DEFAULT_SEALIGHTS -eq 1 ]]; then
+if [[ $DO_DEFAULT -eq 1 ]]; then
   recurse; exit 0
 else
   if [[ $PROD_FULL_VERSION == "" ]] || [[ $OCP_VERSIONS == "" ]]; then 
@@ -268,28 +242,11 @@ if [[ $templateFileInput ]] && [[ ! -f $templateFileInput ]]; then
 fi
 
 PROD_VERSION=${PROD_FULL_VERSION%.*} # x.y
-
-if  [[ "${ENABLE_SEALIGHTS}" == "true" ]]; then
-  CATALOGS=(catalogs catalogs-sealights)
-else
-  CATALOGS=(catalogs)
-fi
+CATALOGS=(catalogs)
 
 for OCP_VERSION in ${OCP_VERSIONS}; do
   for CATALOG_DIR in "${CATALOGS[@]}"; do
     echo "[INFO] Render catalog from file ${CATALOG_DIR}, openshift version: ${OCP_VERSION}"
-
-    if [[ "${CATALOG_DIR}" == *"sealights"* ]] && [[ "${ENABLE_SEALIGHTS}" == "false" ]]; then
-      echo "[INFO] Sealights catalog rendering is disabled. Skipping..."
-      continue
-    elif [[ "${CATALOG_DIR}" == *"sealights"* ]] && [[ "${ENABLE_SEALIGHTS}" == "true" ]]; then
-      if [[ "${bundle_image}" != *"-sealights" ]]; then
-        bundle_image="${bundle_image}-sealights"
-      fi
-    else
-      # Remove -sealights if it was added previously
-      bundle_image="${bundle_image%-sealights}"
-    fi
 
     # create folder for the rendered catalog.json
     mkdir -p "${CATALOG_DIR}/v${OCP_VERSION}/configs/${prod_path}/"
@@ -367,11 +324,7 @@ for OCP_VERSION in ${OCP_VERSIONS}; do
 
       grep "quay.io/rhdh/rhdh-operator-bundle" "${templateFile}" || true
     else
-      if [[ "${CATALOG_DIR}" == *"sealights"* ]] && [[ "${ENABLE_SEALIGHTS}" == "true" ]]; then
-        templateFile="${templateFileInput/catalogs/catalogs-sealights}"
-      else
-        templateFile="${templateFileInput}"
-      fi
+      templateFile="${templateFileInput}"
     fi
 
     ############################################## template created from production index, or passed in ##############################################
@@ -379,8 +332,7 @@ for OCP_VERSION in ${OCP_VERSIONS}; do
     # switch quay.io/rhdh references that will fail in a push to production Release
     if [[ $USE_RHEC -eq 1 ]]; then 
       sed -i "${CATALOG_DIR}/v${OCP_VERSION}/catalog-template.json" -r \
-        -e "s|quay.io/rhdh|registry.redhat.io/rhdh|g" \
-        -e "s|registry.redhat.io/rhdh/rhdh-operator-bundle-sealights|quay.io/rhdh/rhdh-operator-bundle-sealights|g"
+        -e "s|quay.io/rhdh|registry.redhat.io/rhdh|g"
     fi
 
     ############################################## render catalog content from the template ##############################################
@@ -451,17 +403,10 @@ EOF
   if [[ $DO_COMMIT -eq 1 ]]; then
     # echo "[INFO] Commit changes to catalogs/v${OCP_VERSION}/"
     git add -f "catalogs/v${OCP_VERSION}/" build/scripts/renderCatalogs.sh || true
-    if [[ $ENABLE_SEALIGHTS == "true" ]]; then
-      git add -f "catalogs-sealights/v${OCP_VERSION}/" || true
-    fi
     # don't trigger gitlab pipelines [ci skip], only tekton ones
     commitMsg="renderCatalogs.sh from catalogs/v${OCP_VERSION}/, in channel(s) fast${fastYChannel}, for ${PROD_VERSION}-v${OCP_VERSION}${arch}${latestNextTag}; add $PROD_FULL_VERSION"
     if [[ $USE_RHEC -eq 1 ]]; then commitMsg=":: GA PUSH :: ${commitMsg}"; fi
-    if [[ $ENABLE_SEALIGHTS == "true" ]]; then
-      git commit -s -m "[ci skip] $commitMsg" "catalogs/v${OCP_VERSION}/" "catalogs-sealights/v${OCP_VERSION}/" build/scripts/renderCatalogs.sh || true
-    else
-      git commit -s -m "[ci skip] $commitMsg" "catalogs/v${OCP_VERSION}/" build/scripts/renderCatalogs.sh || true
-    fi
+    git commit -s -m "[ci skip] $commitMsg" "catalogs/v${OCP_VERSION}/" build/scripts/renderCatalogs.sh || true
   fi
   if [[ ${DO_PUSH} -eq 1 ]]; then
     git pull origin "${DWNSTM_BRANCH}" >/dev/null 2>&1 || true
