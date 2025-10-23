@@ -11,6 +11,7 @@ RUN \
     curl -sSLkO \
     https://coprbe.devel.redhat.com/results/@endpoint-systems-sysadmins/unsupported-fedora-packages/epel-9-x86_64/00122526-redhat-internal-cert-install/redhat-internal-cert-install-ca2015-0.2-4.el9.noarch.rpm; \
     dnf -y -q install redhat-internal-cert-install*.rpm; \
-    rm -f /tmp/redhat-internal-cert-install*.rpm
+    rm -f /tmp/redhat-internal-cert-install*.rpm; \
+    pip3 install --no-cache-dir -q yq
 ### GITLAB ONLY ### 
 
