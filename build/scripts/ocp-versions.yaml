@@ -9,9 +9,10 @@ SUPPORTED_VERSIONS:
   - "4.17"
   - "4.18"
   - "4.19"
+  - "4.20"
 
 # future OCP version for which we need to test building FBCs, but NOT publish them with kfuxRelease.sh
-OCP_VERSION_NEXT: "4.20"
+OCP_VERSION_NEXT: "4.21"
 
 # Registry configurations
 REGISTRIES:
