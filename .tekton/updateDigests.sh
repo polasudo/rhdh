@@ -157,9 +157,9 @@ for file in $(find "$ROOTPATH" -name "${REGEX}" | sort -V); do
 done
 rm -f mypipe
 echo; echo "Changes:"
-git diff "$ROOTPATH/*.yaml" "$ROOTPATH/**/*.yaml" | grep value: | sort -uV | grep +
+git diff "$ROOTPATH/*.yaml" | grep value: | sort -uV | grep +
 echo; echo "Changed files:"
-git diff  --name-only "$ROOTPATH/*.yaml" "$ROOTPATH/**/*.yaml"
+git diff  --name-only "$ROOTPATH/*.yaml"
 
 createPr() {
 	headBranch=$1
@@ -197,8 +197,8 @@ if [[ ${#MIGRATIONS[@]} -gt 0 ]]; then
     done
 fi
 
-if [[ ${docommit} -eq 1 ]]; then
-    git add "$ROOTPATH/*.yaml" "$ROOTPATH/**/*.yaml" "$ROOTPATH/*.sh" || true
+if [[ ${docommit} -eq 1 ]]; then 
+    git add "$ROOTPATH/*.yaml" "$ROOTPATH/*.sh" || true
     if [[ $TRIGGER == "true" ]]; then
         # konflux trigger, skips gitlab
         git commit -s -m "chore: Update .tekton folder to latest task versions [ci skip]" "$ROOTPATH/" 
