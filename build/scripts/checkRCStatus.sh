@@ -12,6 +12,11 @@
 #  and compare them to the latest commits on the upstream repos
 DEFAULT_OCP_VERSION="4.18"
 
+IS_NEXT=0 # generally we want to look at a 1.y version, not 1.next
+
+DWNSTM_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "rhdh-1-rhel-9")
+if [[ ${DWNSTM_BRANCH} != "rhdh-"*"-rhel-"* ]]; then DWNSTM_BRANCH="rhdh-1-rhel-9"; fi
+
 usage() {
     echo "Usage:
 
@@ -25,6 +30,7 @@ Options:
 Examples: 
     $0 -v 1.7
     $0 -v 1.7 -o 4.18
+    $0 -v 1.next
 "
 }
 
@@ -82,15 +88,30 @@ get_latest_github_commit() {
     echo "$latest_sha"
 }
 
-# Get images from getLatestImageTags.sh
-echo "[INFO] Get latest GA containers from registry.redhat.io/rhdh: getLatestImageTags.sh --rhec --latestNext ${RHDH_VERSION}"
-CONTAINERS="$("${SCRIPTPATH}/getLatestImageTags.sh" -b "rhdh-${RHDH_VERSION}-rhel-9" --rhec --latestNext "${RHDH_VERSION}")"
-echo "[INFO] Containers found:"
-echo "$CONTAINERS"
-echo "============"
+if [[ $RHDH_VERSION == "1.next" ]]; then
+    IS_NEXT=1
+fi
 
-echo "[INFO] Get latest RC or CI containers from quay.io/rhdh: getLatestImageTags.sh -b rhdh-${RHDH_VERSION}-rhel-9 --quay --tag ${RHDH_VERSION}-"
-CONTAINERS="$("${SCRIPTPATH}/getLatestImageTags.sh" -b "rhdh-${RHDH_VERSION}-rhel-9" --quay --tag "${RHDH_VERSION}-")"
+if [[ $RHDH_VERSION == "1.next" ]]; then
+    DWNSTM_BRANCH="rhdh-1-rhel-9"
+    RHDH_VERSION=$(curl -sSLo- https://raw.githubusercontent.com/redhat-developer/rhdh/refs/heads/main/package.json | jq -r '.version') # 1.9.0
+    RHDH_VERSION=${RHDH_VERSION%.*} # 1.9
+else
+    DWNSTM_BRANCH="rhdh-${RHDH_VERSION}-rhel-9"
+fi
+
+# no GA releases from the 1.next branch
+if [[ $IS_NEXT -eq 0 ]]; then
+    # Get images from getLatestImageTags.sh
+    echo "[INFO] Get latest GA containers from registry.redhat.io/rhdh: getLatestImageTags.sh --rhec --latestNext ${RHDH_VERSION}"
+    CONTAINERS="$("${SCRIPTPATH}/getLatestImageTags.sh" -b "${DWNSTM_BRANCH}" --rhec --latestNext "${RHDH_VERSION}")"
+    echo "[INFO] Containers found:"
+    echo "$CONTAINERS"
+    echo "============"
+fi
+
+echo "[INFO] Get latest RC or CI containers from quay.io/rhdh: getLatestImageTags.sh --quay --tag ${RHDH_VERSION}-"
+CONTAINERS="$("${SCRIPTPATH}/getLatestImageTags.sh" -b "${DWNSTM_BRANCH}" --quay --tag "${RHDH_VERSION}-")"
 echo "[INFO] Containers found:"
 echo "$CONTAINERS"
 echo "============"
@@ -149,7 +170,7 @@ for q in $CONTAINERS; do
                 operator_check_result="true"
             fi
         else
-            echo -e "${red} The latest image is NOT used for IIB${norm}"
+            echo -e "${red} The latest image is NOT used for IIB: trigger a new bundle build from https://gitlab.cee.redhat.com/rhidp/rhdh/-/pipeline_schedules${norm}"
             # Store result for potential reuse by operator-bundle
             if [[ "$q" == *"rhdh-rhel9-operator"* ]]; then
                 operator_check_result="false"
@@ -175,9 +196,13 @@ for q in $CONTAINERS; do
         if [[ "$image_sha" == "$short_github_sha" ]]; then
             echo -e "${green} Image is up to date: Image SHA ($image_sha) == The latest commit in GitHub ($short_github_sha)${norm}"
         else
-            echo -e "${red} Image is OUTDATED. You need to rebuild the image: Image SHA ($image_sha) != The latest commit in GitHub ($short_github_sha)${norm}"
-            echo -e "${blue} to rebuild the hub and operator images, run this command: ./build/scripts/triggerRespin.sh -v ${RHDH_VERSION} all${norm}"
-            echo -e "${blue} then rebuild the operator-bundle by running this command: ./build/scripts/triggerRespin.sh -v ${RHDH_VERSION} bun${norm}"
+            echo -e "${red} You need to rebuild the image as image's commit SHA ($image_sha) != latest commit in GitHub ($short_github_sha)${norm}"
+            if [[ "$q" == *"rhdh-rhel9-operator"* ]]; then
+                echo -e "${blue} To rebuild the operator image, run: ./build/scripts/triggerRespin.sh -v ${RHDH_VERSION} op${norm}"
+            elif [[ "$q" == *"rhdh-hub-rhel9"* ]]; then
+                echo -e "${blue} To rebuild the hub image, run: ./build/scripts/triggerRespin.sh -v ${RHDH_VERSION} hub${norm}"
+            fi
+            echo -e "${blue} Or to rebuild the bundle and FBCs, trigger a new bundle build from https://gitlab.cee.redhat.com/rhidp/rhdh/-/pipeline_schedules${norm}"
         fi
         echo -e "${blue} View commit history: $github_commit_url${norm}";echo
         
