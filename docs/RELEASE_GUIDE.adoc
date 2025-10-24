@@ -465,7 +465,7 @@ oc login --token=...
 
 ###########################################################################
 
-# for <=1.6, with support from OCP 4.14 to 4.19 GA + 4.20 CI
+# for <=1.6, with support from OCP 4.14 to 4.20 GA
 
 # choose the correct branch
 git checkout rhdh-1.6-rhel-9
@@ -481,7 +481,7 @@ done
 
 ###########################################################################
 
-# for >=1.7, with support for OCP 4.19 GA + 4.20 CI; 4.15 removed
+# for >=1.7, with support for OCP 4.20 GA + 4.21 CI; 4.15 removed
 # list of OCP versions is set in ocp-versions.yaml
 
 # choose the correct branch
