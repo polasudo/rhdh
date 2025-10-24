@@ -45,7 +45,6 @@ func installRhdhOperatorManifest(operatorManifest string) {
 	cmd := exec.Command(helper.GetPlatformTool(), "apply", "-f", p)
 	_, err := helper.Run(cmd)
 	Expect(err).ShouldNot(HaveOccurred())
-
 }
 
 func installRhdhOperator(flavor string) (podLabel string) {
