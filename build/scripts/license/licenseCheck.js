@@ -86,6 +86,15 @@ const exceptionLicenses = [
   "Python-2.0", // Doesn't match the SPDX identifier - https://spdx.org/licenses/PSF-2.0.html
 ];
 
+/* Allowed status values for fedora licenses in https://gitlab.com/fedora/legal/fedora-license-data/-/blob/main/tools/mkjson.py */
+const allowed_values = [
+  "allowed",
+  "allowed-content",
+  "allowed-documentation",
+  "allowed-fonts",
+  "allowed-firmware",
+]
+
 /* Fetches the Fedora license data */
 async function fetchApprovedLicenses() {
   try {
@@ -98,9 +107,13 @@ async function fetchApprovedLicenses() {
       );
     }
     const licenseData = await response.json();
+
     return Object.values(licenseData)
-      .filter((license) => license.approved === "yes")
-      .map((license) => license.spdx_abbrev);
+      .filter((license) => license.license.status.every(
+          (status) => allowed_values.includes(status)
+        )
+      )
+      .map((license) => license.license.expression);
   } catch (error) {
     console.error("Error fetching approved licenses:", error.message);
     process.exit(1);

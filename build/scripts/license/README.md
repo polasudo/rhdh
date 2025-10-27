@@ -60,3 +60,13 @@ Run the Node.js script to analyze the SBOM for unapproved licenses.
     ```
 
     This will check the licenses in the SBOM against the approved licenses from Fedora.
+
+3. Parsing the results
+  
+    If the script successfully verified all licenses are approved, it should output:
+
+    ```bash
+    No components with unapproved licenses found.
+    ```
+
+    Otherwise, it will generate a table containing the component name, package url, license and location of every package with an unapproved license.
