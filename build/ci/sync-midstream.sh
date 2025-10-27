@@ -1065,7 +1065,9 @@ for d in $these_dirs; do
     ##################################### fix SEGMENT_WRITE_KEY for rhdh-1.y branches ONLY ##################################### 
 
     ##################################### update the RPM lock files to make Cachi2 and ECP happy ##################################### 
-    if [[ $d == "distgit/containers/rhdh-hub" ]] || [[ $d == "distgit/containers/rhdh-operator" ]]; then
+    # RHDH manages the rpm lock file upstream https://github.com/redhat-developer/rhdh/blob/main/rpms.lock.yaml 
+    # TODO do the same for the rhdh-operator repo
+    if [[ $d == "distgit/containers/rhdh-operator" ]]; then
       if [[ -f rpms.in.yaml ]] && [[ -f rpms.lock.yaml ]]; then
         if [[ ! -x "${HOME}/.local/bin/rpm-lockfile-prototype" ]]; then 
           echo "Install rpm-lockfile-prototype ... "
