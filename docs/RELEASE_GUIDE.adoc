@@ -207,15 +207,13 @@ git clone -b release-1.y git@github.com:redhat-developer/rhdh.git
 cd rhdh
 
 # NOTE: use the '-sb' flag to set scripts branch to 'rhdh-1-rhel-9' for latest scripts.
-/path/to/gl/rhidp/rhdh/build/scripts/updateBaseImages.sh -b release-1.7 -sb rhdh-1-rhel-9 -w $(pwd) -f \*ockerfile -maxdepth 5 --sha
+/path/to/gl/rhidp/rhdh/build/scripts/updateBaseImages.sh -b release-1.7 -sb rhdh-1-rhel-9 -w $(pwd) -f \*ockerfile -maxdepth 5
 
 # choose the correct branch
 git clone -b release-1.y git@github.com:redhat-developer/rhdh-operator.git
 cd rhdh-operator
 
-# NOTE: [rhdh-operator] renovate bot includes SHA digest suffix. Therefore, we need to pass '--sha' option to the script to include it in the image tag. This is to avoid unnecessary updates.
-
-/path/to/gl/rhidp/rhdh/build/scripts/updateBaseImages.sh -b release-1.7 -sb rhdh-1-rhel-9 -w $(pwd) -f \*ockerfile -maxdepth 5 --sha
+/path/to/gl/rhidp/rhdh/build/scripts/updateBaseImages.sh -b release-1.7 -sb rhdh-1-rhel-9 -w $(pwd) -f \*ockerfile -maxdepth 5
 
 # NOTE: If you don't have the required privileges to commit directly to the `rhdh` and `rhdh-operator` repos, you may use the `-n` option to preview without committing the change(dryrun), or use the `--pr` option to create a pull request instead, then merge the PR manually.
 ```
