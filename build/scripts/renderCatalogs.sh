@@ -64,7 +64,10 @@ fi
 # Parse YAML configuration
 OCP_VERSION_BASE=$(yq -r '.OCP_VERSION_BASE' "$CONFIG_FILE")
 OCP_VERSION_NEXT=$(yq -r '.OCP_VERSION_NEXT' "$CONFIG_FILE")
-OCP_VERSIONS=$(yq -r '.SUPPORTED_VERSIONS[]' "$CONFIG_FILE" | tr '\n' ' ')
+OCP_SUPPORTED_VERSIONS=$(yq -r '.SUPPORTED_VERSIONS[]' "$CONFIG_FILE" | paste -sd ' ')
+# render all supported versions by default
+OCP_VERSIONS="$OCP_VERSION_BASE $OCP_SUPPORTED_VERSIONS $OCP_VERSION_NEXT"
+
 RHEL9_REGISTRY=$(yq -r '.REGISTRIES.RHEL9_REGISTRY' "$CONFIG_FILE")
 BREW_REGISTRY=$(yq -r '.REGISTRIES.BREW_REGISTRY' "$CONFIG_FILE")
 
@@ -96,7 +99,7 @@ Options:
   --maintainers          one or more comma-separated email addresses,                                  eg., RHDH Team <rhdh-bot@redhat.com>
 
   --versions             space-separated list of OCP versions to render;
-                         default: $OCP_VERSION_BASE $OCP_VERSIONS $OCP_VERSION_NEXT
+                         default: $OCP_VERSIONS
 
   --template             instead of generating a template, use some other local file
   --rhec                 switch any quay.io/rhdh/ image refs to registry.redhat.io/rhdh/ (RH Ecosystem Catalog)
@@ -118,7 +121,7 @@ Examples:
     # same as: $0 --default
     $0 $latestNextExample --clean --versions "${OCP_VERSION_BASE}" -v "${RHDH_VERSION}"
     alias cp=cp
-    for OCP_VERSION in ${OCP_VERSIONS% } $OCP_VERSION_NEXT; do \\
+    for OCP_VERSION in ${OCP_SUPPORTED_VERSIONS% } $OCP_VERSION_NEXT; do \\
       sleep 30s; \\
       cp -f catalogs/v{$OCP_VERSION_BASE,\$OCP_VERSION}/catalog-template.json; \\
       $0 $latestNextExample --clean --versions "\${OCP_VERSION}" -v "${RHDH_VERSION}" --template "catalogs/v\${OCP_VERSION}/catalog-template.json" \\
@@ -140,9 +143,6 @@ function openURL {
 }
 
 if [[ $# -lt 1 ]]; then usage; exit 1; fi
-
-# render all versions by default, base + copied ones
-OCP_VERSIONS="$OCP_VERSION_BASE $OCP_VERSIONS $OCP_VERSION_NEXT"
 
 while [[ "$#" -gt 0 ]]; do
   case $1 in
