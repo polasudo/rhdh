@@ -2886,7 +2886,7 @@
     "schema": "olm.bundle",
     "name": "rhdh-operator.v1.9.0",
     "package": "rhdh",
-    "image": "quay.io/rhdh/rhdh-operator-bundle@sha256:f3fe09dd9c0eddc8d986e686bb393e5b3122d870f30a0e668256adb2ba59ed31",
+    "image": "quay.io/rhdh/rhdh-operator-bundle@sha256:02d9cd90119ecc12fe4b71775690e3947b5013e9a521bddbedddc3457cff31b7",
     "properties": [
         {
             "type": "olm.gvk",
@@ -2979,7 +2979,7 @@
     "relatedImages": [
         {
             "name": "",
-            "image": "quay.io/rhdh/rhdh-operator-bundle@sha256:f3fe09dd9c0eddc8d986e686bb393e5b3122d870f30a0e668256adb2ba59ed31"
+            "image": "quay.io/rhdh/rhdh-operator-bundle@sha256:02d9cd90119ecc12fe4b71775690e3947b5013e9a521bddbedddc3457cff31b7"
         },
         {
             "name": "backstage",
