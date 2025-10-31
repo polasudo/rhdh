@@ -14,6 +14,9 @@ SUPPORTED_VERSIONS:
 # future OCP version for which we need to test building FBCs, but NOT publish them with kfuxRelease.sh
 OCP_VERSION_NEXT: "4.21"
 
+UNSUPPORTED_VERSIONS:
+  - "4.15"
+  
 # Registry configurations
 REGISTRIES:
   RHEL9_REGISTRY: "registry.redhat.io/openshift4/ose-operator-registry-rhel9"

@@ -98,7 +98,7 @@ Options:
       --gh-repos                  space-separated list of GH repos to process, if not the whole set
     --skip-gl                 (2) skip gitlab rhdh repo updates
     --skip-prodsec            (3) skip gitlab prodsec/product-definitions repo updates
-    --skip-pyxis              (4)skip gitlab pyxis-repo-configs repo updates
+    --skip-pyxis              (4) skip gitlab pyxis-repo-configs repo updates
     --skip-krd                (5) skip gitlab konflux-release-data repo updates
     --debug                   more output
 "
@@ -999,7 +999,38 @@ generateNewProdsecDefinitions ()
 	popd >/dev/null || exit 1
 }
 
-# update the konflux-release-data for a new branch: create new application, components, RPAs, RPs, etc. 
+# Remove FBC files for OCP versions that are no longer supported
+removeUnsupportedFBC() {
+	local FBC_PATH="tenants-config/cluster/stone-prod-p02/tenants/rhdh-tenant/fbc"
+	local OCP_VERSIONS_FILE="${SCRIPT_DIR}/ocp-versions.yaml"
+	
+	# Extract unsupported versions
+	local UNSUPPORTED_VERSIONS_ARRAY=()
+	while IFS= read -r version; do
+		version=$(echo "$version" | tr -d '"')
+		[[ -n "$version" ]] && UNSUPPORTED_VERSIONS_ARRAY+=("$version")
+	done < <(yq '.UNSUPPORTED_VERSIONS[]' "$OCP_VERSIONS_FILE" 2>/dev/null || echo "")
+	
+	if [[ ${#UNSUPPORTED_VERSIONS_ARRAY[@]} -eq 0 ]]; then
+		echo -e "${green}[INFO] No unsupported OCP versions found in $OCP_VERSIONS_FILE${norm}"
+		return 0
+	fi
+	
+	pushd "$FBC_PATH" >/dev/null || exit 1
+	
+	for unsupported_version in "${UNSUPPORTED_VERSIONS_ARRAY[@]}"; do
+		verdash="${unsupported_version//./-}"
+		if [[ -f "fbc-${verdash}.yaml" ]]; then
+			echo "[INFO] removing FBC file for unsupported OCP version: fbc-${verdash}.yaml"
+			git rm -f "fbc-${verdash}.yaml"
+		fi
+		sed -r -i kustomization.yaml -e "/  - fbc-${verdash}.yaml/d"
+	done
+
+	popd >/dev/null || exit 1
+}
+
+# update the konflux-release-data for a new branch: create new application, components, RPAs, RPs, etc. and remove fbc files for unsupported OCP versions
 generateNewKonfluxReleaseDataYamls ()
 {
 	repo=konflux-release-data
@@ -1024,7 +1055,7 @@ generateNewKonfluxReleaseDataYamls ()
 	if [[ -d "$TMPDIR/${repo}" ]]; then
 		echo
 		pushd "$TMPDIR/${repo}" >/dev/null || exit 1
-			if [[ $VERBOSE -eq 1 ]]; then echo "[DEBUG] Working dir: $(pwd)" ;fi
+		if [[ $VERBOSE -eq 1 ]]; then echo "[DEBUG] Working dir: $(pwd)" ;fi
 
 			# 1. create content in config and tenants-config folders, including three kustomization.yaml files
 			for d in \
@@ -1067,7 +1098,10 @@ generateNewKonfluxReleaseDataYamls ()
 			done
 			popd >/dev/null || exit 1
 
-			# 2. auto-generate content
+			# 2. Remove fbc files for unsupported OCP versions
+			removeUnsupportedFBC
+
+			# 3. auto-generate content
 			pushd "$TMPDIR/${repo}/tenants-config" >/dev/null || exit 1
 				./build-single.sh rhdh
 			popd >/dev/null || exit 1
@@ -1075,7 +1109,7 @@ generateNewKonfluxReleaseDataYamls ()
 			git add config/stone-prod-p02.hjvn.p1/product/ReleasePlanAdmission/rhdh/ tenants-config/cluster/stone-prod-p02/tenants/rhdh-tenant tenants-config/auto-generated/cluster/stone-prod-p02/tenants/rhdh-tenant
 
 			# commit changes 
-			COMMITMSG="chore: add new applications, components, RPs, RPAs for upcoming release RHDH $PROD_VERSION"
+			COMMITMSG="chore: add new applications, components, RPs, RPAs for upcoming release RHDH $PROD_VERSION and remove unsupported OCP versions"
 			if [[ ${DO_PUSH} -eq 1 ]]; then
 				# submit a MR
 				git commit --no-gpg-sign -s -m "${COMMITMSG}" config/ tenants-config/
