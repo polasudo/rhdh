@@ -9,6 +9,40 @@ This process is still evolving and subject to change. Once we have a stable proc
 
 See https://issues.redhat.com/browse/RHIDP-7097
 
+## Build orchestration
+
+Plugins respins will be triggered in Konflux if a change is synced from the https://github.com/redhat-developer/rhdh-plugin-export-overlays/ repo into the https://gitlab.cee.redhat.com/rhidp/rhdh-plugin-catalog/ repo.
+
+In that case, if the commit updates one of the workspaces/* folders listed in the `on-cel-expression` in the pipelineRuns defined in the link:https://gitlab.cee.redhat.com/rhidp/rhdh-plugin-catalog/-/tree/rhdh-1-rhel-9/.tekton[rhdh-plugin-catalog/.tekton] folder, that build will fire.
+
+If no change has happened in the overlays repo or the workspaces/ folders but you need to respin, you can still trigger a respin manually. 
+
+This is accomplished by committing a change to the pipelineRun yaml file, which will trigger Konflux to re-run it. There are two ways to do this efficiently, when many plugins need to be rebuilt.
+
+### Respin 1 or more specific plugin pipelineRuns
+
+To respin a single plugin pipelineRun, or a set of pipelineRuns matching a regular expression, use link:https://gitlab.cee.redhat.com/rhidp/rhdh-plugin-catalog/-/blob/rhdh-1-rhel-9/.tekton/generatePipelineRunsForPlugins.sh[.tekton/generatePipelineRunsForPlugins.sh] with the `--trigger` flag.
+
+You can either specify a `--regex` like `quay` to match all the quay plugins, scaffoldersm etc.
+
+Or use the `--path` flag to point to a single workspace plugin folder, like link:https://gitlab.cee.redhat.com/rhidp/rhdh-plugin-catalog/-/tree/rhdh-1-rhel-9/workspaces/quay/plugins/quay-actions[quay/plugins/quay-actions]
+
+### Check status of plugins, and respin several plugins pipelineRuns
+
+To check Quay for tags matching the expected values in the link:https://gitlab.cee.redhat.com/rhidp/rhdh-plugin-catalog/-/tree/rhdh-1-rhel-9/plugin_builds[plugin_builds] folder, you can use the link:https://gitlab.cee.redhat.com/rhidp/rhdh-plugin-catalog/-/blob/rhdh-1-rhel-9/build/scripts/checkPluginsExist.sh[checkPluginsExist.sh] script.
+
+The script will generate a list of quay images and expected tags, plus report on missing plugins (either the quay repo is missing, or the repo exists but the tag is missing).
+
+Optionally, you can use this script to also trigger respins using link:https://gitlab.cee.redhat.com/rhidp/rhdh-plugin-catalog/-/blob/rhdh-1-rhel-9/.tekton/generatePipelineRunsForPlugins.sh[.tekton/generatePipelineRunsForPlugins.sh]
+
+ with one of the --trigger flags:
+* respin only missing plugins (or missing tags): `--trigger-missing`
+* respin existing plugins: `--trigger-existing`
+* respin all plugins: `--trigger-all`
+
+
+## RC Day
+
 ### Create branches
 
 This will create branches and do the initial onboarding of a prod sec version for RHDH, plus pyxis and k-r-d stuff for RHDH.
@@ -43,7 +77,7 @@ Check out the new rhdh-1-rhel-9 branch, then:
 ```
 ./build/ci/sync-midstream.sh --force -b rhdh-1-rhel-9 --nopush
 ```
-
++
 2. Onboad new plugins to Konflux (if any); update 1.next pipelines
 + 
 For each of the scripts run, review changes and merge manually, or re-run without the --nopush flag to generate MRs
@@ -69,7 +103,7 @@ Check out the new rhdh-1.y-rhel-9 branch, then:
 VERSION=1.8
 ./build/ci/sync-midstream.sh --force -b rhdh-1.y-rhel-9 --nopush
 ```
-
++
 2. Onboad new 1.y plugin to Konflux; remove 1.next pipelines from the 1.y branch
 + 
 For each of the scripts run, review changes and merge manually, or re-run without the --nopush flag to generate MRs
