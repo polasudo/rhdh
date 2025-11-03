@@ -120,3 +120,7 @@ export QUAY_TOKEN=...
 cd .tekton; ./generatePipelineRunsForPlugins.sh -v 1.8.0 --clean --nopush 
 		<< not working, pagerduty-bsp and backend missing?
 ```
+
+### Plugin Catalog Index
+
+TODO - https://issues.redhat.com/browse/RHIDP-9476 to be written -- this needs to be orchestrated by Konflux so that when new plugins are released (with new digests, not just new tags!) a new index is created
