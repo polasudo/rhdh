@@ -11,7 +11,7 @@ set -e
 
 SCRIPT=$(readlink -f "$0")
 ROOTPATH=$(dirname "$SCRIPT")
-PR_BRANCH="pr-update-tekton-tasks-$(date +%s)"
+PR_BRANCH="chore/automated-update-tekton-tasks-$(date +%s)"
 DO_MINOR="false"
 REGEX="*yaml"
 TRIGGER="false"
