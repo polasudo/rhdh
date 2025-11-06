@@ -237,7 +237,7 @@ createPr() {
 # for creating a new branch, or pushing changes to an existing branch (may require PR)
 doPush () {
   the_branch="$1"
-  pr_branch="pr-update-${the_branch}-$(date +%s)"
+  pr_branch="chore/automated-update-${the_branch}-$(date +%s)"
 
   git pull origin "${the_branch}" 1>/dev/null 2>&1 || true
   createPr "${pr_branch}" "${the_branch}"
@@ -339,7 +339,7 @@ function updateRHDHLocalVersions() {
 			git commit --no-gpg-sign -s -m "${COMMITMSG}" .
 			git pull origin "${the_branch}" || true
 			# create pull request if target branch is restricted access
-			pr_branch="pr-bump-to-${the_version_z}-in-${the_branch}-$(date +%s)"
+			pr_branch="chore/automated-bump-to-${the_version_z}-in-${the_branch}-$(date +%s)"
 			createPr "${pr_branch}" "${the_branch}"
 		fi
 	fi ## if DO_PUSH
@@ -377,7 +377,7 @@ function updateRHDHCLIVersion() {
 			git commit --no-gpg-sign -s -m "${COMMITMSG}" .
 			git pull origin "${the_branch}" || true
 			# create pull request if target branch is restricted access
-			pr_branch="pr-bump-to-${the_version}-in-${the_branch}-$(date +%s)"
+			pr_branch="chore/automated-bump-to-${the_version}-in-${the_branch}-$(date +%s)"
 			createPr "${pr_branch}" "${the_branch}"
 		fi
 	fi ## if DO_PUSH
@@ -447,7 +447,7 @@ function updateRHDHVersions() {
 			git commit --no-gpg-sign -s -m "${COMMITMSG}" .
 			git pull origin "${the_branch}" || true
 			# create pull request if target branch is restricted access
-			pr_branch="pr-bump-to-${the_version}-in-${the_branch}-$(date +%s)"
+			pr_branch="chore/automated-bump-to-${the_version}-in-${the_branch}-$(date +%s)"
 			createPr "${pr_branch}" "${the_branch}"
 		fi
 	fi ## if DO_PUSH
@@ -527,7 +527,7 @@ function updateOperatorVersions() {
 		git commit --no-gpg-sign -s -m "${COMMITMSG}" .
 		git pull origin "${the_branch}" || true
 		# create pull request if target branch is restricted access
-		pr_branch="pr-bump-to-${the_version}-in-${the_branch}-$(date +%s)"
+		pr_branch="chore/automated-bump-to-${the_version}-in-${the_branch}-$(date +%s)"
 		createPr "${pr_branch}" "${the_branch}"
 	fi ## if DO_PUSH
 
@@ -558,7 +558,7 @@ function updateDocVersions() {
 		git commit --no-gpg-sign -s -m "${COMMITMSG}" .
 		git pull origin "${the_branch}" || true
 		# create pull request if target branch is restricted access
-		pr_branch="pr-bump-to-${the_version}-in-${the_branch}-$(date +%s)"
+		pr_branch="chore/automated-bump-to-${the_version}-in-${the_branch}-$(date +%s)"
 		createPr "${pr_branch}" "${the_branch}"
 	fi ## if DO_PUSH
 
@@ -607,7 +607,7 @@ function updateChartVersions(){
 		git commit --no-gpg-sign -s -m "${COMMITMSG}" . || git commit --no-gpg-sign -s -m "${COMMITMSG}" . 
 		git pull origin "${the_branch}" || true
 		# create pull request if target branch is restricted access
-		pr_branch="pr-bump-to-${the_version}-in-${the_branch}-$(date +%s)"
+		pr_branch="chore/automated-bump-to-${the_version}-in-${the_branch}-$(date +%s)"
 		createPr "${pr_branch}" "${the_branch}"
 	fi ## if DO_PUSH
 

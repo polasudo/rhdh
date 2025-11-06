@@ -96,7 +96,7 @@ usage () {
 	--no-push, -p		do not push to BRANCH
 	--tag			regex match to restrict results, eg., '1\.22|9\.[0-9]-' to find golang 1.22 (not 1.24) and any ubi 9-x- tag
 	--pr			do not attempt to push directly; generate PR against BRANCH
-	-prb			set a PR_BRANCH; default: pr-new-base-images-(timestamp)
+	-prb			set a PR_BRANCH; default: $PR_BRANCH
 	-px 			additional paths to exclude; default: $PATH_EXCLUDES
 	-q, -v			quiet, verbose output
 	--no-sha		do not include SHA digest suffix

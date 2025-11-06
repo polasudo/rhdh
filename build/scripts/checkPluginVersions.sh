@@ -20,7 +20,7 @@ DO_PUSH=0
 DRYRUN=""
 GITLAB_PIPELINE="" # set "true" when running inside a gitlab pipeline to override default git push settings
 BRANCHUSED="main"
-PR_BRANCH="pr-update-sync-rhdh-hub-$(date +%s)"
+PR_BRANCH="chore/automated-update-sync-rhdh-hub-$(date +%s)"
 CHECK_NPM=0
 
 SOURCEDIR=""
