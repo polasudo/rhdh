@@ -53,7 +53,7 @@ SCRIPT_DIR=$(cd "$(dirname "$0")" || exit; pwd)
 
 DOCKERFILE="Dockerfile"
 MAXDEPTH=2
-PR_BRANCH="pr-update-base-images-$(date +%s)"
+PR_BRANCH="chore/automated-update-base-images-$(date +%s)"
 docommit=1 # by default DO commit the change
 dopush=1 # by default DO push the change
 dopronly=0 # by default, attempt to push directly; create a PR only if necessary
@@ -392,7 +392,7 @@ echo ""
 if [[ $fixedFiles ]]; then
 	echo "[base] Updated:"
 	# if WORKSPACE defined, trim that off; if not, just trim /
-	for d in $fixedFiles; do echo " ${d#${WORKSPACE}/}"; done
+	for d in $fixedFiles; do echo -e "${green} ${d#${WORKSPACE}/}${norm}"; done
 	echo ""
 else
 	if [[ ${QUIET} -eq 0 ]]; then echo "[base] No Dockerfiles changed - no new base images found."; fi
