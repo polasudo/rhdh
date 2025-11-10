@@ -36,8 +36,8 @@ Use the link:../build/scripts/tagRelease.sh[tagRelease.sh] script like this:
 [source,bash]
 ----
 # Create '1.y' branches 
-# - 'release-1.7' branch (https://github.com/redhat-developer/rhdh/tree/release-1.7)
-# - 'rhdh-1.7-rhel-9' branch (https://gitlab.cee.redhat.com/rhidp/rhdh/-/tree/rhdh-1.7-rhel-9)
+# - 'release-1.y' branch (https://github.com/redhat-developer/rhdh/tree/release-1.y)
+# - 'rhdh-1.y-rhel-9' branch (https://gitlab.cee.redhat.com/rhidp/rhdh/-/tree/rhdh-1.y-rhel-9)
 #
 # then update 
 # - 'main' branch (https://github.com/redhat-developer/rhdh/tree/main)
@@ -83,28 +83,12 @@ Details:
 .. link:https://gitlab.cee.redhat.com/releng/pyxis-repo-configs[Pyxis repo configs] (to add new plugin repos for the catalog)
 .. link:https://gitlab.cee.redhat.com/releng/konflux-release-data[Konflux release data] to add new link:https://konflux-ui.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/ns/rhdh-tenant/release/release-plan-admission[RPAs], link:https://konflux-ui.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/ns/rhdh-tenant/release[RPs], and link:https://konflux-ui.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/ns/rhdh-tenant/applications[Applications] (including new plugin catalog builders and plugins).
 
-NOTE: **[1.7+]** link:../build/scripts/tagRelease.sh[tagRelease.sh] should generate MRs for all three repos mentioned above, including adding new plugins with: link:https://gitlab.cee.redhat.com/rhidp/rhdh-plugin-catalog/-/blob/rhdh-1-rhel-9/build/scripts/generatePyxisConfigForPlugins.sh[generatePyxisConfigForPlugins.sh] and link:https://gitlab.cee.redhat.com/rhidp/rhdh-plugin-catalog/-/blob/rhdh-1-rhel-9/build/scripts/generateKonfluxReleaseDataForPlugins.sh[generateKonfluxReleaseDataForPlugins.sh]. 
+NOTE: link:../build/scripts/tagRelease.sh[tagRelease.sh] should generate MRs for all three repos mentioned above, including adding new plugins with: link:https://gitlab.cee.redhat.com/rhidp/rhdh-plugin-catalog/-/blob/rhdh-1-rhel-9/build/scripts/generatePyxisConfigForPlugins.sh[generatePyxisConfigForPlugins.sh] and link:https://gitlab.cee.redhat.com/rhidp/rhdh-plugin-catalog/-/blob/rhdh-1-rhel-9/build/scripts/generateKonfluxReleaseDataForPlugins.sh[generateKonfluxReleaseDataForPlugins.sh]. 
 
 NOTE: Merge requests **WILL FAIL** if there are required changes to either of their dependent repos (eg., cannot update konflux-release-data if the CPE(Common Platform Enumeration) isn't present).
 ====
-For reference, here are the PRs and MRs for the `1.7` branch creation:
+For reference, here are the PRs and MRs for the `1.8` branch creation:
 
-* https://github.com/redhat-developer/rhdh/pull/3127
-* https://github.com/redhat-developer/rhdh/pull/3126
-* https://github.com/redhat-developer/rhdh-operator/pull/1370
-* https://gitlab.cee.redhat.com/prodsec/product-definitions/-/merge_requests/3720 (CPE for 1.7, needs merge)
-* https://gitlab.cee.redhat.com/releng/pyxis-repo-configs/-/merge_requests/198 (catalog onboarding)
-* https://gitlab.cee.redhat.com/releng/konflux-release-data/-/merge_requests/8157 (app, components, RPs, RPAs for RHDH) - requires link:https://gitlab.cee.redhat.com/prodsec/product-definitions/-/merge_requests/3720[MR 3720] be merged first
-* https://gitlab.cee.redhat.com/releng/konflux-release-data/-/merge_requests/8158 (app, component, RPs, RPAs, for plugin catalog) - requires link:https://gitlab.cee.redhat.com/prodsec/product-definitions/-/merge_requests/3720[MR 3720] be merged first
-resolve link:https://issues.redhat.com/browse/RHIDP-7874[RHIDP-7874]
-
-Here are the MRs for 1.6: 
-
-* https://gitlab.cee.redhat.com/prodsec/product-definitions/-/merge_requests/3392
-* https://gitlab.cee.redhat.com/releng/pyxis-repo-configs/-/merge_requests/161
-* https://gitlab.cee.redhat.com/releng/konflux-release-data/-/merge_requests/5276
-
-And for 1.7: 
 * https://github.com/redhat-developer/rhdh/pull/3544
 * https://github.com/redhat-developer/rhdh-cli/pull/35
 * https://github.com/redhat-developer/rhdh-operator/pull/1733
@@ -113,6 +97,7 @@ And for 1.7:
 * https://gitlab.cee.redhat.com/releng/pyxis-repo-configs/-/merge_requests/323
 * https://gitlab.cee.redhat.com/prodsec/product-definitions/-/merge_requests/3943
 * https://gitlab.cee.redhat.com/releng/konflux-release-data/-/merge_requests/11184
+
 ====
 
 ## Create new GL pipeline
@@ -144,7 +129,7 @@ You need:
 Applications:
 
 * https://konflux-ui.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/ns/rhdh-tenant/applications/rhdh-1/activity (for CI builds only, cannot be released as GA)
-* https://konflux-ui.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/ns/rhdh-tenant/applications/rhdh-1-7/activity (for `1.7.z` builds)
+* https://konflux-ui.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/ns/rhdh-tenant/applications/rhdh-1-y/activity (for `1.y` builds)
 
 FBC catalog content:
 
@@ -153,7 +138,7 @@ FBC catalog content:
 
 See also link:RHDH-Konflux-overview-onboarding.adoc[RHDH-Konflux-overview-onboarding.adoc]
 
-Since the midstream transformation still requires a GL pipeline to trigger Konflux, you still need a new pipeline for `1.6`. See next step.
+Since the midstream transformation still requires a GL pipeline to trigger Konflux, you still need a new pipeline for `1.y`. See next step.
 
 [IMPORTANT]
 ====
@@ -174,15 +159,15 @@ https://quay.io/repository/rhdh/iib?tab=tags
 You can now install from an FBC using link:https://github.com/redhat-developer/rhdh-operator/blob/main/.rhdh/scripts/install-rhdh-catalog-source.sh[install-rhdh-catalog-source.sh]. This adds a catalog source for a CI build to an OCP cluster, and optionally also installs a susbcription. Once that's on the cluster, you can create a Backstage/RHDH instance from the operator. 
 ====
 
-. After moving to 1.8 in main and rebuilding from the 1.next application in konlfux, verify the following tags in the Quay repositories have moved:
-* `1.6` == `1.6`;  `1.7` == `latest`;  `1.8` == `next
+. After moving to 1.yy in main and rebuilding from the 1.next application in konflux, verify the following tags in the Quay repositories have moved:
+* `1.yy` == `latest`;  `1.yy+1` == `next
 * https://quay.io/repository/rhdh/rhdh-hub-rhel9?tab=tags
 * https://quay.io/repository/rhdh/rhdh-rhel9-operator?tab=tags
 * https://quay.io/repository/rhdh/rhdh-operator-bundle?tab=tags
 * https://quay.io/repository/rhdh/iib?tab=tags
 . Perform install smoke tests
 ..  link:https://github.com/rhdh-bot/openshift-helm-charts/tree/rhdh-1-rhel-9/installation#installation[helm chart install instruction] 
-.. operator install by using https://github.com/redhat-developer/rhdh-operator/blob/main/.rhdh/scripts/install-rhdh-catalog-source.sh for `-v 1.7` or `--latest` or `--next`
+.. operator install by using https://github.com/redhat-developer/rhdh-operator/blob/main/.rhdh/scripts/install-rhdh-catalog-source.sh for `-v 1.y` or `--latest` or `--next`
 +
 [WARNING]
 ====
@@ -205,15 +190,12 @@ Before declaring RC, you should make sure we've updated to the latest base image
 # choose the correct branch
 git clone -b release-1.y git@github.com:redhat-developer/rhdh.git
 cd rhdh
-
-# NOTE: use the '-sb' flag to set scripts branch to 'rhdh-1-rhel-9' for latest scripts.
-/path/to/gl/rhidp/rhdh/build/scripts/updateBaseImages.sh -b release-1.7 -sb rhdh-1-rhel-9 -w $(pwd) -f \*ockerfile -maxdepth 5
+/path/to/gl/rhidp/rhdh/build/scripts/updateBaseImages.sh -b release-1.y -w $(pwd) -f \*ockerfile -maxdepth 5
 
 # choose the correct branch
 git clone -b release-1.y git@github.com:redhat-developer/rhdh-operator.git
 cd rhdh-operator
-
-/path/to/gl/rhidp/rhdh/build/scripts/updateBaseImages.sh -b release-1.7 -sb rhdh-1-rhel-9 -w $(pwd) -f \*ockerfile -maxdepth 5
+/path/to/gl/rhidp/rhdh/build/scripts/updateBaseImages.sh -b release-1.y -w $(pwd) -f \*ockerfile -maxdepth 5
 
 # NOTE: If you don't have the required privileges to commit directly to the `rhdh` and `rhdh-operator` repos, you may use the `-n` option to preview without committing the change(dryrun), or use the `--pr` option to create a pull request instead, then merge the PR manually.
 ```
@@ -230,40 +212,40 @@ See the <<ocp-version-support,OCP version support section>> for details on versi
 Once the code freeze is achieved and all the last minute changes have stopped, you need to:
 
 . disable the `1.y` link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/pipeline_schedules[pipeline] so you don't get any unexpected/unapproved changes in the release candidate
-** This step is to avoid confusion between "latest build" and "the build you want for the RC"; you can still use `--snapshot` flags to select an older link:https://konflux-ui.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/ns/rhdh-tenant/applications/rhdh-1-7/snapshots[*snapshot*], but this is cleaner and safer.
+** This step is to avoid confusion between "latest build" and "the build you want for the RC"; you can still use `--snapshot` flags to select an older link:https://konflux-ui.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/ns/rhdh-tenant/applications/rhdh-1-y/snapshots[*snapshot*], but this is cleaner and safer.
 ** log in as rhdh-bot@redhat.com, then go to the link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/pipeline_schedules[pipeline schedules] page
-** find the correct pipeline, eg., '1.7: Sync upstream...'' 
+** find the correct pipeline, eg., '1.8: Sync upstream...'' 
 ** uncheck the *Activated* box, and hit *Save changes*
 
 . To rebuild the hub and operator images, you can use the link:../build/scripts/triggerRespin.sh[`triggerRespin.sh`] script to trigger a GL pipeline to fetch upstream changes and apply them to the midstream. If nothing has changed, use the `-k` flag to trigger a Konflux respin. You should monitor Konflux and Quay to verify new builds are created correctly. See also link:RHDH-FAQ.adoc#user-content-how-to-respin[FAQ - How to respin].
 +
 ```
 # choose the correct branch
-git checkout rhdh-1.7-rhel-9
+git checkout rhdh-1.y-rhel-9
 # rebuild in GL then if changes found, in Konflux too
-./build/scripts/triggerRespin.sh -v 1.7 hub,op 
+./build/scripts/triggerRespin.sh -v 1.y hub,op 
 or
 # rebuild in Konflux only
-./build/scripts/triggerRespin.sh -v 1.7 hub -k 
+./build/scripts/triggerRespin.sh -v 1.y hub -k 
 ```
 +
 NOTE: It may take up to 50 minutes for the new images to be available. You can monitor the progress in https://quay.io/repository/rhdh/rhdh-hub-rhel9?tab=tags and https://quay.io/repository/rhdh/rhdh-rhel9-operator?tab=tags.
 +
-. As of 1.7, GL pipelines will link:../build/ci/sync-midstream.sh#L663[automatically respin] the link:../build/ci/update-bundle-and-FBCs.sh[bundle and FBC builds] if a new hub or operator image is found in quay.io/rhdh. 
+. GL pipelines will link:../build/ci/sync-midstream.sh#L663[automatically respin] the link:../build/ci/update-bundle-and-FBCs.sh[bundle and FBC builds] if a new hub or operator image is found in quay.io/rhdh. 
 .. To manually create a new operator-bundle, do this (latest or next flag will be computed automatically):
 +
 ```
 # choose the correct branch
-git checkout rhdh-1.7-rhel-9
-./build/scripts/triggerRespin.sh -v 1.7 bun
+git checkout rhdh-1.y-rhel-9
+./build/scripts/triggerRespin.sh -v 1.y bun
 
-[INFO] Transform /home/nboldt/RHDH/DH/4/4-rhdh_16/distgit/containers/rhdh-operator-bundle/manifests/backstage-operator.clusterserviceversion.yaml ...
-         Compute digest for quay.io/rhdh/rhdh-hub-rhel9:1.7 ...
-       * quay.io/rhdh/rhdh-hub-rhel9@sha256:2ec112051b0ab65798ef7557fdc7d4632eb5f41ecc9038f20949399793cd289e (quay.io/rhdh/rhdh-hub-rhel9:1.7-38)
-         Compute digest for quay.io/rhdh/rhdh-rhel9-operator:1.7 ...
-       * quay.io/rhdh/rhdh-rhel9-operator@sha256:b3cb23948f40f37f5e3336013a6e553feaf19cea1b203b7d7d966c239c128d2b (quay.io/rhdh/rhdh-rhel9-operator:1.7-14)
-         Compute digest for registry.redhat.io/rhdh/rhdh-rhel9-operator:1.7 ...
-       * quay.io/rhdh/rhdh-rhel9-operator@sha256:b3cb23948f40f37f5e3336013a6e553feaf19cea1b203b7d7d966c239c128d2b (quay.io/rhdh/rhdh-rhel9-operator:1.7-14)
+[INFO] Transform /home/nboldt/RHDH/DH/4/4-rhdh_18/distgit/containers/rhdh-operator-bundle/manifests/backstage-operator.clusterserviceversion.yaml ...
+         Compute digest for quay.io/rhdh/rhdh-hub-rhel9:1.y ...
+       * quay.io/rhdh/rhdh-hub-rhel9@sha256:2ec112051b0ab65798ef7557fdc7d4632eb5f41ecc9038f20949399793cd289e (quay.io/rhdh/rhdh-hub-rhel9:1.y-zzz)
+         Compute digest for quay.io/rhdh/rhdh-rhel9-operator:1.y ...
+       * quay.io/rhdh/rhdh-rhel9-operator@sha256:b3cb23948f40f37f5e3336013a6e553feaf19cea1b203b7d7d966c239c128d2b (quay.io/rhdh/rhdh-rhel9-operator:1.y-zzz)
+         Compute digest for registry.redhat.io/rhdh/rhdh-rhel9-operator:1.y ...
+       * quay.io/rhdh/rhdh-rhel9-operator@sha256:b3cb23948f40f37f5e3336013a6e553feaf19cea1b203b7d7d966c239c128d2b (quay.io/rhdh/rhdh-rhel9-operator:1.y-zzz)
          Compute digest for registry.redhat.io/rhel9/postgresql-15:latest ...
        * registry.redhat.io/rhel9/postgresql-15@sha256:e776cae7d62baab3525be7e2596f45007affd44244379a8be53a431e3a794f34 (registry.redhat.io/rhel9/postgresql-15:1-1745921148)
 ...
@@ -279,13 +261,13 @@ For example if the SHA for `quay.io/rhdh/rhdh-hub-rhel9:1.5-182` starts with `85
 image::images/sbom-check.png[quay.io view filtered for a specific digest]
 ====
 +
-. As of 1.7, GL pipelines will link:../build/ci/sync-midstream.sh#L663[automatically respin] the link:../build/ci/update-bundle-and-FBCs.sh[bundle and FBC builds] if a new hub or operator image is found in quay.io/rhdh. 
+. GL pipelines will link:../build/ci/sync-midstream.sh#L663[automatically respin] the link:../build/ci/update-bundle-and-FBCs.sh[bundle and FBC builds] if a new hub or operator image is found in quay.io/rhdh. 
 
 .. To manually publish new FBCs to link:https://quay.io/repository/rhdh/iib[quay.io/rhdh/iib], use the link:../build/scripts/renderCatalogs.sh[renderCatalogs.sh] script. *Run the script from the correct `rhdh-1.y-rhel-9` branch*, and it will provide usage intructions you can then copy into the console. Latest or next flag will be added automatically if appropriate. Rendering, committing changes, and running builds for each OCP version should take no more than 20-30 mins.
 +
 ```
 # choose the correct branch
-git checkout rhdh-1.7-rhel-9
+git checkout rhdh-1.y-rhel-9
 ./build/scripts/renderCatalogs.sh --default ...
 ```
 
@@ -298,7 +280,7 @@ git checkout rhdh-1.7-rhel-9
 ====
 +
 ```
-RHDH_VERSION=1.8
+RHDH_VERSION=1.y
 OCP_VERSION=4.18
 sudo ./build/scripts/checkRCStatus.sh -v ${RHDH_VERSION} -o ${OCP_VERSION}
 ```
@@ -311,17 +293,16 @@ image::images/checkRCStatus_sample.png[checkRCStatus sample output,width=640]
 +
 ```
 # choose the correct branch
-git checkout rhdh-1.7-rhel-9
+git checkout rhdh-1.y-rhel-9
 
 ./build/scripts/kfuxRelease.sh -c help
 
 # use the CVE list file you exported from the RHDH CVE Management tracker above
 # with list of JIRAs to close (recommended), and snapshot override (if needed)
-./build/scripts/kfuxRelease.sh --stage -v 1.7.1 -c rhdh-operator-bundle:1.7-51 \
-    --cve ~/tmp/cve_csv_exports/1.7/RHDH\ CVE\ Management\ -\ 1.7.1.csv  \
-    --debug \
-    --issues RHIDP-6469,RHIDP-6937,RHIDP-6470 \
-    --snapshot rhdh-1-7-8qdgl
+./build/scripts/kfuxRelease.sh --stage -v 1.y.z -c rhdh-operator-bundle:1.y-zzz \
+    --cve ~/tmp/cve_csv_exports/1.y/RHDH\ CVE\ Management\ -\ 1.y.z.csv  \
+    --issues RHDHPLAN-234,RHIDP-8047,RHIDP-8057 \
+    [--debug] [--snapshot rhdh-1-y-abcdef]
 ```
 
 [NOTE]
@@ -339,7 +320,7 @@ git checkout rhdh-1.7-rhel-9
 ====
 * Once the RC images are created (containers and FBCs), *notify the following people* via the following methods:
 ** Slack channel: link:https://app.slack.com/client/E030G10V24F/C07EVRDD7KN[forum-rhdh-releases] - use the link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1-rhel-9/build/scripts/sendSlackNotifications.sh[sendSlackNotifications.sh] script 
-*** For example: ./build/scripts/sendSlackNotifications.sh --version 1.7.1 --bundle-tag 1.7-151 --slack-webhook <slack-webhook-url> --release-state RC [optional: --dryrun]
+*** For example: ./build/scripts/sendSlackNotifications.sh --version 1.y.z --bundle-tag 1.y-zzz --slack-webhook <slack-webhook-url> --release-state RC [optional: --dryrun]
 **** [🍎 macOS_arm64]
 ** email the following people (dev/productization, testing, security, docs, and manangement) a link to the slack message as FYI
 ```
@@ -386,7 +367,7 @@ Christophe Fargette <jfargett@redhat.com>
 . **Remind QE** to announce when they're done testing and have approved the release for production. This might be as little as JIRA updates or a slack message. 
 .. GA push will then be pushed manually using link:../build/scripts/kfuxRelease.sh[kfuxRelease.sh].
 
-. **Remind PM** to update https://developers.redhat.com/rhdh/plugins with latest plugin lists and link to the docs (https://docs.redhat.com/en/documentation/red_hat_developer_hub/1.7)
+. **Remind PM** to update https://developers.redhat.com/rhdh/plugins with latest plugin lists and link to the docs (https://docs.redhat.com/en/documentation/red_hat_developer_hub/1.y)
 
 ## On GA Day
 
@@ -397,7 +378,7 @@ Christophe Fargette <jfargett@redhat.com>
 
 ### [BEGIN] Start the _container image_ release (15-20 mins)
 
-. Export the link:https://docs.google.com/spreadsheets/d/1JZVTc03wirx-bTpjn3muWed8cGyFTRTNe6x3Gr02hys/edit?gid=973768917#gid=973768917[RHDH CVE Management tracker] from the correct sheet for the release you're about to do (eg., 1.7.1) using File > Download > Comma Separated Values (.csv). Save to a file such as `"/tmp/RHDH CVE Management - 1.7.1.csv"`
+. Export the link:https://docs.google.com/spreadsheets/d/1JZVTc03wirx-bTpjn3muWed8cGyFTRTNe6x3Gr02hys/edit?gid=973768917#gid=973768917[RHDH CVE Management tracker] from the correct sheet for the release you're about to do (eg., 1.y.z) using File > Download > Comma Separated Values (.csv). Save to a file such as `"/tmp/RHDH CVE Management - 1.y.z.csv"`
 
 image::images/cve-list-export.png[File > Download > Comma Separated Values (.csv)]
 
@@ -408,19 +389,18 @@ image::images/cve-list-export.png[File > Download > Comma Separated Values (.csv
 +
 ```
 # choose the correct branch
-git checkout rhdh-1.7-rhel-9
+git checkout rhdh-1.y-rhel-9
 
 ./build/scripts/kfuxRelease.sh -c help
 
 # use the CVE list file you exported from the RHDH CVE Management tracker above
 # with list of JIRAs to close (auto-closes JIRAs and provides RHSA link), and snapshot override (if needed)
-./build/scripts/kfuxRelease.sh --prod -v 1.7.1 -c rhdh-operator-bundle:1.7-51 \
-    --cve ~/tmp/cve_csv_exports/1.7/RHDH\ CVE\ Management\ -\ 1.7.1.csv  \
+./build/scripts/kfuxRelease.sh --prod -v 1.y.z -c rhdh-operator-bundle:1.y-zzz \
+    --cve ~/tmp/cve_csv_exports/1.y/RHDH\ CVE\ Management\ -\ 1.y.z.csv  \
     --issues RHIDP-6469,RHIDP-6937,RHIDP-6470 \
-    --snapshot rhdh-1-7-8qdgl
+    --snapshot rhdh-1-y-abcde
 ```
-. Monitor container image release using links provided by link:../build/scripts/kfuxRelease.sh[kfuxRelease.sh]. Release can be seen from link:https://konflux-ui.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/ns/rhdh-tenant/applications/rhdh-1-7/releases/
-[rhdh-1-7/releases] and should be done in 15-20 mins, depending on network traffic. 
+. Monitor container image release using links provided by link:../build/scripts/kfuxRelease.sh[kfuxRelease.sh]. Release can be seen from link:https://konflux-ui.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/ns/rhdh-tenant/applications/rhdh-1-y/releases/[rhdh-1-y/releases] and should be done in 15-20 mins, depending on network traffic. 
 
 NOTE: To get access to the rhtap-releng namespace to watch managed pipelines, see https://konflux.pages.redhat.com/docs/users/releasing/preparing-for-release.html#_get_access_to_the_rhtap_releng_managed_workspace
 
@@ -449,11 +429,6 @@ NOTE: To get access to the rhtap-releng namespace to watch managed pipelines, se
 
 #### FBC re-render (15 mins)
 
-====
-[NOTE]
-The `--latest` flag is ONLY for the latest stable release, not for maintenance. For example if `main` branch is currently at version `1.8.0`, then the `release-1.7` branch (eg., `1.7.0`) is the "latest" branch. If releasing a `.z` update from an older maintenance stream, DO NOT use `--latest`. This alignment changes every quarter when a new `release-1.y` branch is created, aligning to a NEW set of `latest` tags. 
-====
-
 . Re-render the FBC catalogs with link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1-rhel-9/build/scripts/renderCatalogs.sh#L66[`renderCatalogs.sh --rhec`], to switch to `registry.redhat.io/rhdh` instead of `quay.io/rhdh` image references. This should take about 2 mins per OCP version, and the builds in Konflux should take 5-10 mins total. Whole step should be under 15 mins. 
 +
 ```
@@ -463,29 +438,19 @@ oc login --token=...
 
 ###########################################################################
 
-# for <=1.6, with support from OCP 4.14 to 4.20 GA
-
 # choose the correct branch
-git checkout rhdh-1.6-rhel-9
+git checkout rhdh-1.y-rhel-9
 
-RHDH_VERSION="1.6.0"
-OCP_VERSION=4.14
-./build/scripts/renderCatalogs.sh --rhec [--latest] --clean --versions "${OCP_VERSION}" -v "${RHDH_VERSION}"; sleep 30s; echo
-alias cp=cp
-for OCP_VERSION in 4.15 4.16 4.17 4.18 4.19 4.20; do \
-  cp -f catalogs/v{4.14,${OCP_VERSION}}/catalog-template.json; 
-  ./build/scripts/renderCatalogs.sh --rhec [--latest] --clean --versions "${OCP_VERSION}" -v "${RHDH_VERSION}" --template "catalogs/v${OCP_VERSION}/catalog-template.json"; sleep 30s; \
-done
-
-###########################################################################
-
-# for >=1.7, with support for OCP 4.20 GA + 4.21 CI; 4.15 removed
-# list of OCP versions is set in ocp-versions.yaml
-
-# choose the correct branch
-git checkout rhdh-1.7-rhel-9
-
+# list of OCP versions is set in ocp-versions.yaml, but can override with --versions "..."
 ./build/scripts/renderCatalogs.sh --rhec --default
+
+# if something goes wrong and you need to start part way through the full list:
+alias cp=cp
+RHDH_VERSION=1.y.z
+for OCP_VERSION in 4.20 4.21; do \
+  cp -f catalogs/v{4.18,${OCP_VERSION}}/catalog-template.json;
+  ./build/scripts/renderCatalogs.sh --rhec [--latest] --clean --versions "${OCP_VERSION}" -v "${RHDH_VERSION}" --template "catalogs/v${OCP_VERSION}/catalog-template.json"; sleep 10s; \
+done
 ```
 
 ### Chart release (15 mins)
@@ -501,7 +466,7 @@ echo "${QUAY_TOKEN}" | skopeo login -u="${QUAY_USER}" --password-stdin ${REGISTR
 echo "${QUAY_TOKEN}" | oras login -u="${QUAY_USER}" --password-stdin ${REGISTRY} 
 ```
 +
-. [ ] Verify the latest rhdh-hub tag you want to release exists at https://catalog.redhat.com/software/containers/rhdh/rhdh-hub-rhel9/645bd4c15c00598369c31aba?image=68a46041e06f8cfcc4f7904e, eg., `1.7.0`
+. [ ] Verify the latest rhdh-hub tag you want to release exists at https://catalog.redhat.com/en/software/containers/rhdh/rhdh-hub-rhel9/645bd4c15c00598369c31aba?image=691215456535345a69d2e65c, eg., `1.8.0`
 +
 . link:../build/helm/prepare.sh[Push the helm chart].
 +
@@ -513,12 +478,12 @@ export GITHUB_TOKEN=ghp_*****
 gh auth status
 
 # choose the correct branch: rhdh-1 branch may have changes that are not compatible with maintenance releases!
-git checkout rhdh-1.7-rhel-9
+git checkout rhdh-1.y-rhel-9
 
 # create pull request for RHDH chart
-./build/helm/prepare.sh --chart-version 1.7.0 --rhdh-version 1.7.0 --chart-branch release-1.7 --publish 
+./build/helm/prepare.sh --chart-version 1.y.z --rhdh-version 1.y.z --chart-branch release-1.y --publish 
 
-Create chart for 1.7.0 (1.7.0)
+Create chart for 1.y.z (1.y.z)
 [INFO] Set image digests in /tmp/tmp.xROIH7u8EN/charts/backstage/values.yaml:
 * RHDH_DIGEST = 0c76994fde2cd71471802d458b682ab652be5a0e291c3a2773cb524259ac79b2,
 * POSTGRESQL_DIGEST = 7e2529e27bdbfad42953b5bcd2f6d0036ef54f7f0031fd180ee1fa58a3790f69
@@ -530,13 +495,13 @@ https://github.com/openshift-helm-charts/charts/pull/2017
 +
 The link:https://github.com/redhat-developer/rhdh-chart/tree/main/charts/orchestrator-infra[Orchestrator Infra Helm Chart] is a standalone chart that deploys the required OpenShift infrastructure to support the Orchestrator flavor of RHDH. Specifically, it installs the OpenShift Serverless Operator and Serverless Logic Operator, and applies required Knative CRDs. These components are necessary for enabling orchestration features in Red Hat Developer Hub.
 +
-This chart follows the same version of the main RHDH chart, starting from 1.7.0. 
+This chart follows the same version of the main RHDH chart, starting from 1.8. 
 ```
-./build/helm/prepare.sh --chart-version 1.7.0 --rhdh-version 1.7.0 --chart-branch release-1.7 --publish \
+./build/helm/prepare.sh --chart-version 1.y.z --rhdh-version 1.y.z --chart-branch release-1.y --publish \
 --chart-name redhat-developer-hub-orchestrator-infra --chart-dir charts/orchestrator-infra
 
-Create chart for 1.7.0 (1.7.0)
-[INFO] Set Orchestrator Infra chart version to 1.7.0
+Create chart for 1.y.z (1.y.z)
+[INFO] Set Orchestrator Infra chart version to 1.y.z
 ...
 https://github.com/openshift-helm-charts/charts/pull/2016
 ```
@@ -549,11 +514,11 @@ https://github.com/openshift-helm-charts/charts/pull/2016
 +
 ```
 # choose the correct branch
-git checkout rhdh-1.7-rhel-9
+git checkout rhdh-1.y-rhel-9
 
 ./build/scripts/kfuxRelease.sh --fbc help # get help
 
-./build/scripts/kfuxRelease.sh --fbc :1.7.0 --prod --debug [--auto]
+./build/scripts/kfuxRelease.sh --fbc :1.y.z --prod --debug [--auto]
 ```
 
 #### Tag the repos
@@ -567,7 +532,7 @@ cd /tmp; git clone git@gitlab.cee.redhat.com:rhidp/rhdh.git --depth 1 && cd rhdh
 git checkout rhdh-1-rhel-9
 
 export GITHUB_TOKEN=rhdh-bot-token-goes-here
-./build/scripts/tagRelease.sh -v 1.7.0 -t 1.7 -gh release-1.7 --midstream-branch rhdh-1.7-rhel-9 --clean --force-update --nobuild
+./build/scripts/tagRelease.sh -v 1.y.z -t 1.y -gh release-1.y --midstream-branch rhdh-1.y-rhel-9 --clean --force-update --nobuild
 ```
 Note: If tags already exist but version bump PRs were not created, you can rerun the script with the `--force-update` flag to resolve this. Use `--skip-gh`, `--skip-gl`, `--skip-krd` and `--skip-pyxis` if those steps were completed previously.
 
@@ -650,9 +615,9 @@ Ongoing through the quarter, remember to:
 
 | **1. Feature Freeze / Branch Creation** | For Feature Freeze of an upcoming .0 release, run the script https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1-rhel-9/build/scripts/tagRelease.sh[tagRelease.sh] script:
 ```export GITHUB_TOKEN=<rhdh_bot_GH_token>
-./build/scripts/tagRelease.sh -t 1.7 --branchfrom main -gh release-1.7
+./build/scripts/tagRelease.sh -t 1.y --branchfrom main -gh release-1.y
 ```
-This script creates link:https://github.com/redhat-developer/rhdh/branches/all?query=release-1.7[release-1.7] and link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/tree/rhdh-1.7-rhel-9[rhdh-1.7-rhel-9] branches and updates `main`.
+This script creates link:https://github.com/redhat-developer/rhdh/branches/all?query=release-[release-1.y] and link:https://gitlab.cee.redhat.com/rhidp/rhdh[rhdh-1.y-rhel-9] branches and updates `main`.
 
 Once everything is merged, link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/pipeline_schedules[create a new GL pipeline] for the new stable branch.  | Release Engineering
 
@@ -696,12 +661,12 @@ Notify QE and Security for final validation. | Security, Docs, QE
 
 | **6. GA Release** | **Container release:**
 
-```./build/scripts/kfuxRelease.sh --prod -c rhdh-operator-bundle:1.7-zzz -v 1.7.1 --cve /tmp/RHDH\ CVE\ Management\ -\ 1.7.1.csv
+```./build/scripts/kfuxRelease.sh --prod -c rhdh-operator-bundle:1.y-zzz -v 1.y.z --cve /tmp/RHDH\ CVE\ Management\ -\ 1.y.z.csv
 ```
 
 **Helm Chart PR generation:**
 
-```./build/helm/prepare.sh --chart-version 1.7.1 --rhdh-version 1.7.1 --chart-branch release-1.7 --publish
+```./build/helm/prepare.sh --chart-version 1.y.z --rhdh-version 1.y.z --chart-branch release-1.y --publish
 ```
 
 **FBC re-rendering:**
@@ -711,13 +676,13 @@ Notify QE and Security for final validation. | Security, Docs, QE
 
 **FBC release:**
 
-```./build/scripts/kfuxRelease.sh --prod --fbc :1.7.1 [--debug] [--auto]
+```./build/scripts/kfuxRelease.sh --prod --fbc :1.y.z [--debug] [--auto]
 ```
 
 **Repository tagging & updates:**
 
 ```export GITHUB_TOKEN=rhdh-bot-token-goes-here
-./build/scripts/tagRelease.sh -v 1.7.1 -t 1.7 -gh release-1.7 --midstream-branch rhdh-1.7-rhel-9 --clean --force-update --nobuild
+./build/scripts/tagRelease.sh -v 1.y.z -t 1.y -gh release-1.y --midstream-branch rhdh-1.y-rhel-9 --clean --force-update --nobuild
 ``` | Release Engineering
 
 | **7. Post-Release** | 
