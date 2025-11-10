@@ -594,8 +594,13 @@ image::images/smoketest-rosa-helm_2.png[install the version just released,width=
 . If this is a .0 release, remove the now-EOL image stream from Comet so we stop getting reminded about CVEs for EOL versions. For example with the release of `1.y`, `1.(y-2)` is EOL; remove `1.(y-2)` and add `1.(y+1)` to the list. 
 +
 See image metadata at https://comet.engineering.redhat.com/containers/repositories?view=myRepos&filter=repoPath:rhdh then click through on each image to edit them.
+* https://comet.engineering.redhat.com/containers/repositories/645bd4c15c00598369c31aba
+* https://comet.engineering.redhat.com/containers/repositories/64bfdcd740aa90644e579cbd
+* https://comet.engineering.redhat.com/containers/repositories/64bfdcd740aa90644e579cc6
 +
 image::images/comet-config.png[]
+
+TODO: Starting in 1.9, do we also need to do Comet updates for the plugins? 
 
 ## Other considerations
 
