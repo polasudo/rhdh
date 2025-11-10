@@ -1,0 +1,89 @@
+apiVersion: tekton.dev/v1
+kind: PipelineRun
+metadata:
+  annotations:
+    build.appstudio.openshift.io/repo: https://gitlab.cee.redhat.com/rhidp/rhdh/-/tree/{{revision}}
+    build.appstudio.redhat.com/commit_sha: '{{revision}}'
+    build.appstudio.redhat.com/pull_request_number: '{{pull_request_number}}'
+    build.appstudio.redhat.com/target_branch: '{{target_branch}}'
+    pipelinesascode.tekton.dev/max-keep-runs: "6"
+    pipelinesascode.tekton.dev/on-cel-expression: |
+      (event == "push" || event == "pull_request") &&
+      target_branch == "rhdh-{{VERSION_DASH}}-rhel-9" &&
+      "distgit/containers/rhdh-operator-bundle/***".pathChanged()
+  creationTimestamp: null
+  labels:
+    appstudio.openshift.io/application: rhdh-{{VERSION_DASH}}
+    appstudio.openshift.io/component: rhdh-operator-bundle-{{VERSION_DASH}}
+    pipelines.appstudio.openshift.io/type: build
+  name: rhdh-operator-bundle-{{VERSION_DASH}}
+  namespace: rhdh-tenant
+spec:
+  params:
+    # Component identification
+    - name: rhdh-version
+      value: "{{VERSION_DASH}}"
+    - name: component-type
+      value: operator-bundle
+    - name: DO_HELM
+      value: "false"
+    - name: IS_BUNDLE
+      value: "true"
+    - name: skip-checks
+      value: "false"
+    - name: hermetic
+      value: "true"
+    - name: rebuild
+      value: "false"
+    - name: build-source-image
+      value: "true"
+    - name: build-args
+      value: []
+    - name: build-args-file
+      value: ""
+    # Common build parameters
+    - name: git-url
+      value: '{{source_url}}'
+    - name: revision
+      value: '{{revision}}'
+    - name: source-branch
+      value: '{{source_branch}}'
+    - name: target_branch
+      value: '{{target_branch}}'
+    - name: event-type
+      value: '{{event}}'
+    - name: output-image
+      value: quay.io/rhdh/rhdh-operator-bundle:{{revision}}
+    - name: image-expires-after
+      value: ''
+    - name: dockerfile
+      value: Containerfile
+    - name: path-context
+      value: distgit/containers/rhdh-operator-bundle
+    - name: prefetch-input
+      value: ''
+    - name: build-image-index
+      value: "false"
+  pipelineRef:
+    name: build-pipeline-rhdh
+  taskRunTemplate:
+    serviceAccountName: build-pipeline-rhdh-operator-bundle-{{VERSION_DASH}}
+  timeouts:
+    pipeline: 3h
+  workspaces:
+  - name: workspace
+    volumeClaimTemplate:
+      metadata:
+        creationTimestamp: null
+      spec:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: 1Gi
+      status: {}
+  - name: git-auth
+    secret:
+      secretName: '{{ git_auth_secret }}'
+status: {}
+
