@@ -6,17 +6,17 @@ metadata:
     build.appstudio.redhat.com/commit_sha: '{{revision}}'
     build.appstudio.redhat.com/pull_request_number: '{{pull_request_number}}'
     build.appstudio.redhat.com/target_branch: '{{target_branch}}'
-    pipelinesascode.tekton.dev/max-keep-runs: "7"
+    pipelinesascode.tekton.dev/max-keep-runs: "6"
     pipelinesascode.tekton.dev/on-cel-expression: |
-      (event == "push" || event == "pull_request") && 
-      target_branch == "rhdh-{{VERSION_DASH}}-rhel-9" && 
-      "distgit/containers/rhdh-hub/***".pathChanged()
+      (event == "push" || event == "pull_request") &&
+      target_branch == "rhdh-{{VERSION_DASH}}-rhel-9" &&
+      ( "distgit/containers/rhdh-operator-bundle/***".pathChanged() || ".tekton/rhdh-operator-bundle-{{VERSION_DASH}}.yaml".pathChanged() )
   creationTimestamp: null
   labels:
     appstudio.openshift.io/application: rhdh-{{VERSION_DASH}}
-    appstudio.openshift.io/component: rhdh-hub-{{VERSION_DASH}}
+    appstudio.openshift.io/component: rhdh-operator-bundle-{{VERSION_DASH}}
     pipelines.appstudio.openshift.io/type: build
-  name: rhdh-hub-{{VERSION_DASH}}
+  name: rhdh-operator-bundle-{{VERSION_DASH}}
   namespace: rhdh-tenant
 spec:
   params:
@@ -24,11 +24,11 @@ spec:
     - name: rhdh-version
       value: "{{VERSION_DASH}}"
     - name: component-type
-      value: hub
+      value: operator-bundle
     - name: DO_HELM
-      value: "true"
-    - name: IS_BUNDLE
       value: "false"
+    - name: IS_BUNDLE
+      value: "true"
     - name: skip-checks
       value: "false"
     - name: hermetic
@@ -36,8 +36,6 @@ spec:
     - name: rebuild
       value: "false"
     - name: build-source-image
-      value: "true"
-    - name: build-image-index
       value: "true"
     - name: build-args
       value: []
@@ -55,38 +53,21 @@ spec:
     - name: event-type
       value: '{{event}}'
     - name: output-image
-      value: quay.io/rhdh/rhdh-hub-rhel9:{{revision}}
+      value: quay.io/rhdh/rhdh-operator-bundle:{{revision}}
     - name: image-expires-after
       value: ''
     - name: dockerfile
       value: Containerfile
     - name: path-context
-      value: distgit/containers/rhdh-hub
+      value: distgit/containers/rhdh-operator-bundle
     - name: prefetch-input
-      value: '[{"type": "rpm", "path": "distgit/containers/rhdh-hub"},{"type": "yarn","path": "distgit/containers/rhdh-hub"},{"type": "yarn","path": "distgit/containers/rhdh-hub/dynamic-plugins"},{"type": "pip","path": "distgit/containers/rhdh-hub/python", "allow_binary": "false"}]'
+      value: ''
+    - name: build-image-index
+      value: "false"
   pipelineRef:
     name: build-pipeline-rhdh
-  taskRunSpecs:
-    - pipelineTaskName: build-container-hub
-      stepSpecs:
-      - name: build
-        computeResources:
-          requests:
-            cpu: '8'
-            memory: 20Gi
-          limits:
-            cpu: '8'
-            memory: 20Gi
-    - pipelineTaskName: prefetch-dependencies-hub
-      computeResources:
-        requests:
-          cpu: '8'
-          memory: 12Gi
-        limits:
-          cpu: '8'
-          memory: 12Gi
   taskRunTemplate:
-    serviceAccountName: build-pipeline-rhdh-hub-{{VERSION_DASH}}
+    serviceAccountName: build-pipeline-rhdh-operator-bundle-{{VERSION_DASH}}
   timeouts:
     pipeline: 3h
   workspaces:
@@ -99,7 +80,7 @@ spec:
         - ReadWriteOnce
         resources:
           requests:
-            storage: 5Gi
+            storage: 1Gi
       status: {}
   - name: git-auth
     secret:
