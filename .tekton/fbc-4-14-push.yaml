@@ -375,8 +375,8 @@ spec:
       optional: true
     - name: netrc
       optional: true
-  taskRunTemplate::
-    build-pipeline-fbc-4-14
+  taskRunTemplate:
+    serviceAccountName: build-pipeline-fbc-4-14
 
   workspaces:
   - name: workspace
