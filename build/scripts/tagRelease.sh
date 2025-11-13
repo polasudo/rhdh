@@ -816,7 +816,7 @@ pushTagGL ()
 					CHANGES=0
 					if [[ $d == "rhdh" ]]; then # for rhidp/rhdh
 						pushd "$TMPDIR/gitlab_${d}/.tekton" >/dev/null || exit 1
-							generateNewTektonPipelines "${TARGET_BRANCH/release-/}" "$DWNSTM_TARGET_BRANCH" # 1.y rhdh-1.y-rhel-9
+							"${SCRIPT_DIR}/../../.tekton/generatePipelineRuns.sh" -t "${TARGET_BRANCH/release-/}" # 1.y rhdh-1.y-rhel-9
 						popd >/dev/null || exit 1
 						if [[ $(git diff --name-only -- .tekton/) != "" ]]; then 
 							(( CHANGES = CHANGES + 1 ))
