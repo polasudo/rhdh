@@ -219,7 +219,7 @@ if [[ -d "${WORKDIR}" ]]; then
 	
 	# Check for uncommitted changes before pulling; ignore untracked files as they won't be committed
 	# shellcheck disable=SC2143
-	if [[ $FAIL_IF_DIRTY -eq 1 ]] && [[ -n "$(git status --porcelain | grep -v "??" -q)" ]]; then
+	if [[ $FAIL_IF_DIRTY -eq 1 ]] && [[ -n "$(git status --porcelain | grep -v "??")" ]]; then
 		echo -e "${blue}[WARNING] Repository has uncommitted changes${norm}"
 		echo -e "${blue}Current changes:${norm}"
 		git status --short
