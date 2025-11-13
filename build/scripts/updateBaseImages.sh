@@ -21,6 +21,7 @@ set -e
 # see exclude list in getLatestImageTags.sh and updateBaseImages.sh
 EXCLUDES="latest|-source|next|nightly|-tmp-|-ci-|-gh-|.att|.git|.src|.sig|.sbom|.prefetch|on-pull-|on-push-|on-pr-|sha256-|-container"
 PATH_EXCLUDES="/\.git/|/node_modules/|/\.ibm/"
+FAIL_IF_DIRTY=1 # by default, fail if git workspace is dirty, with uncommitted changes 
 
 command -v jq >/dev/null 2>&1 || { echo "jq is not installed. Aborting."; exit 1; }
 command -v skopeo >/dev/null 2>&1 || { echo "skopeo is not installed. Aborting."; exit 1; }
@@ -100,6 +101,7 @@ usage () {
 	-px 			additional paths to exclude; default: $PATH_EXCLUDES
 	-q, -v			quiet, verbose output
 	--no-sha		do not include SHA digest suffix
+	--dirty			do not fail if the workspace is dirty from a previous partial update
 	--help, -h		help
 	--check-recent-updates-only   
 		don't poll for new base images; just report on 
@@ -133,6 +135,7 @@ while [[ "$#" -gt 0 ]]; do
 	'-v') QUIET=0; VERBOSE=1; shift 0;;
 	'--check-recent-updates-only') QUIET=0; VERBOSE=1; checkrecentupdates; shift 0; exit;;
 	'--no-sha') USE_DIGESTS=0;;
+	'--dirty') FAIL_IF_DIRTY=0;;
 	'--help'|'-h') usage; exit;;
 	*) OTHER="${OTHER} $1"; shift 0;; 
   esac
@@ -214,8 +217,9 @@ if [[ -d "${WORKDIR}" ]]; then
 	git branch --set-upstream-to="origin/${SOURCES_BRANCH}" "${SOURCES_BRANCH}" -q || true
 	git checkout "${SOURCES_BRANCH}" -q || true 
 	
-	# Check for uncommitted changes before pulling
-	if [[ -n "$(git status --porcelain)" ]]; then
+	# Check for uncommitted changes before pulling; ignore untracked files as they won't be committed
+	# shellcheck disable=SC2143
+	if [[ $FAIL_IF_DIRTY -eq 1 ]] && [[ -n "$(git status --porcelain | grep -v "??" -q)" ]]; then
 		echo -e "${blue}[WARNING] Repository has uncommitted changes${norm}"
 		echo -e "${blue}Current changes:${norm}"
 		git status --short
@@ -353,7 +357,7 @@ for d in $(find "${WORKDIR}/" -maxdepth "${MAXDEPTH}" -name "${DOCKERFILE}" | so
 								if [[ -d ${d%%/${DOCKERFILE}} ]]; then pushd "${d%%/${DOCKERFILE}}" >/dev/null; pushedIn=1; fi
 								if [[ ${docommit} -eq 1 ]]; then 
 									git add "${DOCKERFILE}" || true
-									git commit -s -m "chore: update to ${FROMPREFIX}:${LATESTTAG} from ${URL} [skip-build]" "${DOCKERFILE}" 2>&1 || true
+									git commit -s -m "chore: update to ${FROMPREFIX}:${LATESTTAG} from ${URL%%@sha256:*} [skip-build]" "${DOCKERFILE}" 2>&1 || true
 									if [[ ${dopronly} -eq 1 ]]; then
 										createPr "${PR_BRANCH}" "${SOURCES_BRANCH}"
 									else
