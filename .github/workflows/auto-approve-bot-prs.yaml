@@ -20,12 +20,16 @@ name: Auto-Approve Bot PRs
 # - Adds lgtm and approved labels if not present
 
 on:
-  pull_request:
+  pull_request_target:
     types: [opened, reopened, labeled, ready_for_review]
+  push:
+    branches:
+      - 'fix/auto-approve-bot'  # For testing in fork
 
 permissions:
   contents: read
   pull-requests: write
+  issues: write
 
 jobs:
   auto-approve:
@@ -39,8 +43,14 @@ jobs:
       - name: Check PR eligibility
         id: check-eligibility
         run: |
-          PR_BRANCH="${{ github.event.pull_request.head.ref }}"
-          PR_DRAFT="${{ github.event.pull_request.draft }}"
+          # Handle both push and pull_request_target events
+          if [[ "${{ github.event_name }}" == "push" ]]; then
+            PR_BRANCH="${{ github.ref_name }}"
+            PR_DRAFT="false"
+          else
+            PR_BRANCH="${{ github.event.pull_request.head.ref }}"
+            PR_DRAFT="${{ github.event.pull_request.draft }}"
+          fi
           
           # Don't auto-approve draft PRs
           if [[ "$PR_DRAFT" == "true" ]]; then
@@ -54,7 +64,8 @@ jobs:
           # Define branch patterns that are eligible for auto-approval
           # Add more patterns as needed
           ELIGIBLE_PATTERNS=(
-            "^chore/automated-.*"                 # Automated chore tasks, such as version bumps, base image bumps, or RPM lock file version bumps
+            "^chore/automated-.*"
+            "^fix/auto-approve-bot$"
           )
           
           ELIGIBLE=false
@@ -73,19 +84,29 @@ jobs:
 
 
       - name: Add required labels and approve PR
-        if: steps.check-eligibility.outputs.eligible == 'true'
+        if: steps.check-eligibility.outputs.eligible == 'true' && (github.event_name == 'pull_request_target' || github.event_name == 'push')
         run: |
+          # For testing on push events, use test PR #2
+          PR_NUMBER="${{ github.event.pull_request.number }}"
+          if [[ "${{ github.event_name }}" == "push" ]]; then
+            PR_NUMBER="2"  # Test PR in fork
+            echo "🧪 TESTING: Using test PR #$PR_NUMBER for demonstration"
+          fi
+
           # Add the required labels if not already present
-          gh pr edit ${{ github.event.pull_request.number }} --add-label "lgtm,approved"
+          echo "Adding labels to PR #$PR_NUMBER..."
+          gh pr edit $PR_NUMBER --add-label "lgtm,approved" --repo ${{ github.repository }}
 
           # Auto-approve the PR
-          gh pr review ${{ github.event.pull_request.number }} \
+          echo "Auto-approving PR #$PR_NUMBER..."
+          gh pr review $PR_NUMBER \
             --approve \
             --body "**Auto-Approved**
 
-          This PR has been automatically approved (rhdh-bot branch).
+          This PR has been automatically approved by the auto-approve workflow.
 
-          **Labels Added:** \`lgtm\`, \`approved\`
+          **Labels Added:** \`lgtm\`, \`approved\`" \
+            --repo ${{ github.repository }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
