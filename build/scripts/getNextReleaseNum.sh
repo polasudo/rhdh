@@ -13,7 +13,6 @@
 # get release number for a given image and make sure it's the latest NVR and wquay tag too
 
 SCRIPT=$(readlink -f "$0"); SCRIPTPATH=$(dirname "$SCRIPT")
-CHECK_NVR="" # by default don't check for NVRs in Brew, only check quay tags
 QUIET=0
 
 DH_CONTAINERS="\
@@ -56,8 +55,10 @@ if [[ ! $TAG ]]; then usage; exit 1; fi
 if [[ ! $CONTAINERS ]]; then CONTAINERS="${DH_CONTAINERS}"; fi;
 
 if [[ ! -x ${SCRIPTPATH}/getLatestImageTags.sh ]]; then
-    curl -sSLO "https://gitlab.cee.redhat.com/rhidp/rhdh/-/raw/${MIDSTM_BRANCH}/build/scripts/getLatestImageTags.sh"
-    chmod +x getLatestImageTags.sh
+    pushd "${SCRIPTPATH}" >/dev/null || exit 1
+        curl -sSLO "https://gitlab.cee.redhat.com/rhidp/rhdh/-/raw/${MIDSTM_BRANCH}/build/scripts/getLatestImageTags.sh"
+        chmod +x getLatestImageTags.sh
+    popd >/dev/null || exit 1
 fi
 
 for c in $CONTAINERS; do 
