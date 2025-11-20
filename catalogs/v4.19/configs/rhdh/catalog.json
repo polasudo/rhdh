@@ -5063,24 +5063,8 @@
     "schema": "olm.bundle",
     "name": "rhdh-operator.v1.9.0",
     "package": "rhdh",
-    "image": "quay.io/rhdh/rhdh-operator-bundle@sha256:4910d83e5f45fa61916c4ec2b3f5e8ebe950483b9e5c792d7e9acf701d7c251e",
+    "image": "quay.io/rhdh/rhdh-operator-bundle@sha256:c1a0a31556971820ecb151d0c7f0ad3af94095cdc1eb3e04a47234d75a08d0d6",
     "properties": [
-        {
-            "type": "olm.gvk",
-            "value": {
-                "group": "rhdh.redhat.com",
-                "kind": "Backstage",
-                "version": "v1alpha1"
-            }
-        },
-        {
-            "type": "olm.gvk",
-            "value": {
-                "group": "rhdh.redhat.com",
-                "kind": "Backstage",
-                "version": "v1alpha2"
-            }
-        },
         {
             "type": "olm.gvk",
             "value": {
@@ -5108,12 +5092,12 @@
             "type": "olm.csv.metadata",
             "value": {
                 "annotations": {
-                    "alm-examples": "[\n  {\n    \"apiVersion\": \"rhdh.redhat.com/v1alpha1\",\n    \"kind\": \"Backstage\",\n    \"metadata\": {\n      \"labels\": {\n        \"app.kubernetes.io/name\": \"backstage\"\n      },\n      \"name\": \"developer-hub\"\n    }\n  },\n  {\n    \"apiVersion\": \"rhdh.redhat.com/v1alpha2\",\n    \"kind\": \"Backstage\",\n    \"metadata\": {\n      \"labels\": {\n        \"app.kubernetes.io/name\": \"backstage\"\n      },\n      \"name\": \"developer-hub\"\n    }\n  },\n  {\n    \"apiVersion\": \"rhdh.redhat.com/v1alpha3\",\n    \"kind\": \"Backstage\",\n    \"metadata\": {\n      \"labels\": {\n        \"app.kubernetes.io/name\": \"backstage\"\n      },\n      \"name\": \"developer-hub\"\n    }\n  },\n  {\n    \"apiVersion\": \"rhdh.redhat.com/v1alpha4\",\n    \"kind\": \"Backstage\",\n    \"metadata\": {\n      \"labels\": {\n        \"app.kubernetes.io/name\": \"backstage\"\n      },\n      \"name\": \"developer-hub\"\n    }\n  }\n]",
+                    "alm-examples": "[\n  {\n    \"apiVersion\": \"rhdh.redhat.com/v1alpha3\",\n    \"kind\": \"Backstage\",\n    \"metadata\": {\n      \"labels\": {\n        \"app.kubernetes.io/name\": \"backstage\"\n      },\n      \"name\": \"developer-hub\"\n    }\n  },\n  {\n    \"apiVersion\": \"rhdh.redhat.com/v1alpha4\",\n    \"kind\": \"Backstage\",\n    \"metadata\": {\n      \"labels\": {\n        \"app.kubernetes.io/name\": \"backstage\"\n      },\n      \"name\": \"developer-hub\"\n    }\n  }\n]",
                     "capabilities": "Seamless Upgrades",
                     "categories": "Developer Tools",
                     "certified": "true",
-                    "containerImage": "registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:3af99550cdef03b0a7f6bcfb45b1b6cdbfca6d9e5a0ed9ab91a19f63f0c93cdd",
-                    "createdAt": "2025-10-14T17:57:10Z",
+                    "containerImage": "registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:80aa6c3e2ae70f3e375256caeeb87f65900ea35b18e187932a8cecd9fe8d0119",
+                    "createdAt": "2025-11-19T14:03:28Z",
                     "description": "Red Hat Developer Hub is a Red Hat supported version of Backstage. It comes with pre-built plug-ins and configuration settings, supports use of an external database, and can help streamline the process of setting up a self-managed internal developer portal for adopters who are just starting out.",
                     "features.operators.openshift.io/cnf": "false",
                     "features.operators.openshift.io/cni": "false",
@@ -5136,20 +5120,6 @@
                 "apiServiceDefinitions": {},
                 "crdDescriptions": {
                     "owned": [
-                        {
-                            "name": "backstages.rhdh.redhat.com",
-                            "version": "v1alpha1",
-                            "kind": "Backstage",
-                            "displayName": "Red Hat Developer Hub",
-                            "description": "Backstage is the Schema for the Red Hat Developer Hub backstages API. It comes with pre-built plug-ins, configuration settings, and deployment mechanisms, which can help streamline the process of setting up a self-managed internal developer portal for adopters who are just starting out."
-                        },
-                        {
-                            "name": "backstages.rhdh.redhat.com",
-                            "version": "v1alpha2",
-                            "kind": "Backstage",
-                            "displayName": "Red Hat Developer Hub",
-                            "description": "Backstage is the Schema for the Red Hat Developer Hub backstages API. It comes with pre-built plug-ins, configuration settings, and deployment mechanisms, which can help streamline the process of setting up a self-managed internal developer portal for adopters who are just starting out."
-                        },
                         {
                             "name": "backstages.rhdh.redhat.com",
                             "version": "v1alpha3",
@@ -5233,7 +5203,7 @@
     "relatedImages": [
         {
             "name": "",
-            "image": "quay.io/rhdh/rhdh-operator-bundle@sha256:4910d83e5f45fa61916c4ec2b3f5e8ebe950483b9e5c792d7e9acf701d7c251e"
+            "image": "quay.io/rhdh/rhdh-operator-bundle@sha256:c1a0a31556971820ecb151d0c7f0ad3af94095cdc1eb3e04a47234d75a08d0d6"
         },
         {
             "name": "backstage",
@@ -5241,7 +5211,7 @@
         },
         {
             "name": "",
-            "image": "registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:3af99550cdef03b0a7f6bcfb45b1b6cdbfca6d9e5a0ed9ab91a19f63f0c93cdd"
+            "image": "registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:80aa6c3e2ae70f3e375256caeeb87f65900ea35b18e187932a8cecd9fe8d0119"
         },
         {
             "name": "postgresql",
