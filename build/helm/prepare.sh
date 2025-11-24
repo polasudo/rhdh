@@ -51,6 +51,8 @@ SCRIPT_DIR=$(cd "$(dirname "$0")" || exit; pwd)
 # shellcheck disable=SC1091
 source "${SCRIPT_DIR}/../scripts/prepareOSXARM64.sh"
 
+[[ $(uname -m) == "arm64" ]] && [[ $(uname -o) == "Darwin" ]] && IS_ARM64_DARWIN=1 || IS_ARM64_DARWIN=0
+
 usage() {
     echo "Utility script to push CI builds to quay and generate PRs for GA helm chart releases
 
@@ -202,20 +204,6 @@ while [[ "$#" -gt 0 ]]; do
     shift 1
 done
 
-# TODO switch to jq wrapper version of yq (not mikefarah)
-if ! command -v "$YQ" &> /dev/null; then
-    mkdir -p "$HOME/.local/bin/"
-    echo -e "${blue}Installing mikefarah yq version $mikefarahyq_version for $(uname -m -o) ...${norm}"
-    if [[ $(uname -m -o) == "arm64 Darwin" ]]; then
-        curl -sSLo "$YQ" https://github.com/mikefarah/yq/releases/download/v${mikefarahyq_version}/yq_darwin_arm64
-    elif [[ "$(uname -m -o)" == "x86_64 GNU/Linux" ]]; then
-        curl -sSLo "$YQ" https://github.com/mikefarah/yq/releases/download/v${mikefarahyq_version}/yq_linux_amd64
-    else 
-      usage; echo -e "${red}[ERROR] Please install yq v${mikefarahyq_version} from https://github.com/mikefarah/yq/ for your arch to ${YQ}${norm}"; exit 1
-    fi
-    chmod +x "$YQ"
-fi 
-
 if [[ $DO_LATEST -eq 1 ]]; then
     if [[ ! $CHART_BRANCH ]] || [[ $CHART_BRANCH == "main" ]]; then usage; exit 1; fi
     # get all tags but find the ones starting with 1.yy-, then sort those and return the most recent one
@@ -249,45 +237,55 @@ HELM_DOCS_LOG_LEVEL="fatal"
 #     python${PYTHON_VERSION} -m pip install --user --no-cache-dir --upgrade pip setuptools yq
 # fi
 
-# Function to install package with cross-platform support
-install_package() {
+# Function to install rpm package
+install_rpm_package() {   
+    if [[ $IS_ARM64_DARWIN -eq 1 ]]; then
+        return
+    fi
+    
     local rpm_repo="$1"
     local package="$2"
-    local brew_package="${3:-$package}"
-    local rpm_package="${4:-$package}"
+    local rpm_package="${3:-$package}"
     
     if ! command -v "$package" &>/dev/null; then
-        if [[ $(uname -m -o) == "arm64 Darwin" ]]; then
-            install_brew_package "$package" "$brew_package"
-        else
-            echo "Installing $package from $rpm_repo ..."
-            sudo dnf config-manager --add-repo "$rpm_repo" -q && sudo dnf -y -q install "$rpm_package" >/dev/null 2>&1
-        fi
+        echo "Installing $package from $rpm_repo ..."
+        sudo dnf config-manager --add-repo "$rpm_repo" -q >/dev/null 2>&1 || true
+        sudo dnf -y -q install "$rpm_package" >/dev/null 2>&1   
     fi
 }
 
-# Install packages
-install_package "https://cli.github.com/packages/rpm/gh-cli.repo" "gh"
-install_package "https://rhsm-pulp.corp.redhat.com/content/dist/layered/rhel8/x86_64/ocp-tools/4.14/os/" "helm"
-install_package "https://rhsm-pulp.corp.redhat.com/content/dist/layered/rhel8/x86_64/rhocp/4.18/os/" "podman"
-install_package "https://rhsm-pulp.corp.redhat.com/content/dist/layered/rhel8/x86_64/rhocp/4.19/os/" "oc" "openshift-cli" "openshift-clients"
+# Install packages (skip on ARM64 Darwin, because already installed via build/scripts/prepareOSXARM64.sh)
+if [[ $IS_ARM64_DARWIN -eq 0 ]]; then
 
-if ! command -v helm-docs &>/dev/null; then
-    if [[ $(uname -m -o) == "arm64 Darwin" ]]; then
-        install_brew_package "helm-docs" "helm-docs"
-    else
+    # TODO switch to jq wrapper version of yq (not mikefarah)
+    if ! command -v "$YQ" &> /dev/null; then
+        mkdir -p "$HOME/.local/bin/"
+        echo -e "${blue}Installing mikefarah yq version $mikefarahyq_version for $(uname -m -o) ...${norm}"
+        if [[ "$(uname -m -o)" == "x86_64 GNU/Linux" ]]; then
+            curl -sSLo "$YQ" https://github.com/mikefarah/yq/releases/download/v${mikefarahyq_version}/yq_linux_amd64
+        else 
+            usage; echo -e "${red}[ERROR] Please install yq v${mikefarahyq_version} from https://github.com/mikefarah/yq/ for your arch to ${YQ}${norm}"; exit 1
+        fi
+        chmod +x "$YQ"
+    fi 
+
+    install_rpm_package "https://cli.github.com/packages/rpm/gh-cli.repo" "gh" 
+    install_rpm_package "https://rhsm-pulp.corp.redhat.com/content/dist/layered/rhel9/x86_64/ocp-tools/4.18/os/" "helm"
+
+    OCP_REPO="https://rhsm-pulp.corp.redhat.com/content/dist/layered/rhel9/x86_64/rhocp/4.18/os/"
+    install_rpm_package "$OCP_REPO" "podman" 
+    install_rpm_package "$OCP_REPO" "oc" "openshift-clients"
+    
+    # Install helm-docs
+    if ! command -v helm-docs &>/dev/null; then
         helmdocrepo=github.com/norwoodj/helm-docs/cmd/helm-docs@${helmdocs_version}
         echo "Installing $helmdocrepo to ${HOME}/go/bin/helm-docs ..."
         sudo dnf -y -q install brotli-devel cmake gcc gcc-c++ git golang >/dev/null 2>&1
         GO111MODULE=on go install $helmdocrepo >/dev/null 2>&1
         export PATH="$PATH:${HOME}/go/bin"
     fi
-fi
-
-if ! command -v oras &>/dev/null; then
-    if [[ $(uname -m -o) == "arm64 Darwin" ]]; then
-        install_brew_package "oras" "oras"
-    else
+    
+    if ! command -v oras &>/dev/null; then
         orasrepo="https://github.com/oras-project/oras/releases/download/v${oras_version}/"
         orastar="oras_${oras_version}_linux_amd64.tar.gz"
         echo "Installing oras from $orasrepo ..."
@@ -606,6 +604,5 @@ if [[ $PUBLISH -eq 1 ]]; then
     rm -fr "${HELM_DIR}" "${CATALOG_DIR}" "${CATALOG_DIR}-2" 
 else
     echo "To clean up, run this:
-rm -fr \"${HELM_DIR}\" \"${CATALOG_DIR}\" \"${CATALOG_DIR}-2\""
-
+    rm -fr \"${HELM_DIR}\" \"${CATALOG_DIR}\" \"${CATALOG_DIR}-2\""
 fi

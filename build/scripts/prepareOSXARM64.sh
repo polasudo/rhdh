@@ -10,6 +10,8 @@
 # script to prepare  
 # macOS ARM64 environment for building RHDH images
 SCRIPT_DIR=$(cd "$(dirname "$0")" || exit; pwd)
+YQ="$HOME/.local/bin/yq_mf"
+mikefarahyq_version=4.45.4
 
 # Function to install Homebrew package with PATH management
 install_brew_package() {
@@ -135,6 +137,13 @@ EOF
 	else
 		echo "✅ A wrapper to skopeo is already available"
 	fi
+
+	if ! command -v "$YQ" &> /dev/null; then
+			mkdir -p "$HOME/.local/bin/"
+			echo -e "🔧 Installing mikefarah yq $mikefarahyq_version"
+			curl -sSLo "$YQ" https://github.com/mikefarah/yq/releases/download/v"${mikefarahyq_version}"/yq_darwin_arm64
+			chmod +x "$YQ"
+	fi 
 }
 
 # this script should do nothing if we're not on arm64 Mac
