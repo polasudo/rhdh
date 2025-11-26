@@ -57,6 +57,7 @@ if [[ ! -f "$UPDATE_SCRIPT" ]]; then
     exit 1
 fi
 
+# TODO: remove this
 # Check for DRY_RUN mode (default true until we're confident)
 DRY_RUN=${DRY_RUN:-true}
 if [[ "$DRY_RUN" == "true" ]]; then
@@ -67,6 +68,7 @@ else
     UPDATE_ARGS=""
     DELETE_ARGS=""
 fi
+# TODO: remove this
 
 # Create temp dir for upstream clones
 UPSTREAM_WORK_DIR=$(mktemp -d)
@@ -125,13 +127,11 @@ rm -rf "$UPSTREAM_WORK_DIR"
 
 echo "--- Starting Quay Tag Cleanup ---"
 
-# QUAY_TOKEN is set by gitlab-ci-env-setup.sh from secure files
-if [[ -z "$QUAY_TOKEN" ]]; then
-    echo "Error: QUAY_TOKEN is not set. Ensure gitlab-ci-env-setup.sh ran successfully."
-    exit 1
+# If in gitlab and token not defined in this bash shell, fetch it again
+if [[ -z "$QUAY_TOKEN" ]] && [[ $CI_PROJECT_DIR ]]; then 
+    QUAY_TOKEN=$(grep -E -v "^#" "${CI_PROJECT_DIR}/.secure_files/rhdh_bot_quay.token")
 fi
 
-export accessToken="$QUAY_TOKEN"
 DELETE_SCRIPT="$SCRIPT_DIR/deleteTagsFromQuay.sh"
 
 # Determine current version from main branch 
@@ -172,13 +172,13 @@ OLD_Y="1.${OLD_MINOR}"
 echo "Old version threshold calculated: $OLD_Y"
 
 echo "Deleting 'on-' tags older than 10 days..."
-"$DELETE_SCRIPT" --filter "on-" --age "10 days" $DELETE_ARGS
+"$DELETE_SCRIPT" --filter "on-" --age "10 days" --token "$QUAY_TOKEN" $DELETE_ARGS
 
 echo "Deleting 'sha256-' tags older than 4 months..."
-"$DELETE_SCRIPT" --filter "sha256-" --age "4 months" $DELETE_ARGS
+"$DELETE_SCRIPT" --filter "sha256-" --age "4 months" --token "$QUAY_TOKEN" $DELETE_ARGS
 
 echo "Deleting '$OLD_Y-' tags older than 4 months..."
-"$DELETE_SCRIPT" --filter "${OLD_Y}-" --age "4 months" $DELETE_ARGS
+"$DELETE_SCRIPT" --filter "${OLD_Y}-" --age "4 months" --token "$QUAY_TOKEN" $DELETE_ARGS
 
 echo "Maintenance completed."
 

@@ -17,13 +17,13 @@ FILTER=""
 DRYRUN=0 # don't actually do anything
 
 usage() {
-if [[ ! $accessToken ]]; then 
+if [[ ! $QUAY_TOKEN ]]; then 
   echo "
 You must export your Quay API access token to run this script. To create a new token, go to 
   https://quay.io/organization/rhdh/application/RRFWLY26BL7VCM6WQAK9?tab=gen-token
 
 Then:
-  export accessToken=..."
+  export QUAY_TOKEN=..."
 fi
 echo "
 Usage:
@@ -54,11 +54,12 @@ Options:
     --all               default (slowest) operation: no filter, starting on page $PAGE
     --dry-run           show commands but do not delete any tags
     --debug             more verbose console output
+    --token             pass QUAY_TOKEN via commandline instead of using env var
     -h, --help          this help
 "
 }
 
-if [[ "$#" -lt 2 ]] || [[ ! $accessToken ]]; then usage; exit 1; fi
+if [[ "$#" -lt 2 ]]; then usage; exit 1; fi
 
 # commandline args
 while [[ "$#" -gt 0 ]]; do
@@ -71,10 +72,13 @@ while [[ "$#" -gt 0 ]]; do
     '--dry-run') DRYRUN=1;;
     '-h'|'--help') usage;;
     '--debug') VERBOSE=1;;
+    '--token') QUAY_TOKEN="$2"; shift 1;;
     *) echo "Unknown parameter used: $1."; usage; exit 1;;
   esac
   shift 1
 done
+
+if [[ ! $QUAY_TOKEN ]]; then usage; exit 1; fi
 
 totaldeleted=0
 for repo in $REPOS; do
@@ -104,7 +108,7 @@ for repo in $REPOS; do
       if [[ $epoch_xmo_ago -ge $epoch_tag_date ]]; then
         tag_name=$(jq -r ".tags[$index].name" "$json")
         # shellcheck disable=SC2089
-        CMD=(curl -sS -H "Authorization: Bearer ${accessToken}" -X DELETE "https://quay.io/api/v1/repository/rhdh/${repo}/tag/${tag_name}")
+        CMD=(curl -sS -H "Authorization: Bearer ${QUAY_TOKEN}" -X DELETE "https://quay.io/api/v1/repository/rhdh/${repo}/tag/${tag_name}")
         if [[ $DRYRUN -eq 1 ]]; then
           echo "  [$index / $page]" "${CMD[@]}" "(updated ${tag_date})" # > /tmp/log
         else
