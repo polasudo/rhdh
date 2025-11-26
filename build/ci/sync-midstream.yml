@@ -5,6 +5,8 @@ sync-midstream:
     # don't run for merge requests
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
       when: never
+    - if: $WEEKLY_MAINTENANCE == "true"
+      when: never
     - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH =~ /rhdh-[0-9.]+-rhel-9/
     # see https://gitlab.cee.redhat.com/rhidp/rhdh/-/pipeline_schedules/1043/edit
     # for scheduled runs, check env var
