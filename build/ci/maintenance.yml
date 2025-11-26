@@ -1,0 +1,9 @@
+weekly-maintenance:
+  stage: maintenance
+  extends: .shared_config
+  rules:
+    - if: $WEEKLY_MAINTENANCE == "true"
+  before_script:
+    - ./build/ci/gitlab-ci-env-setup.sh
+  script:
+    - ./build/ci/weekly-maintenance.sh

@@ -27,6 +27,8 @@ stages:
   - sync-midstream
   - check-downstream
   - trigger-respin
+  - maintenance
 
 include:
   - local: "/build/ci/sync-midstream.yml"
+  - local: "/build/ci/maintenance.yml"
