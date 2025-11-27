@@ -5063,7 +5063,7 @@
     "schema": "olm.bundle",
     "name": "rhdh-operator.v1.9.0",
     "package": "rhdh",
-    "image": "quay.io/rhdh/rhdh-operator-bundle@sha256:53871c15d26fa05f81fea559c8daa63cfc7867fe7f0eed9511cd3cf6526887f7",
+    "image": "quay.io/rhdh/rhdh-operator-bundle@sha256:5225c2b31ce7b96cc5dc30c9a269fcd72df7f579c48f53eb9e69e6f9cc49d520",
     "properties": [
         {
             "type": "olm.gvk",
@@ -5208,7 +5208,7 @@
         },
         {
             "name": "",
-            "image": "quay.io/rhdh/rhdh-operator-bundle@sha256:53871c15d26fa05f81fea559c8daa63cfc7867fe7f0eed9511cd3cf6526887f7"
+            "image": "quay.io/rhdh/rhdh-operator-bundle@sha256:5225c2b31ce7b96cc5dc30c9a269fcd72df7f579c48f53eb9e69e6f9cc49d520"
         },
         {
             "name": "",
@@ -5216,7 +5216,7 @@
         },
         {
             "name": "postgresql",
-            "image": "registry.redhat.io/rhel9/postgresql-15@sha256:90ec347a35ab8a5d530c8d09f5347b13cc71df04f3b994bfa8b1a409b1171d59"
+            "image": "registry.redhat.io/rhel9/postgresql-15@sha256:990be59eeb55860a62455375fef7795854d78ce15ac3e7568b9bdb4680bfcd97"
         }
     ]
 }
