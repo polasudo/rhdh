@@ -1,0 +1,83 @@
+# Release JIRA Guide for RHDH
+
+This document outlines how to create and manage release JIRA issues in the link:https://issues.redhat.com/projects/RHDHPLAN[RH Developer Hub Planning (RHDHPLAN)] project. For the detailed technical release process, see the link:RELEASE_GUIDE.adoc[Release Guide].
+
+## Overview
+
+RHDH follows a versioning scheme of `1.y.z` where:
+
+* **Z-stream releases** (e.g., 1.7.3, 1.8.1) - Maintenance/patch releases with bug fixes and CVE updates
+
+Each release type has its own JIRA Feature issue in the RHDHPLAN project.
+
+---
+
+## Creating a New Release JIRA
+
+When creating a new release Feature issue in RHDHPLAN:
+
+. **Clone the previous release** (Z-stream from Z-stream)
+. **Update the Affects Version** to the new release version
+. **Update the Fix Version** to the new release version
+. **Update the Title** to reflect the new release (e.g., "RHDH 1.7.3 Release")
+. **Update the Description** with the new schedule and any specific notes
+. **Link to the CVE tracking spreadsheet** for the new release
+. **Assign to the Release Manager** for that release
+. **Set Team** to the appropriate team (e.g., RHIDP - Cope)
+
+---
+
+## JIRA Automation
+
+RHDHPLAN has built-in automation rules to help streamline the release process. These automations can auto-generate sub-tasks and set up the release structure for you.
+
+### Using JIRA Automation for Z-Stream Releases
+
+After cloning and updating the release JIRA issue:
+
+. Click on the **"More"** button in the JIRA issue toolbar
+. Select **"Prepare for Z Release"** from the dropdown menu
+. The automation will automatically generate all the standard sub-tasks required for a Z-stream release
+
+This saves time by creating a consistent set of tasks that need to be completed for every Z-stream release.
+
+### Available Automations
+
+[NOTE]
+====
+There are multiple JIRA automations available for different use cases. Check the "More" menu on your release JIRA issue to see all available automation options, which may include:
+
+* **Prepare for Z Release** - Generates sub-tasks for Z-stream releases
+* **Create Doc EPIC from RHDHPLAN** - Creates documentation Epic linked to the release
+* Additional automations may be added over time.
+====
+
+---
+
+## JIRA Structure
+
+### Z-Stream Release JIRA
+
+**Example:** link:https://issues.redhat.com/browse/RHDHPLAN-367[RHDHPLAN-367 - RHDH 1.7.3 Release]
+
+The Z-stream release Feature issue typically includes:
+
+* **Type:** Feature
+* **Priority:** Blocker
+* **Fix Version:** 1.Y.Z (e.g., 1.7.3)
+* **Affects Version:** 1.Y.Z (e.g., 1.7.3)
+* **Components:** Build, Release
+* **Linked Issues:** Clones previous Z-stream release, is cloned by next Z-stream release
+
+---
+
+## JIRA Project Links
+
+* link:https://issues.redhat.com/projects/RHDHPLAN[RHDHPLAN] - RH Developer Hub Planning (Release Features)
+* link:https://issues.redhat.com/projects/RHIDP[RHIDP] - RH Developer Hub (Engineering Issues)
+* link:https://issues.redhat.com/projects/RHDHBUGS[RHDHBUGS] - RH Developer Hub Bugs
+
+## Related Documentation
+
+* link:RELEASE_GUIDE.adoc[Release Guide] - Detailed step-by-step technical release process
+* link:PROCESSES.adoc[Team Processes] - General team processes including blocker handling
