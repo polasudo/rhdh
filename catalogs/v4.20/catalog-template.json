@@ -462,7 +462,7 @@
     },
     {
       "schema": "olm.bundle",
-      "image": "quay.io/rhdh/rhdh-operator-bundle@sha256:8c44682bdcc65e2682f5d9d1213d2805a97473cd7cef36f73e0c8db9b878c535"
+      "image": "quay.io/rhdh/rhdh-operator-bundle@sha256:382f3242ef0badf7f6e61c24ba3d447869991bbf714e2773f3cb678cd758292c"
     }
   ]
 }
