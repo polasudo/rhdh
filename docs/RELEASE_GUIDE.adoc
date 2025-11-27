@@ -231,8 +231,8 @@ or
 +
 NOTE: It may take up to 50 minutes for the new images to be available. You can monitor the progress in https://quay.io/repository/rhdh/rhdh-hub-rhel9?tab=tags and https://quay.io/repository/rhdh/rhdh-rhel9-operator?tab=tags.
 +
-. GL pipelines will link:../build/ci/sync-midstream.sh#L663[automatically respin] the link:../build/ci/update-bundle-and-FBCs.sh[bundle and FBC builds] if a new hub or operator image is found in quay.io/rhdh. 
-.. To manually create a new operator-bundle, do this (latest or next flag will be computed automatically):
+. GL pipelines will link:../build/ci/sync-midstream.sh#L663[automatically respin] the link:../build/ci/update-bundle-and-FBCs.sh[bundle] (and FBC builds) if a new hub or operator image is found in quay.io/rhdh. 
+.. Optionally, to *_manually_* create a new operator-bundle, do this (latest or next flag will be computed automatically):
 +
 ```
 # choose the correct branch
@@ -261,9 +261,9 @@ For example if the SHA for `quay.io/rhdh/rhdh-hub-rhel9:1.5-182` starts with `85
 image::images/sbom-check.png[quay.io view filtered for a specific digest]
 ====
 +
-. GL pipelines will link:../build/ci/sync-midstream.sh#L663[automatically respin] the link:../build/ci/update-bundle-and-FBCs.sh[bundle and FBC builds] if a new hub or operator image is found in quay.io/rhdh. 
+. GL pipelines will link:../build/ci/sync-midstream.sh#L663[automatically respin] the link:../build/ci/update-bundle-and-FBCs.sh[FBC builds] (along with a new bundle) if a new hub or operator image is found in quay.io/rhdh. 
 
-.. To manually publish new FBCs to link:https://quay.io/repository/rhdh/iib[quay.io/rhdh/iib], use the link:../build/scripts/renderCatalogs.sh[renderCatalogs.sh] script. *Run the script from the correct `rhdh-1.y-rhel-9` branch*, and it will provide usage intructions you can then copy into the console. Latest or next flag will be added automatically if appropriate. Rendering, committing changes, and running builds for each OCP version should take no more than 20-30 mins.
+.. Optionally, to *_manually_* publish new FBCs to link:https://quay.io/repository/rhdh/iib[quay.io/rhdh/iib], use the link:../build/scripts/renderCatalogs.sh[renderCatalogs.sh] script. *Run the script from the correct `rhdh-1.y-rhel-9` branch*, and it will provide usage intructions you can then copy into the console. Latest or next flag will be added automatically if appropriate. Rendering, committing changes, and running builds for each OCP version should take no more than 20-30 mins.
 +
 ```
 # choose the correct branch
@@ -271,7 +271,7 @@ git checkout rhdh-1.y-rhel-9
 ./build/scripts/renderCatalogs.sh --default ...
 ```
 
-** verify the FBC content is correct - check that the image contains the SAME images as the latest ones; also use the list of branches/commits to verify that all expected commits have been built:
+. Verify the bundle and FBC content is correct - check that the image contains the SAME images as the latest ones; also use the list of branches/commits to verify that all expected commits have been built:
 +
 [NOTE ]
 ====
@@ -311,7 +311,8 @@ git checkout rhdh-1.y-rhel-9
 * ensure if CVE list found from link:https://docs.google.com/spreadsheets/d/1JZVTc03wirx-bTpjn3muWed8cGyFTRTNe6x3Gr02hys/edit?gid=973768917#gid=973768917[RHDH CVE Management tracker] are `Release Pending`
 * **FBCs** are not supported on the RHEC Stage instance link:https://gitlab.cee.redhat.com/releng/konflux-release-data/-/merge_requests/3947[if the production policy is in effect]. See link:https://redhat-internal.slack.com/archives/C06RBUP0M2Q/p1737051256060019[this thread]. Because of this, there is no value in trying to push FBCs to stage prior to GA day. 
 ====
-* If a second RC build is needed, re-enable the scheduled GL pipeline (or you can just trigger a one-time pipeline manually), and repeat the above steps. If only rebuilding a bundle, you don't have to re-enable the GL pipelines as the bundle can be triggered from the above script with `sync-midstream.sh --bundleonly`.
+* If a second RC build is needed, you can re-run the GL pipeline *_manually_* from the link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/pipeline_schedules[pipeline_schedules] page, if you don't want to re-enable it. Note that you'll have to manually run the pipeline TWICE - first to pick up new commits for hub and operator builds, then a second time for bundle and FBC builds.
+
 * Notify team via slack and email - see next section for details.
 
 ### Release Candidates Notifications
