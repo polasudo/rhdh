@@ -67,9 +67,9 @@ for repo_name in "${!UPSTREAM_REPOS[@]}"; do
     
     for upstream_branch in $TARGET_BRANCHES; do
         echo "  Checking $upstream_branch"
-        git remote -v
-        
+    
         pushd "$repo_dir" >/dev/null || continue
+        git remote -v
 
         # identify git user
         git config user.email "rhdh-bot@redhat.com"
