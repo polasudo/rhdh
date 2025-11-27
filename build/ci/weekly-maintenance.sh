@@ -43,8 +43,8 @@ echo "Target versions for update: $TARGET_BRANCHES"
 # We need to clone these and run the update script inside them
 declare -A UPSTREAM_REPOS
 UPSTREAM_REPOS=( 
-    ["rhdh-hub"]="git@github.com:redhat-developer/rhdh.git"
-    ["rhdh-operator"]="git@github.com:redhat-developer/rhdh-operator.git"
+    ["rhdh-hub"]="https://github.com/redhat-developer/rhdh.git"
+    ["rhdh-operator"]="https://github.com/redhat-developer/rhdh-operator.git"
 )
 
 UPDATE_SCRIPT="$SCRIPT_DIR/updateBaseImages.sh"
@@ -73,6 +73,8 @@ for repo_name in "${!UPSTREAM_REPOS[@]}"; do
         # identify git user
         git config user.email "rhdh-bot@redhat.com"
         git config user.name "RHDH Build (rhdh-bot)"
+        # insert user and token into the remote git URL
+        git remote set-url origin "${repo_url/https:\/\//http:\/\/rhdh-bot:${GITHUB_TOKEN}}"
 
         # Verify if upstream branch exists
         if ! git show-ref --verify --quiet "refs/remotes/origin/$upstream_branch"; then
@@ -149,14 +151,17 @@ echo "Old version threshold calculated: $OLD_Y"
 # ensure we don't accidentally plaintext the token in the console!
 set +x
 
+# delete Konflux tags which are also re-tagged with more meaningful tags
 echo "Deleting 'on-' tags older than 10 days..."
 "$DELETE_SCRIPT" --filter "on-" --age "10 days" --token "$QUAY_APP_ACCESS_TOKEN" $DELETE_ARGS
 
-echo "Deleting 'sha256-' tags older than 4 months..."
-"$DELETE_SCRIPT" --filter "sha256-" --age "4 months" --token "$QUAY_APP_ACCESS_TOKEN" $DELETE_ARGS
-
+# delete 1.y- tags from EOL releases 
 echo "Deleting '$OLD_Y-' tags older than 4 months..."
 "$DELETE_SCRIPT" --filter "${OLD_Y}-" --age "4 months" --token "$QUAY_APP_ACCESS_TOKEN" $DELETE_ARGS
+
+# this includes .att and .sbom so keep these longer
+echo "Deleting 'sha256-' tags older than 8 months..."
+"$DELETE_SCRIPT" --filter "sha256-" --age "8 months" --token "$QUAY_APP_ACCESS_TOKEN" $DELETE_ARGS
 
 echo "Maintenance completed."
 
