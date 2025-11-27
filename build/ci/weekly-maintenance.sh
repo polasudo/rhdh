@@ -1,7 +1,11 @@
 #!/usr/bin/env bash
-
+#
 # Copyright (c) Red Hat, Inc.
 # SPDX-License-Identifier: EPL-2.0
+#
+# Script to perform weekly maintenance tasks:
+# 1. Update base images in active branches
+# 2. Cleanup old tags from Quay
 
 set -e
 
@@ -10,15 +14,20 @@ if [[ -z "${CI_PROJECT_DIR:-}" ]]; then
     CI_PROJECT_DIR=$(cd "$(dirname "$0")/../.." && pwd)
 fi
 
-# Script to perform weekly maintenance tasks:
-# 1. Update base images in active branches
-# 2. Cleanup old tags from Quay
-
 command -v jq >/dev/null 2>&1 || { echo "jq is not installed. Aborting."; exit 1; }
 command -v skopeo >/dev/null 2>&1 || { echo "skopeo is not installed. Aborting."; exit 1; }
 
-# logins (quay.io, registry.redhat.io) are handled
-# by before script in pipeline run.
+# Use the scripts from the current default branch rhdh-1-rhel-9
+SCRIPT=$(readlink -f "$0")
+SCRIPT_DIR=$(cd "$(dirname "$0")/../scripts" && pwd)
+ROOTPATH=$(dirname "$SCRIPT"); ROOTPATH=${ROOTPATH/\/build\/ci}
+
+# logins (quay.io, registry.redhat.io) are loaded here 
+if [[ $CI_BUILDS_DIR ]]; then # running in gitlab so set up env
+  echo -e "[INFO] Running in gitlab pipeline."
+  # shellcheck disable=SC1091
+  source "${ROOTPATH}/build/ci/gitlab-ci-env-setup.sh"
+fi
 
 echo "--- Starting Update Base Images ---"
 
@@ -48,8 +57,6 @@ UPSTREAM_REPOS=(
     ["rhdh-operator"]="https://github.com/redhat-developer/rhdh-operator.git"
 )
 
-# Use the scripts from the current default branch rhdh-1-rhel-9
-SCRIPT_DIR=$(cd "$(dirname "$0")/../scripts" && pwd)
 UPDATE_SCRIPT="$SCRIPT_DIR/updateBaseImages.sh"
 
 if [[ ! -f "$UPDATE_SCRIPT" ]]; then
@@ -62,10 +69,8 @@ fi
 DRY_RUN=${DRY_RUN:-true}
 if [[ "$DRY_RUN" == "true" ]]; then
     echo "Running in DRY RUN mode. No changes will be pushed or deleted."
-    UPDATE_ARGS="--no-push --no-commit"
     DELETE_ARGS="--dry-run"
 else
-    UPDATE_ARGS=""
     DELETE_ARGS=""
 fi
 # TODO: remove this
@@ -124,12 +129,13 @@ done
 # Clean up upstream clones
 rm -rf "$UPSTREAM_WORK_DIR"
 
-
 echo "--- Starting Quay Tag Cleanup ---"
 
-# If in gitlab and token not defined in this bash shell, fetch it again
+# If in gitlab and token not defined in this bash shell, fetch it from secure files then delete it
 if [[ -z "$QUAY_TOKEN" ]] && [[ $CI_PROJECT_DIR ]]; then 
-    QUAY_TOKEN=$(grep -E -v "^#" "${CI_PROJECT_DIR}/.secure_files/rhdh_bot_quay.token")
+    # shellcheck disable=SC1091
+    source "${CI_PROJECT_DIR}/.secure_files/QUAY_TOKEN"
+    rm -f "${CI_PROJECT_DIR}/.secure_files/QUAY_TOKEN"
 fi
 
 DELETE_SCRIPT="$SCRIPT_DIR/deleteTagsFromQuay.sh"
