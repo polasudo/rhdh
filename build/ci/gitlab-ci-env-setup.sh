@@ -117,6 +117,12 @@ if [[ -f "${CI_PROJECT_DIR}/.secure_files/rhdh-bot.gitlab.pat" ]]; then
         -e "s@.*GSSAPIDelegateCredentials.*@GSSAPIDelegateCredentials yes@"
     kdestroy -A; kinit -k -t "${CI_PROJECT_DIR}/.secure_files/rhdh-bot.keytab" -V rhdh-bot@IPA.REDHAT.COM; klist
 
+    ######################################################################################
+    # for use with the tag deletion script to clean up old quay tags -- USE WITH CAUTION!
+    ######################################################################################
+    QUAY_APP_ACCESS_TOKEN=$(cat "${CI_PROJECT_DIR}/.secure_files/rhdh_quay_app_access_token")
+    export QUAY_APP_ACCESS_TOKEN
+
     # set -x
     rm -fr "${CI_PROJECT_DIR}/.secure_files"
 else

@@ -33,20 +33,10 @@ echo "--- Starting Update Base Images ---"
 
 git fetch origin
 
-# Identify branches
-# Midstream Main branch (1.next) - used for scripts source
-MIDSTREAM_MAIN_BRANCH="rhdh-1-rhel-9"
+# list upstream remote branches, filter for latest 2, sort version descending, eg., main release-1.8 release-1.7
+TARGET_BRANCHES="main $(git branch -r | grep -E "release-[0-9.]+" | sort -V -r | head -n 2 | sed -r -e "s|.+origin/||" | tr '\n' ' ')"
 
-# Upstream Main branch - used for target update
-UPSTREAM_MAIN_BRANCH="main"
-
-# 2 latest release branches (rhdh-1.Y-rhel-9)
-# list remote branches, filter for latest 2, sort version descending
-RELEASE_BRANCHES=$(git branch -r | grep -E "rhdh-1\.[0-9]+-rhel-9" | sort -V -r | head -n 2 | sed -r -e "s|.+origin/||" | tr '\n' ' ')
-
-# List of midstream branches we want to process
-# We will map these to upstream branches later
-TARGET_BRANCHES="$MIDSTREAM_MAIN_BRANCH $RELEASE_BRANCHES"
+# List of branches we want to process
 echo "Target versions for update: $TARGET_BRANCHES"
 
 # Upstream repositories to update
@@ -75,20 +65,8 @@ for repo_name in "${!UPSTREAM_REPOS[@]}"; do
     repo_dir="$UPSTREAM_WORK_DIR/$repo_name"
     git clone "$repo_url" "$repo_dir" || { echo "Failed to clone $repo_url"; continue; }
     
-    for target_ver in $TARGET_BRANCHES; do
-        # Map midstream branch to upstream branch
-        # rhdh-1-rhel-9 -> main
-        # rhdh-1.8-rhel-9 -> 1.8
-        
-        if [[ "$target_ver" == "$MIDSTREAM_MAIN_BRANCH" ]]; then
-            upstream_branch="$UPSTREAM_MAIN_BRANCH"
-        else
-            # Extract version number (e.g., 1.8) and map to upstream release branch
-            version_minor=$(echo "$target_ver" | grep -oE "1\.[0-9]+")
-            upstream_branch="release-${version_minor}"
-        fi
-        
-        echo "  Checking version $target_ver -> upstream branch: $upstream_branch"
+    for upstream_branch in $TARGET_BRANCHES; do
+        echo "  Checking $upstream_branch"
         
         pushd "$repo_dir" >/dev/null || continue
 
@@ -111,7 +89,7 @@ for repo_name in "${!UPSTREAM_REPOS[@]}"; do
         # Run update script
         # -w $(pwd): workspace is current upstream repo dir
         # -b $upstream_branch: target branch
-        "$UPDATE_SCRIPT" -w "$(pwd)" -b "$upstream_branch" $UPDATE_ARGS || echo "  Failed update for $repo_name:$upstream_branch"
+        "$UPDATE_SCRIPT" -w "$(pwd)" -b "$upstream_branch" --pr || echo "  Failed update for $repo_name:$upstream_branch"
         
         # Return to previous directory
         popd >/dev/null || true
@@ -123,21 +101,17 @@ rm -rf "$UPSTREAM_WORK_DIR"
 
 echo "--- Starting Quay Tag Cleanup ---"
 
-# If QUAY_TOKEN not set, exit with error
-if [[ -z "$QUAY_TOKEN" ]]; then
+# If in gitlab and token not defined in this bash shell, fetch it from secure files then delete it
+if [[ -z "$QUAY_APP_ACCESS_TOKEN" ]]; then
     if [[ $CI_PROJECT_DIR ]]; then
-        echo "Error: QUAY_TOKEN is not set. Check if gitlab-ci-env-setup.sh ran correctly. Must exit!"
+        echo "Error: QUAY_APP_ACCESS_TOKEN is not set. Check if gitlab-ci-env-setup.sh ran correctly. Must exit!"
     else 
-        echo "Error: QUAY_TOKEN is not set. Must exit!"
+        echo "Error: QUAY_APP_ACCESS_TOKEN is not set. Must exit!"
     fi
     exit 1
 fi
 
 DELETE_SCRIPT="$SCRIPT_DIR/deleteTagsFromQuay.sh"
-
-# Determine current version from main branch 
-# checkout MIDSTREAM_MAIN_BRANCH to be sure we get the current version info.
-git checkout "$MIDSTREAM_MAIN_BRANCH" || echo "Could not checkout $MIDSTREAM_MAIN_BRANCH, using current"
 
 # Attempt to find version from package.json (hub) to match other scripts
 VERSION_FILE_JSON="distgit/containers/rhdh-hub/package.json"
@@ -172,14 +146,17 @@ fi
 OLD_Y="1.${OLD_MINOR}"
 echo "Old version threshold calculated: $OLD_Y"
 
+# ensure we don't accidentally plaintext the token in the console!
+set +x
+
 echo "Deleting 'on-' tags older than 10 days..."
-"$DELETE_SCRIPT" --filter "on-" --age "10 days" --token "$QUAY_TOKEN" $DELETE_ARGS
+"$DELETE_SCRIPT" --filter "on-" --age "10 days" --token "$QUAY_APP_ACCESS_TOKEN" $DELETE_ARGS
 
 echo "Deleting 'sha256-' tags older than 4 months..."
-"$DELETE_SCRIPT" --filter "sha256-" --age "4 months" --token "$QUAY_TOKEN" $DELETE_ARGS
+"$DELETE_SCRIPT" --filter "sha256-" --age "4 months" --token "$QUAY_APP_ACCESS_TOKEN" $DELETE_ARGS
 
 echo "Deleting '$OLD_Y-' tags older than 4 months..."
-"$DELETE_SCRIPT" --filter "${OLD_Y}-" --age "4 months" --token "$QUAY_TOKEN" $DELETE_ARGS
+"$DELETE_SCRIPT" --filter "${OLD_Y}-" --age "4 months" --token "$QUAY_APP_ACCESS_TOKEN" $DELETE_ARGS
 
 echo "Maintenance completed."
 
