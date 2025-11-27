@@ -5063,7 +5063,7 @@
     "schema": "olm.bundle",
     "name": "rhdh-operator.v1.9.0",
     "package": "rhdh",
-    "image": "quay.io/rhdh/rhdh-operator-bundle@sha256:8c44682bdcc65e2682f5d9d1213d2805a97473cd7cef36f73e0c8db9b878c535",
+    "image": "quay.io/rhdh/rhdh-operator-bundle@sha256:957fd7598fabf48446230d4c6c468c13e5dcbc8bbcc417cb1f828d984bd2fafb",
     "properties": [
         {
             "type": "olm.gvk",
@@ -5096,7 +5096,7 @@
                     "capabilities": "Seamless Upgrades",
                     "categories": "Developer Tools",
                     "certified": "true",
-                    "containerImage": "registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:d6574e5b4f661bbb4014f3b9cb938f088510f5ab5d5538045c5cfa938c1fcd3b",
+                    "containerImage": "registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:4398c5ce43e750e3b1a905c55619ffeea59011c3ea03ff8c8a217771b0a11e84",
                     "createdAt": "2025-11-25T14:04:45Z",
                     "description": "Red Hat Developer Hub is a Red Hat supported version of Backstage. It comes with pre-built plug-ins and configuration settings, supports use of an external database, and can help streamline the process of setting up a self-managed internal developer portal for adopters who are just starting out.",
                     "features.operators.openshift.io/cnf": "false",
@@ -5208,11 +5208,11 @@
         },
         {
             "name": "",
-            "image": "quay.io/rhdh/rhdh-operator-bundle@sha256:8c44682bdcc65e2682f5d9d1213d2805a97473cd7cef36f73e0c8db9b878c535"
+            "image": "quay.io/rhdh/rhdh-operator-bundle@sha256:957fd7598fabf48446230d4c6c468c13e5dcbc8bbcc417cb1f828d984bd2fafb"
         },
         {
             "name": "",
-            "image": "registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:d6574e5b4f661bbb4014f3b9cb938f088510f5ab5d5538045c5cfa938c1fcd3b"
+            "image": "registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:4398c5ce43e750e3b1a905c55619ffeea59011c3ea03ff8c8a217771b0a11e84"
         },
         {
             "name": "postgresql",
