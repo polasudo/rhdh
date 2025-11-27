@@ -5063,7 +5063,7 @@
     "schema": "olm.bundle",
     "name": "rhdh-operator.v1.9.0",
     "package": "rhdh",
-    "image": "quay.io/rhdh/rhdh-operator-bundle@sha256:957fd7598fabf48446230d4c6c468c13e5dcbc8bbcc417cb1f828d984bd2fafb",
+    "image": "quay.io/rhdh/rhdh-operator-bundle@sha256:382f3242ef0badf7f6e61c24ba3d447869991bbf714e2773f3cb678cd758292c",
     "properties": [
         {
             "type": "olm.gvk",
@@ -5208,7 +5208,7 @@
         },
         {
             "name": "",
-            "image": "quay.io/rhdh/rhdh-operator-bundle@sha256:957fd7598fabf48446230d4c6c468c13e5dcbc8bbcc417cb1f828d984bd2fafb"
+            "image": "quay.io/rhdh/rhdh-operator-bundle@sha256:382f3242ef0badf7f6e61c24ba3d447869991bbf714e2773f3cb678cd758292c"
         },
         {
             "name": "",
