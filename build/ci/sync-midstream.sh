@@ -484,7 +484,7 @@ for ((i = START_REPO; i < NUM_REPOS; i++)); do # echo $i
 
               sed -i $yml -r \
                 -e "s@quay.io/fedora/postgresql-15:@registry.redhat.io/rhel9/postgresql-15:@g" \
-                -e "s@quay.io/rhdh/rhdh-hub-rhel9:.*@quay.io/rhdh/rhdh-hub-rhel9:$dhImageTag@g"
+                -e "s@(quay.io/rhdh-community/rhdh|quay.io/rhdh/rhdh-hub-rhel9):.*@quay.io/rhdh/rhdh-hub-rhel9:$dhImageTag@g"
 
               # transform tags to digests
               # shellcheck disable=SC2013
@@ -524,12 +524,12 @@ for ((i = START_REPO; i < NUM_REPOS; i++)); do # echo $i
 
           # replace upstream refs in configmap
             # image: quay.io/fedora/postgresql-15:latest
-            # image: quay.io/rhdh/rhdh-hub-rhel9:next
+            # image: quay.io/rhdh/rhdh-hub-rhel9:next or quay.io/rhdh-community/rhdh:next
           for yml in manifests/rhdh-default-config_v1_configmap.yaml manifests/rhdh-plugin-deps_v1_configmap.yaml; do
             echo -e "\n[INFO] Transform $bundle_dir/$yml ..."
             sed -i $yml -r \
                 -e "s@quay.io/fedora/postgresql-15:.+@registry.redhat.io/rhel9/postgresql-15:latest@g" \
-                -e "s@quay.io/rhdh/rhdh-hub-rhel9:.*@quay.io/rhdh/rhdh-hub-rhel9:$dhImageTag@g"
+                -e "s@(quay.io/rhdh-community/rhdh|quay.io/rhdh/rhdh-hub-rhel9):.*@quay.io/rhdh/rhdh-hub-rhel9:$dhImageTag@g"
             for d in registry.redhat.io/rhel9/postgresql-15:latest quay.io/rhdh/rhdh-hub-rhel9:$dhImageTag; do
               if [[ ! ${digest_mapping[$d]} ]]; then 
                 checkImage "$d"
