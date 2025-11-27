@@ -58,22 +58,10 @@ UPSTREAM_REPOS=(
 )
 
 UPDATE_SCRIPT="$SCRIPT_DIR/updateBaseImages.sh"
-
 if [[ ! -f "$UPDATE_SCRIPT" ]]; then
     echo "Error: updateBaseImages.sh not found at $UPDATE_SCRIPT"
     exit 1
 fi
-
-# TODO: remove this
-# Check for DRY_RUN mode (default true until we're confident)
-DRY_RUN=${DRY_RUN:-true}
-if [[ "$DRY_RUN" == "true" ]]; then
-    echo "Running in DRY RUN mode. No changes will be pushed or deleted."
-    DELETE_ARGS="--dry-run"
-else
-    DELETE_ARGS=""
-fi
-# TODO: remove this
 
 # Create temp dir for upstream clones
 UPSTREAM_WORK_DIR=$(mktemp -d)
@@ -103,7 +91,11 @@ for repo_name in "${!UPSTREAM_REPOS[@]}"; do
         echo "  Checking version $target_ver -> upstream branch: $upstream_branch"
         
         pushd "$repo_dir" >/dev/null || continue
-        
+
+        # identify git user
+        git config user.email "rhdh-bot@redhat.com"
+        git config user.name "RHDH Build (rhdh-bot)"
+
         # Verify if upstream branch exists
         if ! git show-ref --verify --quiet "refs/remotes/origin/$upstream_branch"; then
             echo "  Branch $upstream_branch does not exist in $repo_name. Skipping."
@@ -131,11 +123,14 @@ rm -rf "$UPSTREAM_WORK_DIR"
 
 echo "--- Starting Quay Tag Cleanup ---"
 
-# If in gitlab and token not defined in this bash shell, fetch it from secure files then delete it
-if [[ -z "$QUAY_TOKEN" ]] && [[ $CI_PROJECT_DIR ]]; then 
-    # shellcheck disable=SC1091
-    source "${CI_PROJECT_DIR}/.secure_files/QUAY_TOKEN"
-    rm -f "${CI_PROJECT_DIR}/.secure_files/QUAY_TOKEN"
+# If QUAY_TOKEN not set, exit with error
+if [[ -z "$QUAY_TOKEN" ]]; then
+    if [[ $CI_PROJECT_DIR ]]; then
+        echo "Error: QUAY_TOKEN is not set. Check if gitlab-ci-env-setup.sh ran correctly. Must exit!"
+    else 
+        echo "Error: QUAY_TOKEN is not set. Must exit!"
+    fi
+    exit 1
 fi
 
 DELETE_SCRIPT="$SCRIPT_DIR/deleteTagsFromQuay.sh"
