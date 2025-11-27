@@ -23,13 +23,23 @@ metadata:
             },
             "name": "developer-hub"
           }
+        },
+        {
+          "apiVersion": "rhdh.redhat.com/v1alpha5",
+          "kind": "Backstage",
+          "metadata": {
+            "labels": {
+              "app.kubernetes.io/name": "backstage"
+            },
+            "name": "developer-hub"
+          }
         }
       ]
     capabilities: Seamless Upgrades
     categories: Developer Tools
     certified: "true"
-    containerImage: registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:4398c5ce43e750e3b1a905c55619ffeea59011c3ea03ff8c8a217771b0a11e84
-    createdAt: "2025-11-25T14:04:45Z"
+    containerImage: registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:cc1c96ce22955056f6f058aeee5c448eba555dd4da8b3a4ee5a6b39bcd6e41cc
+    createdAt: "2025-11-26T11:59:10Z"
     description: Red Hat Developer Hub is a Red Hat supported version of Backstage.
       It comes with pre-built plug-ins and configuration settings, supports use of
       an external database, and can help streamline the process of setting up a self-managed
@@ -78,6 +88,15 @@ spec:
       kind: Backstage
       name: backstages.rhdh.redhat.com
       version: v1alpha4
+    - description: |-
+        Backstage is the Schema for the Red Hat Developer Hub backstages API.
+        It comes with pre-built plug-ins, configuration settings, and deployment mechanisms,
+        which can help streamline the process of setting up a self-managed internal
+        developer portal for adopters who are just starting out.
+      displayName: Red Hat Developer Hub
+      kind: Backstage
+      name: backstages.rhdh.redhat.com
+      version: v1alpha5
   description: |
     Red Hat Developer Hub is an enterprise-grade platform for building developer portals, containing a supported and opinionated framework. It comes with pre-built plug-ins and configuration settings, supports use of an external database, and can help streamline the process of setting up a self-managed internal developer portal for adopters who are just starting out. By implementing a unified and open platform designed to maximize developer skills, ease onboarding, and increase development productivity, focus can be centered on what really matters: writing great code. Red Hat Developer Hub also offers Software Templates to simplify the development process, which can reduce friction and frustration for development teams, boosting their productivity and increasing an organization's competitive advantage.
 
@@ -319,7 +338,7 @@ spec:
                   value: registry.redhat.io/rhel9/postgresql-15@sha256:990be59eeb55860a62455375fef7795854d78ce15ac3e7568b9bdb4680bfcd97
                 - name: RELATED_IMAGE_backstage
                   value: quay.io/rhdh-community/rhdh:1
-                image: registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:4398c5ce43e750e3b1a905c55619ffeea59011c3ea03ff8c8a217771b0a11e84
+                image: registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:cc1c96ce22955056f6f058aeee5c448eba555dd4da8b3a4ee5a6b39bcd6e41cc
                 livenessProbe:
                   httpGet:
                     path: /healthz
