@@ -43,8 +43,8 @@ echo "Target versions for update: $TARGET_BRANCHES"
 # We need to clone these and run the update script inside them
 declare -A UPSTREAM_REPOS
 UPSTREAM_REPOS=( 
-    ["rhdh-hub"]="https://github.com/redhat-developer/rhdh.git"
-    ["rhdh-operator"]="https://github.com/redhat-developer/rhdh-operator.git"
+    ["rhdh-hub"]="https://github.com/redhat-developer/rhdh"
+    ["rhdh-operator"]="https://github.com/redhat-developer/rhdh-operator"
 )
 
 UPDATE_SCRIPT="$SCRIPT_DIR/updateBaseImages.sh"
@@ -74,7 +74,7 @@ for repo_name in "${!UPSTREAM_REPOS[@]}"; do
         git config user.email "rhdh-bot@redhat.com"
         git config user.name "RHDH Build (rhdh-bot)"
         # insert user and token into the remote git URL
-        git remote set-url origin "${repo_url/https:\/\//http:\/\/rhdh-bot:${GITHUB_TOKEN}}"
+        git remote set-url origin "${repo_url/https:\/\//http:\/\/rhdh-bot:${GITHUB_TOKEN}@}"
 
         # Verify if upstream branch exists
         if ! git show-ref --verify --quiet "refs/remotes/origin/$upstream_branch"; then
