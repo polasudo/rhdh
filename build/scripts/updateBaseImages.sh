@@ -198,11 +198,11 @@ testvercomp () {
 createPr() {
 	headBranch=$1
 	baseBranch=$2
+	git pull origin "${baseBranch}"
 	git branch "${headBranch}" || true
 	git checkout "${headBranch}"
 	git merge "${baseBranch}"
 	git push origin "${headBranch}"
-	lastCommitComment="$(git log -1 --pretty=%B)"
 	if [[ $(/usr/local/bin/gh version 2>/dev/null || true) ]] || [[ $(which gh 2>/dev/null || true) ]]; then
 		gh pr create -f -B "${baseBranch}" -H "${headBranch}" || true 
 	else

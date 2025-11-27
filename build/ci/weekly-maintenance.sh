@@ -43,8 +43,8 @@ echo "Target versions for update: $TARGET_BRANCHES"
 # We need to clone these and run the update script inside them
 declare -A UPSTREAM_REPOS
 UPSTREAM_REPOS=( 
-    ["rhdh-hub"]="https://github.com/redhat-developer/rhdh.git"
-    ["rhdh-operator"]="https://github.com/redhat-developer/rhdh-operator.git"
+    ["rhdh-hub"]="git@github.com:redhat-developer/rhdh.git"
+    ["rhdh-operator"]="git@github.com:redhat-developer/rhdh-operator.git"
 )
 
 UPDATE_SCRIPT="$SCRIPT_DIR/updateBaseImages.sh"
