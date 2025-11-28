@@ -31,14 +31,6 @@ fi
 
 echo "--- Starting Update Base Images ---"
 
-git fetch origin
-
-# list upstream remote branches, filter for latest 2, sort version descending, eg., main release-1.8 release-1.7
-TARGET_BRANCHES="main $(git branch -r | grep -E "release-[0-9.]+" | sort -V -r | head -n 2 | sed -r -e "s|.+origin/||" | tr '\n' ' ')"
-
-# List of branches we want to process
-echo "Target versions for update: $TARGET_BRANCHES"
-
 # Upstream repositories to update
 # We need to clone these and run the update script inside them
 declare -A UPSTREAM_REPOS
@@ -63,20 +55,24 @@ for repo_name in "${!UPSTREAM_REPOS[@]}"; do
     
     # Clone repo
     repo_dir="$UPSTREAM_WORK_DIR/$repo_name"
-    git clone "$repo_url" "$repo_dir" || { echo "Failed to clone $repo_url"; continue; }
-    
+    git clone "$repo_url" "$repo_dir" || { echo "Failed to clone $repo_url"; exit 1; }
+    pushd "$repo_dir" >/dev/null || { echo "Could not open $repo_dir"; exit 1; }
+
+    # identify git user
+    git config --global user.name "rhdh-bot service account"
+    git config --global user.email "rhdh-bot@redhat.com"
+    # insert user and token into the remote git URL - do not reveal the token in plaintext!
+    git remote set-url origin "${repo_url/https:\/\//https:\/\/rhdh-bot:${GITHUB_TOKEN}@}"
+    git fetch origin
+
+    # list upstream remote branches, filter for latest 2, sort version descending, eg., main release-1.8 release-1.7
+    TARGET_BRANCHES="main $(git branch -r | grep -E "release-[0-9.]+" | sort -V -r | head -n 2 | sed -r -e "s|.+origin/||" | tr '\n' ' ')"
+
+    # List of branches we want to process
+    echo "Target versions for update: $TARGET_BRANCHES"
+
     for upstream_branch in $TARGET_BRANCHES; do
         echo "  Checking $upstream_branch"
-    
-        pushd "$repo_dir" >/dev/null || continue
-        git remote -v
-
-        # identify git user
-        git config --global user.name "rhdh-bot service account"
-        git config --global user.email "rhdh-bot@redhat.com"
-        # gh auth status
-        # insert user and token into the remote git URL
-        git remote set-url origin "${repo_url/https:\/\//https:\/\/rhdh-bot:${GITHUB_TOKEN}@}"
 
         # Verify if upstream branch exists
         if ! git show-ref --verify --quiet "refs/remotes/origin/$upstream_branch"; then
