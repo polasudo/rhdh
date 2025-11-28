@@ -76,7 +76,7 @@ for repo_name in "${!UPSTREAM_REPOS[@]}"; do
         git config --global user.email "rhdh-bot@redhat.com"
         gh auth status
         # insert user and token into the remote git URL
-        git remote remove rm origin
+        git remote rm origin
         # if you debug this next line it will reveal the token in plaintext!
         git remote add origin "${repo_url/https:\/\//http:\/\/rhdh-bot:${GITHUB_TOKEN}@}"
 
