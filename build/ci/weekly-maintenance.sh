@@ -74,11 +74,11 @@ for repo_name in "${!UPSTREAM_REPOS[@]}"; do
         # identify git user
         git config --global user.name "rhdh-bot service account"
         git config --global user.email "rhdh-bot@redhat.com"
-        echo "$GITHUB_TOKEN"
         gh auth status
         # insert user and token into the remote git URL
-        git remote set-url origin "${repo_url/https:\/\//http:\/\/rhdh-bot:${GITHUB_TOKEN}@}"
-        git remote -v
+        git remote remove rm origin
+        # if you debug this next line it will reveal the token in plaintext!
+        git remote add origin "${repo_url/https:\/\//http:\/\/rhdh-bot:${GITHUB_TOKEN}@}"
 
         # Verify if upstream branch exists
         if ! git show-ref --verify --quiet "refs/remotes/origin/$upstream_branch"; then
