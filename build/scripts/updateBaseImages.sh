@@ -357,7 +357,7 @@ for d in $(find "${WORKDIR}/" -maxdepth "${MAXDEPTH}" -name "${DOCKERFILE}" | so
 								if [[ -d ${d%%/${DOCKERFILE}} ]]; then pushd "${d%%/${DOCKERFILE}}" >/dev/null; pushedIn=1; fi
 								if [[ ${docommit} -eq 1 ]]; then 
 									git add "${DOCKERFILE}" || true
-									git commit -s -m "chore: update to ${FROMPREFIX}:${LATESTTAG} from ${URL%%@sha256:*} [skip-build]" "${DOCKERFILE}" 2>&1 || true
+									git commit -s -m "chore: update $SOURCES_BRANCH to ${FROMPREFIX}:${LATESTTAG} from ${URL%%@sha256:*} [skip-build]" "${DOCKERFILE}" 2>&1 || true
 									if [[ ${dopronly} -eq 1 ]]; then
 										createPr "${PR_BRANCH}" "${SOURCES_BRANCH}"
 									else
