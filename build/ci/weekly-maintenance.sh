@@ -81,8 +81,7 @@ for repo_name in "${!UPSTREAM_REPOS[@]}"; do
             continue
         fi
         
-        echo "  Updating base images for $repo_name on branch $upstream_branch"
-        
+        echo "  Update base images for $repo_name:$upstream_branch"
         # Checkout branch
         git checkout "$upstream_branch" || { echo "  Failed to checkout $upstream_branch"; popd >/dev/null || true; continue; }
         
@@ -91,9 +90,8 @@ for repo_name in "${!UPSTREAM_REPOS[@]}"; do
         # -b $upstream_branch: target branch
         "$UPDATE_SCRIPT" -w "$(pwd)" -b "$upstream_branch" --pr || echo "  Failed update for $repo_name:$upstream_branch"
         
-        # Return to previous directory
-        popd >/dev/null || true
     done
+    popd >/dev/null || true
 done
 
 # Clean up upstream clones
