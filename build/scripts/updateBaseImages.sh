@@ -338,10 +338,10 @@ for d in $(find "${WORKDIR}/" -maxdepth "${MAXDEPTH}" -name "${DOCKERFILE}" | so
 					# TODO: try using testvercomp against the full tag versions w/ suffixes, eg., 8.16.0-0 ">" 8.15.1-1.1554788812
 					if [[ "${LATE_TAGver}" != "${CURR_TAGver}" ]] || [[ ${LATE_TAGrevbase} -gt ${CURR_TAGrevbase} ]] || [[ ${LATE_TAGrevsuf} -gt ${CURR_TAGrevsuf} ]]; then
 						if [[ $LATE_TAGver != "???" ]] && [[ $LATE_TAGrev != *"container. Is the container public and populated"* ]]; then
-							echo "Testing if ${LATE_TAGver} > ${CURR_TAGver} ..."
+							if [[ $VERBOSE -eq 1 ]]; then echo "[DEBUG] Testing if ${LATE_TAGver} > ${CURR_TAGver} ..."; fi
 							testvercomp "${LATE_TAGver}" ">" "${CURR_TAGver}"
 							if [[ "${testvercomp_return}" == "true" ]] || [[ ${LATE_TAGrevsuf} -ge ${CURR_TAGrevsuf} ]] || [[ ${LATE_TAGrevbase} -gt ${CURR_TAGrevbase} ]]; then # fix the ${DOCKERFILE}
-								echo "++ $d "
+								if [[ $VERBOSE -eq 1 ]]; then echo "[DEBUG] ++ $d "; fi
 								# only replace the URL if padded with a prefix space or slash, and ending with a space or newline; this avoids doing the same replacement twice in the same file
 								# which would result in ubi8/nodejs-12:1-102.1638363923.1638363923 instead of ubi8/nodejs-12:1-102.1638363923
 								LATESTTAGSHA=""
