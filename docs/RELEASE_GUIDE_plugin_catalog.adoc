@@ -71,6 +71,8 @@ The above steps may no longer be necessary. See https://issues.redhat.com/browse
 
 ### Plugin Catalog - rhdh-1-rhel-9 branch:
 
+NOTE: See https://issues.redhat.com/browse/RHIDP-10979 for an example of onboarding a plugin and the steps required.
+
 Check out the new rhdh-1-rhel-9 branch, then:
 
 1. Remove plugin_builds/ content + regenerate; review changes and merge manually, or re-run without the --nopush flag to push directly
@@ -123,4 +125,4 @@ cd .tekton; ./generatePipelineRunsForPlugins.sh -v 1.8.0 --clean --nopush
 
 ### Plugin Catalog Index
 
-TODO - https://issues.redhat.com/browse/RHIDP-9476 to be written -- this needs to be orchestrated by Konflux so that when new plugins are released (with new digests, not just new tags!) a new index is created
+TODO - https://issues.redhat.com/browse/RHIDP-9476 to be written -- this is orchestrated by Gitlab + Konflux so that when new plugins are released (with new digests, not just new tags!) a new index is created
