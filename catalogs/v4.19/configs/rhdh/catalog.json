@@ -5248,7 +5248,7 @@
     "schema": "olm.bundle",
     "name": "rhdh-operator.v1.9.0",
     "package": "rhdh",
-    "image": "quay.io/rhdh/rhdh-operator-bundle@sha256:737aa27dda57df00a178e959ec0525d79ada37dd7209b096a5168dfe7daf1b51",
+    "image": "quay.io/rhdh/rhdh-operator-bundle@sha256:402d9e0f2cea87ae67f5f8556302117a8287dfa8af0b7e28b772a3e0d7d5874b",
     "properties": [
         {
             "type": "olm.gvk",
@@ -5289,7 +5289,7 @@
                     "capabilities": "Seamless Upgrades",
                     "categories": "Developer Tools",
                     "certified": "true",
-                    "containerImage": "registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:8ba8fcfe7b3b2b9aca8f5c1004b35194034ca1abd7a8f8b40563d913564bced8",
+                    "containerImage": "registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:aee596948d85904ea30b05e75276f36d0e0ee35df35ddbd032a65ad654273b8b",
                     "createdAt": "2025-11-26T11:59:10Z",
                     "description": "Red Hat Developer Hub is a Red Hat supported version of Backstage. It comes with pre-built plug-ins and configuration settings, supports use of an external database, and can help streamline the process of setting up a self-managed internal developer portal for adopters who are just starting out.",
                     "features.operators.openshift.io/cnf": "false",
@@ -5362,7 +5362,10 @@
                 ],
                 "labels": {
                     "operatorframework.io/arch.amd64": "supported",
-                    "operatorframework.io/arch.arm64": "supported"
+                    "operatorframework.io/arch.arm64": "unsupported",
+                    "operatorframework.io/arch.ppc64le": "unsupported",
+                    "operatorframework.io/arch.s390x": "unsupported",
+                    "operatorframework.io/os.linux": "supported"
                 },
                 "links": [
                     {
@@ -5404,15 +5407,15 @@
     "relatedImages": [
         {
             "name": "",
-            "image": "quay.io/rhdh/rhdh-operator-bundle@sha256:737aa27dda57df00a178e959ec0525d79ada37dd7209b096a5168dfe7daf1b51"
+            "image": "quay.io/rhdh/rhdh-operator-bundle@sha256:402d9e0f2cea87ae67f5f8556302117a8287dfa8af0b7e28b772a3e0d7d5874b"
         },
         {
             "name": "backstage",
-            "image": "registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:e2d10872237463d83d2379a31a3b1227c4496209fef3753936707a2b502c3d85"
+            "image": "registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:e03fc07c4083645a5711dbbdfadbb40056382e2ebda5e3c0d1ae1f6dc506d5bc"
         },
         {
             "name": "",
-            "image": "registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:8ba8fcfe7b3b2b9aca8f5c1004b35194034ca1abd7a8f8b40563d913564bced8"
+            "image": "registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:aee596948d85904ea30b05e75276f36d0e0ee35df35ddbd032a65ad654273b8b"
         },
         {
             "name": "postgresql",
