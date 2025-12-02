@@ -16,6 +16,7 @@ fi
 
 command -v jq >/dev/null 2>&1 || { echo "jq is not installed. Aborting."; exit 1; }
 command -v skopeo >/dev/null 2>&1 || { echo "skopeo is not installed. Aborting."; exit 1; }
+command -v gh >/dev/null 2>&1 || { echo "gh is not installed. Aborting."; exit 1; }
 
 # Use the scripts from the current default branch rhdh-1-rhel-9
 SCRIPT=$(readlink -f "$0")
@@ -88,7 +89,22 @@ for repo_name in "${!UPSTREAM_REPOS[@]}"; do
         # Run update script
         # -w $(pwd): workspace is current upstream repo dir
         # -b $upstream_branch: target branch
-        "$UPDATE_SCRIPT" -w "$(pwd)" -b "$upstream_branch" --pr || echo "  Failed update for $repo_name:$upstream_branch"
+
+        # Check if a PR already exists for this branch
+        # Search for any open PR from the bot
+        EXISTING_PR=""
+        if command -v gh >/dev/null 2>&1; then
+             # Search for open PRs where head branch starts with our automation pattern
+             # Using jq filter instead of --search since head: qualifier requires exact match
+             EXISTING_PR=$(gh pr list --base "$upstream_branch" --state open --author "rhdh-bot" --json url,headRefName --jq '.[] | select(.headRefName | startswith("chore/automated-update-base-images")) | .url' | head -n1 || true)
+        fi
+
+        if [[ -n "$EXISTING_PR" ]]; then
+             echo "  PR already exists for $upstream_branch: $EXISTING_PR. Skipping update."
+        else
+             # Use -maxdepth 5 to ensure we catch .rhdh/docker/Dockerfile as well as docker/Dockerfile
+             "$UPDATE_SCRIPT" -w "$(pwd)" -b "$upstream_branch" -maxdepth 5 --pr || echo "  Failed update for $repo_name:$upstream_branch"
+        fi
         
     done
     popd >/dev/null || true
@@ -160,4 +176,3 @@ echo "Deleting 'sha256-' tags older than 8 months..."
 "$DELETE_SCRIPT" --filter "sha256-" --age "8 months" --token "$QUAY_APP_ACCESS_TOKEN" $DELETE_ARGS
 
 echo "Maintenance completed."
-

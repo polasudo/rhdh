@@ -186,6 +186,8 @@ See link:RELEASE_GUIDE_plugin_catalog.adoc[RELEASE_GUIDE_plugin_catalog.adoc]
 
 Before declaring RC, you should make sure we've updated to the latest base images and RPMs. The link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1-rhel-9/build/scripts/updateBaseImages.sh[updateBaseImages.sh] script can be used for this if you don't want to deal with Renovate or Mintmaker pull requests. The script will check for new base images, commit one change per update, and attempt to push directly to the repo; if you can't do so, a pull request will be generated instead.
 
+Users can manually run a base image update from link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/pipeline_schedules[GitLab Pipeline Schedules] - first click the button to "take ownership" of the weekly maintenance task, then click the "run scheduled pipeline" to trigger a run. If you then refresh the page, you can click on the running pipeline.
+
 ```
 # choose the correct branch
 git clone -b release-1.y git@github.com:redhat-developer/rhdh.git
