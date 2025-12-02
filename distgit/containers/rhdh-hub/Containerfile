@@ -230,7 +230,7 @@ RUN hadFail=0; for d in $(find /tmp -name "yarn*log*" || true) $(find /tmp/xfs-*
 
 # Stage 5 - Build the runner image
 # https://registry.access.redhat.com/ubi9/nodejs-22-minimal
-FROM registry.access.redhat.com/ubi9/nodejs-22-minimal:9.7-1763382208 AS runner
+FROM registry.access.redhat.com/ubi9/nodejs-22-minimal:9.7-1763382208@sha256:7b824fefe00326138ca13e68267629d6efc85717eb3d2ee97ad7e2f11cfbcdea AS runner
 USER 0
 
 ENV EXTERNAL_SOURCE_NESTED=.
@@ -325,7 +325,7 @@ ENV SUMMARY="Red Hat Developer Hub container" \
     DESCRIPTION="Red Hat Developer Hub container" \
     RHDH_VERSION="1.9.0" \
     BACKSTAGE_VERSION="1.42.5" \
-    UPSTREAM_REPO="https://github.com/redhat-developer/rhdh/tree/main @ 25aa4306" \
+    UPSTREAM_REPO="https://github.com/redhat-developer/rhdh/tree/main @ 324d0857" \
     MIDSTREAM_REPO="https://gitlab.cee.redhat.com/rhidp/rhdh/-/commits/rhdh-1-rhel-9" \
     PRODNAME="rhdh" \
     COMPNAME="hub"
@@ -338,13 +338,13 @@ LABEL summary="$SUMMARY" \
       com.redhat.component="$PRODNAME-$COMPNAME-container" \
       name="$PRODNAME/$PRODNAME-$COMPNAME-rhel9" \
       version="1.9" \
-      release="80" \
+      release="81" \
       license="ASLv2" \
       maintainer="RHDH Team <rhdh-bot@redhat.com>" \
       vendor="Red Hat, Inc." \
       io.openshift.expose-services="" \
       usage="" \
-      konflux.additional-tags="next, 1.9, 1.9-80" \
+      konflux.additional-tags="next, 1.9, 1.9-81" \
       distribution-scope="public" \
       url="https://red.ht/rhdh" \
       cpe="cpe:/a:redhat:rhdh:1.9::el9"
