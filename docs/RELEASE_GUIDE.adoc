@@ -73,7 +73,7 @@ Details:
 
 .. link:https://github.com/redhat-developer/rhdh-operator[redhat-developer/rhdh-operator]
 ... Bump versions to `0.y+1` upstream and `1.y+1` downstream 
-... **NOTE**: wait for generated PR to be refreshed by rhdh-operator GH actions before merging! If your PR changes, then there's a bug in the tagRelease.sh which is causing changes that the rhdh-operator repo doesn't wnt. Review the difference and update tagRelease.sh accordingly.
+... **NOTE**: wait for generated PR to be refreshed by rhdh-operator GH actions before merging! If your PR changes, then there's a bug in the tagRelease.sh which is causing changes that the rhdh-operator repo doesn't want. Review the difference and update tagRelease.sh accordingly.
 
 . Merge generated MRs for the new `rhdh-1.y-rhel-9` branch
 
