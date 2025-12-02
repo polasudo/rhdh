@@ -476,6 +476,44 @@ for ((i = START_REPO; i < NUM_REPOS; i++)); do # echo $i
           for yml in manifests/backstage-operator.clusterserviceversion.yaml manifests/rhdh-operator.clusterserviceversion.yaml; do
             if [[ -f $yml ]]; then
               echo "[INFO] Transform $bundle_dir/$yml ..."
+
+              # Patch for proper arch support
+              # The 'operator.io/{os,arch}.*' labels are used by the OCP console to filter out the list of installable operators based on the
+              # cluster nodes OS and architectures.
+              # We should strictly limit this to the architectures the downstream operator can run on.
+              yq -y -i '
+                .metadata.labels += {
+                  "operatorframework.io/os.linux": "supported",
+                  "operatorframework.io/arch.amd64": "supported",
+                  "operatorframework.io/arch.arm64": "unsupported",
+                  "operatorframework.io/arch.ppc64le": "unsupported",
+                  "operatorframework.io/arch.s390x": "unsupported"
+                }
+                |
+                .spec.install.spec.deployments |= map(
+                    if .name == "rhdh-operator" then
+                      .spec.template.spec.affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms =
+                      [
+                        {
+                          "matchExpressions": [
+                            {
+                              "key": "kubernetes.io/arch",
+                              "operator": "In",
+                              "values": ["amd64"]
+                            },
+                            {
+                              "key": "kubernetes.io/os",
+                              "operator": "In",
+                              "values": ["linux"]
+                            }
+                          ]
+                        }
+                      ]
+                    else .
+                    end
+                  )
+              ' "$yml"
+
               # upstream CSV uses references to quay.io => replace with registry.redhat.io
               # This is especially needed for example because quay.io/fedora/postgresql-15
               # for example is not the same as registry.redhat.io/rhel9/postgresql-15
