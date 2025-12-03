@@ -477,11 +477,14 @@ for ((i = START_REPO; i < NUM_REPOS; i++)); do # echo $i
             if [[ -f $yml ]]; then
               echo "[INFO] Transform $bundle_dir/$yml ..."
 
-              # Patch for proper arch support
+              # Patch for proper arch/OS support
               # The 'operator.io/{os,arch}.*' labels are used by the OCP console to filter out the list of installable operators based on the
               # cluster nodes OS and architectures.
               # We should strictly limit this to the architectures the downstream operator can run on.
-              yq -y -i '
+              # --indentless-lists to match the list indentation style (0 spaces) from the upstream CSV:
+              #   https://github.com/redhat-developer/rhdh-operator/blob/main/bundle/rhdh/manifests/backstage-operator.clusterserviceversion.yaml#L73
+              # --yaml-roundtrip to preserve YAML styles to prevent multi-line blocks from being transformed into JSON strings with `\n`.
+              yq --yaml-roundtrip --indentless-lists --in-place '
                 .metadata.labels += {
                   "operatorframework.io/os.linux": "supported",
                   "operatorframework.io/arch.amd64": "supported",
