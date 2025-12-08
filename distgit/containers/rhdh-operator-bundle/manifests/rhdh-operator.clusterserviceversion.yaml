@@ -38,8 +38,8 @@ metadata:
     capabilities: Seamless Upgrades
     categories: Developer Tools
     certified: "true"
-    containerImage: registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:db7334aee827288384f36e883798c543590590ed016790f8f604e92fc498b56b
-    createdAt: "2025-11-26T11:59:10Z"
+    containerImage: registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:0c961e9b98721c73d1358b6e4802ad3eff2be177699e2fb355058e58748b15bc
+    createdAt: "2025-12-08T08:32:34Z"
     description: Red Hat Developer Hub is a Red Hat supported version of Backstage.
       It comes with pre-built plug-ins and configuration settings, supports use of
       an external database, and can help streamline the process of setting up a self-managed
@@ -344,8 +344,8 @@ spec:
                 - name: RELATED_IMAGE_postgresql
                   value: registry.redhat.io/rhel9/postgresql-15@sha256:8da4d3837db7dc4baaa1cc2612fe8e13b7507a4690f1ff5e5e97a26a157aa9e5
                 - name: RELATED_IMAGE_backstage
-                  value: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:23d71e33653deb863935512404d43ddf09577e2b3868f435f0bc4efe509b7607
-                image: registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:db7334aee827288384f36e883798c543590590ed016790f8f604e92fc498b56b
+                  value: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:2d345bc0a7c8da9540c65927910baad449a501a7c48960b916acab5becf623a7
+                image: registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:0c961e9b98721c73d1358b6e4802ad3eff2be177699e2fb355058e58748b15bc
                 livenessProbe:
                   httpGet:
                     path: /healthz
@@ -464,7 +464,7 @@ spec:
   relatedImages:
   - image: registry.redhat.io/rhel9/postgresql-15@sha256:8da4d3837db7dc4baaa1cc2612fe8e13b7507a4690f1ff5e5e97a26a157aa9e5
     name: postgresql
-  - image: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:23d71e33653deb863935512404d43ddf09577e2b3868f435f0bc4efe509b7607
+  - image: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:2d345bc0a7c8da9540c65927910baad449a501a7c48960b916acab5becf623a7
     name: backstage
   replaces: rhdh-operator.v1.8.0
   version: 1.9.0
