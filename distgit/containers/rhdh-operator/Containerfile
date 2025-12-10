@@ -2,7 +2,7 @@
 
 #@follow_tag(registry.redhat.io/rhel9/go-toolset:latest)
 # https://registry.access.redhat.com/ubi9/go-toolset
-FROM registry.access.redhat.com/ubi9/go-toolset:9.7-1765181732@sha256:75cb847263e05b395c171795d771570994019a8d9d0340ab6ef0e1b02b01bdb4 AS builder
+FROM registry.access.redhat.com/ubi9/go-toolset:9.7-1765311584@sha256:56fc8480721e5febbd2b6810199a63b5b68c3c5ab826d082c8247054a1dc33e7 AS builder
 ARG TARGETOS
 ARG TARGETARCH
 # hadolint ignore=DL3002
@@ -74,7 +74,7 @@ ENV SUMMARY="Red Hat Developer Hub operator" \
     DESCRIPTION="Red Hat Developer Hub operator" \
     RHDH_VERSION="1.9.0" \
     BACKSTAGE_VERSION="1.42.5" \
-    UPSTREAM_REPO="https://github.com/redhat-developer/rhdh-operator/tree/main @ 12caed7d" \
+    UPSTREAM_REPO="https://github.com/redhat-developer/rhdh-operator/tree/main @ 5dc0e0ac" \
     MIDSTREAM_REPO="https://gitlab.cee.redhat.com/rhidp/rhdh/-/commits/rhdh-1-rhel-9" \
     PRODNAME="rhdh" \
     COMPNAME="operator"
@@ -87,13 +87,13 @@ LABEL summary="$SUMMARY" \
       com.redhat.component="$PRODNAME-$COMPNAME-container" \
       name="$PRODNAME/$PRODNAME-rhel9-$COMPNAME" \
       version="1.9" \
-      release="51" \
+      release="52" \
       license="ASLv2" \
       maintainer="RHDH Team <rhdh-bot@redhat.com>" \
       vendor="Red Hat, Inc." \
       io.openshift.expose-services="" \
       usage="" \
-      konflux.additional-tags="next, 1.9, 1.9-51" \
+      konflux.additional-tags="next, 1.9, 1.9-52" \
       distribution-scope="public" \
       url="https://red.ht/rhdh" \
       cpe="cpe:/a:redhat:rhdh:1.9::el9"
