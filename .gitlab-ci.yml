@@ -6,7 +6,7 @@
 
 .shared_config:
   tags:
-    - shared-podman
+    - itup-alm-x86
   # for RHDH 1.5+ use yarn3-node22-latest; for 1.4, use yarn3-node20-latest
   image: quay.io/rhdh/gitlab-runner:yarn3-node22-latest
   allow_failure: false
