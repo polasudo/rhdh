@@ -681,6 +681,29 @@ pushBranchAndOrTagGH () {
 							-e "s|(.*SEGMENT_WRITE_KEY=).*|\1$SEGMENT_WRITE_KEY|g"
 						COMMITMSG="chore: switch SEGMENT_WRITE_KEY in $TARGET_BRANCH"
 						git commit --no-gpg-sign -s -m "${COMMITMSG}" .rhdh/docker/Dockerfile || true # if no changes, continue
+					# RHDHBUGS-2133: Pin RHDH image to 1.y tag in new release-1.y branch, instead of :next
+					elif [[ $d == "redhat-developer__rhdh-operator" ]]; then
+						for f in \
+							config/profile/rhdh/default-config/deployment.yaml \
+							config/profile/rhdh/patches/deployment-patch.yaml; do
+							if [[ -f $f ]]; then
+								# Change community image with :next tag to rhdh-hub-rhel9 with :1.y version tag
+								sed -i "$f" -r \
+									-e "s|quay.io/rhdh-community/rhdh:next|quay.io/rhdh-community/rhdh:next-${PROD_VERSION}|g"
+							fi
+						done
+						COMMITMSG="chore: pin RHDH image to ${PROD_VERSION} in $TARGET_BRANCH for stability (RHDHBUGS-2133)"
+						git commit --no-gpg-sign -s -m "${COMMITMSG}" \
+							config/profile/rhdh/default-config/deployment.yaml \
+							config/profile/rhdh/patches/deployment-patch.yaml || true
+					# RHDHBUGS-2133: Pin RHDH image to 1.y tag in new release-1.y branch, instead of :next
+					elif [[ $d == "redhat-developer__rhdh-chart" ]]; then
+						if [[ -f charts/backstage/values.yaml ]]; then
+							# Update the backstage image tag directly using yq for robust YAML path targeting
+							yq -i '.upstream.backstage.image.tag = "next-'${PROD_VERSION}'"' charts/backstage/values.yaml
+						fi
+						COMMITMSG="chore: pin RHDH image to ${PROD_VERSION} in $TARGET_BRANCH for stability (RHDHBUGS-2133)"
+						git commit --no-gpg-sign -s -m "${COMMITMSG}" charts/backstage/values.yaml || true
 					fi
 
 					if [[ $DO_PUSH -eq 1 ]]; then 
