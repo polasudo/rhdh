@@ -333,7 +333,7 @@ function updateRHDHLocalVersions() {
 			yarn install 2> >(grep -v warning 1>&2) 
 			COMMITMSG="${COMMITMSG} + regen yarn.lock"
 		else
-			COMMITMSG="${COMMITMSG} [skip-build]"
+			COMMITMSG="${COMMITMSG} [skip-build] [skip-e2e]"
 		fi
 		if [[ $(git diff || true ) ]]; then
 			git commit --no-gpg-sign -s -m "${COMMITMSG}" .
@@ -371,7 +371,7 @@ function updateRHDHCLIVersion() {
 			yarn install 2> >(grep -v warning 1>&2) 
 			COMMITMSG="${COMMITMSG} + regen yarn.lock"
 		else
-			COMMITMSG="${COMMITMSG} [skip-build]"
+			COMMITMSG="${COMMITMSG} [skip-build] [skip-e2e]"
 		fi
 		if [[ $(git diff || true ) ]]; then
 			git commit --no-gpg-sign -s -m "${COMMITMSG}" .
@@ -441,7 +441,7 @@ function updateRHDHVersions() {
 			yarn install 2> >(grep -v warning 1>&2) 
 			COMMITMSG="${COMMITMSG} + regen yarn.lock"
 		else
-			COMMITMSG="${COMMITMSG} [skip-build]"
+			COMMITMSG="${COMMITMSG} [skip-build] [skip-e2e]"
 		fi
 		if [[ $(git diff || true ) ]]; then
 			git commit --no-gpg-sign -s -m "${COMMITMSG}" .
@@ -523,7 +523,7 @@ function updateOperatorVersions() {
 
 	echo -n "updateOperatorVersions: "; pwd; git diff || true
 	if [[ $(git diff || true ) ]] && [[ ${DO_PUSH} -eq 1 ]]; then
-		COMMITMSG="chore: tagRelease.sh: bump to $the_version in $the_branch branch [skip-build]"
+		COMMITMSG="chore: tagRelease.sh: bump to $the_version in $the_branch branch [skip-build] [skip-e2e]"
 		git commit --no-gpg-sign -s -m "${COMMITMSG}" .
 		git pull origin "${the_branch}" || true
 		# create pull request if target branch is restricted access
@@ -554,7 +554,7 @@ function updateDocVersions() {
 
 	echo -n "updateDocVersions: "; pwd; git diff || true
 	if [[ $(git diff || true ) ]] && [[ ${DO_PUSH} -eq 1 ]]; then
-		COMMITMSG="chore: tagRelease.sh: bump to $the_version in $the_branch branch [skip-build]"
+		COMMITMSG="chore: tagRelease.sh: bump to $the_version in $the_branch branch [skip-build] [skip-e2e]"
 		git commit --no-gpg-sign -s -m "${COMMITMSG}" .
 		git pull origin "${the_branch}" || true
 		# create pull request if target branch is restricted access
@@ -603,7 +603,7 @@ function updateChartVersions(){
 		done
 		git diff || true
 
-		COMMITMSG="chore: tagRelease.sh: bump to ${the_version} in ${the_branch} branch [skip-build]"
+		COMMITMSG="chore: tagRelease.sh: bump to ${the_version} in ${the_branch} branch [skip-build] [skip-e2e]"
 		git commit --no-gpg-sign -s -m "${COMMITMSG}" . || git commit --no-gpg-sign -s -m "${COMMITMSG}" . 
 		git pull origin "${the_branch}" || true
 		# create pull request if target branch is restricted access
