@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright (c) 2024 Red Hat, Inc.
+# Copyright (c) Red Hat, Inc.
 # This program and the accompanying materials are made
 # available under the terms of the Eclipse Public License 2.0
 # which is available at https://www.eclipse.org/legal/epl-2.0/
@@ -50,7 +50,7 @@ prepareOSXARM64() {
 		echo "🔧 Preparing macOS environment..."
 	else
 		echo "❌ This script is intended for macOS ARM64 only. Exiting..."
-		exit 1
+		exit 0
 	fi
 
   	if ! command -v brew &>/dev/null; then
@@ -147,4 +147,4 @@ EOF
 }
 
 # this script should do nothing if we're not on arm64 Mac
-if [[ $(uname -m -o) == "arm64 Darwin" ]]; then prepareOSXARM64; fi 
+prepareOSXARM64
