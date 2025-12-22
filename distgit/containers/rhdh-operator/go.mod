@@ -7,18 +7,18 @@ toolchain go1.24.6
 require (
 	github.com/onsi/ginkgo/v2 v2.22.2
 	github.com/onsi/gomega v1.36.2
-	github.com/openshift/api v0.0.0-20251214014457-bfa868a22401
+	github.com/openshift/api v0.0.0-20251219155400-816f2d793585
 	github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring v0.71.2
 	github.com/stretchr/testify v1.10.0
 	github.com/tidwall/gjson v1.18.0
-	golang.org/x/exp v0.0.0-20251209150349-8475f28825e9
+	golang.org/x/exp v0.0.0-20251219203646-944ab1f22d93
 	gopkg.in/yaml.v2 v2.4.0
 	k8s.io/api v0.34.3
 	k8s.io/apiextensions-apiserver v0.34.3
 	k8s.io/apimachinery v0.34.3
 	k8s.io/client-go v0.34.3
 	k8s.io/klog/v2 v2.130.1
-	k8s.io/utils v0.0.0-20251218160917-61b37f7a4624
+	k8s.io/utils v0.0.0-20251220205832-9d40a56c1308
 	sigs.k8s.io/controller-runtime v0.19.4
 	sigs.k8s.io/kustomize/kyaml v0.18.1
 	sigs.k8s.io/yaml v1.6.0
