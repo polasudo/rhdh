@@ -149,6 +149,7 @@ while [[ "$#" -gt 0 ]]; do
         next_tag=$(skopeo inspect docker://quay.io/rhdh/rhdh-hub-rhel9:next | jq -r '.RepoTags[]' | \
             grep -v -E "$EXCLUDES" | grep -- "-" | sort -uV | tail -1 || true)
         RHDH_DIGEST=$(skopeo inspect docker://quay.io/rhdh/rhdh-hub-rhel9:"${next_tag}" | jq -r '.Digest')
+        PLUGIN_CATALOG_INDEX_DIGEST=$(skopeo inspect docker://quay.io/rhdh/plugin-catalog-index:"${next_tag}" | jq -r '.Digest')
         CHART_VERSION=${next_tag}-CI
         RHDH_VERSION=${next_tag}
         echo "Create chart for $RHDH_VERSION";;
@@ -166,16 +167,27 @@ while [[ "$#" -gt 0 ]]; do
                     echo -e "\n[ERROR] Image quay.io/rhdh/rhdh-hub-rhel9:${RHDH_VERSION} not found - Could not compute digest! Make sure the value of --rhdh-version is correct!\n\n"
                     usage; exit 1
                 fi
+                PLUGIN_CATALOG_INDEX_DIGEST=$(skopeo inspect docker://quay.io/rhdh/plugin-catalog-index:"${RHDH_VERSION}" | jq -r '.Digest')
+                if [[ ! $PLUGIN_CATALOG_INDEX_DIGEST ]]; then
+                    echo -e "\n[ERROR] Image quay.io/rhdh/plugin-catalog-index:${RHDH_VERSION} not found - Could not compute digest! Make sure the value of --rhdh-version is correct!\n\n"
+                    usage; exit 1
+                fi
             else
                 RHDH_DIGEST=$(skopeo inspect docker://registry.redhat.io/rhdh/rhdh-hub-rhel9:"${RHDH_VERSION}" | jq -r '.Digest')
                 if [[ ! $RHDH_DIGEST ]]; then
                     echo -e "\n[ERROR] Image registry.redhat.io/rhdh/rhdh-hub-rhel9:${RHDH_VERSION} not found - Could not compute digest! Make sure the value of --rhdh-version is correct!\n\n"
                     usage; exit 1
                 fi
+                PLUGIN_CATALOG_INDEX_DIGEST=$(skopeo inspect docker://registry.redhat.io/rhdh/plugin-catalog-index:"${RHDH_VERSION}" | jq -r '.Digest')
+                if [[ ! $PLUGIN_CATALOG_INDEX_DIGEST ]]; then
+                    echo -e "\n[ERROR] Image registry.redhat.io/rhdh/plugin-catalog-index:${RHDH_VERSION} not found - Could not compute digest! Make sure the value of --rhdh-version is correct!\n\n"
+                    usage; exit 1
+                fi
             fi
         else
            # echo -e "${blue}[INFO] Skipping RHDH_DIGEST lookup for chart: ${CHART_NAME}${norm}"
             RHDH_DIGEST="none"
+            PLUGIN_CATALOG_INDEX_DIGEST="none"
         fi
 
         echo "Create chart for $RHDH_VERSION ($CHART_VERSION)"
@@ -212,6 +224,7 @@ if [[ $DO_LATEST -eq 1 ]]; then
         grep -v -E "$EXCLUDES" | \
         grep -- "-" | grep "${CHART_FILTER}" | sort -uV | tail -1 || true)
     RHDH_DIGEST=$(skopeo inspect docker://quay.io/rhdh/rhdh-hub-rhel9:"${next_tag}" | jq -r '.Digest')
+    PLUGIN_CATALOG_INDEX_DIGEST=$(skopeo inspect docker://quay.io/rhdh/plugin-catalog-index:"${next_tag}" | jq -r '.Digest')
     CHART_VERSION=${next_tag}-CI
     RHDH_VERSION=${next_tag}
     echo "Create chart for $RHDH_VERSION ($CHART_BRANCH)"
@@ -384,13 +397,16 @@ if [[ "${CHART_NAME}" == "redhat-developer-hub" ]] || [[ "${CHART_NAME}" == "bac
     # image.repository already ends in @sha256
     POSTGRESQL_DIGEST="${POSTGRESQL_DIGEST//sha256:/}"
     RHDH_DIGEST="${RHDH_DIGEST//sha256:/}"
-    if [[ ! "$RHDH_DIGEST" ]] || [[ ! "$POSTGRESQL_DIGEST" ]]; then
+    PLUGIN_CATALOG_INDEX_DIGEST="${PLUGIN_CATALOG_INDEX_DIGEST//sha256:/}"
+    if [[ ! "$RHDH_DIGEST" ]] || [[ ! "$PLUGIN_CATALOG_INDEX_DIGEST" ]] || [[ ! "$POSTGRESQL_DIGEST" ]]; then
         echo "[ERROR] Could not compute image digests for ${VALUES_PATH} - must exit!
 * RHDH_DIGEST = $RHDH_DIGEST,
+* PLUGIN_CATALOG_INDEX_DIGEST = $PLUGIN_CATALOG_INDEX_DIGEST,
 * POSTGRESQL_DIGEST = $POSTGRESQL_DIGEST"; exit 1
     else
         echo "[INFO] Set image digests in ${VALUES_PATH}:
 * RHDH_DIGEST = $RHDH_DIGEST,
+* PLUGIN_CATALOG_INDEX_DIGEST = $PLUGIN_CATALOG_INDEX_DIGEST,
 * POSTGRESQL_DIGEST = $POSTGRESQL_DIGEST"
     fi
 
@@ -399,12 +415,15 @@ if [[ "${CHART_NAME}" == "redhat-developer-hub" ]] || [[ "${CHART_NAME}" == "bac
         . *= load(\"${SCRIPT_DIR}/values_patch.yaml\") |
         .upstream.backstage.image.registry=\"quay.io\" |
         .upstream.backstage.image.tag=\"${RHDH_DIGEST}\" |
+        .global.catalogIndex.image.registry=\"quay.io\" |
+        .global.catalogIndex.image.tag=\"${PLUGIN_CATALOG_INDEX_DIGEST}\" |
         .upstream.postgresql.image.tag=\"${POSTGRESQL_DIGEST}\"
         " "$VALUES_PATH"
     else
         $YQ -i "
         . *= load(\"${SCRIPT_DIR}/values_patch.yaml\") |
         .upstream.backstage.image.tag=\"${RHDH_DIGEST}\" |
+        .global.catalogIndex.image.tag=\"${PLUGIN_CATALOG_INDEX_DIGEST}\" |
         .upstream.postgresql.image.tag=\"${POSTGRESQL_DIGEST}\"
         " "$VALUES_PATH"
     fi

@@ -525,7 +525,8 @@ for ((i = START_REPO; i < NUM_REPOS; i++)); do # echo $i
 
               sed -i $yml -r \
                 -e "s@quay.io/fedora/postgresql-15:@registry.redhat.io/rhel9/postgresql-15:@g" \
-                -e "s@(quay.io/rhdh-community/rhdh|quay.io/rhdh/rhdh-hub-rhel9):.*@quay.io/rhdh/rhdh-hub-rhel9:$dhImageTag@g"
+                -e "s@(quay.io/rhdh-community/rhdh|quay.io/rhdh/rhdh-hub-rhel9):.*@quay.io/rhdh/rhdh-hub-rhel9:$dhImageTag@g" \
+                -e "s@(quay.io/rhdh/plugin-catalog-index):.*@quay.io/rhdh/plugin-catalog-index:$dhImageTag@g"
 
               # transform tags to digests
               # shellcheck disable=SC2013
@@ -570,8 +571,13 @@ for ((i = START_REPO; i < NUM_REPOS; i++)); do # echo $i
             echo -e "\n[INFO] Transform $bundle_dir/$yml ..."
             sed -i $yml -r \
                 -e "s@quay.io/fedora/postgresql-15:.+@registry.redhat.io/rhel9/postgresql-15:latest@g" \
-                -e "s@(quay.io/rhdh-community/rhdh|quay.io/rhdh/rhdh-hub-rhel9):.*@quay.io/rhdh/rhdh-hub-rhel9:$dhImageTag@g"
-            for d in registry.redhat.io/rhel9/postgresql-15:latest quay.io/rhdh/rhdh-hub-rhel9:$dhImageTag; do
+                -e "s@(quay.io/rhdh-community/rhdh|quay.io/rhdh/rhdh-hub-rhel9):.*@quay.io/rhdh/rhdh-hub-rhel9:$dhImageTag@g" \
+                -e "s@(quay.io/rhdh/plugin-catalog-index):.*@quay.io/rhdh/plugin-catalog-index:$dhImageTag@g"
+            for d in \
+                registry.redhat.io/rhel9/postgresql-15:latest \
+                quay.io/rhdh/rhdh-hub-rhel9:$dhImageTag\
+                quay.io/rhdh/plugin-catalog-index:$dhImageTag\
+              ; do
               if [[ ! ${digest_mapping[$d]} ]]; then 
                 checkImage "$d"
                 echo "       + Got $checkImage_result for $d"
@@ -691,8 +697,8 @@ DH_VERSION=${DH_VERSION_FULL%.*} # 1.2
 echo "[INFO] Got DH_VERSION = $DH_VERSION from $showcasePackageJson #.version"
 
 # check latest images for this branch in quay and compare with latest bundle's contents. if different, we need a new bundle build!
-latest_at_quay=$(./build/scripts/getLatestImageTags.sh -b "$DWNSTM_BRANCH" --quay  -c rhdh/rhdh-hub-rhel9 -c rhdh/rhdh-rhel9-operator --tag "${DH_VERSION}-"); # echo -e "$latest_at_quay"
-latest_in_bundle=$(./build/scripts/checkImagesInCSV.sh -y -q -i "hub|operator" "quay.io/rhdh/rhdh-operator-bundle:${DH_VERSION}" | sort -uV); # echo -e "$latest_in_bundle"
+latest_at_quay=$(./build/scripts/getLatestImageTags.sh -b "$DWNSTM_BRANCH" --quay  -c rhdh/rhdh-hub-rhel9 -c rhdh/rhdh-rhel9-operator -c rhdh/plugin-catalog-index --tag "${DH_VERSION}-" | sort -uV); echo -e "$latest_at_quay"
+latest_in_bundle=$(./build/scripts/checkImagesInCSV.sh -y -q -i "hub|operator|catalog" "quay.io/rhdh/rhdh-operator-bundle:${DH_VERSION}" | sort -uV); echo -e "$latest_in_bundle"
 
 if [[ "${#SKIPPED_CONTAINERS[@]}" == "$NUM_REPOS" ]]; then
   echo -e "${blue} 

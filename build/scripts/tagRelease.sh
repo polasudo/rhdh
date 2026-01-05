@@ -491,6 +491,7 @@ function updateOperatorVersions() {
 				-e "s/(^  version: )[0-9.]+/\1$the_version/" \
 				-e "s/(^  replaces: rhdh-operator.v)[0-9.]+/\1${PROD_VERSION}.0/" \
 				-e "s/(rhdh-rhdh-hub-rhel9:|rhdh-rhdh-rhel9-operator:)[0-9.]+/\1${the_version%.*}/" \
+				-e "s/(plugin-catalog-index:|plugin-catalog-index:)[0-9.]+/\1${the_version%.*}/" \
 				-e "s|(.*https://access.redhat.com/documentation/en-us/red_hat_developer_hub/)([0-9.]+)(/html-single/administration_guide_for_red_hat_developer_hub/index#assembly-rhdh-telemetry_admin-rhdh.*)|\1${the_version%.*}\3|g"
 			# NOTE: downstream we need to rename this file from backstage-operator.clusterserviceversion.yaml to rhdh-operator.clusterserviceversion.yaml
 		fi
@@ -517,7 +518,8 @@ function updateOperatorVersions() {
 			echo "Update $d ..."
 			sed -i "$d" -r \
 			-e "s|registry-proxy.engineering.redhat.com/rh-osbs/rhdh-rhdh|quay.io/rhdh/rhdh|" \
-			-e "s|(containerImage: quay.io/rhdh/rhdh-rhel9-operator:)[0-9.]+|\1$PROD_VERSION|"
+			-e "s|(containerImage: quay.io/rhdh/rhdh-rhel9-operator:)[0-9.]+|\1$PROD_VERSION|" \
+			-e "s|(containerImage: quay.io/rhdh/plugin-catalog-index:)[0-9.]+|\1$PROD_VERSION|"
 		fi
 	done
 
