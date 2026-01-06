@@ -48,10 +48,13 @@ red="\033[1;31m"
 set -e
 
 SCRIPT_DIR=$(cd "$(dirname "$0")" || exit; pwd)
-# shellcheck disable=SC1091
-source "${SCRIPT_DIR}/../scripts/prepareOSXARM64.sh"
 
-[[ $(uname -m) == "arm64" ]] && [[ $(uname -o) == "Darwin" ]] && IS_ARM64_DARWIN=1 || IS_ARM64_DARWIN=0
+IS_ARM64_DARWIN=0
+if [[ $(uname -m -o) == "arm64 Darwin" ]] || [[ $(uname -o -m) == "arm64 Darwin" ]]; then # recent Mac version switched o and m values 
+    IS_ARM64_DARWIN=1
+    # shellcheck disable=SC1091
+    source "${SCRIPT_DIR}/../scripts/prepareOSXARM64.sh"
+fi
 
 usage() {
     echo "Utility script to push CI builds to quay and generate PRs for GA helm chart releases

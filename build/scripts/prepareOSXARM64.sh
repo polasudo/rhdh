@@ -46,8 +46,8 @@ install_brew_package() {
 }
 
 prepareOSXARM64() {
-	if [[ $(uname -o) == "Darwin" ]] && [[ $(uname -m) == "arm64" ]]; then
-		echo "🔧 Preparing macOS environment..."
+	if [[ $(uname -m -o) == "arm64 Darwin" ]] || [[ $(uname -o -m) == "arm64 Darwin" ]]; then # recent Mac version switched o and m values 
+			echo "🔧 Preparing macOS environment..."
 	else
 		echo "❌ This script is intended for macOS ARM64 only. Exiting..."
 		exit 0

@@ -143,7 +143,7 @@ done
 if ! command -v "$YQ" &> /dev/null; then
     mkdir -p "$HOME/.local/bin/"
     echo -e "${blue}Installing mikefarah yq version $mikefarahyq_version for $(uname -m -o) ...${norm}"
-    if [[ $(uname -m -o) == "arm64 Darwin" ]]; then
+    if [[ $(uname -m -o) == "arm64 Darwin" ]] || [[ $(uname -o -m) == "arm64 Darwin" ]]; then # recent Mac version switched o and m values 
         curl -sSLo "$YQ" https://github.com/mikefarah/yq/releases/download/v${mikefarahyq_version}/yq_darwin_arm64
     elif [[ "$(uname -m -o)" == "x86_64 GNU/Linux" ]]; then
         curl -sSLo "$YQ" https://github.com/mikefarah/yq/releases/download/v${mikefarahyq_version}/yq_linux_amd64
