@@ -238,7 +238,7 @@ data:
                   value: "30000000"
                 # CATALOG_INDEX_IMAGE will be replaced by the value of the `RELATED_IMAGE_catalog_index` env var, if set
                 - name: CATALOG_INDEX_IMAGE
-                  value: "registry.redhat.io/rhdh/plugin-catalog-index@sha256:d9086142957b7ec8c7096c5c62dd47eefe4fba303bdc09df338e3135f68a9fef
+                  value: "registry.redhat.io/rhdh/plugin-catalog-index@sha256:ebc7072039e299d9571ebe129eec99edeb595302a2feb318e8465cd3a7690d74
               volumeMounts:
                 - mountPath: /dynamic-plugins-root
                   name: dynamic-plugins-root

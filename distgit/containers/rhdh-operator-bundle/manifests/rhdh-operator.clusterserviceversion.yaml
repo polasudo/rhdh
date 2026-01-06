@@ -38,7 +38,7 @@ metadata:
     capabilities: Seamless Upgrades
     categories: Developer Tools
     certified: "true"
-    containerImage: registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:60db96908f97106dd1ae01f9fd59c14b17f3cfa3298d85bf226d1b734ae4d736
+    containerImage: registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:6d6633490693520a4eaecf31d2529b64e905bad6b3fffcd41b58abcef6fccc1f
     createdAt: "2025-12-18T16:30:39Z"
     description: Red Hat Developer Hub is a Red Hat supported version of Backstage.
       It comes with pre-built plug-ins and configuration settings, supports use of
@@ -346,8 +346,8 @@ spec:
                 - name: RELATED_IMAGE_backstage
                   value: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:4e6279675f3b8ccabc553dfb0c8c6224053f8913f399ca38da7d8616e1781d9e
                 - name: RELATED_IMAGE_catalog_index
-                  value: registry.redhat.io/rhdh/plugin-catalog-index@sha256:d9086142957b7ec8c7096c5c62dd47eefe4fba303bdc09df338e3135f68a9fef
-                image: registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:60db96908f97106dd1ae01f9fd59c14b17f3cfa3298d85bf226d1b734ae4d736
+                  value: registry.redhat.io/rhdh/plugin-catalog-index@sha256:ebc7072039e299d9571ebe129eec99edeb595302a2feb318e8465cd3a7690d74
+                image: registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:6d6633490693520a4eaecf31d2529b64e905bad6b3fffcd41b58abcef6fccc1f
                 livenessProbe:
                   httpGet:
                     path: /healthz
@@ -468,7 +468,7 @@ spec:
     name: postgresql
   - image: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:4e6279675f3b8ccabc553dfb0c8c6224053f8913f399ca38da7d8616e1781d9e
     name: backstage
-  - image: registry.redhat.io/rhdh/plugin-catalog-index@sha256:d9086142957b7ec8c7096c5c62dd47eefe4fba303bdc09df338e3135f68a9fef
+  - image: registry.redhat.io/rhdh/plugin-catalog-index@sha256:ebc7072039e299d9571ebe129eec99edeb595302a2feb318e8465cd3a7690d74
     name: catalog-index
   replaces: rhdh-operator.v1.8.0
   version: 1.9.0
