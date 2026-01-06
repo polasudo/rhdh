@@ -1366,6 +1366,6 @@ if [[ ${DO_PUSH} -eq 1 ]]; then
   if [[ $BUNDLEONLY -eq 1 ]]; then
     echo "See bundle pipeline: https://konflux-ui.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/ns/rhdh-tenant/applications/${app_name}/activity/pipelineruns?name=rhdh-operator-bundle"
   else
-    echo "See running pipelines: https://konflux-ui.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/ns/rhdh-tenant/applications/${app_name}/activity/pipelineruns?name=on-push"
+    echo "See running pipelines: https://konflux-ui.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/ns/rhdh-tenant/applications/${app_name}/activity/pipelineruns"
   fi
 fi

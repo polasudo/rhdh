@@ -170,7 +170,7 @@ else
     if [[ -d /tmp/rhdh-tmp ]]; then rm -fr /tmp/rhdh-tmp; fi
 
     if [[ $KONFLUX_ONLY -eq 1 ]]; then
-        openURL "https://konflux-ui.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/ns/rhdh-tenant/applications/rhdh-${BRANCH/./-}/activity/pipelineruns?name=on-push"
+        openURL "https://konflux-ui.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/ns/rhdh-tenant/applications/rhdh-${BRANCH/./-}/activity/pipelineruns"
     else
         openURL https://gitlab.cee.redhat.com/rhidp/rhdh/-/pipelines
     fi

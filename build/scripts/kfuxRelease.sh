@@ -538,13 +538,13 @@ if [[ $CONTAINER ]]; then
   else 
     if [[ $DEBUG -eq 1 ]]; then set -x; fi
     SNAPSHOT=$(oc -n rhdh-tenant get Snapshots --sort-by=.metadata.creationTimestamp \
-      --selector='pac.test.appstudio.openshift.io/original-prname='"${CONTAINER/-rhel9/}"'-'"${RHDH_VERSION/./-}"'-on-push,pac.test.appstudio.openshift.io/sha='"${MID_SHA}"| \
+      --selector='pac.test.appstudio.openshift.io/original-prname='"${CONTAINER/-rhel9/}"'-'"${RHDH_VERSION/./-}"',pac.test.appstudio.openshift.io/sha='"${MID_SHA}"| \
       sed -r -e '/NAME +AGE/d' -e "s/([a-z0-9-]+)\ +([0-9smhdy]+)/\1/g")
     if [[ $DEBUG -eq 1 ]]; then set +x; fi
   fi
 
   if [[ ! $SNAPSHOT ]]; then
-    echo -e "${red}[ERROR] No Snapshots found for ${CONTAINER/-rhel9/}-${RHDH_VERSION/./-}-on-push and sha=${MID_SHA}! ${norm}"
+    echo -e "${red}[ERROR] No Snapshots found for ${CONTAINER/-rhel9/}-${RHDH_VERSION/./-} and sha=${MID_SHA}! ${norm}"
     exit 1
   fi
 

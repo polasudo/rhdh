@@ -136,7 +136,7 @@ get_images() {
 
   # given a bundle and its SHA get the snapshot
   SNAPSHOT=$(oc -n rhdh-tenant get Snapshots --sort-by=.metadata.creationTimestamp \
-    --selector="pac.test.appstudio.openshift.io/original-prname=rhdh-operator-bundle-$(echo "$RHDH_VERSION" | tr '.' '-')-on-push,pac.test.appstudio.openshift.io/sha=${MID_SHA}" |
+    --selector="pac.test.appstudio.openshift.io/original-prname=rhdh-operator-bundle-$(echo "$RHDH_VERSION" | tr '.' '-'),pac.test.appstudio.openshift.io/sha=${MID_SHA}" |
     sed -r -e '/NAME +AGE/d' -e "s/([a-z0-9-]+)\ +([0-9smhdy]+)/\1/g")
 
   rm -f "${TMPDIR}"/container_inspect.txt
