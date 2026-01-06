@@ -110,12 +110,14 @@ if [[ -f "${CI_PROJECT_DIR}/.secure_files/rhdh-bot.gitlab.pat" ]]; then
     echo "${RRIO_PASSWORD}" | skopeo login -u="${RRIO_USERNAME}" --password-stdin ${REGISTRY} -v --authfile $REGISTRY_AUTH_FILE
 
     # set up kerberos and log in as the rhdh-bot
+    set -x
     cp "build/ci/krb5.conf" /etc/krb5.conf; # cat /etc/krb5.conf
     sed -i /etc/ssh/ssh_config -r \
         -e "s@# Host \*@Host *@"  \
         -e "s@.*GSSAPIAuthentication.*@GSSAPIAuthentication yes@" \
         -e "s@.*GSSAPIDelegateCredentials.*@GSSAPIDelegateCredentials yes@"
     kdestroy -A; kinit -k -t "${CI_PROJECT_DIR}/.secure_files/rhdh-bot.keytab" -V rhdh-bot@IPA.REDHAT.COM; klist
+    set +x
 
     ######################################################################################
     # for use with the tag deletion script to clean up old quay tags -- USE WITH CAUTION!
@@ -123,7 +125,6 @@ if [[ -f "${CI_PROJECT_DIR}/.secure_files/rhdh-bot.gitlab.pat" ]]; then
     QUAY_APP_ACCESS_TOKEN=$(cat "${CI_PROJECT_DIR}/.secure_files/rhdh_quay_app_access_token")
     export QUAY_APP_ACCESS_TOKEN
 
-    # set -x
     rm -fr "${CI_PROJECT_DIR}/.secure_files"
 else
     echo "Error: could not load ${CI_PROJECT_DIR}/.secure_files/; must exit!"
