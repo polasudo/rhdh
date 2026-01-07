@@ -124,7 +124,7 @@ Examples:
     for OCP_VERSION in ${OCP_SUPPORTED_VERSIONS% } $OCP_VERSION_NEXT; do \\
       sleep 30s; \\
       cp -f catalogs/v{$OCP_VERSION_BASE,\$OCP_VERSION}/catalog-template.json; \\
-      $0 $latestNextExample --clean --versions "\${OCP_VERSION}" -v "${RHDH_VERSION}" --template "catalogs/v\${OCP_VERSION}/catalog-template.json" \\
+      $0 $latestNextExample --clean --versions "\${OCP_VERSION}" -v "${RHDH_VERSION}" --template "catalogs/v\${OCP_VERSION}/catalog-template.json"; \\
     done
 EOF
 }
