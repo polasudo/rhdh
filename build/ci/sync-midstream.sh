@@ -572,7 +572,7 @@ for ((i = START_REPO; i < NUM_REPOS; i++)); do # echo $i
             sed -i $yml -r \
                 -e "s@quay.io/fedora/postgresql-15:.+@registry.redhat.io/rhel9/postgresql-15:latest@g" \
                 -e "s@(quay.io/rhdh-community/rhdh|quay.io/rhdh/rhdh-hub-rhel9):.*@quay.io/rhdh/rhdh-hub-rhel9:$dhImageTag@g" \
-                -e "s@(quay.io/rhdh/plugin-catalog-index):.*@quay.io/rhdh/plugin-catalog-index:$dhImageTag@g"
+                -e "s@(\"*quay.io/rhdh/plugin-catalog-index):.*@quay.io/rhdh/plugin-catalog-index:$dhImageTag@g"
             for d in \
                 registry.redhat.io/rhel9/postgresql-15:latest \
                 quay.io/rhdh/rhdh-hub-rhel9:$dhImageTag\
