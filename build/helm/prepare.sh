@@ -151,11 +151,13 @@ while [[ "$#" -gt 0 ]]; do
     '--next')
         next_tag=$(skopeo inspect docker://quay.io/rhdh/rhdh-hub-rhel9:next | jq -r '.RepoTags[]' | \
             grep -v -E "$EXCLUDES" | grep -- "-" | sort -uV | tail -1 || true)
-        RHDH_DIGEST=$(skopeo inspect docker://quay.io/rhdh/rhdh-hub-rhel9:"${next_tag}" | jq -r '.Digest')
-        PLUGIN_CATALOG_INDEX_DIGEST=$(skopeo inspect docker://quay.io/rhdh/plugin-catalog-index:"${next_tag}" | jq -r '.Digest')
+        RHDH_DIGEST=$(skopeo inspect "docker://quay.io/rhdh/rhdh-hub-rhel9:${next_tag}" | jq -r '.Digest')
+        index_tag=$(skopeo inspect "docker://quay.io/rhdh/plugin-catalog-index:${next_tag%-*}" | jq -r '.RepoTags[]' | \
+            grep -v -E "$EXCLUDES" | grep -- "-" | sort -uV | tail -1 || true)
+        PLUGIN_CATALOG_INDEX_DIGEST=$(skopeo inspect docker://quay.io/rhdh/plugin-catalog-index:"${index_tag}" | jq -r '.Digest')
         CHART_VERSION=${next_tag}-CI
         RHDH_VERSION=${next_tag}
-        echo "Create chart for $RHDH_VERSION";;
+        echo "Create chart for $RHDH_VERSION + index $index_tag";;
     '--publish') PUBLISH=1;;
     '--catalog') CATALOG_FORK="$2"; shift 1;;
     '--chart-version') CHART_VERSION="$2"; shift 1;;
@@ -165,27 +167,21 @@ while [[ "$#" -gt 0 ]]; do
 
         if [[ "${CHART_NAME}" == "redhat-developer-hub" ]] || [[ "${CHART_NAME}" == "backstage" ]]; then
             if [[ $CHART_VERSION == *"CI"* ]]; then
-                RHDH_DIGEST=$(skopeo inspect docker://quay.io/rhdh/rhdh-hub-rhel9:"${RHDH_VERSION}" | jq -r '.Digest')
-                if [[ ! $RHDH_DIGEST ]]; then
-                    echo -e "\n[ERROR] Image quay.io/rhdh/rhdh-hub-rhel9:${RHDH_VERSION} not found - Could not compute digest! Make sure the value of --rhdh-version is correct!\n\n"
-                    usage; exit 1
-                fi
-                PLUGIN_CATALOG_INDEX_DIGEST=$(skopeo inspect docker://quay.io/rhdh/plugin-catalog-index:"${RHDH_VERSION}" | jq -r '.Digest')
-                if [[ ! $PLUGIN_CATALOG_INDEX_DIGEST ]]; then
-                    echo -e "\n[ERROR] Image quay.io/rhdh/plugin-catalog-index:${RHDH_VERSION} not found - Could not compute digest! Make sure the value of --rhdh-version is correct!\n\n"
-                    usage; exit 1
-                fi
+                REGISTRY_PREFIX="quay.io"
             else
-                RHDH_DIGEST=$(skopeo inspect docker://registry.redhat.io/rhdh/rhdh-hub-rhel9:"${RHDH_VERSION}" | jq -r '.Digest')
-                if [[ ! $RHDH_DIGEST ]]; then
-                    echo -e "\n[ERROR] Image registry.redhat.io/rhdh/rhdh-hub-rhel9:${RHDH_VERSION} not found - Could not compute digest! Make sure the value of --rhdh-version is correct!\n\n"
-                    usage; exit 1
-                fi
-                PLUGIN_CATALOG_INDEX_DIGEST=$(skopeo inspect docker://registry.redhat.io/rhdh/plugin-catalog-index:"${RHDH_VERSION}" | jq -r '.Digest')
-                if [[ ! $PLUGIN_CATALOG_INDEX_DIGEST ]]; then
-                    echo -e "\n[ERROR] Image registry.redhat.io/rhdh/plugin-catalog-index:${RHDH_VERSION} not found - Could not compute digest! Make sure the value of --rhdh-version is correct!\n\n"
-                    usage; exit 1
-                fi
+                REGISTRY_PREFIX="registry.redhat.io"
+            fi
+            RHDH_DIGEST=$(skopeo inspect "docker://${REGISTRY_PREFIX}/rhdh/rhdh-hub-rhel9:${RHDH_VERSION}" | jq -r '.Digest')
+            if [[ ! $RHDH_DIGEST ]]; then
+                echo -e "\n[ERROR] Image ${REGISTRY_PREFIX}/rhdh/rhdh-hub-rhel9:${RHDH_VERSION} not found - Could not compute digest! Make sure the value of --rhdh-version is correct!\n\n"
+                usage; exit 1
+            fi
+            index_tag=$(skopeo inspect "docker://${REGISTRY_PREFIX}/rhdh/plugin-catalog-index:${RHDH_VERSION%-*}" | jq -r '.RepoTags[]' | \
+                grep -v -E "$EXCLUDES" | grep -- "-" | sort -uV | tail -1 || true)
+            PLUGIN_CATALOG_INDEX_DIGEST=$(skopeo inspect "docker://${REGISTRY_PREFIX}/rhdh/plugin-catalog-index:${index_tag}" | jq -r '.Digest')
+            if [[ ! $PLUGIN_CATALOG_INDEX_DIGEST ]]; then
+                echo -e "\n[ERROR] Image ${REGISTRY_PREFIX}/rhdh/plugin-catalog-index:${index_tag} not found - Could not compute digest! Make sure the value of --rhdh-version is correct!\n\n"
+                usage; exit 1
             fi
         else
            # echo -e "${blue}[INFO] Skipping RHDH_DIGEST lookup for chart: ${CHART_NAME}${norm}"
@@ -193,7 +189,7 @@ while [[ "$#" -gt 0 ]]; do
             PLUGIN_CATALOG_INDEX_DIGEST="none"
         fi
 
-        echo "Create chart for $RHDH_VERSION ($CHART_VERSION)"
+        echo "Create chart for $RHDH_VERSION ($CHART_VERSION) + index $index_tag"
         shift 1
         ;;
     '--delete-old-branches') DELETE_OLD_BRANCHES=1 ;;
@@ -220,17 +216,20 @@ while [[ "$#" -gt 0 ]]; do
 done
 
 if [[ $DO_LATEST -eq 1 ]]; then
+    REGISTRY_PREFIX="quay.io"
     if [[ ! $CHART_BRANCH ]] || [[ $CHART_BRANCH == "main" ]]; then usage; exit 1; fi
     # get all tags but find the ones starting with 1.yy-, then sort those and return the most recent one
     CHART_FILTER="${CHART_BRANCH/release-/}"
-    next_tag=$(skopeo inspect docker://quay.io/rhdh/rhdh-hub-rhel9:next | jq -r '.RepoTags[]' | \
+    next_tag=$(skopeo inspect "docker://${REGISTRY_PREFIX}/rhdh/rhdh-hub-rhel9:next" | jq -r '.RepoTags[]' | \
         grep -v -E "$EXCLUDES" | \
         grep -- "-" | grep "${CHART_FILTER}" | sort -uV | tail -1 || true)
-    RHDH_DIGEST=$(skopeo inspect docker://quay.io/rhdh/rhdh-hub-rhel9:"${next_tag}" | jq -r '.Digest')
-    PLUGIN_CATALOG_INDEX_DIGEST=$(skopeo inspect docker://quay.io/rhdh/plugin-catalog-index:"${next_tag}" | jq -r '.Digest')
+    RHDH_DIGEST=$(skopeo inspect "docker://${REGISTRY_PREFIX}/rhdh/rhdh-hub-rhel9:${next_tag}" | jq -r '.Digest')
+    index_tag=$(skopeo inspect "docker://${REGISTRY_PREFIX}/rhdh/plugin-catalog-index:${RHDH_VERSION%-*}" | jq -r '.RepoTags[]' | \
+        grep -v -E "$EXCLUDES" | grep -- "-" | sort -uV | tail -1 || true)
+    PLUGIN_CATALOG_INDEX_DIGEST=$(skopeo inspect "docker://${REGISTRY_PREFIX}/rhdh/plugin-catalog-index:${index_tag}" | jq -r '.Digest')
     CHART_VERSION=${next_tag}-CI
     RHDH_VERSION=${next_tag}
-    echo "Create chart for $RHDH_VERSION ($CHART_BRANCH)"
+    echo "Create chart for $RHDH_VERSION ($CHART_BRANCH) + index $index_tag"
 fi
 
 # only need RHDH_VERSION for a RHDH chart release; not required for orch infra chart
