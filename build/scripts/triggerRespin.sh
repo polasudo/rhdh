@@ -144,8 +144,9 @@ else
     git pull origin "${MIDSTM_BRANCH}"
 
     if [[ $KONFLUX_ONLY -eq 1 ]]; then
-        for target in $targets; do 
-            target_file=$(find "$ROOTPATH/.tekton" -name "rhdh-${target}-${BRANCH/./-}-push.yaml")
+        for target in $targets; do
+            # as of 1.9 we removed the -push suffix
+            target_file=$(find "$ROOTPATH/.tekton" -name "rhdh-${target}-${BRANCH/./-}-push.yaml" -o -name "rhdh-${target}-${BRANCH/./-}.yaml")
             if [[ ! -f $target_file ]]; then 
                 echo "[ERROR] Could not find $target_file!"; exit 1
             fi
