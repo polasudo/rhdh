@@ -876,7 +876,7 @@ spec:
           operator: in
           values: ["operator"]
     # Skip deprecated-base-image-check-bundle for operator-bundle (scratch image) based on RHIDP-7230
-    - name: clair-scan-hub
+    - name: rox-scan-hub
       params:
         - name: image-digest
           value: $(tasks.build-image-index-hub.results.IMAGE_DIGEST)
@@ -886,13 +886,14 @@ spec:
         - build-image-index-hub
       taskRef:
         params:
-          - name: name
-            value: clair-scan
-          - name: bundle
-            value: quay.io/konflux-ci/tekton-catalog/task-clair-scan:0.3@sha256:8ec7d7b9438ace5ef3fb03a533d9440d0fd81e51c73b0dc1eb51602fb7cd044e
-          - name: kind
-            value: task
+        - name: name
+          value: roxctl-scan
+        - name: bundle
+          value: quay.io/konflux-ci/tekton-catalog/task-roxctl-scan:0.1@sha256:c529094bdcd956182b56f74aa1a841d31663f3f353b28fdb6196c0c04f1ac42e
+        - name: kind
+          value: task
         resolver: bundles
+      timeout: 20m
       when:
         - input: $(params.skip-checks)
           operator: in
@@ -900,7 +901,7 @@ spec:
         - input: $(params.component-type)
           operator: in
           values: ["hub"]
-    - name: clair-scan-operator
+    - name: rox-scan-operator
       params:
         - name: image-digest
           value: $(tasks.build-image-index-operator.results.IMAGE_DIGEST)
@@ -910,13 +911,14 @@ spec:
         - build-image-index-operator
       taskRef:
         params:
-          - name: name
-            value: clair-scan
-          - name: bundle
-            value: quay.io/konflux-ci/tekton-catalog/task-clair-scan:0.3@sha256:8ec7d7b9438ace5ef3fb03a533d9440d0fd81e51c73b0dc1eb51602fb7cd044e
-          - name: kind
-            value: task
+        - name: name
+          value: roxctl-scan
+        - name: bundle
+          value: quay.io/konflux-ci/tekton-catalog/task-roxctl-scan:0.1@sha256:c529094bdcd956182b56f74aa1a841d31663f3f353b28fdb6196c0c04f1ac42e
+        - name: kind
+          value: task
         resolver: bundles
+      timeout: 20m
       when:
         - input: $(params.skip-checks)
           operator: in
@@ -924,7 +926,7 @@ spec:
         - input: $(params.component-type)
           operator: in
           values: ["operator"]
-    - name: clair-scan-bundle
+    - name: rox-scan-bundle
       params:
         - name: image-digest
           value: $(tasks.build-image-index-bundle.results.IMAGE_DIGEST)
@@ -934,13 +936,14 @@ spec:
         - build-image-index-bundle
       taskRef:
         params:
-          - name: name
-            value: clair-scan
-          - name: bundle
-            value: quay.io/konflux-ci/tekton-catalog/task-clair-scan:0.3@sha256:8ec7d7b9438ace5ef3fb03a533d9440d0fd81e51c73b0dc1eb51602fb7cd044e
-          - name: kind
-            value: task
+        - name: name
+          value: roxctl-scan
+        - name: bundle
+          value: quay.io/konflux-ci/tekton-catalog/task-roxctl-scan:0.1@sha256:c529094bdcd956182b56f74aa1a841d31663f3f353b28fdb6196c0c04f1ac42e
+        - name: kind
+          value: task
         resolver: bundles
+      timeout: 20m
       when:
         - input: $(params.skip-checks)
           operator: in
