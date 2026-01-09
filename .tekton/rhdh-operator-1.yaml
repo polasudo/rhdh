@@ -10,7 +10,7 @@ metadata:
     pipelinesascode.tekton.dev/on-cel-expression: |
       (event == "push" || event == "pull_request") && 
       target_branch == "rhdh-1-rhel-9" && 
-      "distgit/containers/rhdh-operator/***".pathChanged()
+      ( "distgit/containers/rhdh-operator/***".pathChanged() || ".tekton/rhdh-operator-1.yaml".pathChanged() )
   creationTimestamp: null
   labels:
     appstudio.openshift.io/application: rhdh-1
