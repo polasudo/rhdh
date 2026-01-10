@@ -2,6 +2,10 @@ weekly-maintenance:
   stage: weekly-maintenance
   extends: .shared_config
   rules:
+    # RHIDP-11322 skip gitlab sync pipeline and run directly in konflux, 
+    # now that [skip ci] and [ci skip] prevent running in BOTH GL and Konflux
+    - if: $CI_COMMIT_MESSAGE =~ /.*skip-gitlab.*/
+      when: never
     - if: $WEEKLY_MAINTENANCE == "true"
   script:
     - ./build/ci/weekly-maintenance.sh

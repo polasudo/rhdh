@@ -2,6 +2,10 @@ sync-midstream:
   extends: .shared_config
   stage: sync-midstream
   rules:
+    # RHIDP-11322 skip gitlab sync pipeline and run directly in konflux, 
+    # now that [skip ci] and [ci skip] prevent running in BOTH GL and Konflux
+    - if: $CI_COMMIT_MESSAGE =~ /.*skip-gitlab.*/
+      when: never
     # don't run for merge requests
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
       when: never

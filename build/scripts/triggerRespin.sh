@@ -113,8 +113,8 @@ else
         commitMsg="trigger ${MIDSTM_BRANCH} build: $targets"
     fi
     
-    # avoid gitlab pipelines for the konflux only respins
-    if [[ $KONFLUX_ONLY -eq 1 ]]; then commitMsg="$commitMsg [ci skip]"; fi
+    # konflux trigger only: skip gitlab
+    if [[ $KONFLUX_ONLY -eq 1 ]]; then commitMsg="$commitMsg [skip-gitlab]"; fi
 
     echo "$commitMsg ..."
     if [[ $targets == "all" ]]; then targets="hub,op"; fi
