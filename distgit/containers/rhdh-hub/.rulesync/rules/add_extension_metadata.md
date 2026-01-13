@@ -6,7 +6,7 @@ description: >-
   AI-guided workflow for adding dynamic plugin metadata to the RHDH Extensions
   Catalog
 globs:
-  - catalog-entities/marketplace/**
+  - catalog-entities/extensions/**
   - docs/dynamic-plugins/**
 cursor:
   alwaysApply: false
@@ -14,7 +14,7 @@ cursor:
     AI-guided workflow for adding dynamic plugin metadata to the RHDH Extensions
     Catalog
   globs:
-    - catalog-entities/marketplace/**
+    - catalog-entities/extensions/**
     - docs/dynamic-plugins/**
 ---
 # RHDH Extensions Catalog - Plugin Metadata Workflow
@@ -23,7 +23,7 @@ This cursor rule provides an automated workflow for adding dynamic plugin metada
 
 ## Important Documentation
 
-**Primary Reference**: Read `catalog-entities/marketplace/README.md` for:
+**Primary Reference**: Read `catalog-entities/extensions/README.md` for:
 - Detailed YAML structure and field explanations
 - Complete examples (3scale plugin)
 - RHDH-local testing setup
@@ -104,15 +104,15 @@ yq --version | grep -q "mikefarah" && echo "✓ yq is Go version (mikefarah/yq)"
 
 ### Step 3: Create/Edit Plugin Metadata
 
-Create `catalog-entities/marketplace/plugins/{plugin-name}.yaml`:
-- Use `catalog-entities/marketplace/plugins/3scale.yaml` as a template
+Create `catalog-entities/extensions/plugins/{plugin-name}.yaml`:
+- Use `catalog-entities/extensions/plugins/3scale.yaml` as a template
 - See README for complete field descriptions
 
 ### Step 4: Validate Files
 
 ```bash
 # Navigate to marketplace directory
-cd catalog-entities/marketplace
+cd catalog-entities/extensions
 
 # Download schemas to temp directory (ajv doesn't support remote schemas well)
 mkdir -p /tmp/rhdh-schemas
@@ -214,8 +214,8 @@ Correct format: `oci://registry/path:tag!package-name`
 
 ## References
 
-- [README with detailed documentation](../../catalog-entities/marketplace/README.md)
-- [Extension Schemas](https://github.com/redhat-developer/rhdh-plugins/tree/main/workspaces/marketplace/json-schema)
+- [README with detailed documentation](../../catalog-entities/extensions/README.md)
+- [Extension Schemas](https://github.com/redhat-developer/rhdh-plugins/tree/main/workspaces/extensions/json-schema)
 - [RHDH Local Testing](https://github.com/redhat-developer/rhdh-local)
 - [Dynamic Plugins Documentation](https://docs.redhat.com/en/documentation/red_hat_developer_hub)
 - [RHDH Plugin Catalog](https://gitlab.cee.redhat.com/rhidp/rhdh-plugin-catalog/-/blob/rhdh-1-rhel-9/catalog-index) (RH VPN Required)
