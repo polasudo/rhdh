@@ -18,6 +18,7 @@ There are also a number of guides related to the build + release processes:
 * link:LOCAL-BUILD.adoc[How to build locally with podman and hermeto]
 * link:RHDH-Konflux-user-guide.adoc[User Guide - for triggering builds]
 * link:RELEASE_GUIDE.adoc[Release Guide - for releasing builds]
+* link:https://gitlab.cee.redhat.com/rhidp/rhdh-plugin-catalog/-/blob/rhdh-1-rhel-9/docs/RELEASE_GUIDE.adoc[Release Guide - for releasing plugin catalog packages and index images] *NEW for 1.9*
 
 ## Reference material
 
