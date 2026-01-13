@@ -38,8 +38,8 @@ metadata:
     capabilities: Seamless Upgrades
     categories: Developer Tools
     certified: "true"
-    containerImage: registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:ed0c22b012873336d7c3fcc85bc023bc6a7ce15e365902e5fd07abe57ef53d25
-    createdAt: "2025-12-18T16:30:39Z"
+    containerImage: registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:5ed448de614fdbdc00131fb3dc703ea3dd14b5332a648906aed757c69a7a2c15
+    createdAt: "2026-01-08T11:05:00Z"
     description: Red Hat Developer Hub is a Red Hat supported version of Backstage.
       It comes with pre-built plug-ins and configuration settings, supports use of
       an external database, and can help streamline the process of setting up a self-managed
@@ -346,8 +346,8 @@ spec:
                 - name: RELATED_IMAGE_backstage
                   value: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:da02969e33cdf4b8965a3910605d934b98dc2b93fd4f15269ae027610080feea
                 - name: RELATED_IMAGE_catalog_index
-                  value: registry.redhat.io/rhdh/plugin-catalog-index@sha256:caf4d74a1e9dfa678b591f1aacff6bd47fbe6f8b99863175d3ada863b9009512
-                image: registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:ed0c22b012873336d7c3fcc85bc023bc6a7ce15e365902e5fd07abe57ef53d25
+                  value: registry.redhat.io/rhdh/plugin-catalog-index@sha256:39ef1ac8831afd7bf11f2329bb85f97e3db4c32cef1cab00bee83af079bf6ade
+                image: registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:5ed448de614fdbdc00131fb3dc703ea3dd14b5332a648906aed757c69a7a2c15
                 livenessProbe:
                   httpGet:
                     path: /healthz
@@ -468,7 +468,7 @@ spec:
     name: postgresql
   - image: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:da02969e33cdf4b8965a3910605d934b98dc2b93fd4f15269ae027610080feea
     name: backstage
-  - image: registry.redhat.io/rhdh/plugin-catalog-index@sha256:caf4d74a1e9dfa678b591f1aacff6bd47fbe6f8b99863175d3ada863b9009512
+  - image: registry.redhat.io/rhdh/plugin-catalog-index@sha256:39ef1ac8831afd7bf11f2329bb85f97e3db4c32cef1cab00bee83af079bf6ade
     name: catalog-index
   replaces: rhdh-operator.v1.8.0
   version: 1.9.0
