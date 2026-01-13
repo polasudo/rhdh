@@ -178,7 +178,7 @@ If the changes you expect are not seen when installing via Operator, but are see
 
 This process is still evolving and subject to change. Once we have a stable process for building plugins and the catalog index, onboarding + building the plugins will need to happen BEFORE the operator bundle build.
 
-See link:RELEASE_GUIDE_plugin_catalog.adoc[RELEASE_GUIDE_plugin_catalog.adoc]
+See link:https://gitlab.cee.redhat.com/rhidp/rhdh-plugin-catalog/-/blob/rhdh-1-rhel-9/docs/RELEASE_GUIDE.adoc[rhdh-plugin-catalog/docs/RELEASE_GUIDE.adoc]
 
 ## Release Candidates
 
