@@ -190,7 +190,9 @@ RUN tar xzf "$TARBALL_PATH"/skeleton.tar.gz; tar xzf "$TARBALL_PATH"/bundle.tar.
 
 # Copy app-config files needed in runtime
 COPY $EXTERNAL_SOURCE_NESTED/app-config*.yaml ./
-COPY $EXTERNAL_SOURCE_NESTED/dynamic-plugins.default.yaml ./
+
+# moved to plugin-catalog-index image
+# COPY $EXTERNAL_SOURCE_NESTED/dynamic-plugins.default.yaml ./
 
 # Hackaround: create library symlinks to build: isolated-vm node-gyp better-sqlite cpu-features
 # TODO is this still needed? maintaining it over time will be a chore if the .so files change
@@ -322,7 +324,7 @@ ENV SUMMARY="Red Hat Developer Hub container" \
     DESCRIPTION="Red Hat Developer Hub container" \
     RHDH_VERSION="1.9.0" \
     BACKSTAGE_VERSION="1.45.3" \
-    UPSTREAM_REPO="https://github.com/redhat-developer/rhdh/tree/main @ dde15d81" \
+    UPSTREAM_REPO="https://github.com/redhat-developer/rhdh/tree/main @ b33f1e03" \
     MIDSTREAM_REPO="https://gitlab.cee.redhat.com/rhidp/rhdh/-/commits/rhdh-1-rhel-9" \
     PRODNAME="rhdh" \
     COMPNAME="hub"
