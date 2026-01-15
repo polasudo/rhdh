@@ -216,6 +216,8 @@ data:
                 defaultMode: 416
                 optional: true
                 secretName: dynamic-plugins-registry-auth
+            - name: extensions-catalog
+              emptyDir: {}
             - emptyDir: {}
               name: npmcacache
             - name: temp
@@ -226,7 +228,7 @@ data:
                 - ./install-dynamic-plugins.sh
                 - /dynamic-plugins-root
               # image will be replaced by the value of the `RELATED_IMAGE_backstage` env var, if set
-              image: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:5e46c1c716f8a09fec57a1e47373809a27ce16e2af46afdb579ab74bc2f256f8
+              image: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:644c5a3b5a9933950f508d490f558c983875b5f2a829e546fc384f82903d205c
               imagePullPolicy: IfNotPresent
               securityContext:
                 readOnlyRootFilesystem: true
@@ -244,10 +246,14 @@ data:
                   value: "30000000"
                 # CATALOG_INDEX_IMAGE will be replaced by the value of the `RELATED_IMAGE_catalog_index` env var, if set
                 - name: CATALOG_INDEX_IMAGE
-                  value: registry.redhat.io/rhdh/plugin-catalog-index@sha256:316feb9e66602a55b55f32cb71b664b88e7e83d73c05d987567bfbcf5b9b1d53
+                  value: registry.redhat.io/rhdh/plugin-catalog-index@sha256:08b899fa551772945c2b646489b2aca083d918ca0243a496611b4c5c1397640d
+                - name: CATALOG_ENTITIES_EXTRACT_DIR
+                  value: '/extensions'
               volumeMounts:
                 - mountPath: /dynamic-plugins-root
                   name: dynamic-plugins-root
+                - name: extensions-catalog
+                  mountPath: /extensions
                 # TODO Configuring dynamic plugins registry auth this way is deprecated and supported only for documentation backward compatibility.
                 - mountPath: /opt/app-root/src/.config/containers
                   name: dynamic-plugins-registry-auth
@@ -268,7 +274,7 @@ data:
           containers:
             - name: backstage-backend
               # image will be replaced by the value of the `RELATED_IMAGE_backstage` env var, if set
-              image: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:5e46c1c716f8a09fec57a1e47373809a27ce16e2af46afdb579ab74bc2f256f8
+              image: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:644c5a3b5a9933950f508d490f558c983875b5f2a829e546fc384f82903d205c
               imagePullPolicy: IfNotPresent
               args:
                 - "--config"
@@ -331,6 +337,8 @@ data:
               volumeMounts:
                 - mountPath: /opt/app-root/src/dynamic-plugins-root
                   name: dynamic-plugins-root
+                - name: extensions-catalog
+                  mountPath: /extensions
                 - mountPath: /tmp
                   name: temp
               resources:
