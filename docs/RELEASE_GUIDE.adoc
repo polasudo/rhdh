@@ -202,6 +202,45 @@ cd rhdh-operator
 # NOTE: If you don't have the required privileges to commit directly to the `rhdh` and `rhdh-operator` repos, you may use the `-n` option to preview without committing the change(dryrun), or use the `--pr` option to create a pull request instead, then merge the PR manually.
 ```
 
+### RPM lockfiles
+
+For RPMs, we should already be on the latest pinned values because of changes in the upstream RHDH repo:
+* https://github.com/redhat-developer/rhdh/pulls?q=is%3Apr+author%3Arhdh-bot+is%3Aclosed+%22update+RPM%22
+
+However the link:https://github.com/redhat-developer/rhdh-operator[RHDH Operator] repo does not currently benefit from this automation; as such you need to update the various branches manually. 
+
+Downstream, updating to the latest should be handled by the link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1-rhel-9/build/ci/sync-midstream.sh?ref_type=heads#L1114-1131[build/ci/sync-midstream.sh] script, but in case it's not, you can run this snippet to check for newer RPMs:
+
+```
+git clone -b release-1.y git@github.com:redhat-developer/rhdh.git
+cd rhdh
+for d in distgit/containers/rhdh-hub distgit/containers/rhdh-operator; do
+  pushd $d >/dev/null || exit 1
+    if [[ $d == "distgit/containers/rhdh-hub" ]] || [[ $d == "distgit/containers/rhdh-operator" ]]; then
+      if [[ -f rpms.in.yaml ]] && [[ -f rpms.lock.yaml ]]; then
+        if [[ ! -x "${HOME}/.local/bin/rpm-lockfile-prototype" ]]; then 
+          echo "Install rpm-lockfile-prototype ... "
+          time sudo dnf -q -y install python3 python3-pip python3-dnf
+          mkdir -p "${HOME}/.local/bin/"
+          time python3 -m pip install --user https://github.com/konflux-ci/rpm-lockfile-prototype/archive/refs/heads/main.zip
+          export PATH=${PATH%":${HOME}/.local/bin"}:${HOME}/.local/bin
+        fi
+        echo -e "${green}[INFO] Regen $d/rpms.lock.yaml from Containerfile + rpms.in.yaml using $(which rpm-lockfile-prototype) in [$(pwd)] ${norm}"
+        time "${HOME}/.local/bin/rpm-lockfile-prototype" -f Containerfile rpms.in.yaml # >/dev/null 2>&1 
+      fi
+    fi
+  popd >/dev/null || exit 1
+done
+```
+
+Commit your changes. This should avoid seeing Container Health Index (CHI) values lower than A in the link:https://catalog.redhat.com/en/search?searchType=Containers&q=rhdh%2Frhdh&p=1[Red Hat Ecosystem Catalog].
+
+You can also check CHI values in Comet:
+* link:https://comet.engineering.redhat.com/containers/repositories/645bd4c15c00598369c31aba[hub]
+* link:https://comet.engineering.redhat.com/containers/repositories/64bfdcd740aa90644e579cbd[operator]
+* link:https://comet.engineering.redhat.com/containers/repositories/64bfdcd740aa90644e579cc6[bundle]
+
+
 ### Konflux pipeline tekton tasks
 
 Before declaring RC, you should make sure we're updated to the latest tekton tasks. Run link:../.tekton/updateDigests.sh[updateDigests.sh] to update tekton tasks in pipelines. You can use the `--minor` flag to update from 0.y to 0.y+1, but bear in mind you may need to follow the migration steps to adjust the pipeline yaml after changing to the new tag version.
