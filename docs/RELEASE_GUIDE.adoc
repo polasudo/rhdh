@@ -236,6 +236,7 @@ done
 Commit your changes. This should avoid seeing Container Health Index (CHI) values lower than A in the link:https://catalog.redhat.com/en/search?searchType=Containers&q=rhdh%2Frhdh&p=1[Red Hat Ecosystem Catalog].
 
 You can also check CHI values in Comet:
+
 * link:https://comet.engineering.redhat.com/containers/repositories/645bd4c15c00598369c31aba[hub]
 * link:https://comet.engineering.redhat.com/containers/repositories/64bfdcd740aa90644e579cbd[operator]
 * link:https://comet.engineering.redhat.com/containers/repositories/64bfdcd740aa90644e579cc6[bundle]
