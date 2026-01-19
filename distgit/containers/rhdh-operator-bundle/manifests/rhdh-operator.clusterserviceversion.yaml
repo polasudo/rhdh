@@ -344,7 +344,7 @@ spec:
                 - name: RELATED_IMAGE_postgresql
                   value: registry.redhat.io/rhel9/postgresql-15@sha256:043aee818744461212ec2c5bed04dbdb2ab3cb9ca642ad986200a009e462c0e1
                 - name: RELATED_IMAGE_backstage
-                  value: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:958a539681da7407fd7812d46c783bd6ec76d46c8cd767ca7eed415351253bd2
+                  value: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:9ea7d934dde9bf5b5f110c05fc1f506b53e61f2d87400ee4f582cd00f93bfbd6
                 - name: RELATED_IMAGE_catalog_index
                   value: registry.redhat.io/rhdh/plugin-catalog-index@sha256:e3bbc1500fa4a403b131e030a0ba015e8174e50d53833ba7e1c77729dea8f0d0
                 image: registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:cd86d04b1ed17e73ca6e41bb912822367f69d123245c7eb306071ecfc8f9420e
@@ -466,7 +466,7 @@ spec:
   relatedImages:
   - image: registry.redhat.io/rhel9/postgresql-15@sha256:043aee818744461212ec2c5bed04dbdb2ab3cb9ca642ad986200a009e462c0e1
     name: postgresql
-  - image: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:958a539681da7407fd7812d46c783bd6ec76d46c8cd767ca7eed415351253bd2
+  - image: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:9ea7d934dde9bf5b5f110c05fc1f506b53e61f2d87400ee4f582cd00f93bfbd6
     name: backstage
   - image: registry.redhat.io/rhdh/plugin-catalog-index@sha256:e3bbc1500fa4a403b131e030a0ba015e8174e50d53833ba7e1c77729dea8f0d0
     name: catalog-index
