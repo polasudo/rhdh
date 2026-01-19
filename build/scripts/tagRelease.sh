@@ -208,7 +208,9 @@ createPr() {
 				PR_URL=$(git push origin "${headBranch}" 2>&1 | grep "${headBranch}" | grep "https://" | sed -r -e "s/remote:   //" | tr -d " ")
 				if [[ ! $PR_URL ]]; then
 					# try again using the current user's fork
-					git remote add "$(whoami)" "git@gitlab.cee.redhat.com:$(whoami)/prodsec-product-definitions.git"
+					# dynamically determine the repo name from origin remote
+					origin_repo=$(git remote get-url origin | sed -r -e 's#.*[:/]([^/]+)/([^/]+)(\.git)?$#\2#')
+					git remote add "$(whoami)" "git@gitlab.cee.redhat.com:$(whoami)/${origin_repo}.git" 2>/dev/null || git remote set-url "$(whoami)" "git@gitlab.cee.redhat.com:$(whoami)/${origin_repo}.git"
 					PR_URL=$(git push -f "$(whoami)" "${headBranch}" 2>&1 | grep "${headBranch}" | grep "https://" | sed -r -e "s/remote:   //" | tr -d " ")
 				fi
 				if [[ ! $PR_URL ]]; then 
