@@ -246,7 +246,7 @@ data:
                   value: "30000000"
                 # CATALOG_INDEX_IMAGE will be replaced by the value of the `RELATED_IMAGE_catalog_index` env var, if set
                 - name: CATALOG_INDEX_IMAGE
-                  value: registry.redhat.io/rhdh/plugin-catalog-index@sha256:9f52316055d0817e20b6d5c5518eef18fb752650ff905bb3c1870ae9497952af
+                  value: registry.redhat.io/rhdh/plugin-catalog-index@sha256:353ca4fd4b19808da601ac32d5c7463d603636399cbba67ac0e1d0028c48b17a
                 - name: CATALOG_ENTITIES_EXTRACT_DIR
                   value: '/extensions'
               volumeMounts:
