@@ -76,3 +76,7 @@ for plr in hub operator operator-bundle; do
     # echo -e "${NC}Generate $plr pipelinerun...${NC}"
     create_component_pipeline "$plr"
 done
+
+# remove unneeded pipelineruns from the stable branch
+# TODO when we move to 2.y this needs to match -2.yaml
+rm -f "$SCRIPT_DIR"/*-1.yaml
