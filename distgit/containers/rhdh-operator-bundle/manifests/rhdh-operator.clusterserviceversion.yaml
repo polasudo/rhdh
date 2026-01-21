@@ -346,7 +346,7 @@ spec:
                 - name: RELATED_IMAGE_backstage
                   value: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:48491d40234bd440d4e954212acdf216f5a92107f7c5cd904596ef77c685b46e
                 - name: RELATED_IMAGE_catalog_index
-                  value: registry.redhat.io/rhdh/plugin-catalog-index@sha256:bbe8630c1b9cf6bf4a193822c5584b67d1eaeb7f99593a47862af85a0a6459c1
+                  value: registry.redhat.io/rhdh/plugin-catalog-index@sha256:df2cda7093736ddcd89b88f454c80a1b39c07587dd7539d8c18c140f5caa4bca
                 image: registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:4aec8a089c6a98aa4b6dd990450eef225a9f34699046e733db17a427e6dc11bd
                 livenessProbe:
                   httpGet:
@@ -468,7 +468,7 @@ spec:
     name: postgresql
   - image: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:48491d40234bd440d4e954212acdf216f5a92107f7c5cd904596ef77c685b46e
     name: backstage
-  - image: registry.redhat.io/rhdh/plugin-catalog-index@sha256:bbe8630c1b9cf6bf4a193822c5584b67d1eaeb7f99593a47862af85a0a6459c1
+  - image: registry.redhat.io/rhdh/plugin-catalog-index@sha256:df2cda7093736ddcd89b88f454c80a1b39c07587dd7539d8c18c140f5caa4bca
     name: catalog-index
   replaces: rhdh-operator.v1.9.0
   version: 1.10.0
