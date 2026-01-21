@@ -354,8 +354,6 @@ spec:
           value: $(params.image-expires-after)
         - name: dev-package-managers
           value: "true"
-        - name: SBOM_TYPE
-          value: spdx
       runAfter:
         - clone-repository-hub
       taskRef:
@@ -399,8 +397,6 @@ spec:
           value: $(params.image-expires-after)
         - name: dev-package-managers
           value: "true"
-        - name: SBOM_TYPE
-          value: spdx
       runAfter:
         - clone-repository-operator
       taskRef:
@@ -523,6 +519,9 @@ spec:
           value: $(tasks.prefetch-dependencies-hub.results.CACHI2_ARTIFACT)
         - name: SBOM_TYPE
           value: spdx
+      # explicitly set to false to improve performance (ISV-6444)
+        - name: CONTEXTUALIZE_SBOM
+          value: false
       runAfter:
         - prefetch-dependencies-hub
       taskRef:
@@ -571,6 +570,9 @@ spec:
           value: $(tasks.prefetch-dependencies-operator.results.CACHI2_ARTIFACT)
         - name: SBOM_TYPE
           value: spdx
+      # explicitly set to false to improve performance (ISV-6444)
+        - name: CONTEXTUALIZE_SBOM
+          value: false
       runAfter:
         - prefetch-dependencies-operator
       taskRef:
