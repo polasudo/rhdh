@@ -1112,22 +1112,10 @@ for d in $these_dirs; do
     ##################################### fix SEGMENT_WRITE_KEY for rhdh-1.y branches ONLY ##################################### 
 
     ##################################### update the RPM lock files to make Cachi2 and ECP happy ##################################### 
-    # RHDH manages the rpm lock file upstream https://github.com/redhat-developer/rhdh/blob/main/rpms.lock.yaml 
-    # TODO do the same for the rhdh-operator repo
-    if [[ $d == "distgit/containers/rhdh-operator" ]]; then
-      if [[ -f rpms.in.yaml ]] && [[ -f rpms.lock.yaml ]]; then
-        if [[ ! -x "${HOME}/.local/bin/rpm-lockfile-prototype" ]]; then 
-          echo "Install rpm-lockfile-prototype ... "
-          time sudo dnf -q -y install python3 python3-pip python3-dnf
-          mkdir -p "${HOME}/.local/bin/"
-          time python3 -m pip install --user https://github.com/konflux-ci/rpm-lockfile-prototype/archive/refs/heads/main.zip
-          export PATH=${PATH%":${HOME}/.local/bin"}:${HOME}/.local/bin
-        fi
-        echo -e "${green}[INFO] Regen $d/rpms.lock.yaml from Containerfile + rpms.in.yaml using $(which rpm-lockfile-prototype) in [$(pwd)] ${norm}"
-        time "${HOME}/.local/bin/rpm-lockfile-prototype" -f Containerfile rpms.in.yaml # >/dev/null 2>&1 
-      fi
-    fi
-
+    # Both RHDH and rhdh-operator manage their rpm lock files upstream:
+    # - https://github.com/redhat-developer/rhdh/blob/main/rpms.lock.yaml
+    # - https://github.com/redhat-developer/rhdh-operator/blob/main/rpms.lock.yaml
+    # rpms.in.yaml and rpms.lock.yaml are synced from upstream via rsync, no need to regenerate here
     ##################################### update the RPM lock file to make Cachi2 and ECP happy ##################################### 
 
     ##################################### rhdh-operator-bundle #####################################
