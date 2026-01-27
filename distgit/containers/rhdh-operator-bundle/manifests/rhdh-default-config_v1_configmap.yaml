@@ -87,7 +87,7 @@ data:
                   value: /var/lib/pgsql/data
                 - name: PGDATA
                   value: /var/lib/pgsql/data/userdata
-              image: registry.redhat.io/rhel9/postgresql-15@sha256:043aee818744461212ec2c5bed04dbdb2ab3cb9ca642ad986200a009e462c0e1
+              image: registry.redhat.io/rhel9/postgresql-15@sha256:da7f51caac15e400ed11852d890ca8fcfe08612445c34124fddc275d86e71f71
               imagePullPolicy: IfNotPresent
               securityContext:
                 # runAsUser:26 does not work for Openshift but looks work for AKS/EKS
@@ -228,7 +228,7 @@ data:
                 - ./install-dynamic-plugins.sh
                 - /dynamic-plugins-root
               # image will be replaced by the value of the `RELATED_IMAGE_backstage` env var, if set
-              image: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:3f363d74c09de84f9228811fd4186cbbed67dc3afd39cc5cd690270da14d0659
+              image: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:fcba8d161e2bee30fcafd9ee3dcb68fd3f75d286deece38dbfcc9c94cdd02344
               imagePullPolicy: IfNotPresent
               securityContext:
                 readOnlyRootFilesystem: true
@@ -246,7 +246,7 @@ data:
                   value: "30000000"
                 # CATALOG_INDEX_IMAGE will be replaced by the value of the `RELATED_IMAGE_catalog_index` env var, if set
                 - name: CATALOG_INDEX_IMAGE
-                  value: registry.redhat.io/rhdh/plugin-catalog-index@sha256:35395d5f49ec8d98556a2698531338b32898b3ca5af20d8b7016fa0e37b0c14f
+                  value: registry.redhat.io/rhdh/plugin-catalog-index@sha256:d972a6aa0cc2ca5433ec22e42e9849dbbc6efd5f0e14251fcff35c4d71ba14ec
                 - name: CATALOG_ENTITIES_EXTRACT_DIR
                   value: '/extensions'
               volumeMounts:
@@ -274,7 +274,7 @@ data:
           containers:
             - name: backstage-backend
               # image will be replaced by the value of the `RELATED_IMAGE_backstage` env var, if set
-              image: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:3f363d74c09de84f9228811fd4186cbbed67dc3afd39cc5cd690270da14d0659
+              image: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:fcba8d161e2bee30fcafd9ee3dcb68fd3f75d286deece38dbfcc9c94cdd02344
               imagePullPolicy: IfNotPresent
               args:
                 - "--config"
