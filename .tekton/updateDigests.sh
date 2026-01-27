@@ -111,6 +111,7 @@ for file in $(find "$ROOTPATH" -name "${REGEX}" | sort -V); do
         if [[ $DO_MINOR == "true" ]]; then
             if [[ ! "${digests["${base}:${oldTag}_tag"]}" ]]; then 
                 newTag=$(skopeo inspect "docker://${base}:${oldTag}" | jq -r '.RepoTags' | yq -r '.[]' | grep -v -- "-" | sort -uV | tail -1)
+                if [[ $newTag == "unknown" ]]; then newTag="$oldTag"; fi
                 digests["${base}:${oldTag}_tag"]="$newTag"
                 if [[ $QUIET -eq 0 ]]; then echo "[DEBUG]     NEW tag: ${newTag}"; fi
             else
