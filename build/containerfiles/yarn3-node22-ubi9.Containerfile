@@ -1,4 +1,4 @@
-FROM quay.io/rhdh/plugin-catalog-builder-rhel9:1.9
+FROM quay.io/rhdh/plugin-catalog-builder-rhel9:1.10
 USER 0
 
 ### GITLAB ONLY ### 
