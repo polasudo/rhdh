@@ -9,7 +9,7 @@ metadata:
     pipelinesascode.tekton.dev/max-keep-runs: "7"
     pipelinesascode.tekton.dev/on-cel-expression: |
       (event == "push" || event == "pull_request") && 
-      target_branch == "rhdh-{{VERSION_DASH}}-rhel-9" && 
+      target_branch == "rhdh-{{VERSION_DOT}}-rhel-9" && 
       ( "distgit/containers/rhdh-hub/***".pathChanged() || ".tekton/rhdh-hub-{{VERSION_DASH}}.yaml".pathChanged() )
   creationTimestamp: null
   labels:
