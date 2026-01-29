@@ -34,3 +34,5 @@ podman push quay.io/rhdh/gitlab-runner:yarn3-node22-latest
 In future, a new Containerfile will be added for link:https://catalog.redhat.com/search?gs&q=nodejs-24&searchType=containers[node 24].
 
 At that point it might make sense to switch to a 1.y versioning scheme for these images instead of `yarn3-node22` names, so we can differentiate between runner images.
+
+See link:https://issues.redhat.com/browse/RHIDP-11684[RHIDP-11684] and link:https://issues.redhat.com/browse/RHDHPLAN-868[RHDHPLAN-868].
