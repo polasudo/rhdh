@@ -18,7 +18,7 @@
 # docker login registry.redhat.io -u=USERNAME -p=PASSWORD
 
 # see exclude list in getLatestImageTags.sh and updateBaseImages.sh
-EXCLUDES="latest|-source|next|nightly|-tmp-|-ci-|-gh-|.att|.git|.src|.sig|.sbom|.prefetch|on-pull-|on-push-|on-pr-|sha256-|-container"
+EXCLUDES="latest|-source|next|nightly|-tmp-|-ci-|-gh-|.att|.git|.src|.sig|.sbom|.prefetch|on-pull-|on-push-|on-pr-|sha256-|-container|build-image-index"
 # EXCLUDES_TIMESTAMPED='[0-9]+\.[0-9]+\.[0-9]+-[0-9]{10}' # if set, exclude x.y.z-timestamp tags
 
 # try to compute branches from currently checked out branch; else fall back to hard coded value
