@@ -176,8 +176,9 @@ while [[ "$#" -gt 0 ]]; do
                 echo -e "\n[ERROR] Image ${REGISTRY_PREFIX}/rhdh/rhdh-hub-rhel9:${RHDH_VERSION} not found - Could not compute digest! Make sure the value of --rhdh-version is correct!\n\n"
                 usage; exit 1
             fi
-            index_tag=$(skopeo inspect "docker://${REGISTRY_PREFIX}/rhdh/plugin-catalog-index:${RHDH_VERSION%-*}" | jq -r '.RepoTags[]' | \
-                grep -v -E "$EXCLUDES" | grep -- "-" | sort -uV | tail -1 || true)
+            rhdh_ver=${RHDH_VERSION%-*}
+            index_tag=$(skopeo inspect "docker://${REGISTRY_PREFIX}/rhdh/plugin-catalog-index:${rhdh_ver}" | jq -r '.RepoTags[]' | \
+                grep -v -E "$EXCLUDES" | grep -- "-" | grep -E "^${rhdh_ver}" | sort -uV | tail -1 || true)
             PLUGIN_CATALOG_INDEX_DIGEST=$(skopeo inspect "docker://${REGISTRY_PREFIX}/rhdh/plugin-catalog-index:${index_tag}" | jq -r '.Digest')
             if [[ ! $PLUGIN_CATALOG_INDEX_DIGEST ]]; then
                 echo -e "\n[ERROR] Image ${REGISTRY_PREFIX}/rhdh/plugin-catalog-index:${index_tag} not found - Could not compute digest! Make sure the value of --rhdh-version is correct!\n\n"
@@ -224,8 +225,9 @@ if [[ $DO_LATEST -eq 1 ]]; then
         grep -v -E "$EXCLUDES" | \
         grep -- "-" | grep "${CHART_FILTER}" | sort -uV | tail -1 || true)
     RHDH_DIGEST=$(skopeo inspect "docker://${REGISTRY_PREFIX}/rhdh/rhdh-hub-rhel9:${next_tag}" | jq -r '.Digest')
-    index_tag=$(skopeo inspect "docker://${REGISTRY_PREFIX}/rhdh/plugin-catalog-index:${RHDH_VERSION%-*}" | jq -r '.RepoTags[]' | \
-        grep -v -E "$EXCLUDES" | grep -- "-" | sort -uV | tail -1 || true)
+    rhdh_ver=${RHDH_VERSION%-*}
+    index_tag=$(skopeo inspect "docker://${REGISTRY_PREFIX}/rhdh/plugin-catalog-index:${rhdh_ver}" | jq -r '.RepoTags[]' | \
+        grep -v -E "$EXCLUDES" | grep -- "-" | grep -E "^${rhdh_ver}" | sort -uV | tail -1 || true)
     PLUGIN_CATALOG_INDEX_DIGEST=$(skopeo inspect "docker://${REGISTRY_PREFIX}/rhdh/plugin-catalog-index:${index_tag}" | jq -r '.Digest')
     CHART_VERSION=${next_tag}-CI
     RHDH_VERSION=${next_tag}
