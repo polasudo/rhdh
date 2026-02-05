@@ -251,7 +251,18 @@ for URLfrag in $CONTAINERS; do
 		echo ""; echo -n "LATESTTAGs=\"\$($QUERY | jq -r .RepoTags[] | grep -E -v '${EXCLUDES}' | grep -E '${BASETAG}' | sort -V)\"; "
 	fi
 	LATESTTAGs="$(${QUERY} 2>/dev/null | jq -r .RepoTags[] | grep -E -v "${EXCLUDES}" | grep -E "${BASETAG}" | sort -V)"
+
+	if [[ ! ${LATESTTAGs} ]]; then # try again with :1.y tag 
+		# shellcheck disable=SC2001
+		QUERY="$(echo "${URL}" | sed -e "s#.\+\(registry.redhat.io\|registry.access.redhat.com\)/#skopeo inspect ${ARCH_OVERRIDE} docker://${REGISTRYPRE}#g"):${DH_VERSION}"
+		if [[ $VERBOSE -eq 1 ]]; then 
+		    echo ""; echo -n "LATESTTAGs=\"\$($QUERY | jq -r .RepoTags[] | grep -E -v '${EXCLUDES}' | grep -E '${BASETAG}' | sort -V)\"; " 
+		fi
+		LATESTTAGs="$(${QUERY} 2>/dev/null | jq -r .RepoTags[] | grep -E -v "${EXCLUDES}" | grep -E "${BASETAG}" | sort -V)"
+	fi
+
 	if [[ ! ${LATESTTAGs} ]]; then # try again with -container suffix
+		# shellcheck disable=SC2001
 		QUERY="$(echo "${URL}-container" | sed -e "s#.\+\(registry.redhat.io\|registry.access.redhat.com\)/#skopeo inspect ${ARCH_OVERRIDE} docker://${REGISTRYPRE}#g")"
 		if [[ $VERBOSE -eq 1 ]]; then 
 		    echo ""; echo -n "LATESTTAGs=\"\$($QUERY | jq -r .RepoTags[] | grep -E -v '${EXCLUDES}' | grep -E '${BASETAG}' | sort -V)\"; " 
