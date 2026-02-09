@@ -390,7 +390,7 @@ validateRPAVersion() {
 RHDH_VERSION=${RHDH_FULL_VERSION%.*}
 LATEST_IMAGES_FILE="/tmp/imagelist_bundle_latest_$RHDH_VERSION.txt"
 
-TS=$(date +'%Y%m%d-%H%M%S' -u) # unique timestamp 
+TS=$(date +'%y%m%d-%H%M%S' -u) # unique timestamp (e.g., 260209-185547)
 # Handle test-only mode: run RPA validation check and exit
 if [[ $TEST_RPA_ONLY -eq 1 ]]; then
   echo -e "${blue}[INFO] Running RPA version validation test for version $RHDH_FULL_VERSION${norm}"
