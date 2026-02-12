@@ -291,19 +291,31 @@ getXYplusOneFromBranch() {
 	fi
 }
 
-# for redhat-developer/rhdh-local, bump to specified version WHEN TAGGING ONLY
+# for redhat-developer/rhdh-local, update versions in container-image-guide.md, default.env, and compose.yaml
 function updateRHDHLocalVersions() {
 	the_branch="$1"
-	the_version_z="$2" # 1.7.z
-	the_version_y="${the_version_z%.*}" # 1.7
+	the_version_z=""
+	if [[ "$2" =~ ^([0-9]+\.[0-9]+)\.[0-9]+ ]]; then
+		the_version_y="${BASH_REMATCH[1]}"
+		the_version_z="$2"
+	else
+		the_version_y="$2"
+	fi
+
 	the_next_version_y=${the_version_y}
-	if [[ $the_next_version_y =~ ^([0-9]+)\.([0-9]+) ]]; then # increase the y digit
+	the_stable_version_y=${the_version_y}
+	if [[ $the_version_y =~ ^([0-9]+)\.([0-9]+) ]]; then
 		XX=${BASH_REMATCH[1]}
 		YY=${BASH_REMATCH[2]}
 		(( YY=YY+1 ))
 		the_next_version_y="${XX}.${YY}"
+		if [[ ${BASH_REMATCH[2]} -ge 1 ]]; then
+			the_stable_version_y="${XX}.$((${BASH_REMATCH[2]} - 1))"
+		fi
 	fi
 	
+	the_rhdh_version="${the_version_z:-$the_stable_version_y}"
+
 	orgAndRepo="redhat-developer/rhdh-local"
 	d="${orgAndRepo/\//__}"
 	rm -fr "$TMPDIR/projects_${d}_2" && git clone -q --depth 1 -b "${the_branch}" "git@github.com:${orgAndRepo}" "$TMPDIR/projects_${d}_2" || echo "Branch $clone_branch doesn't exist: skip!"
@@ -313,23 +325,35 @@ function updateRHDHLocalVersions() {
 	# update 3 files
 	################
 
-	for d in \
-		./additional-config-guides/container-image-guide.md \
+	for f in \
+		./docs/rhdh-local-guide/container-image-guide.md \
 		./default.env \
 		./compose.yaml \
 		; do 
-		if [[ -f $d ]]; then
-			sed -i $d -r \
-				-e "s|rhdh-community/rhdh:([0-9]+\.[0-9]+)|rhdh-community/rhdh:$the_version_y|g" \
-				-e "s/^(example, )([0-9]+\.[0-9]+)/\1$the_version_z/" \
-				-e "s|(registry.redhat.io/rhdh/rhdh-hub-rhel9:)([0-9]+\.[0-9.]+)|\1$the_version_z|g" \
-				-e "s/(CI build of RHDH 1.y \(for example, )([0-9]+\.[0-9]+)/\1$the_next_version_y/" \
-				-e "s|(quay.io/rhdh/rhdh-hub-rhel9:)([0-9]+\.[0-9]+)|\1$the_next_version_y|g"
+
+		if [[ "$f" == *"container-image-guide.md" ]]; then
+			# Guide file: use the_version_y, the_version_z, the_next_version_y
+			# Order matters! More specific patterns must come before general ones
+			sed -i "$f" -r \
+				-e "s|RHDH_IMAGE=quay.io/rhdh-community/rhdh:(next-)?[0-9]+\.[0-9]+|RHDH_IMAGE=quay.io/rhdh-community/rhdh:next-${the_version_y}|g" \
+				-e "s|rhdh-community/rhdh:([0-9]+\.[0-9]+)|rhdh-community/rhdh:${the_stable_version_y}|g" \
+				-e "s|(registry.redhat.io/rhdh/rhdh-hub-rhel9:)([0-9]+\.[0-9.]+)|\1${the_rhdh_version}|g" \
+				-e "s|(CI build of RHDH 1.y \(for example, )([0-9]+\.[0-9]+)|\1${the_next_version_y}|" \
+				-e "s|(quay.io/rhdh/rhdh-hub-rhel9:)([0-9]+\.[0-9]+)|\1${the_version_y}|g" \
+				-e "s|(\(for example, )([0-9]+\.[0-9]+)|\1$the_version_y|" \
+				-e "s|(\(for example, )([0-9]+\.[0-9]+)(\),? *which include[s]?)|\1$the_stable_version_y\3|"
+		elif [[ "$f" == *"default.env" ]]; then
+			sed -i "$f" -r \
+				-e "s|rhdh-community/rhdh:(next-)?([0-9]+\.[0-9]+)|rhdh-community/rhdh:${the_stable_version_y}|g" \
+				-e "s|plugin-catalog-index:([0-9]+\.[0-9]+)|plugin-catalog-index:${the_version_y}|g"
+		else
+			sed -i "$f" -r \
+				-e "s|rhdh-community/rhdh:(next-)?([0-9]+\.[0-9]+)|rhdh-community/rhdh:next-${the_version_y}|g"
 		fi
 	done
 	echo -n "updateRHDHLocalVersions: "; pwd; git diff || true
 	if [[ ${DO_PUSH} -eq 1 ]]; then
-		COMMITMSG="chore: tagRelease.sh: bump to $the_version_z in $the_branch branch"
+		COMMITMSG="chore: tagRelease.sh: bump to ${the_version_z:-$the_version_y} in $the_branch branch"
 		if [[ $DO_BUILD -eq 1 ]]; then
 			# quietly install any updates to yarn.lock so PR will pass sniff test
 			yarn install 2> >(grep -v warning 1>&2) 
@@ -341,7 +365,7 @@ function updateRHDHLocalVersions() {
 			git commit --no-gpg-sign -s -m "${COMMITMSG}" .
 			git pull origin "${the_branch}" || true
 			# create pull request if target branch is restricted access
-			pr_branch="chore/automated-bump-to-${the_version_z}-in-${the_branch}-$(date +%s)"
+			pr_branch="chore/automated-bump-to-${the_version_z:-$the_version_y}-in-${the_branch}-$(date +%s)"
 			createPr "${pr_branch}" "${the_branch}"
 		fi
 	fi ## if DO_PUSH
@@ -702,10 +726,16 @@ pushBranchAndOrTagGH () {
 					# RHDHBUGS-2133: Pin RHDH image to :next-1.y tag (release-1.y branch), instead of :next (main)
 					elif [[ $d == "redhat-developer__rhdh-chart" ]]; then
 						if [[ -f charts/backstage/values.yaml ]]; then
-							yq -i '.upstream.backstage.image.tag = "next-'${PROD_VERSION}'"' charts/backstage/values.yaml
+							yq -i '.upstream.backstage.image.tag = "next-'"${PROD_VERSION}"'"' charts/backstage/values.yaml
 						fi
 						COMMITMSG="chore: pin to quay.io/rhdh-community/rhdh:next-${PROD_VERSION}"
 						git commit --no-gpg-sign -s -m "${COMMITMSG}" charts/backstage/values.yaml || true
+					elif [[ $d == "redhat-developer__rhdh-local" ]]; then
+						# Update both main and release-1.y branches when creating a new release branch
+						echo -e "${green}[INFO] Bump $d main to next-${PROD_VERSION}${norm}"
+						updateRHDHLocalVersions "main" "${PROD_VERSION}" 
+						echo -e "${green}[INFO] Bump $d $TARGET_BRANCH to ${PROD_VERSION}${norm}"
+						updateRHDHLocalVersions "$TARGET_BRANCH" "${PROD_VERSION}" 
 					fi
 
 					if [[ $DO_PUSH -eq 1 ]]; then 
