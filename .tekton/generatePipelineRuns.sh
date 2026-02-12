@@ -7,6 +7,8 @@
 #   - rhdh-operator-{version}.yaml
 #   - rhdh-operator-bundle-{version}.yaml
 #
+# Also updates FBC pipeline files to use the correct target_branch
+#
 # utility script to (re)generate pipeline runs; each plr handles both push and pull_request events using CEL expressions.
 
 set -e
@@ -47,8 +49,10 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 VERSION_DASH="${VERSION_DOT/./-}" # 1.9 -> 1-9
+TARGET_BRANCH="rhdh-${VERSION_DOT}-rhel-9"
 
 echo -e "${BLUE}Creating RHDH version: ${GREEN}$VERSION_DOT${NC}"
+echo -e "${BLUE}Target branch: ${GREEN}$TARGET_BRANCH${NC}"
 echo ""
 
 # Function to replace template variables and create component-specific files
@@ -71,12 +75,50 @@ create_component_pipeline() {
     echo -e "${GREEN}✓${NC} Created: ${BLUE}rhdh-${component}-${VERSION_DASH}.yaml${NC}"
 }
 
+# Function to update FBC pipeline target_branch
+update_fbc_pipeline() {
+    local fbc_file="$1"
+    
+    if [ ! -f "$fbc_file" ]; then
+        echo -e "${RED}✗ Error: FBC file not found: $fbc_file${NC}"
+        return 1
+    fi
+
+    # Update target_branch in CEL expression from rhdh-1-rhel-9 to rhdh-{VERSION_DOT}-rhel-9
+    sed -i -e "s/== \"rhdh-1-rhel-9\"/== \"${TARGET_BRANCH}\"/g" "$fbc_file" 2>/dev/null
+
+    # Update image tag from on-push-for-rhdh-1-rhel-9 to on-push-for-rhdh-{VERSION_DOT}-rhel-9
+    sed -i -e "s/on-push-for-rhdh-1-rhel-9/on-push-for-${TARGET_BRANCH}/g" "$fbc_file" 2>/dev/null
+
+    echo -e "${GREEN}✓${NC} Updated: ${BLUE}$(basename "$fbc_file")${NC} -> target_branch: ${TARGET_BRANCH}"
+}
+
 # Create all three component pipelines
+echo -e "${BLUE}Generating RHDH component pipelines...${NC}"
 for plr in hub operator operator-bundle; do 
-    # echo -e "${NC}Generate $plr pipelinerun...${NC}"
-    create_component_pipeline "$plr"
+    if ! create_component_pipeline "$plr"; then
+        echo -e "${RED}✗ Failed to generate pipeline for component: $plr${NC}"
+        exit 1
+    fi
 done
+
+echo ""
+
+# Update FBC pipelines target_branch
+echo -e "${BLUE}Updating FBC pipelines target_branch...${NC}"
+for fbc_file in "$SCRIPT_DIR"/fbc-*-push.yaml; do
+    if [ -f "$fbc_file" ]; then
+        if ! update_fbc_pipeline "$fbc_file"; then
+            echo -e "${RED}✗ Failed to update FBC pipeline: $fbc_file${NC}"
+            exit 1
+        fi
+    fi
+done
+
+echo ""
 
 # remove unneeded pipelineruns from the stable branch
 # TODO when we move to 2.y this needs to match -2.yaml
 rm -f "$SCRIPT_DIR"/*-1.yaml
+
+echo -e "${GREEN}Done!${NC}"
