@@ -385,19 +385,30 @@ git checkout rhdh-1.y-rhel-9
 * **FBCs** are not supported on the RHEC Stage instance link:https://gitlab.cee.redhat.com/releng/konflux-release-data/-/merge_requests/3947[if the production policy is in effect]. See link:https://redhat-internal.slack.com/archives/C06RBUP0M2Q/p1737051256060019[this thread]. Because of this, there is no value in trying to push FBCs to stage prior to GA day. 
 ====
 +
+. **IMPORTANT!** Once run, you can check for CHI grades in Comet - if you see anything lower than A, review the base images, RPM lock files, and fixable CVEs before announcing this RC is ready.
++
+* https://comet.stage.engineering.redhat.com/containers/repositories/645be66cb272ea332e3abd62 (hub)
+* https://comet.stage.engineering.redhat.com/containers/repositories/64bff10ca2cf791704ccb4c6 (operator)
+* https://comet.stage.engineering.redhat.com/containers/repositories/64bff10da2cf791704ccb4cf (operator-bundle)
++
+image::images/comet-chi-review.png[Search in comet.stage to see what CHI grades will be applied pushed to production]
++
 . If a second RC build is needed, you can re-run the GL pipeline *_manually_* from the link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/pipeline_schedules[pipeline_schedules] page, if you don't want to re-enable it. Note that you'll have to manually run the pipeline TWICE - first to pick up new commits for hub and operator builds, then a second time for bundle and FBC builds.
 +
 . Notify team via slack and email - see next section for details.
 
 ### Release Candidates Notifications
 
-[IMPORTANT]
-====
-* Once the RC images are created (containers and FBCs), *notify the following people* via the following methods:
-** Slack channel: link:https://app.slack.com/client/E030G10V24F/C07EVRDD7KN[forum-rhdh-releases] - use the link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1-rhel-9/build/scripts/sendSlackNotifications.sh[sendSlackNotifications.sh] script 
-*** For example: ./build/scripts/sendSlackNotifications.sh --version 1.y.z --bundle-tag 1.y-zzz --slack-webhook <slack-webhook-url> --release-state RC [optional: --dryrun]
+Once the RC images are created (containers and FBCs), *notify the following people* via the following methods:
 
-** email the following people (dev/productization, testing, security, docs, and manangement) a link to the slack message as FYI
+. Slack channel: link:https://app.slack.com/client/E030G10V24F/C07EVRDD7KN[forum-rhdh-releases] - use the link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1-rhel-9/build/scripts/sendSlackNotifications.sh[sendSlackNotifications.sh] script 
++
+```
+`./build/scripts/sendSlackNotifications.sh --version 1.y.z --bundle-tag 1.y-zzz --slack-webhook <slack-webhook-url> --release-state RC [optional: --dryrun]
+```
++
+. Email the following people (dev/productization, testing, security, docs, and manangement) a link to the slack message as FYI
++
 ```
 TO:
 
@@ -418,8 +429,6 @@ Jasper Chui <jchui@redhat.com>,
 Linda Sharar <lsharar@redhat.com>,
 Christophe Fargette <jfargett@redhat.com>
 ```
-
-====
 
 ## During GA week
 
