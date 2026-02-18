@@ -342,7 +342,7 @@ spec:
                     fieldRef:
                       fieldPath: metadata.name
                 - name: RELATED_IMAGE_postgresql
-                  value: registry.redhat.io/rhel9/postgresql-15@sha256:07dec86e5af52b1819549de2185aef85f59ecf10719e03c536ea6bfdf4d4f1d1
+                  value: registry.redhat.io/rhel9/postgresql-15@sha256:78ee3424dca0816c37126ca4646b1fc29e82f83266f03f67141753cd09e4a283
                 - name: RELATED_IMAGE_backstage
                   value: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:75502b8dfc47c4a6eed6b6ae2b5df547217d7a076f4fca810590df03ef2a53bd
                 - name: RELATED_IMAGE_catalog_index
@@ -464,7 +464,7 @@ spec:
     name: Red Hat Inc.
     url: https://www.redhat.com/
   relatedImages:
-  - image: registry.redhat.io/rhel9/postgresql-15@sha256:07dec86e5af52b1819549de2185aef85f59ecf10719e03c536ea6bfdf4d4f1d1
+  - image: registry.redhat.io/rhel9/postgresql-15@sha256:78ee3424dca0816c37126ca4646b1fc29e82f83266f03f67141753cd09e4a283
     name: postgresql
   - image: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:75502b8dfc47c4a6eed6b6ae2b5df547217d7a076f4fca810590df03ef2a53bd
     name: backstage
