@@ -380,8 +380,9 @@ git checkout rhdh-1.y-rhel-9
 +
 [NOTE]
 ====
-* before running the script, verify the list of OCP versions supported in the link:../build/scripts/ocp-versions.yaml[ocp-versions.yaml] file
-* ensure if CVE list found from link:https://docs.google.com/spreadsheets/d/1JZVTc03wirx-bTpjn3muWed8cGyFTRTNe6x3Gr02hys/edit?gid=973768917#gid=973768917[RHDH CVE Management tracker] are `Release Pending`
+* confirm that no link:https://spaces.redhat.com/pages/viewpage.action?pageId=87729676&spaceKey=SP&title=Pipeline%2BTemperature[release freeze is in effect and the pipeline is not frozen] before running the script.
+* before running the script, verify the list of OCP versions supported in the link:../build/scripts/ocp-versions.yaml[ocp-versions.yaml] file.
+* ensure if CVE list found from link:https://docs.google.com/spreadsheets/d/1JZVTc03wirx-bTpjn3muWed8cGyFTRTNe6x3Gr02hys/edit?gid=973768917#gid=973768917[RHDH CVE Management tracker] are `Release Pending`.
 * **FBCs** are not supported on the RHEC Stage instance link:https://gitlab.cee.redhat.com/releng/konflux-release-data/-/merge_requests/3947[if the production policy is in effect]. See link:https://redhat-internal.slack.com/archives/C06RBUP0M2Q/p1737051256060019[this thread]. Because of this, there is no value in trying to push FBCs to stage prior to GA day. 
 ====
 +
