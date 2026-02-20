@@ -518,7 +518,7 @@
     },
     {
       "schema": "olm.bundle",
-      "image": "quay.io/rhdh/rhdh-operator-bundle@sha256:ee94e29131f51d02bf2f3f92dcc8c395a7fc282b0faa53203654239c9ceadaa0"
+      "image": "quay.io/rhdh/rhdh-operator-bundle@sha256:dcedab7b6021f704c8f8329978970317a0c85fc169444b6f9c92fd4f61eebecc"
     }
   ]
 }
