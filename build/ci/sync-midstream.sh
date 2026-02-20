@@ -1310,7 +1310,7 @@ ${norm}" | tee /tmp/sync-midstream.sh.result.txt
 
   if [[ $BUNDLEONLY -eq 1 ]]; then
     # trigger only kfux, not GL pipeline
-    git commit -s -m "[ci skip] Bundle Update:${commitMsg//operator /operator-bundle }" . || true
+    git commit -s -m "[skip-gitlab] Bundle Update:${commitMsg//operator /operator-bundle }" . || true
   else
     git commit -s -m "chore: Update:${commitMsg}" . || true
   fi
