@@ -88,8 +88,10 @@ if [[ $GITLAB_PIPELINE == "true" ]]; then
 fi
 
 function openURL {
-    if [[ $(command -v google-chrome) == *"google-chrome"* ]] || [[ $(which google-chrome 2>&1) != *"which: no google-chrome"* ]]; then 
-        google-chrome "$1" >/dev/null 2>&1
+    if [[ $(command -v brave-browser) == *"brave-browser"* ]] || [[ $(which brave-browser) != *"which: no brave-browser"* ]]; then
+      brave-browser "$1" >/dev/null 2>&1 &
+    elif [[ $(command -v google-chrome) == *"google-chrome"* ]] || [[ $(which google-chrome 2>&1) != *"which: no google-chrome"* ]]; then 
+        google-chrome "$1" >/dev/null 2>&1 &
     else 
         echo " >> $1"
     fi
