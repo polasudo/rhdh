@@ -1182,6 +1182,9 @@ fi
 for d in \
   distgit/containers/rhdh-hub/Dockerfile \
   distgit/containers/rhdh-hub/Dockerfile.in \
+  distgit/containers/rhdh-hub/.cursor/ \
+  distgit/containers/rhdh-hub/.claude/ \
+  distgit/containers/rhdh-hub/.rulesync/ \
   distgit/containers/rhdh-hub/build/containerfiles/ \
   distgit/containers/rhdh-hub/docker/Dockerfile \
   distgit/containers/rhdh-hub/docker/Dockerfile.in \
