@@ -1,6 +1,6 @@
 ## Building locally
 
-Upstream, you can build the Dockerfile in https://github.com/redhat-developer/rhdh/tree/main/.rhdh/docker a number of ways. See link:https://github.com/redhat-developer/rhdh/tree/main/.rhdh/docker/README.adoc[README] for details.
+Upstream, you can build the Containerfile in https://github.com/redhat-developer/rhdh/tree/main/build/containerfiles a number of ways. See link:https://github.com/redhat-developer/rhdh/tree/main/build/containerfiles/README.adoc[README] for details.
 
 In this repo, you can create a merge request against link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1-rhel-9/distgit/containers/rhdh-hub/Containerfile[distgit/containers/rhdh-hub/Containerfile] and watch as Konflux attempts to build your changes.
 

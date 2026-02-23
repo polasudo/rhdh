@@ -9,7 +9,7 @@ This repo seeks to document how to productize RHDH:
 ** link:build/scripts[scripts for use with operator & bundle images]
 ** link:build/helm[scripts for use with helm chart]
 ** link:.gitlab-ci.yml[gitlab CI script] + link:build/ci[ci script] - used sync from up to mid, mid to down, build container image, copy builds to Quay, and publish a helm chart
-*** link:build/dockerfiles[dockerfiles used by CI processes]
+*** link:build/containerfiles[containerfiles used by CI processes]
 
 There are also a number of guides related to the build + release processes:
 

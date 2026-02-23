@@ -705,10 +705,10 @@ pushBranchAndOrTagGH () {
 					# changes to apply to new midstream release-1.yy branch
 					# https://issues.redhat.com/browse/RHIDP-1311 apply the production key to the release-1.yy stable branches, so we can use the devel key for main/CI builds
 					if [[ $d == "redhat-developer__rhdh" ]]; then
-						sed -i .rhdh/docker/Dockerfile -r \
+						sed -i build/containerfiles/Containerfile -r \
 							-e "s|(.*SEGMENT_WRITE_KEY=).*|\1$SEGMENT_WRITE_KEY|g"
 						COMMITMSG="chore: switch SEGMENT_WRITE_KEY in $TARGET_BRANCH"
-						git commit --no-gpg-sign -s -m "${COMMITMSG}" .rhdh/docker/Dockerfile || true # if no changes, continue
+						git commit --no-gpg-sign -s -m "${COMMITMSG}" build/containerfiles/Containerfile || true # if no changes, continue
 					# RHDHBUGS-2133: Pin RHDH image to :next-1.y tag (release-1.y branch), instead of :next (main)
 					elif [[ $d == "redhat-developer__rhdh-operator" ]]; then
 						for f in \

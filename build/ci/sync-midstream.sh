@@ -433,8 +433,6 @@ for ((i = START_REPO; i < NUM_REPOS; i++)); do # echo $i
     ##################################### rhdh-hub #####################################
     # if processing the upstream showcase/hub, also make some changes to the hub folder dowstream
     if [[ $destination_folder == *"rhdh-hub"* ]]; then
-      rsync -azq $TMPDIR/repo${i}/.rhdh/docker/* "${ROOTPATH}/${destination_folder%/}/docker/" --exclude=.git ${excludesFlags}
-
       pushd "${ROOTPATH}/${destination_folder%/}" >/dev/null || exit 1
         # RHIDP-4014 konflux - remove e2e-tests folder entirely 
         rm -fr e2e-tests
@@ -638,7 +636,7 @@ for ((i = START_REPO; i < NUM_REPOS; i++)); do # echo $i
     # transform Dockerfile to Dockerfile.in; enable/disable osbs/cachito requirements
     # find the right file from one of several path options
     # NOTE: this transformation only works for hub and operator, not for .rhdh/docker/bundle.Dockerfile!
-    DOCKERFILE_OPTIONS=".rhdh/docker/Dockerfile Dockerfile"
+    DOCKERFILE_OPTIONS="build/containerfiles/Containerfile .rhdh/docker/Dockerfile Dockerfile"
     for d in $DOCKERFILE_OPTIONS; do
       if [[ -f $d ]]; then
         echo "[INFO] Convert $d to ${destination_folder}Dockerfile.in ..."
@@ -1184,6 +1182,7 @@ fi
 for d in \
   distgit/containers/rhdh-hub/Dockerfile \
   distgit/containers/rhdh-hub/Dockerfile.in \
+  distgit/containers/rhdh-hub/build/containerfiles/ \
   distgit/containers/rhdh-hub/docker/Dockerfile \
   distgit/containers/rhdh-hub/docker/Dockerfile.in \
   \
