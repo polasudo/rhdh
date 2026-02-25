@@ -15,7 +15,7 @@
 
 # Stage 1 - Build nodejs skeleton
 # https://registry.access.redhat.com/ubi9/nodejs-22
-FROM registry.access.redhat.com/ubi9/nodejs-22:9.7-1770626511@sha256:b7c468c6cafa40380bf6cd8c89ad2f94ad4c85e47e2fa6e2e4a33d0c5d0c8ef7 AS skeleton
+FROM registry.access.redhat.com/ubi9/nodejs-22:9.7-1771865410@sha256:04e9f3020875f3f6e99b9a96fe55e35e1b5c38974a1765a19153102a90abf967 AS skeleton
 # hadolint ignore=DL3002
 USER 0
 
@@ -227,7 +227,7 @@ RUN hadFail=0; for d in $(find /tmp -name "yarn*log*" || true) $(find /tmp/xfs-*
 
 # Stage 5 - Build the runner image
 # https://registry.access.redhat.com/ubi9/nodejs-22-minimal
-FROM registry.access.redhat.com/ubi9/nodejs-22-minimal:9.7-1770309067@sha256:449f3e1b0a9c1ef766777ca84ea89bcc040a96d5f6d456c3a9acdd558dfc2b4f AS runner
+FROM registry.access.redhat.com/ubi9/nodejs-22-minimal:9.7-1771388883@sha256:aeb1821b8860768c8b7a9f69386293dac27d3a9bb212a5db23890441e4eb1151 AS runner
 USER 0
 
 ENV EXTERNAL_SOURCE_NESTED=.
@@ -317,7 +317,7 @@ ENV SUMMARY="Red Hat Developer Hub container" \
     DESCRIPTION="Red Hat Developer Hub container" \
     RHDH_VERSION="1.10.0" \
     BACKSTAGE_VERSION="1.45.3" \
-    UPSTREAM_REPO="https://github.com/redhat-developer/rhdh/tree/main @ 1f456699" \
+    UPSTREAM_REPO="https://github.com/redhat-developer/rhdh/tree/main @ a9b92bb5" \
     MIDSTREAM_REPO="https://gitlab.cee.redhat.com/rhidp/rhdh/-/commits/rhdh-1-rhel-9" \
     PRODNAME="rhdh" \
     COMPNAME="hub"
@@ -330,13 +330,13 @@ LABEL summary="$SUMMARY" \
       com.redhat.component="$PRODNAME-$COMPNAME-container" \
       name="$PRODNAME/$PRODNAME-$COMPNAME-rhel9" \
       version="1.10" \
-      release="76" \
+      release="77" \
       license="ASLv2" \
       maintainer="RHDH Team <rhdh-bot@redhat.com>" \
       vendor="Red Hat, Inc." \
       io.openshift.expose-services="" \
       usage="" \
-      konflux.additional-tags="next, 1.10, 1.10-76" \
+      konflux.additional-tags="next, 1.10, 1.10-77" \
       distribution-scope="public" \
       url="https://red.ht/rhdh" \
       cpe="cpe:/a:redhat:rhdh:1.10::el9"
