@@ -144,8 +144,18 @@
           "skipRange": "<1.8.2"
         },
         {
-          "name": "rhdh-operator.v1.10.0",
+          "name": "rhdh-operator.v1.8.3",
           "replaces": "rhdh-operator.v1.8.2",
+          "skipRange": "<1.8.3"
+        },
+        {
+          "name": "rhdh-operator.v1.8.4",
+          "replaces": "rhdh-operator.v1.8.3",
+          "skipRange": "<1.8.4"
+        },
+        {
+          "name": "rhdh-operator.v1.10.0",
+          "replaces": "rhdh-operator.v1.8.4",
           "skipRange": "<1.10.0"
         }
       ],
@@ -370,6 +380,16 @@
           "name": "rhdh-operator.v1.8.2",
           "replaces": "rhdh-operator.v1.8.1",
           "skipRange": "<1.8.2"
+        },
+        {
+          "name": "rhdh-operator.v1.8.3",
+          "replaces": "rhdh-operator.v1.8.2",
+          "skipRange": "<1.8.3"
+        },
+        {
+          "name": "rhdh-operator.v1.8.4",
+          "replaces": "rhdh-operator.v1.8.3",
+          "skipRange": "<1.8.4"
         }
       ],
       "name": "fast-1.8",
@@ -505,10 +525,18 @@
       "image": "registry.redhat.io/rhdh/rhdh-operator-bundle@sha256:926035e11898ddff4ca044e19ec6daf5f159ad4dcf231ae3ab4a188f4c7ec0dd"
     },
     {
+      "schema": "olm.bundle",
+      "image": "registry.redhat.io/rhdh/rhdh-operator-bundle@sha256:1b48bd8e757a9cdfe3cbac6861fbd8a0eaf59ce2c43660d0fb84fdad1f0e9470"
+    },
+    {
+      "schema": "olm.bundle",
+      "image": "registry.redhat.io/rhdh/rhdh-operator-bundle@sha256:a375ee40f1921cbf9dd534820f8ff4efa9b7675992aa2a1361bd8ec24913b42b"
+    },
+    {
       "entries": [
         {
           "name": "rhdh-operator.v1.10.0",
-          "replaces": "rhdh-operator.v1.8.2",
+          "replaces": "rhdh-operator.v1.8.4",
           "skipRange": "<1.10.0"
         }
       ],
@@ -518,7 +546,7 @@
     },
     {
       "schema": "olm.bundle",
-      "image": "quay.io/rhdh/rhdh-operator-bundle@sha256:d81f760ada0b11bd4dd6b7c7d5968858c0af5a705a0426a2f7bf2e16b0d6cdd2"
+      "image": "quay.io/rhdh/rhdh-operator-bundle@sha256:4bcbbfa9c16db5be99e52d0bebe11a31feae8421b9532a5b034007480ffbdf76"
     }
   ]
 }
