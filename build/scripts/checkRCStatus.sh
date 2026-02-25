@@ -53,6 +53,119 @@ green="\033[1;32m"
 blue="\033[1;34m"
 red="\033[1;31m"
 
+# Extract SHA256 digest hex from image reference like repo@sha256:<hex>
+extract_digest_hex() {
+    local image_ref="$1"
+    echo "$image_ref" | sed -nE 's#.*@sha256:([a-f0-9]+).*#\1#p'
+}
+
+# Read image digest from an OCI chart artifact values.yaml
+get_chart_hub_digest() {
+    local chart_image="$1"
+    local tmpdir
+    tmpdir=$(mktemp -d)
+
+    if ! skopeo copy "docker://${chart_image}" "dir:${tmpdir}" >/dev/null 2>&1; then
+        rm -rf "${tmpdir}" >/dev/null 2>&1 || true
+        return 1
+    fi
+
+    local chart_layer_digest
+    chart_layer_digest=$(jq -r '[.layers[] | select(.mediaType=="application/vnd.cncf.helm.chart.content.v1.tar+gzip") | .digest][0]' "${tmpdir}/manifest.json")
+    if [[ -z "${chart_layer_digest}" || "${chart_layer_digest}" == "null" ]]; then
+        rm -rf "${tmpdir}" >/dev/null 2>&1 || true
+        return 1
+    fi
+
+    local chart_layer_blob="${tmpdir}/${chart_layer_digest#*:}"
+    if [[ ! -f "${chart_layer_blob}" ]]; then
+        # fallback for skopeo layouts that use algo/hash folders
+        chart_layer_blob="${tmpdir}/${chart_layer_digest/:/\/}"
+    fi
+    local digest_hex
+    digest_hex=$(python3 - "${chart_layer_blob}" <<'PY'
+import re
+import sys
+import tarfile
+
+blob_path = sys.argv[1]
+
+def clean(v):
+    return v.strip().strip('"').strip("'")
+
+with tarfile.open(blob_path, "r:gz") as tf:
+    values_members = [m for m in tf.getmembers() if m.name.endswith("/values.yaml") or m.name == "values.yaml"]
+    if not values_members:
+        sys.exit(1)
+    values_members.sort(key=lambda m: len(m.name))
+    content = tf.extractfile(values_members[0]).read().decode("utf-8", errors="ignore")
+
+path = []
+registry = None
+repository = None
+tag = None
+
+for raw_line in content.splitlines():
+    line = raw_line.split("#", 1)[0].rstrip()
+    if not line.strip():
+        continue
+    match = re.match(r"^(\s*)([A-Za-z0-9_.-]+):\s*(.*)$", line)
+    if not match:
+        continue
+    spaces, key, value = match.groups()
+    depth = len(spaces) // 2
+    path = path[:depth]
+    path.append(key)
+    path_str = "/".join(path)
+    val = clean(value)
+    if path_str == "upstream/backstage/image/registry" and val:
+        registry = val
+    elif path_str == "upstream/backstage/image/repository" and val:
+        repository = val
+    elif path_str == "upstream/backstage/image/tag" and val:
+        tag = val
+
+if not repository:
+    sys.exit(2)
+
+if "@sha256:" in repository:
+    digest = repository.split("@sha256:", 1)[1]
+elif repository.endswith("@sha256") and tag:
+    digest = tag
+else:
+    # Fall back to digest in tag if present as sha256:<hex>
+    digest = tag.split("sha256:", 1)[1] if tag and "sha256:" in tag else ""
+
+digest = digest.strip()
+if not re.fullmatch(r"[a-f0-9]{64}", digest):
+    sys.exit(3)
+print(digest)
+PY
+)
+    local rc=$?
+    rm -rf "${tmpdir}" >/dev/null 2>&1 || true
+    if [[ $rc -ne 0 || -z "${digest_hex}" ]]; then
+        return 1
+    fi
+    echo "${digest_hex}"
+}
+
+# Resolve latest chart image for a given RHDH stream (e.g. 1.9-*)
+get_latest_chart_image() {
+    local rhdh_stream="$1"
+    local chart_repo="quay.io/rhdh/chart"
+    local chart_tag
+    chart_tag=$(skopeo list-tags "docker://${chart_repo}" 2>/dev/null | \
+        jq -r '.Tags[]?' | \
+        grep -E "^${rhdh_stream}-" | \
+        grep -Ev 'latest|next|candidate|guest|containers|-source|-pr-|-tmp-|-ci-|-gh-|sha256-|on-push|on-pull|build-container|build-image-index' | \
+        sort -uV | \
+        tail -1)
+    if [[ -n "${chart_tag}" ]]; then
+        echo "${chart_repo}:${chart_tag}"
+    fi
+}
+
 # Function to get the latest commit SHA from GitHub repository and branch
 get_latest_github_commit() {
     local upstream_repo_line="$1"
@@ -121,6 +234,38 @@ echo "[INFO] Get operator bundle from IIB: checkImagesInIIB.sh -y -q quay.io/rhd
 IIB_IMAGES="$("${SCRIPTPATH}/checkImagesInIIB.sh" -y -q "quay.io/rhdh/iib:${RHDH_VERSION}-v${OCP_VERSION}-x86_64" --bundlefilter "v${RHDH_VERSION}" -qq)"
 # echo "[INFO] IIB Images found:"
 echo "$IIB_IMAGES"
+echo "============"
+
+# Check chart digest and bundle digest point to same hub image
+echo "[INFO] Compare Helm chart and operator bundle hub image digests"
+CHART_IMAGE="$(get_latest_chart_image "${RHDH_VERSION}")"
+BUNDLE_IMAGE="$(echo "${CONTAINERS}" | grep "rhdh-operator-bundle" | head -n1)"
+
+if [[ -n "${CHART_IMAGE}" && "${CHART_IMAGE}" != *":???" && -n "${BUNDLE_IMAGE}" ]]; then
+    echo "[INFO] Latest chart image in quay.io : ${CHART_IMAGE}"
+    echo "[INFO] Latest operator bundle image in quay.io : ${BUNDLE_IMAGE}"
+
+    chart_hub_digest="$(get_chart_hub_digest "${CHART_IMAGE}")"
+    bundle_hub_image_ref="$("${SCRIPTPATH}/checkImagesInCSV.sh" -y --digests -qq -i "rhdh-hub-rhel9" "${BUNDLE_IMAGE}" | head -n1)"
+    bundle_hub_digest="$(extract_digest_hex "${bundle_hub_image_ref}")"
+
+    if [[ -n "${chart_hub_digest}" && -n "${bundle_hub_digest}" ]]; then
+        if [[ "${chart_hub_digest}" == "${bundle_hub_digest}" ]]; then
+            echo -e "${green} Chart and operator bundle use the same RHDH hub digest (${chart_hub_digest})${norm}"
+        else
+            echo -e "${red} MISMATCH: Chart and operator bundle reference different RHDH hub digests${norm}"
+            echo -e "${red}  Chart digest : ${chart_hub_digest}${norm}"
+            echo -e "${red}  Bundle digest: ${bundle_hub_digest}${norm}"
+            echo -e "${blue} Trigger/rebuild bundle and chart so both resolve to the same hub container image.${norm}"
+        fi
+    else
+        echo -e "${red} Could not resolve both hub digests for chart/bundle comparison${norm}"
+        echo -e "${blue}  chart digest : ${chart_hub_digest:-<missing>}${norm}"
+        echo -e "${blue}  bundle image : ${bundle_hub_image_ref:-<missing>}${norm}"
+    fi
+else
+    echo -e "${red} Could not find latest chart or operator bundle image for ${RHDH_VERSION}${norm}"
+fi
 echo "============"
 
 # Check if IIB_IMAGES is empty and exit if so
