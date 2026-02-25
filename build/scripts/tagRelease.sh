@@ -322,33 +322,53 @@ function updateRHDHLocalVersions() {
 	pushd "$TMPDIR/projects_${d}_2" >/dev/null || exit 1
 
 	################
-	# update 3 files
+	# set tags
 	################
+	guide_rhdh_image_tag="next-${the_version_y}"
+	guide_ci_build_tag="${the_next_version_y}"
+	guide_example_tag="${the_version_y}"
+
+	if [[ "$the_version_z" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+		# 1.y.z release
+		guide_community_tag="${the_version_y}"
+		guide_registry_tag="${the_version_z}"
+		guide_quay_tag="${the_next_version_y}"
+		guide_which_includes_tag="${the_version_y}"
+		default_env_tag="${the_version_y}"
+		compose_tag="${the_version_y}"
+	else
+		# 1.y (branching from main)
+		guide_community_tag="${the_stable_version_y}"
+		guide_registry_tag="${the_rhdh_version}"
+		guide_quay_tag="${the_version_y}"
+		guide_which_includes_tag="${the_stable_version_y}"
+		default_env_tag="${the_stable_version_y}"
+		compose_tag="${the_stable_version_y}"
+	fi
 
 	for f in \
 		./docs/rhdh-local-guide/container-image-guide.md \
+		./docs/guides/container-image-guide.md \
 		./default.env \
 		./compose.yaml \
-		; do 
-
+		; do
+		if [[ ! -f "$f" ]]; then continue; fi
 		if [[ "$f" == *"container-image-guide.md" ]]; then
-			# Guide file: use the_version_y, the_version_z, the_next_version_y
-			# Order matters! More specific patterns must come before general ones
 			sed -i "$f" -r \
-				-e "s|RHDH_IMAGE=quay.io/rhdh-community/rhdh:(next-)?[0-9]+\.[0-9]+|RHDH_IMAGE=quay.io/rhdh-community/rhdh:next-${the_version_y}|g" \
-				-e "s|rhdh-community/rhdh:([0-9]+\.[0-9]+)|rhdh-community/rhdh:${the_stable_version_y}|g" \
-				-e "s|(registry.redhat.io/rhdh/rhdh-hub-rhel9:)([0-9]+\.[0-9.]+)|\1${the_rhdh_version}|g" \
-				-e "s|(CI build of RHDH 1.y \(for example, )([0-9]+\.[0-9]+)|\1${the_next_version_y}|" \
-				-e "s|(quay.io/rhdh/rhdh-hub-rhel9:)([0-9]+\.[0-9]+)|\1${the_version_y}|g" \
-				-e "s|(\(for example, )([0-9]+\.[0-9]+)|\1$the_version_y|" \
-				-e "s|(\(for example, )([0-9]+\.[0-9]+)(\),? *which include[s]?)|\1$the_stable_version_y\3|"
+				-e "s|RHDH_IMAGE=quay.io/rhdh-community/rhdh:(next-)?[0-9]+\.[0-9]+|RHDH_IMAGE=quay.io/rhdh-community/rhdh:${guide_rhdh_image_tag}|g" \
+				-e "s|rhdh-community/rhdh:([0-9]+\.[0-9]+)|rhdh-community/rhdh:${guide_community_tag}|g" \
+				-e "s|(registry.redhat.io/rhdh/rhdh-hub-rhel9:)([0-9]+\.[0-9.]+)|\1${guide_registry_tag}|g" \
+				-e "s|(quay.io/rhdh/rhdh-hub-rhel9:)([0-9]+\.[0-9]+)|\1${guide_quay_tag}|g" \
+				-e "s|(\(for example, )([0-9]+\.[0-9]+)|\1${guide_example_tag}|" \
+				-e "s|(CI build of RHDH 1.y \(for example, )([0-9]+\.[0-9]+)|\1${guide_ci_build_tag}|" \
+				-e "s|(\(for example, )([0-9]+\.[0-9]+)(\),? *which include[s]?)|\1${guide_which_includes_tag}\3|"
 		elif [[ "$f" == *"default.env" ]]; then
 			sed -i "$f" -r \
-				-e "s|rhdh-community/rhdh:(next-)?([0-9]+\.[0-9]+)|rhdh-community/rhdh:${the_stable_version_y}|g" \
+				-e "s|rhdh-community/rhdh:(next-)?([0-9]+\.[0-9]+)|rhdh-community/rhdh:${default_env_tag}|g" \
 				-e "s|plugin-catalog-index:([0-9]+\.[0-9]+)|plugin-catalog-index:${the_version_y}|g"
-		else
+		else # compose.yaml
 			sed -i "$f" -r \
-				-e "s|rhdh-community/rhdh:(next-)?([0-9]+\.[0-9]+)|rhdh-community/rhdh:next-${the_version_y}|g"
+				-e "s|rhdh-community/rhdh:(next-)?([0-9]+\.[0-9]+)|rhdh-community/rhdh:${compose_tag}|g"
 		fi
 	done
 	echo -n "updateRHDHLocalVersions: "; pwd; git diff || true
@@ -795,8 +815,8 @@ pushBranchAndOrTagGH () {
 						echo -e "${green}[INFO] Bump $d to $CSV_VERSION_Z / $CSV_VERSION_Z_OPERATOR${norm}" 
 						updateOperatorVersions "$TARGET_BRANCH" "$CSV_VERSION_Z" "$CSV_VERSION_Z_OPERATOR"
 					elif [[ $d == "redhat-developer__rhdh-local" ]]; then
-						echo -e "${green}[INFO] Bump $d main to ${CSV_VERSION}${norm}" 
-						updateRHDHLocalVersions "main" "$CSV_VERSION"
+						echo -e "${green}[INFO] Bump $d $TARGET_BRANCH to ${CSV_VERSION}${norm}"
+						updateRHDHLocalVersions "$TARGET_BRANCH" "$CSV_VERSION" 
 					elif [[ $d == "redhat-developer__red-hat-developers-documentation-rhdh" ]]; then
 						echo -e "${green}[INFO] Bump $d to $CSV_VERSION${norm}" 
 						# note: for now, only bump to the last RELEASED version in the docs
