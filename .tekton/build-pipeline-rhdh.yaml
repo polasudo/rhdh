@@ -888,12 +888,12 @@ spec:
         - build-image-index-hub
       taskRef:
         params:
-        - name: name
-          value: roxctl-scan
-        - name: bundle
-          value: quay.io/konflux-ci/tekton-catalog/task-roxctl-scan:0.1@sha256:ddd7e8b8578f9266edc044906e438736cb2ad106f45605c93a3fc6a6ff048f3f
-        - name: kind
-          value: task
+          - name: name
+            value: clair-scan
+          - name: bundle
+            value: quay.io/konflux-ci/tekton-catalog/task-clair-scan:0.3@sha256:b01d8e2c58eb407ac23fa07b8e44c4631f0cf7257e87507c829fa2486aff9804
+          - name: kind
+            value: task
         resolver: bundles
       timeout: 20m
       when:
@@ -913,12 +913,12 @@ spec:
         - build-image-index-operator
       taskRef:
         params:
-        - name: name
-          value: roxctl-scan
-        - name: bundle
-          value: quay.io/konflux-ci/tekton-catalog/task-roxctl-scan:0.1@sha256:ddd7e8b8578f9266edc044906e438736cb2ad106f45605c93a3fc6a6ff048f3f
-        - name: kind
-          value: task
+          - name: name
+            value: clair-scan
+          - name: bundle
+            value: quay.io/konflux-ci/tekton-catalog/task-clair-scan:0.3@sha256:b01d8e2c58eb407ac23fa07b8e44c4631f0cf7257e87507c829fa2486aff9804
+          - name: kind
+            value: task
         resolver: bundles
       timeout: 20m
       when:
@@ -938,12 +938,12 @@ spec:
         - build-image-index-bundle
       taskRef:
         params:
-        - name: name
-          value: roxctl-scan
-        - name: bundle
-          value: quay.io/konflux-ci/tekton-catalog/task-roxctl-scan:0.1@sha256:ddd7e8b8578f9266edc044906e438736cb2ad106f45605c93a3fc6a6ff048f3f
-        - name: kind
-          value: task
+          - name: name
+            value: clair-scan
+          - name: bundle
+            value: quay.io/konflux-ci/tekton-catalog/task-clair-scan:0.3@sha256:b01d8e2c58eb407ac23fa07b8e44c4631f0cf7257e87507c829fa2486aff9804
+          - name: kind
+            value: task
         resolver: bundles
       timeout: 20m
       when:
