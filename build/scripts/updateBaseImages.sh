@@ -52,7 +52,7 @@ SOURCES_BRANCH=${SCRIPTS_BRANCH}
 
 SCRIPT_DIR=$(cd "$(dirname "$0")" || exit; pwd)
 
-DOCKERFILE="Dockerfile"
+DOCKERFILE="Dockerfile Containerfile"
 MAXDEPTH=2
 PR_BRANCH="chore/automated-update-base-images-$(date +%s)"
 docommit=1 # by default DO commit the change
@@ -67,8 +67,8 @@ red="\033[1;31m"
 
 checkrecentupdates () {
 	# set +e
-	for d in $(find "${WORKDIR}/" -maxdepth ${MAXDEPTH} -name ${DOCKERFILE} | sort); do
-		pushdir=${d%/${DOCKERFILE}}
+	for d in $(find "${WORKDIR}/" -maxdepth "${MAXDEPTH}" -name "${DOCKERFILE// / -or -name }" | sort); do
+		pushdir=$(dirname "$d")
 		pushd "${pushdir}" >/dev/null
 			last=$(git lg -1 | grep -v days || true)
 			if [[ $last = *[$' \t\n\r']* ]]; then 
@@ -238,7 +238,8 @@ else
 fi
 
 pushedIn=0
-for d in $(find "${WORKDIR}/" -maxdepth "${MAXDEPTH}" -name "${DOCKERFILE}" | sort -r | grep -E -v "${PATH_EXCLUDES}"); do
+
+for d in $(find "${WORKDIR}/" -maxdepth "${MAXDEPTH}" -name "${DOCKERFILE// / -or -name }" | sort -r | grep -E -v "${PATH_EXCLUDES}"); do
 	if [[ -f ${d} ]]; then
 		echo ""
 		echo "# Checking ${d} ..."
@@ -354,10 +355,10 @@ for d in $(find "${WORKDIR}/" -maxdepth "${MAXDEPTH}" -name "${DOCKERFILE}" | so
 								sed -r -i -e "s#( |/)${URL}( |$)#\1${FROMPREFIX}:${LATESTTAG}${LATESTTAGSHA}\2#g" "$d"
 
 								# commit change and push it
-								if [[ -d ${d%%/${DOCKERFILE}} ]]; then pushd "${d%%/${DOCKERFILE}}" >/dev/null; pushedIn=1; fi
+								ddir=$(dirname "$d"); if [[ -d ${ddir} ]]; then pushd "${ddir}" >/dev/null; pushedIn=1; fi
 								if [[ ${docommit} -eq 1 ]]; then 
-									git add "${DOCKERFILE}" || true
-									git commit -s -m "chore: update $SOURCES_BRANCH to ${FROMPREFIX}:${LATESTTAG} from ${URL%%@sha256:*} [skip-build] [skip-e2e]" "${DOCKERFILE}" 2>&1 || true
+									git add "$(basename "$d")" || true
+									git commit -s -m "chore: update $SOURCES_BRANCH to ${FROMPREFIX}:${LATESTTAG} from ${URL%%@sha256:*} [skip-build] [skip-e2e]" "$(basename "$d")" 2>&1 || true
 									if [[ ${dopronly} -eq 1 ]]; then
 										createPr "${PR_BRANCH}" "${SOURCES_BRANCH}"
 									else
