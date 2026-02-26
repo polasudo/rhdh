@@ -82,71 +82,62 @@ get_chart_hub_digest() {
         # fallback for skopeo layouts that use algo/hash folders
         chart_layer_blob="${tmpdir}/${chart_layer_digest/:/\/}"
     fi
-    local digest_hex
-    digest_hex=$(python3 - "${chart_layer_blob}" <<'PY'
-import re
-import sys
-import tarfile
-
-blob_path = sys.argv[1]
-
-def clean(v):
-    return v.strip().strip('"').strip("'")
-
-with tarfile.open(blob_path, "r:gz") as tf:
-    values_members = [m for m in tf.getmembers() if m.name.endswith("/values.yaml") or m.name == "values.yaml"]
-    if not values_members:
-        sys.exit(1)
-    values_members.sort(key=lambda m: len(m.name))
-    content = tf.extractfile(values_members[0]).read().decode("utf-8", errors="ignore")
-
-path = []
-registry = None
-repository = None
-tag = None
-
-for raw_line in content.splitlines():
-    line = raw_line.split("#", 1)[0].rstrip()
-    if not line.strip():
-        continue
-    match = re.match(r"^(\s*)([A-Za-z0-9_.-]+):\s*(.*)$", line)
-    if not match:
-        continue
-    spaces, key, value = match.groups()
-    depth = len(spaces) // 2
-    path = path[:depth]
-    path.append(key)
-    path_str = "/".join(path)
-    val = clean(value)
-    if path_str == "upstream/backstage/image/registry" and val:
-        registry = val
-    elif path_str == "upstream/backstage/image/repository" and val:
-        repository = val
-    elif path_str == "upstream/backstage/image/tag" and val:
-        tag = val
-
-if not repository:
-    sys.exit(2)
-
-if "@sha256:" in repository:
-    digest = repository.split("@sha256:", 1)[1]
-elif repository.endswith("@sha256") and tag:
-    digest = tag
-else:
-    # Fall back to digest in tag if present as sha256:<hex>
-    digest = tag.split("sha256:", 1)[1] if tag and "sha256:" in tag else ""
-
-digest = digest.strip()
-if not re.fullmatch(r"[a-f0-9]{64}", digest):
-    sys.exit(3)
-print(digest)
-PY
-)
-    local rc=$?
-    rm -rf "${tmpdir}" >/dev/null 2>&1 || true
-    if [[ $rc -ne 0 || -z "${digest_hex}" ]]; then
+    local values_member
+    values_member=$(tar -tzf "${chart_layer_blob}" | awk '/(^|\/)values\.yaml$/ { print; exit }')
+    if [[ -z "${values_member}" ]]; then
+        rm -rf "${tmpdir}" >/dev/null 2>&1 || true
         return 1
     fi
+
+    local parsed repo_tag repository tag digest_hex rc
+    parsed=$(tar -xOf "${chart_layer_blob}" "${values_member}" 2>/dev/null | awk '
+function trim(v) {
+    gsub(/^[[:space:]"'"'"'"'"'"']+|[[:space:]"'"'"'"'"'"']+$/, "", v)
+    return v
+}
+{
+    line=$0
+    sub(/[[:space:]]*#.*/, "", line)
+    if (line ~ /^[[:space:]]*$/) next
+    if (match(line, /^([[:space:]]*)([A-Za-z0-9_.-]+):[[:space:]]*(.*)$/, m)) {
+        level=int(length(m[1]) / 2)
+        key=m[2]
+        val=trim(m[3])
+        path[level]=key
+        for (i=level+1; i<12; i++) delete path[i]
+        path_str=path[0]
+        for (i=1; i<=level; i++) path_str=path_str "/" path[i]
+        if (path_str=="upstream/backstage/image/repository" && val!="") repository=val
+        if (path_str=="upstream/backstage/image/tag" && val!="") tag=val
+    }
+}
+END {
+    if (repository=="") exit 2
+    printf "%s\t%s\n", repository, tag
+}')
+    rc=$?
+    if [[ $rc -ne 0 || -z "${parsed}" ]]; then
+        rm -rf "${tmpdir}" >/dev/null 2>&1 || true
+        return 1
+    fi
+
+    IFS=$'\t' read -r repository tag <<< "${parsed}"
+    if [[ "${repository}" == *"@sha256:"* ]]; then
+        digest_hex="${repository##*@sha256:}"
+    elif [[ "${repository}" == *"@sha256" ]] && [[ -n "${tag}" ]]; then
+        digest_hex="${tag#sha256:}"
+    elif [[ "${tag}" == *"sha256:"* ]]; then
+        digest_hex="${tag##*sha256:}"
+    else
+        digest_hex=""
+    fi
+
+    if [[ ! "${digest_hex}" =~ ^[a-f0-9]{64}$ ]]; then
+        rm -rf "${tmpdir}" >/dev/null 2>&1 || true
+        return 1
+    fi
+
+    rm -rf "${tmpdir}" >/dev/null 2>&1 || true
     echo "${digest_hex}"
 }
 
