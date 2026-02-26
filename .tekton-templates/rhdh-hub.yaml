@@ -33,8 +33,7 @@ spec:
       value: "false"
     - name: hermetic
       value: "true"
-    - name: rebuild
-      value: "false"
+
     - name: build-source-image
       value: "true"
     - name: build-image-index

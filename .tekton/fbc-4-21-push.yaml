@@ -92,10 +92,7 @@ spec:
         path-context
       name: dockerfile
       type: string
-    - default: "false"
-      description: Force rebuild image
-      name: rebuild
-      type: string
+
     - default: "false"
       description: Skip checks against built image
       name: skip-checks
@@ -135,19 +132,12 @@ spec:
       value: $(tasks.clone-repository.results.commit)
     tasks:
     - name: init
-      params:
-      - name: image-url
-        value: $(params.output-image)
-      - name: rebuild
-        value: $(params.rebuild)
-      - name: skip-checks
-        value: $(params.skip-checks)
       taskRef:
         params:
         - name: name
           value: init
         - name: bundle
-          value: quay.io/konflux-ci/tekton-catalog/task-init:0.2@sha256:a482890d072df3aff9cf5db0ff2b9ec04fa6bb006cfd9da9817805fdd11a73f5
+          value: quay.io/konflux-ci/tekton-catalog/task-init:0.3@sha256:aa6f8632cc23d605c5942505ff1d00280db16a6fda5c4c56c4ed9ae936b5fbc6
         - name: kind
           value: task
         resolver: bundles
@@ -168,11 +158,6 @@ spec:
         - name: kind
           value: task
         resolver: bundles
-      when:
-      - input: $(tasks.init.results.build)
-        operator: in
-        values:
-        - "true"
       workspaces:
       - name: output
         workspace: workspace
@@ -199,15 +184,10 @@ spec:
         - name: name
           value: buildah
         - name: bundle
-          value: quay.io/konflux-ci/tekton-catalog/task-buildah:0.8@sha256:aa06bc11177b4d94ef50a3d2a45f79b7a0429ebf98210729063dc5ab37be7c22
+          value: quay.io/konflux-ci/tekton-catalog/task-buildah:0.9@sha256:9b7192920ae0f772712f42de592f20b7779bf2b88c0ae5f0b1aaf6ad1095b8d4
         - name: kind
           value: task
         resolver: bundles
-      when:
-      - input: $(tasks.init.results.build)
-        operator: in
-        values:
-        - "true"
       workspaces:
       - name: source
         workspace: workspace
@@ -235,11 +215,6 @@ spec:
         - name: kind
           value: task
         resolver: bundles
-      when:
-      - input: $(tasks.init.results.build)
-        operator: in
-        values:
-        - "true"
     - name: deprecated-base-image-check
       params:
       - name: IMAGE_URL
