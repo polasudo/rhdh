@@ -2,24 +2,32 @@
 # This file defines OCP version settings shared between renderCatalogs.sh and kfuxRelease.sh
 
 # Base version from which to render catalogs (used by renderCatalogs.sh)
-OCP_VERSION_BASE: "4.16"
+# maintenance ends Aug 25 2026 (extendable to Feb 25 2027 and Feb 25 2028)
+OCP_VERSION_BASE: "4.18"
 
 # Currently supported versions (used by both scripts)
+# see EOL dates at https://access.redhat.com/support/policy/updates/openshift#dates
 SUPPORTED_VERSIONS:
-  - "4.17"
-  - "4.18"
+  # maintenance ends Dec 17 2026
   - "4.19"
+  # maintenance ends Apr 21 2027 (extendable to Oct 21 2027 and Oct 21 2028)
   - "4.20"
+  # maintenance ends Aug 03 2027
+  - "4.21"
 
 # future OCP version for which we need to test building FBCs, but NOT publish them with kfuxRelease.sh
-OCP_VERSION_NEXT: "4.21"
+OCP_VERSION_NEXT: "4.22"
 
 UNSUPPORTED_VERSIONS:
+  # maintenance ends Apr 1 2026
+  - "4.17"
+# maintenance ends December 27, 2025 (extendable to June 27, 2026 and June 27, 2027)
+  - "4.16"
+# EOL
   - "4.15"
-  
+
 # Registry configurations
 REGISTRIES:
   RHEL9_REGISTRY: "registry.redhat.io/openshift4/ose-operator-registry-rhel9"
   BREW_REGISTRY: "brew.registry.redhat.io/rh-osbs/openshift-ose-operator-registry-rhel9"
   RHEL8_REGISTRY: "registry.redhat.io/openshift4/ose-operator-registry"
-
