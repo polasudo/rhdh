@@ -386,13 +386,28 @@ git checkout rhdh-1.y-rhel-9
 * **FBCs** are not supported on the RHEC Stage instance link:https://gitlab.cee.redhat.com/releng/konflux-release-data/-/merge_requests/3947[if the production policy is in effect]. See link:https://redhat-internal.slack.com/archives/C06RBUP0M2Q/p1737051256060019[this thread]. Because of this, there is no value in trying to push FBCs to stage prior to GA day. 
 ====
 +
-. **IMPORTANT!** Once run, you can check for CHI grades in Comet - if you see anything lower than A, review the base images, RPM lock files, and fixable CVEs before announcing this RC is ready.
+. **IMPORTANT!** Once run, perform the following checks before announcing this RC is ready:
++
+*Check CHI grades in Comet for images you have pushed to stage.* If you see anything lower than A, investigate and fix base images, RPM lock files, or fixable CVEs.
 +
 * https://comet.stage.engineering.redhat.com/containers/repositories/645be66cb272ea332e3abd62 (hub)
 * https://comet.stage.engineering.redhat.com/containers/repositories/64bff10ca2cf791704ccb4c6 (operator)
 * https://comet.stage.engineering.redhat.com/containers/repositories/64bff10da2cf791704ccb4cf (operator-bundle)
 +
 image::images/comet-chi-review.png[Search in comet.stage to see what CHI grades will be applied pushed to production]
++
+*Additional manual verification (do not rely on automation alone):*
++
+* *Verify base image and RPM updates.* Do not trust base image or RPM automation blindly; confirm the changes (e.g. in the operator repo) to avoid regressions. See link:https://github.com/redhat-developer/rhdh-operator/pull/2337[this example] of the kind of issue that can slip through, that is, only having ONE base image updated to the latest RHEL version.
+* *Confirm zero CVEs in Konflux.* In the Konflux UI, verify that the builds report a zero count of CVEs.
++
+image::images/konflux-cve-zero.png[Confirm zero CVEs in Konflux, width=50%]
++
+* *Review Konflux clair-scan for fixable CVEs.* Summary icons on the clair-scan task run details page shows fixable CVE status.
++
+image::images/clair-scan-icons.png[Clair-scan summary icons on PLR overview, width=40%]
++
+* *If FBC publishing is blocked in Konflux,* defer fixes and publishing until the next business day rather than rushing; avoid last-minute changes that can introduce new issues.
 +
 . If a second RC build is needed, you can re-run the GL pipeline *_manually_* from the link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/pipeline_schedules[pipeline_schedules] page, if you don't want to re-enable it. Note that you'll have to manually run the pipeline TWICE - first to pick up new commits for hub and operator builds, then a second time for bundle and FBC builds.
 +
