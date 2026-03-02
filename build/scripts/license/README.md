@@ -1,72 +1,95 @@
 # SBOM License Checker
 
-A tool to analyze the licenses of components listed in a Software Bill of Materials (SBOM) generated from a container image, identifying any that are not approved by Fedora standards.
+A tool to analyze the licenses of components listed in a Software Bill of Materials (SBOM) generated from RHDH container images, identifying any that are not approved by Fedora standards.
 
 ## Overview
 
 This project includes a Bash script and a Node.js tool:
 
-1. `generateSBOM.sh`: Pulls the container image, generates an SBOM using `syft`, and saves it as a `.json` file.
-2. `licenseCheck.js`: Analyzes the SBOM JSON file and checks the licenses against the approved licenses list from Fedora License Data.
+1. `generateSBOM.sh`: Pulls container images, generates SBOMs using `syft`, and saves them as `.json` files. Supports generating SBOMs for both the RHDH hub image and all plugin images listed in a catalog-index.
+2. `licenseCheck.js`: Analyzes SBOM JSON files and checks the licenses against the approved licenses list from Fedora License Data. Supports checking a single file or an entire directory of SBOMs.
 
 ## Prerequisites
 
 - `generateSBOM.sh`:
   - `podman` for container management
   - `syft` for generating the SBOM
+  - `jq` for parsing the catalog-index (only required when using `--catalog-index`)
 - `licenseCheck.js`:
   - Node.js (v18 or later)
 
 ## Usage
 
-### Step 1: Generate the SBOM
-
-Use the Bash script to pull a container image and generate its SBOM in CycloneDX JSON format.
+### Step 1: Generate the SBOM(s)
 
 ```bash
-./generateSBOM.sh <full_image_name>
+./generateSBOM.sh [OPTIONS]
 ```
 
-- `<full_image_name>`: The full name of the container image (e.g., `registry.redhat.io/rhdh/rhdh-hub-rhel9:1.3-100`).
+| Flag | Description |
+|---|---|
+| `--image <ref>` | RHDH hub image reference |
+| `--catalog-index <ref>` | Plugin catalog-index image reference |
+| `--output-dir <path>` | Directory for generated SBOMs (default: `./sboms`) |
+| `--help` | Show help message |
 
-The script will:
+At least one of `--image` or `--catalog-index` must be provided. Both can be used together.
 
-1. Pull the specified container image.
-2. Extract its ID.
-3. Save the image to a `.tar` file.
-4. Generate an SBOM in CycloneDX JSON format.
+When `--catalog-index` is provided, the script pulls the `catalog-index` image, extracts its `index.json`, and generates an CycloneDX JSON formatted SBOM for every plugin listed via the `registryReference` fields in the `index.json`. It will use the `quay.io/rhdh` mirror for the plugins instead of the `registry.access.redhat.com/rhdh` registry due to the plugins not being available until AFTER GA.
 
-### Step 2: Analyze the SBOM
+### Step 2: Analyze the SBOM(s)
 
-Run the Node.js script to analyze the SBOM for unapproved licenses.
+Run the Node.js script to analyze a single SBOM for unapproved licenses.
 
-- `<path/to/sbom.json>`: Path to the generated SBOM JSON file from Step 1.
-- `<path/to/older-sbom.json>`: Optional path to a baseline SBOM JSON file for comparison.
+```bash
+node licenseCheck --sbom <path/to/sbom.json> [--baselineSBOM <path/to/older-sbom.json>]
+```
+
+Check all SBOMs in a directory:
+
+```bash
+node licenseCheck --sbom-dir <directory>
+```
+
+| Flag | Description |
+|---|---|
+| `--sbom <path>` | Path to a single SBOM JSON file |
+| `--sbom-dir <path>` | Directory containing `*.sbom.json` files |
+| `--baselineSBOM <path>` | Optional baseline SBOM for comparison (only with `--sbom`) |
+
+Note: `--sbom-dir` and `--sbom` arguments are mutually exclusive. `--baselineSBOM` is only supported with `--sbom`.
 
 ### Example Workflow
 
-1. Generate the SBOM:
+1. Generate SBOMs for the hub image and all catalog-index plugins:
 
-    ```bash
-    ./generateSBOM.sh registry.redhat.io/rhdh/rhdh-hub-rhel9:1.3-100
-    ```
+  ```bash
+  ./generateSBOM.sh \
+    --image registry.redhat.io/rhdh/rhdh-hub-rhel9:1.10 \
+    --catalog-index quay.io/rhdh/plugin-catalog-index:1.10 \
+    --output-dir ./sboms
+  ```
 
-    This will create a file named `rhdh-hub-rhel9-1.3-100.sbom.json`.
+1. Check all generated SBOMs for unapproved licenses:
 
-2. Analyze the SBOM:
+```bash
+node licenseCheck --sbom-dir ./sboms
+```
 
-    ```bash
-    node licenseCheck --sbom rhdh-hub-rhel9-1.3-100.sbom.json
-    ```
+If all licenses are approved licenses from Fedora, the script outputs:
 
-    This will check the licenses in the SBOM against the approved licenses from Fedora.
+```
+No components with unapproved licenses found.
+```
 
-3. Parsing the results
-  
-    If the script successfully verified all licenses are approved, it should output:
+When using `--sbom-dir`, a summary is printed at the end. The following example includes an unapproved license:
 
-    ```bash
-    No components with unapproved licenses found.
-    ```
+```
+=== Summary ===
+Total SBOMs checked: 87
+  Passed: 85
+  Failed: 2
 
-    Otherwise, it will generate a table containing the component name, package url, license and location of every package with an unapproved license.
+--- backstage-community-plugin-foo.sbom.json (1 unapproved) ---
+  - problematic-pkg@2.0.0    License: BCL
+```
