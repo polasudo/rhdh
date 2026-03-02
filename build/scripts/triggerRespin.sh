@@ -106,7 +106,8 @@ if [[ $targets == "bun" ]] && [[ $KONFLUX_ONLY -eq 0 ]]; then
             latestNext="--latest"
         fi
     fi
-    "${SCRIPT_DIR}/../ci/sync-midstream.sh" --bundleonly --force $latestNext -b "${MIDSTM_BRANCH}" "${GITLAB_PIPELINE_FLAG}"
+    # shellcheck disable=SC2086
+    "${SCRIPT_DIR}/../ci/sync-midstream.sh" --bundleonly --force $latestNext -b ${MIDSTM_BRANCH} ${GITLAB_PIPELINE_FLAG} && \
     openURL "https://konflux-ui.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/ns/rhdh-tenant/applications/rhdh-${BRANCH/./-}/activity/pipelineruns?name=rhdh-operator-bundle"
 else
     if [[ $targets == *","* ]]; then
