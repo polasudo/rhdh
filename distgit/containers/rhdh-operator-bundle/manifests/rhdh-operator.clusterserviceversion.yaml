@@ -38,7 +38,7 @@ metadata:
     capabilities: Seamless Upgrades
     categories: Developer Tools
     certified: "true"
-    containerImage: registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:ecdc2c870b6768d9d20ef8034cf851e70f08a95085f858fbbf5425f4706ab35e
+    containerImage: registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:525bb00a1a91c4868098d07236eabb0dd6e10cd94fca1702251089c277eaed42
     createdAt: "2026-02-13T10:53:47Z"
     description: Red Hat Developer Hub is a Red Hat supported version of Backstage.
       It comes with pre-built plug-ins and configuration settings, supports use of
@@ -346,8 +346,8 @@ spec:
                 - name: RELATED_IMAGE_backstage
                   value: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:6c646ce1a13da511be266695822248b9ac9ae920e793e65b32323128ba6cfc08
                 - name: RELATED_IMAGE_catalog_index
-                  value: registry.redhat.io/rhdh/plugin-catalog-index@sha256:7b7d70323b1277670adf9c86112baf62c59d1c80004b298e7e19248bb522060f
-                image: registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:ecdc2c870b6768d9d20ef8034cf851e70f08a95085f858fbbf5425f4706ab35e
+                  value: registry.redhat.io/rhdh/plugin-catalog-index@sha256:87c28badae90fdf8a8d176e92ded56f05acd057654f4e3db900e9fb3d5b375f9
+                image: registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:525bb00a1a91c4868098d07236eabb0dd6e10cd94fca1702251089c277eaed42
                 livenessProbe:
                   httpGet:
                     path: /healthz
@@ -468,7 +468,7 @@ spec:
     name: postgresql
   - image: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:6c646ce1a13da511be266695822248b9ac9ae920e793e65b32323128ba6cfc08
     name: backstage
-  - image: registry.redhat.io/rhdh/plugin-catalog-index@sha256:7b7d70323b1277670adf9c86112baf62c59d1c80004b298e7e19248bb522060f
+  - image: registry.redhat.io/rhdh/plugin-catalog-index@sha256:87c28badae90fdf8a8d176e92ded56f05acd057654f4e3db900e9fb3d5b375f9
     name: catalog-index
   replaces: rhdh-operator.v1.9.0
   version: 1.10.0
