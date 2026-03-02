@@ -171,6 +171,7 @@ if [[ -n "${CHART_IMAGE}" && "${CHART_IMAGE}" != *":???" && -n "${BUNDLE_IMAGE}"
 
     # The chart tag encodes the hub build number (e.g. chart tag "1.9-200" → hub tag "1.9-200")
     chart_hub_tag="${CHART_IMAGE##*:}"
+    chart_hub_tag="${chart_hub_tag%-CI}"
     bundle_hub_tag="$(get_bundle_hub_tag "${BUNDLE_IMAGE}")"
     # Strip repository prefix if getTagForSHA returned "repo:tag" format
     bundle_hub_tag="${bundle_hub_tag##*:}"
