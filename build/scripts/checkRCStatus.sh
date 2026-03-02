@@ -53,92 +53,22 @@ green="\033[1;32m"
 blue="\033[1;34m"
 red="\033[1;31m"
 
-# Extract SHA256 digest hex from image reference like repo@sha256:<hex>
-extract_digest_hex() {
-    local image_ref="$1"
-    echo "$image_ref" | sed -nE 's#.*@sha256:([a-f0-9]+).*#\1#p'
-}
-
-# Read image digest from an OCI chart artifact values.yaml
-get_chart_hub_digest() {
-    local chart_image="$1"
-    local tmpdir
-    tmpdir=$(mktemp -d)
-
-    if ! skopeo copy "docker://${chart_image}" "dir:${tmpdir}" >/dev/null 2>&1; then
-        rm -rf "${tmpdir}" >/dev/null 2>&1 || true
+# Resolve the hub image tag from a bundle's pinned digest using getTagForSHA.sh.
+# Given a bundle image, extract its RELATED_IMAGE for rhdh-hub-rhel9 (a digest),
+# then convert that digest to a human-readable tag like "1.9-200".
+get_bundle_hub_tag() {
+    local bundle_image="$1"
+    local hub_digest_ref
+    hub_digest_ref="$("${SCRIPTPATH}/checkImagesInCSV.sh" -y --digests -qq -i "rhdh-hub-rhel9" "${bundle_image}" | head -n1)"
+    if [[ -z "${hub_digest_ref}" ]]; then
         return 1
     fi
-
-    local chart_layer_digest
-    chart_layer_digest=$(jq -r '[.layers[] | select(.mediaType=="application/vnd.cncf.helm.chart.content.v1.tar+gzip") | .digest][0]' "${tmpdir}/manifest.json")
-    if [[ -z "${chart_layer_digest}" || "${chart_layer_digest}" == "null" ]]; then
-        rm -rf "${tmpdir}" >/dev/null 2>&1 || true
+    local hub_tag
+    hub_tag="$("${SCRIPTPATH}/getTagForSHA.sh" -q -y "${hub_digest_ref}")"
+    if [[ -z "${hub_tag}" || "${hub_tag}" == "Not found" ]]; then
         return 1
     fi
-
-    local chart_layer_blob="${tmpdir}/${chart_layer_digest#*:}"
-    if [[ ! -f "${chart_layer_blob}" ]]; then
-        # fallback for skopeo layouts that use algo/hash folders
-        chart_layer_blob="${tmpdir}/${chart_layer_digest/:/\/}"
-    fi
-    local values_member
-    values_member=$(tar -tzf "${chart_layer_blob}" | awk '/(^|\/)values\.yaml$/ { print; exit }')
-    if [[ -z "${values_member}" ]]; then
-        rm -rf "${tmpdir}" >/dev/null 2>&1 || true
-        return 1
-    fi
-
-    local parsed repo_tag repository tag digest_hex rc
-    parsed=$(tar -xOf "${chart_layer_blob}" "${values_member}" 2>/dev/null | awk '
-function trim(v) {
-    gsub(/^[[:space:]"'"'"'"'"'"']+|[[:space:]"'"'"'"'"'"']+$/, "", v)
-    return v
-}
-{
-    line=$0
-    sub(/[[:space:]]*#.*/, "", line)
-    if (line ~ /^[[:space:]]*$/) next
-    if (match(line, /^([[:space:]]*)([A-Za-z0-9_.-]+):[[:space:]]*(.*)$/, m)) {
-        level=int(length(m[1]) / 2)
-        key=m[2]
-        val=trim(m[3])
-        path[level]=key
-        for (i=level+1; i<12; i++) delete path[i]
-        path_str=path[0]
-        for (i=1; i<=level; i++) path_str=path_str "/" path[i]
-        if (path_str=="upstream/backstage/image/repository" && val!="") repository=val
-        if (path_str=="upstream/backstage/image/tag" && val!="") tag=val
-    }
-}
-END {
-    if (repository=="") exit 2
-    printf "%s\t%s\n", repository, tag
-}')
-    rc=$?
-    if [[ $rc -ne 0 || -z "${parsed}" ]]; then
-        rm -rf "${tmpdir}" >/dev/null 2>&1 || true
-        return 1
-    fi
-
-    IFS=$'\t' read -r repository tag <<< "${parsed}"
-    if [[ "${repository}" == *"@sha256:"* ]]; then
-        digest_hex="${repository##*@sha256:}"
-    elif [[ "${repository}" == *"@sha256" ]] && [[ -n "${tag}" ]]; then
-        digest_hex="${tag#sha256:}"
-    elif [[ "${tag}" == *"sha256:"* ]]; then
-        digest_hex="${tag##*sha256:}"
-    else
-        digest_hex=""
-    fi
-
-    if [[ ! "${digest_hex}" =~ ^[a-f0-9]{64}$ ]]; then
-        rm -rf "${tmpdir}" >/dev/null 2>&1 || true
-        return 1
-    fi
-
-    rm -rf "${tmpdir}" >/dev/null 2>&1 || true
-    echo "${digest_hex}"
+    echo "${hub_tag}"
 }
 
 # Resolve latest chart image for a given RHDH stream (e.g. 1.9-*)
@@ -227,8 +157,11 @@ IIB_IMAGES="$("${SCRIPTPATH}/checkImagesInIIB.sh" -y -q "quay.io/rhdh/iib:${RHDH
 echo "$IIB_IMAGES"
 echo "============"
 
-# Check chart digest and bundle digest point to same hub image
-echo "[INFO] Compare Helm chart and operator bundle hub image digests"
+# Compare chart and bundle by resolving the hub image tag each references.
+# The chart image tag (e.g. 1.9-200) is directly visible from the chart repo.
+# The bundle pins a hub digest; we convert it to a tag via getTagForSHA.sh
+# and compare the two tags to verify they point to the same build.
+echo "[INFO] Compare Helm chart and operator bundle hub image tags"
 CHART_IMAGE="$(get_latest_chart_image "${RHDH_VERSION}")"
 BUNDLE_IMAGE="$(echo "${CONTAINERS}" | grep "rhdh-operator-bundle" | head -n1)"
 
@@ -236,26 +169,31 @@ if [[ -n "${CHART_IMAGE}" && "${CHART_IMAGE}" != *":???" && -n "${BUNDLE_IMAGE}"
     echo "[INFO] Latest chart image in quay.io : ${CHART_IMAGE}"
     echo "[INFO] Latest operator bundle image in quay.io : ${BUNDLE_IMAGE}"
 
-    chart_hub_digest="$(get_chart_hub_digest "${CHART_IMAGE}")"
-    bundle_hub_image_ref="$("${SCRIPTPATH}/checkImagesInCSV.sh" -y --digests -qq -i "rhdh-hub-rhel9" "${BUNDLE_IMAGE}" | head -n1)"
-    bundle_hub_digest="$(extract_digest_hex "${bundle_hub_image_ref}")"
+    # The chart tag encodes the hub build number (e.g. chart tag "1.9-200" → hub tag "1.9-200")
+    chart_hub_tag="${CHART_IMAGE##*:}"
+    bundle_hub_tag="$(get_bundle_hub_tag "${BUNDLE_IMAGE}")"
+    # Strip repository prefix if getTagForSHA returned "repo:tag" format
+    bundle_hub_tag="${bundle_hub_tag##*:}"
 
-    if [[ -n "${chart_hub_digest}" && -n "${bundle_hub_digest}" ]]; then
-        if [[ "${chart_hub_digest}" == "${bundle_hub_digest}" ]]; then
-            echo -e "${green} Chart and operator bundle use the same RHDH hub digest (${chart_hub_digest})${norm}"
+    if [[ -n "${chart_hub_tag}" && -n "${bundle_hub_tag}" ]]; then
+        if [[ "${chart_hub_tag}" == "${bundle_hub_tag}" ]]; then
+            echo -e "${green} Chart and operator bundle reference the same hub image tag (${chart_hub_tag})${norm}"
         else
-            echo -e "${red} MISMATCH: Chart and operator bundle reference different RHDH hub digests${norm}"
-            echo -e "${red}  Chart digest : ${chart_hub_digest}${norm}"
-            echo -e "${red}  Bundle digest: ${bundle_hub_digest}${norm}"
+            echo -e "${red} MISMATCH: Chart and operator bundle reference different hub image tags${norm}"
+            echo -e "${red}  Chart hub tag : ${chart_hub_tag}${norm}"
+            echo -e "${red}  Bundle hub tag: ${bundle_hub_tag}${norm}"
             echo -e "${blue} Trigger/rebuild bundle and chart so both resolve to the same hub container image.${norm}"
+            exit 1
         fi
     else
-        echo -e "${red} Could not resolve both hub digests for chart/bundle comparison${norm}"
-        echo -e "${blue}  chart digest : ${chart_hub_digest:-<missing>}${norm}"
-        echo -e "${blue}  bundle image : ${bundle_hub_image_ref:-<missing>}${norm}"
+        echo -e "${red} Could not resolve hub image tags for chart/bundle comparison${norm}"
+        echo -e "${blue}  chart hub tag : ${chart_hub_tag:-<missing>}${norm}"
+        echo -e "${blue}  bundle hub tag: ${bundle_hub_tag:-<missing>}${norm}"
+        exit 1
     fi
 else
     echo -e "${red} Could not find latest chart or operator bundle image for ${RHDH_VERSION}${norm}"
+    exit 1
 fi
 echo "============"
 
