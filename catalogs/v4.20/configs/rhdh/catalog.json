@@ -154,8 +154,13 @@
             "skipRange": "<1.8.4"
         },
         {
-            "name": "rhdh-operator.v1.10.0",
+            "name": "rhdh-operator.v1.9.0",
             "replaces": "rhdh-operator.v1.8.4",
+            "skipRange": "<1.9.0"
+        },
+        {
+            "name": "rhdh-operator.v1.10.0",
+            "replaces": "rhdh-operator.v1.9.0",
             "skipRange": "<1.10.0"
         }
     ]
@@ -199,7 +204,7 @@
     "entries": [
         {
             "name": "rhdh-operator.v1.10.0",
-            "replaces": "rhdh-operator.v1.8.4",
+            "replaces": "rhdh-operator.v1.9.0",
             "skipRange": "<1.10.0"
         }
     ]
@@ -402,6 +407,18 @@
             "name": "rhdh-operator.v1.8.4",
             "replaces": "rhdh-operator.v1.8.3",
             "skipRange": "<1.8.4"
+        }
+    ]
+}
+{
+    "schema": "olm.channel",
+    "name": "fast-1.9",
+    "package": "rhdh",
+    "entries": [
+        {
+            "name": "rhdh-operator.v1.9.0",
+            "replaces": "rhdh-operator.v1.8.4",
+            "skipRange": "<1.9.0"
         }
     ]
 }
@@ -1376,7 +1393,7 @@
     "schema": "olm.bundle",
     "name": "rhdh-operator.v1.10.0",
     "package": "rhdh",
-    "image": "quay.io/rhdh/rhdh-operator-bundle@sha256:057597182363d3f4a81461fc58ff77905236b3829444a1d0940ade1daf9e98c3",
+    "image": "quay.io/rhdh/rhdh-operator-bundle@sha256:2496fb0d2434b7a20ea71f011d0478bc59c37ea32d20eb165ef5db8a1966dd5b",
     "properties": [
         {
             "type": "olm.gvk",
@@ -1417,7 +1434,7 @@
                     "capabilities": "Seamless Upgrades",
                     "categories": "Developer Tools",
                     "certified": "true",
-                    "containerImage": "registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:cbd7849eb514330513bf165c436b45ac2ce926006a6dc3942d2feaa20200a31a",
+                    "containerImage": "registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:fde570593d1bdb402acee829362be7bbd50917ad45b69b61f62f6c4e7cac82b3",
                     "createdAt": "2026-02-13T10:53:47Z",
                     "description": "Red Hat Developer Hub is a Red Hat supported version of Backstage. It comes with pre-built plug-ins and configuration settings, supports use of an external database, and can help streamline the process of setting up a self-managed internal developer portal for adopters who are just starting out.",
                     "features.operators.openshift.io/cnf": "false",
@@ -1535,11 +1552,11 @@
     "relatedImages": [
         {
             "name": "",
-            "image": "quay.io/rhdh/rhdh-operator-bundle@sha256:057597182363d3f4a81461fc58ff77905236b3829444a1d0940ade1daf9e98c3"
+            "image": "quay.io/rhdh/rhdh-operator-bundle@sha256:2496fb0d2434b7a20ea71f011d0478bc59c37ea32d20eb165ef5db8a1966dd5b"
         },
         {
             "name": "catalog-index",
-            "image": "registry.redhat.io/rhdh/plugin-catalog-index@sha256:3d555089196cd2070a12d326b48cee61c9fb7467ab68d4f742cbda396a597e06"
+            "image": "registry.access.redhat.com/rhdh/plugin-catalog-index@sha256:bd45b35d5a1e3f0c0e94bfed865336f262ece0d8a85fe86df7795de1ffcb767d"
         },
         {
             "name": "backstage",
@@ -1547,7 +1564,7 @@
         },
         {
             "name": "",
-            "image": "registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:cbd7849eb514330513bf165c436b45ac2ce926006a6dc3942d2feaa20200a31a"
+            "image": "registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:fde570593d1bdb402acee829362be7bbd50917ad45b69b61f62f6c4e7cac82b3"
         },
         {
             "name": "postgresql",
@@ -6405,6 +6422,189 @@
         {
             "name": "",
             "image": "registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:60ec3a609eba48383148c1281feecd9e9355da495c6ba5333c15b403a217a297"
+        },
+        {
+            "name": "postgresql",
+            "image": "registry.redhat.io/rhel9/postgresql-15@sha256:cba1417b7e8a5b55289aa951c48dc940c72ebea5380045f32cd8faba41937f9b"
+        }
+    ]
+}
+{
+    "schema": "olm.bundle",
+    "name": "rhdh-operator.v1.9.0",
+    "package": "rhdh",
+    "image": "registry.redhat.io/rhdh/rhdh-operator-bundle@sha256:be3276aa08b84a3e897b53d27d270285a6a36012ad4444b9ee3ee97a90ab9a1a",
+    "properties": [
+        {
+            "type": "olm.gvk",
+            "value": {
+                "group": "rhdh.redhat.com",
+                "kind": "Backstage",
+                "version": "v1alpha3"
+            }
+        },
+        {
+            "type": "olm.gvk",
+            "value": {
+                "group": "rhdh.redhat.com",
+                "kind": "Backstage",
+                "version": "v1alpha4"
+            }
+        },
+        {
+            "type": "olm.gvk",
+            "value": {
+                "group": "rhdh.redhat.com",
+                "kind": "Backstage",
+                "version": "v1alpha5"
+            }
+        },
+        {
+            "type": "olm.package",
+            "value": {
+                "packageName": "rhdh",
+                "version": "1.9.0"
+            }
+        },
+        {
+            "type": "olm.csv.metadata",
+            "value": {
+                "annotations": {
+                    "alm-examples": "[\n  {\n    \"apiVersion\": \"rhdh.redhat.com/v1alpha3\",\n    \"kind\": \"Backstage\",\n    \"metadata\": {\n      \"labels\": {\n        \"app.kubernetes.io/name\": \"backstage\"\n      },\n      \"name\": \"developer-hub\"\n    }\n  },\n  {\n    \"apiVersion\": \"rhdh.redhat.com/v1alpha4\",\n    \"kind\": \"Backstage\",\n    \"metadata\": {\n      \"labels\": {\n        \"app.kubernetes.io/name\": \"backstage\"\n      },\n      \"name\": \"developer-hub\"\n    }\n  },\n  {\n    \"apiVersion\": \"rhdh.redhat.com/v1alpha5\",\n    \"kind\": \"Backstage\",\n    \"metadata\": {\n      \"labels\": {\n        \"app.kubernetes.io/name\": \"backstage\"\n      },\n      \"name\": \"developer-hub\"\n    }\n  }\n]",
+                    "capabilities": "Seamless Upgrades",
+                    "categories": "Developer Tools",
+                    "certified": "true",
+                    "containerImage": "registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:79ae6bb31acccdadbd287c2a859eea5ab9b71f2347a077bfa0085a7aa537c518",
+                    "createdAt": "2026-02-13T11:35:25Z",
+                    "description": "Red Hat Developer Hub is a Red Hat supported version of Backstage. It comes with pre-built plug-ins and configuration settings, supports use of an external database, and can help streamline the process of setting up a self-managed internal developer portal for adopters who are just starting out.",
+                    "features.operators.openshift.io/cnf": "false",
+                    "features.operators.openshift.io/cni": "false",
+                    "features.operators.openshift.io/csi": "false",
+                    "features.operators.openshift.io/disconnected": "true",
+                    "features.operators.openshift.io/fips-compliant": "false",
+                    "features.operators.openshift.io/proxy-aware": "false",
+                    "features.operators.openshift.io/tls-profiles": "false",
+                    "features.operators.openshift.io/token-auth-aws": "false",
+                    "features.operators.openshift.io/token-auth-azure": "false",
+                    "features.operators.openshift.io/token-auth-gcp": "false",
+                    "operatorframework.io/suggested-namespace": "rhdh-operator",
+                    "operators.openshift.io/valid-subscription": "[\"Red Hat Developer Hub\"]",
+                    "operators.operatorframework.io/builder": "operator-sdk-v1.37.0",
+                    "operators.operatorframework.io/project_layout": "go.kubebuilder.io/v4",
+                    "repository": "https://gitlab.cee.redhat.com/rhidp/rhdh/",
+                    "skipRange": ">=1.0.0 <1.9.0",
+                    "support": "Red Hat"
+                },
+                "apiServiceDefinitions": {},
+                "crdDescriptions": {
+                    "owned": [
+                        {
+                            "name": "backstages.rhdh.redhat.com",
+                            "version": "v1alpha3",
+                            "kind": "Backstage",
+                            "displayName": "Red Hat Developer Hub",
+                            "description": "Backstage is the Schema for the Red Hat Developer Hub backstages API.\nIt comes with pre-built plug-ins, configuration settings, and deployment mechanisms,\nwhich can help streamline the process of setting up a self-managed internal\ndeveloper portal for adopters who are just starting out."
+                        },
+                        {
+                            "name": "backstages.rhdh.redhat.com",
+                            "version": "v1alpha4",
+                            "kind": "Backstage",
+                            "displayName": "Red Hat Developer Hub",
+                            "description": "Backstage is the Schema for the Red Hat Developer Hub backstages API.\nIt comes with pre-built plug-ins, configuration settings, and deployment mechanisms,\nwhich can help streamline the process of setting up a self-managed internal\ndeveloper portal for adopters who are just starting out."
+                        },
+                        {
+                            "name": "backstages.rhdh.redhat.com",
+                            "version": "v1alpha5",
+                            "kind": "Backstage",
+                            "displayName": "Red Hat Developer Hub",
+                            "description": "Backstage is the Schema for the Red Hat Developer Hub backstages API.\nIt comes with pre-built plug-ins, configuration settings, and deployment mechanisms,\nwhich can help streamline the process of setting up a self-managed internal\ndeveloper portal for adopters who are just starting out."
+                        }
+                    ]
+                },
+                "description": "Red Hat Developer Hub is an enterprise-grade platform for building developer portals, containing a supported and opinionated framework. It comes with pre-built plug-ins and configuration settings, supports use of an external database, and can help streamline the process of setting up a self-managed internal developer portal for adopters who are just starting out. By implementing a unified and open platform designed to maximize developer skills, ease onboarding, and increase development productivity, focus can be centered on what really matters: writing great code. Red Hat Developer Hub also offers Software Templates to simplify the development process, which can reduce friction and frustration for development teams, boosting their productivity and increasing an organization's competitive advantage.\n\nSystem Architects can benefit by implementing a tailored platform with a complementary suite of verified and curated tools and components needed for operations teams to support developers—within a centralized, consistent location. Development teams can experience increased productivity, fewer development team obstacles, and simplified governance of technology choices with self-service and guardrails.\n\n## Telemetry data collection\n\nThe telemetry data collection feature is enabled by default. Red Hat Developer Hub sends telemetry data to Red Hat by using the `backstage-plugin-analytics-provider-segment` plugin. To disable this and to learn what data is being collected, see [Red Hat Developer Hub documentation on telemetry data collection](https://access.redhat.com/documentation/en-us/red_hat_developer_hub/1.9/html-single/administration_guide_for_red_hat_developer_hub/index#assembly-rhdh-telemetry_admin-rhdh).\n\n## More Information\n\n* [Red Hat Developer Hub Product Page](https://www.redhat.com/en/technologies/cloud-computing/developer-hub)\n* [Product Documentation](https://access.redhat.com/documentation/en-us/red_hat_developer_hub)\n* [Life Cycle](https://access.redhat.com/node/7025299)\n* [Support Policies](https://access.redhat.com/policy/developerhub-support-policy)\n* [Configuring external PostgreSQL databases](https://docs.redhat.com/en/documentation/red_hat_developer_hub/1.3/html/administration_guide_for_red_hat_developer_hub/assembly-configuring-external-postgresql-databases#assembly-configuring-external-postgresql-databases)\n",
+                "displayName": "Red Hat Developer Hub Operator",
+                "installModes": [
+                    {
+                        "type": "OwnNamespace",
+                        "supported": false
+                    },
+                    {
+                        "type": "SingleNamespace",
+                        "supported": false
+                    },
+                    {
+                        "type": "MultiNamespace",
+                        "supported": false
+                    },
+                    {
+                        "type": "AllNamespaces",
+                        "supported": true
+                    }
+                ],
+                "keywords": [
+                    "Backstage",
+                    "RHDH"
+                ],
+                "labels": {
+                    "operatorframework.io/arch.amd64": "supported",
+                    "operatorframework.io/arch.arm64": "unsupported",
+                    "operatorframework.io/arch.ppc64le": "unsupported",
+                    "operatorframework.io/arch.s390x": "unsupported",
+                    "operatorframework.io/os.linux": "supported"
+                },
+                "links": [
+                    {
+                        "name": "Product Page",
+                        "url": "https://developers.redhat.com/products/developer-hub/overview/"
+                    },
+                    {
+                        "name": "Documentation",
+                        "url": "https://access.redhat.com/documentation/en-us/red_hat_developer_hub"
+                    },
+                    {
+                        "name": "Life Cycle",
+                        "url": "https://access.redhat.com/node/7025299"
+                    },
+                    {
+                        "name": "Support Policies",
+                        "url": "https://access.redhat.com/policy/developerhub-support-policy"
+                    },
+                    {
+                        "name": "Sources",
+                        "url": "https://github.com/redhat-developer/rhdh-operator"
+                    }
+                ],
+                "maintainers": [
+                    {
+                        "name": "Red Hat Developer Hub Team",
+                        "email": "rhdh-notifications@redhat.com"
+                    }
+                ],
+                "maturity": "alpha",
+                "minKubeVersion": "1.25.0",
+                "provider": {
+                    "name": "Red Hat Inc.",
+                    "url": "https://www.redhat.com/"
+                }
+            }
+        }
+    ],
+    "relatedImages": [
+        {
+            "name": "catalog-index",
+            "image": "registry.redhat.io/rhdh/plugin-catalog-index@sha256:1026e4c63ed82cbe546dae87d516e2db71b590a1b59ee62c73674a535e826070"
+        },
+        {
+            "name": "backstage",
+            "image": "registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:3beaf864dc723f22336e26c75f45edcaeeaebc54bb1f848c8c9d363b48ce4d6a"
+        },
+        {
+            "name": "",
+            "image": "registry.redhat.io/rhdh/rhdh-operator-bundle@sha256:be3276aa08b84a3e897b53d27d270285a6a36012ad4444b9ee3ee97a90ab9a1a"
+        },
+        {
+            "name": "",
+            "image": "registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:79ae6bb31acccdadbd287c2a859eea5ab9b71f2347a077bfa0085a7aa537c518"
         },
         {
             "name": "postgresql",
