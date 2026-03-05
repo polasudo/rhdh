@@ -38,7 +38,7 @@ metadata:
     capabilities: Seamless Upgrades
     categories: Developer Tools
     certified: "true"
-    containerImage: registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:cbd7849eb514330513bf165c436b45ac2ce926006a6dc3942d2feaa20200a31a
+    containerImage: registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:fde570593d1bdb402acee829362be7bbd50917ad45b69b61f62f6c4e7cac82b3
     createdAt: "2026-02-13T10:53:47Z"
     description: Red Hat Developer Hub is a Red Hat supported version of Backstage.
       It comes with pre-built plug-ins and configuration settings, supports use of
@@ -346,8 +346,8 @@ spec:
                 - name: RELATED_IMAGE_backstage
                   value: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:75de316851a959e4f396242705b81d44ed25128f6c17e56418947125dfef01fe
                 - name: RELATED_IMAGE_catalog_index
-                  value: registry.redhat.io/rhdh/plugin-catalog-index@sha256:3d555089196cd2070a12d326b48cee61c9fb7467ab68d4f742cbda396a597e06
-                image: registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:cbd7849eb514330513bf165c436b45ac2ce926006a6dc3942d2feaa20200a31a
+                  value: registry.access.redhat.com/rhdh/plugin-catalog-index@sha256:bd45b35d5a1e3f0c0e94bfed865336f262ece0d8a85fe86df7795de1ffcb767d
+                image: registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:fde570593d1bdb402acee829362be7bbd50917ad45b69b61f62f6c4e7cac82b3
                 livenessProbe:
                   httpGet:
                     path: /healthz
@@ -468,7 +468,7 @@ spec:
     name: postgresql
   - image: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:75de316851a959e4f396242705b81d44ed25128f6c17e56418947125dfef01fe
     name: backstage
-  - image: registry.redhat.io/rhdh/plugin-catalog-index@sha256:3d555089196cd2070a12d326b48cee61c9fb7467ab68d4f742cbda396a597e06
+  - image: registry.access.redhat.com/rhdh/plugin-catalog-index@sha256:bd45b35d5a1e3f0c0e94bfed865336f262ece0d8a85fe86df7795de1ffcb767d
     name: catalog-index
   replaces: rhdh-operator.v1.9.0
   version: 1.10.0
