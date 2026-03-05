@@ -550,8 +550,10 @@ for ((i = START_REPO; i < NUM_REPOS; i++)); do # echo $i
                   echo -e "${red}[ERROR] Could not compute digest for $imageAndSHA or $imageFloatingTag ! ${norm}"; exit 1
                 fi
               done
+              # RHDHBUGS-2767: pull plugin-catalog-index from unauthenticated registry; others from auth'd registry
               sed -i $yml -r \
                   -e "s@registry-proxy.engineering.redhat.com/rh-osbs/([^-]+)-(.+)@registry.redhat.io/\1/\2@g" \
+                  -e "s@quay.io/rhdh/plugin-catalog-index@registry.access.redhat.com/rhdh/plugin-catalog-index@g" \
                   -e "s@quay.io/rhdh/@registry.redhat.io/rhdh/@g"
               if [[ $(git diff --name-only $yml) ]]; then # also update createdAt timestamp
                 now=$(date -u +%FT%TZ) # "2023-12-18T16:11:34Z"
@@ -590,7 +592,10 @@ for ((i = START_REPO; i < NUM_REPOS; i++)); do # echo $i
                 sed -i $yml -r -e "s|$d|$checkImage_result|g" 
               fi
             done
-            sed -i $yml -r -e "s@quay.io/rhdh/@registry.redhat.io/rhdh/@g"
+            # RHDHBUGS-2767: pull plugin-catalog-index from unauthenticated registry; others from auth'd registry
+            sed -i $yml -r \
+              -e "s@quay.io/rhdh/plugin-catalog-index@registry.access.redhat.com/rhdh/plugin-catalog-index@g" \
+              -e "s@quay.io/rhdh/@registry.redhat.io/rhdh/@g"
             # debugging: show contents after transformation
             # grep "image:" $yml
           done

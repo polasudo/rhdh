@@ -149,12 +149,13 @@ while [[ "$#" -gt 0 ]]; do
     case $1 in
     '--latest') DO_LATEST=1;;
     '--next')
-        next_tag=$(skopeo inspect docker://quay.io/rhdh/rhdh-hub-rhel9:next | jq -r '.RepoTags[]' | \
+        REGISTRY_PREFIX="quay.io"
+        next_tag=$(skopeo inspect docker://${REGISTRY_PREFIX}/rhdh/rhdh-hub-rhel9:next | jq -r '.RepoTags[]' | \
             grep -v -E "$EXCLUDES" | grep -- "-" | sort -uV | tail -1 || true)
-        RHDH_DIGEST=$(skopeo inspect "docker://quay.io/rhdh/rhdh-hub-rhel9:${next_tag}" | jq -r '.Digest')
-        index_tag=$(skopeo inspect "docker://quay.io/rhdh/plugin-catalog-index:${next_tag%-*}" | jq -r '.RepoTags[]' | \
+        RHDH_DIGEST=$(skopeo inspect "docker://${REGISTRY_PREFIX}/rhdh/rhdh-hub-rhel9:${next_tag}" | jq -r '.Digest')
+        index_tag=$(skopeo inspect "docker://${REGISTRY_PREFIX}/rhdh/plugin-catalog-index:${next_tag%-*}" | jq -r '.RepoTags[]' | \
             grep -v -E "$EXCLUDES" | grep -- "-" | sort -uV | tail -1 || true)
-        PLUGIN_CATALOG_INDEX_DIGEST=$(skopeo inspect docker://quay.io/rhdh/plugin-catalog-index:"${index_tag}" | jq -r '.Digest')
+        PLUGIN_CATALOG_INDEX_DIGEST=$(skopeo inspect docker://${REGISTRY_PREFIX}/rhdh/plugin-catalog-index:"${index_tag}" | jq -r '.Digest')
         CHART_VERSION=${next_tag}-CI
         RHDH_VERSION=${next_tag}
         echo "Create chart for $RHDH_VERSION + index $index_tag";;
@@ -168,8 +169,11 @@ while [[ "$#" -gt 0 ]]; do
         if [[ "${CHART_NAME}" == "redhat-developer-hub" ]] || [[ "${CHART_NAME}" == "backstage" ]]; then
             if [[ $CHART_VERSION == *"CI"* ]]; then
                 REGISTRY_PREFIX="quay.io"
+                REGISTRY_PREFIX_UNAUTH="quay.io"
             else
                 REGISTRY_PREFIX="registry.redhat.io"
+                # RHDHBUGS-2767: use unauthenticated registry
+                REGISTRY_PREFIX_UNAUTH="registry.access.redhat.com"
             fi
             RHDH_DIGEST=$(skopeo inspect "docker://${REGISTRY_PREFIX}/rhdh/rhdh-hub-rhel9:${RHDH_VERSION}" | jq -r '.Digest')
             if [[ ! $RHDH_DIGEST ]]; then
@@ -177,11 +181,11 @@ while [[ "$#" -gt 0 ]]; do
                 usage; exit 1
             fi
             rhdh_ver=${RHDH_VERSION%-*}
-            index_tag=$(skopeo inspect "docker://${REGISTRY_PREFIX}/rhdh/plugin-catalog-index:${rhdh_ver}" | jq -r '.RepoTags[]' | \
+            index_tag=$(skopeo inspect "docker://${REGISTRY_PREFIX_UNAUTH}/rhdh/plugin-catalog-index:${rhdh_ver}" | jq -r '.RepoTags[]' | \
                 grep -v -E "$EXCLUDES" | grep -- "-" | grep -E "^${rhdh_ver}" | sort -uV | tail -1 || true)
-            PLUGIN_CATALOG_INDEX_DIGEST=$(skopeo inspect "docker://${REGISTRY_PREFIX}/rhdh/plugin-catalog-index:${index_tag}" | jq -r '.Digest')
+            PLUGIN_CATALOG_INDEX_DIGEST=$(skopeo inspect "docker://${REGISTRY_PREFIX_UNAUTH}/rhdh/plugin-catalog-index:${index_tag}" | jq -r '.Digest')
             if [[ ! $PLUGIN_CATALOG_INDEX_DIGEST ]]; then
-                echo -e "\n[ERROR] Image ${REGISTRY_PREFIX}/rhdh/plugin-catalog-index:${index_tag} not found - Could not compute digest! Make sure the value of --rhdh-version is correct!\n\n"
+                echo -e "\n[ERROR] Image ${REGISTRY_PREFIX_UNAUTH}/rhdh/plugin-catalog-index:${index_tag} not found - Could not compute digest! Make sure the value of --rhdh-version is correct!\n\n"
                 usage; exit 1
             fi
         else
@@ -221,7 +225,7 @@ if [[ $DO_LATEST -eq 1 ]]; then
     if [[ ! $CHART_BRANCH ]] || [[ $CHART_BRANCH == "main" ]]; then usage; exit 1; fi
     # get all tags but find the ones starting with 1.yy-, then sort those and return the most recent one
     CHART_FILTER="${CHART_BRANCH/release-/}"
-    next_tag=$(skopeo inspect "docker://${REGISTRY_PREFIX}/rhdh/rhdh-hub-rhel9:next" | jq -r '.RepoTags[]' | \
+    next_tag=$(skopeo inspect "docker://${REGISTRY_PREFIX}/rhdh/rhdh-hub-rhel9:latest" | jq -r '.RepoTags[]' | \
         grep -v -E "$EXCLUDES" | \
         grep -- "-" | grep "${CHART_FILTER}" | sort -uV | tail -1 || true)
     RHDH_DIGEST=$(skopeo inspect "docker://${REGISTRY_PREFIX}/rhdh/rhdh-hub-rhel9:${next_tag}" | jq -r '.Digest')
