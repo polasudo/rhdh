@@ -1,0 +1,33 @@
+kind: Backstage
+apiVersion: rhdh.redhat.com/v1alpha5
+metadata:
+  name: rhdh
+spec:
+  deployment:
+    patch:
+      spec:
+        template:
+          spec:
+            containers:
+              - name: backstage-backend
+                image: "quay.io/$QUAY_REPO:$TAG_NAME"
+            initContainers:
+              - name: install-dynamic-plugins
+                image: "quay.io/$QUAY_REPO:$TAG_NAME"
+  application:
+    appConfig:
+      configMaps:
+        - name: app-config-rhdh
+      mountPath: /opt/app-root/src
+    extraFiles:
+      mountPath: /opt/app-root/src
+      secrets:
+        - name: postgres-crt
+          key: postgres-crt.pem
+    extraEnvs:
+      secrets:
+        - name: postgres-cred
+    route:
+      enabled: true
+  database:
+    enableLocalDb: false
