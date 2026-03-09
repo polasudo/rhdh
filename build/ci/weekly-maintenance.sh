@@ -4,8 +4,9 @@
 # SPDX-License-Identifier: EPL-2.0
 #
 # Script to perform weekly maintenance tasks:
-# 1. Update base images in active branches
-# 2. Cleanup old tags from Quay
+# 1. Update base images in active branches (GitHub upstream repos)
+# 2. Run .tekton/updateDigests.sh in GitLab rhdh and rhdh-plugin-catalog for active branches and push
+# 3. Cleanup old tags from Quay
 
 set -e
 
@@ -59,9 +60,9 @@ for repo_name in "${!UPSTREAM_REPOS[@]}"; do
     git clone "$repo_url" "$repo_dir" || { echo "Failed to clone $repo_url"; exit 1; }
     pushd "$repo_dir" >/dev/null || { echo "Could not open $repo_dir"; exit 1; }
 
-    # identify git user
-    git config --global user.name "rhdh-bot service account"
-    git config --global user.email "rhdh-bot@redhat.com"
+    git config user.name "rhdh-bot service account"
+    git config user.email "rhdh-bot@redhat.com"
+
     # insert user and token into the remote git URL - do not reveal the token in plaintext!
     git remote set-url origin "${repo_url/https:\/\//https:\/\/rhdh-bot:${GITHUB_TOKEN}@}"
     git fetch origin
@@ -112,6 +113,37 @@ done
 
 # Clean up upstream clones
 rm -rf "$UPSTREAM_WORK_DIR"
+
+echo "--- Starting Update Digests for tekton tasks ---"
+
+declare -A MIDSTREAM_REPOS
+MIDSTREAM_REPOS=( ["rhdh"]="rhdh" ["rhdh-plugin-catalog"]="rhdh-plugin-catalog" )
+
+# rhdh-1-rhel-9 plus the two latest rhdh-1.X-rhel-9 branches (e.g. rhdh-1.9-rhel-9 rhdh-1.8-rhel-9)
+ACTIVE_BRANCHES="rhdh-1-rhel-9 $(git branch -r 2>/dev/null | grep -E "origin/rhdh-1\.[0-9]+-rhel-9" | sed -r -e 's|.+origin/||' | sort -V -r | head -n 2 | tr '\n' ' ' | xargs)"
+echo "Midstream branches for updateDigests: $ACTIVE_BRANCHES"
+
+MIDSTREAM_WORK_DIR=$(mktemp -d)
+for midstream_repo_name in "${!MIDSTREAM_REPOS[@]}"; do
+    midstream_clone_url="https://${CI_PROJECT_NAME}:${PRIVATE_TOKEN}@${CI_SERVER_HOST}/${CI_PROJECT_NAMESPACE}/${midstream_repo_name}.git"
+    echo "=================================================="
+    echo "Processing midstream repo: $midstream_repo_name"
+    repo_dir="$MIDSTREAM_WORK_DIR/$midstream_repo_name"
+    git clone "$midstream_clone_url" "$repo_dir" --depth=3 --no-tags
+    pushd "$repo_dir" >/dev/null || true
+    git remote set-branches origin "*" || true
+    git fetch origin || true
+
+    for branch in $ACTIVE_BRANCHES; do
+        echo "  Updating digests for $midstream_repo_name:$branch"
+        git checkout "$branch" || true
+        git pull origin "$branch" || true
+        echo "  Running .tekton/updateDigests.sh for $midstream_repo_name:$branch"
+        .tekton/updateDigests.sh -q || echo "  updateDigests.sh failed or no changes for $midstream_repo_name:$branch"
+    done
+    popd >/dev/null || true
+done
+rm -rf "$MIDSTREAM_WORK_DIR"
 
 echo "--- Starting Quay Tag Cleanup ---"
 
@@ -165,14 +197,14 @@ set +x
 
 # delete Konflux tags which are also re-tagged with more meaningful tags
 echo "Deleting 'on-' tags older than 10 days..."
-"$DELETE_SCRIPT" --filter "on-" --age "10 days" --token "$QUAY_APP_ACCESS_TOKEN" $DELETE_ARGS
+"$DELETE_SCRIPT" --filter "on-" --age "10 days" --token "$QUAY_APP_ACCESS_TOKEN"
 
 # delete 1.y- tags from EOL releases 
 echo "Deleting '$OLD_Y-' tags older than 4 months..."
-"$DELETE_SCRIPT" --filter "${OLD_Y}-" --age "4 months" --token "$QUAY_APP_ACCESS_TOKEN" $DELETE_ARGS
+"$DELETE_SCRIPT" --filter "${OLD_Y}-" --age "4 months" --token "$QUAY_APP_ACCESS_TOKEN"
 
 # this includes .att and .sbom so keep these longer
 echo "Deleting 'sha256-' tags older than 8 months..."
-"$DELETE_SCRIPT" --filter "sha256-" --age "8 months" --token "$QUAY_APP_ACCESS_TOKEN" $DELETE_ARGS
+"$DELETE_SCRIPT" --filter "sha256-" --age "8 months" --token "$QUAY_APP_ACCESS_TOKEN"
 
 echo "Maintenance completed."
