@@ -913,6 +913,15 @@ pushTagGL ()
 
 						popd >/dev/null || exit 1
 
+						# Update plugin-catalog-builder base image tag to new PROD_VERSION
+						cf="build/containerfiles/builder.Containerfile"
+						if [[ -f "$cf" ]]; then
+							echo " = update plugin-catalog-builder base image to ${PROD_VERSION} in $(basename "$cf")"
+							sed -i "$cf" -r \
+								-e "s|(FROM quay.io/rhdh/plugin-catalog-builder-rhel9:)[0-9.]+|\\1${PROD_VERSION}|"
+							if [[ $(git diff --name-only -- build/containerfiles/builder.Containerfile) != "" ]]; then (( CHANGES = CHANGES + 1 )); fi
+						fi
+
 						sed -i upstream_repos.yml -r \
 							-e "s|- main|- ${TARGET_BRANCH}|g"
 						if [[ $(git diff --name-only -- upstream_repos.yml) != "" ]]; then (( CHANGES = CHANGES + 1 )); fi
@@ -938,8 +947,8 @@ pushTagGL ()
 					fi
 					if [[ $d == "rhdh" ]] || [[ $d == "rhdh-plugin-catalog" ]]; then 
 						if [[ $d == "rhdh" ]]; then
-							COMMITMSG="chore: tagRelease.sh: use $TARGET_BRANCH in upstream_repos.yml; trigger rhdh build"
-							git commit --no-gpg-sign -s -m "${COMMITMSG}" .tekton/ sync/ upstream_repos.yml || echo "nothing to commit, working tree clean (5a)"
+							COMMITMSG="chore: tagRelease.sh: use $TARGET_BRANCH in upstream_repos.yml; update builder.Cotnainerfile to ${PROD_VERSION}; trigger rhdh build"
+							git commit --no-gpg-sign -s -m "${COMMITMSG}" .tekton/ sync/ upstream_repos.yml build/containerfiles/builder.Containerfile || echo "nothing to commit, working tree clean (5a)"
 						elif [[ $d == "rhdh-plugin-catalog" ]]; then
 							COMMITMSG="chore: tagRelease.sh: use $TARGET_BRANCH in upstream_repos.yml"
 							git commit --no-gpg-sign -s -m "${COMMITMSG}" .tekton/ upstream_repos.yml || echo "nothing to commit, working tree clean (5b)"
