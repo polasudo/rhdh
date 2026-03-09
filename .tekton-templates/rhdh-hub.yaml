@@ -64,7 +64,7 @@ spec:
     - name: prefetch-input
       value: '[{"type": "rpm", "path": "distgit/containers/rhdh-hub"},{"type": "yarn","path": "distgit/containers/rhdh-hub"},{"type": "yarn","path": "distgit/containers/rhdh-hub/dynamic-plugins"},{"type": "pip","path": "distgit/containers/rhdh-hub/python", "allow_binary": "false"}]'
   pipelineRef:
-    name: build-pipeline-rhdh
+    name: build-pipeline-rhdh-hub
   taskRunSpecs:
     - pipelineTaskName: build-container-hub
       stepSpecs:
