@@ -537,10 +537,10 @@ spec:
       computeResources:
         requests:
           cpu: '8'
-          memory: 12Gi
+          memory: 16Gi
         limits:
           cpu: '8'
-          memory: 12Gi
+          memory: 16Gi
   taskRunTemplate:
     serviceAccountName: build-pipeline-rhdh-operator-1
   timeouts:
@@ -555,7 +555,7 @@ spec:
             - ReadWriteOnce
           resources:
             requests:
-              storage: 5Gi
+              storage: 10Gi
         status: {}
     - name: git-auth
       secret:
