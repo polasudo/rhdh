@@ -64,7 +64,7 @@ spec:
     - name: prefetch-input
       value: '{"packages": [{"type": "rpm", "path": "distgit/containers/rhdh-operator"},{"path": "distgit/containers/rhdh-operator", "type": "gomod"}], "flags": ["cgo-disable"]}'
   pipelineRef:
-    name: build-pipeline-rhdh-operator
+    name: build-pipeline-rhdh
   taskRunSpecs:
     - pipelineTaskName: build-container-operator
       stepSpecs:
