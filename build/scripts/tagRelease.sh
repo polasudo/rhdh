@@ -314,7 +314,7 @@ function updateRHDHLocalVersions() {
 		(( YY=YY+1 ))
 		the_next_version_y="${XX}.${YY}"
 		if [[ ${BASH_REMATCH[2]} -ge 1 ]]; then
-			the_stable_version_y="${XX}.$((${BASH_REMATCH[2]} - 1))"
+			the_stable_version_y="${XX}.$((BASH_REMATCH[2] - 1))"
 		fi
 	fi
 	
@@ -1019,17 +1019,19 @@ generateNewProdsecDefinitions ()
 {
 	repo=product-definitions
 
-	# if adding 1.6, then delete 1.3 and replace moderate_ps_update_streams with 1.5
-	if [[ $PROD_VERSION =~ ^([0-9]+)\.([0-9]+) ]]; then # decrease the y digit by 3
+	# if adding 1.10, then delete 1.7, keep 1.8 and 1.9 in moderate_ps_update_streams, add 1.10
+	if [[ $PROD_VERSION =~ ^([0-9]+)\.([0-9]+) ]]; then # decrease the y digit by 3 for deletion; by 1 and 2 for moderate streams
 		XX=${BASH_REMATCH[1]}
-		YY=${BASH_REMATCH[2]} # 6
+		YY=${BASH_REMATCH[2]} # e.g. 10
 		(( YY=YY-1 ))
-		PROD_VERSION_PREV="$XX.$YY" # 1.5
-		(( YY=YY-2 ))
-		PROD_VERSION_PREV2="$XX.$YY" # 1.3
+		PROD_VERSION_PREV="$XX.$YY"   # e.g. 1.9 (previous GA, stays in moderate)
+		(( YY=YY-1 ))
+		PROD_VERSION_PREV2="$XX.$YY"  # e.g. 1.8 (one before that, stays in moderate)
+		(( YY=YY-1 ))
+		PROD_VERSION_PREV3="$XX.$YY"  # e.g. 1.7 (to be removed from active/default)
 	fi
 
-	echo; echo "== $repo :: generate Prod Sec yaml for RHDH $PROD_VERSION; remove $PROD_VERSION_PREV2 config =="
+	echo; echo "== $repo :: generate Prod Sec yaml for RHDH $PROD_VERSION; remove $PROD_VERSION_PREV3 config; moderate_ps_update_streams: $PROD_VERSION_PREV2, $PROD_VERSION_PREV, $PROD_VERSION =="
 
 	pushd "$TMPDIR" >/dev/null || exit 1
 	# fetch repo
@@ -1043,11 +1045,12 @@ generateNewProdsecDefinitions ()
 			if [[ $VERBOSE -eq 1 ]]; then echo "[DEBUG] Working dir: $(pwd)" ;fi
 
 			NEW_STREAM='{ "pp_label": "rhdh-rhdh-'"${PROD_VERSION}"'", "version": "'"${PROD_VERSION}.0"'", "cpe": [ "cpe:/a:redhat:rhdh:'"${PROD_VERSION}"'::el9" ] }'
-			NEW_KEY="rhdh-${PROD_VERSION}"       # new key,    1.6
-			UPD_KEY="rhdh-${PROD_VERSION_PREV}"  # update key, 1.5
-			DEL_KEY="rhdh-${PROD_VERSION_PREV2}" # delete key, 1.3
+			NEW_KEY="rhdh-${PROD_VERSION}"         # new key,     e.g. rhdh-1.10
+			PREV_KEY="rhdh-${PROD_VERSION_PREV}"   # previous GA  e.g. rhdh-1.9
+			PREV2_KEY="rhdh-${PROD_VERSION_PREV2}" # two back     e.g. rhdh-1.8
+			DEL_KEY="rhdh-${PROD_VERSION_PREV3}"   # delete key   e.g. rhdh-1.7
 
-		    # set -x
+		  # set -x
 			jq --arg NEW_KEY "${NEW_KEY}" --arg NEW_STREAM "${NEW_STREAM}" '.ps_update_streams."'"$NEW_KEY"'" += '"$NEW_STREAM" \
 				data/developer/ps_update_streams/rhdh.json > data/developer/ps_update_streams/rhdh.json_; mv data/developer/ps_update_streams/rhdh.json{_,}
 
@@ -1056,17 +1059,18 @@ generateNewProdsecDefinitions ()
 					data/developer/ps_modules.json > data/developer/ps_modules.json_; mv data/developer/ps_modules.json{_,}
 				# remove keys from the active and default arrays only
 				if [[ $ARR_KEY != "ps_update_streams" ]]; then
-					jq --arg ARR_KEY "${ARR_KEY}" --arg DEL_KEY "${DEL_KEY}" 'del(."ps_modules"."rhdh-1".'"$ARR_KEY"'[]|select(.=="'"$DEL_KEY"'"))' \
+					jq --arg ARR_KEY "${ARR_KEY}" --arg DEL_KEY "${DEL_KEY}" '.["ps_modules"]["rhdh-1"][$ARR_KEY] |= map(select(. != $DEL_KEY))' \
 						data/developer/ps_modules.json > data/developer/ps_modules.json_; mv data/developer/ps_modules.json{_,}
 				fi
 			done
 
-			# replace moderate_ps_update_streams with previous GA
+			# set moderate_ps_update_streams to three concurrent streams: two previous + new (e.g. rhdh-1.8, rhdh-1.9, rhdh-1.10)
 			ARR_KEY="moderate_ps_update_streams"
-			jq --arg ARR_KEY "${ARR_KEY}" --arg NEW_KEY "${NEW_KEY}" '."ps_modules"."rhdh-1".'"$ARR_KEY"' = ["'"$UPD_KEY"'"]' \
+			jq --arg ARR_KEY "${ARR_KEY}" --arg PREV2_KEY "${PREV2_KEY}" --arg PREV_KEY "${PREV_KEY}" --arg NEW_KEY "${NEW_KEY}" \
+				'.["ps_modules"]["rhdh-1"][$ARR_KEY] = [$PREV2_KEY, $PREV_KEY, $NEW_KEY]' \
 				data/developer/ps_modules.json > data/developer/ps_modules.json_; mv data/developer/ps_modules.json{_,}
 
-		    # set +x
+		  # set +x
 			git add data/developer/
 
 			# commit changes 
@@ -1221,7 +1225,7 @@ generateNewTektonPipelines ()
 	# rename the -1- files to -1.y-
 	# update them to replace -1- with -1-y- and rhdh-1-rhel-9 with rhdh-1.y-rhel-9
 	echo " = generate new piplines in $(pwd) for $branchy ($xdashy)"
-	for y in ${regex}*.yaml; do
+	for y in "${regex}"*.yaml; do
 		if [[ $y == *"-1-"* ]]; then # rename rhdh pipelines
 			e="$(echo "$y" | sed -r \
 				-e "s@-1-([a-z]+)@-${xdashy}-\1@g")"
