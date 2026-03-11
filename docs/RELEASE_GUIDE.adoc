@@ -184,7 +184,7 @@ You can now install from an FBC using link:https://github.com/redhat-developer/r
 ====
 
 . After moving to 1.yy in main and rebuilding from the 1.next application in konflux, verify the following tags in the Quay repositories have moved:
-* `1.yy` == `latest`;  `1.yy+1` == `next
+* `1.yy` == `latest`;  `1.yy+1` == `next`
 * https://quay.io/repository/rhdh/rhdh-hub-rhel9?tab=tags
 * https://quay.io/repository/rhdh/rhdh-rhel9-operator?tab=tags
 * https://quay.io/repository/rhdh/rhdh-operator-bundle?tab=tags
