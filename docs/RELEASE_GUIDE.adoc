@@ -716,25 +716,7 @@ TODO: Starting in 1.9, do we also need to do Comet updates for the plugins?
 
 ### [Quay] Clean up old tags in the Quay repositories
 . If this is a .0 release, run link:../build/scripts/deleteTagsFromQuay.sh[deleteTagsFromQuay.sh] script to clean up old tags for previous releases.
-+
-```
-./build/scripts/deleteTagsFromQuay.sh --help   # get help, token export instructions, and options
-# remove tags older than 4mo old, from the y-3 release (if latest stable GA is 1.8, clean up the 1.5 tags)
-export accessToken=... # use --help flag for instructions on how to generate a token
-
-old_version=1.y-3 # for example, remove 1.5 when releasing 1.8
-./build/scripts/deleteTagsFromQuay.sh --filter "${old_version}-" --age '4 months' --debug
-...
-Repo rhdh-hub-rhel9 processed to page 1; tags deleted: 100
-Repo rhdh-rhel9-operator processed to page 1; tags deleted: 82
-Repo rhdh-operator-bundle processed to page 1; tags deleted: 100
-Repo iib processed to page 1; tags deleted: 72
-...
-Total tags deleted: 354
-```
-* You may need to run the script a few times to delete all the old tags. Keep running until you see: `Repo ... processed to page 0; tags deleted: 0`. You can also re-run it for older tags (eg., 1.3-, 1.4-) if those are entirely EOL. 
-
-* In future this may be done automatically. TODO: https://issues.redhat.com/browse/RHIDP-6305
+. Or trigger the weekly maintenance pipeline at https://gitlab.cee.redhat.com/rhidp/rhdh/-/pipeline_schedules 
 
 ## Other considerations
 
