@@ -209,12 +209,16 @@ createPr() {
 				if [[ ! $PR_URL ]]; then
 					# try again using the current user's fork
 					# dynamically determine the repo name from origin remote
-					origin_repo=$(git remote get-url origin | sed -r -e 's#.*[:/]([^/]+)/([^/]+)(\.git)?$#\2#')
+					origin_repo=$(git remote get-url origin | sed -r -e 's#.*[:/]([^/]+)/([^/]+)(\.git)?$#\2#' | sed -r -e "s/.git$//")
 					git remote add "$(whoami)" "git@gitlab.cee.redhat.com:$(whoami)/${origin_repo}.git" 2>/dev/null || git remote set-url "$(whoami)" "git@gitlab.cee.redhat.com:$(whoami)/${origin_repo}.git"
 					PR_URL=$(git push -f "$(whoami)" "${headBranch}" 2>&1 | grep "${headBranch}" | grep "https://" | sed -r -e "s/remote:   //" | tr -d " ")
 				fi
+				# if can't push to fork, try origin
 				if [[ ! $PR_URL ]]; then 
-					echo -e "${red}[ERROR] Cannot create a PR for your changes. Please create a PR manually from sources in $(pwd) !${norm}"
+					PR_URL=$(git push -f "origin" "${headBranch}" 2>&1 | grep "${headBranch}" | grep "https://" | sed -r -e "s/remote:   //" | tr -d " ")
+				fi
+				if [[ ! $PR_URL ]]; then 
+					echo -e "${red}[ERROR] Cannot create a PR for your changes by pushing topic branch to either origin or $(whoami) fork. Please create a PR manually from sources in $(pwd) !${norm}"
 					exit 1
 				else 
 					PR_URL="${PR_URL}&merge_request%5Btarget_branch%5D=${baseBranch}"
@@ -1317,10 +1321,12 @@ getXYplusOneFromBranch "$TARGET_BRANCH"
 
 # branch and/or tag GH repos
 if [[ $SKIP_GH -eq 0 ]]; then
+	echo "  ## ## ## Processing Github Repos ... ## ## ## "
 	for repo in $GH_REPOS \
 		; do
 		pushBranchAndOrTagGH "$repo"
 	done
+	echo "  ## ## ## Processing Github Repos done! ## ## ## "
 fi
 
 # ###################################################################################################
@@ -1328,6 +1334,7 @@ fi
 # now update main branches for the above branch creation
 if [[ $SKIP_GH -eq 0 ]]; then
 	if [[ ${SOURCE_BRANCH} ]]; then
+		echo "  ## ## ## Processing Github Repos (main branch) ... ## ## ## "
 		# check for changes and push a PR for each repo
 		updateRHDHCLIVersion "$SOURCE_BRANCH" "$newver"
 		updateOperatorVersions "$SOURCE_BRANCH" "$newver" "$newverOp"
@@ -1335,6 +1342,7 @@ if [[ $SKIP_GH -eq 0 ]]; then
 		updateChartVersions "$SOURCE_BRANCH" "$newver"
 		## CCS has requested that we not bump the version in main branch, as they prefer manual steps to automation.
 		## updateDocVersions "$SOURCE_BRANCH" "$newver"
+		echo "  ## ## ## Processing Github Repos (main branch) done! ## ## ## "
 	fi
 fi
 
@@ -1384,6 +1392,7 @@ function removeOperatorBundleLatestTags() {
 # echo "SKIPS: $SKIP_GL"
 # branch or tag GL repo(s)
 if [[ $SKIP_GL -eq 0 ]] && [[ "${MIDSTM_BRANCH}" ]]; then
+	echo "  ## ## ## Processing Gitlab Repos ... ## ## ## "
 	# midstream build sources
 	for repo in \
 		rhdh-plugin-catalog rhdh \
@@ -1396,27 +1405,37 @@ if [[ $SKIP_GL -eq 0 ]] && [[ "${MIDSTM_BRANCH}" ]]; then
 			removeOperatorBundleLatestTags 
 		fi
 	done
+	echo "  ## ## ## Processing Gitlab Repos done! ## ## ## "
 fi
 
 if [[ $SKIP_KRD -eq 0 ]] && [[ "${MIDSTM_BRANCH}" ]]; then
 	if [[ $CSV_VERSION ]]; then # for tagging
 		# midstream konflux-release-data sources - bump the RPA to 1.5.z
+		echo "  ## ## ## Processing Konflux Release Data Repo (RPAs) ... ## ## ## "
 		updateKonfluxReleasePlanAdmissionYamls
+		echo "  ## ## ## Processing Konflux Release Data Repo (RPAs) done! ## ## ## "
 		# TODO should we also run generatePyxisConfigForPlugins after tagging, 
 		# or when preparing an RC?
 	else # for branching - create everything at version 1.5.0
 		if [[ $SKIP_PRODSEC -eq 0 ]]; then
+			echo "  ## ## ## Processing Prodsec Repo ... ## ## ## "
 			generateNewProdsecDefinitions
+			echo "  ## ## ## Processing Prodsec Repo done! ## ## ## "
 		fi
 		
 		if [[ $SKIP_PYXIS -eq 0 ]]; then
+			echo "  ## ## ## Processing Pyxis Repo ... ## ## ## "
 			if [[ $VERBOSE -eq 1 ]]; then echo "[DEBUG] update the Pyxis Repo Configs repo to add new plugins"; fi
 			echo "[INFO] pyxis-repo-configs merge requests may fail if there are required changes to this repo:"
 			echo "       * https://gitlab.cee.redhat.com/prodsec/product-definitions/-/merge_requests/ (new RHDH version)"
 			generatePyxisConfigForPlugins
+			echo "  ## ## ## Processing Pyxis Repo done! ## ## ## "
 		fi
 
+		echo "  ## ## ## Processing Konflux Release Data Repo (Comopnents + RPAs)... ## ## ## "
 		generateNewKonfluxReleaseDataYamls
+		echo "  ## ## ## Processing Konflux Release Data Repo (Comopnents + RPAs) done! ## ## ## "
+
 
 		if [[ $VERBOSE -eq 1 ]]; then 
 			echo "[DEBUG] update the Konflux Release Data repo to add new plugins and catalog index"
@@ -1424,7 +1443,9 @@ if [[ $SKIP_KRD -eq 0 ]] && [[ "${MIDSTM_BRANCH}" ]]; then
 		echo "[INFO] konflux-release-data merge requests may fail if there are required changes to either of these repos:"
 		echo "       * https://gitlab.cee.redhat.com/prodsec/product-definitions/-/merge_requests/ (new RHDH version)"
 		echo "       * https://gitlab.cee.redhat.com/releng/pyxis-repo-configs/-/merge_requests/ (new plugin repos)"
+		echo "  ## ## ## Processing Konflux Release Data Repo (plugins) ... ## ## ## "
 		generateKonfluxReleaseDataForPlugins
+		echo "  ## ## ## Processing Konflux Release Data Repo (plugins) done! ## ## ## "
 	fi
 	# cleanup
 	# rm -fr "${TMPDIR:?}"/*
