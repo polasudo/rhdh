@@ -374,13 +374,7 @@ function updateRHDHLocalVersions() {
 	echo -n "updateRHDHLocalVersions: "; pwd; git diff || true
 	if [[ ${DO_PUSH} -eq 1 ]]; then
 		COMMITMSG="chore: tagRelease.sh: bump to ${the_version_z:-$the_version_y} in $the_branch branch"
-		if [[ $DO_BUILD -eq 1 ]]; then
-			# quietly install any updates to yarn.lock so PR will pass sniff test
-			yarn install 2> >(grep -v warning 1>&2) 
-			COMMITMSG="${COMMITMSG} + regen yarn.lock"
-		else
-			COMMITMSG="${COMMITMSG} [skip-build] [skip-e2e]"
-		fi
+		COMMITMSG="${COMMITMSG} [skip-build] [skip-e2e]"
 		if [[ $(git diff || true ) ]]; then
 			git commit --no-gpg-sign -s -m "${COMMITMSG}" .
 			git pull origin "${the_branch}" || true
