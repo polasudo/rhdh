@@ -7,6 +7,7 @@
 .shared_config:
   tags:
     - itup-alm-x86
+  # see https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1-rhel-9/build/containerfiles/README-building.adoc
   image: quay.io/rhdh/gitlab-runner:1.10
   allow_failure: false
   # see https://gitlab.cee.redhat.com/help/ci/runners/configure_runners.md#configure-runner-behavior-with-variables for what can be set here
