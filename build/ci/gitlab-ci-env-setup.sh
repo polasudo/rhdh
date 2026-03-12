@@ -4,8 +4,8 @@
 # 
 # set up gitlab CI runner environment
 # called by .gitlab-ci.yml 
-# see build/dockerfiles/yarn3-ubi9.Dockerfile
-# to test, run in quay.io/rhdh/gitlab-runner:yarn3-latest
+# see build/dockerfiles/gitlab-runner.Dockerfile
+# to test, run in quay.io/rhdh/gitlab-runner:1.10
 
 # set -x
 set -e

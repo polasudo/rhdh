@@ -7,8 +7,7 @@
 .shared_config:
   tags:
     - itup-alm-x86
-  # for RHDH 1.5+ use yarn3-node22-latest; for 1.4, use yarn3-node20-latest
-  image: quay.io/rhdh/gitlab-runner:yarn3-node22-latest
+  image: quay.io/rhdh/gitlab-runner:1.10
   allow_failure: false
   # see https://gitlab.cee.redhat.com/help/ci/runners/configure_runners.md#configure-runner-behavior-with-variables for what can be set here
   variables:
