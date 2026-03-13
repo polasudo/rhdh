@@ -16,17 +16,17 @@ Be sure to run link:../build/scripts/prepareOSXARM64.sh[prepareOSXARM64.sh] befo
 **Before creating a new stable branch, or preparing an RC :**
 
 * [ ] Check for open PRs from `rhdh-bot` related to repo version bumps, base image updates, or RPM lock file updates:
-  ** RHDH: https://github.com/redhat-developer/rhdh/pulls?q=is%3Aopen+is%3Apr+author%3Arhdh-bot
-  ** RHDH Local: https://github.com/redhat-developer/rhdh-local/pulls?q=is%3Aopen+is%3Apr+author%3Arhdh-bot
-  ** RHDH Chart: https://github.com/redhat-developer/rhdh-chart/pulls?q=is%3Aopen+is%3Apr+author%3Arhdh-bot
-  ** RHDH Operator: https://github.com/redhat-developer/rhdh-operator/pulls?q=is%3Aopen+is%3Apr+author%3Arhdh-bot
+** RHDH: link:https://github.com/redhat-developer/rhdh/pulls?q=is%3Aopen+is%3Apr+author%3Arhdh-bot[open PRs]
+** RHDH Local: link:https://github.com/redhat-developer/rhdh-local/pulls?q=is%3Aopen+is%3Apr+author%3Arhdh-bot[open PRs]
+** RHDH Chart: link:https://github.com/redhat-developer/rhdh-chart/pulls?q=is%3Aopen+is%3Apr+author%3Arhdh-bot[open PRs]
+** RHDH Operator: link:https://github.com/redhat-developer/rhdh-operator/pulls?q=is%3Aopen+is%3Apr+author%3Arhdh-bot[open PRs]
 * [ ] Review and merge them immediately (force merge if necessary after sanity check)
 * [ ] Ensure no pending PRs are left behind for the relevant branch (main if branching, release-1.y if spinning up an RC)
 * [ ] Ensure base images and RPM locks are as up to date as possible. 
 
 **NOTE:** Part of doing the release is ensuring these are merged in a timely manner. Either re-run tests (if you feel there's value), or force merge if you don't (generally for these bot-generated PRs, unless there's an obvious typo, they can be force merged after a quick visual inspection / sanity check).
 
-See <<post-ga-bot-pr-followup,Post-GA follow-up>> for the concrete consequences and what to verify after tagging.
+See <<post-ga-follow-up,Post-GA follow-up>> for the concrete consequences and what to verify after tagging.
 ====
 
 == Feature Freeze / New Stream Day
@@ -634,6 +634,7 @@ export GITHUB_TOKEN=rhdh-bot-token-goes-here
 ----
 Note: If tags already exist but version bump PRs were not created, you can rerun the script with the `--force-update` flag to resolve this. Use `--skip-gh`, `--skip-gl`, `--skip-krd` and `--skip-pyxis` if those steps were completed previously.
 
+[[post-ga-follow-up]]
 [[post-ga-bot-pr-followup]]
 [NOTE]
 .Post-GA follow-up: bot PRs + release automation sanity
