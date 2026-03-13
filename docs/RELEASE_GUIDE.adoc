@@ -733,8 +733,6 @@ Total tags deleted: 354
 ----
 * You may need to run the script a few times to delete all the old tags. Keep running until you see: `Repo ... processed to page 0; tags deleted: 0`. You can also re-run it for older tags (eg., 1.3-, 1.4-) if those are entirely EOL.
 
-* In future this may be done automatically. TODO: https://issues.redhat.com/browse/RHIDP-6305
-
 == Other considerations
 
 Ongoing through the quarter, remember to:
