@@ -228,7 +228,7 @@ data:
                 - ./install-dynamic-plugins.sh
                 - /dynamic-plugins-root
               # image will be replaced by the value of the `RELATED_IMAGE_backstage` env var, if set
-              image: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:cd10ef1ebe44ba7765b5bcd89d06b38901c074947b2240ced59bf06c1bffeebb
+              image: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:645551d7fb5329a29942c0be0752afa97cd51f62c2b16db034e16de2defca45a
               imagePullPolicy: IfNotPresent
               securityContext:
                 readOnlyRootFilesystem: true
@@ -246,7 +246,7 @@ data:
                   value: "30000000"
                 # CATALOG_INDEX_IMAGE will be replaced by the value of the `RELATED_IMAGE_catalog_index` env var, if set
                 - name: CATALOG_INDEX_IMAGE
-                  value: registry.access.redhat.com/rhdh/plugin-catalog-index@sha256:639cb83033a48bad62afe7041c5c0f0d3c270dae508ca2355df85dcc19ee7850
+                  value: registry.access.redhat.com/rhdh/plugin-catalog-index@sha256:df663003d73840c1079ab7d00b5965787f5acb0d5baa2178b91835df0cfc9f5f
                 - name: CATALOG_ENTITIES_EXTRACT_DIR
                   value: '/extensions'
               volumeMounts:
@@ -274,7 +274,7 @@ data:
           containers:
             - name: backstage-backend
               # image will be replaced by the value of the `RELATED_IMAGE_backstage` env var, if set
-              image: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:cd10ef1ebe44ba7765b5bcd89d06b38901c074947b2240ced59bf06c1bffeebb
+              image: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:645551d7fb5329a29942c0be0752afa97cd51f62c2b16db034e16de2defca45a
               imagePullPolicy: IfNotPresent
               args:
                 - "--config"
