@@ -15,11 +15,7 @@ Be sure to run link:../build/scripts/prepareOSXARM64.sh[prepareOSXARM64.sh] befo
 ====
 **Before creating a new stable branch, or preparing an RC :**
 
-* [ ] Check for open PRs from `rhdh-bot` related to repo version bumps, base image updates, or RPM lock file updates:
-  ** RHDH: link:https://github.com/redhat-developer/rhdh/pulls?q=is%3Aopen+is%3Apr+author%3Arhdh-bot[open PRs]
-  ** RHDH Local: link:https://github.com/redhat-developer/rhdh-local/pulls?q=is%3Aopen+is%3Apr+author%3Arhdh-bot[open PRs]
-  ** RHDH Chart: link:https://github.com/redhat-developer/rhdh-chart/pulls?q=is%3Aopen+is%3Apr+author%3Arhdh-bot[open PRs]
-  ** RHDH Operator: link:https://github.com/redhat-developer/rhdh-operator/pulls?q=is%3Aopen+is%3Apr+author%3Arhdh-bot[open PRs]
+* [ ] Check for open PRs from `rhdh-bot` related to repo version bumps, base image updates, or RPM lock file updates: link:https://github.com/redhat-developer/rhdh/pulls?q=is%3Aopen+is%3Apr+author%3Arhdh-bot[RHDH], link:https://github.com/redhat-developer/rhdh-local/pulls?q=is%3Aopen+is%3Apr+author%3Arhdh-bot[RHDH Local], link:https://github.com/redhat-developer/rhdh-chart/pulls?q=is%3Aopen+is%3Apr+author%3Arhdh-bot[RHDH Chart], link:https://github.com/redhat-developer/rhdh-operator/pulls?q=is%3Aopen+is%3Apr+author%3Arhdh-bot[RHDH Operator]
 * [ ] Review and merge them immediately (force merge if necessary after sanity check)
 * [ ] Ensure no pending PRs are left behind for the relevant branch (main if branching, release-1.y if spinning up an RC)
 * [ ] Ensure base images and RPM locks are as up to date as possible. 
