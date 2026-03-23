@@ -67,7 +67,8 @@ red="\033[1;31m"
 
 checkrecentupdates () {
 	# set +e
-	for d in $(find "${WORKDIR}/" -maxdepth "${MAXDEPTH}" -name "${DOCKERFILE// / -or -name }" | sort); do
+	# shellcheck disable=SC2086
+	for d in $(find "${WORKDIR}/" -maxdepth "${MAXDEPTH}" -name ${DOCKERFILE// / -or -name } | sort); do
 		pushdir=$(dirname "$d")
 		pushd "${pushdir}" >/dev/null
 			last=$(git lg -1 | grep -v days || true)
@@ -239,7 +240,8 @@ fi
 
 pushedIn=0
 
-for d in $(find "${WORKDIR}/" -maxdepth "${MAXDEPTH}" -name "${DOCKERFILE// / -or -name }" | sort -r | grep -E -v "${PATH_EXCLUDES}"); do
+# shellcheck disable=SC2086
+for d in $(find "${WORKDIR}/" -maxdepth "${MAXDEPTH}" -name ${DOCKERFILE// / -or -name } | sort -r | grep -E -v "${PATH_EXCLUDES}"); do
 	if [[ -f ${d} ]]; then
 		echo ""
 		echo "# Checking ${d} ..."
