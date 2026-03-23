@@ -549,6 +549,8 @@ done
 
 === Chart release (15 mins)
 
+As of 1.9, RHDH consists of its own chart, plus the link:https://github.com/redhat-developer/rhdh-chart/tree/main/charts/orchestrator-infra[Orchestrator Infra Helm Chart],which is a standalone chart that deploys the required OpenShift infrastructure to support the Orchestrator flavor of RHDH. Specifically, it installs the OpenShift Serverless Operator and Serverless Logic Operator, and applies required Knative CRDs. These components are necessary for enabling orchestration features in Red Hat Developer Hub.
+
 . [ ] Log into quay.io as the rhdh-bot so you can upload the new chart artifact. The bot's token can be found in link:https://vault.bitwarden.com/#/vault?organizationId=cd864c42-0667-4521-afb0-aae600ef844c&folderId=fe39131e-178d-4940-8fb9-b1e8014f2d34&itemId=cf9f66a9-e522-49a1-9679-b1e801543ffc&action=view[bitwarden].
 +
 ----
@@ -562,7 +564,7 @@ echo "${QUAY_TOKEN}" | oras login -u="${QUAY_USER}" --password-stdin ${REGISTRY}
 +
 . [ ] Verify the latest rhdh-hub tag you want to release exists at https://catalog.redhat.com/en/software/containers/rhdh/rhdh-hub-rhel9/645bd4c15c00598369c31aba?image=691215456535345a69d2e65c, eg., `1.8.0`
 +
-. link:../build/helm/prepare.sh[Push the helm chart].
+. link:../build/helm/prepare.sh[Push the helm charts].
 +
 ----
 # log in as the bot
@@ -574,31 +576,31 @@ gh auth status
 # choose the correct branch: rhdh-1 branch may have changes that are not compatible with maintenance releases!
 git checkout rhdh-1.y-rhel-9
 
-# create pull request for RHDH chart
-./build/helm/prepare.sh --chart-version 1.y.z --rhdh-version 1.y.z --chart-branch release-1.y --publish 
-
+# create pull requests for RHDH and Orchestrator charts
+branch=release-1.y
+version=1.y.z
+./build/helm/prepare.sh --chart-version $version --rhdh-version $version --chart-branch $branch --publish && \
+./build/helm/prepare.sh --chart-version $version --rhdh-version $version --chart-branch $branch --publish \
+--chart-name redhat-developer-hub-orchestrator-infra --chart-dir charts/orchestrator-infra
+----
++
+Console output will look something like this:
++
+----
 Create chart for 1.y.z (1.y.z)
 [INFO] Set image digests in /tmp/tmp.xROIH7u8EN/charts/backstage/values.yaml:
 * RHDH_DIGEST = 0c76994fde2cd71471802d458b682ab652be5a0e291c3a2773cb524259ac79b2,
 * POSTGRESQL_DIGEST = 7e2529e27bdbfad42953b5bcd2f6d0036ef54f7f0031fd180ee1fa58a3790f69
 ...
 https://github.com/openshift-helm-charts/charts/pull/2017
-----
-
-. link:../build/helm/prepare.sh[Publish the Orchestrator Infra chart]
-+
-The link:https://github.com/redhat-developer/rhdh-chart/tree/main/charts/orchestrator-infra[Orchestrator Infra Helm Chart] is a standalone chart that deploys the required OpenShift infrastructure to support the Orchestrator flavor of RHDH. Specifically, it installs the OpenShift Serverless Operator and Serverless Logic Operator, and applies required Knative CRDs. These components are necessary for enabling orchestration features in Red Hat Developer Hub.
-+
-This chart follows the same version of the main RHDH chart, starting from 1.8. 
-----
-./build/helm/prepare.sh --chart-version 1.y.z --rhdh-version 1.y.z --chart-branch release-1.y --publish \
---chart-name redhat-developer-hub-orchestrator-infra --chart-dir charts/orchestrator-infra
 
 Create chart for 1.y.z (1.y.z)
 [INFO] Set Orchestrator Infra chart version to 1.y.z
 ...
 https://github.com/openshift-helm-charts/charts/pull/2016
 ----
++
+If you generated the PRs using the rhdh-bot user's GH token, they should be merged automatically once the chart PR tests pass.
 
 ==== FBC release (30 mins)
 
