@@ -71,7 +71,7 @@ Requires: both yq (python wrapper for jq) and yq from https://github.com/mikefar
 To create or update existing branches:
   $0 --branchfrom SOURCE_GH_BRANCH -gh TARGET_GH_BRANCH -ghtoken GITHUB_TOKEN
 Example: 
-  $0 --branchfrom main -gh release-1.8 --clean -ghtoken \$GITHUB_TOKEN
+  $0 --branchfrom main -gh release-1.10 --clean -ghtoken \$GITHUB_TOKEN
 
 To create tags (and push updates to release-1.yy branches):
 1. You should have a valid GITHUB_TOKEN for your user (for upstream PRs).
@@ -79,7 +79,7 @@ To create tags (and push updates to release-1.yy branches):
 3. Run this
   $0 -v CSV_VERSION -t PROD_VERSION -gh GH_BRANCH -ghtoken GITHUB_TOKEN
 Example: 
-  $0 -v 1.8.1 -t 1.8 -gh release-1.8 --midstream-branch rhdh-1.8-rhel-9 --clean --force-update -tmpdir $TMPDIR --nobuild \\
+  $0 -v 1.9.3 -t 1.9 -gh release-1.9 --midstream-branch rhdh-1.9-rhel-9 --clean --force-update -tmpdir $TMPDIR --nobuild \\
     --skip-gl --skip-krd --skip-prodsec --skip-pyxis \\
     --gh-repos \"redhat-developer/rhdh redhat-developer/rhdh-operator\"
 
@@ -1015,23 +1015,28 @@ updateKonfluxReleasePlanAdmissionYamls ()
 }
 
 # update the prodsec/product-definitions for a new release stream, and remove obsolete ones
-generateNewProdsecDefinitions ()
+updateProdsecDefinitions ()
 {
 	repo=product-definitions
+	local TYPE="$1" # either for a new branch, or when tagging for a .0 GA
 
 	# if adding 1.10, then delete 1.7, keep 1.8 and 1.9 in moderate_ps_update_streams, add 1.10
 	if [[ $PROD_VERSION =~ ^([0-9]+)\.([0-9]+) ]]; then # decrease the y digit by 3 for deletion; by 1 and 2 for moderate streams
 		XX=${BASH_REMATCH[1]}
 		YY=${BASH_REMATCH[2]} # e.g. 10
 		(( YY=YY-1 ))
-		PROD_VERSION_PREV="$XX.$YY"   # e.g. 1.9 (previous GA, stays in moderate)
+		PROD_VERSION_PREV="$XX.$YY"   # e.g. 1.9 (previous GA, stays in default, active and moderate)
 		(( YY=YY-1 ))
-		PROD_VERSION_PREV2="$XX.$YY"  # e.g. 1.8 (one before that, stays in moderate)
-		(( YY=YY-1 ))
-		PROD_VERSION_PREV3="$XX.$YY"  # e.g. 1.7 (to be removed from active/default)
+		PROD_VERSION_PREV2="$XX.$YY"   # e.g. 1.8 (previous GA, stays in default, active and moderate... until we do a GA for 1.10)
 	fi
 
-	echo; echo "== $repo :: generate Prod Sec yaml for RHDH $PROD_VERSION; remove $PROD_VERSION_PREV3 config; moderate_ps_update_streams: $PROD_VERSION_PREV2, $PROD_VERSION_PREV, $PROD_VERSION =="
+	COMMITMSG="$PROD_VERSION: set $PROD_VERSION_PREV, $PROD_VERSION for default, active and moderate configs"
+	if [[ $TYPE == "branch" ]]; then # for branching operations
+		COMMITMSG="$PROD_VERSION: set $PROD_VERSION_PREV2, $PROD_VERSION_PREV, $PROD_VERSION for default, active and moderate configs"
+	elif [[ $TYPE == *".0" ]]; then # for .0 tagging operations
+		COMMITMSG="$PROD_VERSION: set $PROD_VERSION_PREV, $PROD_VERSION for default, active and moderate configs"
+	fi
+	echo; echo "== $repo :: generate Prod Sec yaml for RHDH $COMMITMSG =="
 
 	pushd "$TMPDIR" >/dev/null || exit 1
 	# fetch repo
@@ -1045,36 +1050,42 @@ generateNewProdsecDefinitions ()
 			if [[ $VERBOSE -eq 1 ]]; then echo "[DEBUG] Working dir: $(pwd)" ;fi
 
 			NEW_STREAM='{ "pp_label": "rhdh-rhdh-'"${PROD_VERSION}"'", "version": "'"${PROD_VERSION}.0"'", "cpe": [ "cpe:/a:redhat:rhdh:'"${PROD_VERSION}"'::el9" ] }'
+
+			# TODO need custom rules when the version after 1.10 is 2.0, so that we keep 1.10 around longer
 			NEW_KEY="rhdh-${PROD_VERSION}"         # new key,     e.g. rhdh-1.10
 			PREV_KEY="rhdh-${PROD_VERSION_PREV}"   # previous GA  e.g. rhdh-1.9
-			PREV2_KEY="rhdh-${PROD_VERSION_PREV2}" # two back     e.g. rhdh-1.8
-			DEL_KEY="rhdh-${PROD_VERSION_PREV3}"   # delete key   e.g. rhdh-1.7
+			PREV2_KEY="rhdh-${PROD_VERSION_PREV2}"   # previous GA  e.g. rhdh-1.8
 
 		  # set -x
 			jq --arg NEW_KEY "${NEW_KEY}" --arg NEW_STREAM "${NEW_STREAM}" '.ps_update_streams."'"$NEW_KEY"'" += '"$NEW_STREAM" \
 				data/developer/ps_update_streams/rhdh.json > data/developer/ps_update_streams/rhdh.json_; mv data/developer/ps_update_streams/rhdh.json{_,}
 
-			for ARR_KEY in ps_update_streams active_ps_update_streams default_ps_update_streams; do 
-				jq --arg ARR_KEY "${ARR_KEY}" --arg NEW_KEY "${NEW_KEY}" '."ps_modules"."rhdh-1".'"$ARR_KEY"' |= . + ["'"$NEW_KEY"'"]' \
-					data/developer/ps_modules.json > data/developer/ps_modules.json_; mv data/developer/ps_modules.json{_,}
-				# remove keys from the active and default arrays only
-				if [[ $ARR_KEY != "ps_update_streams" ]]; then
-					jq --arg ARR_KEY "${ARR_KEY}" --arg DEL_KEY "${DEL_KEY}" '.["ps_modules"]["rhdh-1"][$ARR_KEY] |= map(select(. != $DEL_KEY))' \
-						data/developer/ps_modules.json > data/developer/ps_modules.json_; mv data/developer/ps_modules.json{_,}
-				fi
-			done
-
-			# set moderate_ps_update_streams to three concurrent streams: two previous + new (e.g. rhdh-1.8, rhdh-1.9, rhdh-1.10)
-			ARR_KEY="moderate_ps_update_streams"
-			jq --arg ARR_KEY "${ARR_KEY}" --arg PREV2_KEY "${PREV2_KEY}" --arg PREV_KEY "${PREV_KEY}" --arg NEW_KEY "${NEW_KEY}" \
-				'.["ps_modules"]["rhdh-1"][$ARR_KEY] = [$PREV2_KEY, $PREV_KEY, $NEW_KEY]' \
+			ARR_KEY="ps_update_streams"
+			jq --arg ARR_KEY "${ARR_KEY}" --arg NEW_KEY "${NEW_KEY}" \
+				'.["ps_modules"]["rhdh-1"][$ARR_KEY] |= (. + [$NEW_KEY] | reduce .[] as $x ([]; . as $acc | if ($acc | index($x)) != null then $acc else $acc + [$x] end))' \
 				data/developer/ps_modules.json > data/developer/ps_modules.json_; mv data/developer/ps_modules.json{_,}
+
+			if [[ $TYPE == "branch" ]]; then # for branching operations
+				# set to current and 2 previous streams (e.g. rhdh-1.8, rhdh-1.9, rhdh-1.10) when branching for 1.10
+				for ARR_KEY in active_ps_update_streams default_ps_update_streams moderate_ps_update_streams; do
+					jq --arg ARR_KEY "${ARR_KEY}"  --arg PREV2_KEY "${PREV2_KEY}" --arg PREV_KEY "${PREV_KEY}" --arg NEW_KEY "${NEW_KEY}" \
+						'.["ps_modules"]["rhdh-1"][$ARR_KEY] |= [$PREV2_KEY, $PREV_KEY, $NEW_KEY]' \
+						data/developer/ps_modules.json > data/developer/ps_modules.json_; mv data/developer/ps_modules.json{_,}
+				done
+			elif [[ $TYPE == *".0" ]]; then # for .0 tagging operations
+				# set to current and previous stream only (e.g. rhdh-1.8, rhdh-1.9)
+				for ARR_KEY in active_ps_update_streams default_ps_update_streams moderate_ps_update_streams; do
+					jq --arg ARR_KEY "${ARR_KEY}"  --arg PREV_KEY "${PREV_KEY}" --arg NEW_KEY "${NEW_KEY}" \
+						'.["ps_modules"]["rhdh-1"][$ARR_KEY] |= [$PREV_KEY, $NEW_KEY]' \
+						data/developer/ps_modules.json > data/developer/ps_modules.json_; mv data/developer/ps_modules.json{_,}
+				done
+			fi
 
 		  # set +x
 			git add data/developer/
 
 			# commit changes 
-			COMMITMSG="chore: add new CPE and update streams for upcoming release RHDH $PROD_VERSION"
+			COMMITMSG="chore(rhdh): for $COMMITMSG"
 			if [[ ${DO_PUSH} -eq 1 ]]; then
 				# submit a MR
 				git commit --no-gpg-sign -s -m "${COMMITMSG}" data/developer/
@@ -1412,18 +1423,31 @@ if [[ $SKIP_GL -eq 0 ]] && [[ "${MIDSTM_BRANCH}" ]]; then
 	echo "  ## ## ## Processing Gitlab Repos done! ## ## ## "
 fi
 
-if [[ $SKIP_KRD -eq 0 ]] && [[ "${MIDSTM_BRANCH}" ]]; then
-	if [[ $CSV_VERSION ]]; then # for tagging
-		# midstream konflux-release-data sources - bump the RPA to 1.5.z
+# for tagging
+if [[ $CSV_VERSION ]] && [[ "${MIDSTM_BRANCH}" ]]; then
+	if [[ $SKIP_KRD -eq 0 ]]; then
+		# midstream konflux-release-data sources - bump the RPA to 1.y.z
 		echo "  ## ## ## Processing Konflux Release Data Repo (RPAs) ... ## ## ## "
 		updateKonfluxReleasePlanAdmissionYamls
 		echo "  ## ## ## Processing Konflux Release Data Repo (RPAs) done! ## ## ## "
 		# TODO should we also run generatePyxisConfigForPlugins after tagging, 
 		# or when preparing an RC?
-	else # for branching - create everything at version 1.5.0
+	fi
+	# only on release of a .0 GA do we remove the -2 version (eg., when 1.10 is live,, remove 1.8)
+	if [[ $SKIP_PRODSEC -eq 0 ]] && [[ $CSV_VERSION == *".0" ]]; then
+		echo "  ## ## ## Processing Prodsec Repo ... ## ## ## "
+		updateProdsecDefinitions "$CSV_VERSION"
+		echo "  ## ## ## Processing Prodsec Repo done! ## ## ## "
+	fi
+
+fi
+
+# for branching - create everything at version 1.y.0
+if [[ ! $CSV_VERSION ]]; then
+	if [[ $SKIP_PYXIS -eq 0 ]] || [[ $SKIP_PRODSEC -eq 0 ]] || [[ $SKIP_KRD -eq 0 ]]; then
 		if [[ $SKIP_PRODSEC -eq 0 ]]; then
 			echo "  ## ## ## Processing Prodsec Repo ... ## ## ## "
-			generateNewProdsecDefinitions
+			updateProdsecDefinitions "branch"
 			echo "  ## ## ## Processing Prodsec Repo done! ## ## ## "
 		fi
 		
@@ -1436,20 +1460,20 @@ if [[ $SKIP_KRD -eq 0 ]] && [[ "${MIDSTM_BRANCH}" ]]; then
 			echo "  ## ## ## Processing Pyxis Repo done! ## ## ## "
 		fi
 
-		echo "  ## ## ## Processing Konflux Release Data Repo (Comopnents + RPAs)... ## ## ## "
-		generateNewKonfluxReleaseDataYamls
-		echo "  ## ## ## Processing Konflux Release Data Repo (Comopnents + RPAs) done! ## ## ## "
-
-
-		if [[ $VERBOSE -eq 1 ]]; then 
-			echo "[DEBUG] update the Konflux Release Data repo to add new plugins and catalog index"
+		if [[ $SKIP_KRD -eq 0 ]]; then
+			echo "  ## ## ## Processing Konflux Release Data Repo (Comopnents + RPAs)... ## ## ## "
+			generateNewKonfluxReleaseDataYamls
+			echo "  ## ## ## Processing Konflux Release Data Repo (Comopnents + RPAs) done! ## ## ## "
+			if [[ $VERBOSE -eq 1 ]]; then 
+				echo "[DEBUG] update the Konflux Release Data repo to add new plugins and catalog index"
+			fi
+			echo "[INFO] konflux-release-data merge requests may fail if there are required changes to either of these repos:"
+			echo "       * https://gitlab.cee.redhat.com/prodsec/product-definitions/-/merge_requests/ (new RHDH version)"
+			echo "       * https://gitlab.cee.redhat.com/releng/pyxis-repo-configs/-/merge_requests/ (new plugin repos)"
+			echo "  ## ## ## Processing Konflux Release Data Repo (plugins) ... ## ## ## "
+			generateKonfluxReleaseDataForPlugins
+			echo "  ## ## ## Processing Konflux Release Data Repo (plugins) done! ## ## ## "
 		fi
-		echo "[INFO] konflux-release-data merge requests may fail if there are required changes to either of these repos:"
-		echo "       * https://gitlab.cee.redhat.com/prodsec/product-definitions/-/merge_requests/ (new RHDH version)"
-		echo "       * https://gitlab.cee.redhat.com/releng/pyxis-repo-configs/-/merge_requests/ (new plugin repos)"
-		echo "  ## ## ## Processing Konflux Release Data Repo (plugins) ... ## ## ## "
-		generateKonfluxReleaseDataForPlugins
-		echo "  ## ## ## Processing Konflux Release Data Repo (plugins) done! ## ## ## "
 	fi
 	# cleanup
 	# rm -fr "${TMPDIR:?}"/*
