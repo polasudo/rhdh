@@ -159,8 +159,18 @@
           "skipRange": "<1.9.0"
         },
         {
-          "name": "rhdh-operator.v1.10.0",
+          "name": "rhdh-operator.v1.9.1",
           "replaces": "rhdh-operator.v1.9.0",
+          "skipRange": "<1.9.1"
+        },
+        {
+          "name": "rhdh-operator.v1.9.2",
+          "replaces": "rhdh-operator.v1.9.1",
+          "skipRange": "<1.9.2"
+        },
+        {
+          "name": "rhdh-operator.v1.10.0",
+          "replaces": "rhdh-operator.v1.9.2",
           "skipRange": "<1.10.0"
         }
       ],
@@ -407,6 +417,16 @@
           "name": "rhdh-operator.v1.9.0",
           "replaces": "rhdh-operator.v1.8.4",
           "skipRange": "<1.9.0"
+        },
+        {
+          "name": "rhdh-operator.v1.9.1",
+          "replaces": "rhdh-operator.v1.9.0",
+          "skipRange": "<1.9.1"
+        },
+        {
+          "name": "rhdh-operator.v1.9.2",
+          "replaces": "rhdh-operator.v1.9.1",
+          "skipRange": "<1.9.2"
         }
       ],
       "name": "fast-1.9",
@@ -554,10 +574,18 @@
       "image": "registry.redhat.io/rhdh/rhdh-operator-bundle@sha256:be3276aa08b84a3e897b53d27d270285a6a36012ad4444b9ee3ee97a90ab9a1a"
     },
     {
+      "schema": "olm.bundle",
+      "image": "registry.redhat.io/rhdh/rhdh-operator-bundle@sha256:4e19b6f2e0f3b3e95f44698e9be9c1ba4cf47b7bac70319a4dc982a126636b03"
+    },
+    {
+      "schema": "olm.bundle",
+      "image": "registry.redhat.io/rhdh/rhdh-operator-bundle@sha256:ac51898f35a3f79f849d78711e1dfa7f8c4991099a9c5dcf0e4ead0fb3063205"
+    },
+    {
       "entries": [
         {
           "name": "rhdh-operator.v1.10.0",
-          "replaces": "rhdh-operator.v1.9.0",
+          "replaces": "rhdh-operator.v1.9.2",
           "skipRange": "<1.10.0"
         }
       ],
@@ -567,7 +595,7 @@
     },
     {
       "schema": "olm.bundle",
-      "image": "quay.io/rhdh/rhdh-operator-bundle@sha256:5b9f2a98bbc04a382cca865c5eb43b0a5ef08e9b1390833569d8750f92f2d990"
+      "image": "quay.io/rhdh/rhdh-operator-bundle@sha256:5662c4d083a16a7f922f03032d0ad2b92c2803b39e9c6091ef80308f531860fa"
     }
   ]
 }
