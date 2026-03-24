@@ -74,7 +74,7 @@ Example:
   $0 --branchfrom main -gh release-1.10 --clean -ghtoken \$GITHUB_TOKEN
 
 To create tags (and push updates to release-1.yy branches):
-1. You should have a valid GITHUB_TOKEN for your user (for upstream PRs).
+1. You should have a valid $MIDSTM_USER GITHUB_TOKEN (for upstream PRs and tags).
 2. You should have a valid $MIDSTM_USER kerberos login (for mid- and downstream pushes).
 3. Run this
   $0 -v CSV_VERSION -t PROD_VERSION -gh GH_BRANCH -ghtoken GITHUB_TOKEN
@@ -138,6 +138,11 @@ while [[ "$#" -gt 0 ]]; do
   esac
   shift 1
 done
+
+# check if the script is running as the rhdh-bot user, or someone ellse
+if [[ $(git config user.email) != "rhdh-bot@redhat.com" ]]; then
+	usage; echo -e "${red}[ERROR] This script must be run as the rhdh-bot@redhat.com user so that you can create PRs and tags using that user's permissions.${norm}"; exit 1
+fi
 
 # TODO switch to jq wrapper version of yq (not mikefarah)
 if ! command -v "$YQ" &> /dev/null; then
@@ -780,7 +785,7 @@ pushBranchAndOrTagGH () {
 								git push origin ":${CSV_VERSION}" || true
 								git tag -d "${CSV_VERSION}" || true
 								git tag "${CSV_VERSION}" || true
-								git push origin "${CSV_VERSION}" || true
+								git push origin "${CSV_VERSION}" || { echo "Could not push tag as user $(git config user.name) <$(git config user.email)> ! Try running 'gh auth switch' to run this script as the rhdh-bot!"; exit 1; }
 							fi
 							# now create the floating 1.y tag too; first delete the existing one, then recreate it at the new SHA
 							if [[ $DO_PUSH -eq 1 ]]; then 
@@ -788,7 +793,7 @@ pushBranchAndOrTagGH () {
 								git push origin ":${CSV_VERSION%.*}" || true
 								git tag -d "${CSV_VERSION%.*}" || true
 								git tag "${CSV_VERSION%.*}" || true
-								git push origin "${CSV_VERSION%.*}" || true
+								git push origin "${CSV_VERSION%.*}" || { echo "Could not push tag as user $(git config user.name) <$(git config user.email)> ! Try running 'gh auth switch' to run this script as the rhdh-bot!"; exit 1; }
 							fi
 							git checkout "$previous_sha"
 						fi
