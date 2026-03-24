@@ -38,7 +38,7 @@ metadata:
     capabilities: Seamless Upgrades
     categories: Developer Tools
     certified: "true"
-    containerImage: registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:6790069e24757f26c0cbd7cf53a50d08b367b7c6e43e3fd4431e37d37ff0f997
+    containerImage: registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:944f755dbe160fdf9eeca568261d72a931a81b4494ac75e5852e2bba7e29a4ea
     createdAt: "2026-03-23T14:03:49Z"
     description: Red Hat Developer Hub is a Red Hat supported version of Backstage.
       It comes with pre-built plug-ins and configuration settings, supports use of
@@ -346,8 +346,8 @@ spec:
                 - name: RELATED_IMAGE_backstage
                   value: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:af9658242a1b4c58b5e09fa92e25d20db9ef05e75c3b8819c0e2d1b2af9a3dd9
                 - name: RELATED_IMAGE_catalog_index
-                  value: registry.access.redhat.com/rhdh/plugin-catalog-index@sha256:7102833a300ad31a86bc69945c81ca53931ea50cfaf7edda1f4bb35de5984a4d
-                image: registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:6790069e24757f26c0cbd7cf53a50d08b367b7c6e43e3fd4431e37d37ff0f997
+                  value: registry.access.redhat.com/rhdh/plugin-catalog-index@sha256:245adc0d91524ec0bf608e360fc012c6cda8bdd9e4bcc41208760dc142b88986
+                image: registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:944f755dbe160fdf9eeca568261d72a931a81b4494ac75e5852e2bba7e29a4ea
                 livenessProbe:
                   httpGet:
                     path: /healthz
@@ -468,7 +468,7 @@ spec:
     name: postgresql
   - image: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:af9658242a1b4c58b5e09fa92e25d20db9ef05e75c3b8819c0e2d1b2af9a3dd9
     name: backstage
-  - image: registry.access.redhat.com/rhdh/plugin-catalog-index@sha256:7102833a300ad31a86bc69945c81ca53931ea50cfaf7edda1f4bb35de5984a4d
+  - image: registry.access.redhat.com/rhdh/plugin-catalog-index@sha256:245adc0d91524ec0bf608e360fc012c6cda8bdd9e4bcc41208760dc142b88986
     name: catalog-index
   replaces: rhdh-operator.v1.9.0
   version: 1.10.0
