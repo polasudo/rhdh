@@ -88,7 +88,7 @@ if [[ -f "${CI_PROJECT_DIR}/.secure_files/rhdh-bot.gitlab.pat" ]]; then
     export PRIVATE_TOKEN
 
     # for pushing to github
-    GITHUB_TOKEN=$(grep -E -v "^#" "${CI_PROJECT_DIR}/.secure_files/rhdh-bot.github.pat" | sed -r -e "s/ *# *notsecret//" | tr -d " ")
+    GITHUB_TOKEN=$(grep -E -v "^#" "${CI_PROJECT_DIR}/.secure_files/RHDH_BOT_TOKEN" | sed -r -e "s/ *# *notsecret//" | tr -d " ")
     export GITHUB_TOKEN
 
     # for querying quay for images, in order to do a helm chart publish
