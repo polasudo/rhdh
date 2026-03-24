@@ -38,8 +38,8 @@ metadata:
     capabilities: Seamless Upgrades
     categories: Developer Tools
     certified: "true"
-    containerImage: registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:5d90c3b3d5391e05a8b36878e52e4a56ab6f92086a84755b8c6893a6f9afd768
-    createdAt: "2026-03-18T14:42:38Z"
+    containerImage: registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:6790069e24757f26c0cbd7cf53a50d08b367b7c6e43e3fd4431e37d37ff0f997
+    createdAt: "2026-03-23T14:03:49Z"
     description: Red Hat Developer Hub is a Red Hat supported version of Backstage.
       It comes with pre-built plug-ins and configuration settings, supports use of
       an external database, and can help streamline the process of setting up a self-managed
@@ -342,12 +342,12 @@ spec:
                     fieldRef:
                       fieldPath: metadata.name
                 - name: RELATED_IMAGE_postgresql
-                  value: registry.redhat.io/rhel9/postgresql-15@sha256:184392530ab3c287f9511b5bb021f865edd2074ccb26344b6e1b06c46b321353
+                  value: registry.redhat.io/rhel9/postgresql-15@sha256:13fd37c2cdce2eed6923f936e342c76612801f88b1e35de7d9ff436cbd7aa3aa
                 - name: RELATED_IMAGE_backstage
                   value: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:af9658242a1b4c58b5e09fa92e25d20db9ef05e75c3b8819c0e2d1b2af9a3dd9
                 - name: RELATED_IMAGE_catalog_index
                   value: registry.access.redhat.com/rhdh/plugin-catalog-index@sha256:7102833a300ad31a86bc69945c81ca53931ea50cfaf7edda1f4bb35de5984a4d
-                image: registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:5d90c3b3d5391e05a8b36878e52e4a56ab6f92086a84755b8c6893a6f9afd768
+                image: registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:6790069e24757f26c0cbd7cf53a50d08b367b7c6e43e3fd4431e37d37ff0f997
                 livenessProbe:
                   httpGet:
                     path: /healthz
@@ -464,7 +464,7 @@ spec:
     name: Red Hat Inc.
     url: https://www.redhat.com/
   relatedImages:
-  - image: registry.redhat.io/rhel9/postgresql-15@sha256:184392530ab3c287f9511b5bb021f865edd2074ccb26344b6e1b06c46b321353
+  - image: registry.redhat.io/rhel9/postgresql-15@sha256:13fd37c2cdce2eed6923f936e342c76612801f88b1e35de7d9ff436cbd7aa3aa
     name: postgresql
   - image: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:af9658242a1b4c58b5e09fa92e25d20db9ef05e75c3b8819c0e2d1b2af9a3dd9
     name: backstage
