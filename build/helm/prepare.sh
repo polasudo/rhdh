@@ -525,6 +525,23 @@ if [[ $PUBLISH -eq 1 ]]; then
         "${actual_chart}:application/vnd.cncf.helm.chart.content.v1.tar+gzip" \
         --disable-path-validation --config "${helm_config}:application/vnd.cncf.helm.config.v1+json" $QUAY_REGISTRY_CONFIG
 
+    # RHIDP-12071: for next / CI builds only, add one or two other next* tags
+    if [[ $CHART_VERSION == *"-CI" ]]; then
+        # push a :next-x.y tag for the x.y part of CHART_VERSION = 1.10-87-CI
+        echo -e "${green}[INFO] Publish Helm chart to quay.io/rhdh/${TARGET_REPO}:next- ${CHART_VERSION%%-*} ...${norm}"
+        oras push "quay.io/rhdh/${TARGET_REPO}:next- ${CHART_VERSION%%-*}" \
+            "${actual_chart}:application/vnd.cncf.helm.chart.content.v1.tar+gzip" \
+            --disable-path-validation --config "${helm_config}:application/vnd.cncf.helm.config.v1+json" $QUAY_REGISTRY_CONFIG
+
+        # if CHART_BRANCH = main, create a :next tag too
+        if [[ $CHART_BRANCH == "main" ]]; then
+            echo -e "${green}[INFO] Publish Helm chart to quay.io/rhdh/${TARGET_REPO}:next ...${norm}"
+            oras push "quay.io/rhdh/${TARGET_REPO}:next" \
+                "${actual_chart}:application/vnd.cncf.helm.chart.content.v1.tar+gzip" \
+                --disable-path-validation --config "${helm_config}:application/vnd.cncf.helm.config.v1+json" $QUAY_REGISTRY_CONFIG
+        fi
+    fi
+
     # remove any leftover tarballs from a previous run
     cd /tmp
 
