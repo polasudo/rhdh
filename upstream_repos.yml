@@ -19,6 +19,8 @@ repos:
       - README.adoc
       - sync/
       - upstream_repos.yaml
+      # RHIDP-10871 - as of 1.10 exclude this file from the RHDH container; it now ONLY lives in the index container
+      - dynamic-plugins.default.yaml
     destination_folder: distgit/containers/rhdh-hub/
 
   - repo: https://github.com/redhat-developer/rhdh-operator
