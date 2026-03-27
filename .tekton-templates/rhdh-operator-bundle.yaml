@@ -8,15 +8,15 @@ metadata:
     build.appstudio.redhat.com/target_branch: '{{target_branch}}'
     pipelinesascode.tekton.dev/max-keep-runs: "6"
     pipelinesascode.tekton.dev/on-cel-expression: |
-      (event == "push" || event == "pull_request") &&
+      (event == "{{EVENT}}") &&
       target_branch == "rhdh-{{VERSION_DOT}}-rhel-9" &&
-      ( "distgit/containers/rhdh-operator-bundle/***".pathChanged() || ".tekton/rhdh-operator-bundle-{{VERSION_DASH}}.yaml".pathChanged() )
+      ( "distgit/containers/rhdh-operator-bundle/***".pathChanged() || ".tekton/rhdh-operator-bundle-{{VERSION_DASH}}-{{EVENTNAME}}.yaml".pathChanged() )
   creationTimestamp: null
   labels:
     appstudio.openshift.io/application: rhdh-{{VERSION_DASH}}
     appstudio.openshift.io/component: rhdh-operator-bundle-{{VERSION_DASH}}
     pipelines.appstudio.openshift.io/type: build
-  name: rhdh-operator-bundle-{{VERSION_DASH}}
+  name: rhdh-operator-bundle-{{VERSION_DASH}}-on-{{EVENTNAME}}
   namespace: rhdh-tenant
 spec:
   params:

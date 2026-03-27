@@ -22,7 +22,7 @@ Utility script to generate new pipelineruns when branching
 
 Usage:    $0 -t <new_branch>
 
-Example:  $0 -t 1.9
+Example:  $0 -t 1.10
 "
 }
 
@@ -59,20 +59,24 @@ echo ""
 create_component_pipeline() {
     local component="$1"
     local template_file="$TEMPLATE_DIR/rhdh-${component}.yaml"
-    local output_file="$SCRIPT_DIR/rhdh-${component}-${VERSION_DASH}.yaml"
+    local output_file="$SCRIPT_DIR/rhdh-${component}-${VERSION_DASH}"
 
     if [ ! -f "$template_file" ]; then
         echo -e "${RED}✗ Error: Template file not found: $template_file${NC}"
         return 1
     fi
 
-    # Copy template
-    cp "$template_file" "$output_file" 2>/dev/null
+    # Replace version and EVENT placeholders in templaces
+    sed "$template_file" \
+        -e "s/{{VERSION_DASH}}/$VERSION_DASH/g" -e "s/{{VERSION_DOT}}/$VERSION_DOT/g" \
+        -e "s/{{EVENTNAME}}/pull/" -e "s/{{EVENT}}/pull_request/" \
+        2>/dev/null > "${output_file}-pull.yaml"
+    sed "$template_file" \
+        -e "s/{{VERSION_DASH}}/$VERSION_DASH/g" -e "s/{{VERSION_DOT}}/$VERSION_DOT/g" \
+        -e "s/{{EVENTNAME}}/push/" -e "s/{{EVENT}}/push/" \
+        2>/dev/null > "${output_file}-push.yaml"
 
-    # Replace version placeholders
-    sed -i -e "s/{{VERSION_DASH}}/$VERSION_DASH/g" -e "s/{{VERSION_DOT}}/$VERSION_DOT/g" "$output_file" 2>/dev/null
-
-    echo -e "${GREEN}✓${NC} Created: ${BLUE}rhdh-${component}-${VERSION_DASH}.yaml${NC}"
+    echo -e "${GREEN}✓${NC} Created: ${BLUE}rhdh-${component}-${VERSION_DASH}-push.yaml and -pull.yaml${NC}"
 }
 
 # Function to update FBC pipeline target_branch
@@ -119,6 +123,8 @@ echo ""
 
 # remove unneeded pipelineruns from the stable branch
 # TODO when we move to 2.y this needs to match -2.yaml
-rm -f "$SCRIPT_DIR"/*-1.yaml
+if [[ $VERSION_DOT != 1 ]]; then
+    rm -f "$SCRIPT_DIR"/*-1.yaml "$SCRIPT_DIR"/*-1-push.yaml  "$SCRIPT_DIR"/*-1-pull.yaml
+fi
 
 echo -e "${GREEN}Done!${NC}"

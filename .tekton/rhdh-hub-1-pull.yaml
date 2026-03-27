@@ -7,17 +7,16 @@ metadata:
     build.appstudio.redhat.com/pull_request_number: '{{pull_request_number}}'
     build.appstudio.redhat.com/target_branch: '{{target_branch}}'
     pipelinesascode.tekton.dev/max-keep-runs: "7"
-    # Trigger rebuild v4 - main branch EC verification.
     pipelinesascode.tekton.dev/on-cel-expression: |
-      (event == "push" || event == "pull_request") && 
+      (event == "pull_request") && 
       target_branch == "rhdh-1-rhel-9" && 
-      ( "distgit/containers/rhdh-operator/***".pathChanged() || ".tekton/rhdh-operator-1.yaml".pathChanged() )
+      ( "distgit/containers/rhdh-hub/***".pathChanged() || ".tekton/rhdh-hub-1-pull.yaml".pathChanged() )
   creationTimestamp: null
   labels:
     appstudio.openshift.io/application: rhdh-1
-    appstudio.openshift.io/component: rhdh-operator-1
+    appstudio.openshift.io/component: rhdh-hub-1
     pipelines.appstudio.openshift.io/type: build
-  name: rhdh-operator-1
+  name: rhdh-hub-1-on-pull
   namespace: rhdh-tenant
 spec:
   params:
@@ -25,9 +24,9 @@ spec:
     - name: rhdh-version
       value: "1"
     - name: component-type
-      value: operator
+      value: hub
     - name: DO_HELM
-      value: "false"
+      value: "true"
     - name: IS_BUNDLE
       value: "false"
     - name: skip-checks
@@ -55,19 +54,19 @@ spec:
     - name: event-type
       value: '{{event}}'
     - name: output-image
-      value: quay.io/rhdh/rhdh-rhel9-operator:{{revision}}
+      value: quay.io/rhdh/rhdh-hub-rhel9:{{revision}}
     - name: image-expires-after
       value: ''
     - name: dockerfile
       value: Containerfile
     - name: path-context
-      value: distgit/containers/rhdh-operator
+      value: distgit/containers/rhdh-hub
     - name: prefetch-input
-      value: '{"packages": [{"type": "rpm", "path": "distgit/containers/rhdh-operator"},{"path": "distgit/containers/rhdh-operator", "type": "gomod"}], "flags": ["cgo-disable"]}'
+      value: '[{"type": "rpm", "path": "distgit/containers/rhdh-hub"},{"type": "yarn","path": "distgit/containers/rhdh-hub"},{"type": "yarn","path": "distgit/containers/rhdh-hub/dynamic-plugins"},{"type": "pip","path": "distgit/containers/rhdh-hub/python", "allow_binary": "false"}]'
   pipelineRef:
     name: build-pipeline-rhdh
   taskRunSpecs:
-    - pipelineTaskName: build-container-operator
+    - pipelineTaskName: build-container-hub
       stepSpecs:
       - name: build
         computeResources:
@@ -77,7 +76,7 @@ spec:
           limits:
             cpu: '8'
             memory: 20Gi
-    - pipelineTaskName: prefetch-dependencies-operator
+    - pipelineTaskName: prefetch-dependencies-hub
       computeResources:
         requests:
           cpu: '8'
@@ -86,7 +85,7 @@ spec:
           cpu: '8'
           memory: 16Gi
   taskRunTemplate:
-    serviceAccountName: build-pipeline-rhdh-operator-1
+    serviceAccountName: build-pipeline-rhdh-hub-1
   timeouts:
     pipeline: 3h
   workspaces:
