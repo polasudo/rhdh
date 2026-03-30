@@ -1,0 +1,37 @@
+# Component-specific configuration for the RHDH pipeline template (rhdh-pipeline.yaml).
+# The operator-bundle uses a different pipeline pattern (non-OCI trusted artifacts)
+# and has its own template: rhdh-operator-bundle.yaml
+#
+# Used by: .tekton/generatePipelineRuns.sh
+
+hub:
+  template: rhdh-pipeline.yaml
+  output_image: "quay.io/rhdh/rhdh-hub-rhel9"
+  path_context: "distgit/containers/rhdh-hub"
+  prefetch_input: '[{"type": "rpm", "path": "distgit/containers/rhdh-hub"},{"type": "yarn","path": "distgit/containers/rhdh-hub"},{"type": "yarn","path": "distgit/containers/rhdh-hub/dynamic-plugins"},{"type": "pip","path": "distgit/containers/rhdh-hub/python", "allow_binary": "false"}]'
+  max_keep_runs: "8"
+  snyk_project: "konflux-rhdh-hub"
+  include_tasks:
+    - publish-helm
+  storage: "10Gi"
+
+operator:
+  template: rhdh-pipeline.yaml
+  output_image: "quay.io/rhdh/rhdh-rhel9-operator"
+  path_context: "distgit/containers/rhdh-operator"
+  prefetch_input: '{"packages": [{"type": "rpm", "path": "distgit/containers/rhdh-operator"},{"path": "distgit/containers/rhdh-operator", "type": "gomod"}], "flags": ["cgo-disable"]}'
+  max_keep_runs: "7"
+  snyk_project: "konflux-rhdh-operator"
+  include_tasks:
+    - ecosystem-cert-preflight-checks
+  storage: "10Gi"
+
+operator-bundle:
+  template: rhdh-operator-bundle.yaml
+  output_image: "quay.io/rhdh/rhdh-operator-bundle"
+  path_context: "distgit/containers/rhdh-operator-bundle"
+  prefetch_input: ""
+  max_keep_runs: "8"
+  snyk_project: "konflux-rhdh-operator-bundle"
+  include_tasks: []
+  storage: "2Gi"

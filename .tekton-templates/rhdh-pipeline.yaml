@@ -6,17 +6,17 @@ metadata:
     build.appstudio.redhat.com/commit_sha: '{{revision}}'
     build.appstudio.redhat.com/pull_request_number: '{{pull_request_number}}'
     build.appstudio.redhat.com/target_branch: '{{target_branch}}'
-    pipelinesascode.tekton.dev/max-keep-runs: "7"
+    pipelinesascode.tekton.dev/max-keep-runs: "{{MAX_KEEP_RUNS}}"
     pipelinesascode.tekton.dev/on-cel-expression: |
-      (event == "pull_request") &&
-      target_branch == "rhdh-1-rhel-9" &&
-      ( "distgit/containers/rhdh-operator/***".pathChanged() || ".tekton/rhdh-operator-1-pull.yaml".pathChanged() )
+      (event == "{{EVENT_TYPE}}") &&
+      target_branch == "rhdh-{{VERSION_DOT}}-rhel-9" &&
+      ( "{{PATH_CONTEXT}}/***".pathChanged() || ".tekton/rhdh-{{COMPONENT}}-{{VERSION_DASH}}-{{EVENT_SUFFIX}}.yaml".pathChanged() )
   creationTimestamp: null
   labels:
-    appstudio.openshift.io/application: rhdh-1
-    appstudio.openshift.io/component: rhdh-operator-1
+    appstudio.openshift.io/application: rhdh-{{VERSION_DASH}}
+    appstudio.openshift.io/component: rhdh-{{COMPONENT}}-{{VERSION_DASH}}
     pipelines.appstudio.openshift.io/type: build
-  name: rhdh-operator-1-on-pull
+  name: rhdh-{{COMPONENT}}-{{VERSION_DASH}}-on-{{EVENT_SUFFIX}}
   namespace: rhdh-tenant
 spec:
   params:
@@ -27,15 +27,15 @@ spec:
     - name: target_branch
       value: '{{target_branch}}'
     - name: output-image
-      value: 'quay.io/rhdh/rhdh-rhel9-operator:{{revision}}'
+      value: '{{OUTPUT_IMAGE}}:{{revision}}'
     - name: image-expires-after
       value: ''
     - name: dockerfile
       value: Containerfile
     - name: path-context
-      value: distgit/containers/rhdh-operator
+      value: {{PATH_CONTEXT}}
     - name: prefetch-input
-      value: '{"packages": [{"type": "rpm", "path": "distgit/containers/rhdh-operator"},{"path": "distgit/containers/rhdh-operator", "type": "gomod"}], "flags": ["cgo-disable"]}'
+      value: '{{PREFETCH_INPUT}}'
   pipelineSpec:
     params:
       - description: Source Repository URL
@@ -318,6 +318,7 @@ spec:
             operator: in
             values: ["false"]
 
+      # BEGIN_TASK ecosystem-cert-preflight-checks
       - name: ecosystem-cert-preflight-checks
         params:
           - name: image-url
@@ -337,6 +338,7 @@ spec:
           - input: $(params.skip-checks)
             operator: in
             values: ["false"]
+      # END_TASK ecosystem-cert-preflight-checks
 
       - name: sast-snyk-check
         params:
@@ -349,7 +351,7 @@ spec:
           - name: CACHI2_ARTIFACT
             value: $(tasks.prefetch-dependencies.results.CACHI2_ARTIFACT)
           - name: ARGS
-            value: "--severity-threshold=medium --project-name=konflux-rhdh-operator-1 --report --org=3640be2c-1549-4d4c-bc0b-46b24799e4b6"
+            value: "--severity-threshold=medium --project-name={{SNYK_PROJECT}}-{{VERSION_DASH}} --report --org=3640be2c-1549-4d4c-bc0b-46b24799e4b6"
         runAfter:
           - build-image-index
         taskRef:
@@ -502,6 +504,25 @@ spec:
               value: task
           resolver: bundles
 
+      # BEGIN_TASK publish-helm
+      - name: publish-helm
+        params:
+          - name: SOURCE_ARTIFACT
+            value: "$(tasks.clone-repository.results.SOURCE_ARTIFACT)"
+          - name: target_branch
+            value: $(params.target_branch)
+          - name: IMAGE_URL
+            value: "$(tasks.build-image-index.results.IMAGE_URL)"
+          - name: IMAGE_DIGEST
+            value: "$(tasks.build-image-index.results.IMAGE_DIGEST)"
+        runAfter:
+          - apply-tags
+        taskRef:
+          resolver: http
+          params:
+            - name: url
+              value: https://gitlab.cee.redhat.com/rhidp/rhdh/-/raw/$(params.revision)/build/helm/publish_task.yaml
+      # END_TASK publish-helm
     finally:
       - name: show-sbom
         params:
@@ -564,7 +585,7 @@ spec:
           cpu: '8'
           memory: 16Gi
   taskRunTemplate:
-    serviceAccountName: build-pipeline-rhdh-operator-1
+    serviceAccountName: build-pipeline-rhdh-{{COMPONENT}}-{{VERSION_DASH}}
   timeouts:
     pipeline: 3h
   workspaces:
@@ -577,7 +598,7 @@ spec:
             - ReadWriteOnce
           resources:
             requests:
-              storage: 10Gi
+              storage: {{STORAGE}}
         status: {}
     - name: git-auth
       secret:
