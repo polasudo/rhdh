@@ -991,24 +991,37 @@ updateKonfluxReleasePlanAdmissionYamls ()
 	git clone -q --depth 1 -b main "git@gitlab.cee.redhat.com:releng/${repo}.git" "${repo}"
 	if [[ -d "$TMPDIR/${repo}" ]]; then
 		pushd "$TMPDIR/${repo}/config/stone-prod-p02.hjvn.p1/product/ReleasePlanAdmission/rhdh" >/dev/null || exit 1
-		# adjust the rhdh-1-4-prod.yaml and rhdh-1-4-stage.yaml files to use a semver tag instead of 1.y-timestamp
+		# adjust the rhdh-1-y-prod.yaml and rhdh-1-y-stage.yaml files to use a semver tag instead of 1.y-timestamp
+
+		RPA_FILES=(
+			"rhdh-${KFUX_VERSION}-prod.yaml"
+			"rhdh-${KFUX_VERSION}-stage.yaml"
+		)
+		# rhdh-plugin-catalog-* RPAs exist only for streams newer than 1.8 (KFUX_VERSION minor > 8)
+		if [[ ${KFUX_VERSION#*-} -gt 8 ]] || [[ ${KFUX_VERSION%-*} -gt 1 ]]; then # support 1.9, 1.10 and 2+
+			RPA_FILES+=(
+				"rhdh-plugin-catalog-${KFUX_VERSION}-prod.yaml"
+				"rhdh-plugin-catalog-${KFUX_VERSION}-stage.yaml"
+			)
+		fi
 
 		#### NOTE THIS REQUIRES mikefarah's yq (which we have in the helm folder)
 		#### The python yq wrapper for jq does not preserve comments (because json has no comments)
-		for f in "rhdh-${KFUX_VERSION}-prod.yaml" "rhdh-${KFUX_VERSION}-stage.yaml" "rhdh-plugin-catalog-${KFUX_VERSION}-prod.yaml" "rhdh-plugin-catalog-${KFUX_VERSION}-stage.yaml"; do
+		for f in "${RPA_FILES[@]}"; do
 			"$YQ" e '.spec.data.mapping.defaults.tags[1]|="'"$CSV_VERSION_Z"'"' -i "$f"
 			# also add a timestamped tag for prod sec - RHIDP-6721
 			"$YQ" e '.spec.data.mapping.defaults.tags[2]|="'"$CSV_VERSION_Z"'-{{ timestamp }}"' -i "$f"
-		done
-		# replace "1.9.0" or  "1.9.0-- with "1.9.1 or  "1.9.1--
-		for f in "rhdh-plugin-catalog-${KFUX_VERSION}-prod.yaml" "rhdh-plugin-catalog-${KFUX_VERSION}-stage.yaml"; do
-			sed -i "$f" -r \
-			-e "s/\"(${KFUX_VERSION}\.[0-9]+)(\"|--)/\"$CSV_VERSION_Z\2/"
+			if [[ $f == rhdh-plugin-catalog-* ]]; then
+				# replace "1.9.0" or  "1.9.0-- with "1.9.1 or  "1.9.1--
+				sed -i "$f" -r \
+					-e "s/\"(${KFUX_VERSION}\.[0-9]+)(\"|--)/\"$CSV_VERSION_Z\2/"
+			fi
 		done
 		COMMITMSG="chore: update rhdh-$KFUX_VERSION-*.yaml RPAs for upcoming release $CSV_VERSION_Z"
 		if [[ ${DO_PUSH} -eq 1 ]]; then
 			# submit a MR
-			git commit --no-gpg-sign -s -m "${COMMITMSG}" "rhdh-${KFUX_VERSION}-prod.yaml" "rhdh-${KFUX_VERSION}-stage.yaml" "rhdh-plugin-catalog-${KFUX_VERSION}-prod.yaml" "rhdh-plugin-catalog-${KFUX_VERSION}-stage.yaml"
+			# shellcheck disable=SC2068
+			git commit --no-gpg-sign -s -m "${COMMITMSG}" ${RPA_FILES[@]}
 			doPush "main"
 		else
 			echo "$COMMITMSG"
