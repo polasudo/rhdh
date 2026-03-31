@@ -275,7 +275,6 @@ doPush () {
 # eg., for 1.1.2 get 1.1.3 (showcase repo, RHDH CSV), 0.1.3 (operator repo, upstream CSV), and 3.1.3 (plugins repo root package.json)
 CSV_VERSION_Z=""
 CSV_VERSION_Z_OPERATOR=""
-CSV_VERSION_Z_PLUGINS=""
 getNextCSVZ() {
 	ver="$1"
 	if [[ $ver =~ ^([0-9]+)\.([0-9]+)\.([0-9]+) ]]; then # increase the z digit
@@ -291,7 +290,6 @@ getNextCSVZ() {
 		fi
 		CSV_VERSION_Z_OPERATOR="$XX.$YY.$ZZ"
 		(( XX=XX+3 ))
-		CSV_VERSION_Z_PLUGINS="$XX.$YY.$ZZ"
 	fi
 }
 
@@ -1360,10 +1358,6 @@ function generateKonfluxReleaseDataForPlugins() {
 getXYplusOneFromBranch "$TARGET_BRANCH"
 # eg., for 1.2.2 get 1.2.3 (showcase repo, RHDH CSV), 0.2.3 (operator repo, upstream CSV)
 # echo "newver = $newver; newverOp = $newverOp"
-
-# getNextCSVZ "$CSV_VERSION"
-# # # eg., for 1.2.2 get 1.2.3 (showcase repo, RHDH CSV), 0.2.3 (operator repo, upstream CSV), and 3.2.3 (plugins repo root package.json)
-# echo "CSV_VERSION_Z = $CSV_VERSION_Z; CSV_VERSION_Z_OPERATOR = $CSV_VERSION_Z_OPERATOR; CSV_VERSION_Z_PLUGINS = $CSV_VERSION_Z_PLUGINS"
 
 ############
 # UPSTREAM 
