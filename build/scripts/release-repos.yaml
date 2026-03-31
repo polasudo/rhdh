@@ -1,0 +1,18 @@
+# Repositories tagged/verified during RHDH releases.
+# Shared by checkGARelease.sh and tagRelease.sh -- keep in sync.
+
+github_repos:
+  - "redhat-developer/rhdh"
+  - "redhat-developer/rhdh-cli"
+  - "redhat-developer/rhdh-operator"
+  - "redhat-developer/rhdh-chart"
+  - "redhat-developer/red-hat-developers-documentation-rhdh"
+  - "redhat-developer/red-hat-developer-hub-software-templates"
+  - "redhat-developer/rhdh-local"
+
+# some repos do not get tagged when we release, as they follow a different release mechanism
+github_repos_no_tag:
+  - "redhat-developer/rhdh-cli"
+gitlab_repos:
+  - "rhidp/rhdh"
+  - "rhidp/rhdh-plugin-catalog"

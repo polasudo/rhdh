@@ -40,13 +40,13 @@ SKIP_PYXIS=0 # skip updates to pyxis-repo-configs repo
 # make builds faster
 export HUSKY=0
 
-GH_REPOS="redhat-developer/rhdh \
-	redhat-developer/rhdh-cli \
-	redhat-developer/rhdh-operator \
-	redhat-developer/rhdh-chart \
-	redhat-developer/red-hat-developers-documentation-rhdh \
-	redhat-developer/red-hat-developer-hub-software-templates \
-	redhat-developer/rhdh-local"
+REPOS_FILE="${SCRIPT_DIR}/release-repos.yaml"
+if [[ ! -f "${REPOS_FILE}" ]]; then
+	echo -e "${red}[ERROR] Required file not found: ${REPOS_FILE}${norm}"
+	exit 1
+fi
+GH_REPOS=""
+GL_REPOS=""
 
 # normally, use this script to create tags, not branches
 # this also defines the branch to update after creating a new branch (eg., for a TARGET_BRANCH=release-1.3 branch creation, bump SOURCE_BRANCH=main to 1.4.0)
@@ -127,7 +127,7 @@ while [[ "$#" -gt 0 ]]; do
 	'--force-update') DO_UPDATE=1;;
 	'-tmpdir') TMPDIR="$2"; shift 1;;
 	'--skip-gh') SKIP_GH=1;;
-	'--gh-repos') GH_REPOS="$2"; shift 1;;
+	'--gh-repos') GH_REPOS_OVERRIDE="$2"; shift 1;;
 	'--skip-gl') SKIP_GL=1;;
 	'--skip-krd') SKIP_KRD=1;;
 	'--skip-prodsec') SKIP_PRODSEC=1;;
@@ -157,6 +157,23 @@ if ! command -v "$YQ" &> /dev/null; then
     fi
     chmod +x "$YQ"
 fi 
+
+# Read release repo lists from the central config file using yq.
+if [[ -n "${GH_REPOS_OVERRIDE}" ]]; then
+	GH_REPOS="${GH_REPOS_OVERRIDE}"
+else
+	GH_REPOS=$("$YQ" -r '.github_repos[]' "${REPOS_FILE}" | tr '\n' ' ')
+fi
+GL_REPOS=$("$YQ" -r '.gitlab_repos[] | split("/")[-1]' "${REPOS_FILE}" | tr '\n' ' ')
+
+if [[ -z "${GH_REPOS// }" ]]; then
+	echo -e "${red}[ERROR] No github_repos found in ${REPOS_FILE}${norm}"
+	exit 1
+fi
+if [[ -z "${GL_REPOS// }" ]]; then
+	echo -e "${red}[ERROR] No gitlab_repos found in ${REPOS_FILE}${norm}"
+	exit 1
+fi
 
 if [[ ! ${PROD_VERSION} ]]; then
 	PROD_VERSION=${CSV_VERSION%.*} # given 1.y.0, want 1.y
@@ -1426,9 +1443,8 @@ function removeOperatorBundleLatestTags() {
 # branch or tag GL repo(s)
 if [[ $SKIP_GL -eq 0 ]] && [[ "${MIDSTM_BRANCH}" ]]; then
 	echo "  ## ## ## Processing Gitlab Repos ... ## ## ## "
-	# midstream build sources
 	for repo in \
-		rhdh-plugin-catalog rhdh \
+		$GL_REPOS \
 		; do
 		pushTagGL $repo
 		# updates to 1.x branch after branching
