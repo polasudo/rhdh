@@ -48,7 +48,7 @@ metadata:
     capabilities: Seamless Upgrades
     categories: Developer Tools
     certified: "true"
-    containerImage: registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:63a0cda506e0ba97eee1292cb644c1ef00802d42bda7afbaf0f108764cb38ec5
+    containerImage: registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:f1543e154595697482197b2a454960196431c4c21ba548c48cedfca754d6227a
     createdAt: "2026-03-26T13:54:11Z"
     description: Red Hat Developer Hub is a Red Hat supported version of Backstage.
       It comes with pre-built plug-ins and configuration settings, supports use of
@@ -363,10 +363,10 @@ spec:
                 - name: RELATED_IMAGE_postgresql
                   value: registry.redhat.io/rhel9/postgresql-15@sha256:3e90431d80657459c45f1a60916d9c22ae7b8e1e7f3a9d1b056dd36b79cd4ccd
                 - name: RELATED_IMAGE_backstage
-                  value: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:d5607b7cdb87803fb8cf4593c863aaebf92a48851fde88ac368a0cdd3f5f31e2
+                  value: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:c45bfbd63130ee44e9ee911f3fbafea7ff78e366aaef799138b367f79d315515
                 - name: RELATED_IMAGE_catalog_index
-                  value: registry.access.redhat.com/rhdh/plugin-catalog-index@sha256:3187bff6a3a3ba3db5195b8a2173f9403faae1b16e82232f10a2c13de0379e1f
-                image: registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:63a0cda506e0ba97eee1292cb644c1ef00802d42bda7afbaf0f108764cb38ec5
+                  value: registry.access.redhat.com/rhdh/plugin-catalog-index@sha256:5d144590b4681773cb3b2d11a3daa499482b2f04624736d047bcd442e00e93c5
+                image: registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:f1543e154595697482197b2a454960196431c4c21ba548c48cedfca754d6227a
                 livenessProbe:
                   httpGet:
                     path: /healthz
@@ -495,9 +495,9 @@ spec:
   relatedImages:
   - image: registry.redhat.io/rhel9/postgresql-15@sha256:3e90431d80657459c45f1a60916d9c22ae7b8e1e7f3a9d1b056dd36b79cd4ccd
     name: postgresql
-  - image: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:d5607b7cdb87803fb8cf4593c863aaebf92a48851fde88ac368a0cdd3f5f31e2
+  - image: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:c45bfbd63130ee44e9ee911f3fbafea7ff78e366aaef799138b367f79d315515
     name: backstage
-  - image: registry.access.redhat.com/rhdh/plugin-catalog-index@sha256:3187bff6a3a3ba3db5195b8a2173f9403faae1b16e82232f10a2c13de0379e1f
+  - image: registry.access.redhat.com/rhdh/plugin-catalog-index@sha256:5d144590b4681773cb3b2d11a3daa499482b2f04624736d047bcd442e00e93c5
     name: catalog-index
   replaces: rhdh-operator.v1.9.0
   version: 1.10.0
