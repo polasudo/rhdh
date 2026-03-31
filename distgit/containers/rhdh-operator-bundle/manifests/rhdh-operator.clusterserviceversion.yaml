@@ -33,13 +33,23 @@ metadata:
             },
             "name": "developer-hub"
           }
+        },
+        {
+          "apiVersion": "rhdh.redhat.com/v1alpha6",
+          "kind": "Backstage",
+          "metadata": {
+            "labels": {
+              "app.kubernetes.io/name": "backstage"
+            },
+            "name": "developer-hub"
+          }
         }
       ]
     capabilities: Seamless Upgrades
     categories: Developer Tools
     certified: "true"
-    containerImage: registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:e55cb9b7f83caf3ecf258e31bf02cab9a9accdc1727fd5bbad81d3f7273c8fa4
-    createdAt: "2026-03-23T14:03:49Z"
+    containerImage: registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:63a0cda506e0ba97eee1292cb644c1ef00802d42bda7afbaf0f108764cb38ec5
+    createdAt: "2026-03-26T13:54:11Z"
     description: Red Hat Developer Hub is a Red Hat supported version of Backstage.
       It comes with pre-built plug-ins and configuration settings, supports use of
       an external database, and can help streamline the process of setting up a self-managed
@@ -100,6 +110,15 @@ spec:
       kind: Backstage
       name: backstages.rhdh.redhat.com
       version: v1alpha5
+    - description: |-
+        Backstage is the Schema for the Red Hat Developer Hub backstages API.
+        It comes with pre-built plug-ins, configuration settings, and deployment mechanisms,
+        which can help streamline the process of setting up a self-managed internal
+        developer portal for adopters who are just starting out.
+      displayName: Red Hat Developer Hub
+      kind: Backstage
+      name: backstages.rhdh.redhat.com
+      version: v1alpha6
   description: |
     Red Hat Developer Hub is an enterprise-grade platform for building developer portals, containing a supported and opinionated framework. It comes with pre-built plug-ins and configuration settings, supports use of an external database, and can help streamline the process of setting up a self-managed internal developer portal for adopters who are just starting out. By implementing a unified and open platform designed to maximize developer skills, ease onboarding, and increase development productivity, focus can be centered on what really matters: writing great code. Red Hat Developer Hub also offers Software Templates to simplify the development process, which can reduce friction and frustration for development teams, boosting their productivity and increasing an organization's competitive advantage.
 
@@ -344,10 +363,10 @@ spec:
                 - name: RELATED_IMAGE_postgresql
                   value: registry.redhat.io/rhel9/postgresql-15@sha256:3e90431d80657459c45f1a60916d9c22ae7b8e1e7f3a9d1b056dd36b79cd4ccd
                 - name: RELATED_IMAGE_backstage
-                  value: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:a1ecf0c1332ad428964533e6880ca20325ec8392231e6caaab98e8ef534eec4e
+                  value: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:d5607b7cdb87803fb8cf4593c863aaebf92a48851fde88ac368a0cdd3f5f31e2
                 - name: RELATED_IMAGE_catalog_index
                   value: registry.access.redhat.com/rhdh/plugin-catalog-index@sha256:3187bff6a3a3ba3db5195b8a2173f9403faae1b16e82232f10a2c13de0379e1f
-                image: registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:e55cb9b7f83caf3ecf258e31bf02cab9a9accdc1727fd5bbad81d3f7273c8fa4
+                image: registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:63a0cda506e0ba97eee1292cb644c1ef00802d42bda7afbaf0f108764cb38ec5
                 livenessProbe:
                   httpGet:
                     path: /healthz
@@ -381,6 +400,10 @@ spec:
                     - ALL
                   readOnlyRootFilesystem: true
                 volumeMounts:
+                - mountPath: /default-config/flavours/lightspeed
+                  name: flavour-lightspeed-config
+                - mountPath: /default-config/flavours/orchestrator
+                  name: flavour-orchestrator-config
                 - mountPath: /default-config
                   name: default-config
                 - mountPath: /plugin-deps
@@ -390,6 +413,12 @@ spec:
               serviceAccountName: rhdh-controller-manager
               terminationGracePeriodSeconds: 10
               volumes:
+              - configMap:
+                  name: rhdh-flavour-lightspeed-config
+                name: flavour-lightspeed-config
+              - configMap:
+                  name: rhdh-flavour-orchestrator-config
+                name: flavour-orchestrator-config
               - configMap:
                   name: rhdh-default-config
                 name: default-config
@@ -466,7 +495,7 @@ spec:
   relatedImages:
   - image: registry.redhat.io/rhel9/postgresql-15@sha256:3e90431d80657459c45f1a60916d9c22ae7b8e1e7f3a9d1b056dd36b79cd4ccd
     name: postgresql
-  - image: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:a1ecf0c1332ad428964533e6880ca20325ec8392231e6caaab98e8ef534eec4e
+  - image: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:d5607b7cdb87803fb8cf4593c863aaebf92a48851fde88ac368a0cdd3f5f31e2
     name: backstage
   - image: registry.access.redhat.com/rhdh/plugin-catalog-index@sha256:3187bff6a3a3ba3db5195b8a2173f9403faae1b16e82232f10a2c13de0379e1f
     name: catalog-index

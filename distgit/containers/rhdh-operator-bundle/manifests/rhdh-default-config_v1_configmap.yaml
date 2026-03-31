@@ -1,6 +1,6 @@
 apiVersion: v1
 data:
-  app-config.yaml: "apiVersion: v1\nkind: ConfigMap\nmetadata:\n  name: my-backstage-config-cm1
+  app-config.yaml: "apiVersion: v1\nkind: ConfigMap\nmetadata:\n  name: default-appconfig
     # placeholder for <bs>-default-appconfig\ndata:\n  default.app-config.yaml: |\n
     \   ###########################################################################################################\n
     \   # /!\\ WARNING\n    #\n    # This is the default app-config file created and
@@ -210,7 +210,7 @@ data:
                 - ./install-dynamic-plugins.sh
                 - /dynamic-plugins-root
               # image will be replaced by the value of the `RELATED_IMAGE_backstage` env var, if set
-              image: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:a1ecf0c1332ad428964533e6880ca20325ec8392231e6caaab98e8ef534eec4e
+              image: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:d5607b7cdb87803fb8cf4593c863aaebf92a48851fde88ac368a0cdd3f5f31e2
               imagePullPolicy: IfNotPresent
               securityContext:
                 readOnlyRootFilesystem: true
@@ -256,7 +256,7 @@ data:
           containers:
             - name: backstage-backend
               # image will be replaced by the value of the `RELATED_IMAGE_backstage` env var, if set
-              image: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:a1ecf0c1332ad428964533e6880ca20325ec8392231e6caaab98e8ef534eec4e
+              image: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:d5607b7cdb87803fb8cf4593c863aaebf92a48851fde88ac368a0cdd3f5f31e2
               imagePullPolicy: IfNotPresent
               args:
                 - "--config"
@@ -373,17 +373,6 @@ data:
       dynamic-plugins.yaml: |
         includes:
           - dynamic-plugins.default.yaml
-        plugins:
-          - package: 'oci://registry.access.redhat.com/rhdh/red-hat-developer-hub-backstage-plugin-orchestrator:{{inherit}}'
-            disabled: true
-          - package: 'oci://registry.access.redhat.com/rhdh/red-hat-developer-hub-backstage-plugin-orchestrator-backend:{{inherit}}'
-            disabled: true
-            dependencies:
-              - ref: sonataflow
-          - package: 'oci://registry.access.redhat.com/rhdh/red-hat-developer-hub-backstage-plugin-scaffolder-backend-module-orchestrator:{{inherit}}'
-            disabled: true
-          - package: 'oci://registry.access.redhat.com/rhdh/red-hat-developer-hub-backstage-plugin-orchestrator-form-widgets:{{inherit}}'
-            disabled: true
   route.yaml: |-
     apiVersion: route.openshift.io/v1
     kind: Route
