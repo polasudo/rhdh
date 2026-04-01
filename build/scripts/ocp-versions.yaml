@@ -29,5 +29,3 @@ UNSUPPORTED_VERSIONS:
 # Registry configurations
 REGISTRIES:
   RHEL9_REGISTRY: "registry.redhat.io/openshift4/ose-operator-registry-rhel9"
-  BREW_REGISTRY: "brew.registry.redhat.io/rh-osbs/openshift-ose-operator-registry-rhel9"
-  RHEL8_REGISTRY: "registry.redhat.io/openshift4/ose-operator-registry"

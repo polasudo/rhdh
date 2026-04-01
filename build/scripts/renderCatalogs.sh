@@ -69,7 +69,6 @@ OCP_SUPPORTED_VERSIONS=$(yq -r '.SUPPORTED_VERSIONS[]' "$CONFIG_FILE" | paste -s
 OCP_VERSIONS="$OCP_VERSION_BASE $OCP_SUPPORTED_VERSIONS $OCP_VERSION_NEXT"
 
 RHEL9_REGISTRY=$(yq -r '.REGISTRIES.RHEL9_REGISTRY' "$CONFIG_FILE")
-BREW_REGISTRY=$(yq -r '.REGISTRIES.BREW_REGISTRY' "$CONFIG_FILE")
 
 DO_COMMIT=1 # by default, commit change
 DO_PUSH=1   # push the commit
@@ -347,12 +346,8 @@ for OCP_VERSION in ${OCP_VERSIONS}; do
     time opm alpha render-template basic "${templateFile}" $migrateLevel > "${CATALOG_DIR}/v${OCP_VERSION}/configs/${prod_path}/catalog.json"
     set +x
 
-    # registry selection based on OCP version
-    if [[ "${OCP_VERSION}" == "${OCP_VERSION_NEXT}" ]];  then 
-        registry="${BREW_REGISTRY}:v${OCP_VERSION}"
-    else
-        registry="${RHEL9_REGISTRY}:v${OCP_VERSION}"
-    fi
+    # as of 4.22, brew.reg is no longer used. 
+    registry="${RHEL9_REGISTRY}:v${OCP_VERSION}"
 
     fastYChannel=""; if [[ $PROD_VERSION ]]; then fastYChannel=",fast-${PROD_VERSION}"; fi
 
