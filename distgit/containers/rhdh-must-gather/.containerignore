@@ -1,0 +1,24 @@
+# Git
+.git
+.gitignore
+
+# Documentation
+README.md
+docs/
+examples/
+
+# Build artifacts
+*.log
+*.tmp
+.DS_Store
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Test files
+test/
+tests/
+*_test.sh
