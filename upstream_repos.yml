@@ -48,7 +48,17 @@ repos:
     branch:
       - main
     include_root: true
+    # only collection-scripts/, Containerfile, and LICENSE are needed for the image build
     exclude_root:
       - .git/
       - .github/
+      - .gitleaks.toml
+      - CLAUDE.md
+      - CONTRIBUTING.md
+      - docs/
+      - hack/
+      - Makefile
+      - pr_agent.toml
+      - README.md
+      - tests/
     destination_folder: distgit/containers/rhdh-must-gather/
