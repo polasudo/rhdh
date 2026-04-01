@@ -854,6 +854,57 @@ pushBranchAndOrTagGH () {
 	fi
 }
 
+# When branching:  when new OCP version is added in ocp-versions.yaml, generate catalogs/vX.Y/*
+# and .tekton/fbc-X-YY-push.yaml. 
+generateCatalogAndFBCPipeline () {
+
+	SCRIPT_DIR=$(cd "$(dirname "$0")" || exit; pwd)
+	# Load OCP version configuration from YAML file
+	CONFIG_FILE="$SCRIPT_DIR/ocp-versions.yaml"
+	if [[ ! -f "$CONFIG_FILE" ]]; then
+			echo "OCP versions file not found: $CONFIG_FILE"
+			exit 1
+	fi
+
+	OCP_VERSION_NEXT=$("$YQ" -r '.OCP_VERSION_NEXT // ""' "$CONFIG_FILE")
+	OCP_LAST_VER=$("$YQ" -r '.SUPPORTED_VERSIONS[-1]' "$CONFIG_FILE")
+
+	ver_next_minor="${OCP_VERSION_NEXT##*.}" # next version minor e.g. 22
+	ver_next_dash="${OCP_VERSION_NEXT//./-}" # next version with dash e.g. 4-22
+	ver_prev_minor="${OCP_LAST_VER##*.}" # last supported version minor e.g. 21
+	ver_prev_dash="${OCP_LAST_VER//./-}" # last supported version with dash e.g. 4-21
+
+	# If catalog folder for OCP_VERSION_NEXT already exists, skip
+	if [[ -d "catalogs/v${OCP_VERSION_NEXT}" ]]; then
+		echo " = catalogs/v${OCP_VERSION_NEXT}/ already exists; skipping catalog and FBC pipeline generation"
+		return 0
+	fi
+
+	cp -r "catalogs/v${OCP_LAST_VER}" "catalogs/v${OCP_VERSION_NEXT}"
+	# Update Containerfiles for the last version to use the public image
+	sed -i "catalogs/v${OCP_LAST_VER}/Containerfile" \
+		-e "s|FROM brew\\.registry\\.redhat\\.io/rh-osbs/openshift-ose-operator-registry-rhel9:v${OCP_LAST_VER}|FROM registry.redhat.io/openshift4/ose-operator-registry-rhel9:v${OCP_LAST_VER}|"
+
+	sed -i "catalogs/v${OCP_VERSION_NEXT}/Containerfile" \
+		-e "s|${OCP_LAST_VER//./\\.}|${OCP_VERSION_NEXT}|g"
+
+	# Count catalog work: git diff misses untracked files (the whole new v${OCP_VERSION_NEXT}/ tree).
+	if [[ -n "$(git status --porcelain -- "catalogs/v${OCP_VERSION_NEXT}/" "catalogs/v${OCP_LAST_VER}/" 2>/dev/null)" ]] || \
+		[[ -n "$(git diff --name-only -- "catalogs/v${OCP_VERSION_NEXT}/" "catalogs/v${OCP_LAST_VER}/" 2>/dev/null)" ]]; then
+		(( CHANGES = CHANGES + 1 ))
+	fi
+
+	if [[ -f ".tekton/fbc-4-${ver_next_minor}-push.yaml" ]]; then
+		echo " = .tekton/fbc-4-${ver_next_minor}-push.yaml already exists; skipping"
+	elif [[ -f ".tekton/fbc-4-${ver_prev_minor}-push.yaml" ]]; then
+		echo " = create .tekton/fbc-4-${ver_next_minor}-push.yaml from fbc-4-${ver_prev_minor}-push.yaml"
+		sed -e "s|${OCP_LAST_VER//./\\.}|${OCP_VERSION_NEXT}|g" -e "s|${ver_prev_dash}|${ver_next_dash}|g" ".tekton/fbc-4-${ver_prev_minor}-push.yaml" > ".tekton/fbc-4-${ver_next_minor}-push.yaml"
+		(( CHANGES = CHANGES + 1 ))
+	else
+		echo " = .tekton/fbc-4-${ver_prev_minor}-push.yaml not found; skipping creation of .tekton/fbc-4-${ver_next_minor}-push.yaml"
+	fi
+}
+
 # ############
 # MIDSTREAM 
 # ############
@@ -940,6 +991,8 @@ pushTagGL ()
 							if [[ $(git diff --name-only -- build/containerfiles/builder.Containerfile) != "" ]]; then (( CHANGES = CHANGES + 1 )); fi
 						fi
 
+						generateCatalogAndFBCPipeline
+
 						sed -i upstream_repos.yml -r \
 							-e "s|- main|- ${TARGET_BRANCH}|g"
 						if [[ $(git diff --name-only -- upstream_repos.yml) != "" ]]; then (( CHANGES = CHANGES + 1 )); fi
@@ -965,11 +1018,11 @@ pushTagGL ()
 					fi
 					if [[ $d == "rhdh" ]] || [[ $d == "rhdh-plugin-catalog" ]]; then 
 						if [[ $d == "rhdh" ]]; then
-							COMMITMSG="chore: tagRelease.sh: use $TARGET_BRANCH in upstream_repos.yml; update builder.Cotnainerfile to ${PROD_VERSION}; trigger rhdh build"
-							git commit --no-gpg-sign -s -m "${COMMITMSG}" .tekton/ sync/ upstream_repos.yml build/containerfiles/builder.Containerfile || echo "nothing to commit, working tree clean (5a)"
+							COMMITMSG="chore: tagRelease.sh: use $TARGET_BRANCH in upstream_repos.yml; update builder.Cotnainerfile to ${PROD_VERSION}; add OCP_VERSION_NEXT catalog and FBC pipeline; trigger rhdh build"
+							git commit --no-gpg-sign -s -m "${COMMITMSG}" .tekton/ sync/ upstream_repos.yml catalogs/ || echo "nothing to commit, working tree clean (5a)"
 						elif [[ $d == "rhdh-plugin-catalog" ]]; then
 							COMMITMSG="chore: tagRelease.sh: use $TARGET_BRANCH in upstream_repos.yml"
-							git commit --no-gpg-sign -s -m "${COMMITMSG}" .tekton/ upstream_repos.yml || echo "nothing to commit, working tree clean (5b)"
+							git commit --no-gpg-sign -s -m "${COMMITMSG}" .tekton/ upstream_repos.yml build/containerfiles/builder.Containerfile || echo "nothing to commit, working tree clean (5b)"
 						fi
 					fi
 
