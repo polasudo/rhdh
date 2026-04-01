@@ -361,9 +361,9 @@ spec:
                     fieldRef:
                       fieldPath: metadata.name
                 - name: RELATED_IMAGE_postgresql
-                  value: registry.redhat.io/rhel9/postgresql-15@sha256:3e90431d80657459c45f1a60916d9c22ae7b8e1e7f3a9d1b056dd36b79cd4ccd
+                  value: registry.redhat.io/rhel9/postgresql-15@sha256:17d8f73eefb3492386bf1984ca32a6c5556d559ab19bdbccb5bc01bcf6d435ab
                 - name: RELATED_IMAGE_backstage
-                  value: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:d9a8555119b09e2fc0917b251b296f141b41d9b631b0f304e763f0df3dab8417
+                  value: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:5966882b54ed38821b7c006e277af989f4fd35faee44c9bf1f6a6cadffee8e77
                 - name: RELATED_IMAGE_catalog_index
                   value: registry.access.redhat.com/rhdh/plugin-catalog-index@sha256:5d144590b4681773cb3b2d11a3daa499482b2f04624736d047bcd442e00e93c5
                 image: registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:f1543e154595697482197b2a454960196431c4c21ba548c48cedfca754d6227a
@@ -493,9 +493,9 @@ spec:
     name: Red Hat Inc.
     url: https://www.redhat.com/
   relatedImages:
-  - image: registry.redhat.io/rhel9/postgresql-15@sha256:3e90431d80657459c45f1a60916d9c22ae7b8e1e7f3a9d1b056dd36b79cd4ccd
+  - image: registry.redhat.io/rhel9/postgresql-15@sha256:17d8f73eefb3492386bf1984ca32a6c5556d559ab19bdbccb5bc01bcf6d435ab
     name: postgresql
-  - image: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:d9a8555119b09e2fc0917b251b296f141b41d9b631b0f304e763f0df3dab8417
+  - image: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:5966882b54ed38821b7c006e277af989f4fd35faee44c9bf1f6a6cadffee8e77
     name: backstage
   - image: registry.access.redhat.com/rhdh/plugin-catalog-index@sha256:5d144590b4681773cb3b2d11a3daa499482b2f04624736d047bcd442e00e93c5
     name: catalog-index
