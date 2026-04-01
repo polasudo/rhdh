@@ -315,6 +315,7 @@ NUM_REPOS=$(grep -v -E " +#" "${UPSTREAM_FILE}" | grep -c "repo:") # 2
 upstream_repo_hub=""
 upstream_repo_hub_branch=""
 upstream_repo_op=""
+upstream_repo_must_gather=""
 
 commitMsg=""
 # num_plugins=0 # total number of plugins to fetch/build
@@ -361,6 +362,8 @@ for ((i = START_REPO; i < NUM_REPOS; i++)); do # echo $i
     elif [[ $CONTAINER_NAME == "rhdh-operator" ]] || [[ $CONTAINER_NAME == "rhdh-operator-bundle" ]]; then
       upstream_repo_op="$repo/tree/$branch @ $SHA"
       if [[ $upstream_repo_hub_branch == "" ]]; then upstream_repo_hub_branch="$branch"; fi
+    elif [[ $CONTAINER_NAME == "rhdh-must-gather" ]]; then
+      upstream_repo_must_gather="$repo/tree/$branch @ $SHA"
     fi
 
     # cat "${ROOTPATH}/sync/upstream_SHA_${CONTAINER_NAME}"; echo "$SHA = $branch @ $repo"
@@ -638,6 +641,16 @@ for ((i = START_REPO; i < NUM_REPOS; i++)); do # echo $i
     fi
     ##################################### rhdh-hub #####################################
 
+    ##################################### rhdh-must-gather #####################################
+    if [[ $destination_folder == *"rhdh-must-gather"* ]]; then
+      # set MIDSTREAM_REPO env var in Konflux Containerfile
+      midstream_repo_and_SHA="https://$(git remote -v | grep origin | grep -v push | sed -r -e "s|.+@(.+)\.git.+|\1|" | tr ":" "/")/-/commits/$(git rev-parse --abbrev-ref HEAD) @ $(git rev-parse --short=8 HEAD)"
+      if [[ -f Containerfile ]]; then
+        sed -i Containerfile -r -e "s|(MIDSTREAM_REPO=)\".+\"|\1\"${midstream_repo_and_SHA}\"|" || true
+      fi
+    fi
+    ##################################### rhdh-must-gather #####################################
+
     # transform Dockerfile to Dockerfile.in; enable/disable osbs/cachito requirements
     # find the right file from one of several path options
     # NOTE: this transformation only works for hub and operator, not for .rhdh/docker/bundle.Dockerfile!
@@ -738,6 +751,7 @@ midstream_repo="https://gitlab.cee.redhat.com/rhidp/rhdh/-/commits/${DWNSTM_BRAN
 echo "Using upstream repo(s):"
 [[ ${upstream_repo_hub} ]] && echo "* hub: ${upstream_repo_hub}"
 [[ ${upstream_repo_op} ]]  && echo "* operator: ${upstream_repo_op}"
+[[ ${upstream_repo_must_gather} ]] && echo "* must-gather: ${upstream_repo_must_gather}"
 echo "Using midstream_repo:
 * ${midstream_repo}
 "
@@ -832,6 +846,38 @@ LABEL summary="\$SUMMARY" \\
       cpe="cpe:/a:redhat:rhdh:\${CI_X_VERSION}.\${CI_Y_VERSION}::el9"
 EOT
   echo "[INFO] Added metadata to $TMPDIR/operator.Dockerfile.foot"
+
+  # append Brew metadata here for must-gather (upstream provides Containerfile directly)
+  c=distgit/containers/rhdh-must-gather/Containerfile
+  if [[ -f $c ]]; then sed -i '/# append Brew metadata here/q' $c; fi
+  cat <<EOT >$TMPDIR/must-gather.Dockerfile.foot
+ENV SUMMARY="Red Hat Developer Hub must-gather" \\
+    DESCRIPTION="Red Hat Developer Hub must-gather container" \\
+    UPSTREAM_REPO="${upstream_repo_must_gather}" \\
+    MIDSTREAM_REPO="${midstream_repo}" \\
+    PRODNAME="rhdh" \\
+    COMPNAME="must-gather"
+
+LABEL summary="\$SUMMARY" \\
+      description="\$DESCRIPTION" \\
+      io.k8s.description="\$DESCRIPTION" \\
+      io.k8s.display-name="\$DESCRIPTION" \\
+      io.openshift.tags="\$PRODNAME,\$COMPNAME" \\
+      com.redhat.component="\$PRODNAME-\$COMPNAME-container" \\
+      name="\$PRODNAME/\$PRODNAME-\$COMPNAME-rhel9" \\
+      version="\${CI_X_VERSION}.\${CI_Y_VERSION}" \\
+      release="\${RELEASE_NUMBER}" \\
+      license="ASLv2" \\
+      maintainer="RHDH Team <rhdh-bot@redhat.com>" \\
+      vendor="Red Hat, Inc." \\
+      io.openshift.expose-services="" \\
+      usage="" \\
+      konflux.additional-tags="${latestNextTag}\${CI_X_VERSION}.\${CI_Y_VERSION}, \${CI_X_VERSION}.\${CI_Y_VERSION}-\${RELEASE_NUMBER}" \\
+      distribution-scope="public" \\
+      url="https://red.ht/rhdh" \\
+      cpe="cpe:/a:redhat:rhdh:\${CI_X_VERSION}.\${CI_Y_VERSION}::el9"
+EOT
+  echo "[INFO] Added metadata to $TMPDIR/must-gather.Dockerfile.foot"
 fi
 
 if [[ $BUNDLEONLY -eq 1 ]]; then
@@ -1013,7 +1059,7 @@ fi
 if [[ $BUNDLEONLY -eq 1 ]]; then
   these_dirs="distgit/containers/rhdh-operator-bundle"
 else
-  these_dirs="distgit/containers/rhdh-hub distgit/containers/rhdh-operator" # distgit/containers/rhdh-operator-bundle
+  these_dirs="distgit/containers/rhdh-hub distgit/containers/rhdh-operator distgit/containers/rhdh-must-gather" # distgit/containers/rhdh-operator-bundle
 fi
 # set -x
 for d in $these_dirs; do
@@ -1025,6 +1071,9 @@ for d in $these_dirs; do
     continue
   elif [[ $d == "distgit/containers/rhdh-operator-bundle" ]] &&[[ " ${SKIPPED_CONTAINERS[*]} " == *"rhdh-operator-bundle/"* ]]; then
     echo -e "${blue}[INFO] ======= Skip rhdh-operator-bundle ======= ${norm}"
+    continue
+  elif [[ $d == "distgit/containers/rhdh-must-gather" ]] && [[ " ${SKIPPED_CONTAINERS[*]} " == *"rhdh-must-gather/"* ]]; then
+    echo -e "${blue}[INFO] ======= Skip rhdh-must-gather ======= ${norm}"
     continue
   fi
   echo "[INFO] Remove generated/ignored content from $d/"
@@ -1066,6 +1115,10 @@ for d in $these_dirs; do
     elif [[ $d == "distgit/containers/rhdh-operator-bundle" ]] && [[ " ${SKIPPED_CONTAINERS[*]} " != *"rhdh-operator-bundle/"* ]]; then
       # for bundle use the downstream OSBS Dockerfile with the correct LABEL and ENV  values
       cp -f Dockerfile Containerfile
+    elif [[ $d == "distgit/containers/rhdh-must-gather" ]] && [[ " ${SKIPPED_CONTAINERS[*]} " != *"rhdh-must-gather/"* ]]; then
+      # for must-gather, upstream already has a Containerfile - just use it as-is
+      # Dockerfile.in transformation is not needed
+      true
     fi
 
     if [[ -f "$TMPDIR/${d##*rhdh-}.Dockerfile.foot" ]]; then
@@ -1082,7 +1135,9 @@ for d in $these_dirs; do
 
     ##################################### set NVR values for Konflux #####################################
     # remove release= value from Dockerfile (OSBS creates this)
-    sed -r -i '/release=".+"/d' Dockerfile
+    if [[ -f Dockerfile ]]; then
+      sed -r -i '/release=".+"/d' Dockerfile
+    fi
     # set release value in Containerfile (Konflux does not do this)
     nextReleaseNum=000
     # set -x
@@ -1095,6 +1150,9 @@ for d in $these_dirs; do
       nextReleaseNum=$("${ROOTPATH}"/build/scripts/getNextReleaseNum.sh -b "${DWNSTM_BRANCH}" --tag "${DH_VERSION}" -c "$image" -q)
     elif [[ $d == "distgit/containers/rhdh-operator-bundle" ]]; then
       image="rhdh/rhdh-operator-bundle"
+      nextReleaseNum=$("${ROOTPATH}"/build/scripts/getNextReleaseNum.sh -b "${DWNSTM_BRANCH}" --tag "${DH_VERSION}" -c "$image" -q)
+    elif [[ $d == "distgit/containers/rhdh-must-gather" ]]; then
+      image="rhdh/rhdh-must-gather-rhel9"
       nextReleaseNum=$("${ROOTPATH}"/build/scripts/getNextReleaseNum.sh -b "${DWNSTM_BRANCH}" --tag "${DH_VERSION}" -c "$image" -q)
     fi
     # when bootstrapping the first builds for a new 1.yy stream, use just 1.yy-1
@@ -1206,7 +1264,7 @@ for d in \
   distgit/containers/rhdh-operator-bundle/docker/Dockerfile \
   distgit/containers/rhdh-operator-bundle/docker/Dockerfile.in \
   distgit/containers/rhdh-operator-bundle/bundle.Dockerfile \
-  ; do git rm -fr $d >/dev/null 2>&1 || rm -fr $d >/dev/null 2>&1 
+  ; do git rm -fr $d >/dev/null 2>&1 || rm -fr $d >/dev/null 2>&1
 done
 
 # Konflux performance workaround
@@ -1274,7 +1332,7 @@ ${norm}" | tee /tmp/sync-midstream.sh.result.txt
   fi
 
   ## include license files from hub and operator in /licenses folder to make Konflux happy
-  [[ $BUNDLEONLY -eq 1 ]] && LICENSE_DIRS="rhdh-operator-bundle" || LICENSE_DIRS="rhdh-hub rhdh-operator" 
+  [[ $BUNDLEONLY -eq 1 ]] && LICENSE_DIRS="rhdh-operator-bundle" || LICENSE_DIRS="rhdh-hub rhdh-operator rhdh-must-gather" 
   for d in $LICENSE_DIRS; do
     if [[ -f distgit/containers/${d}/LICENSE ]]; then
       cp -f distgit/containers/"${d}"/LICENSE licenses/"${d}"-LICENSE
@@ -1353,7 +1411,7 @@ fi
 
 # cleanup
 for ((i = 0; i < NUM_REPOS; i++)); do rm -fr "$TMPDIR/repo${i}"; done
-rm -f $TMPDIR/hub.Dockerfile.foot $TMPDIR/operator.Dockerfile.foot $TMPDIR/operator-bundle.Dockerfile.foot
+rm -f $TMPDIR/hub.Dockerfile.foot $TMPDIR/operator.Dockerfile.foot $TMPDIR/operator-bundle.Dockerfile.foot $TMPDIR/must-gather.Dockerfile.foot
 
 if [[ ${DO_PUSH} -eq 1 ]]; then
   app_name=${DWNSTM_BRANCH/-rhel-9}

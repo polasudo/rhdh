@@ -43,3 +43,12 @@ repos:
     destination_folder: distgit/containers/rhdh-operator/
     # note special rule in sync-midstream.sh will also copy the contents of bundle/ into distgit/containers/rhdh-operator-bundle/
     # and docker/brew.bundle.Dockerfile to distgit/containers/rhdh-operator-bundle/Dockerfile.in
+
+  - repo: https://github.com/redhat-developer/rhdh-must-gather
+    branch:
+      - main
+    include_root: true
+    exclude_root:
+      - .git/
+      - .github/
+    destination_folder: distgit/containers/rhdh-must-gather/
