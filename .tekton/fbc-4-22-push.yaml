@@ -5,7 +5,7 @@ metadata:
     build.appstudio.openshift.io/repo: https://gitlab.cee.redhat.com/rhidp/rhdh/-/tree/{{revision}}
     build.appstudio.redhat.com/commit_sha: '{{revision}}'
     build.appstudio.redhat.com/target_branch: '{{target_branch}}'
-    pipelinesascode.tekton.dev/max-keep-runs: "6"
+    pipelinesascode.tekton.dev/max-keep-runs: "7"
     pipelinesascode.tekton.dev/on-cel-expression: event == "push" && target_branch
       == "rhdh-1-rhel-9" && ( "catalogs*/v4.22/***".pathChanged() || ".tekton/fbc-4-22-push.yaml".pathChanged())
   creationTimestamp: null
