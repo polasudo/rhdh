@@ -23,7 +23,6 @@ DO_BUILD=1  # fetch, transform, then build by default; use this to disable build
 DO_COMMIT=1 # by default, commit change
 DO_PUSH=1   # push the commit
 GITLAB_PIPELINE="" # set "true" when running inside a gitlab pipeline to override default git push settings
-CONTAINER_NUDGE="" # set  to tru when running inside a containerfile to skip git processes
 
 TMPDIR=/tmp
 
@@ -149,13 +148,6 @@ while [[ "$#" -gt 0 ]]; do
     GITLAB_PIPELINE="true"
     shift 1
     ;;
-  '--container-nudge')
-    DO_BUILD=0
-    DO_PUSH=0
-    DO_COMMIT=0
-    CONTAINER_NUDGE="true"
-    shift 1
-    ;;
   '-h' | '--help')
     usage
     ;;
@@ -187,7 +179,6 @@ BUNDLEONLY=$BUNDLEONLY
 DO_COMMIT=$DO_COMMIT
 DO_PUSH=$DO_PUSH
 GITLAB_PIPELINE=$GITLAB_PIPELINE
-CONTAINER_NUDGE=$CONTAINER_NUDGE
 #################################"
 
 set -e
@@ -1196,46 +1187,44 @@ revertFiles() {
 
 # revert any local changes to the hub so we don't accidentally push in changes from upstream without first running a yarn build
 # want to keep changes to distgit/containers/rhdh-hub/packages/app/src/build-metadata.json ! 
-if [[ $CONTAINER_NUDGE != "true" ]]; then
-  if [[ $BUNDLEONLY -eq 1 ]]; then
+if [[ $BUNDLEONLY -eq 1 ]]; then
+  for d in \
+    distgit/containers/rhdh-hub/ \
+    distgit/containers/rhdh-operator/ \
+    sync/upstream_SHA_rhdh-hub \
+    sync/upstream_SHA_rhdh-operator \
+    ; do revertFiles "$d"
+  done
+  rm -fr distgit/containers/rhdh-operator/.rhdh/
+else
+  if [[ $DO_BUILD -eq 0 ]]; then
     for d in \
-      distgit/containers/rhdh-hub/ \
-      distgit/containers/rhdh-operator/ \
-      sync/upstream_SHA_rhdh-hub \
-      sync/upstream_SHA_rhdh-operator \
+      distgit/containers/rhdh-hub/.nvm/ \
+      distgit/containers/rhdh-hub/python/ \
+      distgit/containers/rhdh-hub/dynamic-plugins/ \
+      distgit/containers/rhdh-hub/e2e-tests/ \
+      distgit/containers/rhdh-hub/packages/app/public/ \
+      distgit/containers/rhdh-hub/packages/backend/ \
+      distgit/containers/rhdh-hub/yarn.lock \
       ; do revertFiles "$d"
     done
-    rm -fr distgit/containers/rhdh-operator/.rhdh/
-  else
-    if [[ $DO_BUILD -eq 0 ]]; then
-      for d in \
-        distgit/containers/rhdh-hub/.nvm/ \
-        distgit/containers/rhdh-hub/python/ \
-        distgit/containers/rhdh-hub/dynamic-plugins/ \
-        distgit/containers/rhdh-hub/e2e-tests/ \
-        distgit/containers/rhdh-hub/packages/app/public/ \
-        distgit/containers/rhdh-hub/packages/backend/ \
-        distgit/containers/rhdh-hub/yarn.lock \
-        ; do revertFiles "$d"
-      done
-    fi
-    for d in \
-      distgit/containers/rhdh-operator-bundle/ \
-      sync/upstream_SHA_rhdh-operator-bundle \
-      ; do revertFiles "$d"
-    done
+  fi
+  for d in \
+    distgit/containers/rhdh-operator-bundle/ \
+    sync/upstream_SHA_rhdh-operator-bundle \
+    ; do revertFiles "$d"
+  done
 
-    # revert the single change to bump the version if no other changes
-    # shellcheck disable=SC2143
-    if [[ $(git diff --name-only distgit/containers/rhdh-hub) == "distgit/containers/rhdh-hub/Containerfile" ]] && \
-       [[ $(git diff distgit/containers/rhdh-hub/Containerfile | grep -v -E "^\+\+\+|release=|konflux.additional-tags=" | grep -E "^\+") == "" ]]; then
-      revertFiles "distgit/containers/rhdh-hub/Containerfile"
-    fi
-    # shellcheck disable=SC2143
-    if [[ $(git diff --name-only distgit/containers/rhdh-operator) == "distgit/containers/rhdh-operator/Containerfile" ]] && \
-       [[ $(git diff distgit/containers/rhdh-operator/Containerfile | grep -v -E "^\+\+\+|release=|konflux.additional-tags=" | grep -E "^\+") == "" ]]; then
-      revertFiles "distgit/containers/rhdh-operator/Containerfile"
-    fi
+  # revert the single change to bump the version if no other changes
+  # shellcheck disable=SC2143
+  if [[ $(git diff --name-only distgit/containers/rhdh-hub) == "distgit/containers/rhdh-hub/Containerfile" ]] && \
+      [[ $(git diff distgit/containers/rhdh-hub/Containerfile | grep -v -E "^\+\+\+|release=|konflux.additional-tags=" | grep -E "^\+") == "" ]]; then
+    revertFiles "distgit/containers/rhdh-hub/Containerfile"
+  fi
+  # shellcheck disable=SC2143
+  if [[ $(git diff --name-only distgit/containers/rhdh-operator) == "distgit/containers/rhdh-operator/Containerfile" ]] && \
+      [[ $(git diff distgit/containers/rhdh-operator/Containerfile | grep -v -E "^\+\+\+|release=|konflux.additional-tags=" | grep -E "^\+") == "" ]]; then
+    revertFiles "distgit/containers/rhdh-operator/Containerfile"
   fi
 fi
 
