@@ -316,6 +316,39 @@ declare -A SKIPPED_CONTAINERS
 
 BUNDLEDIR="" # absolute path distgit/containers/rhdh-operator-bundle/ folder
 
+get_DH_VERSION_from_package_json()
+{
+  # compute x.y version from package.json upstream
+  showcasePackageJson="https://raw.githubusercontent.com/redhat-developer/rhdh/refs/heads/$upstream_repo_hub_branch/package.json"
+  DH_VERSION_FULL=$(curl -sSLko- "$showcasePackageJson" | yq -r '.version') # 1.5.0
+  DH_VERSION=${DH_VERSION_FULL%.*} # 1.2
+  echo "[INFO] Got DH_VERSION = $DH_VERSION from $showcasePackageJson #.version"
+}
+
+# https://redhat.atlassian.net/browse/RHIDP-11546 - check if the plugin catalog index image has changed 
+# check if we have a newer index image; if so, need a new chart + bundle
+# TODO in future it would be nice to not have to rebuild rhdh-hub image for every new index, but need a new chart which is tied to the RHDH hub image version tag
+get_catalog_index_data () 
+{
+  pci_yml="/tmp/sync-midstream.sh.pci.yml"
+  if [[ $latestNext ]]; then 
+    skopeo inspect "docker://quay.io/rhdh/plugin-catalog-index:${latestNext}" --no-tags > "$pci_yml"
+  else
+    if [[ ! $DH_VERSION ]]; then
+      get_DH_VERSION_from_package_json
+    fi
+    skopeo inspect "docker://quay.io/rhdh/plugin-catalog-index:${DH_VERSION}" --no-tags > "$pci_yml"
+  fi
+  # write to ${ROOTPATH}/sync/
+  declare -a catalog_index_data_current=()
+  catalog_index_data_current+=("Upstream Commit: https://github.com/redhat-developer/rhdh-plugin-export-overlays/tree/$(jq -r '.Env[]|select(.|startswith("UPSTREAM"))|sub("UPSTREAM_REPO=";"")|split("@ ")[1]' "$pci_yml")")
+  catalog_index_data_current+=("Midsteam Commit: https://gitlab.cee.redhat.com/rhidp/rhdh-plugin-catalog/-/tree/$(jq -r '.Labels["vcs-ref"]' "$pci_yml")")
+  catalog_index_data_current+=("$(jq -r '.Env[]|select(.|contains("_REPO"))' "$pci_yml")")
+  catalog_index_data_current+=("Build Date: $(jq -r '.Labels["build-date"]' "$pci_yml")")
+  catalog_index_data_current+=("Version: $(jq -r '.Labels["version"] +"-"+ .Labels["release"] + " (BS " + .Labels["backstage.version"] +")"' "$pci_yml")")
+  printf '%s\n' "${catalog_index_data_current[@]}" > "${ROOTPATH}/sync/plugin-catalog-index.current"
+}
+
 # if we're only doing the bundle start on repo 1; else start on the showcase (repo 0)
 START_REPO=0; if [[ $BUNDLEONLY -eq 1 ]]; then START_REPO=1; fi
 # shellcheck disable=SC2086,SC2295
@@ -360,9 +393,19 @@ for ((i = START_REPO; i < NUM_REPOS; i++)); do # echo $i
     # cat "${ROOTPATH}/sync/upstream_SHA_${CONTAINER_NAME}"; echo "$SHA = $branch @ $repo"
     # if the current SHA file contains the current SHA/branch/repo combination, then there's nothing to sync! 
     if [[ -f "${ROOTPATH}/sync/upstream_SHA_${CONTAINER_NAME}" ]] && [[ $(cat "${ROOTPATH}/sync/upstream_SHA_${CONTAINER_NAME}") == *"$SHA = $branch @ $repo"* ]]; then
-      if [[ ${CONTAINER_NAME} == "rhdh-hub" ]]; then 
+      if [[ ${CONTAINER_NAME} == "rhdh-hub" ]]; then
+        # https://redhat.atlassian.net/browse/RHIDP-11546 - check if the plugin catalog index image has changed 
+        get_catalog_index_data
+        if [[ ! -f ${ROOTPATH}/sync/plugin-catalog-index ]] || [[ $(diff "${ROOTPATH}/sync/plugin-catalog-index" "${ROOTPATH}/sync/plugin-catalog-index.current" -q -i -Z -b -w -B -a) == *"differ"* ]]; then # if no/new file or file is different, don't skip hub build
+          # update the stored plugin-catalog-index file for next time
+          mv "${ROOTPATH}/sync/plugin-catalog-index.current" "${ROOTPATH}/sync/plugin-catalog-index"
+          popd >/dev/null || exit 1
+          continue
+        fi
+
         DO_BUILD=0
         echo -e "${blue}[INFO] Nothing changed in upstream repo: $SHA = $branch @ $repo; skip yarn build and sync! ${norm}"
+        if [[ -f "${ROOTPATH}/sync/plugin-catalog-index.current" ]]; then rm -f "${ROOTPATH}/sync/plugin-catalog-index.current"; fi
       else
         echo -e "${blue}[INFO] Nothing changed in upstream repo: $SHA = $branch @ $repo; skip sync! ${norm}"
       fi
@@ -697,11 +740,7 @@ for ((i = START_REPO; i < NUM_REPOS; i++)); do # echo $i
   popd >/dev/null || exit 1 # distgit/containers/*
 done                        # foreach upstream repo
 
-# compute x.y version from package.json upstream
-showcasePackageJson="https://raw.githubusercontent.com/redhat-developer/rhdh/refs/heads/$upstream_repo_hub_branch/package.json"
-DH_VERSION_FULL=$(curl -sSLko- "$showcasePackageJson" | yq -r '.version') # 1.5.0
-DH_VERSION=${DH_VERSION_FULL%.*} # 1.2
-echo "[INFO] Got DH_VERSION = $DH_VERSION from $showcasePackageJson #.version"
+get_DH_VERSION_from_package_json
 
 # check latest images for this branch in quay and compare with latest bundle's contents. if different, we need a new bundle build!
 latest_at_quay=$(./build/scripts/getLatestImageTags.sh -b "$DWNSTM_BRANCH" --quay  -c rhdh/rhdh-hub-rhel9 -c rhdh/rhdh-rhel9-operator -c rhdh/plugin-catalog-index --tag "${DH_VERSION}-" | sort -uV); echo -e "$latest_at_quay"
@@ -1288,7 +1327,7 @@ if [[ $DO_COMMIT -eq 1 ]]; then
     echo "[INFO] Committing changes to $destination_folders dirs and sync/upstream_SHA* files ..."
     gitdiff="$(git diff --name-only || true)"
     # shellcheck disable=SC2086
-    git add -f ${destination_folders} sync/upstream_SHA* || true
+    git add -f ${destination_folders} sync/upstream_SHA* sync/plugin-catalog-index || true
   fi
   if [[ $gitdiff ]]; then
     echo "
