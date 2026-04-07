@@ -1093,7 +1093,7 @@ fi
 if [[ $BUNDLEONLY -eq 1 ]]; then
   these_dirs="distgit/containers/rhdh-operator-bundle"
 else
-  these_dirs="distgit/containers/rhdh-hub distgit/containers/rhdh-operator distgit/containers/rhdh-must-gather" # distgit/containers/rhdh-operator-bundle
+  these_dirs="distgit/containers/rhdh-hub distgit/containers/rhdh-operator distgit/containers/rhdh-must-gather" 
 fi
 # set -x
 for d in $these_dirs; do
@@ -1132,7 +1132,7 @@ for d in $these_dirs; do
     done
     set -e
 
-    # ls -1 Containerfile Dockerfile* || true
+    ls -1 Containerfile Dockerfile* || true
     
     # set -x
     if [[ -f Dockerfile.in ]]; then 
