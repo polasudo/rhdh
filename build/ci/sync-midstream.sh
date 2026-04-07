@@ -29,6 +29,7 @@ TMPDIR=/tmp
 norm="\033[0;39m"
 green="\033[1;32m"
 blue="\033[1;34m"
+yellow="\033[1;33m"
 red="\033[1;31m"
 
 # Ignore husky warnings
@@ -399,6 +400,9 @@ for ((i = START_REPO; i < NUM_REPOS; i++)); do # echo $i
         if [[ ! -f ${ROOTPATH}/sync/plugin-catalog-index ]] || [[ $(diff "${ROOTPATH}/sync/plugin-catalog-index" "${ROOTPATH}/sync/plugin-catalog-index.current" -q -i -Z -b -w -B -a) == *"differ"* ]]; then # if no/new file or file is different, don't skip hub build
           # update the stored plugin-catalog-index file for next time
           mv "${ROOTPATH}/sync/plugin-catalog-index.current" "${ROOTPATH}/sync/plugin-catalog-index"
+          echo -e "${yellow}[INFO] Plugin catalog index has changed:"
+          cat "${ROOTPATH}/sync/plugin-catalog-index"
+          echo -e "${yellow}[INFO] Rebuilding hub container${norm}"
           popd >/dev/null || exit 1
           continue
         fi
