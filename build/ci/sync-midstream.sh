@@ -1132,7 +1132,7 @@ for d in $these_dirs; do
     done
     set -e
 
-    ls -1 Containerfile Dockerfile* || true
+    # ls -1 Containerfile Dockerfile* || true
     
     # set -x
     if [[ -f Dockerfile.in ]]; then 
@@ -1142,7 +1142,7 @@ for d in $these_dirs; do
 
     ## generate Containerfile for Konflux
     if [[ $d == "distgit/containers/rhdh-hub" ]] && [[ " ${SKIPPED_CONTAINERS[*]} " != *"rhdh-hub/"* ]]; then
-      cp -f Dockerfile Containerfile
+      if [[ -f Dockerfile ]]; then cp -f Dockerfile Containerfile; fi
     elif [[ $d == "distgit/containers/rhdh-operator" ]] && [[ " ${SKIPPED_CONTAINERS[*]} " != *"rhdh-operator/"* ]]; then
       # for operator use the transformed Dockerfile.in with the correct LABEL and ENV  values
       cp -f Dockerfile Containerfile
