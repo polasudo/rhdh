@@ -1437,7 +1437,7 @@ if [[ $GITLAB_PIPELINE == "true" ]]; then
   echo -e "${blue}Pushing changes as $GITLAB_USER_LOGIN ($GITLAB_USER_EMAIL) to branch $CI_COMMIT_REF_NAME of ${CI_SERVER_HOST}/${CI_PROJECT_NAMESPACE}/${CI_PROJECT_NAME} ... ${norm}"
   set -x
   git fetch
-  git pull --rebase origin "HEAD:$CI_COMMIT_REF_NAME"
+  git rebase "HEAD:$CI_COMMIT_REF_NAME"
   git push origin "HEAD:$CI_COMMIT_REF_NAME" -o ci.skip ${FORCE} || exit 16
   set +x
 fi
