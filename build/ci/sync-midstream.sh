@@ -1328,7 +1328,7 @@ if [[ $DO_COMMIT -eq 1 ]]; then
     # shellcheck disable=SC2086
     git add -f ${destination_folders/operator/operator-bundle} sync/upstream_SHA*bundle || true
   else 
-    echo "[INFO] Committing changes to $destination_folders dirs and sync/upstream_SHA* files ..."
+    echo "[INFO] Committing changes to $destination_folders and sync/ ..."
     gitdiff="$(git diff --name-only || true)"
     # shellcheck disable=SC2086
     git add -f ${destination_folders} sync/upstream_SHA* sync/plugin-catalog-index || true
