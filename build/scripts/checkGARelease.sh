@@ -10,7 +10,7 @@
 # Post-GA release verification for RHDH.
 # Validates containers on registry.redhat.io, plugin catalog on
 # registry.access.redhat.com, FBC releases via Konflux (oc), Helm chart PRs,
-# GitHub/GitLab tags, and community image.
+# GitHub/GitLab tags, release PRs from tagRelease.sh, and community image.
 # Default output: failures only. Use --verbose to see passing checks.
 #
 # Usage:  ./checkGARelease.sh -v 1.9.0 [--plugin-regex orchestrator] [--verbose]
@@ -36,6 +36,7 @@ VERBOSE=0
 PASS_COUNT=0
 FAIL_COUNT=0
 SKIP_COUNT=0
+OPEN_COUNT=0
 
 # ── usage ────────────────────────────────────────────────────────────
 usage() {
@@ -161,6 +162,12 @@ record_skip() {
     local msg="$1"
     (( SKIP_COUNT++ ))
     if [[ $VERBOSE -eq 1 ]]; then echo -e "${yellow}[SKIP]${norm} $msg"; fi
+}
+
+record_open() {
+    local msg="$1"
+    (( OPEN_COUNT++ ))
+    echo -e "${yellow}[OPEN]${norm} $msg"
 }
 
 section() {
@@ -378,7 +385,90 @@ check_gitlab_tags() {
     done
 }
 
-# ── 7. Community image ──────────────────────────────────────────────
+# ── 7. Release PRs from tagRelease.sh ──────────────────────────────
+
+check_release_prs() {
+    section "Release PRs (tagRelease.sh version bumps)"
+
+    # After tagging x.y.z, tagRelease.sh bumps release branches to x.y.(z+1)
+    local next_z=""
+    if [[ $GA_VERSION =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
+        next_z="${BASH_REMATCH[1]}.${BASH_REMATCH[2]}.$((BASH_REMATCH[3] + 1))"
+    fi
+    if [[ -z "$next_z" ]]; then
+        record_fail "Cannot compute next .z version from ${GA_VERSION}"
+        return
+    fi
+
+    # GitHub: version-bump PRs on release-1.y branches
+    local gh_repos_to_check=("redhat-developer/rhdh" "redhat-developer/rhdh-operator")
+    for repo in "${gh_repos_to_check[@]}"; do
+        _check_gh_release_pr "$repo" "$next_z"
+    done
+
+    # GitLab: konflux-release-data RPA update MR
+    _check_krd_release_mr "$next_z"
+}
+
+_check_gh_release_pr() {
+    local repo="$1"
+    local bump_version="$2"
+    local search_url="https://github.com/${repo}/pulls?q=is%3Apr+author%3Arhdh-bot+tagRelease.sh+${RHDH_XY}"
+
+    local pr_json
+    pr_json=$(gh pr list --repo "$repo" \
+        --search "author:rhdh-bot \"bump to ${bump_version}\"" \
+        --state all --json state,title,url --jq '.[0]' 2>/dev/null)
+
+    if [[ -z "$pr_json" ]] || [[ "$pr_json" == "null" ]]; then
+        record_fail "Release PR not found: ${repo} -- search: ${search_url}"
+        return
+    fi
+
+    local state url
+    state=$(echo "$pr_json" | jq -r '.state')
+    url=$(echo "$pr_json" | jq -r '.url')
+
+    case "$state" in
+        MERGED)  record_pass "Release PR merged: ${repo} (${url})" ;;
+        OPEN)    record_open "Release PR still open: ${repo} (${url})" ;;
+        *)       record_fail "Release PR ${state}: ${repo} (${url})" ;;
+    esac
+}
+
+_check_krd_release_mr() {
+    local bump_version="$1"
+    local krd_search_url="https://gitlab.cee.redhat.com/releng/konflux-release-data/-/merge_requests?scope=all&search=rhdh-${RHDH_XY_DASH}+RPAs"
+
+    # Attempt GitLab API check (requires Kerberos or token auth)
+    local mr_json
+    mr_json=$(curl -ks --negotiate -u: \
+        "https://gitlab.cee.redhat.com/api/v4/projects/releng%2Fkonflux-release-data/merge_requests?search=rhdh-${RHDH_XY_DASH}+RPAs&state=all&per_page=10" 2>/dev/null)
+
+    if [[ -n "$mr_json" ]] && echo "$mr_json" | jq -e 'type == "array"' &>/dev/null; then
+        local match
+        match=$(echo "$mr_json" | jq -r --arg ver "$bump_version" \
+            '[.[] | select(.title | contains($ver))] | sort_by(.created_at) | last // empty' 2>/dev/null)
+
+        if [[ -n "$match" ]] && [[ "$match" != "null" ]] && [[ "$match" != "" ]]; then
+            local state mr_url
+            state=$(echo "$match" | jq -r '.state')
+            mr_url=$(echo "$match" | jq -r '.web_url')
+
+            case "$state" in
+                merged)  record_pass "KRD release MR merged: releng/konflux-release-data (${mr_url})" ;;
+                opened)  record_open "KRD release MR still open: releng/konflux-release-data (${mr_url})" ;;
+                *)       record_fail "KRD release MR ${state}: releng/konflux-release-data (${mr_url})" ;;
+            esac
+            return
+        fi
+    fi
+
+    # API check failed or no match found
+    record_fail "KRD release MR not found: releng/konflux-release-data -- search: ${krd_search_url}"
+}
+
+# ── 8. Community image ──────────────────────────────────────────────
 
 check_community_image() {
     section "Community image"
@@ -408,7 +498,7 @@ check_community_image() {
     fi
 }
 
-# ── 8. Plugin images (optional, via --plugin-regex) ──────────────────
+# ── 9. Plugin images (optional, via --plugin-regex) ──────────────────
 
 check_plugin_images() {
     if [[ -z "$PLUGIN_REGEX" ]]; then
@@ -458,14 +548,16 @@ check_plugin_images() {
 # ── summary ─────────────────────────────────────────────────────────
 
 print_summary() {
-    local total=$(( PASS_COUNT + FAIL_COUNT + SKIP_COUNT ))
+    local total=$(( PASS_COUNT + FAIL_COUNT + SKIP_COUNT + OPEN_COUNT ))
 
     echo ""
     echo -e "${blue}───────────────────────────────────────────────────────────${norm}"
-    if [[ $FAIL_COUNT -eq 0 ]]; then
+    if [[ $FAIL_COUNT -eq 0 ]] && [[ $OPEN_COUNT -eq 0 ]]; then
         echo -e "  ${green}RHDH ${GA_VERSION}: all ${PASS_COUNT} checks passed${norm} (${SKIP_COUNT} skipped)"
+    elif [[ $FAIL_COUNT -eq 0 ]]; then
+        echo -e "  ${yellow}RHDH ${GA_VERSION}: ${OPEN_COUNT} OPEN${norm}, ${PASS_COUNT} passed, ${SKIP_COUNT} skipped  (${total} total)"
     else
-        echo -e "  ${red}RHDH ${GA_VERSION}: ${FAIL_COUNT} FAILED${norm}, ${PASS_COUNT} passed, ${SKIP_COUNT} skipped  (${total} total)"
+        echo -e "  ${red}RHDH ${GA_VERSION}: ${FAIL_COUNT} FAILED${norm}, ${OPEN_COUNT} open, ${PASS_COUNT} passed, ${SKIP_COUNT} skipped  (${total} total)"
     fi
     echo -e "${blue}───────────────────────────────────────────────────────────${norm}"
 }
@@ -482,6 +574,7 @@ check_fbc_releases
 check_chart_prs
 check_github_tags
 check_gitlab_tags
+check_release_prs
 check_community_image
 check_plugin_images
 
