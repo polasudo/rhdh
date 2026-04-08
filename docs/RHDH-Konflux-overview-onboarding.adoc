@@ -2,14 +2,14 @@
 
 ## Triggering and watching builds
 
-See link:RHDH-Konflux-user.adoc[RHDH-Konflux-user.adoc].
+See link:RHDH-Konflux-user-guide.adoc[RHDH-Konflux-user-guide.adoc].
 
 ## Onboarding a new person
 
-1. Ask that person to go to https://konflux.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/application-pipeline/workspaces/rhdh/applications
+1. Ask that person to go to https://konflux-ui.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/ns/rhdh-tenant/applications
 2. Ask that person to log in, register, click "join the waitlist", refresh their browser
 3. Ask that person for their username / default workspace. This is likely their kerberos username, but might differ.
-4. Add that person here: https://konflux.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/application-pipeline/access
+4. Add that person here: https://konflux-ui.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/ns/rhdh-tenant/access
 5. Once added, you can change their access level to contributor, maintainer, or admin. 
 
 ## Onboarding a new y-stream release
@@ -20,14 +20,7 @@ Once these exist, a new Application, with 3 (or more) components can then be add
 
 ### Component Nudging
 
-To trigger a build of the FBCs when a new operator-bundle image has been published, link:https://konflux-ci.dev/docs/how-tos/configuring/component-nudges/#in-the-ui[component nudging] is required. This should be configured so that for any new build of the rhdh-hub or rhdh-operator containers, a new rhdh-operator-bundle is then built; once that is built, the bundle should nudge the FBC applications to update those with fresher digests. 
-
-TODO: RHIDP-4223 - this doesn't work! Therefore, must do manual builds of new bundles for every new hub or operator, then manually build new FBCs for that new bundle.
-
-See:
-
-* link:../build/scripts/triggerRespin.sh[triggerRespin.sh] for the bundle rebuild
-* link:../build/scripts/renderCatalogs.sh[renderCatalogs.sh] for the FBC rebuilds
+Currently, we have rules in place in link:../build/ci/sync-midstream.sh[sync-midsteam.sh] such that when a new hub or operator image is published, a new bundle will then be created and once that's done, new FBCs will be published. See also link:../build/ci/update-bundle-and-FBCs.sh[update-bundle-and-FBCs.sh].
 
 ## File Based Catalogs (FBCs)
 
@@ -39,15 +32,7 @@ See link:../build/scripts/renderCatalogs.sh[renderCatalogs.sh].
 
 ### Adding a new Application and Component to build FBCs for a new OCP version
 
-This should only be done once every 6mo or so, when a new OCP version is released and a new version of registry.redhat.io/openshift4/ose-operator-registry-rhel9 becomes available.
-
-1. Go to https://konflux.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/application-pipeline/workspaces/rhdh/applications
-
-2. Update defaults in link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1-rhel-9/build/scripts/renderCatalogs.sh[build/scripts/renderCatalogs.sh]
-
-3. Create a new Application and Component. Note that an MR will be generated to add new pipelines to https://gitlab.cee.redhat.com/rhidp/rhdh/-/tree/rhdh-1-rhel-9/.tekton -- you can probably merge those as is, then update them to match the customizations applied to the other fbc-related pipelines. 
-
-image::images/new-application-fbc-component.png[New Application and Component]
+This should only be done once every 4mo, when a new OCP version is released and a new version of registry.redhat.io/openshift4/ose-operator-registry-rhel9 becomes available. When creating a new branch, link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1-rhel-9/build/scripts/tagRelease.sh[build/scripts/tagRelease.sh] will automatically add a new application and component for any new OCP version.
 
 ### Removing support for EOL OCP versions
 
@@ -69,7 +54,7 @@ Each CI build produces a helm chart pointing back to that new build. As of 1.5, 
 
 ### via Operator
 
-See link:RHDH-Konflux-user.adoc[RHDH-Konflux-user-guide.adoc].
+See link:RHDH-Konflux-user-guide.adoc[RHDH-Konflux-user-guide.adoc].
 
 See installation advice and scripts at https://github.com/redhat-developer/rhdh-operator/blob/main/.rhdh/
 
@@ -78,9 +63,9 @@ See installation advice and scripts at https://github.com/redhat-developer/rhdh-
 
 ## GA Releases
 
-Release Plans are here: https://konflux.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/application-pipeline/release/workspaces/rhdh/release-plan
+Release Plans are here: https://konflux-ui.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/ns/rhdh-tenant/release
 
-Release Plan Admissions are here: https://konflux.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/application-pipeline/release/workspaces/rhtap-releng/release-plan-admission?name=rhdh
+Release Plan Admissions are here: https://konflux-ui.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/ns/rhtap-releng-tenant/release/release-plan-admission?name=rhdh
 
 NOTE: To get access to the rhtap-releng namespace, see https://konflux.pages.redhat.com/docs/users/releasing/preparing-for-release.html#_get_access_to_the_rhtap_releng_managed_workspace
 
