@@ -331,11 +331,11 @@ check_chart_prs() {
             unmerged+=("${title} (${state}) ${url}")
         fi
     done < <(gh pr list --repo openshift-helm-charts/charts \
-        --search "author:rhdh-bot ${GA_VERSION} in:title" \
+        --search "author:rhdh-bot ${GA_VERSION}" \
         --state all --json state,title,url --jq '.[]|@json' 2>/dev/null)
 
     for u in "${unmerged[@]}"; do
-        record_fail "Chart PR not merged: ${u}"
+        record_open "Chart PR not merged: ${u}"
     done
 
     if [[ $merged_count -ge 2 ]]; then
@@ -400,11 +400,14 @@ check_release_prs() {
         return
     fi
 
-    # GitHub: version-bump PRs on release-1.y branches
+    # GitHub: version-bump PRs on release-1.y branches (bumped to next .z)
     local gh_repos_to_check=("redhat-developer/rhdh" "redhat-developer/rhdh-operator")
     for repo in "${gh_repos_to_check[@]}"; do
         _check_gh_release_pr "$repo" "$next_z"
     done
+
+    # GitHub: rhdh-local bump PR (bumped to GA version, not next .z)
+    _check_gh_release_pr "redhat-developer/rhdh-local" "$GA_VERSION"
 
     # GitLab: konflux-release-data RPA update MR
     _check_krd_release_mr "$next_z"
