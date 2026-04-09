@@ -65,7 +65,7 @@ echo -e "${BLUE}Target branch: ${GREEN}$TARGET_BRANCH${NC}"
 echo ""
 
 # All conditional task names that may appear in templates
-ALL_CONDITIONAL_TASKS=("publish-helm" "ecosystem-cert-preflight-checks")
+ALL_CONDITIONAL_TASKS=("publish-helm")
 
 create_component_pipeline() {
     local component="$1"

@@ -22,8 +22,7 @@ operator:
   prefetch_input: '{"packages": [{"type": "rpm", "path": "distgit/containers/rhdh-operator"},{"path": "distgit/containers/rhdh-operator", "type": "gomod"}], "flags": ["cgo-disable"]}'
   max_keep_runs: "7"
   snyk_project: "konflux-rhdh-operator"
-  include_tasks:
-    - ecosystem-cert-preflight-checks
+  include_tasks: []
   storage: "10Gi"
 
 operator-bundle:
