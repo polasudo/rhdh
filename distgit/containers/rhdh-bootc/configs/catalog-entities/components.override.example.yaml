@@ -1,15 +1,15 @@
-# Example components override file.
-# Copy this to components.override.yaml, customize, and rebuild the image.
+# This is an example override file for catalog components.
+# If present, this file will be used instead of components.yaml.
+# Uncomment and edit the entries below to override catalog components.
 
----
 apiVersion: backstage.io/v1alpha1
 kind: Component
 metadata:
-  name: my-service
-  title: My Service
-  description: Example component
+  name: example-service
+  description: A simple demo component to appear in the Software Catalog.
+  annotations:
+    backstage.io/techdocs-ref: dir:.
 spec:
   type: service
-  lifecycle: production
-  owner: group:default/rhdh-team
-  system: rhdh-bootc
+  lifecycle: experimental
+  owner: user:default/user

@@ -62,23 +62,6 @@ repos:
       - README.md
       - tests/
     destination_folder: distgit/containers/rhdh-must-gather/
-  
-  - repo: https://github.com/redhat-ai-dev/rhdh-rag-content
-    branch:
-      - main
-    include_root: true
-    exclude_root:
-      - .git/
-      - .github/
-      - .ci/
-      - build/ci/
-      - build/helm/
-      - build/scripts/
-      - README.adoc
-      - sync/
-      - upstream_repos.yaml
-      - renovate.json
-      - tests/
-      - Makefile # used for local only
-      - Containerfile.local
-    destination_folder: distgit/containers/rhdh-rag-content
+
+  # rhdh-bootc has no upstream repo — content lives directly in distgit/containers/rhdh-bootc/
+  # POC reference: https://github.com/redhat-developer/rhdh/pull/4377

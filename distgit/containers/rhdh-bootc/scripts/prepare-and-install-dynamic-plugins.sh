@@ -24,7 +24,9 @@ elif [ -d "dynamic-plugins-root" ]; then
     echo "dynamic-plugins-root exists in custom location - keeping it"
 fi
 
-echo "Removing ~/.npmrc"
+# Fix for https://issues.redhat.com/browse/RHIDP-4410
+# needed for < 1.3.0
+echo "Removing ~/.npmrc to fix RHIDP-4410"
 rm -rf ~/.npmrc
 
 # handle dynamic-plugins config override

@@ -3,12 +3,9 @@
 set -e
 cd "$(dirname "$0")"
 
-AUTH_FILE="files/auth.json"
-
-if [[ -f "$AUTH_FILE" ]]; then
-  echo "Using ./${AUTH_FILE}"
+if [[ -f auth.json ]]; then
+  echo "Using ./auth.json"
 else
-  mkdir -p files
   for f in \
     "${CONTAINERS_AUTHFILE:-}" \
     "${HOME}/.config/containers/auth.json" \
@@ -16,19 +13,19 @@ else
     "${HOME}/.docker/config.json"
   do
     [[ -n "$f" && -f "$f" ]] || continue
-    cp "$f" "$AUTH_FILE"
+    cp "$f" auth.json
     echo "Copied auth from: $f"
     break
   done
 fi
 
-if [[ ! -f "$AUTH_FILE" ]]; then
+if [[ ! -f auth.json ]]; then
   echo "No registry credentials found."
   echo "Run once:"
   echo "  podman login registry.redhat.io"
   echo "Then either re-run ./build.sh or copy manually:"
-  echo "  cp \"\${HOME}/.config/containers/auth.json\" ./files/auth.json"
+  echo "  cp \"\${HOME}/.config/containers/auth.json\" ./auth.json"
   exit 1
 fi
 
-exec podman build -f Containerfile -t rhdh-bootc:latest .
+exec podman build -f Containerfile.bootc -t rhdh-bootc:latest .
