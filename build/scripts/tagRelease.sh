@@ -93,6 +93,7 @@ Options:
     -ghtoken                  run as a different GH user instead of the local environment's \$GITHUB_TOKEN
     --midstream-user          run as a different bot user; default: $MIDSTM_USER 
     --midstream-branch        run against a different midstream branch; default: $MIDSTM_BRANCH
+    --plugin-builds-dir       path to plugin catalog repo's plugin_builds/ folder
     -tmpdir                   temporary dir for checkouts; default $TMPDIR
     --skip-gh                 (1) skip all github updates
       --gh-repos                  space-separated list of GH repos to process, if not the whole set
@@ -119,6 +120,7 @@ while [[ "$#" -gt 0 ]]; do
 	'-ghtoken') GITHUB_TOKEN="$2"; shift 1;;
 	'--midstream-user') MIDSTM_USER="$2"; shift 1;;
 	'--midstream-branch') MIDSTM_BRANCH="$2"; shift 1;;
+	'--plugin-builds-dir') pluginBuildsJson="$2"; shift 1;;
 	'--clean') CLEAN="true"; shift 0;; # if set true, delete existing folders and do fresh checkouts
 	'--nobuild') DO_BUILD=0;; 
 	'--nopush') DO_PUSH=0;;
@@ -138,6 +140,10 @@ while [[ "$#" -gt 0 ]]; do
   esac
   shift 1
 done
+
+if [[ "$pluginBuildsJson" ]] && [[ ! -d "$pluginBuildsJson" ]]; then 
+	usage; echo -e "${red}[ERROR] Path to plugin_builds/ not found in $pluginBuildsJson ${norm}"; exit 1
+fi
 
 # check if the script is running as the rhdh-bot user, or someone ellse
 if [[ $(git config user.email) != "rhdh-bot@redhat.com" ]]; then
@@ -1383,26 +1389,28 @@ function updateFBCVersions() {
 # when creating a new branch, update the Pyxis Config to add any new plugins + release streams (1.5, 1.6, 1.7)
 function generatePyxisConfigForPlugins() {
 	the_branch="rhdh-1-rhel-9"
-	pluginBuildsJson=plugin_builds/
+	if [[ ! "$pluginBuildsJson" ]] || [[ ! -d "$pluginBuildsJson" ]]; then pluginBuildsJson="$(pwd)/plugin_builds/"; fi
 	orgAndRepo="rhidp/rhdh-plugin-catalog"
+	local keepcount="$1"
+	local operation="$2"
 	d="${orgAndRepo/\//__}"
 	
 	rm -fr "$TMPDIR/projects_${d}" && git clone -q --depth 1 -b "${the_branch}" "git@gitlab.cee.redhat.com:${orgAndRepo}" "$TMPDIR/projects_${d}" || echo "Branch $the_branch doesn't exist: skip!"
 	pushd "$TMPDIR/projects_${d}" >/dev/null || exit 1
-	./build/scripts/generatePyxisConfigForPlugins.sh -f "$(pwd)/${pluginBuildsJson}" -v "${PROD_VERSION}.0"
+	./build/scripts/generatePyxisConfigForPlugins.sh -f "${pluginBuildsJson}" -v "${PROD_VERSION}.0" --keep "$keepcount" "$operation"
 	popd >/dev/null || exit 1
 }
 
 # when creating a new branch, update the Konflux release data to add any new plugins and plugin catalog index; requires that the above PR is merged first!
 function generateKonfluxReleaseDataForPlugins() {
 	the_branch="rhdh-1-rhel-9"
-	pluginBuildsJson=plugin_builds/
+	if [[ ! "$pluginBuildsJson" ]] || [[ ! -d "$pluginBuildsJson" ]]; then pluginBuildsJson="$(pwd)/plugin_builds/"; fi
 	orgAndRepo="rhidp/rhdh-plugin-catalog"
 	d="${orgAndRepo/\//__}"
 	
 	rm -fr "$TMPDIR/projects_${d}" && git clone -q --depth 1 -b "${the_branch}" "git@gitlab.cee.redhat.com:${orgAndRepo}" "$TMPDIR/projects_${d}" || echo "Branch $the_branch doesn't exist: skip!"
 	pushd "$TMPDIR/projects_${d}" >/dev/null || exit 1
-	./build/scripts/generateKonfluxReleaseDataForPlugins.sh -f "$(pwd)/${pluginBuildsJson}" -v "${PROD_VERSION}.0"
+	./build/scripts/generateKonfluxReleaseDataForPlugins.sh -f "${pluginBuildsJson}" -v "${PROD_VERSION}.0"
 	popd >/dev/null || exit 1
 }
 
@@ -1506,6 +1514,24 @@ fi
 
 # for tagging
 if [[ $CSV_VERSION ]] && [[ "${MIDSTM_BRANCH}" ]]; then
+	# only on release of a .0 GA do we remove the -2 version (eg., when 1.10 is live,, remove 1.8)
+	if [[ $SKIP_PRODSEC -eq 0 ]] && [[ $CSV_VERSION == *".0" ]]; then
+		echo "  ## ## ## Processing Prodsec Repo ... ## ## ## "
+		updateProdsecDefinitions "$CSV_VERSION"
+		echo "  ## ## ## Processing Prodsec Repo done! ## ## ## "
+	fi
+
+	if [[ $SKIP_PYXIS -eq 0 ]] && [[ $CSV_VERSION == *".0" ]]; then
+		echo "  ## ## ## Processing Pyxis Repo ... ## ## ## "
+		if [[ $VERBOSE -eq 1 ]]; then echo "[DEBUG] update the Pyxis Repo Configs repo to add new plugins"; fi
+		
+		echo "[INFO] pyxis-repo-configs merge requests may fail if there are required changes to this repo:"
+		echo "       * https://gitlab.cee.redhat.com/prodsec/product-definitions/-/merge_requests/ (new RHDH version)"
+		# this will also reduce the cert-manager-releases list to keep only the new version (1.10) + 1 previous ones (1.9) as 1.8 is now EOL
+		generatePyxisConfigForPlugins 2 "--tag"
+		echo "  ## ## ## Processing Pyxis Repo done! ## ## ## "
+	fi
+
 	if [[ $SKIP_KRD -eq 0 ]]; then
 		# midstream konflux-release-data sources - bump the RPA to 1.y.z
 		echo "  ## ## ## Processing Konflux Release Data Repo (RPAs) ... ## ## ## "
@@ -1514,13 +1540,6 @@ if [[ $CSV_VERSION ]] && [[ "${MIDSTM_BRANCH}" ]]; then
 		# TODO should we also run generatePyxisConfigForPlugins after tagging, 
 		# or when preparing an RC?
 	fi
-	# only on release of a .0 GA do we remove the -2 version (eg., when 1.10 is live,, remove 1.8)
-	if [[ $SKIP_PRODSEC -eq 0 ]] && [[ $CSV_VERSION == *".0" ]]; then
-		echo "  ## ## ## Processing Prodsec Repo ... ## ## ## "
-		updateProdsecDefinitions "$CSV_VERSION"
-		echo "  ## ## ## Processing Prodsec Repo done! ## ## ## "
-	fi
-
 fi
 
 # for branching - create everything at version 1.y.0
@@ -1535,9 +1554,11 @@ if [[ ! $CSV_VERSION ]]; then
 		if [[ $SKIP_PYXIS -eq 0 ]]; then
 			echo "  ## ## ## Processing Pyxis Repo ... ## ## ## "
 			if [[ $VERBOSE -eq 1 ]]; then echo "[DEBUG] update the Pyxis Repo Configs repo to add new plugins"; fi
+			
 			echo "[INFO] pyxis-repo-configs merge requests may fail if there are required changes to this repo:"
 			echo "       * https://gitlab.cee.redhat.com/prodsec/product-definitions/-/merge_requests/ (new RHDH version)"
-			generatePyxisConfigForPlugins
+			# this will also reduce the cert-manager-releases list to keep only the new version (1.10) + 2 previous ones (1.8 and 1.9)
+			generatePyxisConfigForPlugins 3 "--branch"
 			echo "  ## ## ## Processing Pyxis Repo done! ## ## ## "
 		fi
 
