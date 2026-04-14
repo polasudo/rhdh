@@ -2,13 +2,18 @@
 
 # Detect VM IP and update BASE_URL in rhdh.env
 # This script runs before RHDH container starts via systemd ExecStartPre
+#
+# USAGE:
+#   - Bare metal/VM: Auto-detects IP from network routes
+#   - Behind proxy/OpenShift: Set EXTERNAL_URL env var in rhdh.env
+#     Example: EXTERNAL_URL=https://rhdh-myproject.apps.cluster.example.com
 
 set -euo pipefail
 
 ENV_FILE="/etc/rhdh/rhdh.env"
 BACKUP_FILE="/etc/rhdh/rhdh.env.backup"
 
-echo "[INFO] Detecting VM IP for BASE_URL configuration..."
+echo "[INFO] Detecting BASE_URL configuration..."
 
 # Detect the primary IP address of this VM
 detect_vm_ip() {
@@ -48,35 +53,48 @@ main() {
         cp "$ENV_FILE" "$BACKUP_FILE"
         echo "[INFO] Backed up original rhdh.env to rhdh.env.backup"
     fi
-    
-    # Detect VM IP
-    local detected_ip
-    detected_ip=$(detect_vm_ip)
-    
-    if [ -n "$detected_ip" ]; then
-        echo "[INFO] Detected VM IP: $detected_ip"
-        
-        # Update BASE_URL in environment file
-        if [ -f "$ENV_FILE" ]; then
-            # Use sed to replace BASE_URL line
-            sed -i "s|^BASE_URL=.*|BASE_URL=http://${detected_ip}:7007|" "$ENV_FILE"
-            echo "[OK] Updated BASE_URL=http://${detected_ip}:7007 in $ENV_FILE"
-        else
-            echo "[WARNING] $ENV_FILE not found, creating with detected IP"
-            echo "BASE_URL=http://${detected_ip}:7007" > "$ENV_FILE"
-        fi
-        
-        # Verify the update
-        local current_base_url
-        current_base_url=$(grep "^BASE_URL=" "$ENV_FILE" | cut -d'=' -f2 || true)
-        echo "[INFO] Current BASE_URL: $current_base_url"
-        
+
+    # Check if EXTERNAL_URL is already set in the env file (for proxy/OpenShift scenarios)
+    local external_url=""
+    if [ -f "$ENV_FILE" ]; then
+        external_url=$(grep "^EXTERNAL_URL=" "$ENV_FILE" 2>/dev/null | cut -d'=' -f2 || true)
+    fi
+
+    if [ -n "$external_url" ]; then
+        # Use the explicitly configured EXTERNAL_URL (for OpenShift/proxy scenarios)
+        echo "[INFO] Using configured EXTERNAL_URL: $external_url"
+        sed -i "s|^BASE_URL=.*|BASE_URL=${external_url}|" "$ENV_FILE"
+        echo "[OK] Set BASE_URL=${external_url} from EXTERNAL_URL"
     else
-        echo "[WARNING] Could not detect VM IP, keeping default BASE_URL"
-        # Ensure localhost fallback exists
-        if [ -f "$ENV_FILE" ] && ! grep -q "^BASE_URL=" "$ENV_FILE"; then
-            echo "BASE_URL=http://localhost:7007" >> "$ENV_FILE"
-            echo "[INFO] Added fallback BASE_URL=http://localhost:7007"
+        # Auto-detect VM IP (for bare metal/VM scenarios)
+        local detected_ip
+        detected_ip=$(detect_vm_ip)
+
+        if [ -n "$detected_ip" ]; then
+            echo "[INFO] Detected VM IP: $detected_ip"
+
+            # Update BASE_URL in environment file
+            if [ -f "$ENV_FILE" ]; then
+                # Use sed to replace BASE_URL line
+                sed -i "s|^BASE_URL=.*|BASE_URL=http://${detected_ip}:7007|" "$ENV_FILE"
+                echo "[OK] Updated BASE_URL=http://${detected_ip}:7007 in $ENV_FILE"
+            else
+                echo "[WARNING] $ENV_FILE not found, creating with detected IP"
+                echo "BASE_URL=http://${detected_ip}:7007" > "$ENV_FILE"
+            fi
+
+            # Verify the update
+            local current_base_url
+            current_base_url=$(grep "^BASE_URL=" "$ENV_FILE" | cut -d'=' -f2 || true)
+            echo "[INFO] Current BASE_URL: $current_base_url"
+
+        else
+            echo "[WARNING] Could not detect VM IP, keeping default BASE_URL"
+            # Ensure localhost fallback exists
+            if [ -f "$ENV_FILE" ] && ! grep -q "^BASE_URL=" "$ENV_FILE"; then
+                echo "BASE_URL=http://localhost:7007" >> "$ENV_FILE"
+                echo "[INFO] Added fallback BASE_URL=http://localhost:7007"
+            fi
         fi
     fi
 }

@@ -31,6 +31,46 @@ podman build -f Containerfile.bootc -t rhdh-bootc:latest .
 
 Credentials are copied to both `/etc/containers/auth.json` and `/root/.config/containers/auth.json` so Quadlet (root podman) can pull images.
 
+### Registry Credentials
+
+This image embeds registry credentials (`auth.json`) in the container image layer (line 32 in `Containerfile.bootc`). This design supports testing, development, and air-gapped bootc installations where bootc-image-builder requires credentials to pull bound images during disk image creation.
+
+**Important**: Registry credentials are permanently stored in the image layer. Anyone with access to the image can extract these credentials.
+
+**Production Recommendations**:
+- Mount credentials at runtime: `podman run -v /run/secrets/auth.json:/etc/containers/auth.json:ro`
+- Use systemd credentials or Kubernetes/OpenShift secrets
+- Build separate images per environment with minimal credential scope
+- Do not distribute this image publicly
+
+## Default Configuration
+
+This image is configured for **testing and development** out-of-the-box:
+
+### Authentication
+- **Default**: Guest authentication (no login required)
+- **AAP/RHAAP OAuth**: Available but requires configuration (set `AAP_HOST_URL`, `OAUTH_CLIENT_ID`, `OAUTH_CLIENT_SECRET` in `quadlet/rhdh.env`)
+- To switch to AAP auth: Change `signInPage: guest` to `signInPage: rhaap` in `configs/app-config/app-config.yaml`
+
+### Catalog
+- **Default locations**: Backstage example catalog is loaded automatically for demo purposes
+- **AAP integration**: Disabled by default (requires AAP instance)
+- To enable AAP catalog: Configure AAP credentials and the catalog provider will sync job templates, users, and teams
+
+### Database
+- **PostgreSQL**: Runs in a container (`rhdh-postgres`) via Quadlet
+- **Credentials**: 
+  - Username: `postgres`
+  - Password: `secure_admin_password_123`
+  - Database: `rhdh_backstage`
+- **Superuser Requirement**: Backstage creates per-plugin databases (`backstage_plugin_catalog`, `backstage_plugin_scaffolder`, etc.) at runtime, requiring `CREATEDB` privilege. This implementation uses the PostgreSQL superuser for simplicity.
+
+**Production Recommendations**:
+- Change default password in `quadlet/rhdh.env` and `quadlet/postgres.env`
+- Create a dedicated PostgreSQL user with `CREATEDB` privilege
+- Pre-create all plugin databases and use a limited user
+- Use an external managed PostgreSQL service
+
 ## Contents
 
 - `configs/` — RHDH app config, catalog, dynamic plugins
@@ -43,46 +83,131 @@ RHDH image tag is set in `quadlet/rhdh.container` (default `1.8`).
 
 The override may list `.tgz` plugins under `local-plugins/`. That directory is empty by default (tarballs are often supplied separately). **Disabled plugins** in `dynamic-plugins.override.yaml` keep stock RHDH starting without those files. To use the full Ansible self-service flow: drop the four `ansible-*.tgz` files into `local-plugins/`, set those entries to `disabled: false`, restore the `/self-service` line in `health-check.sh` in `Containerfile.bootc`, then rebuild.
 
-### Test with `podman run` (privileged)
+## Run and Test
 
-Quadlet uses **default** Podman storage (not `/usr/lib/bootc/storage`), so Postgres/RHDH
-can pull on first start inside the guest. First start can take several minutes.
+### Start Container
+
+First start can take 3-5 minutes as the container pulls images and installs plugins.
 
 ```bash
 podman rm -f rhdh-bootc-test 2>/dev/null
 podman run -d --name rhdh-bootc-test --privileged -p 7007:7007 -p 5432:5432 localhost/rhdh-bootc:latest
-# wait, then:
+```
+
+### Verify Services
+
+Wait approximately 3 minutes for services to initialize, then check status:
+
+```bash
 podman exec rhdh-bootc-test systemctl status postgres.service rhdh.service --no-pager
 podman exec rhdh-bootc-test podman ps -a
 ```
 
-### Open RHDH in the browser (`localhost` vs `127.0.0.1`)
+Both services should show `Active: active (running)`.
 
-After services are healthy, use:
+### Access RHDH Web Interface
 
-**`http://127.0.0.1:7007/`**
+The container auto-detects its IP address and configures RHDH accordingly. To find the correct URL:
 
-If **`http://localhost:7007/`** fails with errors like **ERR_SOCKET_NOT_CONNECTED** (or “site can’t be reached”) while **`127.0.0.1`** works:
+```bash
+podman exec rhdh-bootc-test cat /etc/rhdh/rhdh.env | grep “^BASE_URL”
+```
 
-- **`localhost`** resolves to both IPv4 (`127.0.0.1`) and IPv6 (`::1`). Many browsers try **IPv6 first**.
-- RHDH and/or Podman’s published port are typically only reachable over **IPv4** here, so nothing accepts **`::1:7007`**.
-- **`127.0.0.1`** forces IPv4 and hits the forwarded port correctly.
+Example output: `BASE_URL=http://172.20.10.2:7007`
 
-Quick check from the host: `curl -v http://127.0.0.1:7007/`
+**Open this URL in your browser** (e.g., `http://172.20.10.2:7007/`)
 
-## VM defaults (from Containerfile)
+**Note**: Using `http://127.0.0.1:7007` or `http://localhost:7007` will fail due to CORS configuration. The application is configured to only accept requests from the detected BASE_URL.
 
-- `admin` / `admin123`, `root` / `root123` — change for anything real.
+**Login**: Select **Guest** authentication to access the application without additional configuration.
+
+### After Login
+
+Once authenticated, you will have access to:
+
+- **Home/Dashboard**: Overview of your developer portal
+- **Catalog**: Browse example components, APIs, and systems (loaded from Backstage examples)
+- **API Docs**: View API documentation
+- **Create**: Access software templates (scaffolder)
+- **Search**: Search across catalog entities
+
+The default configuration includes example entities for demonstration purposes. To add your own catalog sources, edit `configs/app-config/app-config.yaml` and rebuild the image.
+
+### BASE_URL Configuration
+
+The `detect-and-set-base-url.sh` script automatically configures the application's BASE_URL at container startup.
+
+**Bare Metal / VM Deployments**:
+- Automatic IP detection via `ip route get 1.1.1.1`
+- No configuration required
+- BASE_URL set to `http://<detected-ip>:7007`
+
+**OpenShift / Proxy Deployments**:
+
+Automatic IP detection returns internal pod IPs on OpenShift, which causes CORS errors and OAuth redirect failures. Override the BASE_URL by setting `EXTERNAL_URL` in `quadlet/rhdh.env`:
+
+```bash
+# Set this to your external Route/Ingress URL
+EXTERNAL_URL=https://rhdh-myproject.apps.cluster.example.com
+```
+
+The detection script prioritizes `EXTERNAL_URL` when present, falling back to automatic IP detection otherwise.
+
+## Default Credentials
+
+The bootc image includes default users for testing and SSH access:
+
+- **admin**: `admin123` (wheel group, passwordless sudo)
+- **root**: `root123`
+
+**Production Deployment**: Change these passwords before deploying to any non-development environment.
+
+## Quick Reference
+
+### Common Commands
+
+**Check service status**:
+```bash
+podman exec rhdh-bootc-test systemctl status postgres.service rhdh.service --no-pager
+```
+
+**View logs**:
+```bash
+podman exec rhdh-bootc-test journalctl -u rhdh.service -n 100
+podman exec rhdh-bootc-test journalctl -u postgres.service -n 100
+```
+
+**Restart services**:
+```bash
+podman exec rhdh-bootc-test systemctl restart rhdh.service
+```
+
+**Get current BASE_URL**:
+```bash
+podman exec rhdh-bootc-test cat /etc/rhdh/rhdh.env | grep "^BASE_URL"
+```
+
+**Check health**:
+```bash
+podman exec rhdh-bootc-test /usr/local/bin/health-check.sh
+```
+
+### Configuration Files
+
+- **RHDH Config**: `/etc/rhdh/configs/app-config/app-config.yaml`
+- **Environment**: `/etc/rhdh/rhdh.env`
+- **Database Config**: `/etc/rhdh/postgres.env`
+- **Quadlet Services**: `/usr/share/containers/systemd/*.container`
 
 ## Logically Bound Images (Air-Gap Support)
 
-This image uses bootc's **logically bound images** pattern for air-gap support (JIRA RHIDP-11826), matching the Ansible reference implementation.
+This image uses bootc's logically bound images pattern for air-gap support (JIRA RHIDP-11826), matching the Ansible reference implementation.
 
 ### How It Works
 
-1. **Our bootc image** creates symlinks in `/usr/lib/bootc/bound-images.d/` pointing to Quadlet service definitions
-2. **bootc-image-builder** (teammate's CI/CD pipeline - RHIDP-12340) discovers these symlinks and pulls the referenced container images
-3. **Final QCOW2/ISO** contains all images embedded for offline deployment
+1. Bootc image creates symlinks in `/usr/lib/bootc/bound-images.d/` pointing to Quadlet service definitions
+2. bootc-image-builder (RHIDP-12340) discovers these symlinks and pulls the referenced container images
+3. Final QCOW2/ISO contains all images embedded for offline deployment
 
 ### Verification
 
@@ -92,4 +217,4 @@ Check bound images metadata:
 podman exec rhdh-bootc-test /usr/local/bin/manage-bound-images.sh
 ```
 
-**Note**: Container images will NOT be present in the bootc container itself - they are embedded by bootc-image-builder during QCOW2/ISO creation.
+Container images will not be present in the bootc container itself during testing - they are embedded by bootc-image-builder during QCOW2/ISO creation.

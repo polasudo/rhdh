@@ -2,57 +2,74 @@
 
 This document explains the architectural design and technical details of the RHDH bootc + Quadlet deployment for RHEL 9 Image Mode.
 
+## Table of Contents
+
+- [Overview](#overview)
+- [Air-Gap Deployment Strategy](#air-gap-deployment-strategy)
+- [Storage Architecture Decision](#storage-architecture-decision)
+- [Bootc + Quadlet Integration](#bootc--quadlet-integration)
+- [Deployment Workflows](#deployment-workflows)
+- [Design Requirements](#design-requirements)
+- [Relationship to Ansible Reference Implementation](#relationship-to-ansible-reference-implementation)
+- [Troubleshooting Guide](#troubleshooting-guide)
+- [Security Considerations](#security-considerations)
+- [Performance Characteristics](#performance-characteristics)
+- [References](#references)
+
 ---
 
-## Executive Summary
+## Overview
 
-This implementation provides a **production-ready RHDH deployment** using RHEL 9 bootc (image mode) with Podman Quadlet for systemd integration. It uses bootc's **logically bound images** pattern for air-gap support, matching the Ansible reference implementation.
+This implementation provides a production-ready RHDH deployment using RHEL 9 bootc (Image Mode) with Podman Quadlet for systemd integration. The design prioritizes:
 
-**JIRA Epic**: RHIDP-12166 - RHDH RHEL 9 Image Mode Installation, Configuration, and Lifecycle Management
+- **Air-gap support** via bootc's logically bound images pattern
+- **Immutable infrastructure** with atomic updates and rollbacks
+- **Native RHEL integration** using systemd for service management
+- **Runtime flexibility** for network and database configuration
+
+This architecture closely follows the [Ansible bootc reference implementation](https://github.com/ansible/ansible-backstage-plugins/tree/image_mode_quadlet/image_mode/quadlet) while adding air-gap verification and enhanced operational tooling.
 
 ---
 
-## Air-Gap Solution Design (JIRA RHIDP-11826)
+## Air-Gap Deployment Strategy
 
-### Problem Statement
+### Design Goal
 
-**JIRA Requirement**: "*The RHDH RHEL image must support air-gapped installation. Container images must be available without requiring registry access at runtime.*"
+The RHDH bootc image must support fully offline (air-gapped) installation where container images are pre-embedded in the VM disk image, eliminating runtime registry dependencies.
 
-**JIRA specifies**: "*Container images automatically managed by bootc*" using the **logically bound images** pattern.
+### Logically Bound Images Pattern
 
-### Solution: Logically Bound Images (bootc Pattern)
-
-We use bootc's native logically bound images feature, **exactly as the Ansible reference implementation does**:
+We use bootc's native **logically bound images** feature to declare container image dependencies:
 
 ```dockerfile
-# In Containerfile.bootc
-# Create logically bound images by symlinking container files to bootc bound-images directory
+# Containerfile.bootc
 RUN mkdir -p /usr/lib/bootc/bound-images.d && \
-    ln -s /usr/share/containers/systemd/rhdh.container /usr/lib/bootc/bound-images.d/rhdh.container && \
-    ln -s /usr/share/containers/systemd/postgres.container /usr/lib/bootc/bound-images.d/postgres.container
+    ln -s /usr/share/containers/systemd/rhdh.container \
+          /usr/lib/bootc/bound-images.d/rhdh.container && \
+    ln -s /usr/share/containers/systemd/postgres.container \
+          /usr/lib/bootc/bound-images.d/postgres.container
 ```
 
-**That's it!** No manual image pre-pulling needed in the Containerfile.
+These symlinks signal to `bootc-image-builder` which container images to embed in the final disk image.
 
-### How It Works (Division of Responsibilities)
+### Build-Time vs. Deployment-Time Responsibilities
 
-**Our Responsibility (RHIDP-11826, RHIDP-11827)**:
-1. Create bootc container image with Quadlet service definitions
+**Bootc Image Build** (this repository):
+1. Define Quadlet service specifications in `/usr/share/containers/systemd/`
 2. Create symlinks in `/usr/lib/bootc/bound-images.d/` pointing to Quadlet files
-3. Embed `auth.json` for registry access (copied to `/etc/containers/auth.json`)
+3. Embed registry credentials at `/etc/containers/auth.json` for image pulls
 
-**Teammate's Responsibility (RHIDP-12340 - CI/CD Pipeline)**:
-1. Run `bootc-image-builder` to convert our bootc container → QCOW2/ISO
-2. bootc-image-builder discovers bound images via `/usr/lib/bootc/bound-images.d/`
-3. bootc-image-builder pulls referenced images and embeds them in the disk image
-4. Output QCOW2/ISO contains all images for air-gap deployment
+**Disk Image Build** (CI/CD pipeline):
+1. Run `bootc-image-builder` to convert bootc container → QCOW2/ISO
+2. Discover bound images via symlinks in `/usr/lib/bootc/bound-images.d/`
+3. Pull referenced container images using embedded `auth.json`
+4. Embed images into the disk image storage
 
-**How bootc-image-builder Provides Air-Gap Support**:
-- Reads Quadlet `.container` files linked in `/usr/lib/bootc/bound-images.d/`
-- Extracts `Image=` references (e.g., `registry.redhat.io/rhdh/rhdh-hub-rhel9:1.8`)
-- Uses embedded `auth.json` to pull images from registry
-- Stores images in `/usr/lib/bootc/storage` within the QCOW2/ISO
-- Result: Fully self-contained disk image that works offline
+**Result**: The final QCOW2/ISO contains:
+- RHEL 9 bootc operating system
+- RHDH container image (`registry.redhat.io/rhdh/rhdh-hub-rhel9:1.8`)
+- PostgreSQL container image (`registry.redhat.io/rhel9/postgresql-15:latest`)
+- All configuration and scripts
 
 ### Runtime Behavior
 
@@ -237,16 +254,26 @@ rhdh.service (application container)
 2. **Database Startup**:
    - systemd starts `postgres.service`
    - Podman creates `rhdh-postgres` container
-   - Health check: `pg_isready -U rhdh_user`
-   - Waits until PostgreSQL is ready
+   - PostgreSQL initializes database schema
+   - Health check: `pg_isready -U rhdh_user -d rhdh_backstage`
+   - Waits until PostgreSQL accepts connections
 
 3. **Application Startup**:
    - systemd runs `ExecStartPre=+/usr/local/bin/detect-and-set-base-url.sh` (privileged)
-   - Script auto-detects VM IP and updates `BASE_URL` in `/etc/rhdh/rhdh.env`
+   - Script checks for `EXTERNAL_URL` override or auto-detects VM IP
+   - Updates `BASE_URL` in `/etc/rhdh/rhdh.env`
    - systemd starts `rhdh.service`
    - Podman creates `rhdh` container
    - Container entrypoint: `/opt/app-root/src/wait-for-plugins-and-start.sh`
-   - Script runs plugin installation, then starts Backstage backend
+   - Plugin installation script runs:
+     - Installs enabled dynamic plugins from `/opt/app-root/src/dynamic-plugins/`
+     - Generates plugin configuration
+     - Creates symlinks for plugin access
+   - Backstage backend starts:
+     - Connects to PostgreSQL
+     - Creates per-plugin databases (`backstage_plugin_*`)
+     - Initializes catalog with default entities
+     - Starts HTTP server on port 7007
    - Health check: `curl -f http://localhost:7007`
 
 **Service Restarts**:
@@ -273,7 +300,7 @@ podman run -d --name rhdh-bootc-test --privileged \
   -p 7007:7007 -p 5432:5432 \
   localhost/rhdh-bootc:latest
 
-# Wait for first-time startup (2-3 minutes)
+# Wait for first-time startup (3-5 minutes)
 sleep 180
 
 # Verify services
@@ -282,8 +309,12 @@ podman exec rhdh-bootc-test systemctl status postgres.service rhdh.service --no-
 # Check air-gap readiness
 podman exec rhdh-bootc-test /usr/local/bin/manage-bound-images.sh
 
-# Access RHDH
-curl http://127.0.0.1:7007/
+# Get the detected BASE_URL
+podman exec rhdh-bootc-test cat /etc/rhdh/rhdh.env | grep "^BASE_URL"
+
+# Access RHDH using the detected IP (example output: http://172.20.10.2:7007)
+# Open in browser: http://<detected-ip>:7007
+# Login: Select "Guest" authentication
 ```
 
 **Advantages**:
@@ -295,7 +326,7 @@ curl http://127.0.0.1:7007/
 
 **Purpose**: Create bootable disk images for VM deployments
 
-**Workflow** (handled by CI/CD teammate - RHIDP-12339, RHIDP-12340):
+**Workflow** (handled by CI/CD pipeline):
 ```bash
 # Build bootc image
 ./build.sh
@@ -312,173 +343,91 @@ sudo podman run --rm --privileged \
 
 **Other formats**: `--type iso`, `--type ami`, `--type vmdk`, etc.
 
-### Air-Gap Deployment: Pre-Verification Steps
-
-**Purpose**: Ensure images are embedded before deploying to offline environment
+### Air-Gap Deployment Verification
 
 **Pre-Flight Checklist**:
 
-1. **Verify build logs**:
-   ```
-   === Pre-pulling images for air-gap deployment (RHIDP-11826) ===
-   ✓ Air-gap images successfully pre-pulled and available offline
-   ```
-
-2. **Verify images embedded**:
+1. **Verify bound images**:
    ```bash
-   podman run --rm localhost/rhdh-bootc:latest podman images
-   # Should show: rhdh-hub-rhel9:1.8 and postgresql-15:latest
+   podman exec rhdh-bootc-test /usr/local/bin/manage-bound-images.sh
    ```
 
-3. **Test air-gap simulation** (see README.md):
+2. **Test air-gap simulation** (see README.md):
    - Block registry access with iptables
    - Restart services
    - Verify no registry pulls in logs
 
-4. **Deploy to offline environment**:
+3. **Deploy to offline environment**:
    - Transfer QCOW2/ISO to air-gap environment
    - Boot VM
-   - Services start without network!
+   - Services start without network
 
 ---
 
-## JIRA Requirements Mapping
+## Design Requirements
 
-### RHIDP-11826: Create Quadlet-Ready Base Containerfile
+This implementation satisfies the following requirements for RHEL 9 Image Mode deployment:
 
-**Acceptance Criteria**:
-1. "The built image can boot"
-   - **Implementation**: Containerfile.bootc with systemd CMD
-   - **Verification**: `podman run` testing, systemctl shows services active
+### Bootable System
+- Container image boots as a complete operating system
+- systemd manages service lifecycle
+- Quadlet integrates container workloads with systemd
 
-2. "podman images inside the booted VM shows the RHDH application image and Postgres image (no registry pull required at runtime)"
-   - **Implementation**: Image pre-pulling (lines 46-54 in Containerfile.bootc)
-   - **Verification**: `manage-bound-images.sh` shows "AIR-GAP READY", air-gap test passes
+### Air-Gap Support
+- Container images pre-embedded in disk image using logically bound images
+- No runtime registry access required
+- Registry credentials embedded for bootc upgrade functionality
 
-**Solution**: Build-time image pre-pulling + verification scripts
+### Runtime Configuration
+- Environment-based configuration via `/etc/rhdh/rhdh.env`
+- Dynamic IP detection and BASE_URL configuration
+- Support for external PostgreSQL via environment variables
 
----
+### Authentication & Authorization
+- Guest authentication enabled by default for testing/development
+- AAP/RHAAP OAuth provider available (requires configuration)
+- GitHub OAuth provider available (requires token configuration)
+- Configurable via `signInPage` setting in `configs/app-config/app-config.yaml`
 
-### RHIDP-11827: Implement Podman Quadlet Service Definitions
+### Catalog Configuration
+- Default Backstage example catalog loaded automatically
+- AAP catalog provider available (requires AAP instance and credentials)
+- Supports external catalog sources via configuration
 
-**Acceptance Criteria**:
-1. "On boot, systemctl status portal shows the service active"
-   - **Implementation**: `quadlet/rhdh.container` (systemd Quadlet definition)
-   - **Verification**: `systemctl status rhdh.service` shows active
+### Data Persistence
+- Database persistence via named volumes (`postgres-data`)
+- Application state in `/var/lib/rhdh/` (mutable)
+- Configuration in `/etc/rhdh/` (mutable)
+- OS layer remains immutable
 
-2. "The service wraps the Podman container process"
-   - **Implementation**: Quadlet generates systemd service that runs `podman run`
-   - **Verification**: `systemctl show rhdh.service` shows MainPID
-
-**Files**:
-- `quadlet/rhdh.container` - RHDH service definition
-- `quadlet/postgres.container` - PostgreSQL service definition
-- `quadlet/rhdh-network.network` - Network bridge definition
-
----
-
-### RHIDP-11828: Runtime Configuration Support
-
-**Acceptance Criteria**:
-1. "Changing BASE_URL in .portal.env and restarting the service updates the application configuration"
-   - **Implementation**: `scripts/detect-and-set-base-url.sh` (runs as ExecStartPre)
-   - **Verification**: Edit `/etc/rhdh/rhdh.env`, restart service, new URL applies
-
-2. "The system allows configuring external Postgres via environment variables"
-   - **Implementation**: `quadlet/rhdh.env` with database connection variables
-   - **Verification**: Change POSTGRES_HOST, restart, connection updates
-
-**Files**:
-- `scripts/detect-and-set-base-url.sh` - Auto-detect VM IP, update BASE_URL
-- `quadlet/rhdh.env` - Runtime environment configuration
-- `quadlet/postgres.env` - PostgreSQL configuration
+### Service Management
+- RHDH and PostgreSQL as systemd services
+- Health checks and automatic restarts
+- Dependency-based startup ordering
+- Logging via journalctl
 
 ---
 
-### RHIDP-11829: Persistence Compliance (Immutable OS)
+## Relationship to Ansible Reference Implementation
 
-**Acceptance Criteria**:
-1. "Database: Verify the postgres.container maps data to /var/lib/pgsql/data"
-   - **Implementation**: `Volume=postgres-data:/var/lib/pgsql/data:Z` in postgres.container
-   - **Verification**: Data survives container restarts
+This implementation is based on the [Ansible bootc + Quadlet reference](https://github.com/ansible/ansible-backstage-plugins/tree/image_mode_quadlet/image_mode/quadlet) with the following shared patterns:
 
-2. "TechDocs/Cache: Verify portal.container maps /var/lib/rhdh to the application's local storage path"
-   - **Implementation**: Multiple volume mounts in rhdh.container
-   - **Verification**: Plugins, configs persist across restarts
+- **Logically bound images** for air-gap support
+- **Dynamic IP detection** via `detect-and-set-base-url.sh`
+- **Quadlet systemd integration** with service dependencies and health checks
+- **PostgreSQL configuration** using Red Hat PostgreSQL image
+- **Script-based plugin installation** during container startup
 
-3. "Logs: Ensure RHDH logs to stdout (so journalctl -u portal works)"
-   - **Implementation**: Container stdout/stderr → journalctl
-   - **Verification**: `journalctl -u rhdh.service` shows logs
+### Key Differences
 
-4. "Ownership: In the Containerfile, ensure rhdh user (UID 1001 usually) owns /var/lib/rhdh"
-   - **Implementation**: `chown -R 1001:0 /var/lib/rhdh` (line 62 in Containerfile)
-   - **Verification**: Permissions correct on boot
+**Air-Gap Verification**:
+- Added `manage-bound-images.sh` script with readiness checks
+- Enhanced `health-check.sh` with conditional Ansible plugin checks
 
-**Persistent Locations**:
-- `/var/lib/rhdh/postgres-data` - PostgreSQL database (UID 26)
-- `/var/lib/rhdh/dynamic-plugins-root` - Installed plugins (UID 1001)
-- `/var/lib/rhdh/generated` - Runtime config (UID 1001)
-- `/var/lib/rhdh/.npm` - NPM cache (UID 1001)
-- `/etc/rhdh/configs` - Static configuration (mounted RO)
-
----
-
-### RHIDP-11830: Enable "Installer" Consumption (Build Pipeline)
-
-**Status**: Out of scope - handled by teammate (RHIDP-12339, RHIDP-12340, RHIDP-12343, RHIDP-12955)
-
-**Our deliverable**: Bootc image that can be consumed by CI/CD pipeline
-
-**Teammate's work**:
-- CI pipeline to build and push to registry
-- Semantic versioning tags
-- QCOW2/ISO generation automation
-- Update lifecycle and rollback logic
-
----
-
-## Comparison with Ansible Reference Implementation
-
-### What We Adopted
- **Logically Bound Images Pattern**:
-- Symlinks in `/usr/lib/bootc/bound-images.d/`
-- Quadlet service definitions in `/usr/share/containers/systemd/`
- **Dynamic IP Detection**:
-- `detect-and-set-base-url.sh` script
-- Three fallback methods for IP detection
-- Updates env file before container starts
- **Quadlet SystemD Integration**:
-- Native service dependencies (`Requires=`, `After=`)
-- Health checks via `HealthCmd`
-- Service hooks (`ExecStartPre`)
- **PostgreSQL Setup**:
-- Red Hat PostgreSQL image with `POSTGRESQL_*` env vars
-- Named volume for data persistence
-- Separate `.container` file for clean architecture
- **Clean Script Architecture**:
-- `wait-for-plugins-and-start.sh` as entrypoint
-- `prepare-and-install-dynamic-plugins.sh` for plugin setup
-- Both runnable during container startup
- **Documentation Structure**:
-- ARCHITECTURE.md explains design decisions
-- README provides quick start + advanced sections
-
----
-
-### What We Improved
- **Air-Gap Image Pre-Pulling** (CRITICAL):
-- **Ansible reference**: Only creates symlinks, still pulls at runtime (NOT air-gap ready)
-- **Our implementation**: Pre-pulls images during build (TRUE air-gap support)
- **Storage Configuration**:
-- **Ansible reference**: Uses `GlobalArgs=--storage-opt=additionalimagestore=/usr/lib/bootc/storage`
-- **Our decision**: Use default storage (simpler, preserves testing workflow)
-- **Rationale**: Documented in this file with reasoning
- **Verification Scripts**:
-- **Ansible reference**: Basic `manage-bound-images.sh` (just lists images)
-- **Our implementation**: Enhanced with air-gap readiness check and status indicators
- **Health Checks**:
-- **Ansible reference**: Basic checks
-- **Our implementation**: Conditional portal check (doesn't fail if Ansible plugins disabled)
+**Storage Configuration**:
+- Uses default podman storage (`/var/lib/containers/storage`)
+- Simplifies testing workflow (`podman run` works without special configuration)
+- Alternative: Could add `GlobalArgs=--storage-opt=additionalimagestore=/usr/lib/bootc/storage` if needed
 
 ---
 
@@ -490,20 +439,19 @@ sudo podman run --rm --privileged \
 
 **Symptom**: `manage-bound-images.sh` shows "NOT AIR-GAP READY"
 
-**Cause**: Build failed before pre-pull step
+**Cause**: Build failed or images not accessible
 
 **Fix**:
 ```bash
-# Check build logs for:
-=== Pre-pulling images for air-gap deployment (RHIDP-11826) ===
-✓ Air-gap images successfully pre-pulled and available offline
-
-# If missing, check auth.json:
+# Verify auth.json exists:
 ls -la ./auth.json
-# Should exist and have registry credentials
+# Should exist and contain registry credentials
 
 # Rebuild:
 ./build.sh
+
+# Verify images are present:
+podman exec rhdh-bootc-test podman images | grep -E "(rhdh|postgresql)"
 ```
 
 ---
@@ -640,9 +588,11 @@ curl -f http://localhost:7007/
 
 ### Credential Management
 
-- `auth.json` embedded for bootc upgrade support
-- Database passwords in environment files (should use secrets manager in production)
-- BACKEND_SECRET must be set to random value in production
+- Registry credentials (`auth.json`) embedded in image layer for bootc upgrade and air-gap support
+- Database credentials in environment files (`quadlet/rhdh.env`, `quadlet/postgres.env`)
+- Default credentials provided for testing; change for production deployments
+- BACKEND_SECRET should be set to a random value in production environments
+- Production deployments should use external secrets management (systemd credentials, Kubernetes secrets, etc.)
 
 ### Updates and Patching
 
@@ -698,10 +648,9 @@ curl -f http://localhost:7007/
 
 ## References
 
-- [JIRA Epic RHIDP-12166](https://redhat.atlassian.net/browse/RHIDP-12166)
-- [bootc Documentation](https://containers.github.io/bootc/)
-- [Podman Quadlet Documentation](https://docs.podman.io/en/latest/markdown/podman-systemd.unit.5.html)
-- [RHDH Documentation](https://docs.redhat.com/en/documentation/red_hat_developer_hub)
-- [Ansible Reference Implementation](../../../ansible-stuff/ansible-backstage-plugins/image_mode/quadlet/)
+- [bootc Documentation](https://containers.github.io/bootc/) - Image-based OS fundamentals
+- [Podman Quadlet Documentation](https://docs.podman.io/en/latest/markdown/podman-systemd.unit.5.html) - Container systemd integration
+- [RHDH Documentation](https://docs.redhat.com/en/documentation/red_hat_developer_hub) - Red Hat Developer Hub product docs
+- [Ansible bootc Reference](https://github.com/ansible/ansible-backstage-plugins/tree/image_mode_quadlet/image_mode/quadlet) - Upstream reference implementation
 
 ---

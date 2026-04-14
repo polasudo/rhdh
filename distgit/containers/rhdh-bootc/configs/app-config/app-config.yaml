@@ -21,6 +21,9 @@ auth:
   environment: development
   omitIdentityTokenOwnershipClaim: true
   providers:
+    guest:
+      development:
+        dangerouslyAllowSignInWithoutUserInCatalog: true
     rhaap:
       development:
         checkSSL: false
@@ -30,7 +33,8 @@ auth:
         signIn:
           resolvers:
           - resolver: allowNewAAPUserSignIn
-  signInPage: rhaap
+  # Use guest for testing/development, switch to rhaap when AAP is available
+  signInPage: guest
 backend:
   auth:
     externalAccess:
@@ -86,6 +90,13 @@ backend:
     bodyParsing:
       sizeLimit: 10mb
 catalog:
+  # Default catalog locations for testing/demo purposes
+  # Remove or replace with your own catalog sources in production
+  locations:
+    - type: url
+      target: https://github.com/backstage/backstage/blob/master/packages/catalog-model/examples/all.yaml
+      rules:
+        - allow: [Component, System, API, Resource, Location, Template, Group, User]
   import:
     entityFilename: catalog-info.yaml
     pullRequestBranchName: backstage-integration
