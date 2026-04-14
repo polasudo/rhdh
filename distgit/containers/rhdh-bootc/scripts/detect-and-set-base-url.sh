@@ -8,7 +8,7 @@ set -euo pipefail
 ENV_FILE="/etc/rhdh/rhdh.env"
 BACKUP_FILE="/etc/rhdh/rhdh.env.backup"
 
-echo "🔍 Detecting VM IP for BASE_URL configuration..."
+echo "[INFO] Detecting VM IP for BASE_URL configuration..."
 
 # Detect the primary IP address of this VM
 detect_vm_ip() {
@@ -46,7 +46,7 @@ main() {
     # Backup original env file if not already done
     if [ -f "$ENV_FILE" ] && [ ! -f "$BACKUP_FILE" ]; then
         cp "$ENV_FILE" "$BACKUP_FILE"
-        echo "📋 Backed up original rhdh.env to rhdh.env.backup"
+        echo "[INFO] Backed up original rhdh.env to rhdh.env.backup"
     fi
     
     # Detect VM IP
@@ -54,29 +54,29 @@ main() {
     detected_ip=$(detect_vm_ip)
     
     if [ -n "$detected_ip" ]; then
-        echo "🌐 Detected VM IP: $detected_ip"
+        echo "[INFO] Detected VM IP: $detected_ip"
         
         # Update BASE_URL in environment file
         if [ -f "$ENV_FILE" ]; then
             # Use sed to replace BASE_URL line
             sed -i "s|^BASE_URL=.*|BASE_URL=http://${detected_ip}:7007|" "$ENV_FILE"
-            echo "✅ Updated BASE_URL=http://${detected_ip}:7007 in $ENV_FILE"
+            echo "[OK] Updated BASE_URL=http://${detected_ip}:7007 in $ENV_FILE"
         else
-            echo "⚠️ Warning: $ENV_FILE not found, creating with detected IP"
+            echo "[WARNING] $ENV_FILE not found, creating with detected IP"
             echo "BASE_URL=http://${detected_ip}:7007" > "$ENV_FILE"
         fi
         
         # Verify the update
         local current_base_url
         current_base_url=$(grep "^BASE_URL=" "$ENV_FILE" | cut -d'=' -f2 || true)
-        echo "🔧 Current BASE_URL: $current_base_url"
+        echo "[INFO] Current BASE_URL: $current_base_url"
         
     else
-        echo "⚠️ Could not detect VM IP, keeping default BASE_URL"
+        echo "[WARNING] Could not detect VM IP, keeping default BASE_URL"
         # Ensure localhost fallback exists
         if [ -f "$ENV_FILE" ] && ! grep -q "^BASE_URL=" "$ENV_FILE"; then
             echo "BASE_URL=http://localhost:7007" >> "$ENV_FILE"
-            echo "🏠 Added fallback BASE_URL=http://localhost:7007"
+            echo "[INFO] Added fallback BASE_URL=http://localhost:7007"
         fi
     fi
 }

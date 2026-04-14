@@ -28,7 +28,7 @@ cp -f "$DEFAULT_APP_CONFIG" "$PATCHED_APP_CONFIG"
 # ===== CLEAN ARCHITECTURE: DYNAMIC PLUGINS SETUP =====
 # Instead of waiting for external service, we run the prepare script directly in container!
 
-echo "🚀 Running dynamic plugins preparation (inside container where all scripts exist)..."
+echo "[INFO] Running dynamic plugins preparation (inside container where all scripts exist)..."
 
 # Set up environment variables that prepare script expects
 export DYNAMIC_PLUGINS_ROOT="${DYNAMIC_PLUGINS_ROOT:-/opt/app-root/src/dynamic-plugins-root}"
@@ -39,9 +39,9 @@ export NPM_CONFIG_CACHE="/opt/app-root/src/.npm"
 
 # Verify the config file was created
 if [ -f "$DYNAMIC_PLUGINS_CONFIG" ]; then
-    echo "✅ Dynamic plugins config created successfully: $DYNAMIC_PLUGINS_CONFIG"
+    echo "[OK] Dynamic plugins config created successfully: $DYNAMIC_PLUGINS_CONFIG"
 else
-    echo "⚠️ Warning: $DYNAMIC_PLUGINS_CONFIG not found, continuing with minimal config"
+    echo "[WARNING] $DYNAMIC_PLUGINS_CONFIG not found, continuing with minimal config"
 fi
 
 # Apply overrides by replacing target paths in the patched config
@@ -61,7 +61,7 @@ if [ -f "$USER_APP_CONFIG" ]; then
   echo "Using user config: $USER_APP_CONFIG"
   EXTRA_CONFIGS="$USER_APP_CONFIG"
 elif [ -f "$LEGACY_USER_APP_CONFIG" ]; then
-  echo "[warn] Using legacy app-config.local.yaml. This is deprecated. Please migrate to $USER_APP_CONFIG."
+  echo "[WARNING] Using legacy app-config.local.yaml. This is deprecated. Please migrate to $USER_APP_CONFIG."
   EXTRA_CONFIGS="$LEGACY_USER_APP_CONFIG"
 fi
 
@@ -76,7 +76,7 @@ for config in $EXTRA_CONFIGS; do
 done
 
 
-echo "🌐 Using BASE_URL from environment: ${BASE_URL:-http://localhost:7007}"
+echo "[INFO] Using BASE_URL from environment: ${BASE_URL:-http://localhost:7007}"
 
 # Export critical environment variables for RHDH (following Containerfile.rhdh-ansible-bootc pattern)
 export ENABLE_AUTH_PROVIDER_MODULE_OVERRIDE="${ENABLE_AUTH_PROVIDER_MODULE_OVERRIDE:-true}"

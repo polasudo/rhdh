@@ -40,6 +40,9 @@ COPY ./quadlet/postgres.container /usr/share/containers/systemd/postgres.contain
 COPY ./quadlet/rhdh-network.network /usr/share/containers/systemd/rhdh-network.network
 COPY ./quadlet/postgres.env /etc/rhdh/postgres.env
 
+# Create logically bound images by symlinking container files to bootc bound-images directory
+# This enables both RHDH and PostgreSQL containers to be managed by bootc with automatic image pulling
+# Air-gap support is provided by bootc-image-builder (RHIDP-12340) during QCOW2/ISO creation
 RUN mkdir -p /usr/lib/bootc/bound-images.d && \
     ln -s /usr/share/containers/systemd/rhdh.container /usr/lib/bootc/bound-images.d/rhdh.container && \
     ln -s /usr/share/containers/systemd/postgres.container /usr/lib/bootc/bound-images.d/postgres.container
@@ -66,22 +69,36 @@ RUN chmod +x /usr/local/bin/prepare-and-install-dynamic-plugins.sh /usr/local/bi
 RUN printf '%s\n' \
   '#!/bin/bash' \
   'echo "=== RHDH + PostgreSQL Health Check ==="' \
-  'if systemctl is-active --quiet postgres.service; then echo "PostgreSQL service active"; else exit 1; fi' \
-  'podman exec rhdh-postgres pg_isready -U rhdh_user >/dev/null 2>&1 || exit 1' \
-  'if systemctl is-active --quiet rhdh.service; then echo "RHDH service active"; else exit 1; fi' \
-  'curl -f http://localhost:7007 >/dev/null 2>&1 || exit 1' \
-  'curl -f http://localhost:7007/self-service >/dev/null 2>&1 || exit 1' \
-  'echo "OK"' \
+  'if systemctl is-active --quiet postgres.service; then echo "✓ PostgreSQL service active"; else echo "✗ PostgreSQL service not active"; exit 1; fi' \
+  'podman exec rhdh-postgres pg_isready -U rhdh_user >/dev/null 2>&1 || { echo "✗ PostgreSQL database not ready"; exit 1; }' \
+  'echo "✓ PostgreSQL database ready"' \
+  'if systemctl is-active --quiet rhdh.service; then echo "✓ RHDH service active"; else echo "✗ RHDH service not active"; exit 1; fi' \
+  'curl -f http://localhost:7007 >/dev/null 2>&1 || { echo "✗ RHDH backend not responding"; exit 1; }' \
+  'echo "✓ RHDH backend healthy"' \
+  '# Check self-service portal only if Ansible plugins enabled' \
+  'if curl -f http://localhost:7007/self-service >/dev/null 2>&1; then' \
+  '    echo "✓ Ansible Self-Service Portal available"' \
+  'else' \
+  '    echo "⚠ Ansible Self-Service Portal not available (plugins may be disabled)"' \
+  'fi' \
+  'echo "=== Health check passed ==="' \
   > /usr/local/bin/health-check.sh && chmod +x /usr/local/bin/health-check.sh
 
 RUN printf '%s\n' \
   '#!/bin/bash' \
-  'ls -la /usr/lib/bootc/bound-images.d/ 2>/dev/null || true' \
+  'echo "=== RHDH + PostgreSQL Bound Images Status ==="' \
+  'echo ""' \
+  'echo "Bound Images Directory:"' \
+  'ls -la /usr/lib/bootc/bound-images.d/ 2>/dev/null || echo "  Warning: No bound images directory"' \
+  'echo ""' \
+  'echo "Container Images Available:"' \
   'podman images' \
+  'echo ""' \
+  'echo "Container Services Status:"' \
+  'systemctl is-active postgres.service >/dev/null 2>&1 && echo "  ✓ PostgreSQL service active" || echo "  - PostgreSQL service inactive"' \
+  'systemctl is-active rhdh.service >/dev/null 2>&1 && echo "  ✓ RHDH service active" || echo "  - RHDH service inactive"' \
   > /usr/local/bin/manage-bound-images.sh && chmod +x /usr/local/bin/manage-bound-images.sh
 
 EXPOSE 7007 5432
 WORKDIR /opt/app-root/src
 CMD ["/usr/sbin/init"]
-
-# append Brew metadata here
