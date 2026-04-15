@@ -1,18 +1,41 @@
 ![Red Hat Developer Hub](./images/hero-banner.jpg){ width="850" }
 
-Developers love :heart: Red Hat Developer Hub (RHDH). Developer Hub makes creating, discovering, and managing enterprise software faster and more productive for everyone! With Developer Hub, applications and APIs deployed across your organisation become easier to find, easier to understand, and easier to control. Our enterprise grade support ensures you stay on target while our open source community brings you exciting new innovations on a regular basis. 
+# RHDH bootc Deployment
 
-Some of the worlds largest companies use Red Hat Developer Hub to:
+This Red Hat Developer Hub instance is deployed using RHEL 9 Image Mode with bootc and Podman Quadlet.
 
-* Build a self-service culture where developers are in control
-* Promote sharing and common standards across teams
-* Improve access to critical documentation, APIs, and services
-* Integrate their favourite developer tools and dashboards in one handy portal 
+## Architecture Overview
 
-!!! tip "RHDH Proudly Based On CNCF Backstage"
+This deployment uses:
 
-    Developer Hub is based on [Backstage](https://backstage.io) the open-source Internal Developer Portal (IDP) created by Spotify and donated to the Cloud Native Computing Foundation (CNCF). CNCF Backstage enjoys a vibrant user community and a fast growing ecosystem of useful extensions called "[plugins](https://developers.redhat.com/rhdh/plugins "plugins")". Many leading platform vendors (including  Red Hat) are contributing [code](https://github.com/redhat-developer/rhdh "source code") to the [Backstage project](https://github.com/backstage/backstage) to ensure the developer experience is as rich and rewarding as possible.
+- **RHEL 9 bootc** - Image-based operating system for atomic updates and rollbacks
+- **Podman Quadlet** - Container management via systemd for native service integration
+- **Logically Bound Images** - Container images embedded in disk image for air-gap support
+- **PostgreSQL** - Containerized database with persistent storage
+- **Dynamic Plugins** - Runtime plugin installation and configuration
 
-*[IDP]: Internal Developer Platform - a system intended to make iy easier to develop, secure, operate, and manage applications running on your cloud infrastructure.
-*[CNCF]: Cloud Native Computing Foundation
+## Documentation
+
+### Image Mode and bootc
+- [RHEL 9 Image Mode Documentation](https://docs.redhat.com/en/documentation/red_hat_enterprise_linux/9/html/using_image_mode_for_rhel_to_build_deploy_and_manage_operating_systems/introducing-image-mode-for-rhel_using-image-mode-for-rhel-to-build-deploy-and-manage-operating-systems#additional_resources)
+- [bootc Project Documentation](https://bootc.dev/bootc/intro.html)
+
+### Container Management
+- [Podman Quadlet Documentation](https://docs.podman.io/en/latest/markdown/podman-quadlet.1.html)
+
+### Red Hat Developer Hub
+- [RHDH Product Documentation](https://docs.redhat.com/en/documentation/red_hat_developer_hub/)
+- [RHDH Plugins](https://developers.redhat.com/rhdh/plugins)
+
+## Deployment Resources
+
+See the README.md and ARCHITECTURE.md files in this repository for:
+
+- Build and deployment instructions
+- Service architecture and dependencies
+- Configuration options
+- Air-gap deployment guidance
+- Troubleshooting procedures
+
 *[RHDH]: Red Hat Developer Hub
+*[bootc]: Boot Container - image-based OS technology

@@ -179,7 +179,7 @@ dynamicPlugins:
         default.mycatalog:
           icon: home
           priority: 120
-          title: Templates
+          title: Software Templates
           to: /self-service/catalog
         default.myitem:
           icon: category

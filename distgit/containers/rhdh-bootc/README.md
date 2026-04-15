@@ -128,7 +128,7 @@ Once authenticated, you will have access to:
 - **Home/Dashboard**: Overview of your developer portal
 - **Catalog**: Browse example components, APIs, and systems (loaded from Backstage examples)
 - **API Docs**: View API documentation
-- **Create**: Access software templates (scaffolder)
+- **Create**: Access Software Templates
 - **Search**: Search across catalog entities
 
 The default configuration includes example entities for demonstration purposes. To add your own catalog sources, edit `configs/app-config/app-config.yaml` and rebuild the image.
