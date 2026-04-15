@@ -2,11 +2,77 @@
 
 ## Build
 
-1. Log in to the Red Hat registry (creates `~/.config/containers/auth.json`), see https://access.redhat.com/articles/RegistryAuthentication#getting-a-red-hat-login-2:
+### Prerequisites
 
-   ```bash
-   podman login registry.redhat.io
-   ```
+Building this bootc image requires **two separate Red Hat authentications**:
+
+#### 1. Registry Authentication (for container image pulls)
+
+Log in to the Red Hat registry (creates `~/.config/containers/auth.json`):
+
+```bash
+podman login registry.redhat.io
+```
+
+See https://access.redhat.com/articles/RegistryAuthentication#getting-a-red-hat-login-2
+
+**Why**: The build embeds RHDH and PostgreSQL container images. The `podman login` credentials get copied to `auth.json` and embedded in the bootc image so Quadlet can pull images at runtime.
+
+#### 2. Subscription Manager Registration (for RHEL package repositories)
+
+**Required on Fedora systems** and any system not already registered with Red Hat Subscription Management.
+
+Register your system to enable access to RHEL DNF repositories:
+
+```bash
+sudo subscription-manager register
+# Enter your Red Hat Customer Portal or Developer account credentials
+# Username: your-redhat-username
+# Password: your-redhat-password
+```
+
+Verify registration and Simple Content Access (SCA):
+
+```bash
+sudo subscription-manager status
+# Should show: "Content Access Mode is set to Simple Content Access"
+```
+
+**Why**: The bootc `Containerfile.bootc` runs `dnf install` commands that need access to RHEL 9 package repositories. Without registration, you'll see:
+
+```
+Error: Failed to download metadata for repo 'rhel-9-for-x86_64-appstream-rpms': 
+Cannot download repomd.xml: All mirrors were tried (HTTP error code 403)
+```
+
+**Get a free account**: If you don't have Red Hat credentials, create a free Developer Subscription at https://developers.redhat.com — it provides SCA entitlements.
+
+**Note**: These are the **same credentials** but serve different purposes:
+- `podman login` → Container registry authentication
+- `subscription-manager register` → RHEL package repository access (host system only)
+
+**Fedora/non-RHEL hosts**: Podman automatically shares the host's subscription certificates with build containers, enabling RHEL 9 package installation.
+
+**Troubleshooting**: If the build fails with `403 Forbidden` errors on DNF repositories despite being registered, your consumer profile may have been deleted on Red Hat's servers:
+
+```bash
+# Check for deleted consumer profile
+sudo subscription-manager identity
+# If you see: "Consumer profile has been deleted from the server"
+
+# Unregister and re-register
+sudo subscription-manager unregister
+sudo subscription-manager register
+# Username: your-redhat-username
+
+# Verify fresh registration
+sudo subscription-manager status
+# Should show: "Content Access Mode is set to Simple Content Access"
+```
+
+### Build Steps
+
+1. Complete both prerequisite authentications above
 
 2. From **this directory**:
 
@@ -18,7 +84,7 @@
    `~/.config/containers/auth.json`, `$XDG_RUNTIME_DIR/containers/auth.json`, or
    `~/.docker/config.json`.
 
-Or copy credentials by hand:
+Or build manually:
 
 ```bash
 cp ~/.config/containers/auth.json ./auth.json
@@ -33,9 +99,7 @@ Credentials are copied to both `/etc/containers/auth.json` and `/root/.config/co
 
 ### Registry Credentials
 
-This image embeds registry credentials (`auth.json`) in the container image layer (line 32 in `Containerfile.bootc`). This design supports testing, development, and air-gapped bootc installations where bootc-image-builder requires credentials to pull bound images during disk image creation.
-
-**Important**: Registry credentials are permanently stored in the image layer. Anyone with access to the image can extract these credentials.
+This image embeds registry credentials (`auth.json`) in the container image layer (`Containerfile.bootc`). This design supports testing, development, and air-gapped bootc installations where bootc-image-builder requires credentials to pull bound images during disk image creation.
 
 **Production Recommendations**:
 - Mount credentials at runtime: `podman run -v /run/secrets/auth.json:/etc/containers/auth.json:ro`
@@ -75,7 +139,7 @@ This image is configured for **testing and development** out-of-the-box:
 - `quadlet/` — `rhdh.container`, `postgres.container`, network, env
 - `scripts/` — plugin prep / startup (same as Ansible image_mode)
 
-RHDH image tag is set in `quadlet/rhdh.container` (default `1.8`).
+RHDH image tag is set in `quadlet/rhdh.container`.
 
 ## Run and Test
 
