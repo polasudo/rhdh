@@ -27,7 +27,6 @@ Volume=/var/lib/rhdh/generated:/opt/app-root/src/generated:Z
 Volume=/var/lib/rhdh/.npm:/opt/app-root/src/.npm:Z
 Volume=/var/lib/rhdh/scripts/wait-for-plugins-and-start.sh:/opt/app-root/src/wait-for-plugins-and-start.sh:Z
 Volume=/var/lib/rhdh/scripts/prepare-and-install-dynamic-plugins.sh:/usr/local/bin/prepare-and-install-dynamic-plugins.sh:Z
-Volume=/var/lib/rhdh/config/dynamic-plugins.yaml:/opt/app-root/src/dynamic-plugins.yaml:Z
 
 # Network and ports
 PublishPort=7007:7007

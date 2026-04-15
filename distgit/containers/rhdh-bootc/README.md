@@ -168,7 +168,7 @@ Both services should show `Active: active (running)`.
 The container auto-detects its IP address and configures RHDH accordingly. To find the correct URL:
 
 ```bash
-podman exec rhdh-bootc-test cat /etc/rhdh/rhdh.env | grep “^BASE_URL”
+podman exec rhdh-bootc-test grep '^BASE_URL' /etc/rhdh/rhdh.env
 ```
 
 Example output: `BASE_URL=http://172.20.10.2:7007`
