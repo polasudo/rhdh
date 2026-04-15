@@ -1,7 +1,7 @@
 # RHDH RHEL 9 bootc + Quadlet (copied from ansible image_mode quadlet flow).
 # Build context: this directory (packaging/bootc). Requires auth.json (see build.sh).
 
-FROM registry.redhat.io/rhel9/rhel-bootc:latest
+FROM registry.redhat.io/rhel9/rhel-bootc@sha256:69ed37a03c95c5461372f0a870b76b5e46265e7ac7b6d7498b9b7a4d546a3e87
 
 RUN dnf install -y nodejs npm python3 curl sudo podman && \
     dnf clean all
