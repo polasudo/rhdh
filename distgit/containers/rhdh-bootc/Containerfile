@@ -1,0 +1,137 @@
+# RHDH RHEL 9 Image Mode (bootc) Base Container
+# This is the RHDH base image. The Ansible team layers portal-specific
+# customisations (plugins, app-config, CLI tools) on top of this.
+#
+# Local build:  ./build.sh  (uses --mount=type=secret for registry auth)
+# Konflux:      built via .tekton/rhdh-bootc-*-push.yaml with buildah-remote-oci-ta
+
+FROM registry.redhat.io/rhel9/rhel-bootc@sha256:69ed37a03c95c5461372f0a870b76b5e46265e7ac7b6d7498b9b7a4d546a3e87
+
+ARG COMMIT_SHA="unknown"
+ARG RHDH_VERSION="1.9"
+
+LABEL vendor="Red Hat, Inc." \
+      name="rhdh/rhdh-bootc-rhel9" \
+      version="${RHDH_VERSION}" \
+      summary="Red Hat Developer Hub Bootc Base Image" \
+      description="RHEL Image Mode (bootc) base container for deploying RHDH on RHEL 9 VMs." \
+      io.k8s.display-name="RHDH Bootc Base" \
+      url="https://red.ht/rhdh" \
+      vcs-ref="${COMMIT_SHA}"
+
+# ── System packages ─────────────────────────────────────────────────────
+# Cachi2 support: if /cachi2/cachi2.env exists we source it (hermetic build);
+# otherwise we install from RHEL repos directly.
+RUN if [ -f /cachi2/cachi2.env ]; then \
+        . /cachi2/cachi2.env; \
+    else \
+        dnf module enable -y nodejs:22; \
+    fi && \
+    rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release && \
+    dnf install -y \
+        nodejs npm python3 curl sudo \
+        podman openssl \
+        cloud-init open-vm-tools \
+        openssh-server && \
+    dnf clean all && \
+    rm -rf /var/cache/dnf
+
+# ── Service account ─────────────────────────────────────────────────────
+RUN useradd -r -u 1001 -g root -d /opt/app-root/src -s /sbin/nologin rhdh && \
+    mkdir -p /opt/app-root/src /opt/app-root/src/dynamic-plugins-root /etc/rhdh /var/lib/rhdh /etc/containers && \
+    echo "rhdh ALL=(root) NOPASSWD: /usr/bin/chown, /usr/bin/chmod, /usr/bin/mkdir" > /etc/sudoers.d/rhdh
+
+# ── SSH hardening ────────────────────────────────────────────────────────
+# Key-based auth only. The admin user is created for downstream (Ansible)
+# to inject SSH public keys at build or cloud-init time.
+RUN useradd -m -G wheel -s /bin/bash admin && \
+    passwd -l admin && \
+    passwd -l root && \
+    systemctl enable sshd && \
+    printf '%s\n' \
+      'PasswordAuthentication no' \
+      'PermitRootLogin prohibit-password' \
+      'PubkeyAuthentication yes' \
+      'AuthorizedKeysFile .ssh/authorized_keys' \
+      > /etc/ssh/sshd_config.d/10-harden.conf && \
+    echo '%wheel ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers
+
+# ── Copy configs, env files, scripts ───────────────────────────────────
+COPY ./configs /etc/rhdh/configs
+COPY ./quadlet/rhdh.env /etc/rhdh/rhdh.env
+COPY ./quadlet/postgres.env /etc/rhdh/postgres.env
+COPY ./local-plugins /var/lib/rhdh/local-plugins
+COPY ./scripts/prepare-and-install-dynamic-plugins.sh /usr/local/bin/
+COPY ./scripts/wait-for-plugins-and-start.sh /usr/local/bin/
+COPY ./scripts/detect-and-set-base-url.sh /usr/local/bin/
+COPY ./scripts/health-check.sh /usr/local/bin/
+
+# ── Quadlet definitions ─────────────────────────────────────────────────
+COPY ./quadlet/rhdh.container /usr/share/containers/systemd/rhdh.container
+COPY ./quadlet/postgres.container /usr/share/containers/systemd/postgres.container
+COPY ./quadlet/rhdh-network.network /usr/share/containers/systemd/rhdh-network.network
+
+# ── Systemd service for stack autostart ──────────────────────────────────
+COPY systemd/rhdh-stack-autostart.service /etc/systemd/system/rhdh-stack-autostart.service
+RUN systemctl enable rhdh-stack-autostart.service
+
+# ── Additional image store ───────────────────────────────────────────────
+RUN sed -i -e '/additionalimage.*/a "/usr/lib/containers/storage",' \
+        /etc/containers/storage.conf
+
+# ── Pre-pull container images (air-gapped support) ───────────────────────
+# Images are pulled into /usr/lib/containers/storage so they are available
+# at boot without network access. Build secrets are used for registry auth
+# and are never persisted in the image layers.
+ARG RHDH_HUB_IMAGE="registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:12a7f6cc89bf4364c038090b2b6532d90ab006444489f66a75c0d11da9f6e567"
+ARG POSTGRESQL_IMAGE="registry.redhat.io/rhel9/postgresql-15@sha256:9606363cb215fc3e23e55d703a6e4fb8cbe277ad511c9daa776053aec595750a"
+
+RUN --mount=type=secret,id=redhat-registry-secret \
+    set -ex && \
+    AUTH_FILE="/run/secrets/redhat-registry-secret" && \
+    podman --root /usr/lib/containers/storage pull --authfile "$AUTH_FILE" \
+        "${RHDH_HUB_IMAGE}" && \
+    podman --root /usr/lib/containers/storage pull --authfile "$AUTH_FILE" \
+        "${POSTGRESQL_IMAGE}" && \
+    find /usr/lib/containers/storage -maxdepth 2 -exec chmod a+rX {} +
+
+# ── Logically bound images for bootc lifecycle management ─────────────
+RUN mkdir -p /usr/lib/bootc/bound-images.d && \
+    ln -s /usr/share/containers/systemd/rhdh.container /usr/lib/bootc/bound-images.d/rhdh.container && \
+    ln -s /usr/share/containers/systemd/postgres.container /usr/lib/bootc/bound-images.d/postgres.container
+
+# ── Automatic bootc updates ─────────────────────────────────────────────
+RUN systemctl enable bootc-fetch-apply-updates.timer
+
+# ── Image version stamp ─────────────────────────────────────────────────
+# Downstream (Ansible) can read this for post-upgrade reconciliation.
+RUN mkdir -p /usr/share/rhdh && \
+    printf 'IMAGE_VERSION=%s\nCOMMIT_SHA=%s\n' "${RHDH_VERSION}" "${COMMIT_SHA}" \
+    > /usr/share/rhdh/image-version
+
+# ── Directory structure and permissions ──────────────────────────────────
+RUN chmod +x /usr/local/bin/prepare-and-install-dynamic-plugins.sh \
+             /usr/local/bin/wait-for-plugins-and-start.sh \
+             /usr/local/bin/detect-and-set-base-url.sh \
+             /usr/local/bin/health-check.sh && \
+    mkdir -p /var/lib/rhdh/{dynamic-plugins-root,generated,config,.npm,scripts} && \
+    mkdir -p /var/lib/rhdh/postgres-data && \
+    chown 26:26 /var/lib/rhdh/postgres-data && \
+    chmod 700 /var/lib/rhdh/postgres-data && \
+    cp /usr/local/bin/prepare-and-install-dynamic-plugins.sh /var/lib/rhdh/scripts/ && \
+    cp /usr/local/bin/wait-for-plugins-and-start.sh /var/lib/rhdh/scripts/ && \
+    cp /usr/local/bin/detect-and-set-base-url.sh /var/lib/rhdh/scripts/ && \
+    chmod +x /var/lib/rhdh/scripts/*.sh && \
+    cp /etc/rhdh/configs/dynamic-plugins/dynamic-plugins.override.yaml /var/lib/rhdh/config/dynamic-plugins.yaml && \
+    ln -sf /var/lib/rhdh/config/dynamic-plugins.yaml /var/lib/rhdh/dynamic-plugins-root/dynamic-plugins.yaml && \
+    ln -sf /var/lib/rhdh/config/dynamic-plugins.yaml /var/lib/rhdh/dynamic-plugins.yaml && \
+    sed -i 's|LINK_TARGET="/var/lib/rhdh/dynamic-plugins.yaml"|LINK_TARGET="/opt/app-root/src/dynamic-plugins.yaml"|' /var/lib/rhdh/scripts/prepare-and-install-dynamic-plugins.sh && \
+    chown -R 1001:0 /opt/app-root /var/lib/rhdh /etc/rhdh && \
+    chmod -R g=u /opt/app-root /var/lib/rhdh /etc/rhdh && \
+    chmod 644 /usr/share/containers/systemd/rhdh.container
+
+EXPOSE 7007 5432
+WORKDIR /opt/app-root/src
+CMD ["/usr/sbin/init"]
+
+# append Brew metadata here

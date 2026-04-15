@@ -1,0 +1,13 @@
+[rhel-9-baseos]
+name=Red Hat Enterprise Linux 9 - BaseOS
+baseurl=https://cdn.redhat.com/content/dist/rhel9/9/x86_64/baseos/os
+enabled=1
+gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release
+
+[rhel-9-baseos-source]
+name=Red Hat Enterprise Linux 9 - BaseOS Source
+baseurl=https://cdn.redhat.com/content/dist/rhel9/9/x86_64/baseos/source/SRPMS
+enabled=1
+gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release

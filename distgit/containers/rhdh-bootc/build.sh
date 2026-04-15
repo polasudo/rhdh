@@ -1,37 +1,50 @@
 #!/usr/bin/env bash
-# Build from packaging/bootc. Needs RHEL-subscribed host for dnf in base image.
-set -e
+# Local build for the RHDH bootc base image.
+# Requires a RHEL-subscribed host and registry.redhat.io credentials.
+#
+# Usage:
+#   ./build.sh                  # uses auto-detected auth
+#   ./build.sh --no-cache       # rebuild without layer cache
+set -euo pipefail
+
 cd "$(dirname "$0")"
 
-AUTH_FILE="files/auth.json"
+AUTH_FILE=""
 
-if [[ -f "$AUTH_FILE" ]]; then
-  echo "Using ./${AUTH_FILE}"
+# Locate registry credentials
+if [[ -f auth.json ]]; then
+    AUTH_FILE="auth.json"
+    echo "[INFO] Using ./auth.json"
 else
-  mkdir -p files
-  for f in \
-    "${CONTAINERS_AUTHFILE:-}" \
-    "${HOME}/.config/containers/auth.json" \
-    "${XDG_RUNTIME_DIR}/containers/auth.json" \
-    "${HOME}/.docker/config.json"
-  do
-    [[ -n "$f" && -f "$f" ]] || continue
-    cp "$f" "$AUTH_FILE"
-    echo "Copied auth from: $f"
-    break
-  done
+    for f in \
+        "${CONTAINERS_AUTHFILE:-}" \
+        "${HOME}/.config/containers/auth.json" \
+        "${XDG_RUNTIME_DIR:-/dev/null}/containers/auth.json" \
+        "${HOME}/.docker/config.json"
+    do
+        [[ -n "$f" && -f "$f" ]] || continue
+        cp "$f" auth.json
+        AUTH_FILE="auth.json"
+        echo "[INFO] Copied auth from: $f"
+        break
+    done
 fi
 
-if [[ ! -f "$AUTH_FILE" ]]; then
-  echo "No registry credentials found."
-  echo "Run once:"
-  echo "  podman login registry.redhat.io"
-  echo "Then either re-run ./build.sh or copy manually:"
-  echo "  cp \"\${HOME}/.config/containers/auth.json\" ./files/auth.json"
-  exit 1
+if [[ -z "$AUTH_FILE" ]]; then
+    echo "[ERROR] No registry credentials found."
+    echo "Run:  podman login registry.redhat.io"
+    echo "Then re-run ./build.sh"
+    exit 1
+fi
+
+EXTRA_ARGS=""
+if [[ "${1:-}" == "--no-cache" ]]; then
+    EXTRA_ARGS="--no-cache"
 fi
 
 exec podman build \
-  --cap-add SYS_ADMIN \
-  --security-opt label=disable \
-  -f Containerfile.bootc -t rhdh-bootc:latest .
+    --secret "id=redhat-registry-secret,src=${AUTH_FILE}" \
+    ${EXTRA_ARGS} \
+    -f Containerfile \
+    -t rhdh-bootc:latest \
+    .
