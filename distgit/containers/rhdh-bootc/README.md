@@ -49,13 +49,11 @@ This image is configured for **testing and development** out-of-the-box:
 
 ### Authentication
 - **Default**: Guest authentication (no login required)
-- **AAP/RHAAP OAuth**: Available but requires configuration (set `AAP_HOST_URL`, `OAUTH_CLIENT_ID`, `OAUTH_CLIENT_SECRET` in `quadlet/rhdh.env`)
-- To switch to AAP auth: Change `signInPage: guest` to `signInPage: rhaap` in `configs/app-config/app-config.yaml`
+- To add custom authentication providers: Update `configs/app-config/app-config.yaml` with your auth provider configuration
 
 ### Catalog
 - **Default locations**: Backstage example catalog is loaded automatically for demo purposes
-- **AAP integration**: Disabled by default (requires AAP instance)
-- To enable AAP catalog: Configure AAP credentials and the catalog provider will sync job templates, users, and teams
+- To add custom catalog sources: Update `configs/app-config/app-config.yaml` with your catalog locations
 
 ### Database
 - **PostgreSQL**: Runs in a container (`rhdh-postgres`) via Quadlet
@@ -78,10 +76,6 @@ This image is configured for **testing and development** out-of-the-box:
 - `scripts/` — plugin prep / startup (same as Ansible image_mode)
 
 RHDH image tag is set in `quadlet/rhdh.container` (default `1.8`).
-
-### Ansible / RHAAP plugins (`local-plugins`)
-
-The override may list `.tgz` plugins under `local-plugins/`. That directory is empty by default (tarballs are often supplied separately). **Disabled plugins** in `dynamic-plugins.override.yaml` keep stock RHDH starting without those files. To use the full Ansible self-service flow: drop the four `ansible-*.tgz` files into `local-plugins/`, set those entries to `disabled: false`, restore the `/self-service` line in `health-check.sh` in `Containerfile.bootc`, then rebuild.
 
 ## Run and Test
 

@@ -1,7 +1,7 @@
 # Podman Quadlet .container file for RHDH (with PostgreSQL dependency)
 # This file defines how to run the RHDH container as a systemd service
 [Unit]
-Description=Red Hat Developer Hub with Ansible Self-Service Portal
+Description=Red Hat Developer Hub
 After=network-online.target postgres.service
 Wants=network-online.target
 Requires=postgres.service

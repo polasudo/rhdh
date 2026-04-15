@@ -385,14 +385,13 @@ This implementation satisfies the following requirements for RHEL 9 Image Mode d
 
 ### Authentication & Authorization
 - Guest authentication enabled by default for testing/development
-- AAP/RHAAP OAuth provider available (requires configuration)
-- GitHub OAuth provider available (requires token configuration)
-- Configurable via `signInPage` setting in `configs/app-config/app-config.yaml`
+- Supports custom auth providers via `configs/app-config/app-config.yaml`
+- Configurable via `signInPage` setting in app-config
 
 ### Catalog Configuration
 - Default Backstage example catalog loaded automatically
-- AAP catalog provider available (requires AAP instance and credentials)
 - Supports external catalog sources via configuration
+- Custom catalog providers can be added via app-config
 
 ### Data Persistence
 - Database persistence via named volumes (`postgres-data`)
@@ -422,7 +421,7 @@ This implementation is based on the [Ansible bootc + Quadlet reference](https://
 
 **Air-Gap Verification**:
 - Added `manage-bound-images.sh` script with readiness checks
-- Enhanced `health-check.sh` with conditional Ansible plugin checks
+- Enhanced `health-check.sh` with PostgreSQL and RHDH service validation
 
 **Storage Configuration**:
 - Uses default podman storage (`/var/lib/containers/storage`)

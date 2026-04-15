@@ -27,15 +27,5 @@ This deployment uses:
 - [RHDH Product Documentation](https://docs.redhat.com/en/documentation/red_hat_developer_hub/)
 - [RHDH Plugins](https://developers.redhat.com/rhdh/plugins)
 
-## Deployment Resources
-
-See the README.md and ARCHITECTURE.md files in this repository for:
-
-- Build and deployment instructions
-- Service architecture and dependencies
-- Configuration options
-- Air-gap deployment guidance
-- Troubleshooting procedures
-
 *[RHDH]: Red Hat Developer Hub
 *[bootc]: Boot Container - image-based OS technology

@@ -1,11 +1,3 @@
-ansible:
-  creatorService:
-    baseUrl: 127.0.0.1
-    port: "8000"
-  rhaap:
-    baseUrl: ${AAP_HOST_URL}
-    checkSSL: false
-    token: ${AAP_TOKEN}
 app:
   baseUrl: ${BASE_URL}
   branding:
@@ -24,16 +16,7 @@ auth:
     guest:
       development:
         dangerouslyAllowSignInWithoutUserInCatalog: true
-    rhaap:
-      development:
-        checkSSL: false
-        clientId: ${OAUTH_CLIENT_ID}
-        clientSecret: ${OAUTH_CLIENT_SECRET}
-        host: ${AAP_HOST_URL}
-        signIn:
-          resolvers:
-          - resolver: allowNewAAPUserSignIn
-  # Use guest for testing/development, switch to rhaap when AAP is available
+  # Default auth provider for testing/development
   signInPage: guest
 backend:
   auth:
@@ -105,24 +88,7 @@ catalog:
     seconds: 1
   processingInterval:
     seconds: 10
-  providers:
-    rhaap:
-      'development':
-        orgs: SIG-IDE
-        sync:
-          jobTemplates:
-            enabled: true
-            schedule:
-              frequency:
-                minutes: 60
-              timeout:
-                seconds: 30
-          orgsUsersTeams:
-            schedule:
-              frequency:
-                minutes: 60
-              timeout:
-                seconds: 30
+  providers: []
   rules:
   - allow:
     - Component
@@ -260,10 +226,8 @@ permission:
     admin:
       superUsers:
       - name: user:default/admin
-      - name: group:default/aap-admins
       users:
       - name: user:default/admin
-      - name: group:default/aap-admins
     pluginsWithPermission:
     - catalog
     - scaffolder

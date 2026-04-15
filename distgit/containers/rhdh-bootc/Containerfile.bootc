@@ -70,17 +70,11 @@ RUN printf '%s\n' \
   '#!/bin/bash' \
   'echo "=== RHDH + PostgreSQL Health Check ==="' \
   'if systemctl is-active --quiet postgres.service; then echo "✓ PostgreSQL service active"; else echo "✗ PostgreSQL service not active"; exit 1; fi' \
-  'podman exec rhdh-postgres pg_isready -U rhdh_user >/dev/null 2>&1 || { echo "✗ PostgreSQL database not ready"; exit 1; }' \
+  'podman exec rhdh-postgres pg_isready -U postgres >/dev/null 2>&1 || { echo "✗ PostgreSQL database not ready"; exit 1; }' \
   'echo "✓ PostgreSQL database ready"' \
   'if systemctl is-active --quiet rhdh.service; then echo "✓ RHDH service active"; else echo "✗ RHDH service not active"; exit 1; fi' \
   'curl -f http://localhost:7007 >/dev/null 2>&1 || { echo "✗ RHDH backend not responding"; exit 1; }' \
   'echo "✓ RHDH backend healthy"' \
-  '# Check self-service portal only if Ansible plugins enabled' \
-  'if curl -f http://localhost:7007/self-service >/dev/null 2>&1; then' \
-  '    echo "✓ Ansible Self-Service Portal available"' \
-  'else' \
-  '    echo "⚠ Ansible Self-Service Portal not available (plugins may be disabled)"' \
-  'fi' \
   'echo "=== Health check passed ==="' \
   > /usr/local/bin/health-check.sh && chmod +x /usr/local/bin/health-check.sh
 
