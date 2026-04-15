@@ -2,7 +2,7 @@
 
 ## Build
 
-1. Log in to the Red Hat registry (creates `~/.config/containers/auth.json`):
+1. Log in to the Red Hat registry (creates `~/.config/containers/auth.json`), see https://access.redhat.com/articles/RegistryAuthentication#getting-a-red-hat-login-2:
 
    ```bash
    podman login registry.redhat.io
