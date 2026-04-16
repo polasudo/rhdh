@@ -201,10 +201,10 @@ echo "Deleting 'on-' tags older than 10 days..."
 
 # delete 1.y- tags from EOL releases 
 echo "Deleting '$OLD_Y-' tags older than 4 months..."
-"$DELETE_SCRIPT" --filter "${OLD_Y}-" --age "4 months" --token "$QUAY_APP_ACCESS_TOKEN"
+"$DELETE_SCRIPT" --filter "${OLD_Y}-" --age "4 months" --token "$QUAY_APP_ACCESS_TOKEN" --plugins
 
 # this includes .att and .sbom so keep these longer
 echo "Deleting 'sha256-' tags older than 8 months..."
-"$DELETE_SCRIPT" --filter "sha256-" --age "8 months" --token "$QUAY_APP_ACCESS_TOKEN"
+"$DELETE_SCRIPT" --filter "sha256-" --age "8 months" --token "$QUAY_APP_ACCESS_TOKEN" --plugins
 
 echo "Maintenance completed."

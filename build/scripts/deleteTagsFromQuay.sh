@@ -13,8 +13,13 @@ VERBOSE=0
 PAGE=1 # start on page 1 by default -- might be more efficient to skip to page 90 or so
 DELETE_AGE="-8 months" # age at which to delete tags
 REPOS="rhdh-hub-rhel9 rhdh-rhel9-operator rhdh-operator-bundle iib"
-FILTER="" 
+FILTER=""
 DRYRUN=0 # don't actually do anything
+USE_PLUGINS=0
+LIST_PLUGINS_REPOS_ONLY=0
+PLUGIN_SUBSTR="plugin"
+
+QUAY_TOKEN="${QUAY_TOKEN:-${QUAY_APP_ACCESS_TOKEN:-}}"
 
 usage() {
 if [[ ! $QUAY_TOKEN ]]; then 
@@ -27,7 +32,7 @@ Then:
 fi
 echo "
 Usage:
-  $0 [-p START_PAGE] [-r REPOS] [--filter PATTERN] [--age AGE] [--dry-run] [--debug]
+  $0 [-p START_PAGE] [-r REPOS] [--filter PATTERN] [--age AGE] [--dry-run] [--debug] [--plugins] [--list-plugins-repos]
 
 Examples:
 
@@ -43,12 +48,17 @@ Examples:
   # remove old konflux-generated tags for .sbom, .src, .att, etc. 
   $0 --filter sha256- --age '4 months'
 
+  # remove old tags from quay.io/rhdh/*plugin* repos in addition to the default repos
+  $0 --filter sha256- --age '8 months' --plugins
+
   # remove helm chart CI tags
   $0 -r chart --filter CI --age '14 days'
 
 Options:
     -p PAGE             start searching for old tags on specified page; default $PAGE
     -r REPOS            space-separated list of repos to process; default '$REPOS'
+    --plugins           include quay.io/rhdh/*plugin* repos to process
+    --list-plugins-repos   print plugin repository names and exit
     --filter FILTER     search only for tags matching some pattern, like 1.3-, on-, or sha256-
     --age AGE           delete tags older than some number of months; default: 8 months
     --all               default (slowest) operation: no filter, starting on page $PAGE
@@ -59,7 +69,7 @@ Options:
 "
 }
 
-if [[ "$#" -lt 2 ]]; then usage; exit 1; fi
+if [[ "$#" -lt 1 ]]; then usage; exit 1; fi
 
 # commandline args
 while [[ "$#" -gt 0 ]]; do
@@ -70,9 +80,11 @@ while [[ "$#" -gt 0 ]]; do
     '--filter') FILTER="$2"; FILTER="&filter_tag_name=like:${FILTER}"; shift 1;; # 1.y 
     '--all') FILTER=""; PAGE=1;;
     '--dry-run') DRYRUN=1;;
-    '-h'|'--help') usage;;
+    '-h'|'--help') usage; exit 0;;
     '--debug') VERBOSE=1;;
     '--token') QUAY_TOKEN="$2"; shift 1;;
+    '--plugins') USE_PLUGINS=1;;
+    '--list-plugins-repos') LIST_PLUGINS_REPOS_ONLY=1;;
     *) echo "Unknown parameter used: $1."; usage; exit 1;;
   esac
   shift 1
@@ -80,17 +92,79 @@ done
 
 if [[ ! $QUAY_TOKEN ]]; then usage; exit 1; fi
 
+# One repo name per line: quay.io/rhdh/*plugin*
+list_plugins_repos() {
+  local next="" url json page_filtered
+  local out
+  out=$(mktemp)
+  while true; do
+    url="https://quay.io/api/v1/repository?namespace=rhdh&limit=100&public=true&starred=false"
+    [[ -n "$next" ]] && url+="&next_page=${next}"
+    json=$(curl -sS -H "Authorization: Bearer ${QUAY_TOKEN}" "$url")
+    [[ $VERBOSE -eq 1 ]] && echo "[DEBUG] GET $url" >&2
+    page_filtered=$(echo "$json" | jq --arg s "$PLUGIN_SUBSTR" '[(.repositories // [])[] | select(.name != null) | select(.name | ascii_downcase | contains($s | ascii_downcase))] | length')
+    [[ $VERBOSE -eq 1 ]] && echo "[DEBUG] matched repo count (name contains \"$PLUGIN_SUBSTR\"): $page_filtered" >&2
+    echo "$json" | jq -r --arg s "$PLUGIN_SUBSTR" '
+      (.repositories // [])[]
+      | select(.name != null)
+      | select(.name | ascii_downcase | contains($s | ascii_downcase))
+      | .name' >> "$out"
+    next=$(echo "$json" | jq -r '.next_page // empty')
+    [[ -z "$next" ]] && break
+  done
+  local out_sorted="${out}.sorted"
+  sort -u "$out" >"$out_sorted"
+  local unique_filtered
+  unique_filtered=$(wc -l <"$out_sorted" | tr -d ' \t\n')
+  echo "[INFO] ${unique_filtered} repository name(s) match '${PLUGIN_SUBSTR}'." >&2
+  cat "$out_sorted"
+  rm -f "$out" "$out_sorted"
+}
+
+if [[ $LIST_PLUGINS_REPOS_ONLY -eq 1 ]]; then
+  echo "[INFO] Plugin repositories in quay.io/rhdh with name containing '${PLUGIN_SUBSTR}':" >&2
+  list_plugins_repos
+  exit 0
+fi
+
+if [[ $USE_PLUGINS -eq 1 ]]; then
+  discovered=$(list_plugins_repos | xargs)
+  if [[ -z "$discovered" ]]; then
+    echo "[WARN] No repositories matched '${PLUGIN_SUBSTR}' under namespace rhdh; continuing with REPOS only." >&2
+  else
+    # merge explicit/default REPOS with discovered plugin repositories
+    REPOS=$(echo "$REPOS $discovered" | tr ' ' '\n' | awk '!seen[$0]++' | xargs)
+    [[ $VERBOSE -eq 1 ]] && echo "[DEBUG] Full list of repositories to process, including plugin repositories: $REPOS" >&2
+  fi
+fi
+
 totaldeleted=0
 for repo in $REPOS; do
   thisdeleted=0
   json=$(mktemp)
 
   if [[ $repo != "chart" ]]; then # can't inspect helm charts, only containers
-    repoAndTag="${repo}:next"
-    if [[ $repo == "iib" ]]; then 
-      repoAndTag="${repo}:next-v4.18-x86_64" # no latest tag in this repo
+    # Plugin repos have no :next tag; tag deletion uses the Quay API only (below).
+    if [[ "$repo" == *"${PLUGIN_SUBSTR}"* ]]; then
+      echo -e "\nTags read from $repo : skipped (no :next on typical plugin images; using Quay tag API only)"
+    else
+      repoAndTag="${repo}:next"
+      if [[ $repo == "iib" ]]; then
+        repoAndTag="${repo}:next-v4.20-x86_64" # no plain :next in this repo
+      fi
+      echo -e -n "\nTags read from $repo : "
+      # stderr hidden: missing manifest would otherwise print skopeo FATA; cleanup does not need inspect to succeed.
+      if skopeo_out=$(skopeo inspect "docker://quay.io/rhdh/${repoAndTag}" 2>/dev/null) && [[ -n "$skopeo_out" ]]; then
+        count=$(echo "$skopeo_out" | jq '.RepoTags // [] | length' 2>/dev/null) || count=""
+        if [[ "$count" =~ ^[0-9]+$ ]]; then
+          echo "${count} (RepoTags via skopeo)"
+        else
+          echo "n/a (skopeo JSON had no RepoTags)"
+        fi
+      else
+        echo "n/a (no ${repoAndTag} manifest)"
+      fi
     fi
-    echo -e -n "\nTags read from $repo : "; time skopeo inspect "docker://quay.io/rhdh/${repoAndTag}" | jq .RepoTags | wc -l
   fi
 
   if [[ $VERBOSE -eq 1 ]]; then echo -e "Clean up tags from quay.io/rhdh/$repo using tmp file $json"; fi
