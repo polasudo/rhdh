@@ -5,7 +5,12 @@
   "ignorePaths": [
     "**/distgit/containers/**",
     "**/sync/**",
-    "**/upstream_sources.yml"
+    "**/upstream_sources.yml",
+    ".gitlab-ci.yml",
+    "catalogs/**/catalog-template.json",
+    "catalogs/**/Containerfile",
+    "catalogs/**/configs/rhdh/catalog.json",
+    "build/containerfiles/gitlab-runner.Containerfile"
   ],
   "ignoreDeps": [
     "registry.redhat.io/openshift4/ose-operator-registry",
