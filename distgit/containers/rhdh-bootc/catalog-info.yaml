@@ -1,0 +1,23 @@
+apiVersion: backstage.io/v1alpha1
+kind: System
+metadata:
+  name: rhdh-bootc
+  title: RHDH bootc Deployment
+  description: |
+    Red Hat Developer Hub deployed using RHEL 9 Image Mode with bootc and Podman Quadlet.
+    This deployment provides an immutable, atomic-update capable platform for running RHDH
+    with air-gap support via logically bound container images.
+  tags:
+    - developer-hub
+    - bootc
+    - image-mode
+    - quadlet
+  annotations:
+    backstage.io/techdocs-ref: dir:./configs/catalog-entities
+    feedback/type: 'MAIL'
+    feedback/email-to: ${EMAIL_SENDER}
+    quay.io/repository-slug: rhdh/rhdh-hub-rhel9
+spec:
+  owner: user:default/user
+  type: product
+  lifecycle: production

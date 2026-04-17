@@ -158,6 +158,7 @@ Wait approximately 3 minutes for services to initialize, then check status:
 
 ```bash
 podman exec rhdh-bootc-test systemctl status postgres.service rhdh.service --no-pager
+podman exec rhdh-bootc-test journalctl -u rhdh.service --no-pager
 podman exec rhdh-bootc-test podman ps -a
 ```
 

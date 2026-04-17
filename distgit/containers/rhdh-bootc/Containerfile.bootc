@@ -1,10 +1,10 @@
 # RHDH RHEL 9 bootc + Quadlet (copied from ansible image_mode quadlet flow).
-# Build context: this directory (packaging/bootc). Requires auth.json (see build.sh).
 
 FROM registry.redhat.io/rhel9/rhel-bootc@sha256:69ed37a03c95c5461372f0a870b76b5e46265e7ac7b6d7498b9b7a4d546a3e87
 
-RUN dnf install -y nodejs npm python3 curl sudo podman && \
-    dnf clean all
+RUN dnf install -y nodejs npm python3 python3-pip curl sudo podman && \
+    dnf clean all && \
+    pip3 install --no-cache-dir mkdocs-techdocs-core==1.3.3
 
 RUN useradd -r -u 1001 -g root -d /opt/app-root/src -s /sbin/nologin rhdh && \
     mkdir -p /opt/app-root/src /opt/app-root/src/dynamic-plugins-root /etc/rhdh /var/lib/rhdh /etc/containers && \
@@ -23,6 +23,7 @@ RUN useradd -r -u 1001 -g root -d /opt/app-root/src -s /sbin/nologin rhdh && \
     echo '%wheel ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers
 
 COPY ./configs /etc/rhdh/configs
+COPY ./catalog-info.yaml /etc/rhdh/catalog-info.yaml
 COPY ./quadlet/rhdh.env /etc/rhdh/rhdh.env
 COPY ./local-plugins /var/lib/rhdh/local-plugins
 COPY ./scripts/prepare-and-install-dynamic-plugins.sh /usr/local/bin/
@@ -31,9 +32,11 @@ COPY ./scripts/detect-and-set-base-url.sh /usr/local/bin/
 
 COPY ./auth.json /etc/containers/auth.json
 # systemd/Quadlet runs podman as root; root reads ~/.config/containers/auth.json, not /etc/containers alone
+# Make auth.json readable by all users so RHDH container (user 1001) can use it for pulling plugins
 RUN mkdir -p /root/.config/containers && \
     cp /etc/containers/auth.json /root/.config/containers/auth.json && \
-    chmod 600 /etc/containers/auth.json /root/.config/containers/auth.json
+    chmod 600 /root/.config/containers/auth.json && \
+    chmod 644 /etc/containers/auth.json
 
 COPY ./quadlet/rhdh.container /usr/share/containers/systemd/rhdh.container
 COPY ./quadlet/postgres.container /usr/share/containers/systemd/postgres.container
@@ -52,6 +55,7 @@ RUN chmod +x /usr/local/bin/prepare-and-install-dynamic-plugins.sh /usr/local/bi
     mkdir -p /var/lib/rhdh/postgres-data && \
     chown 26:26 /var/lib/rhdh/postgres-data && \
     chmod 700 /var/lib/rhdh/postgres-data && \
+    mkdir -p /extensions && \
     cp /usr/local/bin/prepare-and-install-dynamic-plugins.sh /var/lib/rhdh/scripts/ && \
     cp /usr/local/bin/wait-for-plugins-and-start.sh /var/lib/rhdh/scripts/ && \
     cp /usr/local/bin/detect-and-set-base-url.sh /var/lib/rhdh/scripts/ && \
@@ -60,8 +64,10 @@ RUN chmod +x /usr/local/bin/prepare-and-install-dynamic-plugins.sh /usr/local/bi
     ln -sf /var/lib/rhdh/config/dynamic-plugins.yaml /var/lib/rhdh/dynamic-plugins-root/dynamic-plugins.yaml && \
     ln -sf /var/lib/rhdh/config/dynamic-plugins.yaml /var/lib/rhdh/dynamic-plugins.yaml && \
     sed -i 's|LINK_TARGET="/var/lib/rhdh/dynamic-plugins.yaml"|LINK_TARGET="/opt/app-root/src/dynamic-plugins.yaml"|' /var/lib/rhdh/scripts/prepare-and-install-dynamic-plugins.sh && \
-    chown -R 1001:0 /opt/app-root /var/lib/rhdh /etc/rhdh && \
-    chmod -R g=u /opt/app-root /var/lib/rhdh /etc/rhdh && \
+    echo "# Extensions plugin dynamic configuration (auto-generated)" > /var/lib/rhdh/dynamic-plugins-root/dynamic-plugins.extensions.yaml && \
+    echo "plugins: []" >> /var/lib/rhdh/dynamic-plugins-root/dynamic-plugins.extensions.yaml && \
+    chown -R 1001:0 /opt/app-root /var/lib/rhdh /etc/rhdh /extensions && \
+    chmod -R g=u /opt/app-root /var/lib/rhdh /etc/rhdh /extensions && \
     chmod 644 /usr/share/containers/systemd/rhdh.container
 
 RUN printf '%s\n' \

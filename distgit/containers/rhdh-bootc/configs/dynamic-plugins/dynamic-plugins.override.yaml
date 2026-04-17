@@ -1,4 +1,21 @@
-# Dynamic plugins configuration override
-# Add custom plugin configurations here as needed
 includes:
   - dynamic-plugins.default.yaml
+  # Writable path for extensions plugin configuration
+  # NOTE: Placeholder file is created at build time, extensions plugin updates it when installing via UI
+  - /dynamic-plugins-root/dynamic-plugins.extensions.yaml
+
+plugins:
+  # Extensions plugin - enables plugin marketplace UI
+  # WARNING: This will download 50+ plugins on first startup (15-20 minute delay)
+  # After first startup, subsequent starts are faster
+  - package: ./dynamic-plugins/dist/red-hat-developer-hub-backstage-plugin-extensions
+    disabled: false
+
+  - package: ./dynamic-plugins/dist/red-hat-developer-hub-backstage-plugin-extensions-backend-dynamic
+    disabled: false
+    pluginConfig:
+      extensions:
+        installation:
+          enabled: true
+          saveToSingleFile:
+            file: /opt/app-root/src/dynamic-plugins-root/dynamic-plugins.extensions.yaml

@@ -19,6 +19,7 @@ EnvironmentFile=/etc/rhdh/rhdh.env
 
 # Mount configuration and persistent data
 Volume=/etc/rhdh/configs:/opt/app-root/src/configs:Z
+Volume=/etc/rhdh/catalog-info.yaml:/opt/app-root/src/catalog-info.yaml:Z
 # Volume=/etc/rhdh/default.env:/opt/app-root/src/default.env:Z  # Using rhdh.env only for Quadlet
 Volume=/var/lib/rhdh/local-plugins:/opt/app-root/src/local-plugins:Z
 Volume=/var/lib/rhdh/config:/var/lib/rhdh/config:Z
@@ -27,6 +28,10 @@ Volume=/var/lib/rhdh/generated:/opt/app-root/src/generated:Z
 Volume=/var/lib/rhdh/.npm:/opt/app-root/src/.npm:Z
 Volume=/var/lib/rhdh/scripts/wait-for-plugins-and-start.sh:/opt/app-root/src/wait-for-plugins-and-start.sh:Z
 Volume=/var/lib/rhdh/scripts/prepare-and-install-dynamic-plugins.sh:/usr/local/bin/prepare-and-install-dynamic-plugins.sh:Z
+# Mount registry auth so skopeo can pull plugin catalog index
+Volume=/etc/containers/auth.json:/etc/containers/auth.json:Z
+# Mount extensions directory for catalog entities
+Volume=/extensions:/extensions:Z
 
 # Network and ports
 PublishPort=7007:7007
