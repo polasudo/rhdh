@@ -13,7 +13,6 @@ This document explains the architectural design and technical details of the RHD
 - [Relationship to Ansible Reference Implementation](#relationship-to-ansible-reference-implementation)
 - [Troubleshooting Guide](#troubleshooting-guide)
 - [Security Considerations](#security-considerations)
-- [Performance Characteristics](#performance-characteristics)
 - [References](#references)
 
 ---
@@ -84,86 +83,7 @@ When the VM boots:
 
 ## Storage Architecture Decision
 
-### Why NOT Using `GlobalArgs=--storage-opt=additionalimagestore=/usr/lib/bootc/storage`
-
-The Ansible reference implementation uses:
-```ini
-# In rhdh.container:
-GlobalArgs=--storage-opt=additionalimagestore=/usr/lib/bootc/storage
-```
-
-**We chose NOT to use this. Here's why:**
-
-### Our Decision: Use Default Container Storage
-
-**Rationale**:
-
-1. **Pre-pulled images land in default storage**:
-   - When `podman pull` runs in Containerfile, images go to `/var/lib/containers/storage` (default)
-   - This storage is **within the bootc image layer** (immutable)
-   - Quadlet services can access images directly without `additionalimagestore` path
-
-2. **Simpler architecture**:
-   - Fewer moving parts
-   - Easier to understand and debug
-   - No dependency on bootc-specific storage paths
-
-3. **Preserves testing workflow**:
-   - `podman run` testing works without changes
-   - No special configuration needed for local development
-
-4. **Ansible reference may be ineffective**:
-   - Their `GlobalArgs` assumes bootc auto-pulls to `/usr/lib/bootc/storage`
-   - But that requires registry access (defeats air-gap purpose)
-   - Their implementation has the same gap we're fixing
-
-### Storage Flow Diagram
-
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│                        Build Phase                                  │
-├─────────────────────────────────────────────────────────────────────┤
-│  Containerfile.bootc:                                               │
-│    RUN podman pull rhdh-hub-rhel9:1.8                              │
-│                                                                     │
-│    Images stored in:                                                │
-│    /var/lib/containers/storage/  (inside bootc layer)              │
-│      └── overlay-images/                                            │
-│          ├── rhdh-hub-rhel9-1.8                                    │
-│          └── postgresql-15-latest                                   │
-└─────────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────────┐
-│                  bootc-image-builder Phase                          │
-├─────────────────────────────────────────────────────────────────────┤
-│  Converts bootc image → QCOW2/ISO                                   │
-│  Preserves /var/lib/containers/storage in disk image                │
-└─────────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────────┐
-│                        Runtime Phase                                │
-├─────────────────────────────────────────────────────────────────────┤
-│  Quadlet Services (rhdh.container, postgres.container)              │
-│    │                                                                │
-│    ├─► Podman looks in /var/lib/containers/storage (default)        │
-│    │                                                                │
-│    └─► Images found! (no registry pull needed)                      │
-│                                                                     │
-│  Result: Services start successfully offline                        │
-└─────────────────────────────────────────────────────────────────────┘
-```
-
-### If Testing Shows Otherwise
-
-If testing reveals that bootc-image-builder moves images to `/usr/lib/bootc/storage`, we can add:
-
-```ini
-GlobalArgs=--storage-opt=additionalimagestore=/usr/lib/bootc/storage
-```
-
-This decision is reversible if needed. Documentation helps us understand **why** we made this choice.
+This implementation uses default podman storage (`/var/lib/containers/storage`) rather than the `additionalimagestore` configuration used in the Ansible reference implementation. Container images are stored in the default location during the bootc image build, making them available to Quadlet services at runtime without requiring additional storage configuration. This simplifies the architecture and preserves compatibility with `podman run` testing workflows.
 
 ---
 
@@ -537,111 +457,16 @@ grep POSTGRES /etc/rhdh/rhdh.env
 
 ---
 
-## Diagnostic Commands Reference
-
-```bash
-# Verify air-gap readiness
-/usr/local/bin/manage-bound-images.sh
-
-# Run health check
-/usr/local/bin/health-check.sh
-
-# Check all services
-systemctl status postgres.service rhdh.service --no-pager
-
-# View RHDH logs (last 100 lines)
-journalctl -u rhdh.service -n 100
-
-# View PostgreSQL logs
-journalctl -u postgres.service -n 100
-
-# Check image availability
-podman images
-
-# Verify container is running
-podman ps -a
-
-# Inspect container
-podman inspect rhdh
-podman inspect rhdh-postgres
-
-# Check network
-podman network inspect rhdh-network
-
-# Test database connection
-podman exec rhdh-postgres psql -U rhdh_user -d rhdh_backstage -c "SELECT 1;"
-
-# Test RHDH endpoint
-curl -f http://localhost:7007/
-```
-
----
-
 ## Security Considerations
-
-### Container Isolation
-
-- Containers run as non-root (UID 1001 for RHDH, UID 26 for PostgreSQL)
-- SELinux labels enforced (`:Z` flag on volumes)
-- Dedicated bridge network (no host network exposure)
 
 ### Credential Management
 
-- Registry credentials (`auth.json`) embedded in image layer for bootc upgrade and air-gap support
-- Database credentials in environment files (`quadlet/rhdh.env`, `quadlet/postgres.env`)
-- Default credentials provided for testing; change for production deployments
-- BACKEND_SECRET should be set to a random value in production environments
-- Production deployments should use external secrets management (systemd credentials, Kubernetes secrets, etc.)
-
-### Updates and Patching
-
-- bootc upgrade handles atomic OS + container updates
-- Images tracked via logically bound images pattern
-- Rollback supported via bootc rollback command
+- **Registry credentials** (`auth.json`) are embedded in the image layer for bootc upgrade and air-gap support
+- **Database credentials** are stored in environment files (`quadlet/rhdh.env`, `quadlet/postgres.env`)
+- **Default credentials** are provided for testing only; change for production deployments
+- **Production deployments** should use external secrets management (systemd credentials, Kubernetes secrets, etc.)
 
 ---
-
-## Performance Characteristics
-
-### Startup Times
-
-- **First boot** (cold start with plugin install): 3-5 minutes
-- **Subsequent boots**: 60-90 seconds
-- **Service restart** (warm): 30-45 seconds
-
-### Resource Usage
-
-- **RHDH container**: ~1-2 GB RAM, 1-2 vCPU
-- **PostgreSQL container**: ~256-512 MB RAM, 0.5-1 vCPU
-- **Disk space**: ~5-7 GB for bootc image (with pre-pulled images)
-
-### Scaling Considerations
-
-- Single-node deployment (not HA)
-- PostgreSQL is container-local (not external DB cluster)
-- For production scale: Use external PostgreSQL, load balancer, multiple RHDH instances
-
----
-
-## Future Enhancements
-
-### Potential Improvements
-
-1. **External Database Support**:
-   - Document how to configure external PostgreSQL
-   - Remove embedded postgres.container for production
-
-2. **Secrets Management**:
-   - Integration with systemd credentials
-   - Support for Red Hat OpenShift Secrets
-
-3. **Monitoring Integration**:
-   - Prometheus metrics export
-   - Health check endpoints
-
-4. **Update Automation**:
-   - Automated bootc upgrade testing
-   - Rollback automation on failure
 
 ---
 

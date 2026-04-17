@@ -1,1 +1,7 @@
-plugins: []
+includes:
+  - dynamic-plugins.default.yaml
+  # Writable path for extensions plugin configuration
+  # NOTE: Placeholder file is created at build time, extensions plugin updates it when installing via UI
+  - /dynamic-plugins-root/dynamic-plugins.extensions.yaml
+
+plugins:
