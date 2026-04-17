@@ -26,6 +26,8 @@ DEBUG=0
 # creating new quay.io/rhdh/*-chart repo, then adding more folders to this for loop
 # must also add logic below to handle mapping the chart name to its URL
 # look for 'if [[ "${CHART_NAME}" ==' sections
+
+# publish all these charts if '--chart-name all'
 CHARTS_TO_PUBLISH="charts/backstage charts/orchestrator-infra charts/must-gather"
 
 EXCLUDES="next|latest|candidate|guest|containers|-source|-pr-|-tmp-|-ci-|-gh-|sha256-|on-push|on-pull|build-container|build-image-index"
@@ -363,7 +365,7 @@ fi
 # skip binaries with --filter=blob:none
 git clone --depth=1 -q --branch="${CHART_BRANCH}" https://github.com/redhat-developer/rhdh-chart.git "${HELM_DIR}" >/dev/null
 
-if [[ "$CHART_NAME" == "all" ]]; then
+if [[ "${CHART_NAME}" == "all" ]]; then
     echo -e "${green}[INFO] Multi-chart mode: will publish all charts in https://github.com/redhat-developer/rhdh-chart/tree/$CHART_BRANCH/charts${norm}"
     # echo "Working dir: $HELM_DIR ..." 
     for chart_path in $CHARTS_TO_PUBLISH; do 
@@ -583,7 +585,7 @@ if [[ $PUBLISH -eq 1 ]]; then
 
     helm show chart "${actual_chart}" | $YQ -p yaml -o json > "${helm_config}"; # cat "${helm_config}"
     # push to quay.io/rhdh/*chart according to the rules below
-    if [[ "$CHART_NAME" == "redhat-developer-hub-orchestrator-infra" ]] || [[ "$CHART_NAME" == "orchestrator-infra" ]]; then
+    if [[ "${CHART_NAME}" == "redhat-developer-hub-orchestrator-infra" ]] || [[ "${CHART_NAME}" == "orchestrator-infra" ]]; then
         TARGET_REPO="orchestrator-infra-chart"
     elif [[ "${CHART_NAME}" == "redhat-developer-hub" ]] || [[ "${CHART_NAME}" == "backstage" ]]; then
         TARGET_REPO="chart"
