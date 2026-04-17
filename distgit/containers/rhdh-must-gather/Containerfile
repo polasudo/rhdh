@@ -1,4 +1,4 @@
-FROM registry.access.redhat.com/ubi9-minimal:latest@sha256:83006d535923fcf1345067873524a3980316f51794f01d8655be55d6e9387183
+FROM registry.access.redhat.com/ubi9-minimal:latest@sha256:fe688da81a696387ca53a4c19231e99289591f990c904ef913c51b6e87d4e4df
 
 # Define build argument before using it in LABEL
 ARG RHDH_MUST_GATHER_VERSION="0.0.0-unknown"
@@ -51,7 +51,7 @@ RUN curl -sSLo- https://github.com/mikefarah/yq/releases/download/v4.52.5/yq_lin
 # Required for collecting Helm-based RHDH deployments
 # Installing directly from GitHub releases instead of using the install script
 # to avoid dependency on openssl for checksum verification
-RUN curl -fsSL "https://get.helm.sh/helm-v4.1.3-linux-amd64.tar.gz" -o helm.tar.gz \
+RUN curl -fsSL "https://get.helm.sh/helm-v4.1.4-linux-amd64.tar.gz" -o helm.tar.gz \
     && tar xzf helm.tar.gz \
     && mv linux-amd64/helm /usr/local/bin/helm \
     && rm -rf helm.tar.gz linux-amd64 \
@@ -87,3 +87,28 @@ ENV RHDH_MUST_GATHER_VERSION=$RHDH_MUST_GATHER_VERSION
 USER 1001
 
 ENTRYPOINT ["/usr/bin/gather"]
+ENV SUMMARY="Red Hat Developer Hub must-gather" \
+    DESCRIPTION="Red Hat Developer Hub must-gather container" \
+    UPSTREAM_REPO="https://github.com/redhat-developer/rhdh-must-gather/tree/main @ 372f6c81" \
+    MIDSTREAM_REPO="https://gitlab.cee.redhat.com/rhidp/rhdh/-/commits/rhdh-1-rhel-9" \
+    PRODNAME="rhdh" \
+    COMPNAME="must-gather"
+
+LABEL summary="$SUMMARY" \
+      description="$DESCRIPTION" \
+      io.k8s.description="$DESCRIPTION" \
+      io.k8s.display-name="$DESCRIPTION" \
+      io.openshift.tags="$PRODNAME,$COMPNAME" \
+      com.redhat.component="$PRODNAME-$COMPNAME-container" \
+      name="$PRODNAME/$PRODNAME-$COMPNAME-rhel9" \
+      version="1.10" \
+      release="1" \
+      license="ASLv2" \
+      maintainer="RHDH Team <rhdh-bot@redhat.com>" \
+      vendor="Red Hat, Inc." \
+      io.openshift.expose-services="" \
+      usage="" \
+      konflux.additional-tags="next, 1.10, 1.10-1" \
+      distribution-scope="public" \
+      url="https://red.ht/rhdh" \
+      cpe="cpe:/a:redhat:rhdh:1.10::el9"
