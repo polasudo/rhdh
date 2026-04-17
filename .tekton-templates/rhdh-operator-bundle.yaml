@@ -108,20 +108,24 @@ spec:
             value: $(params.git-url)
           - name: revision
             value: $(params.revision)
+          - name: ociStorage
+            value: $(params.output-image).git
+          - name: ociArtifactExpiresAfter
+            value: $(params.image-expires-after)
         runAfter:
           - init
         taskRef:
           params:
             - name: name
-              value: git-clone
+              value: git-clone-oci-ta
             - name: bundle
-              value: quay.io/konflux-ci/tekton-catalog/task-git-clone:0.1@sha256:7db7ad9653dccc771407cb0294487cf4be9064fa782ffad7e983db1a8ba57e21
+              value: quay.io/konflux-ci/tekton-catalog/task-git-clone-oci-ta:0.1@sha256:f3f28a40fb7b4c8a5c1ec935df5576139bb6ba5b80f3531f42da2f1f2448a53b
             - name: kind
               value: task
           resolver: bundles
+        retries: 2
+        timeout: 10m
         workspaces:
-          - name: output
-            workspace: workspace
           - name: basic-auth
             workspace: git-auth
 
