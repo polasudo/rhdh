@@ -97,9 +97,16 @@ This script requires following binaries to be present on the system:
     yq         $mikefarahyq_version         https://github.com/mikefarah/yq/
 
 Examples:
-    ##### 1. Prepare and push a release to quay.io/rhdh/chart:
 
-    # Published on every build in konflux
+    ###############################################
+
+    #####################
+    ##    CI BUILDS    ##
+    #####################
+
+    ##### 1. Prepare and push an RHDH chart:
+
+    # Published on every CI build in konflux to quay.io/rhdh/chart
     $ TAG=1.y-zzz; $0 --chart-version \${TAG}-CI --rhdh-version \${TAG} \\
         --chart-branch release-\${TAG%-*} --publish
                 OR
@@ -110,18 +117,34 @@ Examples:
 
     # Or, log into the quay.io and registry.redhat.io to be able to pull container metadata, then compute the latest 1.y-zz or next 1.yy-zzz
     $ export GITHUB_TOKEN=ghp_rhdh-bot-token-here
-    $ $0 --latest --chart-branch release-1.6 --publish
+    $ $0 --latest --chart-branch release-1.y --publish
     $ $0 --next   --chart-branch main        --publish
     Chart version:        1.next-zzz-CI
     Developer Hub image:  quay.io/rhdh/rhdh-hub-rhel9:1.next-zzz
 
-    ##### 2. Prepare and push a release to quay.io/rhdh/orchestrator-infra-chart:
+    ##### 2. Prepare and push an Orchestrator Infra chart:
 
+    # Published on every CI build in konflux to quay.io/rhdh/orchestrator-infra-chart
     TAG=1.y-zzz; $0 --chart-version \${TAG}-CI 
         --chart-name redhat-developer-hub-orchestrator-infra --chart-dir charts/orchestrator-infra \
         --chart-branch release-\${TAG%-*} --publish
 
-    ##### 3. Prepare and push a RHDH chart release to https://github.com/openshift-helm-charts/charts:
+    ##### 3. Prepare and push a Must-Gather chart 
+    
+    # Published on every CI build in konflux to quay.io/rhdh/must-gather-chart
+    TAG=1.y-zzz; $0 --chart-version \${TAG}-CI \
+        --chart-name redhat-developer-hub-must-gather --chart-dir charts/must-gather \
+        --chart-branch release-\${TAG%-*} --publish
+
+    ###############################################
+
+    #####################
+    ##    GA BUILDS    ##
+    #####################
+
+    # GA charts are pushed via pull request to https://github.com/openshift-helm-charts/charts
+
+    ##### 1. Prepare and push a RHDH chart:
 
     # To release the RHDH chart on GA day (container must already be LIVE in reg.rh.io!)
     # 1. use gh to log in as the bot (not using exported github token) - can use incognito browser so you don't have to log out as yourself
@@ -129,32 +152,28 @@ Examples:
     $ gh auth login -h github.com
     $ export GITHUB_TOKEN=ghp_rhdh-bot-token-here
     # 2. Run a manual release as the bot:
-    $ $0 --chart-version 1.7.0 --rhdh-version 1.7.0   --chart-branch release-1.7 --publish 
+    $ $0 --chart-version 1.10.0 --rhdh-version 1.10.0   --chart-branch release-1.10 --publish 
     Chart version:       1.y.z
     Developer Hub image:  registry.redhat.io/rhdh/rhdh-hub-rhel9:1.y.z
     # !! NOTE !! If the PR is not created correctly, you may have to manually create it from the release-x.y.z branch.
 
-    ##### 4. Prepare and push a Orchestrator Infra chart release to https://github.com/openshift-helm-charts/charts:
+    ##### 2. Prepare and push a Orchestrator Infra chart:
 
     1. Same setup as in step 3 to run as the bot.
     2. Then run the publish with different chart-name and chart-dir values:
 
-    $0 --chart-version 1.7.0 --rhdh-version 1.7.0 --chart-branch release-1.7 --publish \
+    $0 --chart-version 1.10.0 --rhdh-version 1.10.0 --chart-branch release-1.10 --publish \
         --chart-name redhat-developer-hub-orchestrator-infra --chart-dir charts/orchestrator-infra
 
-    ##### 5. Prepare and push a release to quay.io/rhdh/must-gather-chart:
-
-    TAG=1.y-zzz; $0 --chart-version \${TAG}-CI \
-        --chart-name redhat-developer-hub-must-gather --chart-dir charts/must-gather \
-        --chart-branch release-\${TAG%-*} --publish
-
-    ##### 6. Prepare and push a Must-Gather chart release to https://github.com/openshift-helm-charts/charts:
+    ##### 3. Prepare and push a Must-Gather chart:
 
     1. Same setup as in step 3 to run as the bot.
     2. Then run the publish with different chart-name and chart-dir values:
 
     $0 --chart-version 1.10.0 --rhdh-version 1.10.0 --chart-branch release-1.10 --publish \
         --chart-name redhat-developer-hub-must-gather --chart-dir charts/must-gather
+
+    ###############################################
 "
 }
 
