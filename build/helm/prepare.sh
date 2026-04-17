@@ -26,7 +26,7 @@ DEBUG=0
 # creating new quay.io/rhdh/*-chart repo, then adding more folders to this for loop
 # must also add logic below to handle mapping the chart name to its URL
 # look for 'if [[ "${CHART_NAME}" ==' sections
-CHARTS_TO_PUBLISH="charts/backstage charts/orchestrator-infra"
+CHARTS_TO_PUBLISH="charts/backstage charts/orchestrator-infra charts/must-gather"
 
 EXCLUDES="next|latest|candidate|guest|containers|-source|-pr-|-tmp-|-ci-|-gh-|sha256-|on-push|on-pull|build-container|build-image-index"
 
@@ -136,11 +136,25 @@ Examples:
 
     ##### 4. Prepare and push a Orchestrator Infra chart release to https://github.com/openshift-helm-charts/charts:
 
-    1. Same setup as in step 3 to run as the bot. 
+    1. Same setup as in step 3 to run as the bot.
     2. Then run the publish with different chart-name and chart-dir values:
 
     $0 --chart-version 1.7.0 --rhdh-version 1.7.0 --chart-branch release-1.7 --publish \
         --chart-name redhat-developer-hub-orchestrator-infra --chart-dir charts/orchestrator-infra
+
+    ##### 5. Prepare and push a release to quay.io/rhdh/must-gather-chart:
+
+    TAG=1.y-zzz; $0 --chart-version \${TAG}-CI \
+        --chart-name redhat-developer-hub-must-gather --chart-dir charts/must-gather \
+        --chart-branch release-\${TAG%-*} --publish
+
+    ##### 6. Prepare and push a Must-Gather chart release to https://github.com/openshift-helm-charts/charts:
+
+    1. Same setup as in step 3 to run as the bot.
+    2. Then run the publish with different chart-name and chart-dir values:
+
+    $0 --chart-version 1.10.0 --rhdh-version 1.10.0 --chart-branch release-1.10 --publish \
+        --chart-name redhat-developer-hub-must-gather --chart-dir charts/must-gather
 "
 }
 
@@ -238,8 +252,8 @@ if [[ $DO_LATEST -eq 1 ]]; then
     echo "Create chart for $RHDH_VERSION ($CHART_BRANCH) + index $index_tag"
 fi
 
-# only need RHDH_VERSION for a RHDH chart release; not required for orch infra chart
-if [[ ! $RHDH_VERSION ]] && [[ "${CHART_NAME}" != "redhat-developer-hub-orchestrator-infra" ]]; then
+# only need RHDH_VERSION for a RHDH chart release; not required for other charts
+if [[ ! $RHDH_VERSION ]] && [[ "${CHART_NAME}" == "redhat-developer-hub" || "${CHART_NAME}" == "backstage" ]]; then
     usage; exit 1
 fi
 
@@ -435,6 +449,45 @@ if [[ "${CHART_NAME}" == "redhat-developer-hub" ]] || [[ "${CHART_NAME}" == "bac
         .upstream.postgresql.image.tag=\"${POSTGRESQL_DIGEST}\"
         " "$VALUES_PATH"
     fi
+elif [[ "${CHART_NAME}" == "redhat-developer-hub-must-gather" ]] || [[ "${CHART_NAME}" == "must-gather" ]]; then
+    # Normalize chart name for folder path in openshift-helm-charts
+    CHART_NAME="redhat-developer-hub-must-gather"
+
+    # Update Chart.yaml version and appVersion
+    $YQ -i "
+    .version = \"${CHART_VERSION}\" |
+    .appVersion = \"${CHART_VERSION/-CI}\"
+    " "$CHART_PATH"
+
+    # Handle must-gather values.yaml patching
+    if [[ $CHART_VERSION == *"CI"* ]]; then
+        MUST_GATHER_REGISTRY="quay.io"
+    else
+        MUST_GATHER_REGISTRY="registry.redhat.io"
+    fi
+    MUST_GATHER_REPO="rhdh/rhdh-must-gather-rhel9"
+
+    MUST_GATHER_DIGEST=$(skopeo inspect "docker://${MUST_GATHER_REGISTRY}/${MUST_GATHER_REPO}:${RHDH_VERSION:-latest}" 2>/dev/null | jq -r '.Digest' || true)
+    if [[ ! "$MUST_GATHER_DIGEST" ]]; then
+        echo -e "${blue}[WARN] Could not compute MUST_GATHER_DIGEST for ${MUST_GATHER_REGISTRY}/${MUST_GATHER_REPO}:${RHDH_VERSION:-latest} - leaving digest empty${norm}"
+        MUST_GATHER_DIGEST=""
+    fi
+    UBI9_DIGEST=$(skopeo inspect docker://registry.redhat.io/ubi9:latest | jq -r '.Digest')
+    if [[ ! "$UBI9_DIGEST" ]]; then
+        echo -e "${blue}[WARN] Could not compute UBI9_DIGEST - leaving digest empty${norm}"
+        UBI9_DIGEST=""
+    fi
+
+    $YQ -i "
+    .image.registry = \"${MUST_GATHER_REGISTRY}\" |
+    .image.repository = \"${MUST_GATHER_REPO}\" |
+    .image.tag = \"\" |
+    .image.digest = \"${MUST_GATHER_DIGEST}\" |
+    .test.image.registry = \"registry.redhat.io\" |
+    .test.image.repository = \"ubi9\" |
+    .test.image.tag = \"latest\" |
+    .test.image.digest = \"${UBI9_DIGEST}\"
+    " "$VALUES_PATH"
 else
     echo -e "${blue}[WARN] No patch to $VALUES_PATH required for ${CHART_NAME} - skip.${norm}"
 fi
@@ -515,6 +568,8 @@ if [[ $PUBLISH -eq 1 ]]; then
         TARGET_REPO="orchestrator-infra-chart"
     elif [[ "${CHART_NAME}" == "redhat-developer-hub" ]] || [[ "${CHART_NAME}" == "backstage" ]]; then
         TARGET_REPO="chart"
+    elif [[ "${CHART_NAME}" == "redhat-developer-hub-must-gather" ]] || [[ "${CHART_NAME}" == "must-gather" ]]; then
+        TARGET_REPO="must-gather-chart"
     else
         TARGET_REPO="${CHART_NAME}-chart"
     fi
