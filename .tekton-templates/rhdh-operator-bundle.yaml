@@ -268,12 +268,17 @@ spec:
           - input: $(params.skip-checks)
             operator: in
             values: ["false"]
+
       - name: sast-snyk-check
         params:
           - name: image-digest
             value: $(tasks.build-image-index.results.IMAGE_DIGEST)
           - name: image-url
             value: $(tasks.build-image-index.results.IMAGE_URL)
+          - name: SOURCE_ARTIFACT
+            value: $(tasks.prefetch-dependencies.results.SOURCE_ARTIFACT)
+          - name: CACHI2_ARTIFACT
+            value: $(tasks.prefetch-dependencies.results.CACHI2_ARTIFACT)
           - name: ARGS
             value: "--severity-threshold=medium --project-name=konflux-rhdh-operator-bundle-{{VERSION_DASH}} --report --org=3640be2c-1549-4d4c-bc0b-46b24799e4b6"
         runAfter:
@@ -291,9 +296,7 @@ spec:
           - input: $(params.skip-checks)
             operator: in
             values: ["false"]
-        workspaces:
-          - name: workspace
-            workspace: workspace
+
       - name: clamav-scan
         params:
           - name: image-digest
