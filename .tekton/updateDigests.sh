@@ -11,6 +11,7 @@ set -e
 
 SCRIPT=$(readlink -f "$0")
 ROOTPATH=$(dirname "$SCRIPT")
+TEMPLATEPATH="${ROOTPATH/.tekton/.tekton-templates}"
 PR_BRANCH="chore/automated-update-tekton-tasks-$(date +%s)"
 DO_MINOR="false"
 REGEX="*yaml"
@@ -81,12 +82,12 @@ tf=0; cf=0
 
 # shellcheck disable=SC2044
 echo "Searching for $REGEX ..."
-for file in $(find "$ROOTPATH" -name "${REGEX}"); do 
+for file in $(find "$ROOTPATH" -name "${REGEX}") $(find "$TEMPLATEPATH" -name "${REGEX}" || true); do 
     (( tf = tf + 1 ))
 done
 
 mkfifo mypipe 2>/dev/null || true
-for file in $(find "$ROOTPATH" -name "${REGEX}" | sort -V); do 
+for file in $(find "$ROOTPATH" -name "${REGEX}" | sort -V) $(find "$TEMPLATEPATH" -name "${REGEX}" | sort -V || true); do 
     (( cf = cf + 1 ))
     # line counters: tl, cl
     tl=0; cl=0
@@ -158,9 +159,9 @@ for file in $(find "$ROOTPATH" -name "${REGEX}" | sort -V); do
 done
 rm -f mypipe
 echo; echo "Changes:"
-git diff "$ROOTPATH/*.yaml" | grep value: | sort -uV | grep +
+git diff "$ROOTPATH/*.yaml" "$TEMPLATEPATH/*.yaml" | grep value: | sort -uV | grep +
 echo; echo "Changed files:"
-git diff  --name-only "$ROOTPATH/*.yaml"
+git diff  --name-only "$ROOTPATH/*.yaml" "$TEMPLATEPATH/*.yaml"
 
 createPr() {
 	headBranch=$1
@@ -201,13 +202,13 @@ if [[ ${#MIGRATIONS[@]} -gt 0 ]]; then
 fi
 
 if [[ ${docommit} -eq 1 ]]; then 
-    git add "$ROOTPATH/*.yaml" "$ROOTPATH/*.sh" || true
+    git add "$ROOTPATH/*.yaml" "$ROOTPATH/*.sh" "$TEMPLATEPATH/*.yaml" || true
     if [[ $TRIGGER == "true" ]]; then
         # konflux trigger only: skip gitlab
-        git commit -s -m "chore: Update .tekton folder to latest task versions [skip-gitlab]" "$ROOTPATH/" 
+        git commit -s -m "chore: Update .tekton folder to latest task versions [skip-gitlab]" "$ROOTPATH/" "$TEMPLATEPATH/"
     else
         # do not trigger in gitlab or konflux
-        git commit -s -m "chore: Update .tekton folder to latest task versions [skip-gitlab] [skip ci]" "$ROOTPATH/" 
+        git commit -s -m "chore: Update .tekton folder to latest task versions [skip-gitlab] [skip ci]" "$ROOTPATH/" "$TEMPLATEPATH/"
     fi
     if [[ ${dopush} -eq 1 ]]; then
         git pull origin "${MIDSTM_BRANCH}"
