@@ -525,6 +525,36 @@ function updateRHDHVersions() {
 	popd >/dev/null || exit 1
 }
 
+# for redhat-developer/rhdh-must-gather, bump Makefile VERSION after a GA tag
+function updateRHDHMustGatherVersions() {
+	the_branch="$1"
+	the_version="$2"
+	orgAndRepo="redhat-developer/rhdh-must-gather"
+	d="${orgAndRepo/\//__}"
+	rm -fr "$TMPDIR/projects_${d}_2" && git clone -q --depth 1 -b "${the_branch}" "git@github.com:${orgAndRepo}" "$TMPDIR/projects_${d}_2" || echo "Branch $the_branch doesn't exist: skip!"
+	pushd "$TMPDIR/projects_${d}_2" >/dev/null || exit 1
+
+	# Upstream repo is flat (root Makefile); distgit/containers/... exists only under rhidp/rhdh midstream.
+	if [[ -f Makefile ]]; then
+		echo "Updating Makefile VERSION to ${the_version}"
+		sed -i Makefile -r \
+			-e "s/^VERSION \\?= .*/VERSION ?= ${the_version}/"
+	fi
+
+	echo -n "updateRHDHMustGatherVersions: "; pwd; git diff || true
+	if [[ ${DO_PUSH} -eq 1 ]]; then
+		COMMITMSG="chore: tagRelease.sh: bump to ${the_version} in ${the_branch} branch [skip-build]"
+		if [[ $(git diff || true ) ]]; then
+			git commit --no-gpg-sign -s -m "${COMMITMSG}" .
+			git pull origin "${the_branch}" || true
+			pr_branch="chore/automated-bump-must-gather-to-${the_version}-in-${the_branch}-$(date +%s)"
+			createPr "${pr_branch}" "${the_branch}"
+		fi
+	fi ## if DO_PUSH
+
+	popd >/dev/null || exit 1
+}
+
 # for operator, bump to specified version
 function updateOperatorVersions() {
 	the_branch="$1"
@@ -794,23 +824,28 @@ pushBranchAndOrTagGH () {
 				if [[ $CSV_VERSION ]]; then # push a new tag (or no-op if exists)
 					# RHIDP-7906 inspect the rhdh container and tag the repo based on THAT SHA, not just the latest one in the branch
 					if [[ $orgAndRepo == "redhat-developer/rhdh" ]]; then
-						upstream_rhdh_digest=$(skopeo inspect "docker://registry.redhat.io/rhdh/rhdh-hub-rhel9:${CSV_VERSION}" | grep UPSTREAM | sed -r -e "s/.+ \@ ([0-9a-f]+).+/\1/")
-						if [[ ! $upstream_rhdh_digest ]]; then
-							echo "[ERROR] Could not find commit SHA used to build registry.redhat.io/rhdh/rhdh-hub-rhel9:${CSV_VERSION} !" 
+						upstream_image="registry.access.redhat.com/rhdh/rhdh-hub-rhel9:${CSV_VERSION}"
+					elif [[ $orgAndRepo == "redhat-developer/rhdh-must-gather" ]]; then
+						upstream_image="registry.access.redhat.com/rhdh/rhdh-must-gather-rhel9:${CSV_VERSION}"
+					fi
+					if [[ -n $upstream_image ]]; then
+						upstream_digest=$(skopeo inspect "docker://${upstream_image}" | grep UPSTREAM | sed -r -e "s/.+ \@ ([0-9a-f]+).+/\1/")
+						if [[ ! $upstream_digest ]]; then
+							echo "[ERROR] Could not find commit SHA used to build ${upstream_image} !"
 							exit 1
 						else
 							previous_sha=$(git rev-parse HEAD)
-							git checkout "$upstream_rhdh_digest"
-							if [[ $DO_PUSH -eq 1 ]]; then 
-								echo "[INFO] Tag $orgAndRepo from $upstream_rhdh_digest as $CSV_VERSION"
+							git checkout "$upstream_digest"
+							if [[ $DO_PUSH -eq 1 ]]; then
+								echo "[INFO] Tag $orgAndRepo from $upstream_digest as $CSV_VERSION"
 								git push origin ":${CSV_VERSION}" || true
 								git tag -d "${CSV_VERSION}" || true
 								git tag "${CSV_VERSION}" || true
 								git push origin "${CSV_VERSION}" || { echo "Could not push tag as user $(git config user.name) <$(git config user.email)> ! Try running 'gh auth switch' to run this script as the rhdh-bot!"; exit 1; }
 							fi
 							# now create the floating 1.y tag too; first delete the existing one, then recreate it at the new SHA
-							if [[ $DO_PUSH -eq 1 ]]; then 
-								echo "[INFO] Tag $orgAndRepo from $upstream_rhdh_digest as ${CSV_VERSION%.*}"
+							if [[ $DO_PUSH -eq 1 ]]; then
+								echo "[INFO] Tag $orgAndRepo from $upstream_digest as ${CSV_VERSION%.*}"
 								git push origin ":${CSV_VERSION%.*}" || true
 								git tag -d "${CSV_VERSION%.*}" || true
 								git tag "${CSV_VERSION%.*}" || true
@@ -835,6 +870,9 @@ pushBranchAndOrTagGH () {
 					if [[ $d == "redhat-developer__rhdh" ]]; then
 						echo -e "${green}[INFO] Bump $d to $CSV_VERSION_Z${norm}" 
 						updateRHDHVersions "$TARGET_BRANCH" "$CSV_VERSION_Z"
+					elif [[ $d == "redhat-developer__rhdh-must-gather" ]]; then
+						echo -e "${green}[INFO] Bump $d to $CSV_VERSION_Z${norm}"
+						updateRHDHMustGatherVersions "$TARGET_BRANCH" "$CSV_VERSION_Z"
 					elif [[ $d == "redhat-developer__rhdh-operator" ]]; then
 						echo -e "${green}[INFO] Bump $d to $CSV_VERSION_Z / $CSV_VERSION_Z_OPERATOR${norm}" 
 						updateOperatorVersions "$TARGET_BRANCH" "$CSV_VERSION_Z" "$CSV_VERSION_Z_OPERATOR"
@@ -1444,6 +1482,7 @@ if [[ $SKIP_GH -eq 0 ]]; then
 		updateRHDHCLIVersion "$SOURCE_BRANCH" "$newver"
 		updateOperatorVersions "$SOURCE_BRANCH" "$newver" "$newverOp"
 		updateRHDHVersions "$SOURCE_BRANCH" "$newver"
+		updateRHDHMustGatherVersions "$SOURCE_BRANCH" "$newver"
 		updateChartVersions "$SOURCE_BRANCH" "$newver"
 		## CCS has requested that we not bump the version in main branch, as they prefer manual steps to automation.
 		## updateDocVersions "$SOURCE_BRANCH" "$newver"

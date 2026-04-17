@@ -3,6 +3,7 @@
 
 github_repos:
   - "redhat-developer/rhdh"
+  - "redhat-developer/rhdh-must-gather"
   - "redhat-developer/rhdh-cli"
   - "redhat-developer/rhdh-operator"
   - "redhat-developer/rhdh-chart"

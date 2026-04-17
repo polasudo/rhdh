@@ -34,3 +34,13 @@ operator-bundle:
   snyk_project: "konflux-rhdh-operator-bundle"
   include_tasks: []
   storage: "2Gi"
+
+must-gather:
+  template: rhdh-pipeline.yaml
+  output_image: "quay.io/rhdh/rhdh-must-gather-rhel9"
+  path_context: "distgit/containers/rhdh-must-gather"
+  prefetch_input: '[{"type": "rpm", "path": "distgit/containers/rhdh-must-gather"}]'
+  max_keep_runs: "8"
+  snyk_project: "konflux-rhdh-must-gather"
+  include_tasks: []
+  storage: "5Gi"
