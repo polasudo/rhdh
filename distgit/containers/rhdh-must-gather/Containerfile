@@ -35,7 +35,7 @@ RUN microdnf install -y --setopt=install_weak_deps=0 --nodocs \
 # The OpenShift client package includes both oc and kubectl
 # oc is required for OpenShift-specific features like 'oc adm inspect' and routes
 # renovate: datasource=custom.openshift-client
-RUN curl -L https://mirror.openshift.com/pub/openshift-v4/clients/ocp/4.18.7/openshift-client-linux.tar.gz \
+RUN curl -L https://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable-4.21/openshift-client-linux.tar.gz \
     | tar xz -C /usr/local/bin/ oc kubectl \
     && chmod +x /usr/local/bin/oc /usr/local/bin/kubectl \
     && oc version --client \
@@ -87,3 +87,28 @@ ENV RHDH_MUST_GATHER_VERSION=$RHDH_MUST_GATHER_VERSION
 USER 1001
 
 ENTRYPOINT ["/usr/bin/gather"]
+ENV SUMMARY="Red Hat Developer Hub must-gather" \
+    DESCRIPTION="Red Hat Developer Hub must-gather container" \
+    UPSTREAM_REPO="https://github.com/redhat-developer/rhdh-must-gather/tree/main @ ba71029c" \
+    MIDSTREAM_REPO="https://gitlab.cee.redhat.com/rhidp/rhdh/-/commits/rhdh-1-rhel-9" \
+    PRODNAME="rhdh" \
+    COMPNAME="must-gather"
+
+LABEL summary="$SUMMARY" \
+      description="$DESCRIPTION" \
+      io.k8s.description="$DESCRIPTION" \
+      io.k8s.display-name="$DESCRIPTION" \
+      io.openshift.tags="$PRODNAME,$COMPNAME" \
+      com.redhat.component="$PRODNAME-$COMPNAME-container" \
+      name="$PRODNAME/$PRODNAME-$COMPNAME-rhel9" \
+      version="1.10" \
+      release="1" \
+      license="ASLv2" \
+      maintainer="RHDH Team <rhdh-bot@redhat.com>" \
+      vendor="Red Hat, Inc." \
+      io.openshift.expose-services="" \
+      usage="" \
+      konflux.additional-tags="next, 1.10, 1.10-1" \
+      distribution-scope="public" \
+      url="https://red.ht/rhdh" \
+      cpe="cpe:/a:redhat:rhdh:1.10::el9"
