@@ -112,11 +112,6 @@ catalog:
       target: https://github.com/redhat-developer/red-hat-developer-hub-software-templates/blob/main/templates/github/register-component/template.yaml
       rules:
         - allow: [Template]
-    # Example catalog - can be removed in production
-    - type: url
-      target: https://github.com/backstage/backstage/blob/master/packages/catalog-model/examples/all.yaml
-      rules:
-        - allow: [Component, User, Group, Domain]
 
 techdocs:
   generator:

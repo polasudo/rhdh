@@ -18,6 +18,6 @@ metadata:
     feedback/email-to: ${EMAIL_SENDER}
     quay.io/repository-slug: rhdh/rhdh-hub-rhel9
 spec:
-  owner: user:default/user
+  owner: group:default/rhdh-team
   type: product
   lifecycle: production

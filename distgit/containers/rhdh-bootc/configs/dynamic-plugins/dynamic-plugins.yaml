@@ -4,4 +4,4 @@ includes:
   # NOTE: Placeholder file is created at build time, extensions plugin updates it when installing via UI
   - /dynamic-plugins-root/dynamic-plugins.extensions.yaml
 
-plugins:
+plugins: []
