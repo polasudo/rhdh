@@ -1,4 +1,4 @@
-FROM registry.access.redhat.com/ubi9-minimal:latest@sha256:fe688da81a696387ca53a4c19231e99289591f990c904ef913c51b6e87d4e4df
+FROM registry.access.redhat.com/ubi9-minimal:latest@sha256:175bafd5bc7893540ed6234bb979acfe3574fd6570e6762bbc527c757f854cea
 
 # Define build argument before using it in LABEL
 ARG RHDH_MUST_GATHER_VERSION="0.0.0-unknown"
@@ -89,7 +89,7 @@ USER 1001
 ENTRYPOINT ["/usr/bin/gather"]
 ENV SUMMARY="Red Hat Developer Hub must-gather" \
     DESCRIPTION="Red Hat Developer Hub must-gather container" \
-    UPSTREAM_REPO="https://github.com/redhat-developer/rhdh-must-gather/tree/main @ c94b00cc" \
+    UPSTREAM_REPO="https://github.com/redhat-developer/rhdh-must-gather/tree/main @ 831705f9" \
     MIDSTREAM_REPO="https://gitlab.cee.redhat.com/rhidp/rhdh/-/commits/rhdh-1-rhel-9" \
     PRODNAME="rhdh" \
     COMPNAME="must-gather"

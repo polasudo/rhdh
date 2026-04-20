@@ -562,6 +562,11 @@ collect_heap_dump_via_inspector() {
   local ws_buffer_size="${HEAP_DUMP_BUFFER_SIZE:-16777216}"  # 16MB default
   local port_forward_pid=""
 
+  # Use temp directory under BASE_COLLECTION_PATH (mounted PVC) instead of /tmp
+  # to avoid exceeding ephemeral storage limits (heap dumps can be 100MB+)
+  local inspector_temp_dir="${BASE_COLLECTION_PATH:-.}/.inspector_tmp"
+  mkdir -p "$inspector_temp_dir" 2>/dev/null || inspector_temp_dir="/tmp"
+
   # Cleanup function - ensures port-forward and temp files are cleaned up
   # even on unexpected exits (via trap)
   cleanup_inspector() {
@@ -569,10 +574,14 @@ collect_heap_dump_via_inspector() {
       kill "$port_forward_pid" 2>/dev/null || true
       wait "$port_forward_pid" 2>/dev/null || true
     fi
-    # Clean up all temp files
-    rm -f "/tmp/inspector_fifo_$$" "/tmp/inspector_out_$$" "/tmp/heapdump_chunks_$$" \
-          "/tmp/inspector_cleaned_$$" "/tmp/inspector_fallback_fifo_$$" \
-          "/tmp/inspector_fallback_out_$$" 2>/dev/null || true
+    # Clean up all temp files (use default to avoid unbound variable with set -u)
+    local tmp_dir="${inspector_temp_dir:-}"
+    if [[ -n "$tmp_dir" ]]; then
+      rm -f "$tmp_dir/inspector_fifo_$$" "$tmp_dir/inspector_out_$$" "$tmp_dir/heapdump_chunks_$$" \
+            "$tmp_dir/inspector_cleaned_$$" "$tmp_dir/inspector_fallback_fifo_$$" \
+            "$tmp_dir/inspector_fallback_out_$$" 2>/dev/null || true
+      rmdir "$tmp_dir" 2>/dev/null || true
+    fi
   }
   # Alias for backward compatibility within this function
   cleanup_port_forward() { cleanup_inspector; }
@@ -769,10 +778,10 @@ collect_heap_dump_via_inspector() {
   echo "" >> "$log_file"
   echo "=== Inspector Protocol Communication ===" >> "$log_file"
 
-  # Create temp files for communication
-  local fifo="/tmp/inspector_fifo_$$"
-  local outfile="/tmp/inspector_out_$$"
-  local heapfile="/tmp/heapdump_chunks_$$"
+  # Create temp files for communication (use inspector_temp_dir to avoid ephemeral storage limits)
+  local fifo="$inspector_temp_dir/inspector_fifo_$$"
+  local outfile="$inspector_temp_dir/inspector_out_$$"
+  local heapfile="$inspector_temp_dir/heapdump_chunks_$$"
   rm -f "$fifo" "$outfile" "$heapfile" 2>/dev/null || true
 
   if ! mkfifo "$fifo" 2>> "$log_file"; then
@@ -1030,7 +1039,7 @@ collect_heap_dump_via_inspector() {
 
   # WebSocket output may contain leading null bytes from buffer initialization.
   # Strip them before JSON parsing. The messages are already newline-separated.
-  local cleaned_file="/tmp/inspector_cleaned_$$"
+  local cleaned_file="$inspector_temp_dir/inspector_cleaned_$$"
   if ! tr -d '\0' < "$outfile" > "$cleaned_file" 2>> "$log_file"; then
     echo "Failed to strip null bytes from output" >> "$log_file"
     log_warn "Failed to process WebSocket output"
@@ -1137,8 +1146,8 @@ collect_heap_dump_via_inspector() {
     echo "Fallback WebSocket URL: $fallback_ws_url" >> "$log_file"
 
     local remote_heap_file="${HEAP_DUMP_REMOTE_DIR:-/tmp}/heapdump-fallback-$$.heapsnapshot"
-    local fallback_fifo="/tmp/inspector_fallback_fifo_$$"
-    local fallback_out="/tmp/inspector_fallback_out_$$"
+    local fallback_fifo="$inspector_temp_dir/inspector_fallback_fifo_$$"
+    local fallback_out="$inspector_temp_dir/inspector_fallback_out_$$"
     rm -f "$fallback_fifo" "$fallback_out" 2>/dev/null || true
 
     if ! mkfifo "$fallback_fifo" 2>> "$log_file" || ! touch "$fallback_out" 2>> "$log_file"; then
@@ -1545,6 +1554,18 @@ _process_container_heap_dump() {
 
         log_info "Sending SIGUSR2 signal to trigger heap dump..."
 
+        # HEAP_DUMP_REMOTE_DIR should match --diagnostic-dir in NODE_OPTIONS
+        local remote_dir="${HEAP_DUMP_REMOTE_DIR:-/tmp}"
+        local search_paths="$remote_dir /tmp /app /opt/app-root/src"
+        local poll_interval=5
+        local max_wait="${HEAP_DUMP_TIMEOUT:-600}"
+        # How long the file size must be stable (non-zero, unchanged) before considering it complete
+        local stable_seconds="${HEAP_DUMP_SIGUSR2_STABLE_SECONDS:-150}"
+        local waited=0
+        local found_heap_file=""
+        local last_size=0
+        local stable_count=0
+
         {
           echo "Sending SIGUSR2 signal to Node.js process (PID: $node_pid)..."
           if send_signal_to_process "$ns" "$pod" "$container" "$node_pid" "USR2" 2>&1; then
@@ -1552,56 +1573,78 @@ _process_container_heap_dump() {
           else
             echo "Failed to send SIGUSR2 signal"
           fi
-
-          # Wait for heap dump file to be created
           echo ""
-          echo "Waiting ${HEAP_DUMP_TIMEOUT}s for heap dump to be generated..."
-          sleep "${HEAP_DUMP_TIMEOUT}"
-
-          # Look for heap dump files in common locations
-          # HEAP_DUMP_REMOTE_DIR should match --diagnostic-dir in NODE_OPTIONS
-          local remote_dir="${HEAP_DUMP_REMOTE_DIR:-/tmp}"
-          echo "Searching for heap dump files (primary: $remote_dir)..."
-          local found_dumps
-          found_dumps=$($KUBECTL_CMD exec -n "$ns" "$pod" -c "$container" -- sh -c \
-            "find $remote_dir /tmp /app /opt/app-root/src . -maxdepth 2 \( -name '*.heapsnapshot' -o -name 'Heap.*.heapsnapshot' -o -name 'heapdump-*.heapsnapshot' \) 2>/dev/null | head -5" 2>/dev/null || true)
-
-          if [[ -n "$found_dumps" ]]; then
-            echo "Found heap dump file(s):"
-            echo "$found_dumps"
-          else
-            echo "No heap dump files found in $remote_dir, /tmp, /app, /opt/app-root/src, or current directory"
-          fi
+          echo "Polling for heap dump file (max ${max_wait}s, stable for ${stable_seconds}s)..."
         } >> "$container_dir/heap-dump.log" 2>&1
 
-        # Try to copy any heap dump file we can find
-        # HEAP_DUMP_REMOTE_DIR should match --diagnostic-dir in NODE_OPTIONS
-        local remote_dir="${HEAP_DUMP_REMOTE_DIR:-/tmp}"
-        local search_paths="$remote_dir /tmp /app /opt/app-root/src"
+        # Poll for heap dump file and wait for it to be fully written
+        # The file is created immediately but V8 writes to it over time
+        # We wait until the file size is non-zero and stable for stable_seconds
+        while [[ $waited -lt $max_wait ]]; do
+          # Find heap dump file if not already found
+          if [[ -z "$found_heap_file" ]]; then
+            for search_path in $search_paths; do
+              found_heap_file=$($KUBECTL_CMD exec -n "$ns" "$pod" -c "$container" -- sh -c \
+                "find $search_path -maxdepth 2 -name '*.heapsnapshot' 2>/dev/null | head -1" 2>/dev/null || true)
+              if [[ -n "$found_heap_file" ]]; then
+                log_info "Found heap dump file: $found_heap_file (waiting for write to complete)"
+                echo "Found heap dump file: $found_heap_file" >> "$container_dir/heap-dump.log"
+                break
+              fi
+            done
+          fi
 
-        for search_path in $search_paths; do
-          local heap_files
-          heap_files=$($KUBECTL_CMD exec -n "$ns" "$pod" -c "$container" -- sh -c \
-            "find $search_path -maxdepth 2 -name '*.heapsnapshot' 2>/dev/null | head -1" 2>/dev/null || true)
+          # If file found, check if it's fully written (size stable and non-zero)
+          if [[ -n "$found_heap_file" ]]; then
+            local current_size
+            current_size=$($KUBECTL_CMD exec -n "$ns" "$pod" -c "$container" -- sh -c \
+              "stat -c%s '$found_heap_file' 2>/dev/null || echo 0" 2>/dev/null || echo "0")
 
-          if [[ -n "$heap_files" ]]; then
-            log_info "Found heap dump file: $heap_files"
-
-            local local_path="$container_dir/${heap_file}"
-            if $KUBECTL_CMD cp -n "$ns" "${pod}:${heap_files}" "$local_path" -c "$container" >> "$container_dir/heap-dump.log" 2>&1; then
-              local file_size
-              file_size=$(du -h "$local_path" 2>/dev/null | cut -f1)
-              log_success "Heap dump copied to $local_path (${file_size})"
-              echo "Heap dump collected: ${heap_file} (${file_size})" >> "$container_dir/heap-dump.log"
-
-              # Clean up remote file
-              $KUBECTL_CMD exec -n "$ns" "$pod" -c "$container" -- rm -f "$heap_files" 2>/dev/null || true
-
-              heap_collected=true
-              break
+            if [[ "$current_size" -gt 0 ]]; then
+              if [[ "$current_size" == "$last_size" ]]; then
+                stable_count=$((stable_count + poll_interval))
+                if [[ $stable_count -ge $stable_seconds ]]; then
+                  log_info "Heap dump file size stable at ${current_size} bytes for ${stable_count}s"
+                  echo "File size stable at ${current_size} bytes for ${stable_count}s - ready to copy" >> "$container_dir/heap-dump.log"
+                  break
+                fi
+              else
+                # Size changed, reset stability counter
+                stable_count=0
+                last_size="$current_size"
+                log_debug "Heap dump still being written... (${current_size} bytes, ${waited}s elapsed)"
+              fi
             fi
           fi
+
+          sleep "$poll_interval"
+          waited=$((waited + poll_interval))
+          if [[ -z "$found_heap_file" ]] && (( waited % 30 == 0 )); then
+            log_debug "Still waiting for heap dump file... (${waited}s elapsed)"
+          fi
         done
+
+        if [[ -n "$found_heap_file" && "$stable_count" -ge "$stable_seconds" ]]; then
+          echo "Heap dump ready after ${waited}s total wait" >> "$container_dir/heap-dump.log"
+
+          local local_path="$container_dir/${heap_file}"
+          if $KUBECTL_CMD cp -n "$ns" "${pod}:${found_heap_file}" "$local_path" -c "$container" >> "$container_dir/heap-dump.log" 2>&1; then
+            local file_size
+            file_size=$(du -h "$local_path" 2>/dev/null | cut -f1)
+            log_success "Heap dump copied to $local_path (${file_size})"
+            echo "Heap dump collected: ${heap_file} (${file_size})" >> "$container_dir/heap-dump.log"
+
+            # Clean up remote file
+            $KUBECTL_CMD exec -n "$ns" "$pod" -c "$container" -- rm -f "$found_heap_file" 2>/dev/null || true
+
+            heap_collected=true
+          fi
+        elif [[ -n "$found_heap_file" ]]; then
+          echo "Heap dump file found but not stable after ${max_wait}s (last size: ${last_size}, stable for: ${stable_count}s)" >> "$container_dir/heap-dump.log"
+          log_warn "Heap dump file found but write did not complete within timeout"
+        else
+          echo "No heap dump files found after ${max_wait}s in: $search_paths" >> "$container_dir/heap-dump.log"
+        fi
       else
         log_error "Unknown heap dump method: $heap_dump_method"
         echo "Unknown heap dump method: $heap_dump_method" >> "$container_dir/heap-dump.log"
