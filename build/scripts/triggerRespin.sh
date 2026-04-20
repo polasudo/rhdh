@@ -43,12 +43,13 @@ Options:
     --gitlab-pipeline-push    use this flag to push changes when running inside a gitlab pipeline
 
 Examples: 
-    $0 -v 1 hub,op    # both hub and operator (NOT bundle)
-    $0 -v 1 all       # both hub and operator (NOT bundle)
-    $0 -v 1.7 hub     # only hub
-    $0 -v 1.7 hub -k  # only hub, no midstream sync (konflux only)
-    $0 -v 1.7 op      # only operator
-    $0 -v 1.7 bun     # only bundle
+    $0 -v 1 hub,op     # both hub and operator (NOT bundle)
+    $0 -v 1 all        # both hub and operator (NOT bundle)
+    $0 -v 1.10 mg      # only must-gather image
+    $0 -v 1.10 hub     # only hub
+    $0 -v 1.10 hub -k  # only hub, no midstream sync (konflux only)
+    $0 -v 1.10 op      # only operator
+    $0 -v 1.10 bun     # only bundle
 "; 
 }
 
@@ -120,13 +121,15 @@ else
     if [[ $KONFLUX_ONLY -eq 1 ]]; then commitMsg="$commitMsg [skip-gitlab]"; fi
 
     echo "$commitMsg ..."
-    if [[ $targets == "all" ]]; then targets="hub,op"; fi
+    if [[ $targets == "all" ]]; then targets="hub,mg,op"; fi
 
     if [[ $KONFLUX_ONLY -eq 1 ]]; then
         targets=${targets/op/operator}
         targets=${targets/bun/operator-bundle}
+        targets=${targets/mg/must-gather}
         targets=${targets//,/ }
     else
+        targets=${targets/mg/upstream_SHA_rhdh-must-gather}
         targets=${targets/hub/upstream_SHA_rhdh-hub}
         targets=${targets/operator/upstream_SHA_rhdh-operator}
         targets=${targets/op/upstream_SHA_rhdh-operator}
