@@ -60,7 +60,12 @@ RUN chmod +x /usr/local/bin/prepare-and-install-dynamic-plugins.sh /usr/local/bi
     cp /usr/local/bin/wait-for-plugins-and-start.sh /var/lib/rhdh/scripts/ && \
     cp /usr/local/bin/detect-and-set-base-url.sh /var/lib/rhdh/scripts/ && \
     chmod +x /var/lib/rhdh/scripts/*.sh && \
-    cp /etc/rhdh/configs/dynamic-plugins/dynamic-plugins.yaml /var/lib/rhdh/config/dynamic-plugins.yaml && \
+    if [ -f /etc/rhdh/configs/dynamic-plugins/dynamic-plugins.override.yaml ]; then \
+        echo "Using dynamic-plugins.override.yaml"; \
+        cp /etc/rhdh/configs/dynamic-plugins/dynamic-plugins.override.yaml /var/lib/rhdh/config/dynamic-plugins.yaml; \
+    else \
+        cp /etc/rhdh/configs/dynamic-plugins/dynamic-plugins.yaml /var/lib/rhdh/config/dynamic-plugins.yaml; \
+    fi && \
     ln -sf /var/lib/rhdh/config/dynamic-plugins.yaml /var/lib/rhdh/dynamic-plugins-root/dynamic-plugins.yaml && \
     ln -sf /var/lib/rhdh/config/dynamic-plugins.yaml /var/lib/rhdh/dynamic-plugins.yaml && \
     sed -i 's|LINK_TARGET="/var/lib/rhdh/dynamic-plugins.yaml"|LINK_TARGET="/opt/app-root/src/dynamic-plugins.yaml"|' /var/lib/rhdh/scripts/prepare-and-install-dynamic-plugins.sh && \

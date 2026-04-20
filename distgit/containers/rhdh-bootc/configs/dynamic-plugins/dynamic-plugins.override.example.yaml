@@ -43,10 +43,10 @@ includes:
 #                 importName: NullComponent
 #                 config:
 #                   icon: github
-#                   label: "bootc on GitHub"
+#                   label: "RHDH bootc on GitHub"
 #                   showLabel: true
-#                   toolTip: "bootc on GitHub"
-#                   to: "https://github.com/bootc-dev/bootc"
+#                   toolTip: "RHDH bootc on GitHub"
+#                   to: "https://github.com/redhat-developer/rhdh/tree/rhdh-1-rhel-9/distgit/containers/rhdh-bootc"
 #                   visibleOnPaths: ["/"]
 #               - mountPoint: global.floatingactionbutton/config
 #                 importName: NullComponent

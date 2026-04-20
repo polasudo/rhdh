@@ -107,6 +107,49 @@ This image embeds registry credentials (`auth.json`) in the container image laye
 - Build separate images per environment with minimal credential scope
 - Do not distribute this image publicly
 
+## Customization
+
+RHDH bootc uses **immutable infrastructure** - configurations are baked into the image at build time. To customize:
+
+### Using Override Files
+
+1. **Copy example files** (remove `.example` suffix):
+
+   ```bash
+   # Dynamic plugins
+   cp configs/dynamic-plugins/dynamic-plugins.override.example.yaml \
+      configs/dynamic-plugins/dynamic-plugins.override.yaml
+   
+   # Catalog users and groups
+   cp configs/catalog-entities/users.override.example.yaml \
+      configs/catalog-entities/users.override.yaml
+   
+   # Catalog components
+   cp configs/catalog-entities/components.override.example.yaml \
+      configs/catalog-entities/components.override.yaml
+   ```
+
+2. **Edit the override files** with your organization's configuration
+
+3. **Rebuild the image**:
+
+   ```bash
+   ./build.sh
+   ```
+
+### What Can Be Customized
+
+**Build-Time (requires rebuild):**
+- Dynamic plugins (`dynamic-plugins.override.yaml`)
+- Catalog entities (users, groups, components)
+- App configuration structure
+
+**Runtime (no rebuild required):**
+- Environment variables in `quadlet/rhdh.env`
+  - `BASE_URL`, `GITHUB_TOKEN`, `POSTGRES_PASSWORD`
+  - Branding colors: `PRIMARY_LIGHT_COLOR`, `HEADER_LIGHT_COLOR_1`, etc.
+
+
 ## Default Configuration
 
 This image is configured for **testing and development** out-of-the-box:

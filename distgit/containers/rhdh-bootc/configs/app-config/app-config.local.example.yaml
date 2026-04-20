@@ -1,0 +1,11 @@
+# Example app-config override file.
+# This file is for build-time customization only.
+# For runtime configuration, edit quadlet/rhdh.env instead.
+
+# Example: Tech Radar configuration
+# techRadar:
+#   url: https://example.com/tech-radar.json
+
+# Example: Custom branding (colors set via environment variables in quadlet/rhdh.env)
+# app:
+#   title: My Organization Developer Hub
