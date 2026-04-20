@@ -25,7 +25,7 @@ LABEL vendor="Red Hat, Inc." \
 RUN if [ -f /cachi2/cachi2.env ]; then \
         . /cachi2/cachi2.env; \
     else \
-        dnf module enable -y nodejs:22; \
+        dnf module enable -y nodejs:24; \
     fi && \
     rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release && \
     dnf install -y \

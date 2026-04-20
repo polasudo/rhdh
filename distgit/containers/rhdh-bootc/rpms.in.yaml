@@ -1,9 +1,26 @@
 ---
 # RPM dependencies for the RHDH bootc base image.
-# Generate lockfile: rpm-lockfile-prototype --bare rpms.in.yaml --outfile rpms.lock.yaml
+# After editing, run (https://github.com/konflux-ci/rpm-lockfile-prototype):
+#   rpm-lockfile-prototype --bare rpms.in.yaml --outfile rpms.lock.yaml
+# to regen rpms.lock.yaml
+# Note that the repoid values are special, and must be from here:
+# https://github.com/release-engineering/rhtap-ec-policy/blob/main/data/known_rpm_repositories.yml
+arches:
+  - x86_64
+
+contentOrigin:
+  repos:
+    - repoid: ubi-9-for-x86_64-appstream-rpms
+      baseurl: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/appstream/os/
+    - repoid: ubi-9-for-x86_64-appstream-source-rpms
+      baseurl: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/appstream/source/SRPMS
+    - repoid: ubi-9-for-x86_64-baseos-rpms
+      baseurl: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/baseos/os/
+    - repoid: ubi-9-for-x86_64-baseos-source-rpms
+      baseurl: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/baseos/source/SRPMS
 
 moduleEnable:
-  - nodejs:22
+  - nodejs:24
 
 packages:
   - nodejs
@@ -13,19 +30,8 @@ packages:
   - sudo
   - podman
   - openssl
-  - cloud-init
-  - open-vm-tools
   - openssh-server
-
-contentOrigin:
-  repofiles:
-    - ./rhel-9-baseos.repo
-    - ./rhel-9-appstream.repo
-
-context:
-  image: registry.redhat.io/rhel9/rhel-bootc@sha256:69ed37a03c95c5461372f0a870b76b5e46265e7ac7b6d7498b9b7a4d546a3e87
-
-arches:
-  - x86_64
+  # cloud-init and open-vm-tools are RHEL-only (not in UBI repos);
+  # they are installed at build time via activation-key entitlement.
 
 installWeakDeps: false
