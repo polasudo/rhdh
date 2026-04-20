@@ -15,24 +15,40 @@ See also https://issues.redhat.com/browse/RHIDP-7998
 If the version of yarn changes in distgit/containers/rhdh-hub/.yarnrc.yml be sure to update the Containerfile(s) too.
 ====
 
-## Node 22 runner
+## Node 24 runner, for RHDH 1.10+
+
+As of 2026-04-20, we're using Node 24 and Yarn 4.
+
+```
+RHDH_VERSION=1.10
+# git checkout rhdh-${RHDH_VERSION}-rhel-9
+
+TODAY=$(date +%Y%m%d-%H%M); \
+podman rmi quay.io/rhdh/plugin-catalog-builder-rhel9:${RHDH_VERSION} -f; \
+podman build . --no-cache -f gitlab-runner.Containerfile --label quay.expires-after=150d \
+    -t quay.io/rhdh/gitlab-runner:${RHDH_VERSION}-$TODAY \
+    -t quay.io/rhdh/gitlab-runner:${RHDH_VERSION}-yarn4-node24 \
+    -t quay.io/rhdh/gitlab-runner:${RHDH_VERSION} && \
+podman push quay.io/rhdh/gitlab-runner:${RHDH_VERSION}-$TODAY; \
+podman push quay.io/rhdh/gitlab-runner:${RHDH_VERSION}-yarn4-node24; \
+podman push quay.io/rhdh/gitlab-runner:${RHDH_VERSION}
+```
+
+## Node 22 runner, for RHDH 1.9 and earlier
 
 For 1.5-1.9 using link:https://catalog.redhat.com/search?gs&q=nodejs-22&searchType=containers[node 22], from the root of this repo, run the following to build and publish an updated container:
 
 ```
+RHDH_VERSION=1.9
+git checkout rhdh-${RHDH_VERSION}-rhel-9
+
 TODAY=$(date +%Y%m%d-%H%M); \
-podman rmi quay.io/rhdh/plugin-catalog-builder-rhel9:1.10 -f; \
+podman rmi quay.io/rhdh/plugin-catalog-builder-rhel9:${RHDH_VERSION} -f; \
 podman build . --no-cache -f gitlab-runner.Containerfile --label quay.expires-after=99d \
-    -t quay.io/rhdh/gitlab-runner:1.10-$TODAY \
-    -t quay.io/rhdh/gitlab-runner:1.10-yarn3-node22 \
-    -t quay.io/rhdh/gitlab-runner:1.10 && \
-podman push quay.io/rhdh/gitlab-runner:1.10-$TODAY; \
-podman push quay.io/rhdh/gitlab-runner:1.10-yarn3-node22; \
-podman push quay.io/rhdh/gitlab-runner:1.10
+    -t quay.io/rhdh/gitlab-runner:${RHDH_VERSION}-$TODAY \
+    -t quay.io/rhdh/gitlab-runner:${RHDH_VERSION}-yarn3-node22 \
+    -t quay.io/rhdh/gitlab-runner:${RHDH_VERSION} && \
+podman push quay.io/rhdh/gitlab-runner:${RHDH_VERSION}-$TODAY; \
+podman push quay.io/rhdh/gitlab-runner:${RHDH_VERSION}-yarn3-node22; \
+podman push quay.io/rhdh/gitlab-runner:${RHDH_VERSION}
 ```
-
-## Node 24 runner
-
-In future, a new Containerfile will be added for link:https://catalog.redhat.com/search?gs&q=nodejs-24&searchType=containers[node 24].
-
-See link:https://issues.redhat.com/browse/RHIDP-11684[RHIDP-11684] and link:https://issues.redhat.com/browse/RHDHPLAN-868[RHDHPLAN-868].
