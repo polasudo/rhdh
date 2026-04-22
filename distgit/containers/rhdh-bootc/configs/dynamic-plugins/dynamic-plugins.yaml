@@ -40,10 +40,10 @@ plugins:
                 importName: NullComponent
                 config:
                   icon: github
-                  label: "RHDH bootc on GitHub"
+                  label: "bootc on GitHub"
                   showLabel: true
-                  toolTip: "RHDH bootc on GitHub"
-                  to: "https://github.com/redhat-developer/rhdh/tree/rhdh-1-rhel-9/distgit/containers/rhdh-bootc"
+                  toolTip: "bootc on GitHub"
+                  to: "https://github.com/bootc-dev/bootc"
                   visibleOnPaths: ["/"]
               - mountPoint: global.floatingactionbutton/config
                 importName: NullComponent
