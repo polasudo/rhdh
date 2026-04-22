@@ -6,6 +6,5 @@ plugins:
   - techdocs-core
 nav:
   - "RHDH bootc Deployment": index.md
+  - "Architecture": architecture.md
 
-
-  

@@ -3,10 +3,14 @@
 # This script runs as ExecStartPre to ensure clean startup
 set -euo pipefail
 
-LOCK_FILE="/var/lib/rhdh/dynamic-plugins-root/install-dynamic-plugins.lock"
+LOCK_FILE="/opt/app-root/src/dynamic-plugins-root/install-dynamic-plugins.lock"
 
-if [ -f "$LOCK_FILE" ]; then
-    echo "Found stale lock file at ${LOCK_FILE}, removing..."
-    rm -f "$LOCK_FILE"
-    echo "Lock file cleaned up"
+if podman ps -a --format '{{.Names}}' 2>/dev/null | grep -q '^rhdh$'; then
+    if podman exec rhdh test -f "$LOCK_FILE" 2>/dev/null; then
+        echo "Found stale lock file in rhdh container, removing it..."
+        podman exec rhdh rm -f "$LOCK_FILE" || true
+        echo "Lock file cleaned up"
+    fi
+else
+    echo "No existing rhdh container, lock cleanup not needed"
 fi
