@@ -57,6 +57,11 @@ RUN mkdir -p /usr/lib/bootc/bound-images.d && \
 RUN sed -i -e '/additionalimage.*/a "/usr/lib/containers/storage",' \
         /etc/containers/storage.conf
 
+# Configure subordinate UID/GID ranges so nested podman can map all UIDs/GIDs
+# when pulling images during a rootless build (avoids "insufficient UIDs" error).
+RUN echo "root:1:65536" >> /etc/subuid && \
+    echo "root:1:65536" >> /etc/subgid
+
 # Pre-pull container images into bootc storage for air-gapped deployments.
 # Images are pulled WITHOUT force_mask so layer content retains real filesystem
 # permissions (e.g. /tmp=1777, /var/run/postgresql=0775).
