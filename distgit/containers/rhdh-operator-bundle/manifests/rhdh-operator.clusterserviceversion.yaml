@@ -48,8 +48,8 @@ metadata:
     capabilities: Seamless Upgrades
     categories: Developer Tools
     certified: "true"
-    containerImage: registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:9801d342a1534de28178e14cb4962e13e4c189aa08294c531e9e4c0e28b789b4
-    createdAt: "2026-03-26T13:54:11Z"
+    containerImage: registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:190fd09ae8a1bf2fa94656a9305aa7db0dec225efe96d79e8a0280625257d69e
+    createdAt: "2026-04-22T07:13:05Z"
     description: Red Hat Developer Hub is a Red Hat supported version of Backstage.
       It comes with pre-built plug-ins and configuration settings, supports use of
       an external database, and can help streamline the process of setting up a self-managed
@@ -361,12 +361,12 @@ spec:
                     fieldRef:
                       fieldPath: metadata.name
                 - name: RELATED_IMAGE_postgresql
-                  value: registry.redhat.io/rhel9/postgresql-15@sha256:be131cfaa31fbb3729cbc619011cfacff86b3b5b883b1424a6226c2a909cbdd8
+                  value: registry.redhat.io/rhel9/postgresql-15@sha256:6aea2e620148c99e6a5e698a13e6cd2e1af8f0a7df64043b00b154ceaab3f2ef
                 - name: RELATED_IMAGE_backstage
-                  value: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:bf483dabfd223aca5304f6fdb35fe309667324966c2d856cd889e71cde3e7be2
+                  value: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:c82972790e7ac40423c827116967b289054aa59e9a132583db919fe510d924de
                 - name: RELATED_IMAGE_catalog_index
-                  value: registry.access.redhat.com/rhdh/plugin-catalog-index@sha256:cb879e03b3880e283cab49bfcd5efc11f94d480cc9b41d481de4037b17811197
-                image: registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:9801d342a1534de28178e14cb4962e13e4c189aa08294c531e9e4c0e28b789b4
+                  value: registry.access.redhat.com/rhdh/plugin-catalog-index@sha256:5b3be2341a4552c1499d9edb4e33681b16aacc833fabbfb1ec8f2601fdc241ac
+                image: registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:190fd09ae8a1bf2fa94656a9305aa7db0dec225efe96d79e8a0280625257d69e
                 livenessProbe:
                   httpGet:
                     path: /healthz
@@ -493,11 +493,11 @@ spec:
     name: Red Hat Inc.
     url: https://www.redhat.com/
   relatedImages:
-  - image: registry.redhat.io/rhel9/postgresql-15@sha256:be131cfaa31fbb3729cbc619011cfacff86b3b5b883b1424a6226c2a909cbdd8
+  - image: registry.redhat.io/rhel9/postgresql-15@sha256:6aea2e620148c99e6a5e698a13e6cd2e1af8f0a7df64043b00b154ceaab3f2ef
     name: postgresql
-  - image: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:bf483dabfd223aca5304f6fdb35fe309667324966c2d856cd889e71cde3e7be2
+  - image: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:c82972790e7ac40423c827116967b289054aa59e9a132583db919fe510d924de
     name: backstage
-  - image: registry.access.redhat.com/rhdh/plugin-catalog-index@sha256:cb879e03b3880e283cab49bfcd5efc11f94d480cc9b41d481de4037b17811197
+  - image: registry.access.redhat.com/rhdh/plugin-catalog-index@sha256:5b3be2341a4552c1499d9edb4e33681b16aacc833fabbfb1ec8f2601fdc241ac
     name: catalog-index
   replaces: rhdh-operator.v1.9.0
   version: 1.10.0
