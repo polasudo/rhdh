@@ -35,7 +35,7 @@ spec:
     - name: path-context
       value: distgit/containers/rhdh-must-gather
     - name: prefetch-input
-      value: '[{"type": "rpm", "path": "distgit/containers/rhdh-must-gather"}]'
+      value: '[{"type": "rpm", "path": "distgit/containers/rhdh-must-gather"}, {"type": "generic", "path": "distgit/containers/rhdh-must-gather"}]'
   pipelineSpec:
     params:
       - description: Source Repository URL
