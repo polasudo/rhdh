@@ -10,6 +10,8 @@ github_repos:
   - "redhat-developer/red-hat-developers-documentation-rhdh"
   - "redhat-developer/red-hat-developer-hub-software-templates"
   - "redhat-developer/rhdh-local"
+  - "redhat-ai-dev/rhdh-rag-content"
+  - "redhat-ai-dev/lightspeed-configs"
 
 # some repos do not get tagged when we release, as they follow a different release mechanism
 github_repos_no_tag:
