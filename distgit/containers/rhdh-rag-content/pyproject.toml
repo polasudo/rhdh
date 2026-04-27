@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rhdh-rag-content"
+description = "RAG for RHDH"
+version = "0.3.0"
+dependencies = [
+    "lightspeed-rag-content @ git+https://github.com/lightspeed-core/rag-content@f43189b4085ea74bf2aa48eb9f5c78c6c09d6af3",
+    "pyyaml",
+]
+
+authors = [
+    {name = "Maysun J Faisal"},
+    {name = "Jordan Dubrick"},
+]
+requires-python = "==3.12.*"
+readme = "README.md"
+license = {text = "Apache"}

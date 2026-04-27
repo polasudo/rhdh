@@ -1,0 +1,22 @@
+{
+    "current_version": "0.5.0",
+    "base_image": "quay.io/lightspeed-core/rag-content-cpu",
+    "images": [
+        {
+            "llama_stack_version": "0.3.5",
+            "digest": "sha256:81467bbb8a3390be6113c0e9998f5b1c154fa859f7883a3387ded896ef9a4d1a"
+        },
+        {
+            "llama_stack_version": "0.4.3",
+            "digest": "sha256:314a616c0efc944e376f35a50c9d98f6aab53e68a0971a2195024474aee8209c"
+        },
+        {
+            "llama_stack_version": "0.5.0",
+            "digest": "sha256:8816c11286ce4a260e5b7fbf9ee8b305459aab4458cef0ff7983dd6cb4502de7"
+        },
+        {
+            "llama_stack_version": "latest",
+            "digest": "sha256:84b59df985a29bf33e9a2d5d75253118803f53d81638de0d7f2dd342e3f4ce97"
+        }
+    ]
+}

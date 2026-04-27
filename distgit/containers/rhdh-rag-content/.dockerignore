@@ -1,0 +1,20 @@
+.git
+.github
+.pytest_cache
+.uv-cache
+.venv
+.gitignore
+.pre-commit-config.yaml
+
+OWNERS
+
+# Used locally, not required for image
+src
+tests
+scripts/resolve-base-image.sh
+scripts/extract-vector-db.sh
+scripts/resolve-rag-assets-release.sh
+
+# Generated files, dont copy from local path during build
+rhdh-product-docs-plaintext
+rhdh-docs-topic-map
