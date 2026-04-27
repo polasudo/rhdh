@@ -191,6 +191,9 @@ while [[ "$#" -gt 0 ]]; do
         index_tag=$(skopeo inspect "docker://${REGISTRY_PREFIX}/rhdh/plugin-catalog-index:${next_tag%-*}" | jq -r '.RepoTags[]' | \
             grep -v -E "$EXCLUDES" | grep -- "-" | sort -uV | tail -1 || true)
         PLUGIN_CATALOG_INDEX_DIGEST=$(skopeo inspect docker://${REGISTRY_PREFIX}/rhdh/plugin-catalog-index:"${index_tag}" | jq -r '.Digest')
+        rag_tag=$(skopeo inspect "docker://${REGISTRY_PREFIX}/rhdh/rhdh-rag-content-rhel9:${next_tag%-*}" | jq -r '.RepoTags[]' | \
+            grep -v -E "$EXCLUDES" | grep -- "-" | sort -uV | tail -1 || true)
+        RAG_CONTENT_DIGEST=$(skopeo inspect docker://${REGISTRY_PREFIX}/rhdh/rhdh-rag-content-rhel9:"${rag_tag}" | jq -r '.Digest')
         CHART_VERSION=${next_tag}-CI
         RHDH_VERSION=${next_tag}
         echo "Create chart for $RHDH_VERSION + index $index_tag";;
@@ -221,6 +224,11 @@ while [[ "$#" -gt 0 ]]; do
             PLUGIN_CATALOG_INDEX_DIGEST=$(skopeo inspect "docker://${REGISTRY_PREFIX_UNAUTH}/rhdh/plugin-catalog-index:${index_tag}" | jq -r '.Digest')
             if [[ ! $PLUGIN_CATALOG_INDEX_DIGEST ]]; then
                 echo -e "\n[ERROR] Image ${REGISTRY_PREFIX_UNAUTH}/rhdh/plugin-catalog-index:${index_tag} not found - Could not compute digest! Make sure the value of --rhdh-version is correct!\n\n"
+                usage; exit 1
+            fi
+            RAG_CONTENT_DIGEST=$(skopeo inspect "docker://${REGISTRY_PREFIX}/rhdh/rhdh-rag-content-rhel9:${RHDH_VERSION}" | jq -r '.Digest')
+            if [[ ! $RHDH_DIGEST ]]; then
+                echo -e "\n[ERROR] Image ${REGISTRY_PREFIX}/rhdh/rhdh-rag-content-rhel9:${RHDH_VERSION} not found - Could not compute digest! Make sure the value of --rhdh-version is correct!\n\n"
                 usage; exit 1
             fi
         else
@@ -268,6 +276,9 @@ if [[ $DO_LATEST -eq 1 ]]; then
     index_tag=$(skopeo inspect "docker://${REGISTRY_PREFIX}/rhdh/plugin-catalog-index:${rhdh_ver}" | jq -r '.RepoTags[]' | \
         grep -v -E "$EXCLUDES" | grep -- "-" | grep -E "^${rhdh_ver}" | sort -uV | tail -1 || true)
     PLUGIN_CATALOG_INDEX_DIGEST=$(skopeo inspect "docker://${REGISTRY_PREFIX}/rhdh/plugin-catalog-index:${index_tag}" | jq -r '.Digest')
+    rag_tag=$(skopeo inspect "docker://${REGISTRY_PREFIX}/rhdh/rhdh-rag-content-rhel9:${rhdh_ver}" | jq -r '.RepoTags[]' | \
+        grep -v -E "$EXCLUDES" | grep -- "-" | grep -E "^${rhdh_ver}" | sort -uV | tail -1 || true)
+    RAG_CONTENT_DIGEST=$(skopeo inspect "docker://${REGISTRY_PREFIX}/rhdh/rhdh-rag-content-rhel9:${rag_tag}" | jq -r '.Digest')
     CHART_VERSION=${next_tag}-CI
     RHDH_VERSION=${next_tag}
     echo "Create chart for $RHDH_VERSION ($CHART_BRANCH) + index $index_tag"
@@ -436,21 +447,28 @@ if [[ "${CHART_NAME}" == "redhat-developer-hub" ]] || [[ "${CHART_NAME}" == "bac
     fi
 
     POSTGRESQL_DIGEST=$(skopeo inspect docker://registry.redhat.io/rhel9/postgresql-15:latest | jq -r '.Digest')
+    LCS_DIGEST=$(skopeo inspect "docker://registry.redhat.io/lightspeed-core/lightspeed-stack-rhel9:$(bash "${SCRIPT_DIR}/../scripts/lightspeed/fetchLCSTag.sh" "${RHDH_VERSION}")" | jq -r '.Digest')
     # trim the sha256: prefix off, since we're treating this like a tag
     # image.repository already ends in @sha256
     POSTGRESQL_DIGEST="${POSTGRESQL_DIGEST//sha256:/}"
     RHDH_DIGEST="${RHDH_DIGEST//sha256:/}"
     PLUGIN_CATALOG_INDEX_DIGEST="${PLUGIN_CATALOG_INDEX_DIGEST//sha256:/}"
+    RAG_CONTENT_DIGEST="${RAG_CONTENT_DIGEST//sha256:/}"
+    LCS_DIGEST="${LCS_DIGEST//sha256:/}"
     if [[ ! "$RHDH_DIGEST" ]] || [[ ! "$PLUGIN_CATALOG_INDEX_DIGEST" ]] || [[ ! "$POSTGRESQL_DIGEST" ]]; then
         echo "[ERROR] Could not compute image digests for ${VALUES_PATH} - must exit!
 * RHDH_DIGEST = $RHDH_DIGEST,
 * PLUGIN_CATALOG_INDEX_DIGEST = $PLUGIN_CATALOG_INDEX_DIGEST,
-* POSTGRESQL_DIGEST = $POSTGRESQL_DIGEST"; exit 1
+* POSTGRESQL_DIGEST = $POSTGRESQL_DIGEST,
+* RAG_CONTENT_DIGEST = $RAG_CONTENT_DIGEST,
+* LCS_DIGEST = $LCS_DIGEST"; exit 1
     else
         echo "[INFO] Set image digests in ${VALUES_PATH}:
 * RHDH_DIGEST = $RHDH_DIGEST,
 * PLUGIN_CATALOG_INDEX_DIGEST = $PLUGIN_CATALOG_INDEX_DIGEST,
-* POSTGRESQL_DIGEST = $POSTGRESQL_DIGEST"
+* POSTGRESQL_DIGEST = $POSTGRESQL_DIGEST,
+* RAG_CONTENT_DIGEST = $RAG_CONTENT_DIGEST,
+* LCS_DIGEST = $LCS_DIGEST"
     fi
 
     if [[ $CHART_VERSION == *"CI"* ]]; then 
@@ -460,16 +478,24 @@ if [[ "${CHART_NAME}" == "redhat-developer-hub" ]] || [[ "${CHART_NAME}" == "bac
         .upstream.backstage.image.tag=\"${RHDH_DIGEST}\" |
         .global.catalogIndex.image.registry=\"quay.io\" |
         .global.catalogIndex.image.tag=\"${PLUGIN_CATALOG_INDEX_DIGEST}\" |
-        .upstream.postgresql.image.tag=\"${POSTGRESQL_DIGEST}\"
+        .upstream.postgresql.image.tag=\"${POSTGRESQL_DIGEST}\" |
+        .global.lightspeed.initContainer.image.registry=\"quay.io\" |
+        .global.lightspeed.initContainer.image.tag=\"${RAG_CONTENT_DIGEST}\" |
+        .global.lightspeed.sidecar.image.tag=\"${LCS_DIGEST}\"
         " "$VALUES_PATH"
     else
         $YQ -i "
         . *= load(\"${SCRIPT_DIR}/values_patch.yaml\") |
         .upstream.backstage.image.tag=\"${RHDH_DIGEST}\" |
         .global.catalogIndex.image.tag=\"${PLUGIN_CATALOG_INDEX_DIGEST}\" |
-        .upstream.postgresql.image.tag=\"${POSTGRESQL_DIGEST}\"
+        .upstream.postgresql.image.tag=\"${POSTGRESQL_DIGEST}\" |
+        .global.lightspeed.initContainer.image.tag=\"${RAG_CONTENT_DIGEST}\" |
+        .global.lightspeed.sidecar.image.tag=\"${LCS_DIGEST}\"
         " "$VALUES_PATH"
     fi
+
+    # replace lightspeed plugins upstream OCI packages with downstream OCI packages
+    bash $SCRIPT_DIR/../scripts/lightspeed/replaceUpstreamPlugins.sh "$VALUES_PATH"
 elif [[ "${CHART_NAME}" == "redhat-developer-hub-must-gather" ]] || [[ "${CHART_NAME}" == "must-gather" ]]; then
     # Normalize chart name for folder path in openshift-helm-charts
     CHART_NAME="redhat-developer-hub-must-gather"

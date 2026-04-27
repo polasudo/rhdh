@@ -308,6 +308,9 @@ upstream_repo_hub=""
 upstream_repo_hub_branch=""
 upstream_repo_op=""
 upstream_repo_must_gather=""
+# sed_rag_content
+upstream_repo_rag=""
+# sed_rag_content_end
 
 commitMsg=""
 # num_plugins=0 # total number of plugins to fetch/build
@@ -389,6 +392,10 @@ for ((i = START_REPO; i < NUM_REPOS; i++)); do # echo $i
       if [[ $upstream_repo_hub_branch == "" ]]; then upstream_repo_hub_branch="$branch"; fi
     elif [[ $CONTAINER_NAME == "rhdh-must-gather" ]]; then
       upstream_repo_must_gather="$repo/tree/$branch @ $SHA"
+    # sed_rag_content
+    elif [[ $CONTAINER_NAME == "rhdh-rag-content" ]]; then
+      upstream_repo_rag="$repo/tree/$branch @ $SHA"
+    # sed_rag_content_end
     fi
 
     # cat "${ROOTPATH}/sync/upstream_SHA_${CONTAINER_NAME}"; echo "$SHA = $branch @ $repo"
@@ -640,6 +647,8 @@ for ((i = START_REPO; i < NUM_REPOS; i++)); do # echo $i
             # debugging: show contents after transformation
             # grep "image:" $yml
           done
+          # replace upstream refs in lightspeed flavour configmap
+          bash "${ROOTPATH}/build/scripts/lightspeed/replaceUpstreamImages.sh" "$dhImageTag"
         popd >/dev/null || exit 1
       done
 
@@ -653,6 +662,14 @@ for ((i = START_REPO; i < NUM_REPOS; i++)); do # echo $i
       popd >/dev/null || exit 1
     fi
     ##################################### rhdh-operator-bundle #####################################
+    # sed_rag_content
+    ##################################### rhdh-rag-content #########################################
+    # if processing the upstream rag-content, also make some changes to the rag-content folder dowstream
+    if [[ $destination_folder == *"rag-content"* ]]; then
+      bash "$ROOTPATH/build/scripts/lightspeed/replaceRAGAssetsUrl.sh" "$destination_folder"
+    fi
+    ##################################### rhdh-rag-content #########################################
+    # sed_rag_content_end
 
     popd >/dev/null || exit 1
     # rm -fr "$TMPDIR/repo${i}"
@@ -786,6 +803,9 @@ echo "Using upstream repo(s):"
 [[ ${upstream_repo_hub} ]] && echo "* hub: ${upstream_repo_hub}"
 [[ ${upstream_repo_op} ]]  && echo "* operator: ${upstream_repo_op}"
 [[ ${upstream_repo_must_gather} ]] && echo "* must-gather: ${upstream_repo_must_gather}"
+# sed_rag_content
+[[ ${upstream_repo_rag} ]] && echo "* rag-content: ${upstream_repo_rag}"
+# sed_rag_content_end
 echo "Using midstream_repo:
 * ${midstream_repo}
 "
@@ -912,6 +932,11 @@ LABEL summary="\$SUMMARY" \\
       cpe="cpe:/a:redhat:rhdh:\${CI_X_VERSION}.\${CI_Y_VERSION}::el9"
 EOT
   echo "[INFO] Added metadata to $TMPDIR/must-gather.Dockerfile.foot"
+
+  # sed_rag_content
+  # inject product metadata into RAG content
+  bash "${ROOTPATH}/build/scripts/lightspeed/injectRAGContentMetadata.sh" "${upstream_repo_rag}" "${midstream_repo}" "${latestNextTag}"
+  # sed_rag_content_end
 fi
 
 if [[ $BUNDLEONLY -eq 1 ]]; then
@@ -1093,7 +1118,10 @@ fi
 if [[ $BUNDLEONLY -eq 1 ]]; then
   these_dirs="distgit/containers/rhdh-operator-bundle"
 else
-  these_dirs="distgit/containers/rhdh-hub distgit/containers/rhdh-operator distgit/containers/rhdh-must-gather" 
+  these_dirs="distgit/containers/rhdh-hub distgit/containers/rhdh-operator distgit/containers/rhdh-must-gather"
+  # sed_rag_content
+  these_dirs="${these_dirs} distgit/containers/rhdh-rag-content"
+  # sed_rag_content_end
 fi
 # set -x
 for d in $these_dirs; do
@@ -1109,6 +1137,11 @@ for d in $these_dirs; do
   elif [[ $d == "distgit/containers/rhdh-must-gather" ]] && [[ " ${SKIPPED_CONTAINERS[*]} " == *"rhdh-must-gather/"* ]]; then
     echo -e "${blue}[INFO] ======= Skip rhdh-must-gather ======= ${norm}"
     continue
+  # sed_rag_content
+  elif [[ $d == "distgit/containers/rhdh-rag-content" ]] && [[ " ${SKIPPED_CONTAINERS[*]} " == *"rhdh-rag-content/"* ]]; then
+    echo -e "${blue}[INFO] ======= Skip rhdh-rag-content ======= ${norm}"
+    continue
+  # sed_rag_content_end
   fi
   echo "[INFO] Remove generated/ignored content from $d/"
   pushd "$d" >/dev/null || exit 1
@@ -1153,6 +1186,11 @@ for d in $these_dirs; do
       # for must-gather, upstream already has a Containerfile - just use it as-is
       # Dockerfile.in transformation is not needed
       true
+    # sed_rag_content
+    elif [[ $d == "distgit/containers/rhdh-rag-content" ]] && [[ " ${SKIPPED_CONTAINERS[*]} " != *"rhdh-rag-content/"* ]]; then
+      # for rag-content use transformed Dockerfile from Dockerfile.in with RAG asset url ENV value
+      cp -f Dockerfile Containerfile
+    # sed_rag_content_end
     fi
 
     if [[ -f "$TMPDIR/${d##*rhdh-}.Dockerfile.foot" ]]; then
@@ -1188,6 +1226,11 @@ for d in $these_dirs; do
     elif [[ $d == "distgit/containers/rhdh-must-gather" ]]; then
       image="rhdh/rhdh-must-gather-rhel9"
       nextReleaseNum=$("${ROOTPATH}"/build/scripts/getNextReleaseNum.sh -b "${DWNSTM_BRANCH}" --tag "${DH_VERSION}" -c "$image" -q)
+    # sed_rag_content
+    elif [[ $d == "distgit/containers/rhdh-rag-content" ]]; then
+      image="rhdh/rhdh-rag-content"
+      nextReleaseNum=$("${ROOTPATH}"/build/scripts/getNextReleaseNum.sh -b "${DWNSTM_BRANCH}" --tag "${DH_VERSION}" -c "$image" -q)
+    # sed_rag_content_end
     fi
     # when bootstrapping the first builds for a new 1.yy stream, use just 1.yy-1
     if [[ $nextReleaseNum -eq 0 ]]; then nextReleaseNum=1; fi
@@ -1274,30 +1317,36 @@ fi
 # purge any files we definitely don't want downstream, including things that confuse snyk/clair scans
 # remove rhdh-operator/bundle folder so we don't have upstream dockerfiles or CSVs referencing unpinned digests or quay.io images
 # shellcheck disable=SC2086
-for d in \
-  distgit/containers/rhdh-hub/Dockerfile \
-  distgit/containers/rhdh-hub/Dockerfile.in \
-  distgit/containers/rhdh-hub/.cursor/ \
-  distgit/containers/rhdh-hub/.claude/ \
-  distgit/containers/rhdh-hub/.rulesync/ \
-  distgit/containers/rhdh-hub/build/containerfiles/Containerfile \
-  distgit/containers/rhdh-hub/build/containerfiles/Containerfile.in \
-  distgit/containers/rhdh-hub/docker/Dockerfile \
-  distgit/containers/rhdh-hub/docker/Dockerfile.in \
-  \
-  distgit/containers/rhdh-operator/bundle \
-  distgit/containers/rhdh-operator/Dockerfile \
-  distgit/containers/rhdh-operator/Dockerfile.in \
-  distgit/containers/rhdh-operator/docker/Dockerfile \
-  distgit/containers/rhdh-operator/docker/Dockerfile.in \
-  \
-  distgit/containers/rhdh-operator-bundle/Dockerfile \
-  distgit/containers/rhdh-operator-bundle/Dockerfile.in \
-  distgit/containers/rhdh-operator-bundle/docker/Dockerfile \
-  distgit/containers/rhdh-operator-bundle/docker/Dockerfile.in \
-  distgit/containers/rhdh-operator-bundle/bundle.Dockerfile \
-  ; do git rm -fr $d >/dev/null 2>&1 || rm -fr $d >/dev/null 2>&1
-done
+purge_list=(
+  distgit/containers/rhdh-hub/Dockerfile
+  distgit/containers/rhdh-hub/Dockerfile.in
+  distgit/containers/rhdh-hub/.cursor/
+  distgit/containers/rhdh-hub/.claude/
+  distgit/containers/rhdh-hub/.rulesync/
+  distgit/containers/rhdh-hub/build/containerfiles/Containerfile
+  distgit/containers/rhdh-hub/build/containerfiles/Containerfile.in
+  distgit/containers/rhdh-hub/docker/Dockerfile
+  distgit/containers/rhdh-hub/docker/Dockerfile.in
+
+  distgit/containers/rhdh-operator/bundle
+  distgit/containers/rhdh-operator/Dockerfile
+  distgit/containers/rhdh-operator/Dockerfile.in
+  distgit/containers/rhdh-operator/docker/Dockerfile
+  distgit/containers/rhdh-operator/docker/Dockerfile.in
+
+  distgit/containers/rhdh-operator-bundle/Dockerfile
+  distgit/containers/rhdh-operator-bundle/Dockerfile.in
+  distgit/containers/rhdh-operator-bundle/docker/Dockerfile
+  distgit/containers/rhdh-operator-bundle/docker/Dockerfile.in
+  distgit/containers/rhdh-operator-bundle/bundle.Dockerfile
+)
+# sed_rag_content
+purge_list+=(
+  distgit/containers/rhdh-rag-content/Dockerfile
+  distgit/containers/rhdh-rag-content/Dockerfile.in
+)
+# sed_rag_content_end
+for d in "${purge_list[@]}"; do git rm -fr "$d" >/dev/null 2>&1 || rm -fr "$d" >/dev/null 2>&1; done
 
 # Konflux performance workaround
 # set concurrency for turbo commands so that builds don't run our of file handles / disk space / memory (instead of default 10)
@@ -1364,7 +1413,14 @@ ${norm}" | tee /tmp/sync-midstream.sh.result.txt
   fi
 
   ## include license files from hub and operator in /licenses folder to make Konflux happy
-  [[ $BUNDLEONLY -eq 1 ]] && LICENSE_DIRS="rhdh-operator-bundle" || LICENSE_DIRS="rhdh-hub rhdh-operator rhdh-must-gather" 
+  if [ $BUNDLEONLY -eq 1 ]; then 
+    LICENSE_DIRS="rhdh-operator-bundle" 
+  else
+    LICENSE_DIRS="rhdh-hub rhdh-operator rhdh-must-gather"
+    # sed_rag_content
+    LICENSE_DIRS="${LICENSE_DIRS} rhdh-rag-content"
+    # sed_rag_content_end
+  fi
   for d in $LICENSE_DIRS; do
     if [[ -f distgit/containers/${d}/LICENSE ]]; then
       cp -f distgit/containers/"${d}"/LICENSE licenses/"${d}"-LICENSE
