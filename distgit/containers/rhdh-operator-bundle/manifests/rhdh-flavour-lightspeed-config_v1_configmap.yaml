@@ -249,7 +249,7 @@ data:
         spec:
           initContainers:
             - name: init-rag-data
-              image: quay.io/redhat-ai-dev/rag-content:release-1.9-lls-0.5.0
+              image: registry.redhat.io/rhdh/rhdh-rag-content-rhel9:1.10
               command:
                 - "sh"
                 - "-c"
@@ -268,7 +268,7 @@ data:
           containers:
             # Lightspeed Core Backend
             - name: lightspeed-core
-              image: quay.io/lightspeed-core/lightspeed-stack:0.5.0
+              image: registry.redhat.io/lightspeed-core/lightspeed-stack-rhel9@sha256:d392e5b21f6449433c5be96591619f919cc39638e6be3d80294cd9bc3ed67e7f
               imagePullPolicy: Always
               ports:
                 - containerPort: 8080
@@ -303,7 +303,7 @@ data:
       dynamic-plugins.yaml: |
         plugins:
           # Lightspeed Plugins
-          - package: oci://ghcr.io/redhat-developer/rhdh-plugin-export-overlays/red-hat-developer-hub-backstage-plugin-lightspeed:bs_1.45.3__1.2.3
+          - package: oci://registry.access.redhat.com/rhdh/red-hat-developer-hub-backstage-plugin-lightspeed:{{inherit}}
             disabled: false
             pluginConfig:
               dynamicPlugins:
@@ -330,7 +330,7 @@ data:
                         config:
                           id: lightspeed
                           priority: 100
-          - package: oci://ghcr.io/redhat-developer/rhdh-plugin-export-overlays/red-hat-developer-hub-backstage-plugin-lightspeed-backend:bs_1.45.3__1.2.3
+          - package: oci://registry.access.redhat.com/rhdh/red-hat-developer-hub-backstage-plugin-lightspeed-backend:{{inherit}}
             disabled: false
   metadata.yaml: |
     # Lightspeed (AI) flavour metadata
