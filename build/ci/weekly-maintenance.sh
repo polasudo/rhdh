@@ -36,9 +36,10 @@ echo "--- Starting Update Base Images ---"
 # Upstream repositories to update
 # We need to clone these and run the update script inside them
 declare -A UPSTREAM_REPOS
-UPSTREAM_REPOS=( 
+UPSTREAM_REPOS=(
     ["rhdh-hub"]="https://github.com/redhat-developer/rhdh.git"
     ["rhdh-operator"]="https://github.com/redhat-developer/rhdh-operator.git"
+    ["rhdh-rag-content"]="https://github.com/redhat-ai-dev/rhdh-rag-content.git"
 )
 
 UPDATE_SCRIPT="$SCRIPT_DIR/updateBaseImages.sh"

@@ -772,7 +772,7 @@ Verify that the hub and operator repos' latest commits have been built, and that
 1. **Disable scheduled pipelines** to prevent unapproved changes:  
 Go to link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/pipeline_schedules[pipeline schedules], uncheck *Activated*, and save changes.
 
-2. Run link:../build/scripts/updateBaseImages.sh[updateBaseImages.sh] against the upstream repos link:https://github.com/redhat-developer/rhdh/[rhdh] and link:https://github.com/redhat-developer/rhdh-operator/[rhdh-operator] to update base images in containerfiles.
+2. Run link:../build/scripts/updateBaseImages.sh[updateBaseImages.sh] against the upstream repos link:https://github.com/redhat-developer/rhdh/[rhdh], link:https://github.com/redhat-developer/rhdh-operator/[rhdh-operator], and link:https://github.com/redhat-ai-dev/rhdh-rag-content/[rhdh-rag-content] to update base images in containerfiles.
 
 3. Update link:../.tekton/[Tekton pipeline task versions] using link:../.tekton/updateDigests.sh[updateDigests.sh].
 
