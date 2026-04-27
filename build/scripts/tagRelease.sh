@@ -879,8 +879,12 @@ pushBranchAndOrTagGH () {
 						echo -e "${green}[INFO] Bump $d to $CSV_VERSION_Z / $CSV_VERSION_Z_OPERATOR${norm}" 
 						updateOperatorVersions "$TARGET_BRANCH" "$CSV_VERSION_Z" "$CSV_VERSION_Z_OPERATOR"
 					elif [[ $d == "redhat-developer__rhdh-local" ]]; then
-						echo -e "${green}[INFO] Bump $d $TARGET_BRANCH to ${CSV_VERSION}${norm}"
-						updateRHDHLocalVersions "$TARGET_BRANCH" "$CSV_VERSION" 
+						if [[ "$TARGET_BRANCH" != release-* ]]; then
+							echo -e "${blue}[INFO] Skip $d: z-release tagging only targets release branches (TARGET_BRANCH=$TARGET_BRANCH)${norm}"
+						else
+							echo -e "${green}[INFO] Bump $d $TARGET_BRANCH to ${CSV_VERSION}${norm}"
+							updateRHDHLocalVersions "$TARGET_BRANCH" "$CSV_VERSION"
+						fi
 					elif [[ $d == "redhat-developer__red-hat-developers-documentation-rhdh" ]]; then
 						echo -e "${green}[INFO] Bump $d to $CSV_VERSION${norm}" 
 						# note: for now, only bump to the last RELEASED version in the docs
