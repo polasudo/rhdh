@@ -29,12 +29,14 @@ yellow="\033[1;33m"
 # ── defaults ─────────────────────────────────────────────────────────
 GA_VERSION=""
 PLUGIN_REGEX=""
+MIDSTREAM_BRANCH=""
 SKIP_FBC=0
 SKIP_CHART_PRS=0
 VERBOSE=0
 
 PASS_COUNT=0
 FAIL_COUNT=0
+WARN_COUNT=0
 SKIP_COUNT=0
 OPEN_COUNT=0
 
@@ -48,6 +50,8 @@ Post-GA verification for RHDH. Default: only failures shown.
 
 Options:
     -v VERSION           GA version to verify (e.g. 1.9.0)  [required]
+    --midstream-branch B Read ocp-versions.yaml and release-repos.yaml from
+                         branch B instead of the local checkout (e.g. rhdh-1.8-rhel-9)
     --plugin-regex RE    Check plugin images matching regex (e.g. 'orchestrator')
     --skip-fbc           Skip FBC release checks (requires oc login to Konflux)
     --skip-chart-prs     Skip Helm chart PR merge checks
@@ -59,6 +63,7 @@ Optional:      podman (for --plugin-regex)
 
 Examples:
     $0 -v 1.9.0
+    $0 -v 1.8.6 --midstream-branch rhdh-1.8-rhel-9 --verbose
     $0 -v 1.9.2 --plugin-regex orchestrator --verbose
     $0 -v 1.9.0 --skip-fbc
 "
@@ -68,6 +73,7 @@ Examples:
 while [[ "$#" -gt 0 ]]; do
     case $1 in
         '-v')              GA_VERSION="$2"; shift 2;;
+        '--midstream-branch') MIDSTREAM_BRANCH="$2"; shift 2;;
         '--plugin-regex')  PLUGIN_REGEX="$2"; shift 2;;
         '--skip-fbc')      SKIP_FBC=1; shift;;
         '--skip-chart-prs') SKIP_CHART_PRS=1; shift;;
@@ -83,6 +89,29 @@ if [[ -z "$GA_VERSION" ]]; then usage; exit 1; fi
 RHDH_XY="${GA_VERSION%.*}"
 RHDH_XY_DASH="${RHDH_XY//./-}"
 RHDH_FULL_DASH="${GA_VERSION//./-}"
+
+# ── resolve config files ───────────────────────────────────────────
+OCP_VERSIONS_FILE="${SCRIPT_DIR}/ocp-versions.yaml"
+RELEASE_REPOS_FILE="${SCRIPT_DIR}/release-repos.yaml"
+
+if [[ -n "$MIDSTREAM_BRANCH" ]]; then
+    _cfg_tmpdir=$(mktemp -d)
+    trap 'rm -rf "$_cfg_tmpdir"' EXIT
+
+    git fetch origin "${MIDSTREAM_BRANCH}" --quiet 2>/dev/null || {
+        echo -e "${red}[ERROR] Cannot fetch branch: ${MIDSTREAM_BRANCH}${norm}"; exit 2
+    }
+    git show "origin/${MIDSTREAM_BRANCH}:build/scripts/ocp-versions.yaml" \
+        > "${_cfg_tmpdir}/ocp-versions.yaml" 2>/dev/null || {
+        echo -e "${red}[ERROR] Cannot read ocp-versions.yaml from branch: ${MIDSTREAM_BRANCH}${norm}"; exit 2
+    }
+    OCP_VERSIONS_FILE="${_cfg_tmpdir}/ocp-versions.yaml"
+
+    if git show "origin/${MIDSTREAM_BRANCH}:build/scripts/release-repos.yaml" \
+        > "${_cfg_tmpdir}/release-repos.yaml" 2>/dev/null; then
+        RELEASE_REPOS_FILE="${_cfg_tmpdir}/release-repos.yaml"
+    fi
+fi
 
 # ── prerequisite checks ─────────────────────────────────────────────
 check_prerequisites() {
@@ -102,18 +131,18 @@ check_prerequisites() {
             fail=1
         fi
     fi
-    if [[ ! -f "${SCRIPT_DIR}/release-repos.yaml" ]]; then
-        echo -e "${red}[ERROR] Required file not found: ${SCRIPT_DIR}/release-repos.yaml${norm}"
+    if [[ ! -f "${RELEASE_REPOS_FILE}" ]]; then
+        echo -e "${red}[ERROR] Required file not found: ${RELEASE_REPOS_FILE}${norm}"
         fail=1
-    elif [[ ! -r "${SCRIPT_DIR}/release-repos.yaml" ]]; then
-        echo -e "${red}[ERROR] Required file is not readable: ${SCRIPT_DIR}/release-repos.yaml${norm}"
+    elif [[ ! -r "${RELEASE_REPOS_FILE}" ]]; then
+        echo -e "${red}[ERROR] Required file is not readable: ${RELEASE_REPOS_FILE}${norm}"
         fail=1
     fi
-    if [[ ! -f "${SCRIPT_DIR}/ocp-versions.yaml" ]]; then
-        echo -e "${red}[ERROR] Required file not found: ${SCRIPT_DIR}/ocp-versions.yaml${norm}"
+    if [[ ! -f "${OCP_VERSIONS_FILE}" ]]; then
+        echo -e "${red}[ERROR] Required file not found: ${OCP_VERSIONS_FILE}${norm}"
         fail=1
-    elif [[ ! -r "${SCRIPT_DIR}/ocp-versions.yaml" ]]; then
-        echo -e "${red}[ERROR] Required file is not readable: ${SCRIPT_DIR}/ocp-versions.yaml${norm}"
+    elif [[ ! -r "${OCP_VERSIONS_FILE}" ]]; then
+        echo -e "${red}[ERROR] Required file is not readable: ${OCP_VERSIONS_FILE}${norm}"
         fail=1
     fi
     if [[ -n "$PLUGIN_REGEX" ]] && ! command -v podman &>/dev/null; then
@@ -126,15 +155,15 @@ check_prerequisites() {
         gl_repos=$(get_gitlab_repos)
         ocp_versions=$(get_ocp_versions)
         if [[ -z "${gh_repos// }" ]]; then
-            echo -e "${red}[ERROR] No github_repos found in ${SCRIPT_DIR}/release-repos.yaml${norm}"
+            echo -e "${red}[ERROR] No github_repos found in ${RELEASE_REPOS_FILE}${norm}"
             fail=1
         fi
         if [[ -z "${gl_repos// }" ]]; then
-            echo -e "${red}[ERROR] No gitlab_repos found in ${SCRIPT_DIR}/release-repos.yaml${norm}"
+            echo -e "${red}[ERROR] No gitlab_repos found in ${RELEASE_REPOS_FILE}${norm}"
             fail=1
         fi
         if [[ -z "${ocp_versions// }" ]]; then
-            echo -e "${red}[ERROR] No OCP versions found in ${SCRIPT_DIR}/ocp-versions.yaml${norm}"
+            echo -e "${red}[ERROR] No OCP versions found in ${OCP_VERSIONS_FILE}${norm}"
             fail=1
         fi
     fi
@@ -164,6 +193,12 @@ record_skip() {
     if [[ $VERBOSE -eq 1 ]]; then echo -e "${yellow}[SKIP]${norm} $msg"; fi
 }
 
+record_warn() {
+    local msg="$1"
+    (( WARN_COUNT++ ))
+    echo -e "${yellow}[WARN]${norm} $msg"
+}
+
 record_open() {
     local msg="$1"
     (( OPEN_COUNT++ ))
@@ -187,21 +222,21 @@ skopeo_check() {
 
 get_ocp_versions() {
     local base
-    base=$(grep 'OCP_VERSION_BASE:' "${SCRIPT_DIR}/ocp-versions.yaml" | sed 's/.*: *"\(.*\)"/\1/')
+    base=$(grep 'OCP_VERSION_BASE:' "${OCP_VERSIONS_FILE}" | sed 's/.*: *"\(.*\)"/\1/')
     echo "$base"
-    sed -n '/^SUPPORTED_VERSIONS:/,/^[A-Z]/{ /^ *- /s/.*"\([^"]*\)".*/\1/p; }' "${SCRIPT_DIR}/ocp-versions.yaml"
+    sed -n '/^SUPPORTED_VERSIONS:/,/^[A-Z]/{ /^ *- /s/.*"\([^"]*\)".*/\1/p; }' "${OCP_VERSIONS_FILE}"
 }
 
 get_github_repos() {
-    sed -n '/^github_repos:/,/^[a-z]/{ /^ *- /s/.*"\([^"]*\)".*/\1/p; }' "${SCRIPT_DIR}/release-repos.yaml"
+    sed -n '/^github_repos:/,/^[a-z]/{ /^ *- /s/.*"\([^"]*\)".*/\1/p; }' "${RELEASE_REPOS_FILE}"
 }
 
 get_github_repos_no_tag() {
-    sed -n '/^github_repos_no_tag:/,/^[a-z]/{ /^ *- /s/.*"\([^"]*\)".*/\1/p; }' "${SCRIPT_DIR}/release-repos.yaml"
+    sed -n '/^github_repos_no_tag:/,/^[a-z]/{ /^ *- /s/.*"\([^"]*\)".*/\1/p; }' "${RELEASE_REPOS_FILE}"
 }
 
 get_gitlab_repos() {
-    sed -n '/^gitlab_repos:/,/^[a-z]/{ /^ *- /s/.*"\([^"]*\)".*/\1/p; }' "${SCRIPT_DIR}/release-repos.yaml"
+    sed -n '/^gitlab_repos:/,/^[a-z]/{ /^ *- /s/.*"\([^"]*\)".*/\1/p; }' "${RELEASE_REPOS_FILE}"
 }
 
 # ── 1. Container images on registry.redhat.io ───────────────────────
@@ -263,7 +298,9 @@ check_fbc_releases() {
     local ocp_versions
     ocp_versions=$(get_ocp_versions)
     if [[ $VERBOSE -eq 1 ]]; then
-        echo -e "${blue}[INFO]${norm} Using OCP versions from ocp-versions.yaml: ${ocp_versions//$'\n'/ }"
+        local src="ocp-versions.yaml"
+        [[ -n "$MIDSTREAM_BRANCH" ]] && src="${MIDSTREAM_BRANCH}:build/scripts/ocp-versions.yaml"
+        echo -e "${blue}[INFO]${norm} Using OCP versions from ${src}: ${ocp_versions//$'\n'/ }"
     fi
 
     for ocp_ver in $ocp_versions; do
@@ -435,6 +472,7 @@ _check_gh_release_pr() {
     case "$state" in
         MERGED)  record_pass "Release PR merged: ${repo} (${url})" ;;
         OPEN)    record_open "Release PR still open: ${repo} (${url})" ;;
+        CLOSED)  record_warn "Release PR closed: ${repo} (${url})" ;;
         *)       record_fail "Release PR ${state}: ${repo} (${url})" ;;
     esac
 }
@@ -551,16 +589,16 @@ check_plugin_images() {
 # ── summary ─────────────────────────────────────────────────────────
 
 print_summary() {
-    local total=$(( PASS_COUNT + FAIL_COUNT + SKIP_COUNT + OPEN_COUNT ))
+    local total=$(( PASS_COUNT + FAIL_COUNT + WARN_COUNT + SKIP_COUNT + OPEN_COUNT ))
 
     echo ""
     echo -e "${blue}───────────────────────────────────────────────────────────${norm}"
     if [[ $FAIL_COUNT -eq 0 ]] && [[ $OPEN_COUNT -eq 0 ]]; then
-        echo -e "  ${green}RHDH ${GA_VERSION}: all ${PASS_COUNT} checks passed${norm} (${SKIP_COUNT} skipped)"
+        echo -e "  ${green}RHDH ${GA_VERSION}: all ${PASS_COUNT} checks passed${norm} (${WARN_COUNT} warnings, ${SKIP_COUNT} skipped)"
     elif [[ $FAIL_COUNT -eq 0 ]]; then
-        echo -e "  ${yellow}RHDH ${GA_VERSION}: ${OPEN_COUNT} OPEN${norm}, ${PASS_COUNT} passed, ${SKIP_COUNT} skipped  (${total} total)"
+        echo -e "  ${yellow}RHDH ${GA_VERSION}: ${OPEN_COUNT} OPEN${norm}, ${PASS_COUNT} passed, ${WARN_COUNT} warnings, ${SKIP_COUNT} skipped  (${total} total)"
     else
-        echo -e "  ${red}RHDH ${GA_VERSION}: ${FAIL_COUNT} FAILED${norm}, ${OPEN_COUNT} open, ${PASS_COUNT} passed, ${SKIP_COUNT} skipped  (${total} total)"
+        echo -e "  ${red}RHDH ${GA_VERSION}: ${FAIL_COUNT} FAILED${norm}, ${OPEN_COUNT} open, ${PASS_COUNT} passed, ${WARN_COUNT} warnings, ${SKIP_COUNT} skipped  (${total} total)"
     fi
     echo -e "${blue}───────────────────────────────────────────────────────────${norm}"
 }
@@ -570,6 +608,9 @@ print_summary() {
 check_prerequisites
 
 echo -e "${blue}Verifying RHDH ${GA_VERSION} GA release...${norm}"
+if [[ -n "$MIDSTREAM_BRANCH" ]]; then
+    echo -e "${blue}[INFO]${norm} Config sourced from branch: ${MIDSTREAM_BRANCH}"
+fi
 
 check_container_images
 check_plugin_catalog_index
