@@ -2,8 +2,7 @@
 auth:
   environment: development
   providers:
-    guest:
-      dangerouslyAllowOutsideDevelopment: true
+    guest: {}
     github:
       development:
         clientId: ${GITHUB_CLIENT_ID}
@@ -156,7 +155,7 @@ backend:
 
   auth:
     keys:
-      - secret: "development"
+      - secret: ${BACKEND_SECRET}
 
   reading:
     allow:

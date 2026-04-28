@@ -115,17 +115,16 @@ EXTERNAL_URL=https://rhdh.apps.example.com     # specific URL (OpenShift/proxy)
 
 ---
 
-## Default Credentials
+## Access & Credentials
 
-| Service    | User    | Password                  | Notes                    |
-|------------|---------|---------------------------|--------------------------|
-| SSH        | admin   | `admin123`                | wheel group, sudo access |
-| SSH        | root    | `root123`                 |                          |
-| PostgreSQL | postgres| `secure_admin_password_123`|                         |
-| PostgreSQL | rhdh_user| `secure_rhdh_password_123`| database: `rhdh_backstage`|
-| RHDH       | Guest   | (none)                    | guest auth enabled       |
+| Service    | User    | Default                              | Notes                          |
+|------------|---------|--------------------------------------|--------------------------------|
+| SSH        | admin   | (locked — provide SSH keys via cloud-init) | wheel group, sudo access |
+| PostgreSQL | postgres| `CHANGE_ME_POSTGRES_ADMIN_PASSWORD`  | set in `postgres.env` and `rhdh.env` |
+| PostgreSQL | rhdh_user| `CHANGE_ME_RHDH_DB_PASSWORD`        | database: `rhdh_backstage`     |
+| RHDH       | Guest   | (none)                               | dev environment only           |
 
-**Change all passwords before deploying outside development.**
+**All `CHANGE_ME_*` values must be replaced before deployment.**
 
 ---
 

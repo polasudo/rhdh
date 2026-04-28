@@ -10,16 +10,18 @@ RUN useradd -r -u 1001 -g root -d /opt/app-root/src -s /sbin/nologin rhdh && \
     mkdir -p /opt/app-root/src /opt/app-root/src/dynamic-plugins-root /etc/rhdh /var/lib/rhdh /etc/containers /usr/local/lib/rhdh && \
     echo "rhdh ALL=(root) NOPASSWD: /usr/bin/chown, /usr/bin/chmod, /usr/bin/mkdir" > /etc/sudoers.d/rhdh && \
     dnf install -y openssh-server && \
-    systemctl enable sshd && \
     useradd -m -u 1000 -G wheel -s /bin/bash admin && \
-    echo 'admin123' | passwd --stdin admin && \
-    echo 'root123' | passwd --stdin root && \
-    passwd -u admin && \
-    passwd -u root && \
-    sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config && \
-    sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config && \
-    sed -i 's/#PubkeyAuthentication yes/PubkeyAuthentication yes/' /etc/ssh/sshd_config && \
-    sed -i 's/#AuthorizedKeysFile/AuthorizedKeysFile/' /etc/ssh/sshd_config && \
+    usermod -L admin && \
+    systemctl enable sshd && \
+    mkdir -p /etc/ssh/sshd_config.d && \
+    printf '%s\n' \
+      'PasswordAuthentication no' \
+      'ChallengeResponseAuthentication no' \
+      'PermitRootLogin prohibit-password' \
+      'UsePAM yes' \
+      'PubkeyAuthentication yes' \
+      > /etc/ssh/sshd_config.d/10-disable-password-auth.conf && \
+    chmod 644 /etc/ssh/sshd_config.d/10-disable-password-auth.conf && \
     echo '%wheel ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers
 
 COPY ./configs /etc/rhdh/configs
