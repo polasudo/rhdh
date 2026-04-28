@@ -163,20 +163,16 @@ podman run -v /run/secrets/auth.json:/etc/containers/auth.json:ro ...
 
 ---
 
-## Air-Gap / Logically Bound Images
+## Air-Gap / Pre-Pulled Images
 
-This image uses bootc's logically bound images pattern for offline deployment.
+Container images are pre-pulled during build into `/usr/lib/containers/storage` and registered via `additionalimagestores` in `storage.conf`. This means podman finds images locally at runtime without needing registry access.
 
-1. Symlinks in `/usr/lib/bootc/bound-images.d/` point to Quadlet service definitions
-2. `bootc-image-builder` discovers these and pulls the referenced container images
-3. The final QCOW2/ISO contains all images embedded
-
-Verify:
+Verify available images:
 ```bash
-podman exec rhdh-bootc-test /usr/local/bin/manage-bound-images.sh
+podman exec rhdh-bootc-test podman images
 ```
 
-> Container images won't appear in the bootc container during testing — they are embedded by `bootc-image-builder` during QCOW2/ISO creation.
+For VM deployment, `bootc-image-builder` embeds these images into the final QCOW2/ISO.
 
 ---
 

@@ -46,12 +46,6 @@ COPY ./quadlet/postgres.container /usr/share/containers/systemd/postgres.contain
 COPY ./quadlet/rhdh-network.network /usr/share/containers/systemd/rhdh-network.network
 COPY ./quadlet/postgres.env /etc/rhdh/postgres.env
 
-# Create logically bound images by symlinking container files to bootc bound-images directory
-# This enables both RHDH and PostgreSQL containers to be managed by bootc with automatic image pulling
-RUN mkdir -p /usr/lib/bootc/bound-images.d && \
-    ln -s /usr/share/containers/systemd/rhdh.container /usr/lib/bootc/bound-images.d/rhdh.container && \
-    ln -s /usr/share/containers/systemd/postgres.container /usr/lib/bootc/bound-images.d/postgres.container
-
 # Register /usr/lib/containers/storage as an additional image store so podman
 # can find pre-pulled images at runtime without requiring registry access
 RUN sed -i -e '/additionalimage.*/a "/usr/lib/containers/storage",' \
@@ -116,21 +110,6 @@ RUN printf '%s\n' \
   'echo "✓ RHDH backend healthy"' \
   'echo "=== Health check passed ==="' \
   > /usr/local/bin/health-check.sh && chmod +x /usr/local/bin/health-check.sh
-
-RUN printf '%s\n' \
-  '#!/bin/bash' \
-  'echo "=== RHDH + PostgreSQL Bound Images Status ==="' \
-  'echo ""' \
-  'echo "Bound Images Directory:"' \
-  'ls -la /usr/lib/bootc/bound-images.d/ 2>/dev/null || echo "  Warning: No bound images directory"' \
-  'echo ""' \
-  'echo "Container Images Available:"' \
-  'podman images' \
-  'echo ""' \
-  'echo "Container Services Status:"' \
-  'systemctl is-active postgres.service >/dev/null 2>&1 && echo "  ✓ PostgreSQL service active" || echo "  - PostgreSQL service inactive"' \
-  'systemctl is-active rhdh.service >/dev/null 2>&1 && echo "  ✓ RHDH service active" || echo "  - RHDH service inactive"' \
-  > /usr/local/bin/manage-bound-images.sh && chmod +x /usr/local/bin/manage-bound-images.sh
 
 EXPOSE 7007 5432
 WORKDIR /opt/app-root/src
