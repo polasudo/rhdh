@@ -62,6 +62,18 @@ RUN useradd -m -G wheel -s /bin/bash admin && \
       > /etc/ssh/sshd_config.d/49-rhdh-harden.conf && \
     echo '%wheel ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers
 
+# ── Crypto policy ────────────────────────────────────────────────────────
+# Set DEFAULT crypto policy explicitly. For FIPS, customers must also add
+# fips=1 kernel argument via /usr/lib/bootc/kargs.d/ and set policy to FIPS.
+RUN update-crypto-policies --no-reload --set DEFAULT
+
+# ── Audit logging ────────────────────────────────────────────────────────
+COPY ./security/99-rhdh-audit.rules /etc/audit/rules.d/99-rhdh-audit.rules
+RUN systemctl enable auditd
+
+# ── Mask unnecessary services ───────────────────────────────────────────
+RUN systemctl mask debug-shell.service kdump.service
+
 # ── Kernel hardening ─────────────────────────────────────────────────────
 COPY ./security/99-rhdh-hardening.conf /usr/lib/sysctl.d/99-rhdh-hardening.conf
 
