@@ -90,6 +90,15 @@ RUN systemctl enable firewalld && \
       '</zone>' \
       > /etc/firewalld/zones/public.xml
 
+# ── Registry auth for runtime plugin pulls ───────────────────────────────
+# Placeholder auth.json — Ansible injects real credentials via cloud-init
+# or Podman secrets. Root needs ~/.config/containers/auth.json for systemd.
+COPY ./files/auth.json /etc/containers/auth.json
+RUN mkdir -p /root/.config/containers && \
+    cp /etc/containers/auth.json /root/.config/containers/auth.json && \
+    chmod 600 /root/.config/containers/auth.json && \
+    chmod 644 /etc/containers/auth.json
+
 # ── Copy configs, env files, scripts ───────────────────────────────────
 COPY ./configs /etc/rhdh/configs
 COPY ./quadlet/rhdh.env /etc/rhdh/rhdh.env
