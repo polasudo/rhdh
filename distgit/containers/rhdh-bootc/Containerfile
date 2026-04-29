@@ -62,6 +62,9 @@ RUN useradd -m -G wheel -s /bin/bash admin && \
       > /etc/ssh/sshd_config.d/49-rhdh-harden.conf && \
     echo '%wheel ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers
 
+# ── Kernel hardening ─────────────────────────────────────────────────────
+COPY ./security/99-rhdh-hardening.conf /usr/lib/sysctl.d/99-rhdh-hardening.conf
+
 # ── Firewall ─────────────────────────────────────────────────────────────
 # Allow only SSH and RHDH; PostgreSQL is internal to the container network.
 RUN systemctl enable firewalld && \
