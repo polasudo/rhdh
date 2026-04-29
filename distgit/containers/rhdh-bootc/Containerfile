@@ -44,16 +44,21 @@ RUN useradd -r -u 1001 -g root -d /opt/app-root/src -s /sbin/nologin rhdh && \
 # ── SSH hardening ────────────────────────────────────────────────────────
 # Key-based auth only. The admin user is created for downstream (Ansible)
 # to inject SSH public keys at build or cloud-init time.
+# Config uses 49- prefix to take precedence over 50-redhat.conf defaults.
 RUN useradd -m -G wheel -s /bin/bash admin && \
     passwd -l admin && \
     passwd -l root && \
     systemctl enable sshd && \
     printf '%s\n' \
       'PasswordAuthentication no' \
-      'PermitRootLogin prohibit-password' \
+      'PermitRootLogin no' \
       'PubkeyAuthentication yes' \
       'AuthorizedKeysFile .ssh/authorized_keys' \
-      > /etc/ssh/sshd_config.d/10-harden.conf && \
+      'MaxAuthTries 3' \
+      'ClientAliveInterval 300' \
+      'ClientAliveCountMax 2' \
+      'X11Forwarding no' \
+      > /etc/ssh/sshd_config.d/49-rhdh-harden.conf && \
     echo '%wheel ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers
 
 # ── Copy configs, env files, scripts ───────────────────────────────────
