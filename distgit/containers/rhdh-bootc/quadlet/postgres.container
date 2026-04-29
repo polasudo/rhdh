@@ -18,6 +18,7 @@ HealthTimeout=10s
 HealthRetries=3
 
 [Service]
+ExecStartPost=/usr/local/bin/grant-postgres-createdb.sh
 Restart=always
 RestartSec=10
 TimeoutStartSec=900

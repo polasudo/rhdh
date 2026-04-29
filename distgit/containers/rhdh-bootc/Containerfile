@@ -108,6 +108,10 @@ COPY ./scripts/prepare-and-install-dynamic-plugins.sh /usr/local/bin/
 COPY ./scripts/wait-for-plugins-and-start.sh /usr/local/bin/
 COPY ./scripts/detect-and-set-base-url.sh /usr/local/bin/
 COPY ./scripts/health-check.sh /usr/local/bin/
+COPY ./scripts/grant-postgres-createdb.sh /usr/local/bin/
+COPY ./scripts/validate-external-postgres.sh /usr/local/bin/
+COPY ./scripts/clean-plugin-lock.sh /usr/local/bin/
+COPY ./scripts/lib/yaml-helper.py /usr/local/lib/rhdh/yaml-helper.py
 
 # ── Quadlet definitions ─────────────────────────────────────────────────
 COPY ./quadlet/rhdh.container /usr/share/containers/systemd/rhdh.container
@@ -157,10 +161,15 @@ RUN mkdir -p /usr/share/rhdh && \
     > /usr/share/rhdh/image-version
 
 # ── Directory structure and permissions ──────────────────────────────────
-RUN chmod +x /usr/local/bin/prepare-and-install-dynamic-plugins.sh \
+RUN mkdir -p /usr/local/lib/rhdh && \
+    chmod +x /usr/local/bin/prepare-and-install-dynamic-plugins.sh \
              /usr/local/bin/wait-for-plugins-and-start.sh \
              /usr/local/bin/detect-and-set-base-url.sh \
-             /usr/local/bin/health-check.sh && \
+             /usr/local/bin/health-check.sh \
+             /usr/local/bin/grant-postgres-createdb.sh \
+             /usr/local/bin/validate-external-postgres.sh \
+             /usr/local/bin/clean-plugin-lock.sh \
+             /usr/local/lib/rhdh/yaml-helper.py && \
     mkdir -p /var/lib/rhdh/{dynamic-plugins-root,generated,config,.npm,scripts} && \
     mkdir -p /var/lib/rhdh/postgres-data && \
     chown 26:26 /var/lib/rhdh/postgres-data && \
