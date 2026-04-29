@@ -11,7 +11,6 @@ ContainerName=rhdh-postgres
 EnvironmentFile=/etc/rhdh/postgres.env
 Volume=postgres-data:/var/lib/pgsql/data:Z
 Network=rhdh-network
-PublishPort=5432:5432
 
 HealthCmd=/bin/bash -c 'pg_isready -U postgres'
 HealthInterval=30s

@@ -32,7 +32,8 @@ RUN if [ -f /cachi2/cachi2.env ]; then \
         nodejs npm python3 curl sudo \
         podman openssl \
         cloud-init open-vm-tools \
-        openssh-server && \
+        openssh-server \
+        firewalld audit crypto-policies-scripts && \
     dnf clean all && \
     rm -rf /var/cache/dnf
 
@@ -60,6 +61,19 @@ RUN useradd -m -G wheel -s /bin/bash admin && \
       'X11Forwarding no' \
       > /etc/ssh/sshd_config.d/49-rhdh-harden.conf && \
     echo '%wheel ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers
+
+# ── Firewall ─────────────────────────────────────────────────────────────
+# Allow only SSH and RHDH; PostgreSQL is internal to the container network.
+RUN systemctl enable firewalld && \
+    mkdir -p /etc/firewalld/zones && \
+    printf '%s\n' \
+      '<?xml version="1.0" encoding="utf-8"?>' \
+      '<zone target="default">' \
+      '  <short>public</short>' \
+      '  <service name="ssh"/>' \
+      '  <port port="7007" protocol="tcp"/>' \
+      '</zone>' \
+      > /etc/firewalld/zones/public.xml
 
 # ── Copy configs, env files, scripts ───────────────────────────────────
 COPY ./configs /etc/rhdh/configs
@@ -135,7 +149,7 @@ RUN chmod +x /usr/local/bin/prepare-and-install-dynamic-plugins.sh \
     chmod -R g=u /opt/app-root /var/lib/rhdh /etc/rhdh && \
     chmod 644 /usr/share/containers/systemd/rhdh.container
 
-EXPOSE 7007 5432
+EXPOSE 7007
 WORKDIR /opt/app-root/src
 CMD ["/usr/sbin/init"]
 
