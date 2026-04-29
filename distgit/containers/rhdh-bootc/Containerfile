@@ -109,6 +109,10 @@ COPY ./quadlet/rhdh-network.network /usr/share/containers/systemd/rhdh-network.n
 COPY systemd/rhdh-stack-autostart.service /etc/systemd/system/rhdh-stack-autostart.service
 RUN systemctl enable rhdh-stack-autostart.service
 
+# ── Subordinate UID/GID ranges for nested podman ─────────────────────────
+RUN echo "root:1:65536" >> /etc/subuid && \
+    echo "root:1:65536" >> /etc/subgid
+
 # ── Additional image store ───────────────────────────────────────────────
 RUN sed -i -e '/additionalimage.*/a "/usr/lib/containers/storage",' \
         /etc/containers/storage.conf
