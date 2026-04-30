@@ -70,7 +70,11 @@ Both `postgres.service` and `rhdh.service` should show `Active: active (running)
 
 ## Customization
 
-### Runtime (no rebuild)
+### Day 0 (cloud-init)
+
+For initial deployment, use cloud-init user-data to set credentials, database config, and integrations. See [Cloud-Init](#cloud-init-day-0-provisioning) above.
+
+### Day 2 (runtime, no rebuild)
 
 Edit environment variables in `quadlet/rhdh.env` on the running host:
 
@@ -115,16 +119,76 @@ EXTERNAL_URL=https://rhdh.apps.example.com     # specific URL (OpenShift/proxy)
 
 ---
 
+## Cloud-Init (Day 0 Provisioning)
+
+For production and VM deployments, cloud-init configures the instance at first boot — no SSH access needed.
+
+### How it works
+
+1. Attach `cloud-init-user-data.yaml` as user-data when deploying the VM
+2. On first boot, `first-boot-config.service` reads the user-data
+3. SSH keys are injected, credentials become Podman secrets, app config is written to `app-config.production.yaml`
+4. Quadlet drop-ins inject secrets into rhdh and postgres containers
+5. The user-data is shredded after processing
+
+```
+cloud-config.service → first-boot-config.service → postgres.service → rhdh.service
+```
+
+### Deploy with cloud-init
+
+1. Copy and edit the template:
+   ```bash
+   cp cloud-init-user-data.yaml my-user-data.yaml
+   # Edit: add your SSH key, set passwords or leave as "auto"
+   ```
+
+2. Attach to your VM:
+   ```bash
+   # QEMU/KVM
+   virt-install --cloud-init user-data=my-user-data.yaml ...
+
+   # OCP Virt — set in VirtualMachine spec:
+   #   spec.volumes[].cloudInitNoCloud.userData
+   ```
+
+### What "auto" means
+
+Values set to `"auto"` in user-data are securely generated on first boot:
+- `security.backend_secret` → 64-char hex string
+- `database.builtin.password` → 32-char hex string
+- `database.builtin.admin_password` → 32-char hex string
+
+### Without cloud-init
+
+If no user-data is provided, `first-boot-config.service` auto-generates all infrastructure secrets (BACKEND_SECRET, POSTGRESQL_PASSWORD, POSTGRESQL_ADMIN_PASSWORD) so the services can still start. This is useful for local testing with `podman run`.
+
+### Verify secrets and drop-ins
+
+```bash
+# List Podman secrets
+podman exec rhdh-bootc-test podman secret ls
+
+# Check generated drop-ins
+podman exec rhdh-bootc-test cat /etc/containers/systemd/rhdh.container.d/secrets.conf
+podman exec rhdh-bootc-test cat /etc/containers/systemd/postgres.container.d/secrets.conf
+
+# Check first-boot marker
+podman exec rhdh-bootc-test cat /etc/rhdh/.first-boot-complete
+```
+
+---
+
 ## Access & Credentials
 
 | Service    | User    | Default                              | Notes                          |
 |------------|---------|--------------------------------------|--------------------------------|
 | SSH        | admin   | (locked — provide SSH keys via cloud-init) | wheel group, sudo access |
-| PostgreSQL | postgres| `CHANGE_ME_POSTGRES_ADMIN_PASSWORD`  | set in `postgres.env` and `rhdh.env` |
-| PostgreSQL | rhdh_user| `CHANGE_ME_RHDH_DB_PASSWORD`        | database: `rhdh_backstage`     |
+| PostgreSQL | postgres| auto-generated or from cloud-init    | stored as Podman secret        |
+| PostgreSQL | rhdh_user| auto-generated or from cloud-init   | database: `rhdh_backstage`     |
 | RHDH       | Guest   | (none)                               | dev environment only           |
 
-**All `CHANGE_ME_*` values must be replaced before deployment.**
+With cloud-init, credentials are injected as Podman secrets — the `CHANGE_ME_*` placeholders in env files are overridden by Quadlet drop-ins at runtime.
 
 ---
 
@@ -153,11 +217,14 @@ podman run -v /run/secrets/auth.json:/etc/containers/auth.json:ro ...
 |------|-------------|
 | `Containerfile.bootc` | Image definition |
 | `build.sh` | Build script |
+| `cloud-init-user-data.yaml` | Cloud-init template for Day 0 provisioning |
 | `configs/app-config/` | RHDH app configuration |
 | `configs/dynamic-plugins/` | Plugin configuration |
 | `configs/catalog-entities/` | Users, groups, components, TechDocs |
 | `quadlet/` | Systemd Quadlet units (rhdh, postgres, network) and env files |
 | `scripts/` | Plugin prep, startup, base URL detection, postgres grants |
+| `scripts/lib/` | Shared libraries (common.sh, secrets-dropin.sh, yaml-helper.py) |
+| `systemd/` | Systemd service units (first-boot-config.service) |
 | `files/` | Runtime files embedded in image (auth.json) |
 
 ---
@@ -206,6 +273,22 @@ podman exec rhdh-bootc-test grep '^BASE_URL' /etc/rhdh/rhdh.env
 ```
 
 Use the URL shown there. If you set `EXTERNAL_URL=auto`, BASE_URL will be an IP — use that instead of `localhost`.
+
+### Cloud-init not applying
+
+Check that `first-boot-config.service` ran successfully:
+
+```bash
+podman exec rhdh-bootc-test systemctl status first-boot-config.service --no-pager
+podman exec rhdh-bootc-test journalctl -u first-boot-config.service --no-pager
+```
+
+If first-boot already completed, the service is skipped. To re-run, remove the marker:
+
+```bash
+podman exec rhdh-bootc-test rm /etc/rhdh/.first-boot-complete
+podman exec rhdh-bootc-test systemctl restart first-boot-config.service
+```
 
 ### Services not starting
 

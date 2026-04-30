@@ -2,7 +2,7 @@
 
 FROM registry.redhat.io/rhel9/rhel-bootc@sha256:69ed37a03c95c5461372f0a870b76b5e46265e7ac7b6d7498b9b7a4d546a3e87
 
-RUN dnf install -y nodejs npm python3 python3-pip python3-pyyaml curl sudo podman && \
+RUN dnf install -y nodejs npm python3 python3-pip python3-pyyaml curl sudo podman cloud-init openssl && \
     dnf clean all && \
     pip3 install --no-cache-dir mkdocs-techdocs-core==1.3.3
 
@@ -34,6 +34,10 @@ COPY ./scripts/grant-postgres-createdb.sh /usr/local/bin/
 COPY ./scripts/validate-external-postgres.sh /usr/local/bin/
 COPY ./scripts/clean-plugin-lock.sh /usr/local/bin/
 COPY ./scripts/lib/yaml-helper.py /usr/local/lib/rhdh/yaml-helper.py
+COPY ./scripts/first-boot-config.sh /usr/local/bin/
+COPY ./scripts/lib/common.sh /usr/local/lib/rhdh/common.sh
+COPY ./scripts/lib/secrets-dropin.sh /usr/local/lib/rhdh/secrets-dropin.sh
+COPY ./systemd/first-boot-config.service /etc/systemd/system/
 
 COPY ./files/auth.json /etc/containers/auth.json
 # systemd/Quadlet runs podman as root; root reads ~/.config/containers/auth.json, not /etc/containers alone
@@ -75,8 +79,11 @@ RUN set -ex && \
                   /usr/lib/containers/storage/overlay-layers
 
 RUN chmod +x /usr/local/bin/prepare-and-install-dynamic-plugins.sh /usr/local/bin/wait-for-plugins-and-start.sh /usr/local/bin/detect-and-set-base-url.sh \
-        /usr/local/bin/grant-postgres-createdb.sh /usr/local/bin/validate-external-postgres.sh /usr/local/bin/clean-plugin-lock.sh && \
-    chmod +x /usr/local/lib/rhdh/yaml-helper.py && \
+        /usr/local/bin/grant-postgres-createdb.sh /usr/local/bin/validate-external-postgres.sh /usr/local/bin/clean-plugin-lock.sh \
+        /usr/local/bin/first-boot-config.sh && \
+    chmod +x /usr/local/lib/rhdh/yaml-helper.py /usr/local/lib/rhdh/common.sh /usr/local/lib/rhdh/secrets-dropin.sh && \
+    systemctl enable first-boot-config.service && \
+    mkdir -p /etc/containers/systemd/rhdh.container.d /etc/containers/systemd/postgres.container.d && \
     mkdir -p /var/lib/rhdh/{dynamic-plugins-root,generated,config,.npm,scripts} && \
     mkdir -p /var/lib/rhdh/postgres-data && \
     mkdir -p /extensions && \

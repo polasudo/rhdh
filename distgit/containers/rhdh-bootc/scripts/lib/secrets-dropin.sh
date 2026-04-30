@@ -120,7 +120,7 @@ generate_postgres_config_dropin() {
         db_name=$(python3 "$helper" read "$base_yaml" "backend.database.connection.database" 2>/dev/null) || true
     fi
 
-    db_user="${db_user:-rhdh_user}"
+    db_user="${db_user:-postgres}"
     db_name="${db_name:-rhdh_backstage}"
 
     local content="[Container]"

@@ -1,7 +1,7 @@
 # Podman Quadlet .container file for PostgreSQL
 [Unit]
 Description=PostgreSQL Database for RHDH
-After=network-online.target
+After=network-online.target first-boot-config.service
 Wants=network-online.target
 
 [Container]
