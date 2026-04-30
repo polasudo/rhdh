@@ -249,7 +249,7 @@ def cmd_apply_cloud_init(args):
                 set_nested(new_config, "backend.database.connection.host", "rhdh-postgres")
                 set_nested(new_config, "backend.database.connection.port", 5432)
                 set_nested(new_config, "backend.database.connection.database", "rhdh_backstage")
-                set_nested(new_config, "backend.database.connection.user", "postgres")
+                set_nested(new_config, "backend.database.connection.user", "rhdh_user")
 
         elif category == "dropin":
             val_str = normalize_url(str(val)) if "url" in ci_dot.lower() else str(val)
