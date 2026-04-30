@@ -62,3 +62,6 @@ repos:
       - README.md
       - tests/
     destination_folder: distgit/containers/rhdh-must-gather/
+
+  # rhdh-bootc has no upstream repo — content lives directly in distgit/containers/rhdh-bootc/
+  # POC reference: https://github.com/redhat-developer/rhdh/pull/4377

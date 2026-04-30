@@ -932,6 +932,37 @@ LABEL summary="\$SUMMARY" \\
       cpe="cpe:/a:redhat:rhdh:\${CI_X_VERSION}.\${CI_Y_VERSION}::el9"
 EOT
   echo "[INFO] Added metadata to $TMPDIR/must-gather.Dockerfile.foot"
+
+  # append Brew metadata here for bootc (no upstream repo — content lives in midstream only)
+  c=distgit/containers/rhdh-bootc/Containerfile
+  if [[ -f $c ]]; then sed -i '/# append Brew metadata here/q' $c; fi
+  cat <<EOT >$TMPDIR/bootc.Dockerfile.foot
+ENV SUMMARY="Red Hat Developer Hub bootc container" \\
+    DESCRIPTION="Red Hat Developer Hub bootc container" \\
+    MIDSTREAM_REPO="${midstream_repo}" \\
+    PRODNAME="rhdh" \\
+    COMPNAME="bootc"
+
+LABEL summary="\$SUMMARY" \\
+      description="\$DESCRIPTION" \\
+      io.k8s.description="\$DESCRIPTION" \\
+      io.k8s.display-name="\$DESCRIPTION" \\
+      io.openshift.tags="\$PRODNAME,\$COMPNAME" \\
+      com.redhat.component="\$PRODNAME-\$COMPNAME-container" \\
+      name="\$PRODNAME/\$PRODNAME-\$COMPNAME-rhel9" \\
+      version="\${CI_X_VERSION}.\${CI_Y_VERSION}" \\
+      release="\${RELEASE_NUMBER}" \\
+      license="ASLv2" \\
+      maintainer="RHDH Team <rhdh-bot@redhat.com>" \\
+      vendor="Red Hat, Inc." \\
+      io.openshift.expose-services="" \\
+      usage="" \\
+      konflux.additional-tags="${latestNextTag}\${CI_X_VERSION}.\${CI_Y_VERSION}, \${CI_X_VERSION}.\${CI_Y_VERSION}-\${RELEASE_NUMBER}" \\
+      distribution-scope="public" \\
+      url="https://red.ht/rhdh" \\
+      cpe="cpe:/a:redhat:rhdh:\${CI_X_VERSION}.\${CI_Y_VERSION}::el9"
+EOT
+  echo "[INFO] Added metadata to $TMPDIR/bootc.Dockerfile.foot"
 fi
 
 if [[ $BUNDLEONLY -eq 1 ]]; then
@@ -1113,7 +1144,7 @@ fi
 if [[ $BUNDLEONLY -eq 1 ]]; then
   these_dirs="distgit/containers/rhdh-operator-bundle"
 else
-  these_dirs="distgit/containers/rhdh-hub distgit/containers/rhdh-operator distgit/containers/rhdh-must-gather" 
+  these_dirs="distgit/containers/rhdh-hub distgit/containers/rhdh-operator distgit/containers/rhdh-must-gather distgit/containers/rhdh-bootc"
 fi
 # set -x
 for d in $these_dirs; do
@@ -1128,6 +1159,9 @@ for d in $these_dirs; do
     continue
   elif [[ $d == "distgit/containers/rhdh-must-gather" ]] && [[ " ${SKIPPED_CONTAINERS[*]} " == *"rhdh-must-gather/"* ]]; then
     echo -e "${blue}[INFO] ======= Skip rhdh-must-gather ======= ${norm}"
+    continue
+  elif [[ $d == "distgit/containers/rhdh-bootc" ]] && [[ " ${SKIPPED_CONTAINERS[*]} " == *"rhdh-bootc/"* ]]; then
+    echo -e "${blue}[INFO] ======= Skip rhdh-bootc ======= ${norm}"
     continue
   fi
   echo "[INFO] Remove generated/ignored content from $d/"
@@ -1174,6 +1208,9 @@ for d in $these_dirs; do
       # along with requirements files, then transformed to set a valid value for `RHDH_MUST_GATHER_VERSION`
       # Dockerfile.in transformation is not needed
       true
+    elif [[ $d == "distgit/containers/rhdh-bootc" ]] && [[ " ${SKIPPED_CONTAINERS[*]} " != *"rhdh-bootc/"* ]]; then
+      # for bootc, content lives in midstream only - Containerfile is used as-is
+      true
     fi
 
     if [[ -f "$TMPDIR/${d##*rhdh-}.Dockerfile.foot" ]]; then
@@ -1208,6 +1245,9 @@ for d in $these_dirs; do
       nextReleaseNum=$("${ROOTPATH}"/build/scripts/getNextReleaseNum.sh -b "${DWNSTM_BRANCH}" --tag "${DH_VERSION}" -c "$image" -q)
     elif [[ $d == "distgit/containers/rhdh-must-gather" ]]; then
       image="rhdh/rhdh-must-gather-rhel9"
+      nextReleaseNum=$("${ROOTPATH}"/build/scripts/getNextReleaseNum.sh -b "${DWNSTM_BRANCH}" --tag "${DH_VERSION}" -c "$image" -q)
+    elif [[ $d == "distgit/containers/rhdh-bootc" ]]; then
+      image="rhdh/rhdh-bootc-rhel9"
       nextReleaseNum=$("${ROOTPATH}"/build/scripts/getNextReleaseNum.sh -b "${DWNSTM_BRANCH}" --tag "${DH_VERSION}" -c "$image" -q)
     fi
     # when bootstrapping the first builds for a new 1.yy stream, use just 1.yy-1
@@ -1404,7 +1444,7 @@ ${norm}" | tee /tmp/sync-midstream.sh.result.txt
   fi
 
   ## include license files from hub and operator in /licenses folder to make Konflux happy
-  [[ $BUNDLEONLY -eq 1 ]] && LICENSE_DIRS="rhdh-operator-bundle" || LICENSE_DIRS="rhdh-hub rhdh-operator rhdh-must-gather" 
+  [[ $BUNDLEONLY -eq 1 ]] && LICENSE_DIRS="rhdh-operator-bundle" || LICENSE_DIRS="rhdh-hub rhdh-operator rhdh-must-gather rhdh-bootc"
   for d in $LICENSE_DIRS; do
     if [[ -f distgit/containers/${d}/LICENSE ]]; then
       cp -f distgit/containers/"${d}"/LICENSE licenses/"${d}"-LICENSE
@@ -1484,7 +1524,7 @@ fi
 
 # cleanup
 for ((i = 0; i < NUM_REPOS; i++)); do rm -fr "$TMPDIR/repo${i}"; done
-rm -f $TMPDIR/hub.Dockerfile.foot $TMPDIR/operator.Dockerfile.foot $TMPDIR/operator-bundle.Dockerfile.foot $TMPDIR/must-gather.Dockerfile.foot
+rm -f $TMPDIR/hub.Dockerfile.foot $TMPDIR/operator.Dockerfile.foot $TMPDIR/operator-bundle.Dockerfile.foot $TMPDIR/must-gather.Dockerfile.foot $TMPDIR/bootc.Dockerfile.foot
 
 if [[ ${DO_PUSH} -eq 1 ]]; then
   app_name=${DWNSTM_BRANCH/-rhel-9}
