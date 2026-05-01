@@ -93,7 +93,6 @@ create_component_pipeline() {
     max_keep_runs=$(yq ".$component.max_keep_runs" "$CONFIG_FILE")
     snyk_project=$(yq ".$component.snyk_project" "$CONFIG_FILE")
     storage=$(yq ".$component.storage" "$CONFIG_FILE")
-
     local include_tasks
     include_tasks=$(yq ".$component.include_tasks[]" "$CONFIG_FILE" 2>/dev/null || true)
 

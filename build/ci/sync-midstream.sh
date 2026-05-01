@@ -470,6 +470,19 @@ for ((i = START_REPO; i < NUM_REPOS; i++)); do # echo $i
     rsync -azq --delete $TMPDIR/repo${i}/* $TMPDIR/repo${i}/.??* "${ROOTPATH}/${destination_folder}/" --exclude=.git ${excludesFlags}
     # set +x
 
+    ##################################### rhdh-must-gather #####################################
+    if [[ $destination_folder == *"rhdh-must-gather"* ]]; then
+      pushd "${ROOTPATH}/${destination_folder}" >/dev/null || exit 1
+        if [[ -f .rhdh/docker/Containerfile ]]; then
+          mv -f .rhdh/docker/Containerfile Containerfile
+        else
+          echo "[ERROR] could not find .rhdh/docker/Containerfile to copy to ./Containerfile ! Must exit!"
+          exit 1
+        fi
+      popd >/dev/null || exit 1
+    fi
+    ##################################### rhdh-must-gather #####################################
+
     # ##################################### konflux containerfiles #####################################
     # if [[ $destination_folder == *"rhdh-hub"* ]]; then
     #   rsync -azq $TMPDIR/repo${i}/docker/Dockerfile "${ROOTPATH}/${destination_folder%/}/Containerfile" --exclude=.git ${excludesFlags}
@@ -1183,7 +1196,7 @@ for d in $these_dirs; do
       # for bundle use the downstream OSBS Dockerfile with the correct LABEL and ENV  values
       cp -f Dockerfile Containerfile
     elif [[ $d == "distgit/containers/rhdh-must-gather" ]] && [[ " ${SKIPPED_CONTAINERS[*]} " != *"rhdh-must-gather/"* ]]; then
-      # for must-gather, upstream already has a Containerfile - just use it as-is
+      # for must-gather, Containerfile at context root is produced during sync (from .rhdh/docker/Containerfile), then transformed to set a valid value for `RHDH_MUST_GATHER_VERSION`
       # Dockerfile.in transformation is not needed
       true
     # sed_rag_content
