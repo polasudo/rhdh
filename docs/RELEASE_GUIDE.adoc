@@ -202,6 +202,31 @@ See link:https://gitlab.cee.redhat.com/rhidp/rhdh-plugin-catalog/-/blob/rhdh-1-r
 
 == Release Candidates
 
+=== Plugin Catalog and Index
+
+Before even building the hub and chart, or the bundle and FBCs, you need to get an updated set of plugins and an index image pushed to production.
+
+This is because currently, the chart and bundle refer to the index image by digest, and that can't be computed in advance. Pushing to stage is also not currently a viable option.
+
+So, if this is a .z RC, make sure you have updated the KRD repo with teh latest plugin tags:
+
+https://gitlab.cee.redhat.com/releng/konflux-release-data/-/merge_requests/17574/diffs
+
+Then you can use that information to push the updated plugins to production, and then the index.
+
+For 1.9.4, the plugins are:
+
+* registry.redhat.io/rhdh/red-hat-developer-hub-backstage-plugin-global-header:1.9.4--1.20.1
+* registry.redhat.io/rhdh/red-hat-developer-hub-backstage-plugin-orchestrator:1.9.4--5.4.7
+* registry.redhat.io/rhdh/red-hat-developer-hub-backstage-plugin-orchestrator-backend:1.9.4--8.6.7
+* registry.redhat.io/rhdh/red-hat-developer-hub-backstage-plugin-orchestrator-backend-module-loki:1.9.4--1.0.6
+* registry.redhat.io/rhdh/red-hat-developer-hub-backstage-plugin-orchestrator-form-widgets:1.9.4--1.6.9
+* registry.redhat.io/rhdh/red-hat-developer-hub-backstage-plugin-scaffolder-backend-module-orchestrator:1.9.4--1.3.6
+
+Once merged, you can run plugin and index releases with `./build/scripts/kfuxReleasse.sh`
+
+Once released, continue below.
+
 === Container base images 
 
 Before declaring RC, you should make sure we've updated to the latest base images and RPMs. The link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1-rhel-9/build/scripts/updateBaseImages.sh[updateBaseImages.sh] script can be used for this if you don't want to deal with Renovate or Mintmaker pull requests. The script will check for new base images, commit one change per update, and attempt to push directly to the repo; if you can't do so, a pull request will be generated instead.
