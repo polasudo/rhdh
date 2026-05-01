@@ -474,7 +474,8 @@ for ((i = START_REPO; i < NUM_REPOS; i++)); do # echo $i
     if [[ $destination_folder == *"rhdh-must-gather"* ]]; then
       pushd "${ROOTPATH}/${destination_folder}" >/dev/null || exit 1
         if [[ -f .rhdh/docker/Containerfile ]]; then
-          mv -f .rhdh/docker/Containerfile Containerfile
+          # set RHDH_MUST_GATHER_VERSION = x.y.z-aaa instead of 0.0.0-unknown
+          sed -r -e "s/RHDH_MUST_GATHER_VERSION=.+/RHDH_MUST_GATHER_VERSION=\"${DH_VERSION_FULL}-\${RELEASE_NUMBER}\"/g" .rhdh/docker/Containerfile > Containerfile
         else
           echo "[ERROR] could not find .rhdh/docker/Containerfile to copy to ./Containerfile ! Must exit!"
           exit 1
