@@ -35,7 +35,7 @@ RUN set -eu; \
 # Stage 2: Final image
 FROM registry.access.redhat.com/ubi9-minimal:9.7-1776833838@sha256:7d4e47500f28ac3a2bff06c25eff9127ff21048538ae03ce240d57cf756acd00
 
-ARG RHDH_MUST_GATHER_VERSION="0.0.0-unknown"
+ARG RHDH_MUST_GATHER_VERSION="-1"
 
 RUN set -eu; \
     . /cachi2/cachi2.env; \
@@ -108,7 +108,7 @@ COPY collection-scripts/* /usr/bin/
 RUN mv /usr/bin/must_gather /usr/bin/gather
 
 # Set environment variable from build argument
-ENV RHDH_MUST_GATHER_VERSION=$RHDH_MUST_GATHER_VERSION
+ENV RHDH_MUST_GATHER_VERSION="-1"
 
 # Run as non-root user
 USER 1001
@@ -116,7 +116,7 @@ USER 1001
 ENTRYPOINT ["/usr/bin/gather"]
 ENV SUMMARY="Red Hat Developer Hub must-gather" \
     DESCRIPTION="Red Hat Developer Hub must-gather container" \
-    UPSTREAM_REPO="https://github.com/redhat-developer/rhdh-must-gather/tree/main @ b7c7fe36" \
+    UPSTREAM_REPO="https://github.com/redhat-developer/rhdh-must-gather/tree/main @ 9d3cb109" \
     MIDSTREAM_REPO="https://gitlab.cee.redhat.com/rhidp/rhdh/-/commits/rhdh-1-rhel-9" \
     PRODNAME="rhdh" \
     COMPNAME="must-gather"
