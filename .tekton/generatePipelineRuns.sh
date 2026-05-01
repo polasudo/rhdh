@@ -16,6 +16,9 @@
 #
 # Conditional task blocks are wrapped in:
 #   # BEGIN_TASK <task-name> ... # END_TASK <task-name>
+#
+# For pull PipelineRuns (*-pull*.yaml) omit the apply-tags and publish-helm tasks
+# as we don't want these to collide with push PipelineRuns.
 
 set -e
 
@@ -30,7 +33,7 @@ NC='\033[0m' # No colour
 
 usage() {
 	echo "
-Utility script to generate new pipelineruns when branching
+Utility script to generate new PipelineRuns when branching
 
 Usage:    $0 -t <new_branch>
 
@@ -67,13 +70,26 @@ echo ""
 # All conditional task names that may appear in templates
 ALL_CONDITIONAL_TASKS=("publish-helm")
 
+# Remove apply-tags and publish-helm from pull pipelines
+strip_push_tasks() {
+	local output_file="$1"
+	local component="$2"
+
+	yq -yi '.spec.pipelineSpec.tasks |= map(select(.name != "apply-tags"))' "$output_file"
+    if [[ "$component" == hub ]]; then
+        yq -yi '.spec.pipelineSpec.tasks |= map(select(.name != "publish-helm"))' "$output_file"
+    fi
+}
+
 create_component_pipeline() {
     local component="$1"
     local event_suffix="$2"
     local template_name output_file event_type
 
-    template_name=$(yq ".$component.template" "$CONFIG_FILE")
+    # use quotes to allow component names with dashes
+    template_name=$(yq -r '."'"$component"'".template' "$CONFIG_FILE")
     output_file="$SCRIPT_DIR/rhdh-${component}-${VERSION_DASH}-${event_suffix}.yaml"
+    # echo "Writing to $output_file"
 
     if [ ! -f "$TEMPLATE_DIR/$template_name" ]; then
         echo -e "${RED}✗ Template not found: $TEMPLATE_DIR/$template_name${NC}"
@@ -87,14 +103,17 @@ create_component_pipeline() {
     fi
 
     local output_image path_context prefetch_input max_keep_runs snyk_project storage
-    output_image=$(yq ".$component.output_image" "$CONFIG_FILE")
-    path_context=$(yq ".$component.path_context" "$CONFIG_FILE")
-    prefetch_input=$(yq ".$component.prefetch_input" "$CONFIG_FILE")
-    max_keep_runs=$(yq ".$component.max_keep_runs" "$CONFIG_FILE")
-    snyk_project=$(yq ".$component.snyk_project" "$CONFIG_FILE")
-    storage=$(yq ".$component.storage" "$CONFIG_FILE")
+    # use quotes to allow component names with dashes
+    output_image=$(yq -r '."'"$component"'".output_image' "$CONFIG_FILE")
+    path_context=$(yq -r '."'"$component"'".path_context' "$CONFIG_FILE")
+    prefetch_input=$(yq -r '."'"$component"'".prefetch_input' "$CONFIG_FILE")
+    max_keep_runs=$(yq -r '."'"$component"'".max_keep_runs' "$CONFIG_FILE")
+    snyk_project=$(yq -r '."'"$component"'".snyk_project' "$CONFIG_FILE")
+    storage=$(yq -r '."'"$component"'".storage' "$CONFIG_FILE")
+
     local include_tasks
-    include_tasks=$(yq ".$component.include_tasks[]" "$CONFIG_FILE" 2>/dev/null || true)
+    # use quotes to allow component names with dashes
+    include_tasks=$(yq -r '."'"$component"'".include_tasks[]' "$CONFIG_FILE" 2>/dev/null || true)
 
     cp "$TEMPLATE_DIR/$template_name" "$output_file"
 
@@ -126,6 +145,10 @@ create_component_pipeline() {
     escaped_prefetch=$(printf '%s\n' "$prefetch_input" | sed 's/[&/\]/\\&/g')
     sed -i "s|{{PREFETCH_INPUT}}|${escaped_prefetch}|g" "$output_file"
 
+    if [[ "$(basename "$output_file")" == *-pull*.yaml ]]; then
+        strip_push_tasks "$output_file" "$component"
+    fi
+
     echo -e "${GREEN}✓${NC} Created: ${BLUE}rhdh-${component}-${VERSION_DASH}-${event_suffix}.yaml${NC} (from ${template_name})"
 }
 
@@ -145,7 +168,7 @@ update_fbc_pipeline() {
 
 # Generate push and pull variants for all components
 echo -e "${BLUE}Generating RHDH component pipelines (push + pull)...${NC}"
-COMPONENTS=$(yq 'keys | .[]' "$CONFIG_FILE")
+COMPONENTS=$(yq -r 'keys | .[]' "$CONFIG_FILE")
 for component in $COMPONENTS; do
     for event in push pull; do
         if ! create_component_pipeline "$component" "$event"; then

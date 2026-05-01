@@ -42,54 +42,72 @@ spec:
       value: "false"
   pipelineSpec:
     params:
-      - name: git-url
+      - description: Source Repository URL
+        name: git-url
         type: string
-      - name: revision
+      - default: ""
+        description: Revision of the Source Repository
+        name: revision
         type: string
-        default: ""
-      - name: target_branch
+      - default: ""
+        description: The Target branch to be published onto
+        name: target_branch
         type: string
-        default: ""
-      - name: output-image
+      - description: Fully Qualified Output Image
+        name: output-image
         type: string
-      - name: path-context
+      - default: .
+        description: Path to the source code of an application's component from where to build image.
+        name: path-context
         type: string
-        default: .
-      - name: dockerfile
+      - default: Containerfile
+        description: Path to the Dockerfile inside the context specified by parameter path-context
+        name: dockerfile
         type: string
-        default: Containerfile
-      - name: skip-checks
+      - default: "false"
+        description: Skip checks against built image
+        name: skip-checks
         type: string
-        default: "false"
-      - name: hermetic
+      - default: "true"
+        description: Execute the build with network isolation (false for operator-bundle)
+        name: hermetic
         type: string
-        default: "true"
-      - name: prefetch-input
+      - default: ""
+        description: Build dependencies to be prefetched by Cachi2
+        name: prefetch-input
         type: string
-        default: ""
-      - name: image-expires-after
+      - default: ""
+        description: Image tag expiration time
+        name: image-expires-after
         type: string
-        default: ""
-      - name: build-source-image
+      - default: "true"
+        description: Build a source image.
+        name: build-source-image
         type: string
-        default: "true"
-      - name: build-image-index
+      - default: "false"
+        description: Add built image into an OCI image index (false for operator-bundle)
+        name: build-image-index
         type: string
-        default: "false"
-      - name: build-args
+      - default: []
+        description: Array of --build-arg values for buildah
+        name: build-args
         type: array
-        default: []
-      - name: build-args-file
+      - default: ""
+        description: Path to a file with build arguments for buildah
+        name: build-args-file
         type: string
-        default: ""
     results:
-      - name: IMAGE_URL
+      - description: "The fully qualified URL of the built container image"
+        name: IMAGE_URL
         value: "$(tasks.build-image-index.results.IMAGE_URL)"
-      - name: IMAGE_DIGEST
+      - description: "The SHA256 digest of the built container image"
+        name: IMAGE_DIGEST
         value: "$(tasks.build-image-index.results.IMAGE_DIGEST)"
-      - name: CHAINS-GIT_URL
+      - description: "The Git repository URL used for this build"
+        name: CHAINS-GIT_URL
         value: "$(tasks.clone-repository.results.url)"
-      - name: CHAINS-GIT_COMMIT
+      - description: "The Git commit SHA used for this build"
+        name: CHAINS-GIT_COMMIT
         value: "$(tasks.clone-repository.results.commit)"
     tasks:
       - name: init
@@ -186,20 +204,28 @@ spec:
               - $(params.build-args[*])
           - name: BUILD_ARGS_FILE
             value: $(params.build-args-file)
+          - name: SOURCE_ARTIFACT
+            value: $(tasks.prefetch-dependencies.results.SOURCE_ARTIFACT)
+          - name: CACHI2_ARTIFACT
+            value: $(tasks.prefetch-dependencies.results.CACHI2_ARTIFACT)
+          - name: SBOM_TYPE
+            value: spdx
+          - name: CONTEXTUALIZE_SBOM
+            value: false
         runAfter:
-          - clone-repository
+          - prefetch-dependencies
         taskRef:
           params:
             - name: name
-              value: buildah
+              value: buildah-oci-ta
             - name: bundle
-              value: quay.io/konflux-ci/tekton-catalog/task-buildah:0.9@sha256:62f09c50d552eac57e17638c67e88b0982352a71975858c8ba262bcff293de06
+              value: quay.io/konflux-ci/tekton-catalog/task-buildah-oci-ta:0.9@sha256:681d9f65a7f50cb260ee576ccab551e11d63c549f1e1ef3d201da3c112855bd6
             - name: kind
               value: task
           resolver: bundles
-        workspaces:
-          - name: source
-            workspace: workspace
+        retries: 1
+        timeout: 2h
+
       - name: build-image-index
         params:
           - name: IMAGE
@@ -220,20 +246,25 @@ spec:
             - name: kind
               value: task
           resolver: bundles
+
       - name: build-source-image
         params:
           - name: BINARY_IMAGE
             value: "$(tasks.build-image-index.results.IMAGE_URL)"
           - name: BINARY_IMAGE_DIGEST
             value: "$(tasks.build-image-index.results.IMAGE_DIGEST)"
+          - name: SOURCE_ARTIFACT
+            value: $(tasks.prefetch-dependencies.results.SOURCE_ARTIFACT)
+          - name: CACHI2_ARTIFACT
+            value: $(tasks.prefetch-dependencies.results.CACHI2_ARTIFACT)
         runAfter:
           - build-image-index
         taskRef:
           params:
             - name: name
-              value: source-build
+              value: source-build-oci-ta
             - name: bundle
-              value: quay.io/konflux-ci/tekton-catalog/task-source-build:0.3@sha256:df999473b440066ce856e36d80afd06b6ed3b575e07b6ac3efe79a25addc2045
+              value: quay.io/konflux-ci/tekton-catalog/task-source-build-oci-ta:0.3@sha256:0917cfc7772e82cb8e74743c2104f43bcf2596aceafe87eec6fce69a8cac5f06
             - name: kind
               value: task
           resolver: bundles
@@ -241,9 +272,7 @@ spec:
           - input: $(params.build-source-image)
             operator: in
             values: ["true"]
-        workspaces:
-          - name: workspace
-            workspace: workspace
+
       - name: deprecated-base-image-check
         params:
           - name: IMAGE_URL
@@ -265,6 +294,7 @@ spec:
           - input: $(params.skip-checks)
             operator: in
             values: ["false"]
+
       - name: clair-scan
         params:
           - name: image-digest
@@ -299,7 +329,7 @@ spec:
           - name: CACHI2_ARTIFACT
             value: $(tasks.prefetch-dependencies.results.CACHI2_ARTIFACT)
           - name: ARGS
-            value: "--severity-threshold=medium --project-name=konflux-rhdh-operator-bundle-{{VERSION_DASH}} --report --org=3640be2c-1549-4d4c-bc0b-46b24799e4b6"
+            value: "--severity-threshold=medium --project-name=konflux-rhdh-operator-bundle-1 --report --org=3640be2c-1549-4d4c-bc0b-46b24799e4b6"
         runAfter:
           - build-image-index
         taskRef:
@@ -337,6 +367,7 @@ spec:
           - input: $(params.skip-checks)
             operator: in
             values: ["false"]
+
       - name: sast-shell-check
         params:
           - name: image-digest
@@ -361,6 +392,7 @@ spec:
         workspaces:
           - name: workspace
             workspace: workspace
+
       - name: sast-unicode-check
         params:
           - name: image-url
@@ -385,6 +417,7 @@ spec:
         workspaces:
           - name: workspace
             workspace: workspace
+
       - name: rpms-signature-scan
         params:
           - name: image-url
@@ -406,6 +439,7 @@ spec:
           - input: $(params.skip-checks)
             operator: in
             values: ["false"]
+
       - name: apply-tags
         params:
           - name: IMAGE_URL
@@ -423,6 +457,7 @@ spec:
             - name: kind
               value: task
           resolver: bundles
+
       - name: push-dockerfile
         params:
           - name: IMAGE
@@ -433,20 +468,20 @@ spec:
             value: $(params.dockerfile)
           - name: CONTEXT
             value: $(params.path-context)
+          - name: SOURCE_ARTIFACT
+            value: $(tasks.prefetch-dependencies.results.SOURCE_ARTIFACT)
         runAfter:
           - build-image-index
         taskRef:
           params:
             - name: name
-              value: push-dockerfile
+              value: push-dockerfile-oci-ta
             - name: bundle
-              value: quay.io/konflux-ci/tekton-catalog/task-push-dockerfile:0.3@sha256:359199272c9a403275162a6741d098d7987334232630b59093d781c743fa99e7
+              value: quay.io/konflux-ci/tekton-catalog/task-push-dockerfile-oci-ta:0.3@sha256:7855471abfe87de080b914f2f3ca27c59e64f6448a7c2435e51435b764494c71
             - name: kind
               value: task
           resolver: bundles
-        workspaces:
-          - name: workspace
-            workspace: workspace
+
     finally:
       - name: show-sbom
         params:
@@ -466,9 +501,11 @@ spec:
           - name: pipelinerun-name
             value: $(context.pipelineRun.name)
           - name: git-url
-            value: "$(tasks.clone-repository.results.url)?rev=$(tasks.clone-repository.results.commit)"
+            value: $(tasks.clone-repository.results.url)?rev=$(tasks.clone-repository.results.commit)
           - name: image-url
             value: $(params.output-image)
+          - name: build-task-status
+            value: $(tasks.build-image-index.status)
         taskRef:
           params:
             - name: name
@@ -487,6 +524,25 @@ spec:
         optional: true
       - name: netrc
         optional: true
+  taskRunSpecs:
+    - pipelineTaskName: build-container
+      stepSpecs:
+        - name: build
+          computeResources:
+            requests:
+              cpu: '8'
+              memory: 20Gi
+            limits:
+              cpu: '8'
+              memory: 20Gi
+    - pipelineTaskName: prefetch-dependencies
+      computeResources:
+        requests:
+          cpu: '8'
+          memory: 16Gi
+        limits:
+          cpu: '8'
+          memory: 16Gi
   taskRunTemplate:
     serviceAccountName: build-pipeline-rhdh-operator-bundle-{{VERSION_DASH}}
   timeouts:

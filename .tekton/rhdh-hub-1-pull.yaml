@@ -6,11 +6,15 @@ metadata:
     build.appstudio.redhat.com/commit_sha: '{{revision}}'
     build.appstudio.redhat.com/pull_request_number: '{{pull_request_number}}'
     build.appstudio.redhat.com/target_branch: '{{target_branch}}'
-    pipelinesascode.tekton.dev/max-keep-runs: "8"
-    pipelinesascode.tekton.dev/on-cel-expression: |
-      (event == "pull_request") &&
+    pipelinesascode.tekton.dev/max-keep-runs: '8'
+    pipelinesascode.tekton.dev/on-cel-expression: '(event == "pull_request") &&
+
       target_branch == "rhdh-1-rhel-9" &&
-      ( "distgit/containers/rhdh-hub/***".pathChanged() || ".tekton/rhdh-hub-1-pull.yaml".pathChanged() )
+
+      ( "distgit/containers/rhdh-hub/***".pathChanged() || ".tekton/rhdh-hub-1-pull.yaml".pathChanged()
+      )
+
+      '
   creationTimestamp: null
   labels:
     appstudio.openshift.io/application: rhdh-1
@@ -27,7 +31,7 @@ spec:
     - name: target_branch
       value: '{{target_branch}}'
     - name: output-image
-      value: 'quay.io/rhdh/rhdh-hub-rhel9:{{revision}}'
+      value: quay.io/rhdh/rhdh-hub-rhel9:{{revision}}
     - name: image-expires-after
       value: ''
     - name: dockerfile
@@ -35,17 +39,19 @@ spec:
     - name: path-context
       value: distgit/containers/rhdh-hub
     - name: prefetch-input
-      value: '[{"type": "rpm", "path": "distgit/containers/rhdh-hub"},{"type": "yarn","path": "distgit/containers/rhdh-hub"},{"type": "yarn","path": "distgit/containers/rhdh-hub/dynamic-plugins"},{"type": "pip","path": "distgit/containers/rhdh-hub/python", "allow_binary": "false"}]'
+      value: '[{"type": "rpm", "path": "distgit/containers/rhdh-hub"},{"type": "yarn","path":
+        "distgit/containers/rhdh-hub"},{"type": "yarn","path": "distgit/containers/rhdh-hub/dynamic-plugins"},{"type":
+        "pip","path": "distgit/containers/rhdh-hub/python", "allow_binary": "false"}]'
   pipelineSpec:
     params:
       - description: Source Repository URL
         name: git-url
         type: string
-      - default: ""
+      - default: ''
         description: Revision of the Source Repository
         name: revision
         type: string
-      - default: ""
+      - default: ''
         description: The Target branch to be published onto
         name: target_branch
         type: string
@@ -53,34 +59,36 @@ spec:
         name: output-image
         type: string
       - default: .
-        description: Path to the source code of an application's component from where to build image.
+        description: Path to the source code of an application's component from where
+          to build image.
         name: path-context
         type: string
       - default: Containerfile
-        description: Path to the Dockerfile inside the context specified by parameter path-context
+        description: Path to the Dockerfile inside the context specified by parameter
+          path-context
         name: dockerfile
         type: string
-      - default: "false"
+      - default: 'false'
         description: Skip checks against built image
         name: skip-checks
         type: string
-      - default: "true"
+      - default: 'true'
         description: Execute the build with network isolation (false for operator-bundle)
         name: hermetic
         type: string
-      - default: ""
+      - default: ''
         description: Build dependencies to be prefetched by Cachi2
         name: prefetch-input
         type: string
-      - default: ""
+      - default: ''
         description: Image tag expiration time
         name: image-expires-after
         type: string
-      - default: "true"
+      - default: 'true'
         description: Build a source image.
         name: build-source-image
         type: string
-      - default: "true"
+      - default: 'true'
         description: Add built image into an OCI image index (false for operator-bundle)
         name: build-image-index
         type: string
@@ -88,23 +96,23 @@ spec:
         description: Array of --build-arg values for buildah
         name: build-args
         type: array
-      - default: ""
+      - default: ''
         description: Path to a file with build arguments for buildah
         name: build-args-file
         type: string
     results:
-      - description: "The fully qualified URL of the built container image"
+      - description: The fully qualified URL of the built container image
         name: IMAGE_URL
-        value: "$(tasks.build-image-index.results.IMAGE_URL)"
-      - description: "The SHA256 digest of the built container image"
+        value: $(tasks.build-image-index.results.IMAGE_URL)
+      - description: The SHA256 digest of the built container image
         name: IMAGE_DIGEST
-        value: "$(tasks.build-image-index.results.IMAGE_DIGEST)"
-      - description: "The Git repository URL used for this build"
+        value: $(tasks.build-image-index.results.IMAGE_DIGEST)
+      - description: The Git repository URL used for this build
         name: CHAINS-GIT_URL
-        value: "$(tasks.clone-repository.results.url)"
-      - description: "The Git commit SHA used for this build"
+        value: $(tasks.clone-repository.results.url)
+      - description: The Git commit SHA used for this build
         name: CHAINS-GIT_COMMIT
-        value: "$(tasks.clone-repository.results.commit)"
+        value: $(tasks.clone-repository.results.commit)
     tasks:
       - name: init
         taskRef:
@@ -142,14 +150,16 @@ spec:
         workspaces:
           - name: basic-auth
             workspace: git-auth
-
       - name: prefetch-dependencies
         params:
           - name: config-file-content
-            value: |
-              ---
+            value: '---
+
               requests_timeout: 600000
+
               subprocess_timeout: 7200
+
+              '
           - name: log-level
             value: debug
           - name: input
@@ -161,7 +171,7 @@ spec:
           - name: ociArtifactExpiresAfter
             value: $(params.image-expires-after)
           - name: dev-package-managers
-            value: "true"
+            value: 'true'
         runAfter:
           - clone-repository
         taskRef:
@@ -178,7 +188,6 @@ spec:
             workspace: git-auth
           - name: netrc
             workspace: netrc
-
       - name: build-container
         params:
           - name: IMAGE
@@ -221,7 +230,6 @@ spec:
           resolver: bundles
         retries: 1
         timeout: 2h
-
       - name: build-image-index
         params:
           - name: IMAGE
@@ -242,13 +250,12 @@ spec:
             - name: kind
               value: task
           resolver: bundles
-
       - name: build-source-image
         params:
           - name: BINARY_IMAGE
-            value: "$(tasks.build-image-index.results.IMAGE_URL)"
+            value: $(tasks.build-image-index.results.IMAGE_URL)
           - name: BINARY_IMAGE_DIGEST
-            value: "$(tasks.build-image-index.results.IMAGE_DIGEST)"
+            value: $(tasks.build-image-index.results.IMAGE_DIGEST)
           - name: SOURCE_ARTIFACT
             value: $(tasks.prefetch-dependencies.results.SOURCE_ARTIFACT)
           - name: CACHI2_ARTIFACT
@@ -267,8 +274,8 @@ spec:
         when:
           - input: $(params.build-source-image)
             operator: in
-            values: ["true"]
-
+            values:
+              - 'true'
       - name: deprecated-base-image-check
         params:
           - name: IMAGE_URL
@@ -289,8 +296,8 @@ spec:
         when:
           - input: $(params.skip-checks)
             operator: in
-            values: ["false"]
-
+            values:
+              - 'false'
       - name: clair-scan
         params:
           - name: image-digest
@@ -312,9 +319,8 @@ spec:
         when:
           - input: $(params.skip-checks)
             operator: in
-            values: ["false"]
-
-
+            values:
+              - 'false'
       - name: sast-snyk-check
         params:
           - name: image-digest
@@ -326,7 +332,8 @@ spec:
           - name: CACHI2_ARTIFACT
             value: $(tasks.prefetch-dependencies.results.CACHI2_ARTIFACT)
           - name: ARGS
-            value: "--severity-threshold=medium --project-name=konflux-rhdh-hub-1 --report --org=3640be2c-1549-4d4c-bc0b-46b24799e4b6"
+            value: --severity-threshold=medium --project-name=konflux-rhdh-hub-1 --report
+              --org=3640be2c-1549-4d4c-bc0b-46b24799e4b6
         runAfter:
           - build-image-index
         taskRef:
@@ -341,8 +348,8 @@ spec:
         when:
           - input: $(params.skip-checks)
             operator: in
-            values: ["false"]
-
+            values:
+              - 'false'
       - name: clamav-scan
         params:
           - name: image-digest
@@ -363,8 +370,8 @@ spec:
         when:
           - input: $(params.skip-checks)
             operator: in
-            values: ["false"]
-
+            values:
+              - 'false'
       - name: sast-shell-check
         params:
           - name: image-digest
@@ -385,11 +392,11 @@ spec:
         when:
           - input: $(params.skip-checks)
             operator: in
-            values: ["false"]
+            values:
+              - 'false'
         workspaces:
           - name: workspace
             workspace: workspace
-
       - name: sast-unicode-check
         params:
           - name: image-url
@@ -410,11 +417,11 @@ spec:
         when:
           - input: $(params.skip-checks)
             operator: in
-            values: ["false"]
+            values:
+              - 'false'
         workspaces:
           - name: workspace
             workspace: workspace
-
       - name: rpms-signature-scan
         params:
           - name: image-url
@@ -435,26 +442,8 @@ spec:
         when:
           - input: $(params.skip-checks)
             operator: in
-            values: ["false"]
-
-      - name: apply-tags
-        params:
-          - name: IMAGE_URL
-            value: $(tasks.build-image-index.results.IMAGE_URL)
-          - name: IMAGE_DIGEST
-            value: $(tasks.build-image-index.results.IMAGE_DIGEST)
-        runAfter:
-          - build-image-index
-        taskRef:
-          params:
-            - name: name
-              value: apply-tags
-            - name: bundle
-              value: quay.io/konflux-ci/tekton-catalog/task-apply-tags:0.3@sha256:a291081de7fb27f832c6fc3c4b078acf7e6162ca4c085db38b118ca87e8b5b66
-            - name: kind
-              value: task
-          resolver: bundles
-
+            values:
+              - 'false'
       - name: push-dockerfile
         params:
           - name: IMAGE
@@ -478,29 +467,11 @@ spec:
             - name: kind
               value: task
           resolver: bundles
-
-      - name: publish-helm
-        params:
-          - name: SOURCE_ARTIFACT
-            value: "$(tasks.clone-repository.results.SOURCE_ARTIFACT)"
-          - name: target_branch
-            value: $(params.target_branch)
-          - name: IMAGE_URL
-            value: "$(tasks.build-image-index.results.IMAGE_URL)"
-          - name: IMAGE_DIGEST
-            value: "$(tasks.build-image-index.results.IMAGE_DIGEST)"
-        runAfter:
-          - apply-tags
-        taskRef:
-          resolver: http
-          params:
-            - name: url
-              value: https://gitlab.cee.redhat.com/rhidp/rhdh/-/raw/$(params.revision)/build/helm/publish_task.yaml
     finally:
       - name: show-sbom
         params:
           - name: IMAGE_URL
-            value: "$(tasks.build-image-index.results.IMAGE_URL)"
+            value: $(tasks.build-image-index.results.IMAGE_URL)
         taskRef:
           params:
             - name: name
