@@ -35,7 +35,7 @@ RUN set -eu; \
 # Stage 2: Final image
 FROM registry.access.redhat.com/ubi9-minimal:9.7-1776833838@sha256:7d4e47500f28ac3a2bff06c25eff9127ff21048538ae03ce240d57cf756acd00
 
-ARG RHDH_MUST_GATHER_VERSION="-${RELEASE_NUMBER}"
+ARG RHDH_MUST_GATHER_VERSION="0.0.0-unknown"
 
 RUN set -eu; \
     . /cachi2/cachi2.env; \
@@ -108,7 +108,7 @@ COPY collection-scripts/* /usr/bin/
 RUN mv /usr/bin/must_gather /usr/bin/gather
 
 # Set environment variable from build argument
-ENV RHDH_MUST_GATHER_VERSION="-${RELEASE_NUMBER}"
+ENV RHDH_MUST_GATHER_VERSION=$RHDH_MUST_GATHER_VERSION
 
 # Run as non-root user
 USER 1001

@@ -5,16 +5,6 @@ metadata:
     alm-examples: |-
       [
         {
-          "apiVersion": "rhdh.redhat.com/v1alpha3",
-          "kind": "Backstage",
-          "metadata": {
-            "labels": {
-              "app.kubernetes.io/name": "backstage"
-            },
-            "name": "developer-hub"
-          }
-        },
-        {
           "apiVersion": "rhdh.redhat.com/v1alpha4",
           "kind": "Backstage",
           "metadata": {
@@ -33,23 +23,13 @@ metadata:
             },
             "name": "developer-hub"
           }
-        },
-        {
-          "apiVersion": "rhdh.redhat.com/v1alpha6",
-          "kind": "Backstage",
-          "metadata": {
-            "labels": {
-              "app.kubernetes.io/name": "backstage"
-            },
-            "name": "developer-hub"
-          }
         }
       ]
     capabilities: Seamless Upgrades
     categories: Developer Tools
     certified: "true"
-    containerImage: registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:2be1bc9a01beaf3b5fbcae2f78d0c7fb17d350b1e0721c90b3e5ca1c321e65f6
-    createdAt: "2026-04-24T11:45:42Z"
+    containerImage: registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:bae1b48705365148f85b8eb883059eee37f1a84bdec71b9d863d8e192b158d49
+    createdAt: "2026-04-30T16:19:49Z"
     description: Red Hat Developer Hub is a Red Hat supported version of Backstage.
       It comes with pre-built plug-ins and configuration settings, supports use of
       an external database, and can help streamline the process of setting up a self-managed
@@ -91,15 +71,6 @@ spec:
       displayName: Red Hat Developer Hub
       kind: Backstage
       name: backstages.rhdh.redhat.com
-      version: v1alpha3
-    - description: |-
-        Backstage is the Schema for the Red Hat Developer Hub backstages API.
-        It comes with pre-built plug-ins, configuration settings, and deployment mechanisms,
-        which can help streamline the process of setting up a self-managed internal
-        developer portal for adopters who are just starting out.
-      displayName: Red Hat Developer Hub
-      kind: Backstage
-      name: backstages.rhdh.redhat.com
       version: v1alpha4
     - description: |-
         Backstage is the Schema for the Red Hat Developer Hub backstages API.
@@ -110,15 +81,6 @@ spec:
       kind: Backstage
       name: backstages.rhdh.redhat.com
       version: v1alpha5
-    - description: |-
-        Backstage is the Schema for the Red Hat Developer Hub backstages API.
-        It comes with pre-built plug-ins, configuration settings, and deployment mechanisms,
-        which can help streamline the process of setting up a self-managed internal
-        developer portal for adopters who are just starting out.
-      displayName: Red Hat Developer Hub
-      kind: Backstage
-      name: backstages.rhdh.redhat.com
-      version: v1alpha6
   description: |
     Red Hat Developer Hub is an enterprise-grade platform for building developer portals, containing a supported and opinionated framework. It comes with pre-built plug-ins and configuration settings, supports use of an external database, and can help streamline the process of setting up a self-managed internal developer portal for adopters who are just starting out. By implementing a unified and open platform designed to maximize developer skills, ease onboarding, and increase development productivity, focus can be centered on what really matters: writing great code. Red Hat Developer Hub also offers Software Templates to simplify the development process, which can reduce friction and frustration for development teams, boosting their productivity and increasing an organization's competitive advantage.
 
@@ -361,10 +323,10 @@ spec:
                     fieldRef:
                       fieldPath: metadata.name
                 - name: RELATED_IMAGE_postgresql
-                  value: registry.redhat.io/rhel9/postgresql-15@sha256:6aea2e620148c99e6a5e698a13e6cd2e1af8f0a7df64043b00b154ceaab3f2ef
+                  value: registry.redhat.io/rhel9/postgresql-15@sha256:410828563b2ebdce1c438d8c3e5e1d4d309bd809cd6c63303cab45eeba87d591
                 - name: RELATED_IMAGE_backstage
-                  value: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:7802bd03ba05e3cb3c2bacb3175a4aab824daa840285927451a8aa822b915c6d
-                image: registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:2be1bc9a01beaf3b5fbcae2f78d0c7fb17d350b1e0721c90b3e5ca1c321e65f6
+                  value: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:24018f3b1a994a9eac35a4a0190555695c0ce1476b27cc8d63b6946019769777
+                image: registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:bae1b48705365148f85b8eb883059eee37f1a84bdec71b9d863d8e192b158d49
                 livenessProbe:
                   httpGet:
                     path: /healthz
@@ -491,9 +453,9 @@ spec:
     name: Red Hat Inc.
     url: https://www.redhat.com/
   relatedImages:
-  - image: registry.redhat.io/rhel9/postgresql-15@sha256:6aea2e620148c99e6a5e698a13e6cd2e1af8f0a7df64043b00b154ceaab3f2ef
+  - image: registry.redhat.io/rhel9/postgresql-15@sha256:410828563b2ebdce1c438d8c3e5e1d4d309bd809cd6c63303cab45eeba87d591
     name: postgresql
-  - image: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:7802bd03ba05e3cb3c2bacb3175a4aab824daa840285927451a8aa822b915c6d
+  - image: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:24018f3b1a994a9eac35a4a0190555695c0ce1476b27cc8d63b6946019769777
     name: backstage
   replaces: rhdh-operator.v1.9.0
   version: 1.10.0
