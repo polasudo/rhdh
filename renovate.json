@@ -53,7 +53,8 @@
       "/\\.yml$/"
     ],
     "includePaths": [
-      ".tekton/**"
+      ".tekton/**",
+      ".tekton-templates/**"
     ],
     "packageRules": [
       {
