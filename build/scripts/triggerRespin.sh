@@ -44,7 +44,8 @@ Options:
 
 Examples: 
     $0 -v 1 hub,op     # both hub and operator (NOT bundle)
-    $0 -v 1 all        # both hub and operator (NOT bundle)
+    $0 -v 1 all        # all components (NOT bundle)
+    $0 -v 1.10 rag     # only rag-content image
     $0 -v 1.10 mg      # only must-gather image
     $0 -v 1.10 hub     # only hub
     $0 -v 1.10 hub -k  # only hub, no midstream sync (konflux only)
@@ -89,7 +90,7 @@ if [[ $GITLAB_PIPELINE == "true" ]]; then
 fi
 
 function openURL {
-    if [[ $(command -v brave-browser) == *"brave-browser"* ]] || [[ $(which brave-browser) != *"which: no brave-browser"* ]]; then
+    if [[ $(command -v brave-browser) == *"brave-browser"* ]] || [[ $(which brave-browser 2>&1) != *"which: no brave-browser"* ]]; then
       brave-browser "$1" >/dev/null 2>&1 &
     elif [[ $(command -v google-chrome) == *"google-chrome"* ]] || [[ $(which google-chrome 2>&1) != *"which: no google-chrome"* ]]; then 
         google-chrome "$1" >/dev/null 2>&1 &
@@ -121,7 +122,7 @@ else
     if [[ $KONFLUX_ONLY -eq 1 ]]; then commitMsg="$commitMsg [skip-gitlab]"; fi
 
     echo "$commitMsg ..."
-    if [[ $targets == "all" ]]; then targets="hub,mg,op"; fi
+    if [[ $targets == "all" ]]; then targets="hub,mg,op,rag"; fi
 
     if [[ $KONFLUX_ONLY -eq 1 ]]; then
         targets=${targets/op/operator}
@@ -129,6 +130,7 @@ else
         targets=${targets/mg/must-gather}
         targets=${targets//,/ }
     else
+        targets=${targets/rag/upstream_SHA_rhdh-rag-content}
         targets=${targets/mg/upstream_SHA_rhdh-must-gather}
         targets=${targets/hub/upstream_SHA_rhdh-hub}
         targets=${targets/operator/upstream_SHA_rhdh-operator}
