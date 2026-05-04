@@ -680,7 +680,7 @@ for ((i = START_REPO; i < NUM_REPOS; i++)); do # echo $i
     ##################################### rhdh-rag-content #########################################
     # if processing the upstream rag-content, also make some changes to the rag-content folder dowstream
     if [[ $destination_folder == *"rag-content"* ]]; then
-      bash "$ROOTPATH/build/scripts/lightspeed/replaceRAGAssetsUrl.sh" "$destination_folder"
+      bash "$ROOTPATH/build/scripts/lightspeed/injectRAGAssetsSteps.sh" "$destination_folder"
     fi
     ##################################### rhdh-rag-content #########################################
     # sed_rag_content_end
@@ -774,6 +774,61 @@ for ((i = START_REPO; i < NUM_REPOS; i++)); do # echo $i
 
   popd >/dev/null || exit 1 # distgit/containers/*
 done                        # foreach upstream repo
+
+# sed_rag_content
+# TODO: This is only needed currently for RAG content, if another one
+# is added we need to move the sed comments to incase just the 'rhdh-vector-stores'
+# case rather than the whole submodules fetch and pin
+#
+# pin and fetch midstream submodules
+submodules=("$(git config --file "$ROOTPATH/.gitmodules" --get-regexp path | awk '{ print $2 }')")
+for mod in "${submodules[@]}"; do
+  mod_name=$(git config --file "$ROOTPATH/.gitmodules" --get-regexp path | grep " $mod$" | awk -F'.' '{print $2}')
+  mod_branch=$(git config --file "$ROOTPATH/.gitmodules" --get-regexp branch | grep -E "submodule\\.$mod_name\\.branch \\S+$" | awk '{ print $2 }')
+
+  # fetch submodule if does not exist
+  if [ ! -d "$ROOTPATH/$mod" ]; then
+    echo -e "${green}[INFO] Fetching submodule ${mod_name} @ ${mod_branch} ... ${norm}"
+    git submodule update "$ROOTPATH/$mod"
+  fi
+
+  # if submodule SHA file exists; use pin or change pin if target branch is changed; else create the pin to HEAD of target branch
+  if [ -f "$ROOTPATH/submodules/midstream_SHA_${mod_name}" ]; then
+    sha_branch="$(cat "$ROOTPATH/submodules/midstream_SHA_${mod_name}" | cut -d'@' -f1 | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')"
+    if [[ "$sha_branch" == "$mod_branch" ]]; then
+      SHA="$(cat "$ROOTPATH/submodules/midstream_SHA_${mod_name}" | cut -d'@' -f2 | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')"
+      CURR_SHA="$(git -C "$ROOTPATH/$mod" rev-parse HEAD)"
+      # reset submodule reference if mismatches pinned ref
+      if [[ "$SHA" != "$CURR_SHA" ]]; then
+        echo -e "${green}[INFO] Set ${mod_name} submodule to pinned reference ${mod_branch} @ ${SHA} ... ${norm}"
+        git -C "$ROOTPATH/$mod" checkout "$SHA"
+      else
+        echo -e "${blue}[INFO] No changes detected for ${mod_name} submodule ${mod_branch} @ ${SHA}!${norm}"
+      fi
+    else
+      echo -e "${green}[INFO] Fetching changed submodule ${mod_name} @ ${mod_branch} ... ${norm}"
+      git submodule update "$ROOTPATH/$mod"
+      SHA="$(git -C "$ROOTPATH/$mod" rev-parse HEAD)"
+      echo -e "${green}[INFO] Pinning ${mod_name} submodule ${mod_branch} @ ${SHA} ... ${norm}"
+      pushd "$ROOTPATH/submodules" >/dev/null || exit 1
+          echo "${mod_branch} @ ${SHA}" > "midstream_SHA_${mod_name}"
+      popd >/dev/null || exit 1
+    fi
+  else
+    SHA="$(git -C "$ROOTPATH/$mod" rev-parse HEAD)"
+    echo -e "${green}[INFO] Pinning ${mod_name} submodule ${mod_branch} @ ${SHA} ... ${norm}"
+    mkdir -p "$ROOTPATH/submodules"
+    pushd "$ROOTPATH/submodules" >/dev/null || exit 1
+        echo "${mod_branch} @ ${SHA}" > "midstream_SHA_${mod_name}"
+    popd >/dev/null || exit 1
+  fi
+
+  # Needs vector stores provided artifacts.lock.yaml file for RAG content Konflux builds
+  if [[ "$mod_name" == "rhdh-vector-stores" ]] && [ -f "$ROOTPATH/$mod/artifacts.lock.yaml" ]; then
+    cp "$ROOTPATH/$mod/artifacts.lock.yaml" "$ROOTPATH/distgit/containers/rhdh-rag-content/artifacts.lock.yaml"
+  fi
+done
+# sed_rag_content_end
 
 get_DH_VERSION_from_package_json
 

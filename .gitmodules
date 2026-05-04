@@ -1,0 +1,4 @@
+[submodule "rhdh-vector-stores"]
+	path = distgit/containers/rhdh-rag-content/vector-stores
+	url = https://gitlab.cee.redhat.com/rhidp/rhdh-vector-stores
+	branch = release-1.9

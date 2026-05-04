@@ -1,0 +1,7 @@
+---
+metadata: 
+  version: "1.0"
+artifacts:
+  - download_url: "https://github.com/redhat-ai-dev/rhdh-rag-content/releases/download/rag-assets-rhdh-1.9-lls-0.5.0/rag-assets-rhdh-1.9-lls-0.5.0.tar.gz"
+    checksum: "sha256:2a000ae646ba5e23e9c6bf407409ac37ca6efcddbae790883efd195a69758296" 
+    filename: "rag-assets.zip"
