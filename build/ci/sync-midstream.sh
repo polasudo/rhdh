@@ -787,9 +787,9 @@ for mod in "${submodules[@]}"; do
   mod_branch=$(git config --file "$ROOTPATH/.gitmodules" --get-regexp branch | grep -E "submodule\\.$mod_name\\.branch \\S+$" | awk '{ print $2 }')
 
   # fetch submodule if does not exist
-  if [ ! -d "$ROOTPATH/$mod" ]; then
+  if [ ! -d "$ROOTPATH/$mod/.git" ]; then
     echo -e "${green}[INFO] Fetching submodule ${mod_name} @ ${mod_branch} ... ${norm}"
-    git submodule update "$ROOTPATH/$mod"
+    git submodule update --init "$ROOTPATH/$mod"
   fi
 
   # if submodule SHA file exists; use pin or change pin if target branch is changed; else create the pin to HEAD of target branch
