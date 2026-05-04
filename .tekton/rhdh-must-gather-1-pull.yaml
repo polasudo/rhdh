@@ -39,7 +39,7 @@ spec:
     - name: path-context
       value: distgit/containers/rhdh-must-gather
     - name: prefetch-input
-      value: '[{"type": "rpm", "path": "distgit/containers/rhdh-must-gather"},{"type": "pip", "path": "distgit/containers/rhdh-must-gather/.rhdh/docker", "allow_binary": "false"}]'
+      value: '[{"type": "rpm", "path": "distgit/containers/rhdh-must-gather"},{"type": "pip", "path": "distgit/containers/rhdh-must-gather/.rhdh/docker", "allow_binary": "false"},{"type": "cargo", "path": "distgit/containers/rhdh-must-gather/vendor/websocat"}]'
   pipelineSpec:
     params:
       - description: Source Repository URL
