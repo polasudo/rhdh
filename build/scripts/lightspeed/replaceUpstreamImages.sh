@@ -132,8 +132,3 @@ done
 # replace quay.io midstream with r.r.io downstream
 sed -i $yml -r \
     -e "s@quay.io/rhdh/@registry.redhat.io/rhdh/@g"
-
-# replace upstream plugin refs in lightspeed flavour configmap
-    # image: oci://ghcr.io/redhat-developer/rhdh-plugin-export-overlays/red-hat-developer-hub-backstage-plugin-lightspeed-backend
-    # image: oci://ghcr.io/redhat-developer/rhdh-plugin-export-overlays/red-hat-developer-hub-backstage-plugin-lightspeed
-bash "$ROOTPATH/build/scripts/lightspeed/replaceUpstreamPlugins.sh" "$yml"

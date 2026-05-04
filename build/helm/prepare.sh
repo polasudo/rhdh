@@ -493,9 +493,6 @@ if [[ "${CHART_NAME}" == "redhat-developer-hub" ]] || [[ "${CHART_NAME}" == "bac
         .global.lightspeed.sidecar.image.tag=\"${LCS_DIGEST}\"
         " "$VALUES_PATH"
     fi
-
-    # replace lightspeed plugins upstream OCI packages with downstream OCI packages
-    bash $SCRIPT_DIR/../scripts/lightspeed/replaceUpstreamPlugins.sh "$VALUES_PATH"
 elif [[ "${CHART_NAME}" == "redhat-developer-hub-must-gather" ]] || [[ "${CHART_NAME}" == "must-gather" ]]; then
     # Normalize chart name for folder path in openshift-helm-charts
     CHART_NAME="redhat-developer-hub-must-gather"
