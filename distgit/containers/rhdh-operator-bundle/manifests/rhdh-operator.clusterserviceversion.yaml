@@ -28,8 +28,8 @@ metadata:
     capabilities: Seamless Upgrades
     categories: Developer Tools
     certified: "true"
-    containerImage: registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:2b56dbb57f95070619fa31eca51cbfe9991a922db382334045d27be5a6b50d65
-    createdAt: "2026-04-30T16:19:49Z"
+    containerImage: registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:ef953cc9670b4790df285b0f73e59abe04d8e11c38468431f27d94626f5c4b50
+    createdAt: "2026-05-04T14:41:38Z"
     description: Red Hat Developer Hub is a Red Hat supported version of Backstage.
       It comes with pre-built plug-ins and configuration settings, supports use of
       an external database, and can help streamline the process of setting up a self-managed
@@ -323,10 +323,10 @@ spec:
                     fieldRef:
                       fieldPath: metadata.name
                 - name: RELATED_IMAGE_postgresql
-                  value: registry.redhat.io/rhel9/postgresql-15@sha256:410828563b2ebdce1c438d8c3e5e1d4d309bd809cd6c63303cab45eeba87d591
+                  value: registry.redhat.io/rhel9/postgresql-15@sha256:7355b65f7e5f30da8f5bec1983ef9d46cbd1a940eb264b9f82ed2abee28e2283
                 - name: RELATED_IMAGE_backstage
                   value: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:03ca9517a2d5712eb454148659b6af4b28ec492189a42ba86a4993d2f2a07e4c
-                image: registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:2b56dbb57f95070619fa31eca51cbfe9991a922db382334045d27be5a6b50d65
+                image: registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:ef953cc9670b4790df285b0f73e59abe04d8e11c38468431f27d94626f5c4b50
                 livenessProbe:
                   httpGet:
                     path: /healthz
@@ -453,7 +453,7 @@ spec:
     name: Red Hat Inc.
     url: https://www.redhat.com/
   relatedImages:
-  - image: registry.redhat.io/rhel9/postgresql-15@sha256:410828563b2ebdce1c438d8c3e5e1d4d309bd809cd6c63303cab45eeba87d591
+  - image: registry.redhat.io/rhel9/postgresql-15@sha256:7355b65f7e5f30da8f5bec1983ef9d46cbd1a940eb264b9f82ed2abee28e2283
     name: postgresql
   - image: registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:03ca9517a2d5712eb454148659b6af4b28ec492189a42ba86a4993d2f2a07e4c
     name: backstage

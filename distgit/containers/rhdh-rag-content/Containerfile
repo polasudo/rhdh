@@ -16,13 +16,15 @@
 
 FROM registry.access.redhat.com/ubi9/ubi-minimal:9.7@sha256:161a4e29ea482bab6048c2b36031b4f302ae81e4ff18b83e61785f40dc576f5d AS rag-assets-downloader
 
-ADD ./vector-stores /tmp/rag-assets
+ARG RAG_ASSETS_URL
 
 USER 0
 WORKDIR /tmp/rag-assets
 
 RUN microdnf install -y tar gzip && microdnf clean all
-RUN mkdir -p extracted && \
+RUN test -n "${RAG_ASSETS_URL}" && \
+    curl -fsSL "${RAG_ASSETS_URL}" -o rag-assets.tar.gz && \
+    mkdir -p extracted && \
     tar --no-same-owner --no-same-permissions -C extracted -xzf rag-assets.tar.gz && \
     test -d extracted/vector_db/rhdh_product_docs && \
     test -d extracted/embeddings_model
@@ -33,31 +35,3 @@ COPY --from=rag-assets-downloader /tmp/rag-assets/extracted/vector_db/rhdh_produ
 COPY --from=rag-assets-downloader /tmp/rag-assets/extracted/embeddings_model /rag/embeddings_model
 
 USER 65532:65532
-
-ENV SUMMARY="Red Hat Developer Hub RAG content" \
-DESCRIPTION="Red Hat Developer Hub RAG content" \
-RHDH_VERSION="1.10.0" \
-BACKSTAGE_VERSION="1.49.4" \
-UPSTREAM_REPO="https://github.com/redhat-ai-dev/rhdh-rag-content/tree/main @ 98319797" \
-MIDSTREAM_REPO="https://gitlab.cee.redhat.com/rhidp/rhdh/-/commits/rhdh-rag-content-pipelines" \
-PRODNAME="rhdh" \
-COMPNAME="rag-content"
-
-LABEL summary="$SUMMARY" \
-    description="$DESCRIPTION" \
-    io.k8s.description="$DESCRIPTION" \
-    io.k8s.display-name="$DESCRIPTION" \
-    io.openshift.tags="$PRODNAME,$COMPNAME" \
-    com.redhat.component="$PRODNAME-$COMPNAME-container" \
-    name="$PRODNAME/$PRODNAME-rhel9-$COMPNAME" \
-    version="1.10" \
-    release="1" \
-    license="ASLv2" \
-    maintainer="RHDH Team <rhdh-bot@redhat.com>" \
-    vendor="Red Hat, Inc." \
-    io.openshift.expose-services="" \
-    usage="" \
-    konflux.additional-tags="next, 1.10, 1.10-1" \
-    distribution-scope="public" \
-    url="https://red.ht/rhdh" \
-    cpe="cpe:/a:redhat:rhdh:1.10::el9"
