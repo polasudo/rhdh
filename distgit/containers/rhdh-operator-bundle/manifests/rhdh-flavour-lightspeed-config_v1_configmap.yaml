@@ -285,7 +285,7 @@ data:
           containers:
             # Lightspeed Core Backend
             - name: lightspeed-core
-              image: registry.redhat.io/lightspeed-core/lightspeed-stack-rhel9:0.5.1
+              image: registry.redhat.io/lightspeed-core/lightspeed-stack-rhel9@sha256:d392e5b21f6449433c5be96591619f919cc39638e6be3d80294cd9bc3ed67e7f
               imagePullPolicy: Always
               ports:
                 - containerPort: 8080
