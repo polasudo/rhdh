@@ -1,27 +1,7 @@
-# This is the default RHDH bootc config, and any user configuration should be added app-config.local.yaml instead
-auth:
-  environment: development
-  providers:
-    guest: {}
-    github:
-      development:
-        clientId: ${GITHUB_CLIENT_ID}
-        clientSecret: ${GITHUB_CLIENT_SECRET}
-        signIn:
-          resolvers:
-            - resolver: usernameMatchingUserEntityName
-
 app:
   title: Red Hat Developer Hub
   baseUrl: ${BASE_URL}
   branding:
-    # If using a different logo, replace these lines with your own image(s)
-    # fullLogo: data:image/svg+xml;base64,your-image-goes-here==
-    # - or -
-    # fullLogo:
-    #   dark: data:image/svg+xml;base64,your-image-in-dark-mode-goes-here==
-    #   light: data:image/svg+xml;base64,your-image-in-light-mode-goes-here==
-    # iconLogo: data:image/svg+xml;base64,your-image-goes-here==
     fullLogoWidth: ${FULL_LOGO_WIDTH}
     theme:
       light:
@@ -34,77 +14,17 @@ app:
         headerColor1: ${HEADER_DARK_COLOR_1}
         headerColor2: ${HEADER_DARK_COLOR_2}
         navigationIndicatorColor: ${NAV_INDICATOR_DARK_COLOR}
-  quickstart:
-    # Quickstarts for all users
-    - title: 'Navigate Your Way Around'
-      description: 'The homepage gives links to important features and documentation. The topbar allows you to search for anything, register new components, view your starred entities, and launch external apps.'
-      icon: 'kind:location'
-      roles: ['admin', 'developer']
-      cta:
-        text: 'Start Exploring'
-        link: '/'
-    - title: 'Browse The Software Catalog'
-      description: 'The software catalog lets you see all the projects and components shared by development teams throughout your organization.'
-      icon: 'catalog'
-      roles: ['admin', 'developer']
-      cta:
-        text: 'Open the Catalog'
-        link: '/catalog'
-    - title: 'Browse The Golden Path Templates'
-      description: 'Golden path templates let you quickly create and customize software projects that follow your organization''s coding standards using simple wizard like forms.'
-      icon: 'scaffolder'
-      roles: ['admin', 'developer']
-      cta:
-        text: 'Browse the Templates'
-        link: '/create'
-    - title: 'Explore APIs'
-      description: 'Visit the APIs section to discover the APIs that have been added by our organization.'
-      icon: 'kind:api'
-      roles: ['admin', 'developer']
-      cta:
-        text: 'View the APIs'
-        link: '/api-docs'
-    - title: 'Add Software To The Catalog'
-      description: 'You can register existing Backstage components into the catalog using catalog-info.yaml files.'
-      icon: 'add'
-      roles: ['admin', 'developer']
-      cta:
-        text: 'Register a Component'
-        link: '/catalog-import'
-    - title: 'Personalize Your Experience'
-      description: 'Customize Developer Hub to match your preferences. Toggle dark mode, adjust your theme, and configure settings to create your ideal workspace.'
-      icon: 'manageAccounts'
-      roles: ['admin', 'developer']
-      cta:
-        text: 'Open Settings'
-        link: '/settings'
-
-    # Quickstarts for admins only
-    - title: 'View Your Platform Adoption Metrics'
-      description: 'See how your developers are using Developer Hub''s many tools and features.'
-      icon: 'chart'
-      roles: ['admin']
-      cta:
-        text: 'Open Adoption Insights'
-        link: '/adoption-insights'
 
 backend:
   listen:
     port: 7007
   baseUrl: ${BASE_URL}
-  # uncomment this if backend.baseUrl is exposed over HTTPS
-  # and you want RHDH to auto-generate and serve a self-signed certificate.
-  # https: true
   cors:
     origin: ${BASE_URL}
     methods: [GET, HEAD, PATCH, POST, PUT, DELETE]
     credentials: true
   csp:
-   upgrade-insecure-requests: false
-   img-src:
-    - "'self'"
-    - "data:"
-  # PostgreSQL database configuration (bootc-specific)
+    upgrade-insecure-requests: false
   database:
     client: pg
     connection:
@@ -114,38 +34,6 @@ backend:
       password: ${POSTGRES_PASSWORD}
       database: ${POSTGRES_DB}
       ssl: false
-
   auth:
     keys:
       - secret: ${BACKEND_SECRET}
-
-  reading:
-    allow:
-    - host: gitlab.com
-    - host: github.com
-    - host: raw.githubusercontent.com
-    - host: localhost
-
-catalog:
-  # Processing interval for catalog refresh rates - 30 seconds - uncomment to use
-  # processingInterval: { seconds: 30 }
-
-  rules:
-    - allow: [Component, API, Location, Template, Domain, User, Group, System, Resource]
-
-  locations: []
-  # Downstream consumers should add their own catalog locations here.
-  # Example:
-  #   - type: url
-  #     target: https://github.com/my-org/my-templates/blob/main/template.yaml
-  #     rules:
-  #       - allow: [Template]
-
-integrations:
-  github:
-  - host: github.com
-    token: ${GITHUB_TOKEN}
-  gitlab:
-  - host: gitlab.com
-    token: ${GITLAB_TOKEN}
-
