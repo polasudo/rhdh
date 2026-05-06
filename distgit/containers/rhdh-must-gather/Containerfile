@@ -116,7 +116,7 @@ USER 1001
 ENTRYPOINT ["/usr/bin/gather"]
 ENV SUMMARY="Red Hat Developer Hub must-gather" \
     DESCRIPTION="Red Hat Developer Hub must-gather container" \
-    UPSTREAM_REPO="https://github.com/redhat-developer/rhdh-must-gather/tree/main @ e8c44b40" \
+    UPSTREAM_REPO="https://github.com/redhat-developer/rhdh-must-gather/tree/main @ 9cf5b89a" \
     MIDSTREAM_REPO="https://gitlab.cee.redhat.com/rhidp/rhdh/-/commits/rhdh-1-rhel-9" \
     PRODNAME="rhdh" \
     COMPNAME="must-gather"
