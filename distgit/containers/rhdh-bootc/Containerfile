@@ -90,6 +90,19 @@ RUN systemctl enable firewalld && \
       '</zone>' \
       > /etc/firewalld/zones/public.xml
 
+# ── OpenSCAP security hardening (RHEL 9 CIS compliance) ────────────────
+# Run automated remediation against the CIS profile at build time.
+# This validates and fixes any gaps in our manual hardening above.
+# Profile can be overridden at build time (e.g. stig for DoD environments).
+# Ref: https://docs.redhat.com/en/documentation/red_hat_enterprise_linux/9/html-single/using_image_mode_for_rhel_to_build_deploy_and_manage_operating_systems/index#building-hardened-bootable-images_security-hardening-and-compliance-of-bootable-images
+ARG OSCAP_PROFILE="xccdf_org.ssgproject.content_profile_cis"
+RUN dnf install -y openscap-utils scap-security-guide && \
+    oscap-im --profile ${OSCAP_PROFILE} \
+        /usr/share/xml/scap/ssg/content/ssg-rhel9-ds.xml && \
+    dnf remove -y openscap-utils && \
+    dnf clean all && \
+    rm -rf /var/cache/dnf
+
 # ── Registry auth for runtime plugin pulls ───────────────────────────────
 # Placeholder auth.json — Ansible injects real credentials via cloud-init
 # or Podman secrets. Root needs ~/.config/containers/auth.json for systemd.

@@ -31,7 +31,11 @@ packages:
   - podman
   - openssl
   - openssh-server
+  - openscap-utils
+  - scap-security-guide
   # cloud-init and open-vm-tools are RHEL-only (not in UBI repos);
   # they are installed at build time via activation-key entitlement.
+  # Note: openscap-utils is removed after scan in the Containerfile
+  # but must be prefetched for hermetic builds.
 
 installWeakDeps: false
