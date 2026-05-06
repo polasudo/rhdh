@@ -1,0 +1,91 @@
+# app-config.production.yaml
+# User-editable configuration overrides for Day 2 operations.
+#
+# This file is loaded AFTER app-config.yaml and BEFORE app-config.local.yaml.
+# Values here override the base defaults in app-config.yaml.
+#
+# Configuration precedence (highest wins):
+#   app-config.local.yaml          (development/testing overrides)
+#   app-config.production.yaml     (THIS FILE - user Day 2 config)
+#   app-config.patched.yaml        (auto-generated, integrations)
+#   app-config.yaml                (base defaults, read-only)
+#
+# Edit this file directly for Day 2 configuration changes:
+#   sudo vi /etc/rhdh/configs/app-config/app-config.production.yaml
+#   sudo systemctl restart rhdh
+#
+# Common configuration scenarios are documented below.
+# Uncomment and modify the sections you need.
+
+# ---------------------------------------------------------------------------
+# RHDH URLs and Identity
+# ---------------------------------------------------------------------------
+# Override the RHDH base URL (auto-detected by default via detect-and-set-base-url.sh):
+# app:
+#   baseUrl: http://rhdh.example.com:7007
+#
+# backend:
+#   baseUrl: http://rhdh.example.com:7007
+#   cors:
+#     origin: http://rhdh.example.com:7007
+
+# ---------------------------------------------------------------------------
+# External Database
+# ---------------------------------------------------------------------------
+# Use an external PostgreSQL database instead of the built-in container.
+# When backend.database.connection.host is changed from rhdh-postgres,
+# the local postgres.service is automatically skipped (ExecCondition).
+#
+# Also update POSTGRES_HOST in /etc/rhdh/rhdh.env to match.
+#
+# backend:
+#   database:
+#     client: pg
+#     connection:
+#       host: db.example.com
+#       port: 5432
+#       user: rhdh_user
+#       password: ${POSTGRES_PASSWORD}
+#       database: rhdh_backstage
+
+# ---------------------------------------------------------------------------
+# Authentication Providers
+# ---------------------------------------------------------------------------
+# Override or add authentication providers:
+# auth:
+#   environment: production
+#   providers:
+#     github:
+#       production:
+#         clientId: ${GITHUB_CLIENT_ID}
+#         clientSecret: ${GITHUB_CLIENT_SECRET}
+#         signIn:
+#           resolvers:
+#             - resolver: usernameMatchingUserEntityName
+
+# ---------------------------------------------------------------------------
+# RBAC Permission Configuration
+# ---------------------------------------------------------------------------
+# permission:
+#   enabled: true
+#   rbac:
+#     admin:
+#       superUsers:
+#         - name: user:default/admin
+#     pluginsWithPermission:
+#       - catalog
+#       - scaffolder
+#       - permission
+
+# ---------------------------------------------------------------------------
+# Catalog Configuration
+# ---------------------------------------------------------------------------
+# Adjust catalog sync intervals or add additional locations:
+# catalog:
+#   processingInterval:
+#     seconds: 30
+#   locations:
+#     - type: url
+#       target: https://github.com/my-org/my-templates/blob/main/template.yaml
+#       rules:
+#         - allow: [Template]

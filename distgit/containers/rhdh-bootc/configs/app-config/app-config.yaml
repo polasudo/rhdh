@@ -1,0 +1,39 @@
+app:
+  title: Red Hat Developer Hub
+  baseUrl: ${BASE_URL}
+  branding:
+    fullLogoWidth: ${FULL_LOGO_WIDTH}
+    theme:
+      light:
+        primaryColor: ${PRIMARY_LIGHT_COLOR}
+        headerColor1: ${HEADER_LIGHT_COLOR_1}
+        headerColor2: ${HEADER_LIGHT_COLOR_2}
+        navigationIndicatorColor: ${NAV_INDICATOR_LIGHT_COLOR}
+      dark:
+        primaryColor: ${PRIMARY_DARK_COLOR}
+        headerColor1: ${HEADER_DARK_COLOR_1}
+        headerColor2: ${HEADER_DARK_COLOR_2}
+        navigationIndicatorColor: ${NAV_INDICATOR_DARK_COLOR}
+
+backend:
+  listen:
+    port: 7007
+  baseUrl: ${BASE_URL}
+  cors:
+    origin: ${BASE_URL}
+    methods: [GET, HEAD, PATCH, POST, PUT, DELETE]
+    credentials: true
+  csp:
+    upgrade-insecure-requests: false
+  database:
+    client: pg
+    connection:
+      host: ${POSTGRES_HOST}
+      port: ${POSTGRES_PORT}
+      user: ${POSTGRES_USER}
+      password: ${POSTGRES_PASSWORD}
+      database: ${POSTGRES_DB}
+      ssl: false
+  auth:
+    keys:
+      - secret: ${BACKEND_SECRET}

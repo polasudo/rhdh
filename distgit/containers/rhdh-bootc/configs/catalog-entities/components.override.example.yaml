@@ -1,0 +1,15 @@
+# Example components override file.
+# Copy this to components.override.yaml, customize, and rebuild the image.
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: my-service
+  title: My Service
+  description: Example component
+spec:
+  type: service
+  lifecycle: production
+  owner: group:default/rhdh-team
+  system: rhdh-bootc

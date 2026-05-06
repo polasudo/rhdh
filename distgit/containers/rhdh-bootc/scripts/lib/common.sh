@@ -1,0 +1,170 @@
+#!/bin/bash
+# Common variables and functions for RHDH bootc scripts
+
+# ============================================================================
+# Configuration Paths
+# ============================================================================
+RHDH_CONFIG_DIR="/etc/rhdh"
+RHDH_APP_CONFIG="/etc/rhdh/configs/app-config/app-config.yaml"
+RHDH_APP_CONFIG_PRODUCTION="/etc/rhdh/configs/app-config/app-config.production.yaml"
+RHDH_SETUP_COMPLETE="${RHDH_CONFIG_DIR}/.setup-complete"
+RHDH_ENV_FILE="${RHDH_CONFIG_DIR}/rhdh.env"
+POSTGRES_ENV_FILE="${RHDH_CONFIG_DIR}/postgres.env"
+
+LIB_DIR="/usr/local/lib/rhdh"
+
+# ============================================================================
+# Colors (only if terminal supports colors)
+# ============================================================================
+if [ -t 1 ]; then
+    RED='\033[0;31m'
+    GREEN='\033[0;32m'
+    YELLOW='\033[0;33m'
+    BLUE='\033[0;34m'
+    BOLD='\033[1m'
+    NC='\033[0m'
+else
+    RED=''
+    GREEN=''
+    YELLOW=''
+    BLUE=''
+    BOLD=''
+    NC=''
+fi
+
+# ============================================================================
+# Logging Functions
+# ============================================================================
+log_info() {
+    echo -e "${BLUE}[INFO]${NC} $1"
+}
+
+log_success() {
+    echo -e "${GREEN}[OK]${NC} $1"
+}
+
+log_warn() {
+    echo -e "${YELLOW}[WARN]${NC} $1"
+}
+
+log_error() {
+    echo -e "${RED}[ERROR]${NC} $1" >&2
+}
+
+# ============================================================================
+# Utility Functions
+# ============================================================================
+
+require_root() {
+    if [[ $EUID -ne 0 ]]; then
+        log_error "This command must be run as root (use sudo)"
+        exit 1
+    fi
+}
+
+mask_secret() {
+    local secret="$1"
+    local len=${#secret}
+    if [[ $len -le 8 ]]; then
+        echo "********"
+    else
+        echo "${secret:0:4}****${secret: -4}"
+    fi
+}
+
+disable_password_auth() {
+    local sshd_dropin="/etc/ssh/sshd_config.d/10-disable-password-auth.conf"
+    if [[ -f "$sshd_dropin" ]]; then
+        log_info "Password auth already disabled via $sshd_dropin"
+    else
+        mkdir -p /etc/ssh/sshd_config.d
+        printf '%s\n' \
+            'PasswordAuthentication no' \
+            'ChallengeResponseAuthentication no' \
+            'PermitRootLogin prohibit-password' \
+            'UsePAM yes' \
+            'PubkeyAuthentication yes' \
+            > "$sshd_dropin"
+        chmod 644 "$sshd_dropin"
+        log_info "Password auth disabled"
+    fi
+}
+
+# ============================================================================
+# Podman Secrets Configuration
+# ============================================================================
+
+SECRET_VARS=(
+    "BACKEND_SECRET"
+    "POSTGRESQL_PASSWORD"
+    "POSTGRESQL_ADMIN_PASSWORD"
+    "GITHUB_TOKEN"
+    "GITHUB_CLIENT_ID"
+    "GITHUB_CLIENT_SECRET"
+    "GITLAB_TOKEN"
+)
+
+SYSTEM_SECRET_VARS=(
+    "BACKEND_SECRET"
+    "POSTGRESQL_PASSWORD"
+    "POSTGRESQL_ADMIN_PASSWORD"
+)
+
+is_secret_var() {
+    local key="$1"
+    local var
+    for var in "${SECRET_VARS[@]}"; do
+        [[ "$var" == "$key" ]] && return 0
+    done
+    return 1
+}
+
+is_system_secret() {
+    local key="$1"
+    local var
+    for var in "${SYSTEM_SECRET_VARS[@]}"; do
+        [[ "$var" == "$key" ]] && return 0
+    done
+    return 1
+}
+
+get_secret_name() {
+    local key="$1"
+    echo "rhdh_${key,,}"
+}
+
+create_rhdh_secret() {
+    local key="$1"
+    local value="${2:- }"
+    local secret_name
+    secret_name=$(get_secret_name "$key")
+
+    if ! printf '%s' "$value" | podman secret create --replace "$secret_name" - >/dev/null 2>&1; then
+        podman secret rm "$secret_name" 2>/dev/null || true
+        printf '%s' "$value" | podman secret create "$secret_name" - >/dev/null 2>&1 || {
+            log_error "Failed to create Podman secret: $secret_name"
+            return 1
+        }
+    fi
+}
+
+get_rhdh_secret() {
+    local key="$1"
+    local secret_name
+    secret_name=$(get_secret_name "$key")
+
+    local val
+    val=$(podman secret inspect "$secret_name" --showsecret --format '{{.SecretData}}' 2>/dev/null) || return 1
+    if [[ "$val" == " " ]]; then
+        echo ""
+    else
+        echo "$val"
+    fi
+}
+
+rhdh_secret_exists() {
+    local key="$1"
+    local secret_name
+    secret_name=$(get_secret_name "$key")
+    podman secret inspect "$secret_name" >/dev/null 2>&1
+}

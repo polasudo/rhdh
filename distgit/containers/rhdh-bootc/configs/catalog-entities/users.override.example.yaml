@@ -1,0 +1,25 @@
+# Example users and groups override file.
+# Copy this to users.override.yaml, customize, and rebuild the image.
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Group
+metadata:
+  name: my-team
+  title: My Team
+spec:
+  type: team
+  children: []
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: User
+metadata:
+  name: my-user
+  title: My User
+spec:
+  profile:
+    displayName: My User
+    email: my-user@example.com
+  memberOf:
+    - my-team

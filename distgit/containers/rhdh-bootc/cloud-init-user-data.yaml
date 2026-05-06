@@ -1,0 +1,52 @@
+#cloud-config
+# RHDH bootc — Cloud-Init User Data Template
+#
+# Attach this file as user-data when deploying a VM from the rhdh-bootc image.
+# Values marked "auto" are auto-generated on first boot.
+# Remove or comment out optional sections you don't need.
+#
+# Usage:
+#   QEMU/KVM:   virt-install --cloud-init user-data=user-data.yaml ...
+#   AWS:        paste into EC2 "User data" field
+#   OCP Virt:   set in VirtualMachine spec.volumes[].cloudInitNoCloud.userData
+
+users:
+  - name: admin
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    ssh_authorized_keys:
+      - "<REPLACE: your SSH public key, e.g. ssh-ed25519 AAAA...>"
+
+# Backend service-to-service authentication secret
+# "auto" generates a secure 64-char hex string on first boot
+security:
+  backend_secret: "auto"
+
+# Database configuration
+# type: "builtin" uses the local PostgreSQL container
+# type: "external" connects to an existing PostgreSQL server
+database:
+  type: builtin
+  builtin:
+    password: "auto"
+    admin_password: "auto"
+  # external:
+  #   host: db.example.com
+  #   port: 5432
+  #   user: rhdh_user
+  #   password: "your-db-password"
+  #   name: rhdh_backstage
+  #   ssl: true
+
+# Network configuration (optional)
+# If omitted, BASE_URL is auto-detected from VM IP at each boot
+# network:
+#   base_url: "http://rhdh.example.com:7007"
+
+# Source control integrations (optional)
+# integrations:
+#   github:
+#     token: "ghp_..."
+#     client_id: "your-oauth-client-id"
+#     client_secret: "your-oauth-client-secret"
+#   gitlab:
+#     token: "glpat-..."

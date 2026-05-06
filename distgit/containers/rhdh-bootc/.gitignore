@@ -1,0 +1,7 @@
+auth.json
+
+# Override files (copy from .example and customize)
+/configs/dynamic-plugins/dynamic-plugins.override.yaml
+/configs/catalog-entities/users.override.yaml
+/configs/catalog-entities/components.override.yaml
+/configs/app-config/app-config.local.yaml
