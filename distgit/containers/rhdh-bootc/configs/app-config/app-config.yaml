@@ -36,15 +36,8 @@ app:
         navigationIndicatorColor: ${NAV_INDICATOR_DARK_COLOR}
   quickstart:
     # Quickstarts for all users
-    - title: 'What is Developer Hub?'
-      description: 'Learn what Developer Hub is, its purpose, and how to use it to discover, create, and manage software in your organization.'
-      icon: 'developerHub'
-      roles: ['admin', 'developer']
-      cta:
-        text: 'Read the Introduction'
-        link: '/docs/default/system/rhdh-bootc/'
     - title: 'Navigate Your Way Around'
-      description: 'The homepage gives links to important features and documentation. The topbar allows you to to search for anything, register new components, view your starred entities, and launch external apps.'
+      description: 'The homepage gives links to important features and documentation. The topbar allows you to search for anything, register new components, view your starred entities, and launch external apps.'
       icon: 'kind:location'
       roles: ['admin', 'developer']
       cta:
@@ -64,13 +57,6 @@ app:
       cta:
         text: 'Browse the Templates'
         link: '/create'
-    - title: 'Read Some TechDocs'
-      description: 'Discover project documentation, architecture notes, and how-to guides in TechDocs.'
-      icon: 'techdocs'
-      roles: ['admin', 'developer']
-      cta:
-        text: 'View the TechDocs'
-        link: '/docs'
     - title: 'Explore APIs'
       description: 'Visit the APIs section to discover the APIs that have been added by our organization.'
       icon: 'kind:api'
@@ -92,20 +78,6 @@ app:
       cta:
         text: 'Open Settings'
         link: '/settings'
-    - title: 'Learn New Skills'
-      description: 'Discover curated learning paths designed to help you expand your knowledge and skills in various technologies.'
-      icon: 'school'
-      roles: ['admin', 'developer']
-      cta:
-        text: 'View Learning Paths'
-        link: '/learning-paths'
-    - title: 'Star Your Favorite Items'
-      description: 'Click the Star icon on any Catalog entity, API, or anywhere else you see a star. Your starred items appear in the top navigation bar for quick access.'
-      icon: 'star'
-      roles: ['admin', 'developer']
-      cta:
-        text: 'Learn More'
-        link: '/catalog/default/system/rhdh-bootc'
 
     # Quickstarts for admins only
     - title: 'View Your Platform Adoption Metrics'
@@ -115,13 +87,6 @@ app:
       cta:
         text: 'Open Adoption Insights'
         link: '/adoption-insights'
-    - title: 'Manage and Install Plugins'
-      description: 'Browse the Extensions Catalog to discover, install, and manage plugins that extend Developer Hub''s functionality.'
-      icon: 'storefront'
-      roles: ['admin']
-      cta:
-        text: 'Open Extensions Catalog'
-        link: '/extensions/catalog'
 
 backend:
   listen:
@@ -136,12 +101,9 @@ backend:
     credentials: true
   csp:
    upgrade-insecure-requests: false
-   # CSP for Quay Images
    img-src:
     - "'self'"
     - "data:"
-    - "https://quay.io"
-    - "https://*.quay.io"
   # PostgreSQL database configuration (bootc-specific)
   database:
     client: pg
@@ -164,7 +126,6 @@ backend:
     - host: raw.githubusercontent.com
     - host: localhost
 
-# You can use local files from catalog-entities directory to load entities into the catalog
 catalog:
   # Processing interval for catalog refresh rates - 30 seconds - uncomment to use
   # processingInterval: { seconds: 30 }
@@ -172,53 +133,13 @@ catalog:
   rules:
     - allow: [Component, API, Location, Template, Domain, User, Group, System, Resource]
 
-  locations:
-    # Root catalog entity with TechDocs
-    - type: file
-      target: /opt/app-root/src/catalog-info.yaml
-    # Local catalog entities (users, components, etc)
-    - type: file
-      target: /opt/app-root/src/configs/catalog-entities/users.yaml
-    - type: file
-      target: /opt/app-root/src/configs/catalog-entities/components.yaml
-
-    # Load Red Hat Developer Hub software templates
-    - type: url
-      target: https://github.com/redhat-developer/red-hat-developer-hub-software-templates/blob/main/templates/create-frontend-plugin/template.yaml
-      rules:
-        - allow: [Template]
-    - type: url
-      target: https://github.com/redhat-developer/red-hat-developer-hub-software-templates/blob/main/templates/create-backend-plugin/template.yaml
-      rules:
-        - allow: [Template]
-    - type: url
-      target: https://github.com/redhat-developer/red-hat-developer-hub-software-templates/blob/main/templates/github/techdocs/template.yaml
-      rules:
-        - allow: [Template]
-    - type: url
-      target: https://github.com/redhat-developer/red-hat-developer-hub-software-templates/blob/main/templates/github/register-component/template.yaml
-      rules:
-        - allow: [Template]
-
-techdocs:
-  generator:
-    runIn: local
-  builder: local
-  publisher:
-    type: local
-    local:
-      publishDirectory: /tmp/techdocs
-
-dynamicPlugins:
-  frontend:
-    default.main-menu-items:
-        menuItems:
-          default.help:
-            title: RHDH Guide
-            icon: techdocs
-            priority: 5
-            to: /catalog/default/system/rhdh-bootc/docs
-            enabled: true
+  locations: []
+  # Downstream consumers should add their own catalog locations here.
+  # Example:
+  #   - type: url
+  #     target: https://github.com/my-org/my-templates/blob/main/template.yaml
+  #     rules:
+  #       - allow: [Template]
 
 integrations:
   github:
@@ -227,23 +148,4 @@ integrations:
   gitlab:
   - host: gitlab.com
     token: ${GITLAB_TOKEN}
-
-proxy:
-  endpoints:
-    '/quay/api':
-      target: 'https://quay.io'
-      credentials: require
-      headers:
-        X-Requested-With: 'XMLHttpRequest'
-        # Uncomment and use the Authorization header below to access a private Quay
-        # Repository using a token. Refer to the "Applications and Tokens" section
-        # at https://docs.quay.io/api/ to find the instructions to generate a token
-        # Authorization: 'Bearer <YOUR TOKEN>'
-      changeOrigin: true
-      # Change to "false" in case of using self hosted quay instance with a self-signed certificate
-      secure: true
-
-quay:
-  # The UI url for Quay, used to generate the link to Quay
-  uiUrl: 'https://quay.io'
 

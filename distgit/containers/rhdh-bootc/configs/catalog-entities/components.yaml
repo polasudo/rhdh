@@ -1,39 +1,7 @@
-# RHDH bootc system entity is defined in catalog-info.yaml at the repository root
-# to enable TechDocs with mkdocs.yml and docs/ directory
+# Catalog components placeholder
+# This base image does not ship default catalog entities.
+# Downstream consumers should add their own components here.
 #
-# Components and APIs for the bootc deployment
-
----
-apiVersion: backstage.io/v1alpha1
-kind: Component
-metadata:
-  name: rhdh-bootc-image
-  title: RHDH bootc Container Image
-  description: |
-    Bootable container image for Red Hat Developer Hub deployment using RHEL 9 Image Mode.
-    Includes RHDH, PostgreSQL, and Quadlet systemd integration for air-gap capable deployments.
-  tags:
-    - bootc
-    - rhel-9
-    - image-mode
-    - podman
-    - quadlet
-  links:
-    - url: https://bootc.dev
-      title: bootc Documentation
-      icon: docs
-    - url: https://docs.podman.io/en/latest/markdown/podman-systemd.unit.5.html
-      title: Podman Quadlet
-      icon: docs
-spec:
-  type: image
-  lifecycle: experimental
-  owner: group:default/rhdh-team
-  system: rhdh-bootc
-  # providesApis:
-  #   - rhdh-api
-
-# Add more components, APIs, or resources below as needed
 # Example:
 # ---
 # apiVersion: backstage.io/v1alpha1
@@ -44,5 +12,4 @@ spec:
 # spec:
 #   type: service
 #   lifecycle: production
-#   owner: group:default/rhdh-team
-#   system: rhdh-bootc
+#   owner: group:default/my-team
