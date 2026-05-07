@@ -16,6 +16,9 @@ github_repos:
 # some repos do not get tagged when we release, as they follow a different release mechanism
 github_repos_no_tag:
   - "redhat-developer/rhdh-cli"
+  - "redhat-developer/rhdh-must-gather"
+  - "redhat-ai-dev/rhdh-rag-content"
+  - "redhat-ai-dev/lightspeed-configs"
 gitlab_repos:
   - "rhidp/rhdh"
   - "rhidp/rhdh-plugin-catalog"
