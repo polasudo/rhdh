@@ -14,7 +14,7 @@ metadata:
       ( "distgit/containers/rhdh-bootc/***".pathChanged() || ".tekton/rhdh-bootc-1-pull.yaml".pathChanged() )
   creationTimestamp: null
   labels:
-    appstudio.openshift.io/application: rhdh-bootc-1
+    appstudio.openshift.io/application: rhdh-1
     appstudio.openshift.io/component: rhdh-bootc-1
     pipelines.appstudio.openshift.io/type: build
   name: rhdh-bootc-1-on-pull
