@@ -191,9 +191,6 @@ RUN mkdir -p /usr/local/lib/rhdh && \
     cp /usr/local/bin/wait-for-plugins-and-start.sh /var/lib/rhdh/scripts/ && \
     cp /usr/local/bin/detect-and-set-base-url.sh /var/lib/rhdh/scripts/ && \
     chmod +x /var/lib/rhdh/scripts/*.sh && \
-    cp /etc/rhdh/configs/dynamic-plugins/dynamic-plugins.yaml /var/lib/rhdh/config/dynamic-plugins.yaml && \
-    ln -sf /var/lib/rhdh/config/dynamic-plugins.yaml /var/lib/rhdh/dynamic-plugins-root/dynamic-plugins.yaml && \
-    ln -sf /var/lib/rhdh/config/dynamic-plugins.yaml /var/lib/rhdh/dynamic-plugins.yaml && \
     sed -i 's|LINK_TARGET="/var/lib/rhdh/dynamic-plugins.yaml"|LINK_TARGET="/opt/app-root/src/dynamic-plugins.yaml"|' /var/lib/rhdh/scripts/prepare-and-install-dynamic-plugins.sh && \
     chown -R 1001:0 /opt/app-root /var/lib/rhdh /etc/rhdh && \
     chmod -R g=u /opt/app-root /var/lib/rhdh /etc/rhdh && \

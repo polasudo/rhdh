@@ -42,9 +42,12 @@ if [ -f "$DYNAMIC_PLUGINS_OVERRIDE" ]; then
 elif [ -f "/opt/app-root/src/configs/dynamic-plugins.yaml" ]; then
     echo "[warn] Using legacy dynamic-plugins.yaml. This method is deprecated. You can override the dynamic plugins configuration by renaming your file into configs/dynamic-plugins/dynamic-plugins.override.yaml"
     ln -sf "/opt/app-root/src/configs/dynamic-plugins.yaml" "$LINK_TARGET"
-else
+elif [ -f "$DYNAMIC_PLUGINS_DEFAULT" ]; then
     echo "Using default dynamic-plugins.yaml"
     ln -sf "$DYNAMIC_PLUGINS_DEFAULT" "$LINK_TARGET"
+else
+    echo "No dynamic-plugins config found, creating minimal empty config"
+    echo "plugins: []" > "$LINK_TARGET"
 fi
 
 # Create symlink in read-only location pointing to writable location
