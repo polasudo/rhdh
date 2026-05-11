@@ -51,6 +51,7 @@ Examples:
     $0 -v 1.10 hub -k  # only hub, no midstream sync (konflux only)
     $0 -v 1.10 op      # only operator
     $0 -v 1.10 bun     # only bundle
+    $0 -v 1.10 bootc   # only bootc (always konflux-only, no upstream sync)
 "; 
 }
 
@@ -98,6 +99,9 @@ function openURL {
         echo " >> $1"
     fi
 }
+# bootc has no upstream sync — always use konflux-only
+if [[ $targets == "bootc" ]]; then KONFLUX_ONLY=1; fi
+
 if [[ $targets == "bun" ]] && [[ $KONFLUX_ONLY -eq 0 ]]; then
     latestStableBranch="$(curl -sSLk --url "https://gitlab.cee.redhat.com/api/v4/projects/rhidp%2Frhdh/repository/branches?per_page=200&regex=^rhdh-1..*-rhel-9$" | jq -r '.[].name' | sort -uV | tail -1)"; # echo $latestStableBranch
     latestNext=""
