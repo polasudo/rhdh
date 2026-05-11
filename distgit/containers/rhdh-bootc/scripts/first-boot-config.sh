@@ -117,7 +117,12 @@ apply_config_from_cloud_init() {
     local cloud_init_data="/var/lib/cloud/instance/user-data.txt"
 
     if [[ -f "$cloud_init_data" ]]; then
-        if grep -qE "^(security|database|integrations|network):" "$cloud_init_data" 2>/dev/null; then
+        local ci_keys
+        ci_keys=$(python3 "${LIB_DIR}/yaml-helper.py" list-cloud-init-keys 2>/dev/null \
+                  | paste -sd'|' -) || true
+        ci_keys="${ci_keys:-security|database|integrations|network}"
+
+        if grep -qE "^(${ci_keys}):" "$cloud_init_data" 2>/dev/null; then
             apply_rhdh_config "$cloud_init_data"
             return $?
         fi

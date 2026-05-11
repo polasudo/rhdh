@@ -31,6 +31,21 @@ declare -A POSTGRES_SECRETS=(
     [POSTGRESQL_ADMIN_PASSWORD]="rhdh_postgresql_admin_password,type=env,target=POSTGRESQL_ADMIN_PASSWORD"
 )
 
+_load_dropin_container_secrets() {
+    local helper="${SCRIPT_DIR}/yaml-helper.py"
+    [[ -f "$helper" ]] || return 0
+    local line key value
+    while IFS='=' read -r key value; do
+        [[ -n "$key" && -n "$value" ]] || continue
+        RHDH_SECRETS["$key"]="$value"
+    done < <(python3 "$helper" list-container-secrets rhdh 2>/dev/null)
+    while IFS='=' read -r key value; do
+        [[ -n "$key" && -n "$value" ]] || continue
+        POSTGRES_SECRETS["$key"]="$value"
+    done < <(python3 "$helper" list-container-secrets postgres 2>/dev/null)
+}
+_load_dropin_container_secrets
+
 generate_secrets_dropin() {
     local container_name="$1"
     local dropin_dir="/etc/containers/systemd/${container_name}.container.d"

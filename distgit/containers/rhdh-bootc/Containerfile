@@ -114,6 +114,7 @@ RUN mkdir -p /root/.config/containers && \
 
 # ── Copy configs, env files, scripts ───────────────────────────────────
 COPY ./configs /etc/rhdh/configs
+COPY ./cloud-init.d /etc/rhdh/cloud-init.d
 COPY ./quadlet/rhdh.env /etc/rhdh/rhdh.env
 COPY ./quadlet/postgres.env /etc/rhdh/postgres.env
 COPY ./local-plugins /var/lib/rhdh/local-plugins
@@ -124,7 +125,10 @@ COPY ./scripts/health-check.sh /usr/local/bin/
 COPY ./scripts/grant-postgres-createdb.sh /usr/local/bin/
 COPY ./scripts/validate-external-postgres.sh /usr/local/bin/
 COPY ./scripts/clean-plugin-lock.sh /usr/local/bin/
+COPY ./scripts/first-boot-config.sh /usr/local/bin/first-boot-config.sh
 COPY ./scripts/lib/yaml-helper.py /usr/local/lib/rhdh/yaml-helper.py
+COPY ./scripts/lib/common.sh /usr/local/lib/rhdh/common.sh
+COPY ./scripts/lib/secrets-dropin.sh /usr/local/lib/rhdh/secrets-dropin.sh
 
 # ── Quadlet definitions ─────────────────────────────────────────────────
 COPY ./quadlet/rhdh.container /usr/share/containers/systemd/rhdh.container
@@ -182,6 +186,7 @@ RUN mkdir -p /usr/local/lib/rhdh && \
              /usr/local/bin/grant-postgres-createdb.sh \
              /usr/local/bin/validate-external-postgres.sh \
              /usr/local/bin/clean-plugin-lock.sh \
+             /usr/local/bin/first-boot-config.sh \
              /usr/local/lib/rhdh/yaml-helper.py && \
     mkdir -p /var/lib/rhdh/{dynamic-plugins-root,generated,config,.npm,scripts} && \
     mkdir -p /var/lib/rhdh/postgres-data && \

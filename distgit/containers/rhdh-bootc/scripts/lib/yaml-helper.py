@@ -2,20 +2,33 @@
 """yaml-helper.py — YAML read/write utility for RHDH bootc configuration.
 
 Subcommands:
-    read             <file> <key.path>                  Read a value by dot-path
-    write            <file> <key.path> <value>          Write a value by dot-path
-    apply-cloud-init <cloud-init> <app-config> <prod>   Map cloud-init to production.yaml
-    validate         <production.yaml>                  Check required keys exist
+    read                   <file> <key.path>                  Read a value by dot-path
+    write                  <file> <key.path> <value>          Write a value by dot-path
+    apply-cloud-init       <cloud-init> <app-config> <prod>   Map cloud-init to production.yaml
+    validate               <production.yaml>                  Check required keys exist
+    list-cloud-init-keys                                      List recognized top-level keys
+    list-container-secrets <container>                        List drop-in secret mappings
 
 apply-cloud-init writes YAML config to production.yaml and outputs action
 lines to stdout for the shell to process:
     SECRET_<KEY>=<value>   → create Podman secret
     DROPIN_<KEY>=<value>   → add to Quadlet config drop-in
+
+Drop-in extensibility:
+    Place YAML files in /etc/rhdh/cloud-init.d/ (or RHDH_CLOUD_INIT_DROPIN_DIR)
+    to register additional field mappings for downstream consumers.
 """
 
 import sys
 import os
+import glob
 import yaml
+
+
+# ---------------------------------------------------------------------------
+# Cloud-init drop-in directory for downstream consumers
+# ---------------------------------------------------------------------------
+DROPIN_DIR = os.environ.get("RHDH_CLOUD_INIT_DROPIN_DIR", "/etc/rhdh/cloud-init.d")
 
 
 # ---------------------------------------------------------------------------
@@ -51,6 +64,60 @@ FIELD_MAP = [
 ]
 
 REQUIRED_KEYS = []
+
+
+# ---------------------------------------------------------------------------
+# Drop-in loading
+# ---------------------------------------------------------------------------
+
+def load_dropins():
+    """Load all drop-in YAML files from DROPIN_DIR, sorted by filename."""
+    dropins = []
+    if not os.path.isdir(DROPIN_DIR):
+        return dropins
+    for path in sorted(glob.glob(os.path.join(DROPIN_DIR, "*.yaml")) +
+                       glob.glob(os.path.join(DROPIN_DIR, "*.yml"))):
+        try:
+            data = load_yaml(path)
+            if data:
+                dropins.append(data)
+        except SystemExit:
+            print(f"WARNING: Skipping invalid drop-in: {path}", file=sys.stderr)
+    return dropins
+
+
+def load_field_map():
+    """Return built-in FIELD_MAP extended with drop-in field mappings."""
+    combined = list(FIELD_MAP)
+    for dropin in load_dropins():
+        for entry in dropin.get("field_map", []):
+            ci = entry.get("cloud_init")
+            target = entry.get("target")
+            ftype = entry.get("type")
+            if ci and target and ftype:
+                combined.append((ci, target, ftype))
+    return combined
+
+
+def get_all_cloud_init_keys():
+    """Return the set of top-level cloud-init keys from FIELD_MAP + drop-ins."""
+    keys = set()
+    for ci_dot, _, _ in load_field_map():
+        keys.add(ci_dot.split(".")[0])
+    for dropin in load_dropins():
+        for k in dropin.get("cloud_init_keys", []):
+            keys.add(str(k))
+    return sorted(keys)
+
+
+def get_container_secrets(container_name):
+    """Return extra container secret mappings from drop-ins for a given container."""
+    secrets = {}
+    for dropin in load_dropins():
+        cs = dropin.get("container_secrets", {})
+        for key, value in cs.get(container_name, {}).items():
+            secrets[key] = value
+    return secrets
 
 
 # ---------------------------------------------------------------------------
@@ -218,7 +285,7 @@ def cmd_apply_cloud_init(args):
     new_config = {}
     db_type = str(get_nested(ci, "database.type") or "builtin")
 
-    for ci_dot, target, category in FIELD_MAP:
+    for ci_dot, target, category in load_field_map():
         val = get_nested(ci, ci_dot)
         if val is None:
             continue
@@ -280,6 +347,34 @@ def cmd_validate(args):
     return 0
 
 
+def cmd_list_cloud_init_keys(args):
+    """List all recognized top-level cloud-init keys (built-in + drop-ins)."""
+    for key in get_all_cloud_init_keys():
+        print(key)
+    return 0
+
+
+def cmd_list_secret_vars(args):
+    """List all secret target names from FIELD_MAP + drop-ins."""
+    seen = set()
+    for _, target, category in load_field_map():
+        if category == "secret" and target not in seen:
+            seen.add(target)
+            print(target)
+    return 0
+
+
+def cmd_list_container_secrets(args):
+    """List container secret mappings from drop-ins. Output: KEY=quadlet_value."""
+    if len(args) < 1:
+        print("Usage: yaml-helper.py list-container-secrets <container>",
+              file=sys.stderr)
+        return 1
+    for key, value in get_container_secrets(args[0]).items():
+        print(f"{key}={value}")
+    return 0
+
+
 # ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
@@ -289,6 +384,9 @@ COMMANDS = {
     "write": cmd_write,
     "apply-cloud-init": cmd_apply_cloud_init,
     "validate": cmd_validate,
+    "list-cloud-init-keys": cmd_list_cloud_init_keys,
+    "list-secret-vars": cmd_list_secret_vars,
+    "list-container-secrets": cmd_list_container_secrets,
 }
 
 

@@ -104,6 +104,21 @@ SECRET_VARS=(
     "GITLAB_TOKEN"
 )
 
+_load_dropin_secret_vars() {
+    local helper="${LIB_DIR:-/usr/local/lib/rhdh}/yaml-helper.py"
+    [[ -f "$helper" ]] || return 0
+    local target
+    while IFS= read -r target; do
+        [[ -n "$target" ]] || continue
+        local existing
+        for existing in "${SECRET_VARS[@]}"; do
+            [[ "$existing" == "$target" ]] && continue 2
+        done
+        SECRET_VARS+=("$target")
+    done < <(python3 "$helper" list-secret-vars 2>/dev/null)
+}
+_load_dropin_secret_vars
+
 SYSTEM_SECRET_VARS=(
     "BACKEND_SECRET"
     "POSTGRESQL_PASSWORD"
