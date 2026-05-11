@@ -93,7 +93,7 @@ data:
         spec:
           containers:
             - name: psql
-              image: registry.redhat.io/rhel9/postgresql-15@sha256:7355b65f7e5f30da8f5bec1983ef9d46cbd1a940eb264b9f82ed2abee28e2283
+              image: registry.redhat.io/rhel9/postgresql-15@sha256:f6aa937d2e982d3e311602e88985e4f4060db72ff75e2d263b2d963dd31728bc
               resources:
                 limits:
                   cpu: "100m"
