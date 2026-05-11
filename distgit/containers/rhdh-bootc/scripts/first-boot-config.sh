@@ -31,12 +31,52 @@ log_header() {
 }
 
 # ============================================================================
+# External database support — remove postgres dependency
+# ============================================================================
+_generate_external_db_dropins() {
+    log_info "External database detected — removing PostgreSQL dependency"
+
+    # Remove Requires=postgres.service from the RHDH Quadlet
+    local rhdh_dropin_dir="/etc/containers/systemd/${RHDH_CONTAINER_NAME}.container.d"
+    mkdir -p "$rhdh_dropin_dir"
+    cat > "${rhdh_dropin_dir}/external-db.conf" << 'EXTEOF'
+[Unit]
+Requires=
+After=network-online.target first-boot-config.service
+EXTEOF
+    chmod 644 "${rhdh_dropin_dir}/external-db.conf"
+    log_info "Generated Quadlet drop-in: ${rhdh_dropin_dir}/external-db.conf"
+
+    # Override rhdh-stack-autostart to skip postgres startup
+    local autostart_dropin_dir="/etc/systemd/system/rhdh-stack-autostart.service.d"
+    mkdir -p "$autostart_dropin_dir"
+    cat > "${autostart_dropin_dir}/external-db.conf" << ASTEOF
+[Service]
+ExecStart=
+ExecStart=/usr/bin/bash -c 'systemctl daemon-reload && systemctl start ${RHDH_SERVICE}'
+ASTEOF
+    chmod 644 "${autostart_dropin_dir}/external-db.conf"
+    log_info "Generated systemd drop-in: ${autostart_dropin_dir}/external-db.conf"
+
+    # Disable the bundled postgres service
+    systemctl disable "${RHDH_POSTGRES_SERVICE}" 2>/dev/null || true
+    systemctl stop "${RHDH_POSTGRES_SERVICE}" 2>/dev/null || true
+
+    log_success "PostgreSQL dependency removed for external database"
+}
+
+# ============================================================================
 # Apply RHDH config from a YAML file (cloud-init user-data)
 # ============================================================================
 apply_rhdh_config() {
     local config_file="$1"
 
     log_info "Applying RHDH configuration from $config_file"
+
+    # Detect database type before processing (config_file is shredded after)
+    local db_type
+    db_type=$(python3 "${LIB_DIR}/yaml-helper.py" read "$config_file" "database.type" 2>/dev/null) || true
+    db_type="${db_type:-builtin}"
 
     local -a config_dropins=()
 
@@ -97,11 +137,19 @@ apply_rhdh_config() {
 
     # Generate Quadlet drop-ins
     generate_secrets_dropin "rhdh"
-    generate_secrets_dropin "postgres"
+    if [[ "$db_type" != "external" ]]; then
+        generate_secrets_dropin "postgres"
+        generate_postgres_config_dropin
+    fi
     if [[ ${#config_dropins[@]} -gt 0 ]]; then
         generate_config_dropin "${config_dropins[@]}"
     fi
-    generate_postgres_config_dropin
+
+    # When using an external database, remove the postgres dependency
+    # so rhdh.service starts without requiring the bundled PostgreSQL.
+    if [[ "$db_type" == "external" ]]; then
+        _generate_external_db_dropins
+    fi
 
     systemctl daemon-reload 2>/dev/null || true
 
