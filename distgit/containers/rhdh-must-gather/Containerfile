@@ -1,4 +1,4 @@
-# Konflux hermetic: prefetch rpm (repo root), pip (`.rhdh/docker`), cargo (`vendor/websocat`); network off during RUN.
+# Konflux hermetic: prefetch rpm (repo root), pip (repo root), cargo (`vendor/websocat`); network off during RUN.
 #
 # Stage 1: Build websocat from vendored source
 # websocat v1.14.1 — update via: make vendor-update VENDOR_NAME=websocat VENDOR_VERSION=v<NEW>
@@ -69,8 +69,8 @@ RUN set -eu; \
       openshift-clients \
       helm \
       && microdnf clean all
-COPY .rhdh/docker/requirements-build.txt /tmp/requirements-build.txt
-COPY .rhdh/docker/requirements.txt /tmp/requirements.txt
+COPY requirements-build.txt /tmp/requirements-build.txt
+COPY requirements.txt /tmp/requirements.txt
 RUN set -eu; \
     . /cachi2/cachi2.env; \
     pip3 install --no-cache-dir --no-deps --require-hashes \
@@ -120,7 +120,7 @@ USER 1001
 ENTRYPOINT ["/usr/bin/gather"]
 ENV SUMMARY="Red Hat Developer Hub must-gather" \
     DESCRIPTION="Red Hat Developer Hub must-gather container" \
-    UPSTREAM_REPO="https://github.com/redhat-developer/rhdh-must-gather/tree/main @ 1689bb9e" \
+    UPSTREAM_REPO="https://github.com/redhat-developer/rhdh-must-gather/tree/main @ 7f106c56" \
     MIDSTREAM_REPO="https://gitlab.cee.redhat.com/rhidp/rhdh/-/commits/rhdh-1-rhel-9" \
     PRODNAME="rhdh" \
     COMPNAME="must-gather"
