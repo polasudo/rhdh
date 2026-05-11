@@ -15,10 +15,12 @@
 
 set -euo pipefail
 
-ENV_FILE="/etc/rhdh/rhdh.env"
+source "${LIB_DIR:-/usr/local/lib/rhdh}/common.sh"
+
+ENV_FILE="${RHDH_ENV_FILE}"
 QUADLET_FILE="/etc/containers/systemd/rhdh.container"
 QUADLET_FILE_ALT="/usr/share/containers/systemd/rhdh.container"
-AUTO_DETECT_MARKER="/etc/rhdh/.base_url_auto_detected"
+AUTO_DETECT_MARKER="${RHDH_CONFIG_DIR}/.base_url_auto_detected"
 DEFAULT_PORT="7007"
 
 echo "[INFO] Detecting BASE_URL configuration..."

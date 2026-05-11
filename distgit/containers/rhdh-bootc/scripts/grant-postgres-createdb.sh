@@ -11,8 +11,10 @@
 
 set -euo pipefail
 
-CONTAINER_NAME="rhdh-postgres"
-ENV_FILE="/etc/rhdh/postgres.env"
+source "${LIB_DIR:-/usr/local/lib/rhdh}/common.sh"
+
+CONTAINER_NAME="${RHDH_POSTGRES_CONTAINER}"
+ENV_FILE="${POSTGRES_ENV_FILE}"
 
 # Read the application DB user from postgres.env
 DB_USER="rhdh_user"

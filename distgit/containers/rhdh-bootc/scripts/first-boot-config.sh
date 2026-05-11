@@ -18,7 +18,7 @@ source "${LIB_DIR}/common.sh"
 source "${LIB_DIR}/secrets-dropin.sh"
 
 ADMIN_USER="${ADMIN_USER:-admin}"
-FIRST_BOOT_MARKER="/etc/rhdh/.first-boot-complete"
+FIRST_BOOT_MARKER="${RHDH_CONFIG_DIR}/.first-boot-complete"
 
 # ============================================================================
 # Logging

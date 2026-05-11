@@ -16,19 +16,19 @@ source "${SCRIPT_DIR}/common.sh"
 # POSTGRES_PASSWORD and BACKEND_DATABASE_CONNECTION_PASSWORD both use
 # the admin password secret but target different env var names
 declare -A RHDH_SECRETS=(
-    [BACKEND_SECRET]="rhdh_backend_secret,type=env,target=BACKEND_SECRET"
-    [POSTGRESQL_ADMIN_PASSWORD]="rhdh_postgresql_admin_password,type=env,target=POSTGRES_PASSWORD"
-    [BACKEND_DATABASE_CONNECTION_PASSWORD]="rhdh_postgresql_admin_password,type=env,target=BACKEND_DATABASE_CONNECTION_PASSWORD"
-    [GITHUB_TOKEN]="rhdh_github_token,type=env,target=GITHUB_TOKEN"
-    [GITHUB_CLIENT_ID]="rhdh_github_client_id,type=env,target=GITHUB_CLIENT_ID"
-    [GITHUB_CLIENT_SECRET]="rhdh_github_client_secret,type=env,target=GITHUB_CLIENT_SECRET"
-    [GITLAB_TOKEN]="rhdh_gitlab_token,type=env,target=GITLAB_TOKEN"
+    [BACKEND_SECRET]="${RHDH_SECRET_PREFIX}_backend_secret,type=env,target=BACKEND_SECRET"
+    [POSTGRESQL_ADMIN_PASSWORD]="${RHDH_SECRET_PREFIX}_postgresql_admin_password,type=env,target=POSTGRES_PASSWORD"
+    [BACKEND_DATABASE_CONNECTION_PASSWORD]="${RHDH_SECRET_PREFIX}_postgresql_admin_password,type=env,target=BACKEND_DATABASE_CONNECTION_PASSWORD"
+    [GITHUB_TOKEN]="${RHDH_SECRET_PREFIX}_github_token,type=env,target=GITHUB_TOKEN"
+    [GITHUB_CLIENT_ID]="${RHDH_SECRET_PREFIX}_github_client_id,type=env,target=GITHUB_CLIENT_ID"
+    [GITHUB_CLIENT_SECRET]="${RHDH_SECRET_PREFIX}_github_client_secret,type=env,target=GITHUB_CLIENT_SECRET"
+    [GITLAB_TOKEN]="${RHDH_SECRET_PREFIX}_gitlab_token,type=env,target=GITLAB_TOKEN"
 )
 
 # PostgreSQL container secrets
 declare -A POSTGRES_SECRETS=(
-    [POSTGRESQL_PASSWORD]="rhdh_postgresql_password,type=env,target=POSTGRESQL_PASSWORD"
-    [POSTGRESQL_ADMIN_PASSWORD]="rhdh_postgresql_admin_password,type=env,target=POSTGRESQL_ADMIN_PASSWORD"
+    [POSTGRESQL_PASSWORD]="${RHDH_SECRET_PREFIX}_postgresql_password,type=env,target=POSTGRESQL_PASSWORD"
+    [POSTGRESQL_ADMIN_PASSWORD]="${RHDH_SECRET_PREFIX}_postgresql_admin_password,type=env,target=POSTGRESQL_ADMIN_PASSWORD"
 )
 
 _load_dropin_container_secrets() {
@@ -53,8 +53,8 @@ generate_secrets_dropin() {
 
     local -n secret_map
     case "$container_name" in
-        rhdh)     secret_map=RHDH_SECRETS ;;
-        postgres) secret_map=POSTGRES_SECRETS ;;
+        rhdh|"${RHDH_CONTAINER_NAME}")     secret_map=RHDH_SECRETS ;;
+        postgres|"${RHDH_POSTGRES_CONTAINER}") secret_map=POSTGRES_SECRETS ;;
         *)
             log_error "Unknown container: $container_name"
             return 1
@@ -84,7 +84,7 @@ generate_secrets_dropin() {
 }
 
 generate_config_dropin() {
-    local dropin_dir="/etc/containers/systemd/rhdh.container.d"
+    local dropin_dir="/etc/containers/systemd/${RHDH_CONTAINER_NAME}.container.d"
     local dropin_file="${dropin_dir}/config.conf"
 
     mkdir -p "$dropin_dir"
@@ -113,9 +113,9 @@ generate_config_dropin() {
 }
 
 generate_postgres_config_dropin() {
-    local dropin_dir="/etc/containers/systemd/postgres.container.d"
+    local dropin_dir="/etc/containers/systemd/${RHDH_POSTGRES_CONTAINER}.container.d"
     local dropin_file="${dropin_dir}/config.conf"
-    local helper="/usr/local/lib/rhdh/yaml-helper.py"
+    local helper="${LIB_DIR}/yaml-helper.py"
     local prod_yaml="$RHDH_APP_CONFIG_PRODUCTION"
     local base_yaml="$RHDH_APP_CONFIG"
 

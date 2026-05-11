@@ -2,16 +2,25 @@
 # Common variables and functions for RHDH bootc scripts
 
 # ============================================================================
-# Configuration Paths
+# Configuration Paths (overridable via env vars for downstream consumers)
 # ============================================================================
-RHDH_CONFIG_DIR="/etc/rhdh"
-RHDH_APP_CONFIG="/etc/rhdh/configs/app-config/app-config.yaml"
-RHDH_APP_CONFIG_PRODUCTION="/etc/rhdh/configs/app-config/app-config.production.yaml"
-RHDH_SETUP_COMPLETE="${RHDH_CONFIG_DIR}/.setup-complete"
-RHDH_ENV_FILE="${RHDH_CONFIG_DIR}/rhdh.env"
-POSTGRES_ENV_FILE="${RHDH_CONFIG_DIR}/postgres.env"
+RHDH_CONFIG_DIR="${RHDH_CONFIG_DIR:-/etc/rhdh}"
+RHDH_APP_CONFIG="${RHDH_APP_CONFIG:-${RHDH_CONFIG_DIR}/configs/app-config/app-config.yaml}"
+RHDH_APP_CONFIG_PRODUCTION="${RHDH_APP_CONFIG_PRODUCTION:-${RHDH_CONFIG_DIR}/configs/app-config/app-config.production.yaml}"
+RHDH_SETUP_COMPLETE="${RHDH_SETUP_COMPLETE:-${RHDH_CONFIG_DIR}/.setup-complete}"
+RHDH_ENV_FILE="${RHDH_ENV_FILE:-${RHDH_CONFIG_DIR}/rhdh.env}"
+POSTGRES_ENV_FILE="${POSTGRES_ENV_FILE:-${RHDH_CONFIG_DIR}/postgres.env}"
 
-LIB_DIR="/usr/local/lib/rhdh"
+LIB_DIR="${LIB_DIR:-/usr/local/lib/rhdh}"
+
+# Service and container names (overridable for downstream branding)
+RHDH_CONTAINER_NAME="${RHDH_CONTAINER_NAME:-rhdh}"
+RHDH_POSTGRES_CONTAINER="${RHDH_POSTGRES_CONTAINER:-rhdh-postgres}"
+RHDH_SERVICE="${RHDH_SERVICE:-rhdh.service}"
+RHDH_POSTGRES_SERVICE="${RHDH_POSTGRES_SERVICE:-postgres.service}"
+
+# Secret prefix for Podman secrets (e.g., rhdh_backend_secret)
+RHDH_SECRET_PREFIX="${RHDH_SECRET_PREFIX:-rhdh}"
 
 # ============================================================================
 # Colors (only if terminal supports colors)
@@ -145,7 +154,7 @@ is_system_secret() {
 
 get_secret_name() {
     local key="$1"
-    echo "rhdh_${key,,}"
+    echo "${RHDH_SECRET_PREFIX}_${key,,}"
 }
 
 create_rhdh_secret() {

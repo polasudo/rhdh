@@ -6,9 +6,11 @@
 
 set -euo pipefail
 
-ENV_FILE="/etc/rhdh/rhdh.env"
-YAML_HELPER="/usr/local/lib/rhdh/yaml-helper.py"
-APP_CONFIG="/etc/rhdh/configs/app-config/app-config.yaml"
+source "${LIB_DIR:-/usr/local/lib/rhdh}/common.sh"
+
+ENV_FILE="${RHDH_ENV_FILE}"
+YAML_HELPER="${LIB_DIR}/yaml-helper.py"
+APP_CONFIG="${RHDH_APP_CONFIG}"
 
 # Determine the database host from env file
 POSTGRES_HOST=""
@@ -24,7 +26,7 @@ if [ -f "$YAML_HELPER" ]; then
     fi
 fi
 
-if [ -z "$POSTGRES_HOST" ] || [ "$POSTGRES_HOST" = "rhdh-postgres" ]; then
+if [ -z "$POSTGRES_HOST" ] || [ "$POSTGRES_HOST" = "${RHDH_POSTGRES_CONTAINER}" ]; then
     exit 0
 fi
 
