@@ -199,6 +199,7 @@ RUN mkdir -p /usr/local/lib/rhdh && \
     sed -i 's|LINK_TARGET="/var/lib/rhdh/dynamic-plugins.yaml"|LINK_TARGET="/opt/app-root/src/dynamic-plugins.yaml"|' /var/lib/rhdh/scripts/prepare-and-install-dynamic-plugins.sh && \
     chown -R 1001:0 /opt/app-root /var/lib/rhdh /etc/rhdh && \
     chmod -R g=u /opt/app-root /var/lib/rhdh /etc/rhdh && \
+    chmod 640 /etc/rhdh/rhdh.env /etc/rhdh/postgres.env && \
     chmod 644 /usr/share/containers/systemd/rhdh.container
 
 EXPOSE 7007
