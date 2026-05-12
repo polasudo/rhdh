@@ -154,7 +154,7 @@ ARG RHDH_HUB_IMAGE="registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:12a7f6cc89bf43
 ARG POSTGRESQL_IMAGE="registry.redhat.io/rhel9/postgresql-15@sha256:9606363cb215fc3e23e55d703a6e4fb8cbe277ad511c9daa776053aec595750a"
 
 RUN set -ex && \
-    printf '[registry]\nlocation = "registry.redhat.io"\n[[registry.mirror]]\nlocation = "registry.access.redhat.com"\n' \
+    printf '[[registry]]\nlocation = "registry.redhat.io"\n[[registry.mirror]]\nlocation = "registry.access.redhat.com"\n' \
         > /etc/containers/registries.conf.d/rrio-mirror.conf && \
     podman --root /usr/lib/containers/storage pull \
         "${RHDH_HUB_IMAGE}" && \
