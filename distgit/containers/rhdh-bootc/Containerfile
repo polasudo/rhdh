@@ -155,10 +155,12 @@ ARG RHDH_HUB_IMAGE="registry.access.redhat.com/rhdh/rhdh-hub-rhel9@sha256:12a7f6
 ARG POSTGRESQL_IMAGE="registry.access.redhat.com/rhel9/postgresql-15@sha256:9606363cb215fc3e23e55d703a6e4fb8cbe277ad511c9daa776053aec595750a"
 
 RUN set -ex && \
-    podman --root /usr/lib/containers/storage pull --signature-verification=none \
+    echo '{"default":[{"type":"insecureAcceptAnything"}]}' > /tmp/policy.json && \
+    podman --root /usr/lib/containers/storage pull --policy /tmp/policy.json \
         "${RHDH_HUB_IMAGE}" && \
-    podman --root /usr/lib/containers/storage pull --signature-verification=none \
+    podman --root /usr/lib/containers/storage pull --policy /tmp/policy.json \
         "${POSTGRESQL_IMAGE}" && \
+    rm -f /tmp/policy.json && \
     find /usr/lib/containers/storage -maxdepth 2 -exec chmod a+rX {} +
 
 # ── Logically bound images for bootc lifecycle management ─────────────
