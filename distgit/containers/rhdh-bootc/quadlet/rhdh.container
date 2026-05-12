@@ -4,7 +4,7 @@
 Description=Red Hat Developer Hub
 After=network-online.target postgres.service first-boot-config.service
 Wants=network-online.target
-Requires=postgres.service
+Wants=postgres.service
 
 [Container]
 Image=registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:12a7f6cc89bf4364c038090b2b6532d90ab006444489f66a75c0d11da9f6e567

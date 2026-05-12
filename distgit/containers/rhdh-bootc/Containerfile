@@ -22,6 +22,8 @@ LABEL vendor="Red Hat, Inc." \
 # ── System packages ─────────────────────────────────────────────────────
 # Cachi2 support: if /cachi2/cachi2.env exists we source it (hermetic build);
 # otherwise we install from RHEL repos directly.
+# Packages already in the rhel-bootc base image (python3, curl, sudo, podman,
+# openssl, openssh-server, crypto-policies-scripts) are NOT listed here.
 RUN if [ -f /cachi2/cachi2.env ]; then \
         . /cachi2/cachi2.env; \
     else \
@@ -29,11 +31,9 @@ RUN if [ -f /cachi2/cachi2.env ]; then \
     fi && \
     rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release && \
     dnf install -y \
-        nodejs npm python3 curl sudo \
-        podman openssl \
+        nodejs npm \
         cloud-init open-vm-tools \
-        openssh-server \
-        firewalld audit crypto-policies-scripts && \
+        firewalld audit && \
     dnf clean all && \
     rm -rf /var/cache/dnf
 

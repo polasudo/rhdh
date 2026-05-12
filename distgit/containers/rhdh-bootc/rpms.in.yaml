@@ -1,41 +1,47 @@
 ---
 # RPM dependencies for the RHDH bootc base image.
 # After editing, run (https://github.com/konflux-ci/rpm-lockfile-prototype):
-#   rpm-lockfile-prototype --bare rpms.in.yaml --outfile rpms.lock.yaml
+#   rpm-lockfile-prototype -f Containerfile rpms.in.yaml
 # to regen rpms.lock.yaml
 # Note that the repoid values are special, and must be from here:
 # https://github.com/release-engineering/rhtap-ec-policy/blob/main/data/known_rpm_repositories.yml
 arches:
   - x86_64
 
+allowerasing: true
 contentOrigin:
   repos:
-    - repoid: ubi-9-for-x86_64-appstream-rpms
-      baseurl: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/appstream/os/
-    - repoid: ubi-9-for-x86_64-appstream-source-rpms
-      baseurl: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/appstream/source/SRPMS
-    - repoid: ubi-9-for-x86_64-baseos-rpms
-      baseurl: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/baseos/os/
-    - repoid: ubi-9-for-x86_64-baseos-source-rpms
-      baseurl: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/baseos/source/SRPMS
+    - repoid: ubi-9-for-$basearch-appstream-rpms
+      baseurl: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/$basearch/appstream/os/
+    - repoid: ubi-9-for-$basearch-appstream-source-rpms
+      baseurl: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/$basearch/appstream/source/SRPMS
+    - repoid: ubi-9-for-$basearch-baseos-rpms
+      baseurl: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/$basearch/baseos/os/
+    - repoid: ubi-9-for-$basearch-baseos-source-rpms
+      baseurl: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/$basearch/baseos/source/SRPMS
+    # RHEL 9 repos (for cloud-init, open-vm-tools, firewalld, audit, openscap-utils, scap-security-guide)
+    - repoid: rhel-9-for-$basearch-appstream-rpms
+      baseurl: https://rhsm-pulp.corp.redhat.com/content/dist/rhel9/9/$basearch/appstream/os/
+    - repoid: rhel-9-for-$basearch-appstream-source-rpms
+      baseurl: https://rhsm-pulp.corp.redhat.com/content/dist/rhel9/9/$basearch/appstream/source/SRPMS
+    - repoid: rhel-9-for-$basearch-baseos-rpms
+      baseurl: https://rhsm-pulp.corp.redhat.com/content/dist/rhel9/9/$basearch/baseos/os/
+    - repoid: rhel-9-for-$basearch-baseos-source-rpms
+      baseurl: https://rhsm-pulp.corp.redhat.com/content/dist/rhel9/9/$basearch/baseos/source/SRPMS
 
 moduleEnable:
   - nodejs:24
 
+# Only packages NOT already in the rhel-bootc base image.
+# Pre-installed: python3, curl, sudo, podman, openssl, openssh-server, crypto-policies-scripts
 packages:
   - nodejs
   - npm
-  - python3
-  - curl
-  - sudo
-  - podman
-  - openssl
-  - openssh-server
+  - cloud-init
+  - open-vm-tools
+  - firewalld
+  - audit
   - openscap-utils
   - scap-security-guide
-  # cloud-init and open-vm-tools are RHEL-only (not in UBI repos);
-  # they are installed at build time via activation-key entitlement.
-  # Note: openscap-utils is removed after scan in the Containerfile
-  # but must be prefetched for hermetic builds.
 
 installWeakDeps: false
