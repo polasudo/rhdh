@@ -26,9 +26,8 @@ LABEL vendor="Red Hat, Inc." \
 # openssl, openssh-server, crypto-policies-scripts) are NOT listed here.
 RUN if [ -f /cachi2/cachi2.env ]; then \
         . /cachi2/cachi2.env; \
-    else \
-        dnf module enable -y nodejs:24; \
     fi && \
+    dnf module enable -y nodejs:24 && \
     rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release && \
     dnf install -y \
         nodejs npm \
