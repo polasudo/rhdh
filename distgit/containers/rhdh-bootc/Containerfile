@@ -148,17 +148,15 @@ RUN sed -i -e '/additionalimage.*/a "/usr/lib/containers/storage",' \
 
 # ── Pre-pull container images (air-gapped support) ───────────────────────
 # Images are pulled into /usr/lib/containers/storage so they are available
-# at boot without network access. Build secrets are used for registry auth
-# and are never persisted in the image layers.
-ARG RHDH_HUB_IMAGE="registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:12a7f6cc89bf4364c038090b2b6532d90ab006444489f66a75c0d11da9f6e567"
-ARG POSTGRESQL_IMAGE="registry.redhat.io/rhel9/postgresql-15@sha256:9606363cb215fc3e23e55d703a6e4fb8cbe277ad511c9daa776053aec595750a"
+# at boot without network access. Uses registry.access.redhat.com (public,
+# no auth required) instead of registry.redhat.io.
+ARG RHDH_HUB_IMAGE="registry.access.redhat.com/rhdh/rhdh-hub-rhel9@sha256:12a7f6cc89bf4364c038090b2b6532d90ab006444489f66a75c0d11da9f6e567"
+ARG POSTGRESQL_IMAGE="registry.access.redhat.com/rhel9/postgresql-15@sha256:9606363cb215fc3e23e55d703a6e4fb8cbe277ad511c9daa776053aec595750a"
 
-RUN --mount=type=secret,id=redhat-registry-secret \
-    set -ex && \
-    AUTH_FILE="/run/secrets/redhat-registry-secret" && \
-    podman --root /usr/lib/containers/storage pull --authfile "$AUTH_FILE" \
+RUN set -ex && \
+    podman --root /usr/lib/containers/storage pull \
         "${RHDH_HUB_IMAGE}" && \
-    podman --root /usr/lib/containers/storage pull --authfile "$AUTH_FILE" \
+    podman --root /usr/lib/containers/storage pull \
         "${POSTGRESQL_IMAGE}" && \
     find /usr/lib/containers/storage -maxdepth 2 -exec chmod a+rX {} +
 
