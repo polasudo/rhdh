@@ -42,6 +42,8 @@ packages:
   - firewalld
   - audit
   - openscap-utils
+  - openscap-engine-sce
   - scap-security-guide
+  - setools-console
 
 installWeakDeps: false
