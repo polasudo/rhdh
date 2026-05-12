@@ -1343,12 +1343,22 @@ revertFiles() {
 # revert any local changes to the hub so we don't accidentally push in changes from upstream without first running a yarn build
 # want to keep changes to distgit/containers/rhdh-hub/packages/app/src/build-metadata.json ! 
 if [[ $BUNDLEONLY -eq 1 ]]; then
-  for d in \
-    distgit/containers/rhdh-hub/ \
-    distgit/containers/rhdh-operator/ \
-    sync/upstream_SHA_rhdh-hub \
-    sync/upstream_SHA_rhdh-operator \
-    ; do revertFiles "$d"
+  revert_list=(
+    "distgit/containers/rhdh-hub/" 
+    "distgit/containers/rhdh-operator/" 
+    
+    "sync/upstream_SHA_rhdh-hub" 
+    "sync/upstream_SHA_rhdh-operator"
+  )
+  # sed_rag_content
+  revert_list+=(
+    "distgit/containers/rhdh-rag-content/"
+
+    "sync/upstream_SHA_rhdh-rag-content"
+  )
+  # sed_rag_content_end
+  for d in "${revert_list[@]}"; do 
+    revertFiles "$d"
   done
   rm -fr distgit/containers/rhdh-operator/.rhdh/
 else
@@ -1381,6 +1391,13 @@ else
       [[ $(git diff distgit/containers/rhdh-operator/Containerfile | grep -v -E "^\+\+\+|release=|konflux.additional-tags=" | grep -E "^\+") == "" ]]; then
     revertFiles "distgit/containers/rhdh-operator/Containerfile"
   fi
+  # sed_rag_content
+  # shellcheck disable=SC2143
+  if [[ $(git diff --name-only distgit/containers/rhdh-rag-content) == "distgit/containers/rhdh-rag-content/Containerfile" ]] && \
+      [[ $(git diff distgit/containers/rhdh-rag-content/Containerfile | grep -v -E "^\+\+\+|release=|konflux.additional-tags=" | grep -E "^\+") == "" ]]; then
+    revertFiles "distgit/containers/rhdh-rag-content/Containerfile"
+  fi
+  # sed_rag_content_end
 fi
 
 # purge any files we definitely don't want downstream, including things that confuse snyk/clair scans
