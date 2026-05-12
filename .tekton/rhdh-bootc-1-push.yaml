@@ -49,7 +49,7 @@ spec:
   - name: additional-build-secret
     value: redhat-registry-secret
   - name: prefetch-input
-    value: '{"type": "rpm", "path": "distgit/containers/rhdh-bootc", "options": {"dnf": {"rhel-9-appstream": {"gpgcheck": "0"}, "rhel-9-baseos": {"gpgcheck": "0"}, "rhel-9-appstream-source": {"gpgcheck": "0"}, "rhel-9-baseos-source": {"gpgcheck": "0"}}}}'
+    value: '{"type": "rpm", "path": "distgit/containers/rhdh-bootc"}'
   pipelineSpec:
     finally:
     - name: show-sbom
@@ -517,6 +517,8 @@ spec:
       optional: true
   taskRunTemplate:
     serviceAccountName: build-pipeline-rhdh-bootc-1
+  taskRunSpecs:
+  - pipelineTaskName: build-container
     podTemplate:
       securityContext:
         privileged: true
@@ -525,8 +527,6 @@ spec:
         annotations:
           io.openshift.podman-fuse: ""
           io.kubernetes.cri-o.Devices: /dev/fuse
-  taskRunSpecs:
-  - pipelineTaskName: build-container
     computeResources:
       requests:
         cpu: 6

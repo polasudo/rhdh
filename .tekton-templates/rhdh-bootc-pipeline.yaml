@@ -517,6 +517,8 @@ spec:
       optional: true
   taskRunTemplate:
     serviceAccountName: build-pipeline-rhdh-{{COMPONENT}}-{{VERSION_DASH}}
+  taskRunSpecs:
+  - pipelineTaskName: build-container
     podTemplate:
       securityContext:
         privileged: true
@@ -525,8 +527,6 @@ spec:
         annotations:
           io.openshift.podman-fuse: ""
           io.kubernetes.cri-o.Devices: /dev/fuse
-  taskRunSpecs:
-  - pipelineTaskName: build-container
     computeResources:
       requests:
         cpu: 6

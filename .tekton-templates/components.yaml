@@ -49,7 +49,7 @@ bootc:
   template: rhdh-bootc-pipeline.yaml
   output_image: "quay.io/rhdh/rhdh-bootc-rhel9"
   path_context: "distgit/containers/rhdh-bootc"
-  prefetch_input: '{"type": "rpm", "path": "distgit/containers/rhdh-bootc", "options": {"dnf": {"rhel-9-appstream": {"gpgcheck": "0"}, "rhel-9-baseos": {"gpgcheck": "0"}, "rhel-9-appstream-source": {"gpgcheck": "0"}, "rhel-9-baseos-source": {"gpgcheck": "0"}}}}'
+  prefetch_input: '{"type": "rpm", "path": "distgit/containers/rhdh-bootc"}'
   max_keep_runs: "5"
   snyk_project: "konflux-rhdh-bootc"
   include_tasks: []
