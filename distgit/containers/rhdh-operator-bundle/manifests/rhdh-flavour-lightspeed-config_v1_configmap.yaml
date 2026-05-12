@@ -266,7 +266,7 @@ data:
         spec:
           initContainers:
             - name: init-rag-data
-              image: registry.redhat.io/rhdh/rhdh-rag-content-rhel9@sha256:9cc80081d75c08ddcd3fed3050a0b6bc8bf55f78b4770eaa7a5a56d76c9afbca
+              image: registry.redhat.io/rhdh/rhdh-rag-content-rhel9@sha256:e317287f27dc1bb0985e91fab7028d3619de73a8e3a6eda80a2f0c210dd8b1af
               command:
                 - "sh"
                 - "-c"
