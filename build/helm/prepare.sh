@@ -38,7 +38,7 @@ THIS_SCRIPT="$0"
 YQ="$HOME/.local/bin/yq_mf"
 mikefarahyq_version=4.45.4
 
-helmdocs_version="v1.11.3"
+helmdocs_version="v1.14.2"
 oras_version="1.2.2"
 
 norm="\033[0;39m"
