@@ -16,8 +16,13 @@ LABEL vendor="Red Hat, Inc." \
       summary="Red Hat Developer Hub Bootc Base Image" \
       description="RHEL Image Mode (bootc) base container for deploying RHDH on RHEL 9 VMs." \
       io.k8s.display-name="RHDH Bootc Base" \
+      io.k8s.description="RHEL bootc base image for Red Hat Developer Hub" \
+      io.openshift.tags="rhdh,developer-hub,bootc" \
+      com.redhat.component="rhdh-bootc-container" \
+      distribution-scope="public" \
       url="https://red.ht/rhdh" \
-      vcs-ref="${COMMIT_SHA}"
+      vcs-ref="${COMMIT_SHA}" \
+      konflux.additional-tags="next"
 
 # ── System packages ─────────────────────────────────────────────────────
 # Cachi2 support: if /cachi2/cachi2.env exists we source it (hermetic build);
