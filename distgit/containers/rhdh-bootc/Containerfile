@@ -25,10 +25,6 @@ LABEL vendor="Red Hat, Inc." \
       konflux.additional-tags="next"
 
 # ── System packages ─────────────────────────────────────────────────────
-# Cachi2 support: if /cachi2/cachi2.env exists we source it (hermetic build);
-# otherwise we install from RHEL repos directly.
-# Packages already in the rhel-bootc base image (python3, curl, sudo, podman,
-# openssl, openssh-server, crypto-policies-scripts) are NOT listed here.
 RUN if [ -f /cachi2/cachi2.env ]; then \
         . /cachi2/cachi2.env; \
     fi && \
@@ -41,19 +37,16 @@ RUN if [ -f /cachi2/cachi2.env ]; then \
     dnf clean all && \
     rm -rf /var/cache/dnf
 
-# ── Service account ─────────────────────────────────────────────────────
+# ── Users, SSH hardening, security ──────────────────────────────────────
+COPY ./security/99-rhdh-audit.rules /etc/audit/rules.d/99-rhdh-audit.rules
+COPY ./security/99-rhdh-hardening.conf /usr/lib/sysctl.d/99-rhdh-hardening.conf
 RUN useradd -r -u 1001 -g root -d /opt/app-root/src -s /sbin/nologin rhdh && \
     mkdir -p /opt/app-root/src /opt/app-root/src/dynamic-plugins-root /etc/rhdh /var/lib/rhdh /etc/containers && \
-    echo "rhdh ALL=(root) NOPASSWD: /usr/bin/chown, /usr/bin/chmod, /usr/bin/mkdir" > /etc/sudoers.d/rhdh
-
-# ── SSH hardening ────────────────────────────────────────────────────────
-# Key-based auth only. The admin user is created for downstream (Ansible)
-# to inject SSH public keys at build or cloud-init time.
-# Config uses 49- prefix to take precedence over 50-redhat.conf defaults.
-RUN useradd -m -G wheel -s /bin/bash admin && \
+    echo "rhdh ALL=(root) NOPASSWD: /usr/bin/chown, /usr/bin/chmod, /usr/bin/mkdir" > /etc/sudoers.d/rhdh && \
+    useradd -m -G wheel -s /bin/bash admin && \
     passwd -l admin && \
     passwd -l root && \
-    systemctl enable sshd && \
+    echo '%wheel ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers && \
     printf '%s\n' \
       'PasswordAuthentication no' \
       'PermitRootLogin no' \
@@ -64,26 +57,7 @@ RUN useradd -m -G wheel -s /bin/bash admin && \
       'ClientAliveCountMax 2' \
       'X11Forwarding no' \
       > /etc/ssh/sshd_config.d/49-rhdh-harden.conf && \
-    echo '%wheel ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers
-
-# ── Crypto policy ────────────────────────────────────────────────────────
-# Set DEFAULT crypto policy explicitly. For FIPS, customers must also add
-# fips=1 kernel argument via /usr/lib/bootc/kargs.d/ and set policy to FIPS.
-RUN update-crypto-policies --no-reload --set DEFAULT
-
-# ── Audit logging ────────────────────────────────────────────────────────
-COPY ./security/99-rhdh-audit.rules /etc/audit/rules.d/99-rhdh-audit.rules
-RUN systemctl enable auditd
-
-# ── Mask unnecessary services ───────────────────────────────────────────
-RUN systemctl mask debug-shell.service kdump.service
-
-# ── Kernel hardening ─────────────────────────────────────────────────────
-COPY ./security/99-rhdh-hardening.conf /usr/lib/sysctl.d/99-rhdh-hardening.conf
-
-# ── Firewall ─────────────────────────────────────────────────────────────
-# Allow only SSH and RHDH; PostgreSQL is internal to the container network.
-RUN systemctl enable firewalld && \
+    update-crypto-policies --no-reload --set DEFAULT && \
     mkdir -p /etc/firewalld/zones && \
     printf '%s\n' \
       '<?xml version="1.0" encoding="utf-8"?>' \
@@ -92,13 +66,11 @@ RUN systemctl enable firewalld && \
       '  <service name="ssh"/>' \
       '  <port port="7007" protocol="tcp"/>' \
       '</zone>' \
-      > /etc/firewalld/zones/public.xml
+      > /etc/firewalld/zones/public.xml && \
+    systemctl enable sshd auditd firewalld && \
+    systemctl mask debug-shell.service kdump.service
 
-# ── OpenSCAP security hardening (RHEL 9 CIS compliance) ────────────────
-# Run automated remediation against the CIS profile at build time.
-# This validates and fixes any gaps in our manual hardening above.
-# Profile can be overridden at build time (e.g. stig for DoD environments).
-# Ref: https://docs.redhat.com/en/documentation/red_hat_enterprise_linux/9/html-single/using_image_mode_for_rhel_to_build_deploy_and_manage_operating_systems/index#building-hardened-bootable-images_security-hardening-and-compliance-of-bootable-images
+# ── OpenSCAP CIS compliance ─────────────────────────────────────────────
 ARG OSCAP_PROFILE="xccdf_org.ssgproject.content_profile_cis"
 RUN dnf install -y openscap-utils scap-security-guide && \
     oscap-im --profile ${OSCAP_PROFILE} \
@@ -107,16 +79,8 @@ RUN dnf install -y openscap-utils scap-security-guide && \
     dnf clean all && \
     rm -rf /var/cache/dnf
 
-# ── Registry auth for runtime plugin pulls ───────────────────────────────
-# Placeholder auth.json — Ansible injects real credentials via cloud-init
-# or Podman secrets. Root needs ~/.config/containers/auth.json for systemd.
+# ── Copy configs, scripts, quadlets ─────────────────────────────────────
 COPY ./files/auth.json /etc/containers/auth.json
-RUN mkdir -p /root/.config/containers && \
-    cp /etc/containers/auth.json /root/.config/containers/auth.json && \
-    chmod 600 /root/.config/containers/auth.json && \
-    chmod 644 /etc/containers/auth.json
-
-# ── Copy configs, env files, scripts ───────────────────────────────────
 COPY ./configs /etc/rhdh/configs
 COPY ./cloud-init.d /etc/rhdh/cloud-init.d
 COPY ./quadlet/rhdh.env /etc/rhdh/rhdh.env
@@ -133,61 +97,17 @@ COPY ./scripts/first-boot-config.sh /usr/local/bin/first-boot-config.sh
 COPY ./scripts/lib/yaml-helper.py /usr/local/lib/rhdh/yaml-helper.py
 COPY ./scripts/lib/common.sh /usr/local/lib/rhdh/common.sh
 COPY ./scripts/lib/secrets-dropin.sh /usr/local/lib/rhdh/secrets-dropin.sh
-
-# ── Quadlet definitions ─────────────────────────────────────────────────
 COPY ./quadlet/rhdh.container /usr/share/containers/systemd/rhdh.container
 COPY ./quadlet/postgres.container /usr/share/containers/systemd/postgres.container
 COPY ./quadlet/rhdh-network.network /usr/share/containers/systemd/rhdh-network.network
-
-# ── Systemd service for stack autostart ──────────────────────────────────
 COPY systemd/rhdh-stack-autostart.service /etc/systemd/system/rhdh-stack-autostart.service
-RUN systemctl enable rhdh-stack-autostart.service
 
-# ── Subordinate UID/GID ranges for nested podman ─────────────────────────
-RUN echo "root:1:65536" >> /etc/subuid && \
-    echo "root:1:65536" >> /etc/subgid
-
-# ── Additional image store ───────────────────────────────────────────────
-RUN sed -i -e '/additionalimage.*/a "/usr/lib/containers/storage",' \
-        /etc/containers/storage.conf
-
-# ── Pre-pull container images (air-gapped support) ───────────────────────
-# Images are pulled into /usr/lib/containers/storage so they are available
-# at boot without network access. Uses registry.access.redhat.com as a
-# public mirror where possible; PostgreSQL requires registry.redhat.io auth
-# (terms acceptance). Auth provided via redhat-registry-secret build secret.
-ARG RHDH_HUB_IMAGE="registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:12a7f6cc89bf4364c038090b2b6532d90ab006444489f66a75c0d11da9f6e567"
-ARG POSTGRESQL_IMAGE="registry.redhat.io/rhel9/postgresql-15@sha256:9606363cb215fc3e23e55d703a6e4fb8cbe277ad511c9daa776053aec595750a"
-
-RUN --mount=type=secret,id=redhat-registry-secret/redhat-registry-secret \
-    set -ex && \
-    printf '[[registry]]\nlocation = "registry.redhat.io"\n[[registry.mirror]]\nlocation = "registry.access.redhat.com"\n' \
-        > /etc/containers/registries.conf.d/rrio-mirror.conf && \
-    podman --root /usr/lib/containers/storage pull \
-        --authfile /run/secrets/redhat-registry-secret/redhat-registry-secret \
-        "${RHDH_HUB_IMAGE}" && \
-    podman --root /usr/lib/containers/storage pull \
-        --authfile /run/secrets/redhat-registry-secret/redhat-registry-secret \
-        "${POSTGRESQL_IMAGE}" && \
-    rm -f /etc/containers/registries.conf.d/rrio-mirror.conf && \
-    find /usr/lib/containers/storage -maxdepth 2 -exec chmod a+rX {} +
-
-# ── Logically bound images for bootc lifecycle management ─────────────
-RUN mkdir -p /usr/lib/bootc/bound-images.d && \
-    ln -s /usr/share/containers/systemd/rhdh.container /usr/lib/bootc/bound-images.d/rhdh.container && \
-    ln -s /usr/share/containers/systemd/postgres.container /usr/lib/bootc/bound-images.d/postgres.container
-
-# ── Automatic bootc updates ─────────────────────────────────────────────
-RUN systemctl enable bootc-fetch-apply-updates.timer
-
-# ── Image version stamp ─────────────────────────────────────────────────
-# Downstream (Ansible) can read this for post-upgrade reconciliation.
-RUN mkdir -p /usr/share/rhdh && \
-    printf 'IMAGE_VERSION=%s\nCOMMIT_SHA=%s\n' "${RHDH_VERSION}" "${COMMIT_SHA}" \
-    > /usr/share/rhdh/image-version
-
-# ── Directory structure and permissions ──────────────────────────────────
-RUN mkdir -p /usr/local/lib/rhdh && \
+# ── Setup: permissions, services, storage, version stamp ────────────────
+RUN mkdir -p /root/.config/containers && \
+    cp /etc/containers/auth.json /root/.config/containers/auth.json && \
+    chmod 600 /root/.config/containers/auth.json && \
+    chmod 644 /etc/containers/auth.json && \
+    mkdir -p /usr/local/lib/rhdh && \
     chmod +x /usr/local/bin/prepare-and-install-dynamic-plugins.sh \
              /usr/local/bin/wait-for-plugins-and-start.sh \
              /usr/local/bin/detect-and-set-base-url.sh \
@@ -209,7 +129,35 @@ RUN mkdir -p /usr/local/lib/rhdh && \
     chown -R 1001:0 /opt/app-root /var/lib/rhdh /etc/rhdh && \
     chmod -R g=u /opt/app-root /var/lib/rhdh /etc/rhdh && \
     chmod 640 /etc/rhdh/rhdh.env /etc/rhdh/postgres.env && \
-    chmod 644 /usr/share/containers/systemd/rhdh.container
+    chmod 644 /usr/share/containers/systemd/rhdh.container && \
+    echo "root:1:65536" >> /etc/subuid && \
+    echo "root:1:65536" >> /etc/subgid && \
+    sed -i -e '/additionalimage.*/a "/usr/lib/containers/storage",' \
+        /etc/containers/storage.conf && \
+    mkdir -p /usr/lib/bootc/bound-images.d && \
+    ln -s /usr/share/containers/systemd/rhdh.container /usr/lib/bootc/bound-images.d/rhdh.container && \
+    ln -s /usr/share/containers/systemd/postgres.container /usr/lib/bootc/bound-images.d/postgres.container && \
+    systemctl enable rhdh-stack-autostart.service bootc-fetch-apply-updates.timer && \
+    mkdir -p /usr/share/rhdh && \
+    printf 'IMAGE_VERSION=%s\nCOMMIT_SHA=%s\n' "${RHDH_VERSION}" "${COMMIT_SHA}" \
+    > /usr/share/rhdh/image-version
+
+# ── Pre-pull container images (air-gapped support) ───────────────────────
+ARG RHDH_HUB_IMAGE="registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:12a7f6cc89bf4364c038090b2b6532d90ab006444489f66a75c0d11da9f6e567"
+ARG POSTGRESQL_IMAGE="registry.redhat.io/rhel9/postgresql-15@sha256:9606363cb215fc3e23e55d703a6e4fb8cbe277ad511c9daa776053aec595750a"
+
+RUN --mount=type=secret,id=redhat-registry-secret/redhat-registry-secret \
+    set -ex && \
+    printf '[[registry]]\nlocation = "registry.redhat.io"\n[[registry.mirror]]\nlocation = "registry.access.redhat.com"\n' \
+        > /etc/containers/registries.conf.d/rrio-mirror.conf && \
+    podman --root /usr/lib/containers/storage pull \
+        --authfile /run/secrets/redhat-registry-secret/redhat-registry-secret \
+        "${RHDH_HUB_IMAGE}" && \
+    podman --root /usr/lib/containers/storage pull \
+        --authfile /run/secrets/redhat-registry-secret/redhat-registry-secret \
+        "${POSTGRESQL_IMAGE}" && \
+    rm -f /etc/containers/registries.conf.d/rrio-mirror.conf && \
+    find /usr/lib/containers/storage -maxdepth 2 -exec chmod a+rX {} +
 
 EXPOSE 7007
 WORKDIR /opt/app-root/src
