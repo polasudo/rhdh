@@ -50,11 +50,8 @@ EXTEOF
     # Override rhdh-stack-autostart to skip postgres startup
     local autostart_dropin_dir="/etc/systemd/system/rhdh-stack-autostart.service.d"
     mkdir -p "$autostart_dropin_dir"
-    cat > "${autostart_dropin_dir}/external-db.conf" << ASTEOF
-[Service]
-ExecStart=
-ExecStart=/usr/bin/bash -c 'systemctl daemon-reload && systemctl start ${RHDH_SERVICE}'
-ASTEOF
+    printf '[Service]\nExecStart=\nExecStart=/usr/bin/bash -c '\''systemctl daemon-reload && systemctl start %s'\''\n' \
+        "${RHDH_SERVICE}" > "${autostart_dropin_dir}/external-db.conf"
     chmod 644 "${autostart_dropin_dir}/external-db.conf"
     log_info "Generated systemd drop-in: ${autostart_dropin_dir}/external-db.conf"
 

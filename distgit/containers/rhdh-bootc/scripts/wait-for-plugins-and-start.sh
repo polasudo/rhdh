@@ -10,15 +10,13 @@ set -euo pipefail
 # this script replaces their paths in the base config accordingly.
 
 # Fail fast if critical secrets are not configured
-for _required_var in BACKEND_SECRET; do
-    _val="${!_required_var:-}"
-    if [[ -z "$_val" || "$_val" == CHANGE_ME_* ]]; then
-        echo "[FATAL] $_required_var is not configured."
-        echo "        Run first-boot-config.sh or provision via cloud-init."
-        exit 1
-    fi
-done
-unset _required_var _val
+_val="${BACKEND_SECRET:-}"
+if [[ -z "$_val" || "$_val" == CHANGE_ME_* ]]; then
+    echo "[FATAL] BACKEND_SECRET is not configured."
+    echo "        Run first-boot-config.sh or provision via cloud-init."
+    exit 1
+fi
+unset _val
 
 DYNAMIC_PLUGINS_CONFIG="/opt/app-root/src/dynamic-plugins-root/app-config.dynamic-plugins.yaml"
 DEFAULT_APP_CONFIG="configs/app-config/app-config.yaml"
