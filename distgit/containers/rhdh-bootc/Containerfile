@@ -149,16 +149,20 @@ RUN sed -i -e '/additionalimage.*/a "/usr/lib/containers/storage",' \
 # ── Pre-pull container images (air-gapped support) ───────────────────────
 # Images are pulled into /usr/lib/containers/storage so they are available
 # at boot without network access. Uses registry.access.redhat.com as a
-# public mirror for registry.redhat.io (no auth required, signatures valid).
+# public mirror where possible; PostgreSQL requires registry.redhat.io auth
+# (terms acceptance). Auth provided via redhat-registry-secret build secret.
 ARG RHDH_HUB_IMAGE="registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:12a7f6cc89bf4364c038090b2b6532d90ab006444489f66a75c0d11da9f6e567"
 ARG POSTGRESQL_IMAGE="registry.redhat.io/rhel9/postgresql-15@sha256:9606363cb215fc3e23e55d703a6e4fb8cbe277ad511c9daa776053aec595750a"
 
-RUN set -ex && \
+RUN --mount=type=secret,id=redhat-registry-secret \
+    set -ex && \
     printf '[[registry]]\nlocation = "registry.redhat.io"\n[[registry.mirror]]\nlocation = "registry.access.redhat.com"\n' \
         > /etc/containers/registries.conf.d/rrio-mirror.conf && \
     podman --root /usr/lib/containers/storage pull \
+        --authfile /run/secrets/redhat-registry-secret \
         "${RHDH_HUB_IMAGE}" && \
     podman --root /usr/lib/containers/storage pull \
+        --authfile /run/secrets/redhat-registry-secret \
         "${POSTGRESQL_IMAGE}" && \
     rm -f /etc/containers/registries.conf.d/rrio-mirror.conf && \
     find /usr/lib/containers/storage -maxdepth 2 -exec chmod a+rX {} +

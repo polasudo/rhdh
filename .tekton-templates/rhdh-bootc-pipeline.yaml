@@ -46,6 +46,8 @@ spec:
     - linux-root/amd64
   - name: activation-key
     value: activation-key
+  - name: additional-build-secret
+    value: redhat-registry-secret
   - name: prefetch-input
     value: '{{PREFETCH_INPUT}}'
   pipelineSpec:
@@ -132,6 +134,10 @@ spec:
       description: Path to a file with build arguments for buildah
       name: build-args-file
       type: string
+    - name: additional-build-secret
+      description: Additional secret to use while building
+      type: string
+      default: ""
     - default: "false"
       description: Allow nested privileged container build for bootc images that embed container images.
       name: privileged-nested
@@ -256,6 +262,8 @@ spec:
         - COMMIT_SHA=$(tasks.clone-repository.results.commit)
       - name: BUILD_ARGS_FILE
         value: $(params.build-args-file)
+      - name: ADDITIONAL_SECRET
+        value: $(params.additional-build-secret)
       - name: PRIVILEGED_NESTED
         value: $(params.privileged-nested)
       - name: SOURCE_ARTIFACT
