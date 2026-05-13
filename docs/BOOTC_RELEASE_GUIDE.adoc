@@ -1,0 +1,54 @@
+= Bootc Base Image Release Guide
+
+== Overview
+
+The RHDH bootc base image is built in Konflux and published to `quay.io/rhdh/rhdh-bootc-rhel9`. It is consumed internally by the Ansible team as a base for the AAP automation portal. It is NOT published to `registry.redhat.io`.
+
+== Image Tags
+
+* `next` — latest CI build (from `rhdh-1-rhel-9` branch)
+* `1.9-225` — stable branch build number (from `rhdh-1.9-rhel-9` branch)
+* `1.9.4` — manually promoted release (created by tagging script)
+* `1.9` — floating tag pointing to the latest promoted release
+
+== Release Workflow
+
+1. Stable branch builds produce `1.9-NNN` tags automatically
+2. Test the build you want to release
+3. Run the tagging script to promote it:
+
+[source,bash]
+----
+./build/scripts/tagBootcRelease.sh -s 1.9-225 -v 1.9.4
+----
+
+This creates `1.9.4` and `1.9` tags pointing to the same image as `1.9-225`. No rebuild.
+
+The Ansible team pins to the version tag:
+
+[source,dockerfile]
+----
+FROM quay.io/rhdh/rhdh-bootc-rhel9:1.9.4
+----
+
+== Triggering Builds
+
+[source,bash]
+----
+# CI build (rhdh-1-rhel-9)
+./build/scripts/triggerRespin.sh -v 1 bootc
+
+# Stable build (rhdh-1.9-rhel-9)
+./build/scripts/triggerRespin.sh -v 1.9 bootc
+----
+
+== Generating Stable Branch Pipelines
+
+When creating a new stable branch:
+
+[source,bash]
+----
+.tekton/generatePipelineRuns.sh -t 1.9
+----
+
+Commit the generated files to the `rhdh-1.9-rhel-9` branch.
