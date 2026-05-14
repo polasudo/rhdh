@@ -480,6 +480,11 @@ for ((i = START_REPO; i < NUM_REPOS; i++)); do # echo $i
           echo "[ERROR] could not find .rhdh/docker/Containerfile to copy to ./Containerfile ! Must exit!"
           exit 1
         fi
+        # copy requirements lockfiles to root (Containerfile and Hermeto reference them at root level;
+        # .rhdh/ is cleaned up later by the sync script; .in files are not needed for builds)
+        for f in .rhdh/docker/requirements*.txt; do
+          [[ -f "$f" ]] && cp "$f" .
+        done
       popd >/dev/null || exit 1
     fi
     ##################################### rhdh-must-gather #####################################
@@ -1252,7 +1257,8 @@ for d in $these_dirs; do
       # for bundle use the downstream OSBS Dockerfile with the correct LABEL and ENV  values
       cp -f Dockerfile Containerfile
     elif [[ $d == "distgit/containers/rhdh-must-gather" ]] && [[ " ${SKIPPED_CONTAINERS[*]} " != *"rhdh-must-gather/"* ]]; then
-      # for must-gather, Containerfile at context root is produced during sync (from .rhdh/docker/Containerfile), then transformed to set a valid value for `RHDH_MUST_GATHER_VERSION`
+      # for must-gather, Containerfile at context root is produced during sync (from .rhdh/docker/Containerfile),
+      # along with requirements files, then transformed to set a valid value for `RHDH_MUST_GATHER_VERSION`
       # Dockerfile.in transformation is not needed
       true
     # sed_rag_content
