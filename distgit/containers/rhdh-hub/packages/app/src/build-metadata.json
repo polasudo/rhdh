@@ -2,8 +2,8 @@
   "title": "RHDH Metadata",
   "titleKey": "app.userSettings.infoCard.title",
   "card": {
-    "RHDH Version": "1.10.0",
+    "RHDH Version": "1.11.0",
     "Backstage Version": "1.49.4",
-    "Upstream": "https://github.com/redhat-developer/rhdh/tree/main @ 2dec3955", "Midstream": "https://gitlab.cee.redhat.com/rhidp/rhdh/-/commits/rhdh-1-rhel-9 @ 9f388ea9", "Build Time": "2026-05-14T18:43:46Z"
+    "Upstream": "https://github.com/redhat-developer/rhdh/tree/main @ 444b1d77", "Midstream": "https://gitlab.cee.redhat.com/rhidp/rhdh/-/commits/rhdh-1-rhel-9 @ fdde6e8d", "Build Time": "2026-05-14T19:26:16Z"
   }
 }
