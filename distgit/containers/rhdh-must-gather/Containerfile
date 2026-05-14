@@ -37,6 +37,14 @@ FROM registry.access.redhat.com/ubi9-minimal:9.8-1777460003@sha256:2465031387355
 
 ARG RHDH_MUST_GATHER_VERSION="-3"
 
+LABEL com.redhat.component="rhdh-must-gather-container" \
+      name="rhdh/rhdh-must-gather-rhel9" \
+      summary="Red Hat Developer Hub Must-Gather" \
+      description="Must-gather image for collecting Red Hat Developer Hub diagnostic data." \
+      io.k8s.display-name="RHDH Must-Gather" \
+      io.k8s.description="Collects diagnostic data from Red Hat Developer Hub deployments." \
+      io.openshift.tags="rhdh,developer-hub,must-gather"
+
 RUN set -eu; \
     . /cachi2/cachi2.env; \
     arch=$(uname -m); \
