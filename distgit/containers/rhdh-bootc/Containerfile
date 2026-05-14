@@ -101,6 +101,7 @@ COPY ./quadlet/rhdh.container /usr/share/containers/systemd/rhdh.container
 COPY ./quadlet/postgres.container /usr/share/containers/systemd/postgres.container
 COPY ./quadlet/rhdh-network.network /usr/share/containers/systemd/rhdh-network.network
 COPY systemd/rhdh-stack-autostart.service /etc/systemd/system/rhdh-stack-autostart.service
+COPY systemd/first-boot-config.service /etc/systemd/system/first-boot-config.service
 
 # ── Setup: permissions, services, storage, version stamp ────────────────
 RUN mkdir -p /root/.config/containers && \
@@ -137,7 +138,7 @@ RUN mkdir -p /root/.config/containers && \
     mkdir -p /usr/lib/bootc/bound-images.d && \
     ln -s /usr/share/containers/systemd/rhdh.container /usr/lib/bootc/bound-images.d/rhdh.container && \
     ln -s /usr/share/containers/systemd/postgres.container /usr/lib/bootc/bound-images.d/postgres.container && \
-    systemctl enable rhdh-stack-autostart.service bootc-fetch-apply-updates.timer && \
+    systemctl enable rhdh-stack-autostart.service first-boot-config.service bootc-fetch-apply-updates.timer && \
     mkdir -p /usr/share/rhdh && \
     printf 'IMAGE_VERSION=%s\nCOMMIT_SHA=%s\n' "${RHDH_VERSION}" "${COMMIT_SHA}" \
     > /usr/share/rhdh/image-version
