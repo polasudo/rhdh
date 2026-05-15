@@ -368,6 +368,7 @@ function updateRHDHLocalVersions() {
 		compose_tag="${the_version_y}"
 	else
 		# 1.y (branching from main)
+		guide_ci_build_tag="${the_version_y}"
 		guide_community_tag="${the_stable_version_y}"
 		guide_registry_tag="${the_rhdh_version}"
 		guide_quay_tag="${the_version_y}"
