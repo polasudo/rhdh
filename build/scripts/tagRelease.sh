@@ -790,7 +790,7 @@ pushBranchAndOrTagGH () {
 							config/profile/rhdh/patches/deployment-patch.yaml; do
 							if [[ -f $f ]]; then
 								sed -i "$f" -r \
-									-e "s|quay.io/rhdh-community/rhdh:next|quay.io/rhdh-community/rhdh:next-${PROD_VERSION}|g"
+									-e "s|quay.io/rhdh-community/rhdh:next(-[0-9.]+)?|quay.io/rhdh-community/rhdh:next-${PROD_VERSION}|g"
 							fi
 						done
 						COMMITMSG="chore: pin to quay.io/rhdh-community/rhdh:next-${PROD_VERSION}"
@@ -800,7 +800,8 @@ pushBranchAndOrTagGH () {
 					# RHDHBUGS-2133: Pin RHDH image to :next-1.y tag (release-1.y branch), instead of :next (main)
 					elif [[ $d == "redhat-developer__rhdh-chart" ]]; then
 						if [[ -f charts/backstage/values.yaml ]]; then
-							yq -i '.upstream.backstage.image.tag = "next-'"${PROD_VERSION}"'"' charts/backstage/values.yaml
+							sed -i charts/backstage/values.yaml -r \
+								-e "s|(tag: )next(-[0-9.]+)?$|\1next-${PROD_VERSION}|"
 						fi
 						COMMITMSG="chore: pin to quay.io/rhdh-community/rhdh:next-${PROD_VERSION}"
 						git commit --no-gpg-sign -s -m "${COMMITMSG}" charts/backstage/values.yaml || true
@@ -1381,7 +1382,7 @@ generateNewTektonPipelines ()
 			-e "s@rhdh-1-rhel-9@${branchy}@g" \
 			-e "s@-1-([a-z]+)@-${xdashy}-\1@g" \
 			-e "s@${xdashy}-next@${xdashy}@g" \
-			-e "s/(application: (rhdh-plugin-catalog-1|rhdh-1))$/\1-${xdashy}/" \
+			-e "s/(application: (rhdh-plugin-catalog|rhdh))-1$/\1-${xdashy}/" \
 			-e "s/(component: (plugin-catalog-builder-|rhdh-)[a-z-]+)-1$/\1-${xdashy}/"
 	done
 }
@@ -1427,13 +1428,13 @@ function updateFBCVersions() {
 # when creating a new branch, update the Pyxis Config to add any new plugins + release streams (1.5, 1.6, 1.7)
 function generatePyxisConfigForPlugins() {
 	the_branch="rhdh-1-rhel-9"
-	if [[ ! "$pluginBuildsJson" ]] || [[ ! -d "$pluginBuildsJson" ]]; then pluginBuildsJson="$(pwd)/plugin_builds/"; fi
 	orgAndRepo="rhidp/rhdh-plugin-catalog"
 	local keepcount="$1"
 	local operation="$2"
 	d="${orgAndRepo/\//__}"
 	
 	rm -fr "$TMPDIR/projects_${d}" && git clone -q --depth 1 -b "${the_branch}" "git@gitlab.cee.redhat.com:${orgAndRepo}" "$TMPDIR/projects_${d}" || echo "Branch $the_branch doesn't exist: skip!"
+	if [[ ! "$pluginBuildsJson" ]] || [[ ! -d "$pluginBuildsJson" ]]; then pluginBuildsJson="$TMPDIR/projects_${d}/plugin_builds/"; fi
 	pushd "$TMPDIR/projects_${d}" >/dev/null || exit 1
 	./build/scripts/generatePyxisConfigForPlugins.sh -f "${pluginBuildsJson}" -v "${PROD_VERSION}.0" --keep "$keepcount" "$operation"
 	popd >/dev/null || exit 1
@@ -1442,11 +1443,11 @@ function generatePyxisConfigForPlugins() {
 # when creating a new branch, update the Konflux release data to add any new plugins and plugin catalog index; requires that the above PR is merged first!
 function generateKonfluxReleaseDataForPlugins() {
 	the_branch="rhdh-1-rhel-9"
-	if [[ ! "$pluginBuildsJson" ]] || [[ ! -d "$pluginBuildsJson" ]]; then pluginBuildsJson="$(pwd)/plugin_builds/"; fi
 	orgAndRepo="rhidp/rhdh-plugin-catalog"
 	d="${orgAndRepo/\//__}"
 	
 	rm -fr "$TMPDIR/projects_${d}" && git clone -q --depth 1 -b "${the_branch}" "git@gitlab.cee.redhat.com:${orgAndRepo}" "$TMPDIR/projects_${d}" || echo "Branch $the_branch doesn't exist: skip!"
+	if [[ ! "$pluginBuildsJson" ]] || [[ ! -d "$pluginBuildsJson" ]]; then pluginBuildsJson="$TMPDIR/projects_${d}/plugin_builds/"; fi
 	pushd "$TMPDIR/projects_${d}" >/dev/null || exit 1
 	./build/scripts/generateKonfluxReleaseDataForPlugins.sh -f "${pluginBuildsJson}" -v "${PROD_VERSION}.0"
 	popd >/dev/null || exit 1
