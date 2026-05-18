@@ -1451,9 +1451,9 @@
 }
 {
     "schema": "olm.bundle",
-    "name": "rhdh-operator.v1.10.0",
+    "name": "rhdh-operator.v1.11.0",
     "package": "rhdh",
-    "image": "quay.io/rhdh/rhdh-operator-bundle@sha256:625da7dd6c7c0afac6c3f1a77ce73e5d62b17df5123df11fcdc47333a7da88ae",
+    "image": "quay.io/rhdh/rhdh-operator-bundle@sha256:aa6264ae16b6958782714a1d96191614c61cf20b0b06234bb2aa7861028b1561",
     "properties": [
         {
             "type": "olm.gvk",
@@ -1499,7 +1499,7 @@
             "type": "olm.package",
             "value": {
                 "packageName": "rhdh",
-                "version": "1.10.0"
+                "version": "1.11.0"
             }
         },
         {
@@ -1510,8 +1510,8 @@
                     "capabilities": "Seamless Upgrades",
                     "categories": "Developer Tools",
                     "certified": "true",
-                    "containerImage": "registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:f5c533ba3e94da513bd296fa30a1210078e38946ac08853951cc0bf2de074ebe",
-                    "createdAt": "2026-05-14T19:47:29Z",
+                    "containerImage": "registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:6ebddcf65a9513d5d904ded0508ab3ab54070b03ddcca1bae180fba57ed942ff",
+                    "createdAt": "2026-05-17T19:40:29Z",
                     "description": "Red Hat Developer Hub is a Red Hat supported version of Backstage. It comes with pre-built plug-ins and configuration settings, supports use of an external database, and can help streamline the process of setting up a self-managed internal developer portal for adopters who are just starting out.",
                     "features.operators.openshift.io/cnf": "false",
                     "features.operators.openshift.io/cni": "false",
@@ -1528,7 +1528,7 @@
                     "operators.operatorframework.io/builder": "operator-sdk-v1.37.0",
                     "operators.operatorframework.io/project_layout": "go.kubebuilder.io/v4",
                     "repository": "https://gitlab.cee.redhat.com/rhidp/rhdh/",
-                    "skipRange": ">=1.0.0 <1.10.0",
+                    "skipRange": ">=1.0.0 <1.11.0",
                     "support": "Red Hat"
                 },
                 "apiServiceDefinitions": {},
@@ -1550,7 +1550,7 @@
                         }
                     ]
                 },
-                "description": "Red Hat Developer Hub is an enterprise-grade platform for building developer portals, containing a supported and opinionated framework. It comes with pre-built plug-ins and configuration settings, supports use of an external database, and can help streamline the process of setting up a self-managed internal developer portal for adopters who are just starting out. By implementing a unified and open platform designed to maximize developer skills, ease onboarding, and increase development productivity, focus can be centered on what really matters: writing great code. Red Hat Developer Hub also offers Software Templates to simplify the development process, which can reduce friction and frustration for development teams, boosting their productivity and increasing an organization's competitive advantage.\n\nSystem Architects can benefit by implementing a tailored platform with a complementary suite of verified and curated tools and components needed for operations teams to support developers—within a centralized, consistent location. Development teams can experience increased productivity, fewer development team obstacles, and simplified governance of technology choices with self-service and guardrails.\n\n## Telemetry data collection\n\nThe telemetry data collection feature is enabled by default. Red Hat Developer Hub sends telemetry data to Red Hat by using the `backstage-plugin-analytics-provider-segment` plugin. To disable this and to learn what data is being collected, see [Red Hat Developer Hub documentation on telemetry data collection](https://access.redhat.com/documentation/en-us/red_hat_developer_hub/1.10/html-single/administration_guide_for_red_hat_developer_hub/index#assembly-rhdh-telemetry_admin-rhdh).\n\n## More Information\n\n* [Red Hat Developer Hub Product Page](https://www.redhat.com/en/technologies/cloud-computing/developer-hub)\n* [Product Documentation](https://access.redhat.com/documentation/en-us/red_hat_developer_hub)\n* [Life Cycle](https://access.redhat.com/node/7025299)\n* [Support Policies](https://access.redhat.com/policy/developerhub-support-policy)\n* [Configuring external PostgreSQL databases](https://docs.redhat.com/en/documentation/red_hat_developer_hub/1.3/html/administration_guide_for_red_hat_developer_hub/assembly-configuring-external-postgresql-databases#assembly-configuring-external-postgresql-databases)\n",
+                "description": "Red Hat Developer Hub is an enterprise-grade platform for building developer portals, containing a supported and opinionated framework. It comes with pre-built plug-ins and configuration settings, supports use of an external database, and can help streamline the process of setting up a self-managed internal developer portal for adopters who are just starting out. By implementing a unified and open platform designed to maximize developer skills, ease onboarding, and increase development productivity, focus can be centered on what really matters: writing great code. Red Hat Developer Hub also offers Software Templates to simplify the development process, which can reduce friction and frustration for development teams, boosting their productivity and increasing an organization's competitive advantage.\n\nSystem Architects can benefit by implementing a tailored platform with a complementary suite of verified and curated tools and components needed for operations teams to support developers—within a centralized, consistent location. Development teams can experience increased productivity, fewer development team obstacles, and simplified governance of technology choices with self-service and guardrails.\n\n## Telemetry data collection\n\nThe telemetry data collection feature is enabled by default. Red Hat Developer Hub sends telemetry data to Red Hat by using the `backstage-plugin-analytics-provider-segment` plugin. To disable this and to learn what data is being collected, see [Red Hat Developer Hub documentation on telemetry data collection](https://access.redhat.com/documentation/en-us/red_hat_developer_hub/1.11/html-single/administration_guide_for_red_hat_developer_hub/index#assembly-rhdh-telemetry_admin-rhdh).\n\n## More Information\n\n* [Red Hat Developer Hub Product Page](https://www.redhat.com/en/technologies/cloud-computing/developer-hub)\n* [Product Documentation](https://access.redhat.com/documentation/en-us/red_hat_developer_hub)\n* [Life Cycle](https://access.redhat.com/node/7025299)\n* [Support Policies](https://access.redhat.com/policy/developerhub-support-policy)\n* [Configuring external PostgreSQL databases](https://docs.redhat.com/en/documentation/red_hat_developer_hub/1.3/html/administration_guide_for_red_hat_developer_hub/assembly-configuring-external-postgresql-databases#assembly-configuring-external-postgresql-databases)\n",
                 "displayName": "Red Hat Developer Hub Operator",
                 "installModes": [
                     {
@@ -1621,15 +1621,15 @@
     "relatedImages": [
         {
             "name": "",
-            "image": "quay.io/rhdh/rhdh-operator-bundle@sha256:625da7dd6c7c0afac6c3f1a77ce73e5d62b17df5123df11fcdc47333a7da88ae"
+            "image": "quay.io/rhdh/rhdh-operator-bundle@sha256:aa6264ae16b6958782714a1d96191614c61cf20b0b06234bb2aa7861028b1561"
         },
         {
             "name": "backstage",
-            "image": "registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:95fff38813a02e9afbe3d062d32536ab59608780cb9d49e10375636d9e1b23c2"
+            "image": "registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:bd0a567ea5b33236d63c64dc3da6e25b9779bed1938bd60a4e78023fe413c936"
         },
         {
             "name": "",
-            "image": "registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:f5c533ba3e94da513bd296fa30a1210078e38946ac08853951cc0bf2de074ebe"
+            "image": "registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:6ebddcf65a9513d5d904ded0508ab3ab54070b03ddcca1bae180fba57ed942ff"
         },
         {
             "name": "postgresql",
