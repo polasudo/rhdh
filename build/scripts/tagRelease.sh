@@ -1435,7 +1435,13 @@ function generatePyxisConfigForPlugins() {
 	d="${orgAndRepo/\//__}"
 	
 	rm -fr "$TMPDIR/projects_${d}" && git clone -q --depth 1 -b "${the_branch}" "git@gitlab.cee.redhat.com:${orgAndRepo}" "$TMPDIR/projects_${d}" || echo "Branch $the_branch doesn't exist: skip!"
-	if [[ ! "$pluginBuildsJson" ]] || [[ ! -d "$pluginBuildsJson" ]]; then pluginBuildsJson="$TMPDIR/projects_${d}/plugin_builds/"; fi
+	if [[ ! "$pluginBuildsJson" ]] || [[ ! -d "$pluginBuildsJson" ]]; then
+		if [[ -d "$TMPDIR/projects_${d}/plugin_builds/" ]]; then
+			pluginBuildsJson="$TMPDIR/projects_${d}/plugin_builds/"
+		else
+			echo -e "${red}[ERROR] Could not load plugin_builds/ from $TMPDIR/projects_${d}/plugin_builds/ !${norm}"; exit 1
+		fi
+	fi
 	pushd "$TMPDIR/projects_${d}" >/dev/null || exit 1
 	./build/scripts/generatePyxisConfigForPlugins.sh -f "${pluginBuildsJson}" -v "${PROD_VERSION}.0" --keep "$keepcount" "$operation"
 	popd >/dev/null || exit 1
@@ -1448,7 +1454,13 @@ function generateKonfluxReleaseDataForPlugins() {
 	d="${orgAndRepo/\//__}"
 	
 	rm -fr "$TMPDIR/projects_${d}" && git clone -q --depth 1 -b "${the_branch}" "git@gitlab.cee.redhat.com:${orgAndRepo}" "$TMPDIR/projects_${d}" || echo "Branch $the_branch doesn't exist: skip!"
-	if [[ ! "$pluginBuildsJson" ]] || [[ ! -d "$pluginBuildsJson" ]]; then pluginBuildsJson="$TMPDIR/projects_${d}/plugin_builds/"; fi
+	if [[ ! "$pluginBuildsJson" ]] || [[ ! -d "$pluginBuildsJson" ]]; then
+		if [[ -d "$TMPDIR/projects_${d}/plugin_builds/" ]]; then
+			pluginBuildsJson="$TMPDIR/projects_${d}/plugin_builds/"
+		else
+			echo -e "${red}[ERROR] Could not load plugin_builds/ from $TMPDIR/projects_${d}/plugin_builds/ !${norm}"; exit 1
+		fi
+	fi
 	pushd "$TMPDIR/projects_${d}" >/dev/null || exit 1
 	./build/scripts/generateKonfluxReleaseDataForPlugins.sh -f "${pluginBuildsJson}" -v "${PROD_VERSION}.0"
 	popd >/dev/null || exit 1
