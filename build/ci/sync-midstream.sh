@@ -1350,11 +1350,13 @@ revertFiles() {
 # want to keep changes to distgit/containers/rhdh-hub/packages/app/src/build-metadata.json ! 
 if [[ $BUNDLEONLY -eq 1 ]]; then
   revert_list=(
-    "distgit/containers/rhdh-hub/" 
-    "distgit/containers/rhdh-operator/" 
-    
-    "sync/upstream_SHA_rhdh-hub" 
+    "distgit/containers/rhdh-hub/"
+    "distgit/containers/rhdh-operator/"
+    "distgit/containers/rhdh-must-gather/"
+
+    "sync/upstream_SHA_rhdh-hub"
     "sync/upstream_SHA_rhdh-operator"
+    "sync/upstream_SHA_rhdh-must-gather"
   )
   # sed_rag_content
   revert_list+=(
