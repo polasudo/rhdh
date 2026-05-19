@@ -38,7 +38,7 @@ spec:
   - name: hermetic
     value: "false"
   - name: privileged-nested
-    value: "true"
+    value: "false"
   - name: build-source-image
     value: "true"
   - name: build-platforms
@@ -265,7 +265,7 @@ spec:
       - name: ADDITIONAL_SECRET
         value: $(params.additional-build-secret)
       - name: PRIVILEGED_NESTED
-        value: $(params.privileged-nested)
+        value: "true"
       - name: SOURCE_ARTIFACT
         value: $(tasks.prefetch-dependencies.results.SOURCE_ARTIFACT)
       - name: CACHI2_ARTIFACT
