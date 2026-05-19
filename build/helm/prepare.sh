@@ -227,7 +227,7 @@ while [[ "$#" -gt 0 ]]; do
                 usage; exit 1
             fi
             RAG_CONTENT_DIGEST=$(skopeo inspect "docker://${REGISTRY_PREFIX}/rhdh/rhdh-rag-content-rhel9:${RHDH_VERSION}" | jq -r '.Digest')
-            if [[ ! $RHDH_DIGEST ]]; then
+            if [[ ! $RAG_CONTENT_DIGEST ]]; then
                 echo -e "\n[ERROR] Image ${REGISTRY_PREFIX}/rhdh/rhdh-rag-content-rhel9:${RHDH_VERSION} not found - Could not compute digest! Make sure the value of --rhdh-version is correct!\n\n"
                 usage; exit 1
             fi
@@ -455,7 +455,7 @@ if [[ "${CHART_NAME}" == "redhat-developer-hub" ]] || [[ "${CHART_NAME}" == "bac
     PLUGIN_CATALOG_INDEX_DIGEST="${PLUGIN_CATALOG_INDEX_DIGEST//sha256:/}"
     RAG_CONTENT_DIGEST="${RAG_CONTENT_DIGEST//sha256:/}"
     LCS_DIGEST="${LCS_DIGEST//sha256:/}"
-    if [[ ! "$RHDH_DIGEST" ]] || [[ ! "$PLUGIN_CATALOG_INDEX_DIGEST" ]] || [[ ! "$POSTGRESQL_DIGEST" ]]; then
+    if [[ ! "$RHDH_DIGEST" ]] || [[ ! "$PLUGIN_CATALOG_INDEX_DIGEST" ]] || [[ ! "$POSTGRESQL_DIGEST" ]] || [[ ! "$RAG_CONTENT_DIGEST" ]] || [[ ! "$LCS_DIGEST" ]]; then
         echo "[ERROR] Could not compute image digests for ${VALUES_PATH} - must exit!
 * RHDH_DIGEST = $RHDH_DIGEST,
 * PLUGIN_CATALOG_INDEX_DIGEST = $PLUGIN_CATALOG_INDEX_DIGEST,

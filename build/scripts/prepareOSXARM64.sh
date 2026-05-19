@@ -127,16 +127,18 @@ prepareOSXARM64() {
 	if ! command -v skopeo >/dev/null 2>&1; then
 		echo "🔧 Installing skopeo..."
 		brew install skopeo
-
-		echo "🔧 Adding a wrapper for skopeo..."
-		cat <<'EOF' | sudo tee /usr/local/bin/skopeo > /dev/null
-#!/usr/bin/env bash
-/opt/homebrew/bin/skopeo "\$@" --override-arch=amd64 --override-os=linux
-EOF
-		sudo chmod +x /usr/local/bin/skopeo
-	else
-		echo "✅ A wrapper to skopeo is already available"
 	fi
+
+	# Create/update wrapper to force amd64 arch on ARM64 Mac
+	local wrapper="$HOME/.local/bin/skopeo"
+	mkdir -p "$HOME/.local/bin"
+	echo "🔧 Adding skopeo wrapper at ${wrapper}..."
+	cat <<'EOF' > "$wrapper"
+#!/usr/bin/env bash
+/opt/homebrew/bin/skopeo "$@" --override-arch=amd64 --override-os=linux
+EOF
+	chmod +x "$wrapper"
+	export PATH="$HOME/.local/bin:$PATH"
 
 	if ! command -v "$YQ" &> /dev/null; then
 			mkdir -p "$HOME/.local/bin/"

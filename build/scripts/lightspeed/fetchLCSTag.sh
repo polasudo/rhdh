@@ -4,8 +4,10 @@
 #
 # utility script for fetching the LCS sidecar image tag
 #
-# requires jq
-# requires yq (python wrapper for jq)
+# requires yq (mikefarah) >= v4
+
+# Default path matches where prepare.sh and prepareOSXARM64.sh install mikefarah yq
+YQ="${YQ:-$HOME/.local/bin/yq_mf}"
 
 dh_image_tag="$1"
 repo=https://github.com/redhat-ai-dev/lightspeed-configs
@@ -16,9 +18,13 @@ if [[ $(git ls-remote --heads $repo refs/heads/$branch0 | wc -l) -eq 1 ]]; then
 elif [[ $(git ls-remote --heads $repo refs/heads/$branch1 | wc -l) -eq 1 ]]; then
     branch=$branch1
 else
-    echo -e "[ERROR] Could not find $branch0 or $branch1 at $repo !"; exit 1
+    echo "[ERROR] Could not find $branch0 or $branch1 at $repo !" >&2; exit 1
 fi
 lcs_config="https://raw.githubusercontent.com/redhat-ai-dev/lightspeed-configs/refs/heads/${branch}/images.yaml"
-lcs_image="$(curl -sL "${lcs_config}" | yq -r '."lightspeed-core".image')"
+lcs_image="$(curl -sL "${lcs_config}" | $YQ '.["lightspeed-core"].image')"
+
+if [[ -z "$lcs_image" || "$lcs_image" == "null" ]]; then
+    echo "[ERROR] Could not extract lightspeed-core image from ${lcs_config}" >&2; exit 1
+fi
 
 echo "${lcs_image##*:}"
