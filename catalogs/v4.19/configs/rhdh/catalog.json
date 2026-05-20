@@ -1453,7 +1453,7 @@
     "schema": "olm.bundle",
     "name": "rhdh-operator.v1.11.0",
     "package": "rhdh",
-    "image": "quay.io/rhdh/rhdh-operator-bundle@sha256:f2ca7215ac80250c6e8802099d7b1baf67136a15a90d0057f4bee7df5bd4ebe2",
+    "image": "quay.io/rhdh/rhdh-operator-bundle@sha256:eee2094f771489d194b63c6d60299e6c3443c826605c0434304f84173fafff51",
     "properties": [
         {
             "type": "olm.gvk",
@@ -1621,11 +1621,11 @@
     "relatedImages": [
         {
             "name": "",
-            "image": "quay.io/rhdh/rhdh-operator-bundle@sha256:f2ca7215ac80250c6e8802099d7b1baf67136a15a90d0057f4bee7df5bd4ebe2"
+            "image": "quay.io/rhdh/rhdh-operator-bundle@sha256:eee2094f771489d194b63c6d60299e6c3443c826605c0434304f84173fafff51"
         },
         {
             "name": "backstage",
-            "image": "registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:b97125da8e8ec3b68e5f957b584bad3e226cdd500108d307f7dba230f6b7e8df"
+            "image": "registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:df75d39d56f8787348a32c27467d1a8b8f0c553347296a468c65938f112b1207"
         },
         {
             "name": "",
