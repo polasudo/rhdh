@@ -36,10 +36,10 @@ USER 65532:65532
 
 ENV SUMMARY="Red Hat Developer Hub RAG content" \
 DESCRIPTION="Red Hat Developer Hub RAG content" \
-RHDH_VERSION="1.10.0" \
+RHDH_VERSION="1.11.0" \
 BACKSTAGE_VERSION="1.49.4" \
 UPSTREAM_REPO="https://github.com/redhat-ai-dev/rhdh-rag-content/tree/main @ 98319797" \
-MIDSTREAM_REPO="https://gitlab.cee.redhat.com/rhidp/rhdh/-/commits/fix/revert-bundle-only-sync-1" \
+MIDSTREAM_REPO="https://gitlab.cee.redhat.com/rhidp/rhdh/-/commits/rhdh-1-rhel-9" \
 PRODNAME="rhdh" \
 COMPNAME="rag-content"
 
@@ -50,14 +50,14 @@ LABEL summary="$SUMMARY" \
     io.openshift.tags="$PRODNAME,$COMPNAME" \
     com.redhat.component="$PRODNAME-$COMPNAME-container" \
     name="$PRODNAME/$PRODNAME-rhel9-$COMPNAME" \
-    version="1.10" \
+    version="1.11" \
     release="1" \
     license="ASLv2" \
     maintainer="RHDH Team <rhdh-bot@redhat.com>" \
     vendor="Red Hat, Inc." \
     io.openshift.expose-services="" \
     usage="" \
-    konflux.additional-tags="next, 1.10, 1.10-1" \
+    konflux.additional-tags="next, 1.11, 1.11-1" \
     distribution-scope="public" \
     url="https://red.ht/rhdh" \
-    cpe="cpe:/a:redhat:rhdh:1.10::el9"
+    cpe="cpe:/a:redhat:rhdh:1.11::el9"
