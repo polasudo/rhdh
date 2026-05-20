@@ -226,9 +226,9 @@ while [[ "$#" -gt 0 ]]; do
                 echo -e "\n[ERROR] Image ${REGISTRY_PREFIX_UNAUTH}/rhdh/plugin-catalog-index:${index_tag} not found - Could not compute digest! Make sure the value of --rhdh-version is correct!\n\n"
                 usage; exit 1
             fi
-            RAG_CONTENT_DIGEST=$(skopeo inspect "docker://${REGISTRY_PREFIX}/rhdh/rhdh-rag-content-rhel9:${RHDH_VERSION}" | jq -r '.Digest')
+            RAG_CONTENT_DIGEST=$(skopeo inspect "docker://${REGISTRY_PREFIX}/rhdh/rhdh-rag-content-rhel9:${rhdh_ver}" | jq -r '.Digest')
             if [[ ! $RAG_CONTENT_DIGEST ]]; then
-                echo -e "\n[ERROR] Image ${REGISTRY_PREFIX}/rhdh/rhdh-rag-content-rhel9:${RHDH_VERSION} not found - Could not compute digest! Make sure the value of --rhdh-version is correct!\n\n"
+                echo -e "\n[ERROR] Image ${REGISTRY_PREFIX}/rhdh/rhdh-rag-content-rhel9:${rhdh_ver} not found - Could not compute digest! Make sure the value of --rhdh-version is correct!\n\n"
                 usage; exit 1
             fi
         else
