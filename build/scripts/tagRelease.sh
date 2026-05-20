@@ -35,6 +35,7 @@ DO_UPDATE=0  # force update of release-1.yy branches, even if tag already exists
 SKIP_GH=0    # skip updates to GH repos
 SKIP_GL=0    # skip updates to RHDH GL repo
 SKIP_KRD=0   # skip updates to konflux-release-data repo
+PREVIOUS_KRD_VERSION="" # default to computing the previous 1.y-1 version  
 SKIP_PRODSEC=0 # skip updates to prodsec/product-definitions repo
 SKIP_PYXIS=0 # skip updates to pyxis-repo-configs repo
 # make builds faster
@@ -101,6 +102,8 @@ Options:
     --skip-prodsec            (3) skip gitlab prodsec/product-definitions repo updates
     --skip-pyxis              (4) skip gitlab pyxis-repo-configs repo updates
     --skip-krd                (5) skip gitlab konflux-release-data repo updates
+		--previous-version        previous version to use for konflux-release-data repo updates; defaults to previous stable version
+								  use this flag ot derive new content from the -1- yamls instead of -(1.y-1)-
     --debug                   more output
 "
 }
@@ -132,6 +135,7 @@ while [[ "$#" -gt 0 ]]; do
 	'--gh-repos') GH_REPOS_OVERRIDE="$2"; shift 1;;
 	'--skip-gl') SKIP_GL=1;;
 	'--skip-krd') SKIP_KRD=1;;
+	'--previous-version') PREVIOUS_KRD_VERSION="$2"; shift 1;;
 	'--skip-prodsec') SKIP_PRODSEC=1;;
 	'--skip-pyxis') SKIP_PYXIS=1;;
 	'--debug') VERBOSE=1;;
@@ -1277,7 +1281,11 @@ generateNewKonfluxReleaseDataYamls ()
 		XX=${BASH_REMATCH[1]}
 		YY=${BASH_REMATCH[2]}
 		(( YY=YY-1 ))
-		PROD_VERSION_PREV="$XX.$YY"
+		if [[ $PREVIOUS_KRD_VERSION ]]; then
+			PROD_VERSION_PREV="$PREVIOUS_KRD_VERSION"
+		else
+			PROD_VERSION_PREV="$XX.$YY"
+		fi
 		(( YY=YY-2 ))
 		KFUX_VERSION_DEAD="$XX-$YY"
 	fi
@@ -1302,23 +1310,33 @@ generateNewKonfluxReleaseDataYamls ()
 				tenants-config/cluster/stone-prod-p02/tenants/rhdh-tenant/components \
 				tenants-config/cluster/stone-prod-p02/tenants/rhdh-tenant/release-plans; do
 				for f in $(find $d -maxdepth 1 -type f -name "*${PROD_VERSION_PREV/./-}*" | sort -uV); do # find the previous files
-					g=$(echo "$f" | sed -r -e "s@${PROD_VERSION_PREV/./-}@${KFUX_VERSION}@")
-					echo "Convert $f to ${g##*/} ..."
-					cp "$f" "$g"
-					sed -i "$g" -r \
-						-e "s@-${PROD_VERSION_PREV/./-}@-${KFUX_VERSION}@g" \
-						-e "s@Hub ${PROD_VERSION_PREV//./\\.}@Hub ${PROD_VERSION}@g" \
-						-e "s@rhdh-${PROD_VERSION_PREV//./\\.}@rhdh-${PROD_VERSION}@g" \
-						-e "s@\"${PROD_VERSION_PREV//./\\.}\"@\"${PROD_VERSION}\"@g" \
-						-e "s@\"${PROD_VERSION_PREV//./\\.}\.([1-9]+)\"@\"${PROD_VERSION}.0\"@g" \
-					# append into kustomization file
-					if [[ -f $d/kustomization.yaml ]]; then 
-						echo "   Edit $d/kustomization.yaml ..."
-						sed -i "$d/kustomization.yaml" -r \
-							-e "/-${KFUX_VERSION_DEAD}\.yaml/d" \
-							-e "/-${KFUX_VERSION_DEAD}-.+\.yaml/d"
-						"$YQ" e '.resources[.resources|length]|="'"${g##*/}"'"|.resources = (.resources | sort | unique)' \
-							-i "$d/kustomization.yaml"
+					# don't break the path, only change the filename
+					# don't change -1-10 into -1-10-11
+					g=$(echo "$f" | sed -r -e "s@-${PROD_VERSION_PREV/./-}([-.][^0-9]+)@-${KFUX_VERSION}\1@" )
+					if [[ "$g" != "$f" ]]; then
+						echo "Convert $f to ${g##*/} ..."
+						cp "$f" "$g"
+						sed -i "$g" -r \
+							-e "s@-${PROD_VERSION_PREV/./-}@-${KFUX_VERSION}@g" \
+							-e "s@Hub ${PROD_VERSION_PREV//./\\.}@Hub ${PROD_VERSION}@g" \
+							-e "s@Catalog ${PROD_VERSION_PREV//./\\.}@Catalog ${PROD_VERSION}@g" \
+							-e "s@rhdh-${PROD_VERSION_PREV//./\\.}@rhdh-${PROD_VERSION}@g" \
+							-e "s@\"${PROD_VERSION_PREV//./\\.}\"@\"${PROD_VERSION}\"@g" \
+							-e "s@\"${PROD_VERSION_PREV//./\\.}\.([1-9]+)\"@\"${PROD_VERSION}.0\"@g" \
+							-e "s@${PROD_VERSION}.y.z@${PROD_VERSION}.0@g" \
+							-e "s@${PROD_VERSION}.next@${PROD_VERSION}@g" \
+							-e "s@(rhdh-[0-9.]+)(-[0-9]+)(-rhel-[0-9]+)@rhdh-${PROD_VERSION}\3@g" \
+							-e "s@(product_version: \"[0-9]+\.[0-9]+)\.[0-9]+@\1@g" \
+							-e "s@(rhdh-[0-9]+.[0-9]+)(-[0-9]+)@rhdh-${KFUX_VERSION}@g" 
+						# append into kustomization file
+						if [[ -f $d/kustomization.yaml ]]; then 
+							echo "   Edit $d/kustomization.yaml ..."
+							sed -i "$d/kustomization.yaml" -r \
+								-e "/-${KFUX_VERSION_DEAD}\.yaml/d" \
+								-e "/-${KFUX_VERSION_DEAD}-.+\.yaml/d"
+							"$YQ" e '.resources[.resources|length]|="'"${g##*/}"'"|.resources = (.resources | sort | unique)' \
+								-i "$d/kustomization.yaml"
+						fi
 					fi
 				done
 				for f in $(find $d -maxdepth 1 -type f -name "*${KFUX_VERSION_DEAD}*" | sort -uV); do # find the deleteable files
@@ -1620,9 +1638,9 @@ if [[ ! $CSV_VERSION ]]; then
 		fi
 
 		if [[ $SKIP_KRD -eq 0 ]]; then
-			echo "  ## ## ## Processing Konflux Release Data Repo (Comopnents + RPAs)... ## ## ## "
+			echo "  ## ## ## Processing Konflux Release Data Repo (Components + RPAs)... ## ## ## "
 			generateNewKonfluxReleaseDataYamls
-			echo "  ## ## ## Processing Konflux Release Data Repo (Comopnents + RPAs) done! ## ## ## "
+			echo "  ## ## ## Processing Konflux Release Data Repo (Components + RPAs) done! ## ## ## "
 			if [[ $VERBOSE -eq 1 ]]; then 
 				echo "[DEBUG] update the Konflux Release Data repo to add new plugins and catalog index"
 			fi
