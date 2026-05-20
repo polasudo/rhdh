@@ -15,6 +15,7 @@
     # SECURE_FILES_DOWNLOAD_PATH: '.secure_files'
     GIT_DEPTH: "0"
     GIT_FETCH_EXTRA_FLAGS: --prune
+    GIT_SUBMODULE_STRATEGY: normal
     # Resource overrides for ITUP runners (maximized for build operations)
     # Total pod limit: 4 CPUs / 16Gi (includes Helper: 1 CPU / 1Gi)
     KUBERNETES_CPU_REQUEST: "2"        # max: 2

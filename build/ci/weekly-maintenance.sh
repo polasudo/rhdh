@@ -130,7 +130,7 @@ for midstream_repo_name in "${!MIDSTREAM_REPOS[@]}"; do
     echo "=================================================="
     echo "Processing midstream repo: $midstream_repo_name"
     repo_dir="$MIDSTREAM_WORK_DIR/$midstream_repo_name"
-    git clone "$midstream_clone_url" "$repo_dir" --depth=3 --no-tags
+    git clone --recurse-submodules "$midstream_clone_url" "$repo_dir" --depth=3 --no-tags
     pushd "$repo_dir" >/dev/null || true
     git remote set-branches origin "*" || true
     git fetch origin || true

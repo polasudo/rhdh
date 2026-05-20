@@ -976,8 +976,8 @@ pushTagGL ()
 			echo "== $d :: tag $CSV_VERSION from $DWNSTM_TARGET_BRANCH =="
 		fi
 		if [[ ! -d "$TMPDIR/gitlab_${d}" ]]; then
-			git clone -q --depth 1 -b "${DWNSTM_TARGET_BRANCH}" "git@gitlab.cee.redhat.com:rhidp/${d}.git" "gitlab_${d}" || \
-			git clone -q --depth 1 -b "${MIDSTM_BRANCH}" "git@gitlab.cee.redhat.com:rhidp/${d}.git" "gitlab_${d}" || \
+			git clone -q --recurse-submodules --depth 1 -b "${DWNSTM_TARGET_BRANCH}" "git@gitlab.cee.redhat.com:rhidp/${d}.git" "gitlab_${d}" || \
+			git clone -q --recurse-submodules --depth 1 -b "${MIDSTM_BRANCH}" "git@gitlab.cee.redhat.com:rhidp/${d}.git" "gitlab_${d}" || \
 			echo "Branch $MIDSTM_BRANCH doesn't exist: skip!"
 		fi
 		if [[ -d "$TMPDIR/gitlab_${d}" ]]; then
@@ -1398,7 +1398,7 @@ function updateFBCVersions() {
 	echo "= update FBCs in $MIDSTM_BRANCH to $PROD_VERSION_NEXTY"
 	d="rhdh"
 	if [[ -d "$TMPDIR/gitlab_${d}" ]]; then rm -fr "$TMPDIR/gitlab_${d}"; fi
-	git clone -q --depth 1 -b "${MIDSTM_BRANCH}" "git@gitlab.cee.redhat.com:rhidp/${d}.git" "gitlab_${d}" || \
+	git clone -q --recurse-submodules --depth 1 -b "${MIDSTM_BRANCH}" "git@gitlab.cee.redhat.com:rhidp/${d}.git" "gitlab_${d}" || \
 		{ echo "ERROR: Branch $MIDSTM_BRANCH doesn't exist: fail!"; exit 1; }
 	pushd "$TMPDIR/gitlab_${d}" >/dev/null || exit 1
 		git checkout --track origin/"${MIDSTM_BRANCH}" -q 2>/dev/null || true
@@ -1520,7 +1520,7 @@ function removeOperatorBundleLatestTags() {
 	echo "= remove latest tags from Containerfiles in ${MIDSTM_BRANCH_PREV} branch"
 	d="rhdh"
 	if [[ -d "$TMPDIR/gitlab_${d}" ]]; then rm -fr "$TMPDIR/gitlab_${d}"; fi
-	git clone -q --depth 1 -b "${MIDSTM_BRANCH_PREV}" "git@gitlab.cee.redhat.com:rhidp/${d}.git" "gitlab_${d}" || \
+	git clone -q --recurse-submodules --depth 1 -b "${MIDSTM_BRANCH_PREV}" "git@gitlab.cee.redhat.com:rhidp/${d}.git" "gitlab_${d}" || \
 		{ echo "ERROR: Branch $MIDSTM_BRANCH_PREV doesn't exist: fail!"; exit 1; }
 	pushd "$TMPDIR/gitlab_${d}" >/dev/null || exit 1
 		git checkout --track origin/"${MIDSTM_BRANCH_PREV}" -q 2>/dev/null || true

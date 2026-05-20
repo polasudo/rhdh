@@ -144,7 +144,7 @@ else
     else
         cd /tmp || exit 1
         rm -fr /tmp/rhdh-tmp
-        git clone git@gitlab.cee.redhat.com:rhidp/rhdh.git rhdh-tmp || exit 1
+        git clone --recurse-submodules git@gitlab.cee.redhat.com:rhidp/rhdh.git rhdh-tmp || exit 1
         cd rhdh-tmp || exit 1
         git checkout "$MIDSTM_BRANCH" || exit 1
     fi

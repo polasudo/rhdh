@@ -272,6 +272,8 @@ if [[ $GITLAB_PIPELINE == "true" ]]; then
   git fetch --all || true
   git checkout "${DWNSTM_BRANCH}" || true
   git pull origin "${DWNSTM_BRANCH}" || true
+  git submodule sync --recursive
+  git submodule update --init --recursive
 fi
 
 # cleanup before fetching new files

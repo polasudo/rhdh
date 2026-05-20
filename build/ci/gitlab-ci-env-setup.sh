@@ -48,6 +48,8 @@ git config --global advice.detachedHead false
 git fetch --all
 git branch
 git checkout "${CI_COMMIT_BRANCH}" || exit 1
+git submodule sync --recursive
+git submodule update --init --recursive
 git rev-parse --abbrev-ref HEAD
 
 # 2025/08/01: build and install download-secure-files in builder.Containerfile / quay.io/rhdh/gitlab-runner to save recompiling every time
