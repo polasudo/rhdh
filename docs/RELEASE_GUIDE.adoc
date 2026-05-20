@@ -120,15 +120,17 @@ For reference, here are the PRs and MRs for the `1.8` branch creation:
 * https://gitlab.cee.redhat.com/prodsec/product-definitions/-/merge_requests/3943
 * https://gitlab.cee.redhat.com/releng/konflux-release-data/-/merge_requests/11184
 
-== Create new GL pipeline
+== Create new GL pipelines
 
-As the 'rhdh-bot@redhat.com' user, go to link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/pipeline_schedules[pipeline schedules] and create (or repurpose) a new pipeline for the `1.y` branch, then point it at the recently created `rhdh-1.y-rhel-9` branch. 
+Go to link:https://gitlab.cee.redhat.com/rhidp/rhdh/-/pipeline_schedules[rhdh pipeline schedules] and create (or repurpose) a new pipeline for the new `1.y` branch, then point it at the recently created `rhdh-1.y-rhel-9` branch. 
 
 You should never need more than 4 pipelines:
 
 image::images/gitlab-pipelines-1.6.png[]
 
 Make sure that the pipeline's `Activated` checkbox is enabled. Save your changes. 
+
+Repeat for link:https://gitlab.cee.redhat.com/rhidp/rhdh-plugin-catalog/-/pipeline_schedules[rhdh-plugin-catalog pipeline schedules].
 
 === Trigger respins
 
@@ -322,6 +324,9 @@ Once the code freeze is achieved and all the last minute changes have stopped, y
 ----
 # choose the correct branch
 git checkout rhdh-1.y-rhel-9
+# if this is the first time checking out a branch for the rhidp/rhdh repo, initialize submodules
+git submodule update --init
+
 # rebuild in GL then if changes found, in Konflux too
 ./build/scripts/triggerRespin.sh -v 1.y hub,op 
 or
@@ -368,6 +373,9 @@ image::images/sbom-check.png[quay.io view filtered for a specific digest]
 ----
 # choose the correct branch
 git checkout rhdh-1.y-rhel-9
+# if this is the first time checking out a branch for the rhidp/rhdh repo, initialize submodules
+git submodule update --init
+
 ./build/scripts/renderCatalogs.sh --default ...
 ----
 
@@ -561,6 +569,8 @@ oc login --token=...
 
 # choose the correct branch
 git checkout rhdh-1.y-rhel-9
+# if this is the first time checking out a branch for the rhidp/rhdh repo, initialize submodules
+git submodule update --init
 
 # list of OCP versions is set in ocp-versions.yaml, but can override with --versions "..."
 ./build/scripts/renderCatalogs.sh --rhec --default
@@ -638,6 +648,8 @@ If you generated the PRs using the rhdh-bot user's GH token, they should be merg
 ----
 # choose the correct branch
 git checkout rhdh-1.y-rhel-9
+# if this is the first time checking out a branch for the rhidp/rhdh repo, initialize submodules
+git submodule update --init
 
 ./build/scripts/kfuxRelease.sh --fbc help # get help
 
@@ -653,6 +665,8 @@ cd /tmp; git clone git@gitlab.cee.redhat.com:rhidp/rhdh.git --depth 1 && cd rhdh
 
 # run in the 1.next branch
 git checkout rhdh-1-rhel-9
+# if this is the first time checking out a branch for the rhidp/rhdh repo, initialize submodules
+git submodule update --init
 
 export GITHUB_TOKEN=rhdh-bot-token-goes-here
 ./build/scripts/tagRelease.sh -v 1.y.z -t 1.y -gh release-1.y --midstream-branch rhdh-1.y-rhel-9 --clean --force-update --nobuild
