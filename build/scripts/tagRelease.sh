@@ -47,7 +47,9 @@ if [[ ! -f "${REPOS_FILE}" ]]; then
 	exit 1
 fi
 GH_REPOS=""
+GH_REPOS_OVERRIDE=""
 GL_REPOS=""
+GL_REPOS_OVERRIDE=""
 
 # normally, use this script to create tags, not branches
 # this also defines the branch to update after creating a new branch (eg., for a TARGET_BRANCH=release-1.3 branch creation, bump SOURCE_BRANCH=main to 1.4.0)
@@ -72,7 +74,9 @@ Requires: both yq (python wrapper for jq) and yq from https://github.com/mikefar
 To create or update existing branches:
   $0 --branchfrom SOURCE_GH_BRANCH -gh TARGET_GH_BRANCH -ghtoken GITHUB_TOKEN
 Example: 
-  $0 --branchfrom main -gh release-1.10 --clean -ghtoken \$GITHUB_TOKEN
+  $0 --branchfrom main -gh release-1.10 --clean \\
+    --skip-gh --skip-prodsec --skip-pyxis --skip-krd \\
+    --gl-repos \"rhdh-plugin-catalog\"
 
 To create tags (and push updates to release-1.yy branches):
 1. You should have a valid $MIDSTM_USER GITHUB_TOKEN (for upstream PRs and tags).
@@ -99,11 +103,12 @@ Options:
     --skip-gh                 (1) skip all github updates
       --gh-repos                  space-separated list of GH repos to process, if not the whole set
     --skip-gl                 (2) skip gitlab rhdh repo updates
+      --gl-repos                  space-separated list of GL repos to process, if not the whole set
     --skip-prodsec            (3) skip gitlab prodsec/product-definitions repo updates
     --skip-pyxis              (4) skip gitlab pyxis-repo-configs repo updates
     --skip-krd                (5) skip gitlab konflux-release-data repo updates
-		--previous-version        previous version to use for konflux-release-data repo updates; defaults to previous stable version
-								  use this flag ot derive new content from the -1- yamls instead of -(1.y-1)-
+    --previous-version        previous version to use for konflux-release-data repo updates; defaults to previous stable version
+                              use this flag ot derive new content from the -1- yamls instead of -(1.y-1)-
     --debug                   more output
 "
 }
@@ -134,6 +139,7 @@ while [[ "$#" -gt 0 ]]; do
 	'--skip-gh') SKIP_GH=1;;
 	'--gh-repos') GH_REPOS_OVERRIDE="$2"; shift 1;;
 	'--skip-gl') SKIP_GL=1;;
+	'--gl-repos') GL_REPOS_OVERRIDE="$2"; shift 1;;
 	'--skip-krd') SKIP_KRD=1;;
 	'--previous-version') PREVIOUS_KRD_VERSION="$2"; shift 1;;
 	'--skip-prodsec') SKIP_PRODSEC=1;;
@@ -174,7 +180,11 @@ if [[ -n "${GH_REPOS_OVERRIDE}" ]]; then
 else
 	GH_REPOS=$("$YQ" -r '.github_repos[]' "${REPOS_FILE}" | tr '\n' ' ')
 fi
-GL_REPOS=$("$YQ" -r '.gitlab_repos[] | split("/")[-1]' "${REPOS_FILE}" | tr '\n' ' ')
+if [[ -n "${GL_REPOS_OVERRIDE}" ]]; then
+	GL_REPOS="${GL_REPOS_OVERRIDE}"
+else
+	GL_REPOS=$("$YQ" -r '.gitlab_repos[] | split("/")[-1]' "${REPOS_FILE}" | tr '\n' ' ')
+fi
 
 if [[ -z "${GH_REPOS// }" ]]; then
 	echo -e "${red}[ERROR] No github_repos found in ${REPOS_FILE}${norm}"
