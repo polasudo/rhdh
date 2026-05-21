@@ -3,7 +3,7 @@
 # customisations (plugins, app-config, CLI tools) on top of this.
 #
 # Local build:  ./build.sh  (uses --mount=type=secret for registry auth)
-# Konflux:      built via .tekton/rhdh-bootc-*-push.yaml with buildah-remote-oci-ta
+# Konflux:      built via .tekton/rhdh-bootc-*-push.yaml using buildah-remote-oci-ta
 
 FROM registry.redhat.io/rhel9/rhel-bootc@sha256:e09fe991351eab851743b5a5566c4525a183c0b01d8c18f11b8762df37ecbce1
 
