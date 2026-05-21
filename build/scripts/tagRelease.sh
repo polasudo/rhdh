@@ -732,13 +732,26 @@ function updateChartVersions(){
 }
 
 # For rhidp/rhdh-plugin-catalog: rewrite index/builder Containerfile Brew metadata when branching release-1.y
+# Args: repo_root gh_branch midstream_branch [floating_tag] [prod_version]
+#   floating_tag: latest (new rhdh-1.y-rhel-9 stream) or next (rhdh-1-rhel-9 dev branch)
+#   prod_version: defaults to y from release-* gh_branch; pass explicitly for main/SOURCE_BRANCH
 updatePluginCatalogContainerfiles() {
 	local repo_root="$1"
 	local gh_branch="$2"
 	local midstream_branch="$3"
-	local prod_version="${gh_branch#release-}"
+	local floating_tag="${4:-latest}"
+	local prod_version="$5"
 	local rhdh_version backstage_version overlays_sha upstream_repo midstream_repo
 	local get_next_release script_dir builder_node_tag builder_konflux_tags
+
+	if [[ -z "${prod_version}" ]]; then
+		if [[ "${gh_branch}" == release-* ]]; then
+			prod_version="${gh_branch#release-}"
+		else
+			echo -e "${red}[ERROR] prod_version required when gh_branch is not release-* (got ${gh_branch})${norm}"
+			return 1
+		fi
+	fi
 
 	pushd "$repo_root" >/dev/null || return 1
 
@@ -827,15 +840,15 @@ EOT
 	if [[ -f build/containerfiles/builder.Containerfile ]]; then
 		builder_node_tag=$(grep -oE 'node-v[0-9.]+' build/containerfiles/builder.Containerfile | head -1 || true)
 	fi
-	builder_konflux_tags="latest, ${prod_version}, ${rhdh_version}, ${prod_version}-RELEASE_NUMBER"
+	builder_konflux_tags="${floating_tag}, ${prod_version}, ${rhdh_version}, ${prod_version}-RELEASE_NUMBER"
 	[[ -n "${builder_node_tag}" ]] && builder_konflux_tags="${builder_konflux_tags}, ${builder_node_tag}"
 
-	echo " = update plugin-catalog Containerfiles to ${prod_version} (${rhdh_version}) in ${midstream_branch}"
+	echo " = update plugin-catalog Containerfiles to ${prod_version} (${rhdh_version}) in ${midstream_branch} [${floating_tag}]"
 	_plugin_catalog_rewrite_metadata \
 		"build/containerfiles/index.Containerfile" \
 		"Red Hat Developer Hub plugin catalog index" \
 		"plugin-catalog-index" "oci" "" \
-		"latest, ${prod_version}, ${rhdh_version}, ${prod_version}-RELEASE_NUMBER"
+		"${floating_tag}, ${prod_version}, ${rhdh_version}, ${prod_version}-RELEASE_NUMBER"
 	_plugin_catalog_rewrite_metadata \
 		"build/containerfiles/builder.Containerfile" \
 		"Red Hat Developer Hub plugin catalog builder" \
@@ -843,6 +856,48 @@ EOT
 		"${builder_konflux_tags}"
 
 	popd >/dev/null || return 1
+}
+
+# After branching: bump index/builder Containerfiles on rhdh-1-rhel-9 (next stream from main)
+updatePluginCatalogContainerfilesNext() {
+	local midstream_prod_version="${newver%.*}"
+
+	if [[ ! ${SOURCE_BRANCH} ]]; then
+		return 0
+	fi
+
+	echo "= update plugin-catalog Containerfiles in ${MIDSTM_BRANCH} to ${midstream_prod_version}"
+	d="rhdh-plugin-catalog"
+	if [[ -d "$TMPDIR/gitlab_${d}" ]]; then rm -fr "$TMPDIR/gitlab_${d}"; fi
+	git clone -q --recurse-submodules --depth 1 -b "${MIDSTM_BRANCH}" "git@gitlab.cee.redhat.com:rhidp/${d}.git" "gitlab_${d}" || \
+		{ echo "ERROR: Branch ${MIDSTM_BRANCH} doesn't exist: fail!"; exit 1; }
+	pushd "$TMPDIR/gitlab_${d}" >/dev/null || exit 1
+		git config user.email "${MIDSTM_USER}@redhat.com"
+		git config user.name "RHDH Build (${MIDSTM_USER})"
+		git checkout --track origin/"${MIDSTM_BRANCH}" -q 2>/dev/null || true
+		git pull -q 2>/dev/null || true
+
+		updatePluginCatalogContainerfiles \
+			"$TMPDIR/gitlab_${d}" "${SOURCE_BRANCH}" "${MIDSTM_BRANCH}" "next" "${midstream_prod_version}" || exit 1
+
+		COMMITMSG="chore: tagRelease.sh: bump index/builder Containerfiles to ${midstream_prod_version} in ${MIDSTM_BRANCH}"
+		if [[ $(git diff --name-only -- build/containerfiles/index.Containerfile build/containerfiles/builder.Containerfile 2>/dev/null || true) ]]; then
+			git commit --no-gpg-sign -s -m "${COMMITMSG}" \
+				build/containerfiles/index.Containerfile \
+				build/containerfiles/builder.Containerfile \
+				|| echo "nothing to commit, working tree clean (5c)"
+			if [[ ${DO_PUSH} -eq 1 ]]; then
+				if [[ $(git diff --name-only HEAD~1 2>/dev/null || true) ]]; then
+					git push origin "${MIDSTM_BRANCH}" 1>/dev/null 2>&1 || true
+					doPush "${MIDSTM_BRANCH}"
+				else
+					echo "nothing to commit, working tree clean (5d)"
+				fi
+			else
+				echo "Updated files are in $TMPDIR/gitlab_${d}/ -- commit and push them manually"
+			fi
+		fi
+	popd >/dev/null || exit 1
 }
 
 # ############
@@ -1712,10 +1767,15 @@ if [[ $SKIP_GL -eq 0 ]] && [[ "${MIDSTM_BRANCH}" ]]; then
 		; do
 		pushTagGL $repo
 		# updates to 1.x branch after branching
-		if [[ ! $CSV_VERSION ]] && [[ $repo == "rhdh" ]]; then
-			echo "Update existing branch $MIDSTM_BRANCH" 
-			updateFBCVersions
-			removeOperatorBundleLatestTags 
+		if [[ ! $CSV_VERSION ]] && [[ ${SOURCE_BRANCH} ]]; then
+			if [[ $repo == "rhdh" ]]; then
+				echo "Update existing branch $MIDSTM_BRANCH"
+				updateFBCVersions
+				removeOperatorBundleLatestTags
+			elif [[ $repo == "rhdh-plugin-catalog" ]]; then
+				echo "Update existing branch $MIDSTM_BRANCH (plugin-catalog Containerfiles)"
+				updatePluginCatalogContainerfilesNext
+			fi
 		fi
 	done
 	echo "  ## ## ## Processing Gitlab Repos done! ## ## ## "
