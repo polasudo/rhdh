@@ -721,6 +721,120 @@ function updateChartVersions(){
 	popd >/dev/null || exit 1
 }
 
+# For rhidp/rhdh-plugin-catalog: rewrite index/builder Containerfile Brew metadata when branching release-1.y
+updatePluginCatalogContainerfiles() {
+	local repo_root="$1"
+	local gh_branch="$2"
+	local midstream_branch="$3"
+	local prod_version="${gh_branch#release-}"
+	local rhdh_version backstage_version overlays_sha upstream_repo midstream_repo
+	local get_next_release script_dir builder_node_tag builder_konflux_tags
+
+	pushd "$repo_root" >/dev/null || return 1
+
+	rhdh_version=$(curl -fsSL "https://raw.githubusercontent.com/redhat-developer/rhdh/refs/heads/${gh_branch}/package.json" \
+		| jq -r '.version' 2>/dev/null || true)
+	if [[ -z "${rhdh_version}" || "${rhdh_version}" == "null" ]]; then
+		rhdh_version="${prod_version}.0"
+	fi
+
+	backstage_version=$(curl -fsSL \
+		"https://raw.githubusercontent.com/redhat-developer/rhdh-plugin-export-overlays/refs/heads/${gh_branch}/workspaces/backstage/source.json" \
+		| jq -r '."repo-ref"' 2>/dev/null | sed 's/^v//' || true)
+	if [[ -z "${backstage_version}" || "${backstage_version}" == "null" ]]; then
+		backstage_version=$(curl -fsSL \
+			"https://raw.githubusercontent.com/redhat-developer/rhdh-plugin-export-overlays/refs/heads/main/workspaces/backstage/source.json" \
+			| jq -r '."repo-ref"' 2>/dev/null | sed 's/^v//' || true)
+	fi
+
+	overlays_sha=$(curl -fsSL "https://api.github.com/repos/redhat-developer/rhdh-plugin-export-overlays/commits/${gh_branch}" \
+		| jq -r '.sha' 2>/dev/null | head -c 8 || true)
+	[[ -z "${overlays_sha}" || "${overlays_sha}" == "null" ]] && overlays_sha="00000000"
+	upstream_repo="https://github.com/redhat-developer/rhdh-plugin-export-overlays/tree/${gh_branch} @ ${overlays_sha}"
+	midstream_repo="https://gitlab.cee.redhat.com/rhidp/rhdh-plugin-catalog/-/commits/${midstream_branch}"
+
+	script_dir="${repo_root}/build/scripts"
+	get_next_release="${script_dir}/getNextReleaseNum.sh"
+	if [[ ! -x "${get_next_release}" ]]; then
+		mkdir -p "${script_dir}"
+		curl -fsSLo "${get_next_release}" \
+			"https://gitlab.cee.redhat.com/rhidp/rhdh/-/raw/${midstream_branch}/build/scripts/getNextReleaseNum.sh"
+		chmod +x "${get_next_release}"
+	fi
+
+	_plugin_catalog_set_release() {
+		local containerfile="$1" quay_image="$2" next_release_num=0
+		next_release_num=$("${get_next_release}" -b "${midstream_branch}" --tag "${prod_version}" -c "${quay_image}" -q 2>/dev/null || echo 0)
+		[[ "${next_release_num}" -eq 0 ]] && next_release_num=1
+		sed -r -e "s|RELEASE_NUMBER|${next_release_num}|" -i "${containerfile}"
+	}
+
+	_plugin_catalog_rewrite_metadata() {
+		local containerfile="$1" summary="$2" compname="$3" component_suffix="$4" image_name_suffix="$5" konflux_tags="$6"
+
+		[[ ! -f "${containerfile}" ]] && return 0
+		if ! grep -q '# append Brew metadata here' "${containerfile}"; then
+			echo -e "${red}[ERROR] ${containerfile} missing '# append Brew metadata here' marker${norm}"
+			return 1
+		fi
+
+		sed -i '/# append Brew metadata here/q' "${containerfile}"
+		cat >>"${containerfile}" <<EOT
+ENV SUMMARY="${summary}" \\
+    DESCRIPTION="${summary}" \\
+    RHDH_VERSION="${rhdh_version}" \\
+    BACKSTAGE_VERSION="${backstage_version}" \\
+    UPSTREAM_REPO="${upstream_repo}" \\
+    MIDSTREAM_REPO="${midstream_repo}" \\
+    PRODNAME="rhdh" \\
+    COMPNAME="${compname}"
+
+LABEL summary="\$SUMMARY" \\
+      description="\$DESCRIPTION" \\
+      io.k8s.description="\$DESCRIPTION" \\
+      io.k8s.display-name="\$DESCRIPTION" \\
+      io.openshift.tags="\$PRODNAME,\$COMPNAME" \\
+      com.redhat.component="\$PRODNAME-\$COMPNAME-${component_suffix}" \\
+      name="\$PRODNAME/\$PRODNAME-\$COMPNAME${image_name_suffix}" \\
+      version="${prod_version}" \\
+      release="RELEASE_NUMBER" \\
+      rhdh.version="${rhdh_version}" \\
+      backstage.version="${backstage_version}" \\
+      license="ASLv2" \\
+      maintainer="RHDH Team <rhdh-bot@redhat.com>" \\
+      vendor="Red Hat, Inc." \\
+      io.openshift.expose-services="" \\
+      usage="" \\
+      konflux.additional-tags="${konflux_tags}" \\
+      distribution-scope="public" \\
+      url="https://red.ht/rhdh" \\
+      cpe="cpe:/a:redhat:rhdh:${prod_version}::el9"
+EOT
+		_plugin_catalog_set_release "${containerfile}" "rhdh/${compname}${image_name_suffix}"
+	}
+
+	builder_node_tag=""
+	if [[ -f build/containerfiles/builder.Containerfile ]]; then
+		builder_node_tag=$(grep -oE 'node-v[0-9.]+' build/containerfiles/builder.Containerfile | head -1 || true)
+	fi
+	builder_konflux_tags="latest, ${prod_version}, ${rhdh_version}, ${prod_version}-RELEASE_NUMBER"
+	[[ -n "${builder_node_tag}" ]] && builder_konflux_tags="${builder_konflux_tags}, ${builder_node_tag}"
+
+	echo " = update plugin-catalog Containerfiles to ${prod_version} (${rhdh_version}) in ${midstream_branch}"
+	_plugin_catalog_rewrite_metadata \
+		"build/containerfiles/index.Containerfile" \
+		"Red Hat Developer Hub plugin catalog index" \
+		"plugin-catalog-index" "oci" "" \
+		"latest, ${prod_version}, ${rhdh_version}, ${prod_version}-RELEASE_NUMBER"
+	_plugin_catalog_rewrite_metadata \
+		"build/containerfiles/builder.Containerfile" \
+		"Red Hat Developer Hub plugin catalog builder" \
+		"plugin-catalog-builder" "container" "-rhel9" \
+		"${builder_konflux_tags}"
+
+	popd >/dev/null || return 1
+}
+
 # ############
 # UPSTREAM 
 # ############
@@ -1036,13 +1150,13 @@ pushTagGL ()
 
 						popd >/dev/null || exit 1
 
-						# Update plugin-catalog-builder base image tag to new PROD_VERSION
-						cf="build/containerfiles/builder.Containerfile"
+						# Pin gitlab-runner to plugin-catalog-builder for the new stream
+						cf="build/containerfiles/gitlab-runner.Containerfile"
 						if [[ -f "$cf" ]]; then
 							echo " = update plugin-catalog-builder base image to ${PROD_VERSION} in $(basename "$cf")"
 							sed -i "$cf" -r \
 								-e "s|(FROM quay.io/rhdh/plugin-catalog-builder-rhel9:)[0-9.]+|\\1${PROD_VERSION}|"
-							if [[ $(git diff --name-only -- build/containerfiles/builder.Containerfile) != "" ]]; then (( CHANGES = CHANGES + 1 )); fi
+							if [[ $(git diff --name-only -- "$cf") != "" ]]; then (( CHANGES = CHANGES + 1 )); fi
 						fi
 
 						generateCatalogAndFBCPipeline
@@ -1069,14 +1183,24 @@ pushTagGL ()
 						# TODO remove this when we no longer need to fetch catalog entities from rhd/rhdh repo.
 						$YQ '.repos[1].branch[0]|="'"$TARGET_BRANCH"'"' -i "upstream_repos.yml"
 						if [[ $(git diff --name-only -- upstream_repos.yml) != "" ]]; then (( CHANGES = CHANGES + 1 )); fi
+
+						updatePluginCatalogContainerfiles \
+							"$TMPDIR/gitlab_${d}" "$TARGET_BRANCH" "$DWNSTM_TARGET_BRANCH" || exit 1
+						if [[ $(git diff --name-only -- build/containerfiles/index.Containerfile build/containerfiles/builder.Containerfile) != "" ]]; then
+							(( CHANGES = CHANGES + 1 ))
+						fi
 					fi
 					if [[ $d == "rhdh" ]] || [[ $d == "rhdh-plugin-catalog" ]]; then 
 						if [[ $d == "rhdh" ]]; then
-							COMMITMSG="chore: tagRelease.sh: use $TARGET_BRANCH in upstream_repos.yml; update builder.Cotnainerfile to ${PROD_VERSION}; add OCP_VERSION_NEXT catalog and FBC pipeline; trigger rhdh build"
+							COMMITMSG="chore: tagRelease.sh: use $TARGET_BRANCH in upstream_repos.yml; update gitlab-runner.Containerfile to ${PROD_VERSION}; add OCP_VERSION_NEXT catalog and FBC pipeline; trigger rhdh build"
 							git commit --no-gpg-sign -s -m "${COMMITMSG}" .tekton/ sync/ upstream_repos.yml catalogs/ || echo "nothing to commit, working tree clean (5a)"
 						elif [[ $d == "rhdh-plugin-catalog" ]]; then
-							COMMITMSG="chore: tagRelease.sh: use $TARGET_BRANCH in upstream_repos.yml"
-							git commit --no-gpg-sign -s -m "${COMMITMSG}" .tekton/ upstream_repos.yml build/containerfiles/builder.Containerfile || echo "nothing to commit, working tree clean (5b)"
+							COMMITMSG="chore: tagRelease.sh: use ${TARGET_BRANCH} in upstream_repos.yml; bump index + builder Containerfiles to ${PROD_VERSION}; trigger builds"
+							git commit --no-gpg-sign -s -m "${COMMITMSG}" \
+								.tekton/ upstream_repos.yml \
+								build/containerfiles/index.Containerfile \
+								build/containerfiles/builder.Containerfile \
+								|| echo "nothing to commit, working tree clean (5b)"
 						fi
 					fi
 
