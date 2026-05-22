@@ -199,6 +199,10 @@ if [[ ${#MIGRATIONS[@]} -gt 0 ]]; then
         openURL "${MIGRATIONS[$key]}" $target
         target=""
     done
+    echo -e "\n${blue}Agent workflow:${norm} apply pipeline changes per MIGRATION.md using skill"
+    echo -e "  ${green}konflux-tekton-updates${norm} from https://github.com/redhat-developer/rhdh-skill/tree/main/skills/konflux-tekton-updates"
+    echo -e "  npx skills add redhat-developer/rhdh-skill --skill konflux-tekton-updates"
+    echo -e "  Commit locally; use --no-push / --nopush on scripts. Human reviews before git push.\n"
 fi
 
 if [[ ${docommit} -eq 1 ]]; then 

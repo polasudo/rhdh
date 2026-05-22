@@ -12,5 +12,20 @@ See https://gitlab.cee.redhat.com/rhidp/rhdh/-/blob/rhdh-1-rhel-9/build/scripts/
 
 For File-based catalogs (FBC), each FBC Component must be in its own Application, and one Application is needed per OpenShift version.
 
-See link:../build/scripts/renderCatalogs.sh[renderCatalogs.sh] to update the catalogs with new Containerfile metadata. 
+See link:../build/scripts/renderCatalogs.sh[renderCatalogs.sh] to update the catalogs with new Containerfile metadata.
+
+== Konflux task digest bumps
+
+When `./updateDigests.sh --minor` reports migrations, apply changes per each `MIGRATION.md` URL.
+
+Install the agent skill (once per clone):
+
+[source,bash]
+----
+npx skills add redhat-developer/rhdh-skill --skill konflux-tekton-updates
+----
+
+Skill source: https://github.com/redhat-developer/rhdh-skill/tree/main/skills/konflux-tekton-updates
+
+Run `./updateDigests.sh --minor --no-push` and `./generatePipelineRuns.sh` with `--nopush` only if the generator commits; human reviews before `git push`.
 
