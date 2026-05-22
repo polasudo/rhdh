@@ -96,6 +96,10 @@ spec:
         description: Path to a file with build arguments for buildah
         name: build-args-file
         type: string
+      - default: "true"
+        description: Use the package registry proxy when prefetching dependencies
+        name: enable-package-registry-proxy
+        type: string
     results:
       - description: "The fully qualified URL of the built container image"
         name: IMAGE_URL
@@ -164,8 +168,8 @@ spec:
             value: $(params.output-image).prefetch
           - name: ociArtifactExpiresAfter
             value: $(params.image-expires-after)
-          - name: dev-package-managers
-            value: "true"
+          - name: enable-package-registry-proxy
+            value: $(params.enable-package-registry-proxy)
         runAfter:
           - clone-repository
         taskRef:
@@ -440,6 +444,7 @@ spec:
             operator: in
             values: ["false"]
 
+      # BEGIN_TASK apply-tags
       - name: apply-tags
         params:
           - name: IMAGE_URL
@@ -457,6 +462,7 @@ spec:
             - name: kind
               value: task
           resolver: bundles
+      # END_TASK apply-tags
 
       - name: push-dockerfile
         params:

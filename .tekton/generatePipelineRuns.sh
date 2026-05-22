@@ -14,11 +14,11 @@
 #   {{COMPONENT}}, {{OUTPUT_IMAGE}}, {{PATH_CONTEXT}}, {{PREFETCH_INPUT}}
 #   {{MAX_KEEP_RUNS}}, {{SNYK_PROJECT}}, {{STORAGE}}
 #
-# Conditional task blocks are wrapped in:
+# Push-only / optional tasks are wrapped in:
 #   # BEGIN_TASK <task-name> ... # END_TASK <task-name>
 #
-# For pull PipelineRuns (*-pull*.yaml) omit the apply-tags and publish-helm tasks
-# as we don't want these to collide with push PipelineRuns.
+# apply-tags and publish-helm run on push only; pull PLRs drop those blocks via sed
+# (not yq) so YAML formatting matches push pipelines.
 
 set -e
 
@@ -67,18 +67,45 @@ echo -e "${BLUE}Creating RHDH version: ${GREEN}$VERSION_DOT${NC}"
 echo -e "${BLUE}Target branch: ${GREEN}$TARGET_BRANCH${NC}"
 echo ""
 
-# All conditional task names that may appear in templates
-ALL_CONDITIONAL_TASKS=("publish-helm")
+# Tasks only included on push (always stripped from pull; apply-tags on all push PLRs)
+PUSH_ONLY_TASKS=("apply-tags" "publish-helm")
 
-# Remove apply-tags and publish-helm from pull pipelines
-strip_push_tasks() {
+# publish-helm is additionally gated by components.yaml include_tasks (hub only)
+OPTIONAL_COMPONENT_TASKS=("publish-helm")
+
+delete_marked_task() {
 	local output_file="$1"
-	local component="$2"
+	local task_name="$2"
+	sed -i "/# BEGIN_TASK ${task_name}/,/# END_TASK ${task_name}/d" "$output_file"
+}
 
-	yq -yi '.spec.pipelineSpec.tasks |= map(select(.name != "apply-tags"))' "$output_file"
-    if [[ "$component" == hub ]]; then
-        yq -yi '.spec.pipelineSpec.tasks |= map(select(.name != "publish-helm"))' "$output_file"
-    fi
+strip_marked_task_comments() {
+	local output_file="$1"
+	local task_name="$2"
+	sed -i "/# BEGIN_TASK ${task_name}/d; /# END_TASK ${task_name}/d" "$output_file"
+}
+
+# Adjust push-only / optional tasks without re-serializing YAML (preserves formatting).
+process_pipeline_tasks() {
+	local output_file="$1"
+	local include_tasks="$2"
+	local event_suffix="$3"
+
+	if [[ "$event_suffix" == "pull" ]]; then
+		for task_name in "${PUSH_ONLY_TASKS[@]}"; do
+			delete_marked_task "$output_file" "$task_name"
+		done
+		return
+	fi
+
+	for task_name in "${OPTIONAL_COMPONENT_TASKS[@]}"; do
+		if ! echo "$include_tasks" | grep -q "^${task_name}$"; then
+			delete_marked_task "$output_file" "$task_name"
+		else
+			strip_marked_task_comments "$output_file" "$task_name"
+		fi
+	done
+	strip_marked_task_comments "$output_file" "apply-tags"
 }
 
 create_component_pipeline() {
@@ -117,14 +144,7 @@ create_component_pipeline() {
 
     cp "$TEMPLATE_DIR/$template_name" "$output_file"
 
-    # For templates with conditional task blocks, remove tasks not in include_tasks
-    for task_name in "${ALL_CONDITIONAL_TASKS[@]}"; do
-        if ! echo "$include_tasks" | grep -q "^${task_name}$"; then
-            sed -i "/# BEGIN_TASK ${task_name}/,/# END_TASK ${task_name}/d" "$output_file"
-        else
-            sed -i "/# BEGIN_TASK ${task_name}/d; /# END_TASK ${task_name}/d" "$output_file"
-        fi
-    done
+    process_pipeline_tasks "$output_file" "$include_tasks" "$event_suffix"
 
     # Use | as delimiter since prefetch_input contains slashes, brackets, etc.
     sed -i \
@@ -144,10 +164,6 @@ create_component_pipeline() {
     local escaped_prefetch
     escaped_prefetch=$(printf '%s\n' "$prefetch_input" | sed 's/[&/\]/\\&/g')
     sed -i "s|{{PREFETCH_INPUT}}|${escaped_prefetch}|g" "$output_file"
-
-    if [[ "$(basename "$output_file")" == *-pull*.yaml ]]; then
-        strip_push_tasks "$output_file" "$component"
-    fi
 
     echo -e "${GREEN}✓${NC} Created: ${BLUE}rhdh-${component}-${VERSION_DASH}-${event_suffix}.yaml${NC} (from ${template_name})"
 }
