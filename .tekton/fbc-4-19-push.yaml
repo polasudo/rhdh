@@ -154,7 +154,7 @@ spec:
         - name: name
           value: git-clone
         - name: bundle
-          value: quay.io/konflux-ci/tekton-catalog/task-git-clone:0.1@sha256:7db7ad9653dccc771407cb0294487cf4be9064fa782ffad7e983db1a8ba57e21
+          value: quay.io/konflux-ci/tekton-catalog/task-git-clone:0.1@sha256:fedaacbf05ff7b2cdd36bff6cb1f103755cb5dc0b4adc0540136d3606ade18a5
         - name: kind
           value: task
         resolver: bundles
@@ -207,7 +207,7 @@ spec:
         - name: name
           value: build-image-index
         - name: bundle
-          value: quay.io/konflux-ci/tekton-catalog/task-build-image-index:0.3@sha256:550afde50349e22ec11191ea0db9a49395ab46fef4e8317d820b6e946677ebeb
+          value: quay.io/konflux-ci/tekton-catalog/task-build-image-index:0.3@sha256:b33bfa8dc27dbf459f0779598ba45dcaa490bcc9f8efe1652bcf360ec8cb5582
         - name: kind
           value: task
         resolver: bundles
@@ -311,7 +311,7 @@ spec:
         - name: name
           value: validate-fbc
         - name: bundle
-          value: quay.io/konflux-ci/tekton-catalog/task-validate-fbc:0.1@sha256:d1b92157be81f58facc413ff15ae16dcedb01ada0ad8c72c7d759e818ce51083
+          value: quay.io/konflux-ci/tekton-catalog/task-validate-fbc:0.1@sha256:1775e829842cbabe3537a543544bc1c3a39de114f5657462f436c09194250b5a
         - name: kind
           value: task
         resolver: bundles
@@ -333,7 +333,7 @@ spec:
         - name: name
           value: fbc-fips-check
         - name: bundle
-          value: quay.io/konflux-ci/tekton-catalog/task-fbc-fips-check:0.1@sha256:8dccd7e84ff245f7cd0641f4817bb266e884accd608e61c0f59f0f9d94c98bc6
+          value: quay.io/konflux-ci/tekton-catalog/task-fbc-fips-check:0.1@sha256:c4eb011425a1fa77e0724df9a1a8340bd8e59855384f226b8fb6fc11e8d45fdb
         - name: kind
           value: task
         resolver: bundles
