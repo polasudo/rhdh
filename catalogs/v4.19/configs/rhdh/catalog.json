@@ -1453,7 +1453,7 @@
     "schema": "olm.bundle",
     "name": "rhdh-operator.v1.11.0",
     "package": "rhdh",
-    "image": "quay.io/rhdh/rhdh-operator-bundle@sha256:301b996416ca9cab9f7e2061e2cc66321408c498bbacab4fb97a450625227d96",
+    "image": "quay.io/rhdh/rhdh-operator-bundle@sha256:0e008de5e4114d0c27aa1413e1abc16a98236cba3799ab74771d7b294623fc3d",
     "properties": [
         {
             "type": "olm.gvk",
@@ -1510,7 +1510,7 @@
                     "capabilities": "Seamless Upgrades",
                     "categories": "Developer Tools",
                     "certified": "true",
-                    "containerImage": "registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:cd22ce98cef899730f39a9142c50dca167797bee09a2b38cdf764e3419e9ff77",
+                    "containerImage": "registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:f82aab68df05129e400964e061fc98a61db02233d335290a1ad0fb1ceed4b165",
                     "createdAt": "2026-05-17T19:40:29Z",
                     "description": "Red Hat Developer Hub is a Red Hat supported version of Backstage. It comes with pre-built plug-ins and configuration settings, supports use of an external database, and can help streamline the process of setting up a self-managed internal developer portal for adopters who are just starting out.",
                     "features.operators.openshift.io/cnf": "false",
@@ -1621,7 +1621,7 @@
     "relatedImages": [
         {
             "name": "",
-            "image": "quay.io/rhdh/rhdh-operator-bundle@sha256:301b996416ca9cab9f7e2061e2cc66321408c498bbacab4fb97a450625227d96"
+            "image": "quay.io/rhdh/rhdh-operator-bundle@sha256:0e008de5e4114d0c27aa1413e1abc16a98236cba3799ab74771d7b294623fc3d"
         },
         {
             "name": "backstage",
@@ -1629,7 +1629,7 @@
         },
         {
             "name": "",
-            "image": "registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:cd22ce98cef899730f39a9142c50dca167797bee09a2b38cdf764e3419e9ff77"
+            "image": "registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:f82aab68df05129e400964e061fc98a61db02233d335290a1ad0fb1ceed4b165"
         },
         {
             "name": "postgresql",
