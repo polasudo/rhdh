@@ -1,1 +1,6 @@
-
+Upstream Commit: https://github.com/redhat-developer/rhdh-plugin-export-overlays/tree/710868b6
+Midsteam Commit: https://gitlab.cee.redhat.com/rhidp/rhdh-plugin-catalog/-/tree/566f1345d2d0d21ce2426ef84565a43bfdb19084
+UPSTREAM_REPO=https://github.com/redhat-developer/rhdh-plugin-export-overlays/tree/main @ 710868b6
+MIDSTREAM_REPO=https://gitlab.cee.redhat.com/rhidp/rhdh-plugin-catalog/-/commits/rhdh-1-rhel-9
+Build Date: 2026-05-22T13:51:43Z
+Version: 1.11-7 (BS 1.49.4)
