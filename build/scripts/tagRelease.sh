@@ -1233,10 +1233,7 @@ pushTagGL ()
 							rm -f sync/*
 						fi
 					elif [[ $d == "rhdh-plugin-catalog" ]]; then # for rhidp/rhdh-plugin-catalog
-						pushd "$TMPDIR/gitlab_${d}/.tekton" >/dev/null || exit 1
-							generateNewTektonPipelines "${PROD_VERSION}" "$DWNSTM_TARGET_BRANCH" "oci-plugin-build-pipeline"
-						popd >/dev/null || exit 1
-						runPluginCatalogTektonStableBranchUpdate "$TMPDIR/gitlab_${d}" || exit 1
+						runUpdateToStableBranchInTekton "$TMPDIR/gitlab_${d}" || exit 1
 						if [[ $(git diff --name-only -- .tekton/) != "" ]]; then 
 							(( CHANGES = CHANGES + 1 ))
 							git add .tekton/* || true
@@ -1259,7 +1256,7 @@ pushTagGL ()
 							COMMITMSG="chore: tagRelease.sh: use $TARGET_BRANCH in upstream_repos.yml; update gitlab-runner.Containerfile to ${PROD_VERSION}; add OCP_VERSION_NEXT catalog and FBC pipeline; trigger rhdh build"
 							git commit --no-gpg-sign -s -m "${COMMITMSG}" .tekton/ sync/ upstream_repos.yml catalogs/ || echo "nothing to commit, working tree clean (5a)"
 						elif [[ $d == "rhdh-plugin-catalog" ]]; then
-							COMMITMSG="chore: tagRelease.sh: use ${TARGET_BRANCH} in upstream_repos.yml; bump index + builder Containerfiles to ${PROD_VERSION}; trigger builds"
+							COMMITMSG="chore: tagRelease.sh: use ${TARGET_BRANCH} in upstream_repos.yml; updateToStableBranch.py -v ${PROD_VERSION}; bump index + builder Containerfiles; trigger builds"
 							git commit --no-gpg-sign -s -m "${COMMITMSG}" \
 								.tekton/ upstream_repos.yml \
 								build/containerfiles/index.Containerfile \
@@ -1569,61 +1566,10 @@ generateNewKonfluxReleaseDataYamls ()
 	echo; echo "== $repo :: MR generated for Konflux $KFUX_VERSION yaml for RHDH $PROD_VERSION. NOTE: new CPE MR for prodsec/product-definitions MUST BE MERGED or this MR will fail!  =="
 }
 
-# Apply version replacements inside a Tekton YAML (dash in names, dots in branch refs).
-_applyTektonPipelineVersionReplacements() {
-	local y="$1" prod_dot="$2" prod_dash="$3" branchy="$4"
-	sed -i "$y" -r \
-		-e "s@rhdh-1-rhel-9@${branchy}@g" \
-		-e "s@-1-([a-z]+)@-${prod_dash}-\1@g" \
-		-e "s@${prod_dash}-next@${prod_dash}@g" \
-		-e "s/(application: rhdh-plugin-catalog)-1(\s|\$)/\1-${prod_dash}\2/" \
-		-e "s/(application: rhdh)-1(\s|\$)/\1-${prod_dash}\2/" \
-		-e "s/(component: plugin-catalog-builder)-1(\s|\$)/\1-${prod_dash}\2/" \
-		-e "s/(component: plugin-catalog-index)-1(\s|\$)/\1-${prod_dash}\2/" \
-		-e "s/(component: (plugin-catalog-builder-|rhdh-)[a-z-]+)-1(\s|\$)/\1-${prod_dash}\3/" \
-		-e "s/(name: plugin-catalog-builder)-1-(on-push|on-pull)\$/\1-${prod_dash}-\2/" \
-		-e "s/(name: plugin-catalog-index)-1-(on-push|on-pull)\$/\1-${prod_dash}-\2/" \
-		-e "s/(build-pipeline-plugin-catalog-builder)-1(\s|\$)/\1-${prod_dash}\2/" \
-		-e "s/(build-pipeline-plugin-catalog-index)-1(\s|\$)/\1-${prod_dash}\2/" \
-		-e "s@konflux-rhdh-plugin-catalog-1@konflux-rhdh-plugin-catalog-${prod_dash}@g" \
-		-e "s@\.tekton/plugin-catalog-builder-1-push@.tekton/plugin-catalog-builder-${prod_dash}-push@g" \
-		-e "s@\.tekton/plugin-catalog-builder-1-pull@.tekton/plugin-catalog-builder-${prod_dash}-pull@g" \
-		-e "s@\.tekton/plugin-catalog-index-1-push@.tekton/plugin-catalog-index-${prod_dash}-push@g" \
-		-e "s@\.tekton/plugin-catalog-index-1-pull@.tekton/plugin-catalog-index-${prod_dash}-pull@g"
-}
-
-# create new pipelines based on the rhdh-1 versions; rename and do sed replacements
-generateNewTektonPipelines ()
-{
-	local prod_dot="$1" prod_dash branchy="$2" regex="$3" y dest
-	prod_dot="${prod_dot//-/.}"
-	prod_dash="${prod_dot//./-}"
-	branchy="${branchy//-/.}" # rhdh-1.10-rhel-9 (dots in branch names)
-
-	echo " = generate new pipelines in $(pwd) for ${branchy} (${prod_dash})"
-	for y in "${regex}"*.yaml; do
-		[[ -f "$y" ]] || continue
-		dest="$y"
-		if [[ "$y" =~ -1-push\.yaml$ ]]; then
-			dest="${y/-1-push.yaml/-${prod_dash}-push.yaml}"
-		elif [[ "$y" =~ -1-pull\.yaml$ ]]; then
-			dest="${y/-1-pull.yaml/-${prod_dash}-pull.yaml}"
-		elif [[ "$y" == *"-1-"* ]]; then
-			dest="$(echo "$y" | sed -r -e "s@-1-([a-z]+)@-${prod_dash}-\1@g")"
-		fi
-		if [[ "$dest" != "$y" ]] && [[ ! -f "$dest" ]]; then
-			if [[ $VERBOSE -eq 1 ]]; then echo -n ">> $y -> $dest"; fi
-			git mv "$y" "$dest" 2>/dev/null || mv "$y" "$dest"
-			y="$dest"
-		fi
-		echo " > $y"
-		_applyTektonPipelineVersionReplacements "$y" "$prod_dot" "$prod_dash" "$branchy"
-	done
-}
-
-# plugin-catalog-* PLRs: prefer updateToStableBranch.py; fall back to generateNewTektonPipelines
-runPluginCatalogTektonStableBranchUpdate() {
-	local repo_root="$1" prod_dash="${PROD_VERSION//./-}"
+# Rename *-1-push/pull Tekton files and update refs for stable branch rhdh-1.y-rhel-9.
+# Uses .tekton/updateToStableBranch.py from the checked-out rhdh-plugin-catalog branch.
+runUpdateToStableBranchInTekton() {
+	local repo_root="$1"
 	local tekton_dir="${repo_root}/.tekton"
 	local py_script="${tekton_dir}/updateToStableBranch.py"
 
@@ -1631,23 +1577,17 @@ runPluginCatalogTektonStableBranchUpdate() {
 		echo -e "${red}[ERROR] ${tekton_dir} not found${norm}"
 		return 1
 	fi
+	if [[ ! -f "${py_script}" ]]; then
+		echo -e "${red}[ERROR] ${py_script} not found (required for rhdh-plugin-catalog branching)${norm}"
+		return 1
+	fi
+	if ! command -v python3 >/dev/null 2>&1; then
+		echo -e "${red}[ERROR] python3 is required to run updateToStableBranch.py${norm}"
+		return 1
+	fi
 	pushd "${tekton_dir}" >/dev/null || return 1
-		echo " = update plugin-catalog Tekton pipelines to ${prod_dash} in $(pwd)"
-		if [[ -f "${py_script}" ]] && command -v python3 >/dev/null 2>&1; then
-			python3 "${py_script}" -v "${PROD_VERSION}" || {
-				echo -e "${blue}[WARN] updateToStableBranch.py failed; falling back to sed renames${norm}"
-				for prefix in plugin-catalog-builder plugin-catalog-index; do
-					generateNewTektonPipelines "${PROD_VERSION}" "${DWNSTM_TARGET_BRANCH}" "${prefix}"
-				done
-			}
-			# Idempotent repair for files renamed earlier with stale -1 refs in metadata
-			python3 "${py_script}" -v "${PROD_VERSION}" --in-place-only 2>/dev/null || true
-		else
-			echo -e "${blue}[WARN] ${py_script} or python3 not found; using generateNewTektonPipelines${norm}"
-			for prefix in plugin-catalog-builder plugin-catalog-index; do
-				generateNewTektonPipelines "${PROD_VERSION}" "${DWNSTM_TARGET_BRANCH}" "${prefix}"
-			done
-		fi
+		echo " = run updateToStableBranch.py -v ${PROD_VERSION} in ${DWNSTM_TARGET_BRANCH} ($(pwd))"
+		python3 "${py_script}" -v "${PROD_VERSION}"
 	popd >/dev/null || return 1
 }
 
