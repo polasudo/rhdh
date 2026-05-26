@@ -311,23 +311,6 @@ spec:
         - name: kind
           value: task
         resolver: bundles
-    - name: apply-tags
-      params:
-      - name: IMAGE_URL
-        value: $(tasks.build-image-index.results.IMAGE_URL)
-      - name: IMAGE_DIGEST
-        value: $(tasks.build-image-index.results.IMAGE_DIGEST)
-      runAfter:
-      - build-image-index
-      taskRef:
-        params:
-        - name: name
-          value: apply-tags
-        - name: bundle
-          value: quay.io/konflux-ci/tekton-catalog/task-apply-tags:0.3@sha256:a291081de7fb27f832c6fc3c4b078acf7e6162ca4c085db38b118ca87e8b5b66
-        - name: kind
-          value: task
-        resolver: bundles
     - name: build-source-image
       params:
       - name: BINARY_IMAGE
