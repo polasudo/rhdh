@@ -183,7 +183,12 @@ else
     if [[ -d /tmp/rhdh-tmp ]]; then rm -fr /tmp/rhdh-tmp; fi
 
     if [[ $KONFLUX_ONLY -eq 1 ]]; then
-        openURL "https://konflux-ui.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/ns/rhdh-tenant/applications/rhdh-${BRANCH/./-}/activity/pipelineruns"
+        if [[ $targets == "bootc" ]]; then
+            konflux_app="rhdh-bootc-${BRANCH/./-}"
+        else
+            konflux_app="rhdh-${BRANCH/./-}"
+        fi
+        openURL "https://konflux-ui.apps.stone-prod-p02.hjvn.p1.openshiftapps.com/ns/rhdh-tenant/applications/${konflux_app}/activity/pipelineruns"
     else
         openURL https://gitlab.cee.redhat.com/rhidp/rhdh/-/pipelines
     fi

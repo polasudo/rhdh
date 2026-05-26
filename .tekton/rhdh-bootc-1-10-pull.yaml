@@ -10,14 +10,14 @@ metadata:
     pipelinesascode.tekton.dev/max-keep-runs: "5"
     pipelinesascode.tekton.dev/on-cel-expression: |
       (event == "pull_request") &&
-      target_branch == "rhdh-1-rhel-9" &&
-      ( "distgit/containers/rhdh-bootc/***".pathChanged() || ".tekton/rhdh-bootc-1-pull.yaml".pathChanged() )
+      target_branch == "rhdh-1.10-rhel-9" &&
+      ( "distgit/containers/rhdh-bootc/***".pathChanged() || ".tekton/rhdh-bootc-1-10-pull.yaml".pathChanged() )
   creationTimestamp: null
   labels:
-    appstudio.openshift.io/application: rhdh-bootc-1
-    appstudio.openshift.io/component: rhdh-bootc-1
+    appstudio.openshift.io/application: rhdh-bootc-1-10
+    appstudio.openshift.io/component: rhdh-bootc-1-10
     pipelines.appstudio.openshift.io/type: build
-  name: rhdh-bootc-1-on-pull
+  name: rhdh-bootc-1-10-on-pull
   namespace: rhdh-tenant
 spec:
   params:
@@ -311,6 +311,23 @@ spec:
         - name: kind
           value: task
         resolver: bundles
+    - name: apply-tags
+      params:
+      - name: IMAGE_URL
+        value: $(tasks.build-image-index.results.IMAGE_URL)
+      - name: IMAGE_DIGEST
+        value: $(tasks.build-image-index.results.IMAGE_DIGEST)
+      runAfter:
+      - build-image-index
+      taskRef:
+        params:
+        - name: name
+          value: apply-tags
+        - name: bundle
+          value: quay.io/konflux-ci/tekton-catalog/task-apply-tags:0.3@sha256:a291081de7fb27f832c6fc3c4b078acf7e6162ca4c085db38b118ca87e8b5b66
+        - name: kind
+          value: task
+        resolver: bundles
     - name: build-source-image
       params:
       - name: BINARY_IMAGE
@@ -518,7 +535,7 @@ spec:
     - name: netrc
       optional: true
   taskRunTemplate:
-    serviceAccountName: build-pipeline-rhdh-bootc-1
+    serviceAccountName: build-pipeline-rhdh-bootc-1-10
   taskRunSpecs:
   - pipelineTaskName: build-container
     podTemplate:
